@@ -1,0 +1,8 @@
+node_modules
+lib
+firebase-debug.log
+*.local
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo

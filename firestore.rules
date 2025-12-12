@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // USERS
+    match /users/{uid} {
+      // Allow signed-in users to read basic profiles.
+      allow read: if isSignedIn();
+
+      // Only owner can update, and cannot change plan or isIdVerified.
+      allow update: if isOwner(uid)
+        && request.resource.data.plan == resource.data.plan
+        && request.resource.data.isIdVerified == resource.data.isIdVerified;
+
+      // Creation/deletion should be via auth/signup pipeline or admin.
+      allow create, delete: if false;
+    }
+
+    // MATCHES
+    match /matches/{matchId} {
+      // Only participants can read.
+      allow read: if isSignedIn()
+        && resource.data.userIds.hasAny([request.auth.uid]);
+
+      // Created/updated/deleted only via backend (Cloud Functions/Admin).
+      allow create, update, delete: if false;
+
+      // MESSAGES subcollection
+      match /messages/{messageId} {
+        // Only participants can read.
+        allow read: if isSignedIn()
+          && get(/databases/$(database)/documents/matches/$(matchId))
+            .data.userIds.hasAny([request.auth.uid]);
+
+        // Allow create if both participants are verified and match contains both.
+        allow create: if isSignedIn()
+          && get(/databases/$(database)/documents/matches/$(matchId))
+            .data.userIds.hasAll(
+              [request.auth.uid, request.resource.data.toUserId]
+            )
+          && get(/databases/$(database)/documents/users/$(request.auth.uid))
+            .data.isIdVerified == true
+          && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
+            .data.isIdVerified == true;
+
+        // Allow receiver to mark isRead=true only.
+        allow update: if isSignedIn()
+          && resource.data.toUserId == request.auth.uid
+          && request.resource.data.diff(resource.data).changedKeys()
+            .hasOnly(['isRead'])
+          && request.resource.data.isRead == true;
+
+        // No client deletes; unsend is handled via Cloud Function (admin).
+        allow delete: if false;
+      }
+    }
+
+    // Likes: only creator can write; everyone signed-in can read (adjust as needed).
+    match /likes/{likeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Reports: reporter can create; no client updates/deletes.
+    match /reports/{reportId} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.reporterId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Blocks: blocker can create; no client updates/deletes.
+    match /blocks/{blockId} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.blockerId == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

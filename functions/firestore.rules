@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Read-only profiles for now
+    match /users/{uid} {
+      allow read: if isSignedIn();
+
+      // Users can update their profile, but not plan or isIdVerified
+      allow update: if isOwner(uid)
+        && request.resource.data.plan == resource.data.plan
+        && request.resource.data.isIdVerified == resource.data.isIdVerified;
+
+      // Users should not create themselves; server does that
+      allow create: if false;
+      allow delete: if false;
+    }
+
+    // Likes: only the liker can create; no updates
+    match /likes/{likeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Matches: only server (Cloud Functions) should write
+    match /matches/{matchId} {
+      allow read: if isSignedIn()
+        && resource.data.userIds.hasAny([request.auth.uid]);
+
+      // Client cannot create/update/delete matches directly
+      allow create, update, delete: if false;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+          && get(/databases/$(database)/documents/matches/$(matchId))
+            .data.userIds.hasAny([request.auth.uid]);
+
+        allow create: if isSignedIn()
+          && get(/databases/$(database)/documents/matches/$(matchId))
+            .data.userIds.hasAll([request.auth.uid, request.resource.data.toUserId])
+          // both must be ID-verified
+          && get(/databases/$(database)/documents/users/$(request.auth.uid))
+            .data.isIdVerified == true
+          && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
+            .data.isIdVerified == true;
+
+        // Only receiver can set isRead=true on their messages
+        allow update: if isSignedIn()
+          && resource.data.toUserId == request.auth.uid
+          && request.resource.data.diff(resource.data).changedKeys()
+            .hasOnly(['isRead'])
+          && request.resource.data.isRead == true;
+
+        allow delete: if false;
+      }
+    }
+
+    // Reports: any signed-in user can create a report
+    match /reports/{reportId} {
+      allow create: if isSignedIn()
+        && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    // Blocks: any signed-in user can block another
+    match /blocks/{blockId} {
+      allow create: if isSignedIn()
+        && request.resource.data.blockerId == request.auth.uid;
+      allow read: if isSignedIn()
+        && resource.data.blockerId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Pre-match pairs
+    match /preMatchPairs/{pairId} {
+      // Only functions should write preMatchPairs
+      allow read: if isSignedIn();
+      allow create, update, delete: if false;
+
+      match /requests/{reqId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if false;
+      }
+    }
+  }
+}

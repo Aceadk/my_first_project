@@ -1,0 +1,40 @@
+import 'package:equatable/equatable.dart';
+
+abstract class DiscoveryEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class DiscoveryDeckRequested extends DiscoveryEvent {
+  final String userId;
+  DiscoveryDeckRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class DiscoverySwipedRight extends DiscoveryEvent {
+  final String userId;
+  final String targetUserId;
+  final String? attachedMessage;
+  DiscoverySwipedRight({
+    required this.userId,
+    required this.targetUserId,
+    this.attachedMessage,
+  });
+
+  @override
+  List<Object?> get props => [userId, targetUserId, attachedMessage];
+}
+
+class DiscoverySwipedLeft extends DiscoveryEvent {
+  final String userId;
+  final String targetUserId;
+  DiscoverySwipedLeft({
+    required this.userId,
+    required this.targetUserId,
+  });
+
+  @override
+  List<Object?> get props => [userId, targetUserId];
+}

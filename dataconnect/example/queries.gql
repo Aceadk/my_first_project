@@ -1,0 +1,33 @@
+mutation CreateUser @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  user_insert(data: {
+    id_expr: "uuidV4()"
+    username: "newuser"
+    displayName: "New User"
+    createdAt_expr: "request.time"
+  })
+}
+
+query GetPostsByUser($userId: UUID!) @auth(level: USER) {
+  posts(where: {userId: {eq: $userId}}) {
+    id
+    content
+    createdAt
+  }
+}
+
+mutation LikePost($postId: UUID!) @auth(level: USER) {
+  like_insert(data: {
+    userId_expr: "auth.uid"
+    postId: $postId
+    createdAt_expr: "request.time"
+  })
+}
+
+query ListAllUsers @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  users {
+    id
+    username
+    displayName
+    profilePictureUrl
+  }
+}
