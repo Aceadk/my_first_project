@@ -136,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (isBlocked)
                     Container(
                       width: double.infinity,
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withAlpha((0.1 * 255).round()),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
@@ -163,7 +163,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   else if (messagesMuted || callsMuted)
                     Container(
                       width: double.infinity,
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withAlpha((0.1 * 255).round()),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
