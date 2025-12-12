@@ -38,6 +38,10 @@ class DeckScreen extends StatelessWidget {
           );
         }
 
+        if (state.errorMessage != null && state.deck.isEmpty) {
+          return _buildErrorState(context, userId);
+        }
+
         if (state.deck.isEmpty || state.currentIndex >= state.deck.length) {
           return Scaffold(
             appBar: AppBar(
@@ -122,6 +126,46 @@ class DeckScreen extends StatelessWidget {
     if (state.deck.isNotEmpty) return;
     if (state.errorMessage != null) return;
     context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
+  }
+
+  Widget _buildErrorState(BuildContext context, String? userId) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CrushHour'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_off, size: 72),
+              const SizedBox(height: 12),
+              const Text(
+                'Trouble loading people',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Check your connection and try again.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                onPressed: userId == null
+                    ? null
+                    : () => context
+                        .read<DiscoveryBloc>()
+                        .add(DiscoveryDeckRequested(userId)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildOutOfPeople(BuildContext context) {
