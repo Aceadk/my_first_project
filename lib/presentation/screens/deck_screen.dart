@@ -58,9 +58,24 @@ class DeckScreen extends StatelessWidget {
           appBar: AppBar(
             title: const Text('CrushHour'),
             centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh',
+                onPressed: userId == null
+                    ? null
+                    : () => context
+                        .read<DiscoveryBloc>()
+                        .add(DiscoveryDeckRequested(userId)),
+              ),
+            ],
           ),
           body: Column(
             children: [
+              if (state.isLoading)
+                const LinearProgressIndicator(minHeight: 2)
+              else
+                const SizedBox(height: 2),
               Expanded(
                 child: SwipeCard(profile: currentProfile),
               ),
@@ -197,6 +212,19 @@ class DeckScreen extends StatelessWidget {
                 );
               },
               child: const Text('Change filters'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh deck'),
+              onPressed: () {
+                final userId = context.read<AuthBloc>().state.user?.id;
+                if (userId != null) {
+                  context
+                      .read<DiscoveryBloc>()
+                      .add(DiscoveryDeckRequested(userId));
+                }
+              },
             ),
             const SizedBox(height: 12),
             OutlinedButton(

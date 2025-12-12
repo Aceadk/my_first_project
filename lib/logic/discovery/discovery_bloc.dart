@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants.dart';
 import '../../data/models/subscription.dart';
@@ -10,6 +12,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository discoveryRepository;
   final SubscriptionRepository subscriptionRepository;
   int? _remainingFreeSwipesToday;
+  Timer? _retryTimer;
+  int _retryDelayMs = 1000;
+  String? _lastRequestedUserId;
 
   DiscoveryBloc({
     required this.discoveryRepository,
@@ -22,12 +27,15 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
   Future<void> _onDeckRequested(
       DiscoveryDeckRequested event, Emitter<DiscoveryState> emit) async {
+    _lastRequestedUserId = event.userId;
+    _retryTimer?.cancel();
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       final deck = await discoveryRepository.fetchDeck(event.userId);
       final plan = await subscriptionRepository.getCurrentPlan();
       _remainingFreeSwipesToday =
           plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
+      _retryDelayMs = 1000;
       emit(state.copyWith(
         isLoading: false,
         deck: deck,
@@ -39,6 +47,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         isLoading: false,
         errorMessage: 'Could not load people. Please try again.',
       ));
+      _scheduleRetry();
     }
   }
 
@@ -101,5 +110,22 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         errorMessage: 'Could not pass on this profile.',
       ));
     }
+  }
+
+  void _scheduleRetry() {
+    final userId = _lastRequestedUserId;
+    if (userId == null) return;
+    _retryTimer?.cancel();
+    final delay = Duration(milliseconds: _retryDelayMs);
+    _retryDelayMs = (_retryDelayMs * 2).clamp(1000, 8000);
+    _retryTimer = Timer(delay, () {
+      if (!isClosed) add(DiscoveryDeckRequested(userId));
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _retryTimer?.cancel();
+    return super.close();
   }
 }
