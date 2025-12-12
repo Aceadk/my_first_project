@@ -64,7 +64,7 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 - Sample SQL provided in previous snippets to flatten Firestore exports and run `ML.PREDICT`.
 
 ## What to focus on next
-- Replace placeholder IDs: use real user IDs (not `currentProfile.name`) in swipes/chat/pre-match.
+- Verify backend enforcement: auth checks and ownership in callables (unsend, swipe, pre-match).
 - Harden security: auth checks and ownership in callables (unsend, swipe, pre-match).
 - Improve UX: error states, loading, empty decks, retry/backoff.
 - Web polish: test callables for CORS; verify RTC/calls behavior on web.
