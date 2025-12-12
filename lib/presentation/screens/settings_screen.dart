@@ -14,6 +14,7 @@ import '../../data/models/subscription.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
+import '../../logic/locale/locale_cubit.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -83,6 +84,87 @@ class SettingsScreen extends StatelessWidget {
                             notifier.toggleVibration(value),
                       ),
                     ],
+                  );
+                },
+              ),
+              const Divider(),
+              BlocConsumer<LocaleCubit, LocaleState>(
+                listenWhen: (previous, current) =>
+                    previous.errorMessage != current.errorMessage ||
+                    (previous.isDetecting && !current.isDetecting),
+                listener: (context, localeState) {
+                  if (localeState.errorMessage != null &&
+                      localeState.errorMessage!.isNotEmpty) {
+                    showErrorSnackBar(context, localeState.errorMessage!);
+                  } else if (!localeState.isDetecting &&
+                      localeState.errorMessage == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Region updated from device location.'),
+                      ),
+                    );
+                  }
+                },
+                builder: (context, localeState) {
+                  final localeCubit = context.read<LocaleCubit>();
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Column(
+                      children: [
+                        const ListTile(
+                          title: Text(
+                            'Language & region',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.language),
+                          title: const Text('Language'),
+                          subtitle: Text(_languageLabel(
+                            localeState.languageCode,
+                          )),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _showLanguageSheet(
+                            context,
+                            localeState.languageCode,
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.public),
+                          title: const Text('Region'),
+                          subtitle: Text(localeState.region),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _showRegionDialog(
+                            context,
+                            localeState.region,
+                            localeCubit,
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.my_location),
+                          title: const Text('Use device location'),
+                          subtitle: const Text(
+                            'Detect your region automatically',
+                          ),
+                          trailing: localeState.isDetecting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.chevron_right),
+                          onTap: localeState.isDetecting
+                              ? null
+                              : () => localeCubit.detectFromLocation(),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -491,6 +573,100 @@ class SettingsScreen extends StatelessWidget {
   String _formatInterests(List<String> interests) {
     if (interests.isEmpty) return 'Add interests to refine matches';
     return interests.join(', ');
+  }
+
+  String _languageLabel(String code) {
+    switch (code) {
+      case 'es':
+        return 'Spanish';
+      case 'fr':
+        return 'French';
+      case 'de':
+        return 'German';
+      case 'en':
+      default:
+        return 'English';
+    }
+  }
+
+  void _showLanguageSheet(BuildContext context, String current) {
+    const options = [
+      {'code': 'en', 'label': 'English'},
+      {'code': 'es', 'label': 'Spanish'},
+      {'code': 'fr', 'label': 'French'},
+      {'code': 'de', 'label': 'German'},
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        final cubit = sheetContext.read<LocaleCubit>();
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Choose language',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              ...options.map(
+                (option) => RadioListTile<String>(
+                  value: option['code']!,
+                  groupValue: current,
+                  title: Text(option['label']!),
+                  onChanged: (value) {
+                    if (value != null) {
+                      cubit.setLanguage(value);
+                      Navigator.of(sheetContext).pop();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRegionDialog(
+    BuildContext context,
+    String currentRegion,
+    LocaleCubit cubit,
+  ) {
+    final controller = TextEditingController(text: currentRegion);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Set region'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'City, State/Province, Country',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final value = controller.text.trim();
+                if (value.isNotEmpty) {
+                  cubit.setRegion(value);
+                }
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showLegalDialog(

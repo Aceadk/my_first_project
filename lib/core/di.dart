@@ -33,6 +33,7 @@ import '../logic/theme/theme_cubit.dart';
 import '../logic/notification/notification_settings_cubit.dart';
 import '../logic/discovery/discovery_settings_cubit.dart';
 import '../logic/safety/safety_cubit.dart';
+import '../logic/locale/locale_cubit.dart';
 
 class CrushDI {
   static List<RepositoryProvider> buildRepositories() {
@@ -122,6 +123,9 @@ class CrushDI {
       ),
       BlocProvider<SafetyCubit>(
         create: (_) => SafetyCubit(preferences: preferences),
+      ),
+      BlocProvider<LocaleCubit>(
+        create: (_) => LocaleCubit(preferences: preferences),
       ),
     ];
   }
