@@ -456,6 +456,15 @@ export const createCheckoutSession = functions.https.onCall(
 );
 
 export const stripeWebhook = functions.https.onRequest(async (req, res) => {
+  // Basic CORS handling for browser preflight and requests
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
+    res.status(204).send("");
+    return;
+  }
+
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
     return;
@@ -587,6 +596,15 @@ export const generateAgoraToken = functions.https.onCall(
 
 // HTTP endpoint for local testing (not authenticated)
 export const testAgoraToken = functions.https.onRequest((req, res) => {
+  // Basic CORS handling for browser preflight and requests
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    res.status(204).send("");
+    return;
+  }
+
   if (!agoraAppId || !agoraCertificate) {
     res.status(500).json({ error: "Agora credentials not configured" });
     return;
