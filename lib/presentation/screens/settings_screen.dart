@@ -15,6 +15,7 @@ import '../../core/ui/snackbar_utils.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/locale/locale_cubit.dart';
+import '../../logic/storage/storage_settings_cubit.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -259,6 +260,93 @@ class SettingsScreen extends StatelessWidget {
                         onChanged: (value) => cubit.setVisible(value),
                       ),
                     ],
+                  );
+                },
+              ),
+              const Divider(),
+              BlocBuilder<StorageSettingsCubit, StorageSettingsState>(
+                builder: (context, storageState) {
+                  final cubit = context.read<StorageSettingsCubit>();
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Column(
+                      children: [
+                        const ListTile(
+                          title: Text(
+                            'Data & storage',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.cloud_download_outlined),
+                          title: const Text('Media downloads'),
+                          subtitle: Text(
+                            storageState.mediaDownloadEnabled
+                                ? storageState.mediaDownloadWifiOnly
+                                    ? 'Download on Wi‑Fi only'
+                                    : 'Download on Wi‑Fi or mobile data'
+                                : 'Downloads off',
+                          ),
+                          trailing: Switch(
+                            value: storageState.mediaDownloadEnabled,
+                            onChanged: (enabled) {
+                              cubit.setMediaDownloadEnabled(enabled);
+                            },
+                          ),
+                        ),
+                        SwitchListTile(
+                          title: const Text('Download only on Wi‑Fi'),
+                          subtitle: const Text(
+                            'Avoid using mobile data for media',
+                          ),
+                          value: storageState.mediaDownloadWifiOnly,
+                          onChanged: storageState.mediaDownloadEnabled
+                              ? (value) =>
+                                  cubit.setMediaDownloadWifiOnly(value)
+                              : null,
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.storage_outlined),
+                          title: const Text('Cache size'),
+                          subtitle:
+                              Text('${storageState.cacheSizeMb} MB reserved'),
+                          trailing: SizedBox(
+                            width: 180,
+                            child: Slider(
+                              min: 50,
+                              max: 1000,
+                              divisions: 19,
+                              value: storageState.cacheSizeMb.toDouble(),
+                              label: '${storageState.cacheSizeMb} MB',
+                              onChanged: (value) =>
+                                  cubit.setCacheSize(value.round()),
+                            ),
+                          ),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.cleaning_services_outlined),
+                          title: const Text('Clear cache'),
+                          subtitle: const Text(
+                            'Free up space from temporary files',
+                          ),
+                          onTap: () async {
+                            await cubit.clearCache();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Cache cleared.'),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
