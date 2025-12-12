@@ -1,12 +1,24 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/router.dart';
 import '../../logic/theme/theme_cubit.dart';
 import '../../logic/notification/notification_settings_cubit.dart';
 import '../../logic/discovery/discovery_settings_cubit.dart';
+import '../../logic/safety/safety_cubit.dart';
+import '../../logic/subscription/subscription_bloc.dart';
+import '../../logic/subscription/subscription_event.dart';
+import '../../logic/subscription/subscription_state.dart';
+import '../../data/models/subscription.dart';
+import '../../core/ui/snackbar_utils.dart';
+import '../../logic/auth/auth_bloc.dart';
+import '../../logic/auth/auth_event.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  static const _appVersion = '1.0.0';
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +181,170 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               const Divider(),
+              BlocConsumer<SubscriptionBloc, SubscriptionState>(
+                listenWhen: (previous, current) =>
+                    previous.errorMessage != current.errorMessage,
+                listener: (context, state) {
+                  final error = state.errorMessage;
+                  if (error != null && error.isNotEmpty) {
+                    showErrorSnackBar(context, error);
+                  }
+                },
+                builder: (context, subState) {
+                  final isPlus = subState.plan == SubscriptionPlan.plus;
+                  final loading = subState.isCheckoutInProgress;
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Subscription',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPlus ? 'Current plan: Plus' : 'Current plan: Free',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isPlus
+                                ? 'Manage billing or renew your Plus plan.'
+                                : 'Upgrade to Plus for unlimited likes and unsend.',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: loading
+                                  ? null
+                                  : () {
+                                      context
+                                          .read<SubscriptionBloc>()
+                                          .add(PlusCheckoutRequested());
+                                    },
+                              child: loading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation(Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      isPlus
+                                          ? 'Manage subscription'
+                                          : 'Upgrade to Plus',
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
+              Card(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  children: [
+                    const ListTile(
+                      title: Text(
+                        'Account actions',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.phone_android),
+                      title: const Text('Change phone number'),
+                      subtitle:
+                          const Text('Re-verify with a new phone number'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _confirmChangePhone(context),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.pause_circle_outline),
+                      title: const Text('Deactivate account'),
+                      subtitle:
+                          const Text('Hide your profile until you return'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _confirmDeactivate(context),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.delete_forever_outlined,
+                        color: Colors.red,
+                      ),
+                      title: const Text(
+                        'Delete account',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      subtitle: const Text('Permanently remove your data'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _confirmDelete(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Card(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.article_outlined),
+                      title: const Text('Terms of Service'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showLegalDialog(
+                        context,
+                        'Terms of Service',
+                        'Full terms will be available soon.',
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.privacy_tip_outlined),
+                      title: const Text('Privacy Policy'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showLegalDialog(
+                        context,
+                        'Privacy Policy',
+                        'Privacy details will be available soon.',
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: const Text('App version'),
+                      trailing: const Text(_appVersion),
+                      onTap: () => _showLegalDialog(
+                        context,
+                        'App version',
+                        'Version $_appVersion',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
               const ListTile(
                 leading: Icon(Icons.verified_user),
                 title: Text('Account & verification'),
@@ -187,6 +363,23 @@ class SettingsScreen extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pushNamed(context, CrushRoutes.logout);
+                },
+              ),
+              BlocBuilder<SafetyCubit, SafetyState>(
+                builder: (context, safetyState) {
+                  final blockedCount = safetyState.blockedUsers.length;
+                  final subtitle = blockedCount == 0
+                      ? 'Manage blocked & muted users'
+                      : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
+                  return ListTile(
+                    leading: const Icon(Icons.shield_outlined),
+                    title: const Text('Safety & blocking'),
+                    subtitle: Text(subtitle),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.pushNamed(context, CrushRoutes.safety);
+                    },
+                  );
                 },
               ),
             ],
@@ -299,6 +492,128 @@ class SettingsScreen extends StatelessWidget {
     if (interests.isEmpty) return 'Add interests to refine matches';
     return interests.join(', ');
   }
+
+  void _showLegalDialog(
+    BuildContext context,
+    String title,
+    String body,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmChangePhone(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Change phone number'),
+          content: const Text(
+            'You will be signed out to verify a new phone number. Continue?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<AuthBloc>().add(AuthSignedOut());
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        CrushRoutes.phoneAuth,
+        (route) => false,
+      );
+    }
+  }
+
+  Future<void> _confirmDeactivate(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Deactivate account'),
+          content: const Text(
+            'We will hide your profile and pause matches until you sign back in.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Deactivate'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Deactivation request received (placeholder).'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete account?'),
+          content: const Text(
+            'This will permanently remove your data. This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                'Delete account',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account deletion flow pending backend integration.'),
+        ),
+      );
+    }
+  }
 }
 
 class _ThemeOptionTile extends StatelessWidget {
@@ -318,14 +633,17 @@ class _ThemeOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RadioListTile<ThemeMode>(
-      value: mode,
-      groupValue: groupValue,
-      onChanged: (value) {
-        if (value != null) onSelected(value);
-      },
+    return ListTile(
+      leading: Radio<ThemeMode>(
+        value: mode,
+        groupValue: groupValue,
+        onChanged: (value) {
+          if (value != null) onSelected(value);
+        },
+      ),
       title: Text(title),
       subtitle: Text(subtitle),
+      onTap: () => onSelected(mode),
     );
   }
 }

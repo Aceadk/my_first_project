@@ -75,7 +75,7 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
   }
 
   Future<void> setDistance(double km) async {
-    final safe = km.clamp(1, 160);
+    final safe = km.clamp(1.0, 200.0).toDouble();
     await _persist(state.copyWith(distanceKm: safe));
   }
 

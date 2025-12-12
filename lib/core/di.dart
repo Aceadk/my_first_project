@@ -32,6 +32,7 @@ import '../logic/call/call_bloc.dart';
 import '../logic/theme/theme_cubit.dart';
 import '../logic/notification/notification_settings_cubit.dart';
 import '../logic/discovery/discovery_settings_cubit.dart';
+import '../logic/safety/safety_cubit.dart';
 
 class CrushDI {
   static List<RepositoryProvider> buildRepositories() {
@@ -118,6 +119,9 @@ class CrushDI {
       ),
       BlocProvider<DiscoverySettingsCubit>(
         create: (_) => DiscoverySettingsCubit(preferences: preferences),
+      ),
+      BlocProvider<SafetyCubit>(
+        create: (_) => SafetyCubit(preferences: preferences),
       ),
     ];
   }

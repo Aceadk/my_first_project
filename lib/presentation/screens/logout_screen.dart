@@ -49,7 +49,7 @@ class LogoutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'You can sign back in with your phone number anytime. '
+                  'Sign back in with your phone number '
                   'Logging out will pause new matches and messages until you return.',
                 ),
                 const Spacer(),
