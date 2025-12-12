@@ -46,3 +46,18 @@ app.*.map.json
 
 # Local environment variables
 .env
+
+# Node + functions
+functions/node_modules/
+crushhour-recommendation-service/node_modules/
+
+# macOS
+.DS_Store
+
+# Xcode
+ios/Pods/
+macos/Pods/
+
+# Generated dataconnect
+lib/dataconnect_generated/
+
