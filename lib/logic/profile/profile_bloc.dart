@@ -70,6 +70,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final user = await profileRepository.saveProfileDetails(
         bio: event.bio,
         photoUrls: event.photoUrls,
+        videoUrls: event.videoUrls,
         jobTitle: event.jobTitle,
         company: event.company,
         school: event.school,

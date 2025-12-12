@@ -14,6 +14,7 @@ abstract class ProfileRepository {
   Future<CrushUser> saveProfileDetails({
     required String bio,
     required List<String> photoUrls,
+    required List<String> videoUrls,
     String? jobTitle,
     String? company,
     String? school,

@@ -9,6 +9,7 @@ class Profile extends Equatable {
   final String? sexualOrientation;
   final String bio;
   final List<String> photoUrls;
+  final List<String> videoUrls;
   final String? jobTitle;
   final String? company;
   final String? school;
@@ -27,6 +28,7 @@ class Profile extends Equatable {
     this.sexualOrientation,
     required this.bio,
     required this.photoUrls,
+    required this.videoUrls,
     required this.jobTitle,
     required this.company,
     required this.school,
@@ -46,6 +48,7 @@ class Profile extends Equatable {
     String? sexualOrientation,
     String? bio,
     List<String>? photoUrls,
+    List<String>? videoUrls,
     String? jobTitle,
     String? company,
     String? school,
@@ -64,6 +67,7 @@ class Profile extends Equatable {
       sexualOrientation: sexualOrientation ?? this.sexualOrientation,
       bio: bio ?? this.bio,
       photoUrls: photoUrls ?? this.photoUrls,
+      videoUrls: videoUrls ?? this.videoUrls,
       jobTitle: jobTitle ?? this.jobTitle,
       company: company ?? this.company,
       school: school ?? this.school,
@@ -85,6 +89,7 @@ class Profile extends Equatable {
         sexualOrientation,
         bio,
         photoUrls,
+        videoUrls,
         jobTitle,
         company,
         school,

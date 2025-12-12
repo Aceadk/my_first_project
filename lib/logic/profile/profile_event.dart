@@ -37,6 +37,7 @@ class ProfileBasicInfoSubmitted extends ProfileEvent {
 class ProfileDetailsSubmitted extends ProfileEvent {
   final String bio;
   final List<String> photoUrls;
+  final List<String> videoUrls;
   final String? jobTitle;
   final String? company;
   final String? school;
@@ -45,6 +46,7 @@ class ProfileDetailsSubmitted extends ProfileEvent {
   ProfileDetailsSubmitted({
     required this.bio,
     required this.photoUrls,
+    required this.videoUrls,
     this.jobTitle,
     this.company,
     this.school,
@@ -53,7 +55,7 @@ class ProfileDetailsSubmitted extends ProfileEvent {
 
   @override
   List<Object?> get props =>
-      [bio, photoUrls, jobTitle, company, school, interests];
+      [bio, photoUrls, videoUrls, jobTitle, company, school, interests];
 }
 
 class ProfileIdDocumentUploaded extends ProfileEvent {}

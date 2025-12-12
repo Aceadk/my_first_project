@@ -26,6 +26,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _imagePicker = ImagePicker();
 
   List<String> _photoPaths = [];
+  List<String> _videoPaths = [];
 
   Future<void> _pickPhotos() async {
     try {
@@ -35,13 +36,53 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
       if (!mounted) return;
       if (results.isNotEmpty) {
+        final availableSlots = 12 - _photoPaths.length - _videoPaths.length;
+        if (availableSlots <= 0) {
+          showErrorSnackBar(
+              context, 'You can add up to 12 photos and videos total.');
+          return;
+        }
+        final selected = results.take(availableSlots).toList();
         setState(() {
-          _photoPaths = results.map((file) => file.path).toList();
+          _photoPaths = [
+            ..._photoPaths,
+            ...selected.map((file) => file.path),
+          ];
         });
+        if (results.length > selected.length) {
+          showErrorSnackBar(
+            context,
+            'Only $availableSlots more media slots available (max 12).',
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
       showErrorSnackBar(context, 'Failed to pick photos: $e');
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    try {
+      final total = _photoPaths.length + _videoPaths.length;
+      if (total >= 12) {
+        showErrorSnackBar(
+          context,
+          'You can add up to 12 photos and videos total.',
+        );
+        return;
+      }
+      final result = await _imagePicker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(seconds: 20),
+      );
+      if (!mounted || result == null) return;
+      setState(() {
+        _videoPaths = [..._videoPaths, result.path];
+      });
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, 'Failed to pick video: $e');
     }
   }
 
@@ -118,6 +159,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                 ),
                               ),
                             ),
+                            ..._videoPaths.map(
+                              (path) => ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      width: 90,
+                                      height: 120,
+                                      color: Colors.black12,
+                                      child: const Center(
+                                        child: Icon(Icons.videocam),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 4,
+                                      top: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: const Text(
+                                          'Video',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                             GestureDetector(
                               onTap: saving ? null : _pickPhotos,
                               child: Container(
@@ -133,6 +211,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                 child: const Icon(Icons.add_a_photo_outlined),
                               ),
                             ),
+                            GestureDetector(
+                              onTap: saving ? null : _pickVideo,
+                              child: Container(
+                                width: 90,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const Icon(Icons.videocam_outlined),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -142,6 +235,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         loading: saving,
                         onPressed: () {
                           if (saving) return;
+                          if (_photoPaths.isEmpty) {
+                            showErrorSnackBar(
+                              context,
+                              'Add at least one photo to finish your profile.',
+                            );
+                            return;
+                          }
                           final interests = _interestsController.text
                               .split(',')
                               .map((e) => e.trim())
@@ -151,6 +251,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                 ProfileDetailsSubmitted(
                                   bio: _bioController.text.trim(),
                                   photoUrls: _photoPaths,
+                                  videoUrls: _videoPaths,
                                   jobTitle: _jobController.text.trim(),
                                   company: _companyController.text.trim(),
                                   school: _schoolController.text.trim(),

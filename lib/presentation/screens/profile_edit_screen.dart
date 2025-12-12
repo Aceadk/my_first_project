@@ -91,6 +91,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                       photoUrls:
                                           state.user?.profile?.photoUrls ??
                                               const [],
+                                      videoUrls:
+                                          state.user?.profile?.videoUrls ??
+                                              const [],
                                       jobTitle: state.user?.profile?.jobTitle,
                                       company: state.user?.profile?.company,
                                       school: state.user?.profile?.school,

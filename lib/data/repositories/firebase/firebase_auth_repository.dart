@@ -163,6 +163,7 @@ class FirebaseAuthRepository implements AuthRepository {
         sexualOrientation: profileData['sexualOrientation'],
         bio: profileData['bio'] ?? '',
         photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
+        videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],
         school: profileData['school'],

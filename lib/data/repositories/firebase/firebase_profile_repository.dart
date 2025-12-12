@@ -69,6 +69,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'sexualOrientation': sexualOrientation,
       'bio': '',
       'photoUrls': <String>[],
+      'videoUrls': <String>[],
       'jobTitle': null,
       'company': null,
       'school': null,
@@ -101,6 +102,7 @@ class FirebaseProfileRepository implements ProfileRepository {
   Future<CrushUser> saveProfileDetails({
     required String bio,
     required List<String> photoUrls,
+    required List<String> videoUrls,
     String? jobTitle,
     String? company,
     String? school,
@@ -114,6 +116,7 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     profile['bio'] = bio;
     profile['photoUrls'] = photoUrls;
+    profile['videoUrls'] = videoUrls;
     profile['jobTitle'] = jobTitle;
     profile['company'] = company;
     profile['school'] = school;
@@ -148,6 +151,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'sexualOrientation': profile.sexualOrientation,
       'bio': profile.bio,
       'photoUrls': profile.photoUrls,
+      'videoUrls': profile.videoUrls,
       'jobTitle': profile.jobTitle,
       'company': profile.company,
       'school': profile.school,
@@ -206,6 +210,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         sexualOrientation: profileData['sexualOrientation'],
         bio: profileData['bio'] ?? '',
         photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
+        videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],
         school: profileData['school'],
