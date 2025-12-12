@@ -94,6 +94,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                       videoUrls:
                                           state.user?.profile?.videoUrls ??
                                               const [],
+                                      isVerified:
+                                          state.user?.profile?.isVerified ??
+                                              false,
                                       jobTitle: state.user?.profile?.jobTitle,
                                       company: state.user?.profile?.company,
                                       school: state.user?.profile?.school,

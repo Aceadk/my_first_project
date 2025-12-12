@@ -35,6 +35,25 @@ class ChatMessageSent extends ChatEvent {
   List<Object?> get props => [matchId, fromUserId, toUserId, content, type];
 }
 
+class ChatMediaSendRequested extends ChatEvent {
+  final String matchId;
+  final String fromUserId;
+  final String toUserId;
+  final String filePath;
+  final MessageType type;
+
+  ChatMediaSendRequested({
+    required this.matchId,
+    required this.fromUserId,
+    required this.toUserId,
+    required this.filePath,
+    required this.type,
+  });
+
+  @override
+  List<Object?> get props => [matchId, fromUserId, toUserId, filePath, type];
+}
+
 class ChatMessageUnsendRequested extends ChatEvent {
   final String matchId;
   final String messageId;

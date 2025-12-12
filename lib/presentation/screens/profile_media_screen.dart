@@ -44,8 +44,18 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('${widget.profile.name}\'s media'),
+          appBar: AppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(widget.profile.name),
+                if (widget.profile.isVerified) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.verified, color: Colors.lightBlueAccent),
+                ],
+                const Text("'s media"),
+            ],
+          ),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Photos'),

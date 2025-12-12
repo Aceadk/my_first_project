@@ -18,6 +18,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }) : super(const ChatState()) {
     on<ChatOpened>(_onChatOpened);
     on<ChatMessageSent>(_onMessageSent);
+    on<ChatMediaSendRequested>(_onMediaSendRequested);
     on<ChatMessageUnsendRequested>(_onUnsendRequested);
     on<ChatMessageDeleteForMeRequested>(_onDeleteForMeRequested);
     on<ChatMessagesUpdated>(_onMessagesUpdated);
@@ -57,6 +58,42 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(state.copyWith(
         isSending: false,
         errorMessage: 'Could not send message. Please try again.',
+      ));
+    }
+  }
+
+  Future<void> _onMediaSendRequested(
+      ChatMediaSendRequested event, Emitter<ChatState> emit) async {
+    emit(state.copyWith(isSending: true, errorMessage: null));
+    try {
+      final plan = await subscriptionRepository.getCurrentPlan();
+      if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
+        emit(state.copyWith(
+          isSending: false,
+          errorMessage:
+              'Media limit reached. Upgrade to Plus for unlimited media.',
+        ));
+        return;
+      }
+
+      final url = await chatRepository.uploadMedia(
+        matchId: event.matchId,
+        filePath: event.filePath,
+        type: event.type,
+      );
+
+      await chatRepository.sendMessage(
+        matchId: event.matchId,
+        fromUserId: event.fromUserId,
+        toUserId: event.toUserId,
+        content: url,
+        type: event.type,
+      );
+      emit(state.copyWith(isSending: false));
+    } catch (e) {
+      emit(state.copyWith(
+        isSending: false,
+        errorMessage: 'Could not send media. Please try again.',
       ));
     }
   }
@@ -106,6 +143,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       messages: event.messages,
       canUnsend: event.plan.isPlus,
     ));
+  }
+
+  int _mediaCountForUser(String userId) {
+    return state.messages
+        .where((m) =>
+            m.fromUserId == userId &&
+            (m.type == MessageType.image || m.type == MessageType.video))
+        .length;
   }
 
   @override

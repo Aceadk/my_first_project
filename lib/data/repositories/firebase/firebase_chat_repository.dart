@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../models/message.dart';
 import '../../models/match.dart';
 import '../chat_repository.dart';
@@ -62,6 +64,27 @@ class FirebaseChatRepository implements ChatRepository {
       'isRead': false,
       'isDeletedForSender': false,
     });
+  }
+
+  @override
+  Future<String> uploadMedia({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  }) async {
+    final ext = filePath.split('.').last;
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final path = 'chat_media/$matchId/${ts}_$type.$ext';
+    final ref = FirebaseStorage.instance.ref().child(path);
+    final file = File(filePath);
+    UploadTask uploadTask = ref.putFile(
+      file,
+      SettableMetadata(
+        contentType: _contentType(ext, type),
+      ),
+    );
+    final snapshot = await uploadTask.whenComplete(() {});
+    return snapshot.ref.getDownloadURL();
   }
 
   @override
@@ -181,6 +204,8 @@ class FirebaseChatRepository implements ChatRepository {
     switch (s) {
       case 'image':
         return MessageType.image;
+      case 'video':
+        return MessageType.video;
       case 'voice':
         return MessageType.voice;
       case 'text':
@@ -193,10 +218,25 @@ class FirebaseChatRepository implements ChatRepository {
     switch (t) {
       case MessageType.image:
         return 'image';
+      case MessageType.video:
+        return 'video';
       case MessageType.voice:
         return 'voice';
       case MessageType.text:
         return 'text';
+    }
+  }
+
+  String _contentType(String ext, MessageType type) {
+    switch (type) {
+      case MessageType.image:
+        return 'image/$ext';
+      case MessageType.video:
+        return 'video/$ext';
+      case MessageType.voice:
+        return 'audio/$ext';
+      case MessageType.text:
+        return 'text/plain';
     }
   }
 

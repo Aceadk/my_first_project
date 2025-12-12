@@ -188,6 +188,7 @@ class FakeProfileRepository implements ProfileRepository {
       bio: '',
       photoUrls: const [],
       videoUrls: const [],
+      isVerified: false,
       jobTitle: null,
       company: null,
       school: null,
@@ -228,6 +229,7 @@ class FakeProfileRepository implements ProfileRepository {
       bio: bio,
       photoUrls: photoUrls,
       videoUrls: videoUrls,
+      isVerified: _user?.isIdVerified ?? profile.isVerified,
       jobTitle: jobTitle,
       company: company,
       school: school,
@@ -359,16 +361,17 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
         age: age,
         gender: gender,
         sexualOrientation: null,
-      bio: 'Loves ${interests.first} and meeting new people.',
-      photoUrls: [
-        'https://picsum.photos/seed/${userId}_$index/400/600',
-        'https://picsum.photos/seed/${userId}_${index}b/400/600',
-      ],
-      videoUrls: const [],
-      jobTitle: null,
-      company: null,
-      school: null,
-      interests: interests,
+        bio: 'Loves ${interests.first} and meeting new people.',
+        photoUrls: [
+          'https://picsum.photos/seed/${userId}_$index/400/600',
+          'https://picsum.photos/seed/${userId}_${index}b/400/600',
+        ],
+        videoUrls: const [],
+        isVerified: false,
+        jobTitle: null,
+        company: null,
+        school: null,
+        interests: interests,
         country: prefs.country,
         city: prefs.city,
         latitude: null,
@@ -559,6 +562,16 @@ class FakeChatRepository implements ChatRepository {
     final list = _messagesByMatch.putIfAbsent(matchId, () => []);
     list.add(message);
     _streams[matchId]?.add(List.unmodifiable(list));
+  }
+
+  @override
+  Future<String> uploadMedia({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  }) async {
+    // In fake repo, just return the local path to simulate an upload.
+    return filePath;
   }
 
   @override

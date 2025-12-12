@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../logic/chat/chat_bloc.dart';
 import '../../logic/chat/chat_event.dart';
 import '../../logic/chat/chat_state.dart';
@@ -33,6 +36,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -206,17 +210,17 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final msg = messages[messages.length - 1 - index];
-                        final isMe =
-                            msg.fromUserId == widget.args.currentUserId;
-                        final text =
-                            msg.isDeletedForSender && isMe
-                                ? '(You unsent this message)'
-                                : msg.content;
-                        return Align(
-                          alignment: isMe
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                    final msg = messages[messages.length - 1 - index];
+                    final isMe =
+                        msg.fromUserId == widget.args.currentUserId;
+                    final text =
+                        msg.isDeletedForSender && isMe
+                            ? '(You unsent this message)'
+                            : msg.content;
+                    return Align(
+                      alignment: isMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                           child: GestureDetector(
                             onLongPress: isMe
                                 ? () => _showMessageActions(
@@ -233,14 +237,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: isMe
                                     ? Colors.pinkAccent
                                     : Colors.grey.shade800,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(text),
-                            ),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                        );
-                      },
-                    ),
+                          child: _buildMessageContent(msg, text),
+                        ),
+                      ),
+                    );
+                  },
+                ),
                   ),
                   if (state.isUnsendInProgress)
                     const Padding(
@@ -352,6 +356,24 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.photo),
+            onPressed: state.isSending || isBlocked
+                ? null
+                : () => _pickAndSendImage(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: state.isSending || isBlocked
+                ? null
+                : () => _pickAndSendVideo(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.mic),
+            onPressed: state.isSending || isBlocked
+                ? null
+                : () => _pickAndSendAudio(),
+          ),
           Expanded(
             child: TextField(
               controller: _controller,
@@ -395,6 +417,94 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildMessageContent(Message msg, String textFallback) {
+    switch (msg.type) {
+      case MessageType.image:
+        return GestureDetector(
+          onTap: () => _launchUrl(msg.content),
+          child: Image.network(
+            msg.content,
+            width: 220,
+            height: 260,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                const Text('Image unavailable'),
+          ),
+        );
+      case MessageType.video:
+        return _AttachmentTile(
+          label: 'Video',
+          url: msg.content,
+          icon: Icons.videocam,
+        );
+      case MessageType.voice:
+        return _AttachmentTile(
+          label: 'Voice message',
+          url: msg.content,
+          icon: Icons.mic,
+        );
+      case MessageType.text:
+        return Text(textFallback);
+    }
+  }
+
+  Future<void> _pickAndSendImage() async {
+    final result = await _picker.pickImage(source: ImageSource.gallery);
+    if (!mounted || result == null) return;
+    context.read<ChatBloc>().add(
+          ChatMediaSendRequested(
+            matchId: widget.args.matchId,
+            fromUserId: widget.args.currentUserId,
+            toUserId: widget.args.otherUserId,
+            filePath: result.path,
+            type: MessageType.image,
+          ),
+        );
+  }
+
+  Future<void> _pickAndSendVideo() async {
+    final result = await _picker.pickVideo(
+      source: ImageSource.gallery,
+      maxDuration: const Duration(seconds: 20),
+    );
+    if (!mounted || result == null) return;
+    context.read<ChatBloc>().add(
+          ChatMediaSendRequested(
+            matchId: widget.args.matchId,
+            fromUserId: widget.args.currentUserId,
+            toUserId: widget.args.otherUserId,
+            filePath: result.path,
+            type: MessageType.video,
+          ),
+        );
+  }
+
+  Future<void> _pickAndSendAudio() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.audio);
+    if (!mounted || result == null || result.files.isEmpty) return;
+    final path = result.files.single.path;
+    if (path == null) return;
+    context.read<ChatBloc>().add(
+          ChatMediaSendRequested(
+            matchId: widget.args.matchId,
+            fromUserId: widget.args.currentUserId,
+            toUserId: widget.args.otherUserId,
+            filePath: path,
+            type: MessageType.voice,
+          ),
+        );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      showErrorSnackBar(context, 'Could not open attachment.');
+    }
   }
 
   String _muteSummary({
@@ -541,6 +651,49 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
+  }
+}
+
+class _AttachmentTile extends StatelessWidget {
+  const _AttachmentTile({
+    required this.label,
+    required this.url,
+    required this.icon,
+  });
+
+  final String label;
+  final String url;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _launch(context, url),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(decoration: TextDecoration.underline),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _launch(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final uri = Uri.parse(url);
+    final can = await canLaunchUrl(uri);
+    if (can) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open attachment.')),
+      );
+    }
   }
 }
 

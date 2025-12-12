@@ -164,6 +164,7 @@ class FirebaseAuthRepository implements AuthRepository {
         bio: profileData['bio'] ?? '',
         photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
         videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
+        isVerified: profileData['isVerified'] ?? (data['isIdVerified'] ?? false),
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],
         school: profileData['school'],

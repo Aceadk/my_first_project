@@ -36,13 +36,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
       if (!mounted) return;
       if (results.isNotEmpty) {
-        final availableSlots = 12 - _photoPaths.length - _videoPaths.length;
-        if (availableSlots <= 0) {
+        final remainingPhotos = 9 - _photoPaths.length;
+        if (remainingPhotos <= 0) {
           showErrorSnackBar(
-              context, 'You can add up to 12 photos and videos total.');
+              context, 'You can add up to 9 photos (and 3 videos).');
           return;
         }
-        final selected = results.take(availableSlots).toList();
+        final selected = results.take(remainingPhotos).toList();
         setState(() {
           _photoPaths = [
             ..._photoPaths,
@@ -52,7 +52,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         if (results.length > selected.length) {
           showErrorSnackBar(
             context,
-            'Only $availableSlots more media slots available (max 12).',
+            'Only $remainingPhotos more photo slots available (max 9).',
           );
         }
       }
@@ -64,11 +64,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _pickVideo() async {
     try {
-      final total = _photoPaths.length + _videoPaths.length;
-      if (total >= 12) {
+      final remainingVideos = 3 - _videoPaths.length;
+      if (remainingVideos <= 0) {
         showErrorSnackBar(
           context,
-          'You can add up to 12 photos and videos total.',
+          'You can add up to 3 videos (and 9 photos).',
         );
         return;
       }

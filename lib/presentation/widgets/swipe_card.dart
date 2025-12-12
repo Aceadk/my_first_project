@@ -48,13 +48,21 @@ class SwipeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${profile.name}, ${profile.age}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${profile.name}, ${profile.age}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    if (profile.isVerified) ...[
+                      const SizedBox(width: 6),
+                      const Icon(Icons.verified, color: Colors.lightBlueAccent),
+                    ],
+                  ],
+                ),
                   const SizedBox(height: 4),
                   Text(
                     profile.bio,

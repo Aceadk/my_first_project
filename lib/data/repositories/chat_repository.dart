@@ -12,6 +12,12 @@ abstract class ChatRepository {
     required MessageType type,
   });
 
+  Future<String> uploadMedia({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  });
+
   Future<void> markMessagesRead(String matchId, String userId);
 
   Future<void> unsendMessage({

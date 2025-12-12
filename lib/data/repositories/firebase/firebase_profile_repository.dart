@@ -70,6 +70,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'bio': '',
       'photoUrls': <String>[],
       'videoUrls': <String>[],
+      'isVerified': false,
       'jobTitle': null,
       'company': null,
       'school': null,
@@ -117,6 +118,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     profile['bio'] = bio;
     profile['photoUrls'] = photoUrls;
     profile['videoUrls'] = videoUrls;
+    profile['isVerified'] = data['isIdVerified'] ?? profile['isVerified'] ?? false;
     profile['jobTitle'] = jobTitle;
     profile['company'] = company;
     profile['school'] = school;
@@ -137,7 +139,10 @@ class FirebaseProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> markIdVerified() async {
-    await _userDoc.update({'isIdVerified': true});
+    await _userDoc.update({
+      'isIdVerified': true,
+      'profile.isVerified': true,
+    });
     final updated = await _userDoc.get();
     return _fromDoc(updated);
   }
@@ -152,6 +157,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'bio': profile.bio,
       'photoUrls': profile.photoUrls,
       'videoUrls': profile.videoUrls,
+      'isVerified': profile.isVerified,
       'jobTitle': profile.jobTitle,
       'company': profile.company,
       'school': profile.school,
@@ -211,6 +217,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         bio: profileData['bio'] ?? '',
         photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
         videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
+        isVerified: profileData['isVerified'] ?? (data['isIdVerified'] ?? false),
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],
         school: profileData['school'],

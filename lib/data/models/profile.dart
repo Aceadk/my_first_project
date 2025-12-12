@@ -10,6 +10,7 @@ class Profile extends Equatable {
   final String bio;
   final List<String> photoUrls;
   final List<String> videoUrls;
+  final bool isVerified;
   final String? jobTitle;
   final String? company;
   final String? school;
@@ -29,6 +30,7 @@ class Profile extends Equatable {
     required this.bio,
     required this.photoUrls,
     required this.videoUrls,
+    required this.isVerified,
     required this.jobTitle,
     required this.company,
     required this.school,
@@ -49,6 +51,7 @@ class Profile extends Equatable {
     String? bio,
     List<String>? photoUrls,
     List<String>? videoUrls,
+    bool? isVerified,
     String? jobTitle,
     String? company,
     String? school,
@@ -68,6 +71,7 @@ class Profile extends Equatable {
       bio: bio ?? this.bio,
       photoUrls: photoUrls ?? this.photoUrls,
       videoUrls: videoUrls ?? this.videoUrls,
+      isVerified: isVerified ?? this.isVerified,
       jobTitle: jobTitle ?? this.jobTitle,
       company: company ?? this.company,
       school: school ?? this.school,
@@ -90,6 +94,7 @@ class Profile extends Equatable {
         bio,
         photoUrls,
         videoUrls,
+        isVerified,
         jobTitle,
         company,
         school,
