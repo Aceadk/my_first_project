@@ -44,7 +44,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final content = event.content.trim();
     if (content.isEmpty) return;
 
-    emit(state.copyWith(isSending: true, errorMessage: null));
+    emit(state.copyWith(
+      sendStatus: SendStatus.sendingText,
+      errorMessage: null,
+    ));
     try {
       await chatRepository.sendMessage(
         matchId: event.matchId,
@@ -53,10 +56,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         content: content,
         type: event.type,
       );
-      emit(state.copyWith(isSending: false));
+      emit(state.copyWith(sendStatus: SendStatus.idle));
     } catch (e) {
       emit(state.copyWith(
-        isSending: false,
+        sendStatus: SendStatus.idle,
         errorMessage: 'Could not send message. Please try again.',
       ));
     }
@@ -64,12 +67,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onMediaSendRequested(
       ChatMediaSendRequested event, Emitter<ChatState> emit) async {
-    emit(state.copyWith(isSending: true, errorMessage: null));
+    emit(state.copyWith(
+      sendStatus: SendStatus.uploadingAttachment,
+      uploadingAttachmentName: _filename(event.filePath),
+      errorMessage: null,
+    ));
     try {
       final plan = await subscriptionRepository.getCurrentPlan();
       if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
         emit(state.copyWith(
-          isSending: false,
+          sendStatus: SendStatus.idle,
+          uploadingAttachmentName: null,
           errorMessage:
               'Media limit reached. Upgrade to Plus for unlimited media.',
         ));
@@ -89,10 +97,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         content: url,
         type: event.type,
       );
-      emit(state.copyWith(isSending: false));
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
+      ));
     } catch (e) {
       emit(state.copyWith(
-        isSending: false,
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
         errorMessage: 'Could not send media. Please try again.',
       ));
     }
@@ -151,6 +163,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             m.fromUserId == userId &&
             (m.type == MessageType.image || m.type == MessageType.video))
         .length;
+  }
+
+  String _filename(String path) {
+    final parts = path.split('/');
+    if (parts.isNotEmpty) return parts.last;
+    return path;
   }
 
   @override

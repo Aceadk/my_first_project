@@ -14,6 +14,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<_AuthUserChanged>(_onUserChanged);
     on<AuthPhoneSubmitted>(_onPhoneSubmitted);
     on<AuthOtpSubmitted>(_onOtpSubmitted);
+    on<AuthOtpResendRequested>(_onOtpResendRequested);
     on<AuthSignedOut>(_onSignedOut);
   }
 
@@ -41,27 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onPhoneSubmitted(
       AuthPhoneSubmitted event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      phoneInProgress: event.phoneNumber,
-      isLoading: true,
-      errorMessage: null,
-    ));
-    try {
-      await authRepository.sendOtp(event.phoneNumber);
-      emit(state.copyWith(
-        status: AuthStatus.otpSent,
-        phoneInProgress: event.phoneNumber,
-        isLoading: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: 'Could not send code. Please try again.',
-      ));
-    }
+    await _sendOtp(phone: event.phoneNumber, emit: emit);
   }
 
   Future<void> _onOtpSubmitted(
@@ -91,6 +72,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onOtpResendRequested(
+      AuthOtpResendRequested event, Emitter<AuthState> emit) async {
+    final phone = event.phoneNumber.isNotEmpty
+        ? event.phoneNumber
+        : (state.phoneInProgress ?? '');
+    if (phone.isEmpty) {
+      emit(state.copyWith(
+        errorMessage: 'Enter your phone number to resend the code.',
+      ));
+      return;
+    }
+    await _sendOtp(phone: phone, emit: emit);
+  }
+
   Future<void> _onSignedOut(
       AuthSignedOut event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
@@ -109,6 +104,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> close() {
     _sub?.cancel();
     return super.close();
+  }
+
+  Future<void> _sendOtp({
+    required String phone,
+    required Emitter<AuthState> emit,
+  }) async {
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      phoneInProgress: phone,
+      isLoading: true,
+      errorMessage: null,
+    ));
+    try {
+      await authRepository.sendOtp(phone);
+      emit(state.copyWith(
+        status: AuthStatus.otpSent,
+        phoneInProgress: phone,
+        isLoading: false,
+        errorMessage: null,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: 'Could not send code. Please try again.',
+      ));
+    }
   }
 }
 

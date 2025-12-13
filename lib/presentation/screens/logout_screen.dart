@@ -45,27 +45,28 @@ class LogoutScreen extends StatelessWidget {
                   phoneNumber != null
                       ? 'You are signed in as $phoneNumber.'
                       : 'You are signed in.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Sign back in with your phone number '
-                  'Logging out will pause new matches and messages until you return.',
-                ),
-                const Spacer(),
-                PrimaryButton(
-                  label: 'Log out',
-                  loading: state.isLoading,
-                  onPressed: () {
-                    context.read<AuthBloc>().add(AuthSignedOut());
-                  },
-                ),
-                TextButton(
-                  onPressed:
-                      state.isLoading ? null : () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-              ],
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Sign back in with your phone number '
+              'Logging out will pause new matches and messages until you return.',
+            ),
+            const Spacer(),
+            PrimaryButton(
+              label: 'Log out',
+              loading: state.isLoading,
+              onPressed: () {
+                if (state.isLoading) return;
+                context.read<AuthBloc>().add(AuthSignedOut());
+              },
+            ),
+            TextButton(
+              onPressed:
+                  state.isLoading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
             );
           },
         ),

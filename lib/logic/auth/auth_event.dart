@@ -23,4 +23,12 @@ class AuthOtpSubmitted extends AuthEvent {
   List<Object?> get props => [phoneNumber, otp];
 }
 
+class AuthOtpResendRequested extends AuthEvent {
+  final String phoneNumber;
+  AuthOtpResendRequested(this.phoneNumber);
+
+  @override
+  List<Object?> get props => [phoneNumber];
+}
+
 class AuthSignedOut extends AuthEvent {}

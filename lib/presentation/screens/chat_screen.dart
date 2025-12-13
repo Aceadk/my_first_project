@@ -210,17 +210,17 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
-                    final msg = messages[messages.length - 1 - index];
-                    final isMe =
-                        msg.fromUserId == widget.args.currentUserId;
-                    final text =
-                        msg.isDeletedForSender && isMe
-                            ? '(You unsent this message)'
-                            : msg.content;
-                    return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                        final msg = messages[messages.length - 1 - index];
+                        final isMe =
+                            msg.fromUserId == widget.args.currentUserId;
+                        final text =
+                            msg.isDeletedForSender && isMe
+                                ? '(You unsent this message)'
+                                : msg.content;
+                        return Align(
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: GestureDetector(
                             onLongPress: isMe
                                 ? () => _showMessageActions(
@@ -237,20 +237,21 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: isMe
                                     ? Colors.pinkAccent
                                     : Colors.grey.shade800,
-                            borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: _buildMessageContent(msg, text),
+                            ),
                           ),
-                          child: _buildMessageContent(msg, text),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
                   ),
                   if (state.isUnsendInProgress)
                     const Padding(
                       padding: EdgeInsets.only(bottom: 4),
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
+                  _SendStatusBar(state: state),
                   _buildInput(state, isBlocked),
                 ],
               ),
@@ -352,32 +353,36 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInput(ChatState state, bool isBlocked) {
+    final isSendingText = state.sendStatus == SendStatus.sendingText;
+    final isUploading = state.sendStatus == SendStatus.uploadingAttachment;
+    final inputDisabled = isBlocked || isSendingText || isUploading;
+
     return SafeArea(
       child: Row(
         children: [
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.photo),
-            onPressed: state.isSending || isBlocked
+            onPressed: inputDisabled
                 ? null
                 : () => _pickAndSendImage(),
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: state.isSending || isBlocked
+            onPressed: inputDisabled
                 ? null
                 : () => _pickAndSendVideo(),
           ),
           IconButton(
             icon: const Icon(Icons.mic),
-            onPressed: state.isSending || isBlocked
+            onPressed: inputDisabled
                 ? null
                 : () => _pickAndSendAudio(),
           ),
           Expanded(
             child: TextField(
               controller: _controller,
-              enabled: !state.isSending && !isBlocked,
+              enabled: !inputDisabled,
               decoration: const InputDecoration(
                 hintText: 'Message...',
                 border: InputBorder.none,
@@ -385,14 +390,14 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           IconButton(
-            icon: state.isSending
+            icon: isSendingText
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.send),
-            onPressed: state.isSending
+            onPressed: isSendingText
                 ? null
                 : () {
                     if (isBlocked) {
@@ -698,3 +703,41 @@ class _AttachmentTile extends StatelessWidget {
 }
 
 enum _ChatSafetyAction { report, block, muteMessages, muteCalls }
+
+class _SendStatusBar extends StatelessWidget {
+  const _SendStatusBar({required this.state});
+
+  final ChatState state;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.sendStatus) {
+      case SendStatus.uploadingAttachment:
+        return Container(
+          width: double.infinity,
+          color: Colors.blueGrey.withAlpha((0.08 * 255).round()),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Uploading ${state.uploadingAttachmentName ?? 'attachment'}…',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        );
+      case SendStatus.sendingText:
+        return const SizedBox(height: 4);
+      case SendStatus.idle:
+        return const SizedBox.shrink();
+    }
+  }
+}

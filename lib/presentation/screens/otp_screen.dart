@@ -20,6 +20,10 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentPhone =
+        context.select<AuthBloc, String?>((bloc) => bloc.state.phoneInProgress) ??
+            widget.phoneNumber;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Verify OTP')),
       body: Padding(
@@ -37,7 +41,7 @@ class _OtpScreenState extends State<OtpScreen> {
           builder: (context, state) {
             return Column(
               children: [
-                Text('OTP sent to ${widget.phoneNumber}'),
+                Text('OTP sent to $currentPhone'),
                 TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
@@ -49,10 +53,18 @@ class _OtpScreenState extends State<OtpScreen> {
                   loading: state.isLoading,
                   onPressed: () {
                     context.read<AuthBloc>().add(AuthOtpSubmitted(
-                          widget.phoneNumber,
+                          currentPhone,
                           _otpController.text.trim(),
                         ));
                   },
+                ),
+                TextButton(
+                  onPressed: state.isLoading
+                      ? null
+                      : () => context
+                          .read<AuthBloc>()
+                          .add(AuthOtpResendRequested(currentPhone)),
+                  child: const Text('Resend code'),
                 ),
               ],
             );

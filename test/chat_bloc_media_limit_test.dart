@@ -165,7 +165,7 @@ void main() {
 
       await expectLater(
         bloc.stream,
-        emitsThrough(predicate<ChatState>((s) => !s.isSending)),
+        emitsThrough(predicate<ChatState>((s) => s.sendStatus == SendStatus.idle)),
       );
       expect(chatRepo.sent.length, 1);
       expect(chatRepo.sent.first.type, MessageType.video);

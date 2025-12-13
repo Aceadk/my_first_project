@@ -16,6 +16,7 @@ class PhoneAuthScreen extends StatefulWidget {
 
 class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   final _phoneController = TextEditingController();
+  bool _touched = false;
 
   @override
   Widget build(BuildContext context) {
@@ -44,17 +45,33 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                      labelText: 'Phone number (with country code)'),
+                  decoration: InputDecoration(
+                    labelText: 'Phone number (with country code)',
+                    errorText: _touched && _phoneController.text.trim().isEmpty
+                        ? 'Enter your phone number'
+                        : null,
+                  ),
+                  onChanged: (_) {
+                    if (!_touched) {
+                      setState(() => _touched = true);
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
                   label: 'Send OTP',
                   loading: state.isLoading,
                   onPressed: () {
-                    context
-                        .read<AuthBloc>()
-                        .add(AuthPhoneSubmitted(_phoneController.text.trim()));
+                    final phone = _phoneController.text.trim();
+                    setState(() => _touched = true);
+                    if (phone.isEmpty) {
+                      showErrorSnackBar(
+                        context,
+                        'Enter your phone number to continue.',
+                      );
+                      return;
+                    }
+                    context.read<AuthBloc>().add(AuthPhoneSubmitted(phone));
                   },
                 ),
                 if (state.errorMessage != null) ...[

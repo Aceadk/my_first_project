@@ -52,6 +52,69 @@ interface CheckoutSessionRequest {
   cancelUrl?: string;
 }
 
+interface UnsendRequest {
+  matchId?: string;
+  messageId?: string;
+}
+
+type CallableContext = functions.https.CallableContext;
+type CallableHandler<TData> = (
+  data: TData,
+  context: CallableContext
+) => Promise<unknown>;
+
+const isHttpsError = (err: unknown): err is functions.https.HttpsError => {
+  return err instanceof functions.https.HttpsError;
+};
+
+function callable<TData>(handler: CallableHandler<TData>) {
+  return functions.https.onCall(async (data: TData, context: CallableContext) => {
+    try {
+      return await handler(data, context);
+    } catch (err) {
+      if (isHttpsError(err)) {
+        throw err;
+      }
+      console.error("Callable error", {
+        name: handler.name || "anonymous",
+        uid: context.auth?.uid,
+        error: err,
+      });
+      throw new functions.https.HttpsError(
+        "internal",
+        "Unexpected error. Please try again later."
+      );
+    }
+  });
+}
+
+function requireAuth(context: CallableContext, action: string): string {
+  const uid = context.auth?.uid;
+  if (!uid) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      `You must be logged in to ${action}.`
+    );
+  }
+  return uid;
+}
+
+function requireString(value: unknown, field: string): string {
+  const str = typeof value === "string" ? value.trim() : "";
+  if (!str) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} is required.`
+    );
+  }
+  return str;
+}
+
+function optionalString(value: unknown): string | undefined {
+  const str = typeof value === "string" ? value.trim() : "";
+  return str.length > 0 ? str : undefined;
+}
+
 // Helpers
 async function getUser(uid: string): Promise<UserDoc> {
   const snap = await db.collection("users").doc(uid).get();
@@ -105,24 +168,10 @@ function setCorsHeaders(res: functions.Response) {
 }
 
 // Swipe right (double opt-in + match creation)
-export const swipeRight = functions.https.onCall(async (data: SwipeRequest, context) => {
-  const uid = context.auth?.uid;
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in."
-    );
-  }
-
-  const targetUserId = data.targetUserId;
-  const attachedMessage = data.attachedMessage;
-
-  if (!targetUserId) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "targetUserId is required."
-    );
-  }
+export const swipeRight = callable<SwipeRequest>(async (data, context) => {
+  const uid = requireAuth(context, "swipe right");
+  const targetUserId = requireString(data?.targetUserId, "targetUserId");
+  const attachedMessage = optionalString(data?.attachedMessage);
 
   if (targetUserId === uid) {
     throw new functions.https.HttpsError(
@@ -227,23 +276,9 @@ export const swipeRight = functions.https.onCall(async (data: SwipeRequest, cont
 });
 
 // Swipe left (log only)
-export const swipeLeft = functions.https.onCall(async (data: SwipeRequest, context) => {
-  const uid = context.auth?.uid;
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in."
-    );
-  }
-
-  const targetUserId = data.targetUserId;
-
-  if (!targetUserId) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "targetUserId is required."
-    );
-  }
+export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
+  const uid = requireAuth(context, "swipe left");
+  const targetUserId = requireString(data?.targetUserId, "targetUserId");
 
   if (targetUserId === uid) {
     throw new functions.https.HttpsError(
@@ -279,43 +314,29 @@ export const swipeLeft = functions.https.onCall(async (data: SwipeRequest, conte
 });
 
 // Pre-match message request (3 requests per sender until reply)
-export const sendPreMatchMessageRequest = functions.https.onCall(
-  async (data: PreMatchRequest, context) => {
-    const uid = context.auth?.uid;
-    if (!uid) {
+export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "send a pre-match message");
+    const targetUserId = requireString(data?.targetUserId, "targetUserId");
+    const content = requireString(data?.content, "content");
+
+    if (targetUserId === uid) {
       throw new functions.https.HttpsError(
-        "unauthenticated",
-        "You must be logged in."
+        "failed-precondition",
+        "Cannot message yourself."
       );
     }
 
-    const targetUserId = data.targetUserId;
-    const content = data.content;
+    await ensureUserExists(targetUserId);
+    await ensureNotBlocked(uid, targetUserId);
 
-    if (!targetUserId || !content) {
+    const me = await getUser(uid);
+    if (!me.profile) {
       throw new functions.https.HttpsError(
-        "invalid-argument",
-        "targetUserId and content are required."
+        "failed-precondition",
+        "Complete your profile before sending requests."
       );
     }
-
-  if (targetUserId === uid) {
-    throw new functions.https.HttpsError(
-      "failed-precondition",
-      "Cannot message yourself."
-    );
-  }
-
-  await ensureUserExists(targetUserId);
-  await ensureNotBlocked(uid, targetUserId);
-
-  const me = await getUser(uid);
-  if (!me.profile) {
-    throw new functions.https.HttpsError(
-      "failed-precondition",
-      "Complete your profile before sending requests."
-    );
-  }
 
     // Find or create a "pending match-like" doc for this pair
     const pairId =
@@ -366,24 +387,10 @@ export const sendPreMatchMessageRequest = functions.https.onCall(
 );
 
 // Unsend message (Plus only, sender-only)
-export const unsendMessage = functions.https.onCall(async (data, context) => {
-  const uid = context.auth?.uid;
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in to unsend messages."
-    );
-  }
-
-  const matchId = data.matchId as string | undefined;
-  const messageId = data.messageId as string | undefined;
-
-  if (!matchId || !messageId) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "matchId and messageId are required."
-    );
-  }
+export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
+  const uid = requireAuth(context, "unsend messages");
+  const matchId = requireString(data?.matchId, "matchId");
+  const messageId = requireString(data?.messageId, "messageId");
 
   // Plan check: Plus required
   const user = await getUser(uid);
@@ -448,15 +455,12 @@ export const unsendMessage = functions.https.onCall(async (data, context) => {
 });
 
 // Create Stripe Checkout session for Plus plan
-export const createCheckoutSession = functions.https.onCall(
-  async (data: CheckoutSessionRequest, context) => {
-    const uid = context.auth?.uid;
-    if (!uid) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "You must be logged in."
-      );
-    }
+export const createCheckoutSession = callable<CheckoutSessionRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "start checkout");
+    const priceId = requireString(data?.priceId, "priceId");
+    const successUrl = requireString(data?.successUrl, "successUrl");
+    const cancelUrl = requireString(data?.cancelUrl, "cancelUrl");
 
     const user = await getUser(uid);
 
@@ -474,15 +478,6 @@ export const createCheckoutSession = functions.https.onCall(
       await setUserPlan(uid, "free", { stripeCustomerId: customerId });
     }
 
-    const successUrl = data.successUrl;
-    const cancelUrl = data.cancelUrl;
-    if (!successUrl || !cancelUrl) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "successUrl and cancelUrl are required"
-      );
-    }
-
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -494,7 +489,7 @@ export const createCheckoutSession = functions.https.onCall(
       },
       line_items: [
         {
-          price: data.priceId || "price_YOUR_PLUS_PLAN_ID",
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -593,27 +588,23 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
 interface AgoraTokenRequest {
   channelName?: string;
   uid?: number;
+  isVideoCall?: boolean;
 }
 
+// Expose helpers for testing
+export const __test__helpers = {
+  requireAuth,
+  requireString,
+  optionalString,
+};
+
 // Callable function to generate an Agora token for authenticated users
-export const generateAgoraToken = functions.https.onCall(
-  async (data: AgoraTokenRequest, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "Must be logged in to start a call"
-      );
-    }
+export const generateAgoraToken = callable<AgoraTokenRequest>(
+  async (data, context) => {
+    requireAuth(context, "start a call");
 
-    const channelName = data?.channelName;
+    const channelName = requireString(data?.channelName, "channelName");
     const uid = typeof data?.uid === "number" ? data.uid : 0;
-
-    if (!channelName) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "channelName is required"
-      );
-    }
 
     if (!agoraAppId || !agoraCertificate) {
       throw new functions.https.HttpsError(
@@ -693,24 +684,11 @@ export const testAgoraToken = functions.https.onRequest((req, res) => {
 });
 
 // Callable function to return an Agora token for a call (uses auth UID)
-export const getAgoraToken = functions.https.onCall(async (data, context) => {
-  const uid = context.auth?.uid;
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in."
-    );
-  }
+export const getAgoraToken = callable<AgoraTokenRequest>(async (data, context) => {
+  const uid = requireAuth(context, "get an Agora token");
 
-  const channelName = data?.channelName as string | undefined;
+  const channelName = requireString(data?.channelName, "channelName");
   const isVideoCall = (data?.isVideoCall as boolean | undefined) ?? true;
-
-  if (!channelName) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "channelName is required."
-    );
-  }
 
   if (!agoraAppId || !agoraCertificate) {
     throw new functions.https.HttpsError(

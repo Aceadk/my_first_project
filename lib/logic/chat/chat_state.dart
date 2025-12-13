@@ -1,43 +1,51 @@
 import 'package:equatable/equatable.dart';
 import '../../data/models/message.dart';
 
+enum SendStatus { idle, sendingText, uploadingAttachment }
+
 class ChatState extends Equatable {
   final List<Message> messages;
-  final bool isSending;
+  final SendStatus sendStatus;
   final bool isUnsendInProgress;
   final String? errorMessage;
   final bool canUnsend;
+  final String? uploadingAttachmentName;
 
   const ChatState({
     this.messages = const [],
-    this.isSending = false,
+    this.sendStatus = SendStatus.idle,
     this.isUnsendInProgress = false,
     this.errorMessage,
     this.canUnsend = false,
+    this.uploadingAttachmentName,
   });
 
   ChatState copyWith({
     List<Message>? messages,
-    bool? isSending,
+    SendStatus? sendStatus,
     bool? isUnsendInProgress,
     String? errorMessage,
     bool? canUnsend,
+    String? uploadingAttachmentName,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
-      isSending: isSending ?? this.isSending,
+      sendStatus: sendStatus ?? this.sendStatus,
       isUnsendInProgress: isUnsendInProgress ?? this.isUnsendInProgress,
       errorMessage: errorMessage,
       canUnsend: canUnsend ?? this.canUnsend,
+      uploadingAttachmentName:
+          uploadingAttachmentName ?? this.uploadingAttachmentName,
     );
   }
 
   @override
   List<Object?> get props => [
         messages,
-        isSending,
+        sendStatus,
         isUnsendInProgress,
         errorMessage,
         canUnsend,
+        uploadingAttachmentName,
       ];
 }

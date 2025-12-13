@@ -29,7 +29,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       DiscoveryDeckRequested event, Emitter<DiscoveryState> emit) async {
     _lastRequestedUserId = event.userId;
     _retryTimer?.cancel();
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(
+      isLoading: true,
+      status: DeckStatus.loading,
+      errorMessage: null,
+      nextRetrySeconds: null,
+    ));
     try {
       final deck = await discoveryRepository.fetchDeck(event.userId);
       final plan = await subscriptionRepository.getCurrentPlan();
@@ -40,12 +45,16 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         isLoading: false,
         deck: deck,
         currentIndex: 0,
+        status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
         errorMessage: null,
+        nextRetrySeconds: null,
       ));
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
+        status: DeckStatus.error,
         errorMessage: 'Could not load people. Please try again.',
+        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
       ));
       _scheduleRetry();
     }
@@ -66,12 +75,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       if (plan.isFree && remainingSwipes != null && remainingSwipes <= 0) {
         emit(state.copyWith(
+          status: DeckStatus.ready,
           errorMessage: 'Daily swipe limit reached.',
         ));
         return;
       }
 
-      emit(state.copyWith(currentIndex: nextIndex, errorMessage: null));
+      emit(state.copyWith(
+        currentIndex: nextIndex,
+        status: DeckStatus.ready,
+        errorMessage: null,
+      ));
 
       await discoveryRepository.swipeRight(
         userId: event.userId,
@@ -85,6 +99,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     } catch (e) {
       emit(state.copyWith(
         currentIndex: currentIndex,
+        status: DeckStatus.ready,
         errorMessage: 'Could not like this profile. Please try again.',
       ));
     }
@@ -97,7 +112,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final currentIndex = state.currentIndex;
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
-    emit(state.copyWith(currentIndex: nextIndex, errorMessage: null));
+    emit(state.copyWith(
+      currentIndex: nextIndex,
+      status: DeckStatus.ready,
+      errorMessage: null,
+    ));
 
     try {
       await discoveryRepository.swipeLeft(
@@ -107,6 +126,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     } catch (e) {
       emit(state.copyWith(
         currentIndex: currentIndex,
+        status: DeckStatus.ready,
         errorMessage: 'Could not pass on this profile.',
       ));
     }

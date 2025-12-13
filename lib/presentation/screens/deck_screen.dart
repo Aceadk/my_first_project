@@ -32,50 +32,37 @@ class DeckScreen extends StatelessWidget {
       builder: (context, state) {
         _requestDeckIfNeeded(context, userId, state);
 
-        if (state.isLoading && state.deck.isEmpty) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+        final status = state.status;
+        final retryInSeconds = state.nextRetrySeconds;
+        final isLoading = status == DeckStatus.loading;
+        final isEmptyDeck =
+            status == DeckStatus.empty || state.deck.isEmpty || state.currentIndex >= state.deck.length;
+
+        if (isLoading && state.deck.isEmpty) {
+          return Scaffold(
+            appBar: _buildAppBar(context, userId),
+            body: const Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (state.errorMessage != null && state.deck.isEmpty) {
-          return _buildErrorState(context, userId);
+        if (status == DeckStatus.error && state.deck.isEmpty) {
+          return _buildErrorState(context, userId, retryInSeconds);
         }
 
-        if (state.deck.isEmpty || state.currentIndex >= state.deck.length) {
+        if (isEmptyDeck) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('CrushHour'),
-              centerTitle: true,
-            ),
-            body: _buildOutOfPeople(context),
+            appBar: _buildAppBar(context, userId),
+            body: _buildOutOfPeople(context, userId),
           );
         }
 
         final currentProfile = state.deck[state.currentIndex];
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('CrushHour'),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh',
-                onPressed: userId == null
-                    ? null
-                    : () => context
-                        .read<DiscoveryBloc>()
-                        .add(DiscoveryDeckRequested(userId)),
-              ),
-            ],
-          ),
+          appBar: _buildAppBar(context, userId),
           body: Column(
             children: [
-              if (state.isLoading)
-                const LinearProgressIndicator(minHeight: 2)
-              else
-                const SizedBox(height: 2),
+              _buildStatusBar(isLoading, retryInSeconds),
               Expanded(
                 child: SwipeCard(profile: currentProfile),
               ),
@@ -140,15 +127,14 @@ class DeckScreen extends StatelessWidget {
     if (state.isLoading) return;
     if (state.deck.isNotEmpty) return;
     if (state.errorMessage != null) return;
+    if (state.status == DeckStatus.empty) return;
     context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
   }
 
-  Widget _buildErrorState(BuildContext context, String? userId) {
+  Widget _buildErrorState(
+      BuildContext context, String? userId, int? retryInSeconds) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CrushHour'),
-        centerTitle: true,
-      ),
+      appBar: _buildAppBar(context, userId),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -167,6 +153,14 @@ class DeckScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
+              if (retryInSeconds != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Retrying automatically in ~${retryInSeconds}s',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
@@ -183,7 +177,7 @@ class DeckScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOutOfPeople(BuildContext context) {
+  Widget _buildOutOfPeople(BuildContext context, String? userId) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -217,14 +211,11 @@ class DeckScreen extends StatelessWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh deck'),
-              onPressed: () {
-                final userId = context.read<AuthBloc>().state.user?.id;
-                if (userId != null) {
-                  context
+              onPressed: userId == null
+                  ? null
+                  : () => context
                       .read<DiscoveryBloc>()
-                      .add(DiscoveryDeckRequested(userId));
-                }
-              },
+                      .add(DiscoveryDeckRequested(userId)),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
@@ -272,6 +263,48 @@ class DeckScreen extends StatelessWidget {
         radius: 28,
         child: Icon(icon, color: Colors.black),
       ),
+    );
+  }
+
+  Widget _buildStatusBar(bool isLoading, int? retryInSeconds) {
+    if (isLoading) {
+      return const LinearProgressIndicator(minHeight: 2);
+    }
+    if (retryInSeconds != null) {
+      return Container(
+        width: double.infinity,
+        color: Colors.orange.withAlpha((0.08 * 255).round()),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.refresh, size: 16, color: Colors.orange),
+            const SizedBox(width: 8),
+            Text(
+              'Retrying in ~${retryInSeconds}s…',
+              style: const TextStyle(color: Colors.orange),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox(height: 2);
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
+    return AppBar(
+      title: const Text('CrushHour'),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Refresh',
+          onPressed: userId == null
+              ? null
+              : () => context
+                  .read<DiscoveryBloc>()
+                  .add(DiscoveryDeckRequested(userId)),
+        ),
+      ],
     );
   }
 
