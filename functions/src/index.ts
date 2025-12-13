@@ -78,6 +78,26 @@ async function setUserPlan(
   await db.collection("users").doc(uid).set(payload, { merge: true });
 }
 
+async function ensureUserExists(uid: string): Promise<UserDoc> {
+  return getUser(uid);
+}
+
+async function ensureNotBlocked(uid: string, targetUserId: string) {
+  const blockedSnap = await db
+    .collection("blocks")
+    .where("blockerId", "in", [uid, targetUserId])
+    .where("blockedId", "in", [uid, targetUserId])
+    .limit(1)
+    .get();
+
+  if (!blockedSnap.empty) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You cannot interact with this user."
+    );
+  }
+}
+
 // Swipe right (double opt-in + match creation)
 export const swipeRight = functions.https.onCall(async (data: SwipeRequest, context) => {
   const uid = context.auth?.uid;
@@ -104,6 +124,9 @@ export const swipeRight = functions.https.onCall(async (data: SwipeRequest, cont
       "You cannot like yourself."
     );
   }
+
+  await ensureUserExists(targetUserId);
+  await ensureNotBlocked(uid, targetUserId);
 
   // Ensure current user has a profile
   const me = await getUser(uid);
@@ -223,6 +246,9 @@ export const swipeLeft = functions.https.onCall(async (data: SwipeRequest, conte
     );
   }
 
+  await ensureUserExists(targetUserId);
+  await ensureNotBlocked(uid, targetUserId);
+
   const me = await getUser(uid);
   if (!me.profile) {
     throw new functions.https.HttpsError(
@@ -267,12 +293,23 @@ export const sendPreMatchMessageRequest = functions.https.onCall(
       );
     }
 
-    if (targetUserId === uid) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Cannot message yourself."
-      );
-    }
+  if (targetUserId === uid) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Cannot message yourself."
+    );
+  }
+
+  await ensureUserExists(targetUserId);
+  await ensureNotBlocked(uid, targetUserId);
+
+  const me = await getUser(uid);
+  if (!me.profile) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Complete your profile before sending requests."
+    );
+  }
 
     // Find or create a "pending match-like" doc for this pair
     const pairId =
@@ -386,6 +423,14 @@ export const unsendMessage = functions.https.onCall(async (data, context) => {
       "You are not part of this match."
     );
   }
+  const otherUserId = userIds.find((id) => id !== uid);
+  if (!otherUserId) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Match participants missing."
+    );
+  }
+  await ensureNotBlocked(uid, otherUserId);
 
   // Soft delete for sender
   await msgRef.update({
