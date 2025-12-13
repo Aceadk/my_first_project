@@ -19,7 +19,7 @@ void main() {
       city: 'NYC',
     );
 
-    final profile = Profile(
+    const profile = Profile(
       id: 'p1',
       name: 'Alex',
       age: 25,
@@ -41,7 +41,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: SwipeCard(profile: profile),
       ),
     );
