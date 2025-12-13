@@ -9,7 +9,10 @@ on:
 jobs:
   flutter:
     name: Flutter - analyze & test
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Flutter
@@ -22,7 +25,11 @@ jobs:
           path: |
             ~/.pub-cache
             ~/.pub-cache/bin
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+            .dart_tool
+            .packages
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
       - name: Install dependencies
         run: flutter pub get
       - name: Static analysis
@@ -42,8 +49,12 @@ jobs:
       - name: Cache npm
         uses: actions/cache@v4
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            functions/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('functions/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install functions dependencies
         run: cd functions && npm ci
       - name: Build functions (TypeScript)
