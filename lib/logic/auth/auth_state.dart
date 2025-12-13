@@ -15,6 +15,7 @@ class AuthState extends Equatable {
   final String? phoneInProgress;
   final bool isLoading;
   final String? errorMessage;
+  static const _unset = Object();
 
   const AuthState({
     required this.status,
@@ -37,14 +38,16 @@ class AuthState extends Equatable {
     CrushUser? user,
     String? phoneInProgress,
     bool? isLoading,
-    String? errorMessage,
+    Object? errorMessage = _unset,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       phoneInProgress: phoneInProgress ?? this.phoneInProgress,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 

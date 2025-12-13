@@ -27,6 +27,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: BlocConsumer<ProfileBloc, ProfileState>(
+          listenWhen: (previous, current) =>
+              previous.user != current.user ||
+              previous.errorMessage != current.errorMessage,
           listener: (context, state) {
             if (state.user != null) {
               Navigator.pushReplacementNamed(
@@ -38,53 +41,73 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             }
           },
           builder: (context, state) {
-            return Column(
+            final isBusy = state.isSaving;
+            return Stack(
               children: [
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
+                AbsorbPointer(
+                  absorbing: isBusy,
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(labelText: 'Name'),
+                      ),
+                      TextField(
+                        controller: _ageController,
+                        decoration: const InputDecoration(labelText: 'Age'),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButton<String>(
+                        value: _gender,
+                        items: const [
+                          DropdownMenuItem(value: 'woman', child: Text('Woman')),
+                          DropdownMenuItem(value: 'man', child: Text('Man')),
+                          DropdownMenuItem(
+                              value: 'nonbinary', child: Text('Non-binary')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _gender = value ?? 'woman';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        decoration: const InputDecoration(
+                            labelText: 'Sexual orientation (optional)'),
+                        onChanged: (value) => _orientation = value,
+                      ),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        label: 'Continue',
+                        loading: isBusy,
+                        onPressed: () {
+                          final age = int.tryParse(_ageController.text) ?? 0;
+                          context.read<ProfileBloc>().add(
+                                ProfileBasicInfoSubmitted(
+                                  name: _nameController.text.trim(),
+                                  age: age,
+                                  gender: _gender,
+                                  sexualOrientation: _orientation,
+                                ),
+                              );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                TextField(
-                  controller: _ageController,
-                  decoration: const InputDecoration(labelText: 'Age'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 12),
-                DropdownButton<String>(
-                  value: _gender,
-                  items: const [
-                    DropdownMenuItem(value: 'woman', child: Text('Woman')),
-                    DropdownMenuItem(value: 'man', child: Text('Man')),
-                    DropdownMenuItem(
-                        value: 'nonbinary', child: Text('Non-binary')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _gender = value ?? 'woman';
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  decoration: const InputDecoration(
-                      labelText: 'Sexual orientation (optional)'),
-                  onChanged: (value) => _orientation = value,
-                ),
-                const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Continue',
-                  loading: state.isSaving,
-                  onPressed: () {
-                    if (state.isSaving) return;
-                    final age = int.tryParse(_ageController.text) ?? 0;
-                    context.read<ProfileBloc>().add(ProfileBasicInfoSubmitted(
-                          name: _nameController.text.trim(),
-                          age: age,
-                          gender: _gender,
-                          sexualOrientation: _orientation,
-                        ));
-                  },
-                ),
+                if (isBusy)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.04),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
               ],
             );
           },

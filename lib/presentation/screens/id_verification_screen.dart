@@ -17,6 +17,9 @@ class IdVerificationScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: BlocConsumer<ProfileBloc, ProfileState>(
+          listenWhen: (previous, current) =>
+              previous.user != current.user ||
+              previous.errorMessage != current.errorMessage,
           listener: (context, state) {
             if (state.user != null && state.user!.isIdVerified) {
               Navigator.pushReplacementNamed(context, CrushRoutes.profileSetup);
@@ -27,37 +30,55 @@ class IdVerificationScreen extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            final isBusy = state.isSaving;
+            return Stack(
               children: [
-                const Text(
-                    'Upload your national ID card/passport for verification. '
-                    'Only verified accounts can chat after matching.'),
-                const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Upload ID (mock)',
-                  loading: state.isSaving,
-                  onPressed: () {
-                    if (state.isSaving) return;
-                    context
-                        .read<ProfileBloc>()
-                        .add(ProfileIdDocumentUploaded());
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (state.user != null && state.user!.isIdVerified)
-                  const Text(
-                    'Verified ✓',
-                    style: TextStyle(color: Colors.greenAccent),
+                AbsorbPointer(
+                  absorbing: isBusy,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                          'Upload your national ID card/passport for verification. '
+                          'Only verified accounts can chat after matching.'),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        label: 'Upload ID (mock)',
+                        loading: isBusy,
+                        onPressed: () {
+                          context
+                              .read<ProfileBloc>()
+                              .add(ProfileIdDocumentUploaded());
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      if (state.user != null && state.user!.isIdVerified)
+                        const Text(
+                          'Verified ✓',
+                          style: TextStyle(color: Colors.greenAccent),
+                        ),
+                      const Spacer(),
+                      PrimaryButton(
+                        label: 'Skip for now (not recommended)',
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, CrushRoutes.profileSetup);
+                        },
+                      ),
+                    ],
                   ),
-                const Spacer(),
-                PrimaryButton(
-                  label: 'Skip for now (not recommended)',
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                        context, CrushRoutes.profileSetup);
-                  },
                 ),
+                if (isBusy)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.04),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
               ],
             );
           },

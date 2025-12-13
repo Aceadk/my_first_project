@@ -8,6 +8,7 @@ class ProfileState extends Equatable {
   final bool isLoading;
   final bool isSaving;
   final String? errorMessage;
+  static const _unset = Object();
 
   const ProfileState({
     this.user,
@@ -22,14 +23,16 @@ class ProfileState extends Equatable {
     Profile? profile,
     bool? isLoading,
     bool? isSaving,
-    String? errorMessage,
+    Object? errorMessage = _unset,
   }) {
     return ProfileState(
       user: user ?? this.user,
       profile: profile ?? this.profile,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
-      errorMessage: errorMessage,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 

@@ -5,6 +5,7 @@ class MatchesState extends Equatable {
   final List<CrushMatch> matches;
   final bool isLoading;
   final String? errorMessage;
+  static const _unset = Object();
 
   const MatchesState({
     this.matches = const [],
@@ -15,12 +16,14 @@ class MatchesState extends Equatable {
   MatchesState copyWith({
     List<CrushMatch>? matches,
     bool? isLoading,
-    String? errorMessage,
+    Object? errorMessage = _unset,
   }) {
     return MatchesState(
       matches: matches ?? this.matches,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 

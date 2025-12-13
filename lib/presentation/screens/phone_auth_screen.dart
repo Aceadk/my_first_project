@@ -25,9 +25,16 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: BlocConsumer<AuthBloc, AuthState>(
+          listenWhen: (previous, current) =>
+              previous.status != current.status ||
+              previous.errorMessage != current.errorMessage,
           listener: (context, state) {
             if (state.status == AuthStatus.otpSent &&
                 state.phoneInProgress != null) {
+              showSuccessSnackBar(
+                context,
+                'Code sent. Check your messages.',
+              );
               Navigator.pushNamed(
                 context,
                 CrushRoutes.otp,
@@ -40,47 +47,63 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
             }
           },
           builder: (context, state) {
-            return Column(
+            final isLoading = state.isLoading;
+            return Stack(
+              fit: StackFit.expand,
               children: [
-                TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'Phone number (with country code)',
-                    errorText: _touched && _phoneController.text.trim().isEmpty
-                        ? 'Enter your phone number'
-                        : null,
+                AbsorbPointer(
+                  absorbing: isLoading,
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Phone number (with country code)',
+                          errorText:
+                              _touched && _phoneController.text.trim().isEmpty
+                                  ? 'Enter your phone number'
+                                  : null,
+                        ),
+                        onChanged: (_) {
+                          if (!_touched) {
+                            setState(() => _touched = true);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        label: 'Send OTP',
+                        loading: isLoading,
+                        onPressed: () {
+                          final phone = _phoneController.text.trim();
+                          setState(() => _touched = true);
+                          if (phone.isEmpty) {
+                            showErrorSnackBar(
+                              context,
+                              'Enter your phone number to continue.',
+                            );
+                            return;
+                          }
+                          context
+                              .read<AuthBloc>()
+                              .add(AuthPhoneSubmitted(phone));
+                        },
+                      ),
+                    ],
                   ),
-                  onChanged: (_) {
-                    if (!_touched) {
-                      setState(() => _touched = true);
-                    }
-                  },
                 ),
-                const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Send OTP',
-                  loading: state.isLoading,
-                  onPressed: () {
-                    final phone = _phoneController.text.trim();
-                    setState(() => _touched = true);
-                    if (phone.isEmpty) {
-                      showErrorSnackBar(
-                        context,
-                        'Enter your phone number to continue.',
-                      );
-                      return;
-                    }
-                    context.read<AuthBloc>().add(AuthPhoneSubmitted(phone));
-                  },
-                ),
-                if (state.errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    state.errorMessage!,
-                    style: const TextStyle(color: Colors.redAccent),
+                if (isLoading)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.04),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
                   ),
-                ],
               ],
             );
           },

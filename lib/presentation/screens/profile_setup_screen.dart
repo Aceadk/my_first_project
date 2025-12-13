@@ -88,6 +88,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       appBar: AppBar(title: const Text('Set up your profile')),
       body: BlocConsumer<ProfileBloc, ProfileState>(
         listenWhen: (previous, current) =>
+            previous.user != current.user ||
             previous.errorMessage != current.errorMessage,
         listener: (context, state) {
           if (state.user != null) {
@@ -107,56 +108,61 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
           return Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _bioController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Bio',
+              AbsorbPointer(
+                absorbing: saving,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _bioController,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            labelText: 'Bio',
+                          ),
                         ),
-                      ),
-                      TextField(
-                        controller: _jobController,
-                        decoration:
-                            const InputDecoration(labelText: 'Job title'),
-                      ),
-                      TextField(
-                        controller: _companyController,
-                        decoration: const InputDecoration(labelText: 'Company'),
-                      ),
-                      TextField(
-                        controller: _schoolController,
-                        decoration: const InputDecoration(labelText: 'School'),
-                      ),
-                      TextField(
-                        controller: _interestsController,
-                        decoration: const InputDecoration(
-                            labelText: 'Interests (comma separated)'),
-                      ),
-                      const SizedBox(height: 24),
-                      ProfileMediaPicker(
-                        initialPhotos: _photoPaths,
-                        initialVideos: _videoPaths,
-                        enabled: !saving,
-                        onError: (msg) => showErrorSnackBar(context, msg),
-                        onChanged: (selection) {
-                          setState(() {
-                            _photoPaths = selection.photos;
-                            _videoPaths = selection.videos;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      PrimaryButton(
-                        label: 'Finish',
-                        loading: saving,
-                        onPressed: () => _submit(state),
-                      ),
-                    ],
+                        TextField(
+                          controller: _jobController,
+                          decoration:
+                              const InputDecoration(labelText: 'Job title'),
+                        ),
+                        TextField(
+                          controller: _companyController,
+                          decoration:
+                              const InputDecoration(labelText: 'Company'),
+                        ),
+                        TextField(
+                          controller: _schoolController,
+                          decoration:
+                              const InputDecoration(labelText: 'School'),
+                        ),
+                        TextField(
+                          controller: _interestsController,
+                          decoration: const InputDecoration(
+                              labelText: 'Interests (comma separated)'),
+                        ),
+                        const SizedBox(height: 24),
+                        ProfileMediaPicker(
+                          initialPhotos: _photoPaths,
+                          initialVideos: _videoPaths,
+                          enabled: !saving,
+                          onError: (msg) => showErrorSnackBar(context, msg),
+                          onChanged: (selection) {
+                            setState(() {
+                              _photoPaths = selection.photos;
+                              _videoPaths = selection.videos;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        PrimaryButton(
+                          label: 'Finish',
+                          loading: saving,
+                          onPressed: () => _submit(state),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

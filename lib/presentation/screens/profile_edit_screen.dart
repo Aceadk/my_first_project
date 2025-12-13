@@ -26,6 +26,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   List<String> _photos = [];
   List<String> _videos = [];
   bool _uploading = false;
+  bool _hasLoadedProfile = false;
 
   Profile _fallbackProfile(ProfileState state) {
     return Profile(
@@ -120,11 +121,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileBloc, ProfileState>(
-      listenWhen: (prev, curr) => prev.errorMessage != curr.errorMessage,
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage ||
+          prev.profile != curr.profile,
       listener: (context, state) {
         final error = state.errorMessage;
         if (error != null && error.isNotEmpty) {
           showErrorSnackBar(context, error);
+          return;
+        }
+        if (state.profile != null && _hasLoadedProfile) {
+          showSuccessSnackBar(context, 'Profile saved');
         }
       },
       builder: (context, state) {
@@ -136,6 +143,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
         final profile = state.profile;
         if (profile != null && profile.id != _lastProfileId) {
+          _hasLoadedProfile = true;
           _lastProfileId = profile.id;
           _nameController.text = profile.name;
           _bioController.text = profile.bio;
@@ -151,58 +159,69 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           body: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Display name'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _bioController,
-                      decoration: const InputDecoration(labelText: 'About you'),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    ProfileMediaPicker(
-                      initialPhotos: _photos,
-                      initialVideos: _videos,
-                      enabled: !saving,
-                      onError: (msg) => showErrorSnackBar(context, msg),
-                      onChanged: (selection) {
-                        setState(() {
-                          _photos = selection.photos;
-                          _videos = selection.videos;
-                        });
-                      },
-                    ),
-                    const Spacer(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: saving ? null : () => _save(state),
-                        child: saving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
-                                ),
-                              )
-                            : const Text('Save'),
+              AbsorbPointer(
+                absorbing: saving,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration:
+                            const InputDecoration(labelText: 'Display name'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _bioController,
+                        decoration:
+                            const InputDecoration(labelText: 'About you'),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      ProfileMediaPicker(
+                        initialPhotos: _photos,
+                        initialVideos: _videos,
+                        enabled: !saving,
+                        onError: (msg) => showErrorSnackBar(context, msg),
+                        onChanged: (selection) {
+                          setState(() {
+                            _photos = selection.photos;
+                            _videos = selection.videos;
+                          });
+                        },
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: saving ? null : () => _save(state),
+                          child: saving
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor:
+                                        AlwaysStoppedAnimation(Colors.white),
+                                  ),
+                                )
+                              : const Text('Save'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (saving)
-                Container(
-                  color: const Color.fromARGB(31, 26, 1, 1),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.04),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
                 ),
             ],
           ),

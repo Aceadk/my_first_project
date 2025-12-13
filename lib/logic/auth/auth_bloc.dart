@@ -20,11 +20,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    _sub?.cancel();
-    _sub = authRepository.authStateChanges().listen((user) {
-      add(_AuthUserChanged(user));
-    });
-    add(_AuthUserChanged(null));
+    try {
+      await _sub?.cancel();
+      _sub = authRepository.authStateChanges().listen((user) {
+        add(_AuthUserChanged(user));
+      });
+      add(_AuthUserChanged(null));
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: 'Could not connect to authentication. Please try again.',
+      ));
+    }
   }
 
   void _onUserChanged(_AuthUserChanged event, Emitter<AuthState> emit) {
@@ -42,7 +50,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onPhoneSubmitted(
       AuthPhoneSubmitted event, Emitter<AuthState> emit) async {
-    await _sendOtp(phone: event.phoneNumber, emit: emit);
+    try {
+      await _sendOtp(phone: event.phoneNumber, emit: emit);
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: 'Could not send code. Please try again.',
+      ));
+    }
   }
 
   Future<void> _onOtpSubmitted(
@@ -83,7 +99,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ));
       return;
     }
-    await _sendOtp(phone: phone, emit: emit);
+    try {
+      await _sendOtp(phone: phone, emit: emit);
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: 'Could not send code. Please try again.',
+      ));
+    }
   }
 
   Future<void> _onSignedOut(
