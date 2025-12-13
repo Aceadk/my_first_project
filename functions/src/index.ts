@@ -98,6 +98,12 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
   }
 }
 
+function setCorsHeaders(res: functions.Response) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
+}
+
 // Swipe right (double opt-in + match creation)
 export const swipeRight = functions.https.onCall(async (data: SwipeRequest, context) => {
   const uid = context.auth?.uid;
@@ -503,12 +509,12 @@ export const createCheckoutSession = functions.https.onCall(
 export const stripeWebhook = functions.https.onRequest(async (req, res) => {
   // Basic CORS handling for browser preflight and requests
   if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
+    setCorsHeaders(res);
     res.status(204).send("");
     return;
   }
+
+  setCorsHeaders(res);
 
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
