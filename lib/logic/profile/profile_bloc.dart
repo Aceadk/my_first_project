@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../core/result.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -23,51 +24,55 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onLoadRequested(
       ProfileLoadRequested event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    try {
-      final user = await profileRepository.getCurrentUser();
-      emit(state.copyWith(
-        user: user,
-        profile: user?.profile,
-        isLoading: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
+    final result = await Result.guard(
+      () => profileRepository.getCurrentUser(),
+      logLabel: 'ProfileRepository.getCurrentUser',
+      fallbackError: 'Could not load profile. Please try again.',
+    );
+    if (!result.isSuccess) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: 'Could not load profile. Please try again.',
+        errorMessage: result.errorMessage,
       ));
+      return;
     }
+
+    final user = result.data;
+    emit(state.copyWith(
+      user: user,
+      profile: user?.profile,
+      isLoading: false,
+      errorMessage: null,
+    ));
   }
 
   Future<void> _onBasicInfoSubmitted(
       ProfileBasicInfoSubmitted event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
-    try {
-      final user = await profileRepository.saveBasicInfo(
+    final result = await Result.guard(
+      () => profileRepository.saveBasicInfo(
         name: event.name,
         age: event.age,
         gender: event.gender,
         sexualOrientation: event.sexualOrientation,
-      );
-      emit(state.copyWith(
-        user: user,
-        profile: user.profile,
-        isSaving: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: 'Could not save basic info. Please try again.',
-      ));
-    }
+      ),
+      logLabel: 'ProfileRepository.saveBasicInfo',
+      fallbackError: 'Could not save basic info. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onDetailsSubmitted(
       ProfileDetailsSubmitted event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
-    try {
-      final user = await profileRepository.saveProfileDetails(
+    final result = await Result.guard(
+      () => profileRepository.saveProfileDetails(
         bio: event.bio,
         photoUrls: event.photoUrls,
         videoUrls: event.videoUrls,
@@ -75,74 +80,78 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         company: event.company,
         school: event.school,
         interests: event.interests,
-      );
-      emit(state.copyWith(
-        user: user,
-        profile: user.profile,
-        isSaving: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: 'Could not save profile. Please try again.',
-      ));
-    }
+      ),
+      logLabel: 'ProfileRepository.saveProfileDetails',
+      fallbackError: 'Could not save profile. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onIdDocumentUploaded(
       ProfileIdDocumentUploaded event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
-    try {
-      await profileRepository.uploadIdDocument();
-      // Wait for manual or automatic verification – for demo we mark verified.
-      final user = await profileRepository.markIdVerified();
-      emit(state.copyWith(
-        user: user,
-        profile: user.profile,
-        isSaving: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
+    final uploadResult = await Result.guard(
+      () => profileRepository.uploadIdDocument(),
+      logLabel: 'ProfileRepository.uploadIdDocument',
+      fallbackError: 'Could not upload ID. Please try again.',
+    );
+    if (!uploadResult.isSuccess) {
       emit(state.copyWith(
         isSaving: false,
-        errorMessage: 'Could not upload ID. Please try again.',
+        errorMessage: uploadResult.errorMessage,
       ));
+      return;
     }
+
+    final userResult = await Result.guard(
+      () => profileRepository.markIdVerified(),
+      logLabel: 'ProfileRepository.markIdVerified',
+      fallbackError: 'Could not upload ID. Please try again.',
+    );
+    final user = userResult.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: userResult.errorMessage,
+    ));
   }
 
   Future<void> _onIdVerifiedMarked(
       ProfileIdVerifiedMarked event, Emitter<ProfileState> emit) async {
-    try {
-      final user = await profileRepository.markIdVerified();
-      emit(state.copyWith(
-        user: user,
-        profile: user.profile,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: 'Could not mark ID verified. Please try again.',
-      ));
-    }
+    final result = await Result.guard(
+      () => profileRepository.markIdVerified(),
+      logLabel: 'ProfileRepository.markIdVerified',
+      fallbackError: 'Could not mark ID verified. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onSaveRequested(
       ProfileSaveRequested event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
-    try {
-      final updatedUser = await profileRepository.updateProfile(event.profile);
-      emit(state.copyWith(
-        user: updatedUser,
-        profile: updatedUser.profile,
-        isSaving: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: 'Could not save profile. Please try again.',
-      ));
-    }
+    final result = await Result.guard(
+      () => profileRepository.updateProfile(event.profile),
+      logLabel: 'ProfileRepository.updateProfile',
+      fallbackError: 'Could not save profile. Please try again.',
+    );
+    final updatedUser = result.data;
+    emit(state.copyWith(
+      user: updatedUser ?? state.user,
+      profile: updatedUser?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 }

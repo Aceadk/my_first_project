@@ -14,13 +14,22 @@ class ProfileMediaScreen extends StatefulWidget {
 
 class _ProfileMediaScreenState extends State<ProfileMediaScreen>
     with SingleTickerProviderStateMixin {
+  late final List<String> _validVideoUrls;
   late final List<VideoPlayerController> _videoControllers;
   late final List<Future<void>> _videoInits;
 
   @override
   void initState() {
     super.initState();
-    _videoControllers = widget.profile.videoUrls
+    _validVideoUrls = widget.profile.videoUrls
+        .where((url) {
+          final uri = Uri.tryParse(url);
+          return uri != null &&
+              uri.hasScheme &&
+              (uri.isScheme('http') || uri.isScheme('https'));
+        })
+        .toList();
+    _videoControllers = _validVideoUrls
         .map(
           (url) => VideoPlayerController.networkUrl(Uri.parse(url)),
         )
@@ -39,21 +48,23 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
   @override
   Widget build(BuildContext context) {
     final photos = widget.profile.photoUrls;
-    final videos = widget.profile.videoUrls;
+    final videos = _validVideoUrls;
+    final displayName = widget.profile.name.trim().isEmpty
+        ? 'This member'
+        : widget.profile.name.trim();
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-          appBar: AppBar(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(widget.profile.name),
-                if (widget.profile.isVerified) ...[
-                  const SizedBox(width: 6),
-                  const Icon(Icons.verified, color: Colors.lightBlueAccent),
-                ],
-                const Text("'s media"),
+        appBar: AppBar(
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("$displayName's media"),
+              if (widget.profile.isVerified) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.verified, color: Colors.lightBlueAccent),
+              ],
             ],
           ),
           bottom: const TabBar(
@@ -79,6 +90,9 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                           child: Image.network(
                             url,
                             fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Text('Photo unavailable'),
+                            ),
                           ),
                         );
                       },

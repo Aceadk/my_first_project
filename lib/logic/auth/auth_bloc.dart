@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user.dart';
+import '../../core/result.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -20,19 +21,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    try {
-      await _sub?.cancel();
-      _sub = authRepository.authStateChanges().listen((user) {
-        add(_AuthUserChanged(user));
-      });
-      add(_AuthUserChanged(null));
-    } catch (e) {
+    final result = await Result.guard(
+      () async {
+        await _sub?.cancel();
+        final sub = authRepository.authStateChanges().listen((user) {
+          add(_AuthUserChanged(user));
+        });
+        add(_AuthUserChanged(null));
+        return sub;
+      },
+      logLabel: 'AuthRepository.authStateChanges',
+      fallbackError:
+          'Could not connect to authentication. Please try again.',
+    );
+    if (!result.isSuccess) {
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
         isLoading: false,
-        errorMessage: 'Could not connect to authentication. Please try again.',
+        errorMessage: result.errorMessage,
       ));
+      return;
     }
+    _sub = result.data;
   }
 
   void _onUserChanged(_AuthUserChanged event, Emitter<AuthState> emit) {
@@ -50,15 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onPhoneSubmitted(
       AuthPhoneSubmitted event, Emitter<AuthState> emit) async {
-    try {
-      await _sendOtp(phone: event.phoneNumber, emit: emit);
-    } catch (e) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: 'Could not send code. Please try again.',
-      ));
-    }
+    await _sendOtp(phone: event.phoneNumber, emit: emit);
   }
 
   Future<void> _onOtpSubmitted(
@@ -68,24 +70,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       isLoading: true,
       errorMessage: null,
     ));
-    try {
-      final user = await authRepository.verifyOtp(
+    final result = await Result.guard(
+      () => authRepository.verifyOtp(
         phoneNumber: event.phoneNumber,
         otp: event.otp,
-      );
-      emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-        isLoading: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: 'Invalid code. Please try again.',
-      ));
-    }
+      ),
+      logLabel: 'AuthRepository.verifyOtp',
+      fallbackError: 'Invalid code. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      status: user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
+      user: user ?? state.user,
+      isLoading: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onOtpResendRequested(
@@ -99,29 +98,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ));
       return;
     }
-    try {
-      await _sendOtp(phone: phone, emit: emit);
-    } catch (e) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: 'Could not send code. Please try again.',
-      ));
-    }
+    await _sendOtp(phone: phone, emit: emit);
   }
 
   Future<void> _onSignedOut(
       AuthSignedOut event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    try {
-      await authRepository.signOut();
-      emit(AuthState.unknown());
-    } catch (e) {
+    final result = await Result.guard(
+      () => authRepository.signOut(),
+      logLabel: 'AuthRepository.signOut',
+      fallbackError: 'Could not sign out. Try again.',
+    );
+    if (!result.isSuccess) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: 'Could not sign out. Try again.',
+        errorMessage: result.errorMessage,
       ));
+      return;
     }
+    emit(AuthState.unknown());
   }
 
   @override
@@ -140,21 +135,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       isLoading: true,
       errorMessage: null,
     ));
-    try {
-      await authRepository.sendOtp(phone);
-      emit(state.copyWith(
-        status: AuthStatus.otpSent,
-        phoneInProgress: phone,
-        isLoading: false,
-        errorMessage: null,
-      ));
-    } catch (e) {
+    final result = await Result.guard(
+      () => authRepository.sendOtp(phone),
+      logLabel: 'AuthRepository.sendOtp',
+      fallbackError: 'Could not send code. Please try again.',
+    );
+    if (!result.isSuccess) {
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
         isLoading: false,
-        errorMessage: 'Could not send code. Please try again.',
+        errorMessage: result.errorMessage,
       ));
+      return;
     }
+    emit(state.copyWith(
+      status: AuthStatus.otpSent,
+      phoneInProgress: phone,
+      isLoading: false,
+      errorMessage: null,
+    ));
   }
 }
 

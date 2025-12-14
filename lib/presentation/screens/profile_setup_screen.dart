@@ -9,6 +9,7 @@ import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
+import '../../core/result.dart';
 import '../widgets/profile_media_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -48,37 +49,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
 
     setState(() => _uploading = true);
-    try {
-      final uploadResult = await _mediaService.ensureRemoteUrls(
+    final uploadResult = await Result.guard(
+      () => _mediaService.ensureRemoteUrls(
         userId: userId,
         photoPaths: _photoPaths,
         videoPaths: _videoPaths,
+      ),
+      logLabel: 'ProfileMediaService.ensureRemoteUrls',
+      fallbackError: 'Could not upload media.',
+    );
+    if (!mounted) return;
+    if (!uploadResult.isSuccess || uploadResult.data == null) {
+      showErrorSnackBar(
+        context,
+        uploadResult.errorMessage ?? 'Could not upload media.',
       );
-      if (!mounted) return;
+      setState(() => _uploading = false);
+      return;
+    }
 
-      final interests = _interestsController.text
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-      context.read<ProfileBloc>().add(
-            ProfileDetailsSubmitted(
-              bio: _bioController.text.trim(),
-              photoUrls: uploadResult.photoUrls,
-              videoUrls: uploadResult.videoUrls,
-              jobTitle: _jobController.text.trim(),
-              company: _companyController.text.trim(),
-              school: _schoolController.text.trim(),
-              interests: interests,
-            ),
-          );
-    } catch (e) {
-      if (!mounted) return;
-      showErrorSnackBar(context, 'Could not upload media: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _uploading = false);
-      }
+    final interests = _interestsController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    context.read<ProfileBloc>().add(
+          ProfileDetailsSubmitted(
+            bio: _bioController.text.trim(),
+            photoUrls: uploadResult.data!.photoUrls,
+            videoUrls: uploadResult.data!.videoUrls,
+            jobTitle: _jobController.text.trim(),
+            company: _companyController.text.trim(),
+            school: _schoolController.text.trim(),
+            interests: interests,
+          ),
+        );
+    if (mounted) {
+      setState(() => _uploading = false);
     }
   }
 

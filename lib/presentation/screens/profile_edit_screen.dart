@@ -9,6 +9,7 @@ import '../../data/models/preferences.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
+import '../../core/result.dart';
 import '../widgets/profile_media_picker.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -83,32 +84,39 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     setState(() => _uploading = true);
-    try {
-      final uploads = await _mediaService.ensureRemoteUrls(
+    final uploadResult = await Result.guard(
+      () => _mediaService.ensureRemoteUrls(
         userId: userId,
         photoPaths: _photos,
         videoPaths: _videos,
+      ),
+      logLabel: 'ProfileMediaService.ensureRemoteUrls',
+      fallbackError: 'Could not save profile. Please try again.',
+    );
+    if (!mounted) return;
+    if (!uploadResult.isSuccess || uploadResult.data == null) {
+      showErrorSnackBar(
+        context,
+        uploadResult.errorMessage ?? 'Could not save profile. Please try again.',
       );
-      if (!mounted) return;
+      setState(() => _uploading = false);
+      return;
+    }
 
-      final updated = base.copyWith(
-        name: _nameController.text.trim(),
-        bio: _bioController.text.trim(),
-        photoUrls: uploads.photoUrls,
-        videoUrls: uploads.videoUrls,
-      );
+    final uploads = uploadResult.data!;
+    final updated = base.copyWith(
+      name: _nameController.text.trim(),
+      bio: _bioController.text.trim(),
+      photoUrls: uploads.photoUrls,
+      videoUrls: uploads.videoUrls,
+    );
 
-      context
-          .read<ProfileBloc>()
-          .add(ProfileSaveRequested(profile: updated));
-    } catch (e) {
-      if (mounted) {
-        showErrorSnackBar(context, 'Could not save profile: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _uploading = false);
-      }
+    context
+        .read<ProfileBloc>()
+        .add(ProfileSaveRequested(profile: updated));
+
+    if (mounted) {
+      setState(() => _uploading = false);
     }
   }
 

@@ -104,8 +104,8 @@ class _MatchesView extends StatelessWidget {
             itemBuilder: (context, index) {
               final match = state.matches[index];
               final otherName =
-                  (match.otherUserId.isNotEmpty ? match.otherUserId : null) ??
-                      'Unknown';
+                  (match.otherUserId.trim().isNotEmpty ? match.otherUserId : null) ??
+                      'Name unavailable';
 
               return ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person)),

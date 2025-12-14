@@ -6,6 +6,7 @@ import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
 import '../../data/services/prematch_service.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/result.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/plus_feature_gate.dart';
 import 'settings_screen.dart';
@@ -344,11 +345,21 @@ class DeckScreen extends StatelessWidget {
     if (content == null || content.isEmpty) return;
 
     try {
-      await preMatchService.sendPreMatchMessageRequest(
-        targetUserId: targetUserId,
-        content: content,
+      final result = await Result.guard(
+        () => preMatchService.sendPreMatchMessageRequest(
+          targetUserId: targetUserId,
+          content: content,
+        ),
+        logLabel: 'PreMatchService.sendPreMatchMessageRequest',
+        fallbackError: 'Could not send message request. Try again.',
       );
       if (!context.mounted) return;
+      if (!result.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.errorMessage!)),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Message request sent')),
       );

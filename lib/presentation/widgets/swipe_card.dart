@@ -11,6 +11,19 @@ class SwipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl =
         profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
+    final displayName =
+        profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
+    final ageText = profile.age > 0 ? '${profile.age}' : 'N/A';
+    final bio = profile.bio.trim().isEmpty
+        ? 'This member has not added a bio yet.'
+        : profile.bio;
+    final city = profile.city.trim();
+    final country = profile.country.trim();
+    final location = [
+      if (city.isNotEmpty) city,
+      if (country.isNotEmpty) country,
+    ].join(city.isNotEmpty && country.isNotEmpty ? ', ' : '');
+
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -29,9 +42,10 @@ class SwipeCard extends StatelessWidget {
               Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _placeholder(),
               )
             else
-              Container(color: Colors.grey.shade800),
+              _placeholder(),
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -51,7 +65,7 @@ class SwipeCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '${profile.name}, ${profile.age}',
+                      '$displayName, $ageText',
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall
@@ -65,19 +79,32 @@ class SwipeCard extends StatelessWidget {
                 ),
                   const SizedBox(height: 4),
                   Text(
-                    profile.bio,
+                    bio,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${profile.city}, ${profile.country}',
+                    location.isEmpty ? 'Location unavailable' : location,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: Colors.grey.shade800,
+      child: const Center(
+        child: Icon(
+          Icons.person,
+          color: Colors.white54,
+          size: 64,
         ),
       ),
     );

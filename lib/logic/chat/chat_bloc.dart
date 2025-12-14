@@ -4,6 +4,7 @@ import '../../data/models/message.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/subscription_repository.dart';
+import '../../core/result.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
@@ -27,15 +28,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
     emit(state.copyWith(errorMessage: null));
     _sub?.cancel();
-    try {
-      final plan = await subscriptionRepository.getCurrentPlan();
-      _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
-        add(ChatMessagesUpdated(messages, plan));
-      });
-      emit(state.copyWith(canUnsend: plan.isPlus));
-      await chatRepository.markMessagesRead(event.matchId, event.currentUserId);
-    } catch (e) {
-      emit(state.copyWith(errorMessage: 'Could not load chat.'));
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not load chat.',
+    );
+    if (!planResult.isSuccess) {
+      emit(state.copyWith(errorMessage: planResult.errorMessage));
+      return;
+    }
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
+      add(ChatMessagesUpdated(messages, plan));
+    });
+    emit(state.copyWith(canUnsend: plan.isPlus, errorMessage: null));
+    final readResult = await Result.guard(
+      () => chatRepository.markMessagesRead(event.matchId, event.currentUserId),
+      logLabel: 'ChatRepository.markMessagesRead',
+      fallbackError: 'Could not load chat.',
+    );
+    if (!readResult.isSuccess) {
+      emit(state.copyWith(errorMessage: readResult.errorMessage));
     }
   }
 
@@ -48,21 +61,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       sendStatus: SendStatus.sendingText,
       errorMessage: null,
     ));
-    try {
-      await chatRepository.sendMessage(
+    final result = await Result.guard(
+      () => chatRepository.sendMessage(
         matchId: event.matchId,
         fromUserId: event.fromUserId,
         toUserId: event.toUserId,
         content: content,
         type: event.type,
-      );
-      emit(state.copyWith(sendStatus: SendStatus.idle));
-    } catch (e) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        errorMessage: 'Could not send message. Please try again.',
-      ));
-    }
+      ),
+      logLabel: 'ChatRepository.sendMessage',
+      fallbackError: 'Could not send message. Please try again.',
+    );
+    emit(state.copyWith(
+      sendStatus: SendStatus.idle,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onMediaSendRequested(
@@ -72,81 +85,119 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       uploadingAttachmentName: _filename(event.filePath),
       errorMessage: null,
     ));
-    try {
-      final plan = await subscriptionRepository.getCurrentPlan();
-      if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
-        emit(state.copyWith(
-          sendStatus: SendStatus.idle,
-          uploadingAttachmentName: null,
-          errorMessage:
-              'Media limit reached. Upgrade to Plus for unlimited media.',
-        ));
-        return;
-      }
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not send media. Please try again.',
+    );
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    if (!planResult.isSuccess) {
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
+        errorMessage: planResult.errorMessage,
+      ));
+      return;
+    }
+    if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
+        errorMessage:
+            'Media limit reached. Upgrade to Plus for unlimited media.',
+      ));
+      return;
+    }
 
-      final url = await chatRepository.uploadMedia(
+    final uploadResult = await Result.guard(
+      () => chatRepository.uploadMedia(
         matchId: event.matchId,
         filePath: event.filePath,
         type: event.type,
-      );
+      ),
+      logLabel: 'ChatRepository.uploadMedia',
+      fallbackError: 'Could not send media. Please try again.',
+    );
+    final url = uploadResult.data;
+    if (!uploadResult.isSuccess || url == null) {
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
+        errorMessage: uploadResult.errorMessage,
+      ));
+      return;
+    }
 
-      await chatRepository.sendMessage(
+    final sendResult = await Result.guard(
+      () => chatRepository.sendMessage(
         matchId: event.matchId,
         fromUserId: event.fromUserId,
         toUserId: event.toUserId,
         content: url,
         type: event.type,
-      );
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-        errorMessage: 'Could not send media. Please try again.',
-      ));
-    }
+      ),
+      logLabel: 'ChatRepository.sendMessage',
+      fallbackError: 'Could not send media. Please try again.',
+    );
+    emit(state.copyWith(
+      sendStatus: SendStatus.idle,
+      uploadingAttachmentName: null,
+      errorMessage: sendResult.errorMessage,
+    ));
   }
 
   Future<void> _onUnsendRequested(
       ChatMessageUnsendRequested event, Emitter<ChatState> emit) async {
     emit(state.copyWith(isUnsendInProgress: true, errorMessage: null));
 
-    try {
-      final plan = await subscriptionRepository.getCurrentPlan();
-      if (!plan.isPlus) {
-        emit(state.copyWith(
-          isUnsendInProgress: false,
-          errorMessage: 'Upgrade to Plus to unsend messages.',
-        ));
-        return;
-      }
-
-      await chatRepository.unsendMessage(
-        matchId: event.matchId,
-        messageId: event.messageId,
-      );
-      emit(state.copyWith(isUnsendInProgress: false));
-    } catch (e) {
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not unsend message.',
+    );
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    if (!planResult.isSuccess) {
       emit(state.copyWith(
         isUnsendInProgress: false,
-        errorMessage: 'Could not unsend message.',
+        errorMessage: planResult.errorMessage,
       ));
+      return;
     }
+    if (!plan.isPlus) {
+      emit(state.copyWith(
+        isUnsendInProgress: false,
+        errorMessage: 'Upgrade to Plus to unsend messages.',
+      ));
+      return;
+    }
+
+    final result = await Result.guard(
+      () => chatRepository.unsendMessage(
+        matchId: event.matchId,
+        messageId: event.messageId,
+      ),
+      logLabel: 'ChatRepository.unsendMessage',
+      fallbackError: 'Could not unsend message.',
+    );
+    emit(state.copyWith(
+      isUnsendInProgress: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onDeleteForMeRequested(
       ChatMessageDeleteForMeRequested event, Emitter<ChatState> emit) async {
-    try {
-      await chatRepository.deleteForMe(
+    final result = await Result.guard(
+      () => chatRepository.deleteForMe(
         matchId: event.matchId,
         messageId: event.messageId,
         userId: event.userId,
-      );
-    } catch (e) {
-      emit(state.copyWith(errorMessage: 'Could not delete message.'));
+      ),
+      logLabel: 'ChatRepository.deleteForMe',
+      fallbackError: 'Could not delete message.',
+    );
+    if (!result.isSuccess) {
+      emit(state.copyWith(errorMessage: result.errorMessage));
     }
   }
 

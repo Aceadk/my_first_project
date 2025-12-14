@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/subscription_repository.dart';
+import '../../core/result.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
 
@@ -31,16 +32,29 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       errorMessage: null,
     ));
 
-    try {
-      final url = await subscriptionRepository.startPlusCheckout();
-      await subscriptionRepository.launchCheckoutUrl(url);
-      emit(state.copyWith(isCheckoutInProgress: false));
-    } catch (e) {
+    final startResult = await Result.guard(
+      () => subscriptionRepository.startPlusCheckout(),
+      logLabel: 'SubscriptionRepository.startPlusCheckout',
+      fallbackError: 'Could not start checkout. Please try again.',
+    );
+    final url = startResult.data;
+    if (!startResult.isSuccess || url == null) {
       emit(state.copyWith(
         isCheckoutInProgress: false,
-        errorMessage: 'Could not start checkout. Please try again.',
+        errorMessage: startResult.errorMessage,
       ));
+      return;
     }
+
+    final launchResult = await Result.guard(
+      () => subscriptionRepository.launchCheckoutUrl(url),
+      logLabel: 'SubscriptionRepository.launchCheckoutUrl',
+      fallbackError: 'Could not start checkout. Please try again.',
+    );
+    emit(state.copyWith(
+      isCheckoutInProgress: false,
+      errorMessage: launchResult.errorMessage,
+    ));
   }
 
   void _onPlanUpdated(

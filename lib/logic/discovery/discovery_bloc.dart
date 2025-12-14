@@ -5,6 +5,7 @@ import '../../core/constants.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/discovery_repository.dart';
 import '../../data/repositories/subscription_repository.dart';
+import '../../core/result.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
@@ -35,29 +36,41 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       errorMessage: null,
       nextRetrySeconds: null,
     ));
-    try {
-      final deck = await discoveryRepository.fetchDeck(event.userId);
-      final plan = await subscriptionRepository.getCurrentPlan();
-      _remainingFreeSwipesToday =
-          plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
-      _retryDelayMs = 1000;
-      emit(state.copyWith(
-        isLoading: false,
-        deck: deck,
-        currentIndex: 0,
-        status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
-        errorMessage: null,
-        nextRetrySeconds: null,
-      ));
-    } catch (e) {
+    final deckResult = await Result.guard(
+      () => discoveryRepository.fetchDeck(event.userId),
+      logLabel: 'DiscoveryRepository.fetchDeck',
+      fallbackError: 'Could not load people. Please try again.',
+    );
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not load people. Please try again.',
+    );
+    if (!deckResult.isSuccess || !planResult.isSuccess) {
       emit(state.copyWith(
         isLoading: false,
         status: DeckStatus.error,
-        errorMessage: 'Could not load people. Please try again.',
+        errorMessage:
+            deckResult.errorMessage ?? planResult.errorMessage,
         nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
       ));
       _scheduleRetry();
+      return;
     }
+
+    final deck = deckResult.data ?? const [];
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    _remainingFreeSwipesToday =
+        plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
+    _retryDelayMs = 1000;
+    emit(state.copyWith(
+      isLoading: false,
+      deck: deck,
+      currentIndex: 0,
+      status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
+      errorMessage: null,
+      nextRetrySeconds: null,
+    ));
   }
 
   Future<void> _onSwipedRight(
@@ -67,40 +80,57 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final currentIndex = state.currentIndex;
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
-    try {
-      final plan = await subscriptionRepository.getCurrentPlan();
-      final remainingSwipes = plan.isFree
-          ? (_remainingFreeSwipesToday ?? CrushConstants.freeDailySwipeLimit)
-          : null;
-
-      if (plan.isFree && remainingSwipes != null && remainingSwipes <= 0) {
-        emit(state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: 'Daily swipe limit reached.',
-        ));
-        return;
-      }
-
-      emit(state.copyWith(
-        currentIndex: nextIndex,
-        status: DeckStatus.ready,
-        errorMessage: null,
-      ));
-
-      await discoveryRepository.swipeRight(
-        userId: event.userId,
-        targetUserId: event.targetUserId,
-        attachedMessage: event.attachedMessage,
-      );
-
-      if (plan.isFree && remainingSwipes != null) {
-        _remainingFreeSwipesToday = remainingSwipes - 1;
-      }
-    } catch (e) {
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not like this profile. Please try again.',
+    );
+    if (!planResult.isSuccess) {
       emit(state.copyWith(
         currentIndex: currentIndex,
         status: DeckStatus.ready,
-        errorMessage: 'Could not like this profile. Please try again.',
+        errorMessage: planResult.errorMessage,
+      ));
+      return;
+    }
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    final remainingSwipes = plan.isFree
+        ? (_remainingFreeSwipesToday ?? CrushConstants.freeDailySwipeLimit)
+        : null;
+
+    if (plan.isFree && remainingSwipes != null && remainingSwipes <= 0) {
+      emit(state.copyWith(
+        status: DeckStatus.ready,
+        errorMessage: 'Daily swipe limit reached.',
+      ));
+      return;
+    }
+
+    emit(state.copyWith(
+      currentIndex: nextIndex,
+      status: DeckStatus.ready,
+      errorMessage: planResult.errorMessage,
+    ));
+
+    final swipeResult = await Result.guard(
+      () => discoveryRepository.swipeRight(
+        userId: event.userId,
+        targetUserId: event.targetUserId,
+        attachedMessage: event.attachedMessage,
+      ),
+      logLabel: 'DiscoveryRepository.swipeRight',
+      fallbackError: 'Could not like this profile. Please try again.',
+    );
+
+    if (swipeResult.isSuccess &&
+        plan.isFree &&
+        remainingSwipes != null) {
+      _remainingFreeSwipesToday = remainingSwipes - 1;
+    } else if (!swipeResult.isSuccess) {
+      emit(state.copyWith(
+        currentIndex: currentIndex,
+        status: DeckStatus.ready,
+        errorMessage: swipeResult.errorMessage,
       ));
     }
   }
@@ -118,16 +148,19 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       errorMessage: null,
     ));
 
-    try {
-      await discoveryRepository.swipeLeft(
+    final result = await Result.guard(
+      () => discoveryRepository.swipeLeft(
         userId: event.userId,
         targetUserId: event.targetUserId,
-      );
-    } catch (e) {
+      ),
+      logLabel: 'DiscoveryRepository.swipeLeft',
+      fallbackError: 'Could not pass on this profile.',
+    );
+    if (!result.isSuccess) {
       emit(state.copyWith(
         currentIndex: currentIndex,
         status: DeckStatus.ready,
-        errorMessage: 'Could not pass on this profile.',
+        errorMessage: result.errorMessage,
       ));
     }
   }
