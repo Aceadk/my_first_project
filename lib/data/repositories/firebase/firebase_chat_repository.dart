@@ -206,12 +206,20 @@ class FirebaseChatRepository implements ChatRepository {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) async {
-    await _firestore.collection('reports').add({
+    final callable = _functions.httpsCallable('reportUser');
+    await callable.call(<String, dynamic>{
       'reporterId': reporterId,
       'reportedId': reportedId,
       'reason': reason,
-      'createdAt': FieldValue.serverTimestamp(),
+      'matchId': matchId,
+      'messageId': messageId,
+      'source': source,
+      'description': description,
     });
   }
 
@@ -220,10 +228,10 @@ class FirebaseChatRepository implements ChatRepository {
     required String blockerId,
     required String blockedId,
   }) async {
-    await _firestore.collection('blocks').add({
+    final callable = _functions.httpsCallable('blockUser');
+    await callable.call(<String, dynamic>{
       'blockerId': blockerId,
       'blockedId': blockedId,
-      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -232,17 +240,11 @@ class FirebaseChatRepository implements ChatRepository {
     required String blockerId,
     required String blockedId,
   }) async {
-    final query = await _firestore
-        .collection('blocks')
-        .where('blockerId', isEqualTo: blockerId)
-        .where('blockedId', isEqualTo: blockedId)
-        .get();
-    final batch = _firestore.batch();
-    for (final doc in query.docs) {
-      batch.delete(doc.reference);
-    }
-    if (query.docs.isEmpty) return;
-    await batch.commit();
+    final callable = _functions.httpsCallable('unblockUser');
+    await callable.call(<String, dynamic>{
+      'blockerId': blockerId,
+      'blockedId': blockedId,
+    });
   }
 
   @override

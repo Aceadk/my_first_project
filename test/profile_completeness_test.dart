@@ -47,6 +47,7 @@ void main() {
     final summary = evaluateProfileCompleteness(profile);
     expect(summary.score, closeTo(1.0, 0.01));
     expect(summary.missing, isEmpty);
+    expect(summary.requiredMissing, isEmpty);
   });
 
   test('reports missing pieces', () {

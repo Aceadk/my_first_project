@@ -143,12 +143,20 @@ class SafetyCubit extends Cubit<SafetyState> {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) async {
     final result = await Result.guard(
       () => _chatRepository.reportUser(
         reporterId: reporterId,
         reportedId: reportedId,
         reason: reason,
+        matchId: matchId,
+        messageId: messageId,
+        source: source,
+        description: description,
       ),
       logLabel: 'SafetyCubit.reportUser',
       fallbackError: 'Could not submit report. Please try again.',

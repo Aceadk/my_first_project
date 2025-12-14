@@ -296,6 +296,10 @@ class _NoopChatRepository implements ChatRepository {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) async {}
 
   @override

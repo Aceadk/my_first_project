@@ -48,9 +48,20 @@ void main() {
         reporterId: 'me',
         reportedId: 'target',
         reason: 'spam',
+        source: 'deck',
       );
 
-      expect(chatRepo.reports, contains(('me', 'target', 'spam')));
+      expect(
+        chatRepo.reports,
+        contains(
+          (
+            reporterId: 'me',
+            reportedId: 'target',
+            reason: 'spam',
+            source: 'deck'
+          ),
+        ),
+      );
       expect(cubit.state.errorMessage, isNull);
     });
 
@@ -72,7 +83,8 @@ class _StubChatRepository implements ChatRepository {
   bool shouldThrow = false;
   final List<(String, String)> blockedPairs = [];
   final List<(String, String)> unblockedPairs = [];
-  final List<(String, String, String)> reports = [];
+  final List<({String reporterId, String reportedId, String reason, String? source})>
+      reports = [];
 
   void _maybeThrow() {
     if (shouldThrow) throw Exception('network failed');
@@ -101,9 +113,18 @@ class _StubChatRepository implements ChatRepository {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) async {
     _maybeThrow();
-    reports.add((reporterId, reportedId, reason));
+    reports.add((
+      reporterId: reporterId,
+      reportedId: reportedId,
+      reason: reason,
+      source: source
+    ));
   }
 
   @override

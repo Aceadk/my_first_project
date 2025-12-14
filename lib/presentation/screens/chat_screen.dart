@@ -88,6 +88,7 @@ class _ChatScreenState extends State<ChatScreen> {
           builder: (context, state) {
             final messages = state.messages;
             final canMessage = completeness.meetsMessagingMinimum &&
+                completeness.meetsRequiredFields &&
                 !isBlocked &&
                 !state.isUnmatched;
             final isOtherTyping =
@@ -278,9 +279,24 @@ class _ChatScreenState extends State<ChatScreen> {
                           const Icon(Icons.info_outline, color: Colors.orange),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              'Complete your profile to continue messaging. Missing: ${completeness.missing.take(2).join(', ')}',
-                              style: const TextStyle(color: Colors.orange),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Complete your profile to continue messaging.',
+                                  style: const TextStyle(color: Colors.orange),
+                                ),
+                                const SizedBox(height: 6),
+                                LinearProgressIndicator(
+                                  value: completeness.score,
+                                  minHeight: 5,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Missing: ${(completeness.requiredMissing.isNotEmpty ? completeness.requiredMissing : completeness.missing).take(2).join(', ')}',
+                                  style: const TextStyle(color: Colors.orange),
+                                ),
+                              ],
                             ),
                           ),
                           TextButton(
@@ -986,13 +1002,14 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
-                title: Text(
+              ListTile(
+                title: const Text(
                   'Report user',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  'Choose a reason. Serious issues will be reviewed.',
+                  'Reports are anonymous and reviewed by our team. Last match: ${widget.args.matchId}',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
               ...reasons.map(
@@ -1007,6 +1024,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         reporterId: widget.args.currentUserId,
                         reportedId: widget.args.otherUserId,
                         reason: reason,
+                        matchId: widget.args.matchId,
+                        source: 'chat',
                       );
                       if (!mounted) return;
                       final error = cubit.state.errorMessage;
@@ -1015,6 +1034,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       ));
                     }
                   },
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, CrushRoutes.safetyGuidelines),
+                  icon: const Icon(Icons.shield_outlined),
+                  label: const Text('View community guidelines'),
                 ),
               ),
               const SizedBox(height: 4),
@@ -1048,13 +1076,16 @@ class _ChatScreenState extends State<ChatScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () async {
-                final reason = controller.text.trim();
-                if (reason.isNotEmpty) {
+                  onPressed: () async {
+                final details = controller.text.trim();
+                if (details.isNotEmpty) {
                   await cubit.reportWithContext(
                     reporterId: widget.args.currentUserId,
                     reportedId: widget.args.otherUserId,
-                    reason: reason,
+                    reason: 'Other',
+                    description: details,
+                    matchId: widget.args.matchId,
+                    source: 'chat',
                   );
                   if (!mounted) return;
                   final error = cubit.state.errorMessage;

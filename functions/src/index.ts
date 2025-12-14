@@ -57,6 +57,25 @@ interface UnsendRequest {
   messageId?: string;
 }
 
+interface ReportRequest {
+  reporterId?: string;
+  reportedId?: string;
+  reason?: string;
+  matchId?: string;
+  messageId?: string;
+  source?: string;
+  description?: string;
+}
+
+interface BlockRequest {
+  blockerId?: string;
+  blockedId?: string;
+}
+
+const PROFILE_MIN_PHOTOS = 1;
+const PROFILE_MIN_PROMPTS = 2;
+const PROFILE_MIN_BIO_LENGTH = 40;
+
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
   data: TData,
@@ -115,6 +134,44 @@ function optionalString(value: unknown): string | undefined {
   return str.length > 0 ? str : undefined;
 }
 
+function ensureProfileQuality(
+  profile: { photoUrls?: unknown; prompts?: unknown; bio?: unknown } | null,
+  action: string
+) {
+  const photos = Array.isArray(profile?.photoUrls)
+    ? (profile?.photoUrls as unknown[])
+        .map((p) => (typeof p === "string" ? p.trim() : ""))
+        .filter((p) => p.length > 0)
+    : [];
+  const prompts = Array.isArray(profile?.prompts)
+    ? (profile?.prompts as unknown[])
+        .map((p) => (typeof p === "string" ? p.trim() : ""))
+        .filter((p) => p.length > 0)
+    : [];
+  const bio =
+    typeof profile?.bio === "string" ? (profile?.bio as string).trim() : "";
+
+  const missing: string[] = [];
+  if (photos.length < PROFILE_MIN_PHOTOS) {
+    missing.push(`Add at least ${PROFILE_MIN_PHOTOS} photo(s).`);
+  }
+  if (bio.length < PROFILE_MIN_BIO_LENGTH) {
+    missing.push(
+      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`
+    );
+  }
+  if (prompts.length < PROFILE_MIN_PROMPTS) {
+    missing.push(`Answer at least ${PROFILE_MIN_PROMPTS} prompts.`);
+  }
+
+  if (missing.length > 0) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      `Complete your profile before ${action}: ${missing.join(" ")}`
+    );
+  }
+}
+
 // Helpers
 async function getUser(uid: string): Promise<UserDoc> {
   const snap = await db.collection("users").doc(uid).get();
@@ -167,6 +224,84 @@ function setCorsHeaders(res: functions.Response) {
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
 }
 
+export const reportUser = callable<ReportRequest>(async (data, context) => {
+  const reporterId = requireAuth(context, "report a user");
+  const reportedId = requireString(data?.reportedId, "reportedId");
+  const reason = requireString(data?.reason, "reason");
+  const matchId = optionalString(data?.matchId);
+  const messageId = optionalString(data?.messageId);
+  const source = optionalString(data?.source);
+  const description = optionalString(data?.description);
+
+  if (reportedId === reporterId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "You cannot report yourself."
+    );
+  }
+
+  await ensureUserExists(reportedId);
+
+  await db.collection("reports").add({
+    reporterId,
+    reportedId,
+    reason,
+    matchId: matchId ?? null,
+    messageId: messageId ?? null,
+    source: source ?? null,
+    description: description ?? null,
+    status: "open",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { ok: true };
+});
+
+export const blockUser = callable<BlockRequest>(async (data, context) => {
+  const blockerId = requireAuth(context, "block a user");
+  const blockedId = requireString(data?.blockedId, "blockedId");
+  const blockerIdFromClient = optionalString(data?.blockerId);
+
+  if (blockedId === blockerId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "You cannot block yourself."
+    );
+  }
+  if (blockerIdFromClient && blockerIdFromClient !== blockerId) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Blocker mismatch."
+    );
+  }
+
+  const docId = `${blockerId}_${blockedId}`;
+  await db.collection("blocks").doc(docId).set({
+    blockerId,
+    blockedId,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { ok: true };
+});
+
+export const unblockUser = callable<BlockRequest>(async (data, context) => {
+  const blockerId = requireAuth(context, "unblock a user");
+  const blockedId = requireString(data?.blockedId, "blockedId");
+  const blockerIdFromClient = optionalString(data?.blockerId);
+
+  if (blockerIdFromClient && blockerIdFromClient !== blockerId) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Blocker mismatch."
+    );
+  }
+
+  const docId = `${blockerId}_${blockedId}`;
+  await db.collection("blocks").doc(docId).delete();
+  return { ok: true };
+});
+
 // Swipe right (double opt-in + match creation)
 export const swipeRight = callable<SwipeRequest>(async (data, context) => {
   const uid = requireAuth(context, "swipe right");
@@ -185,12 +320,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
 
   // Ensure current user has a profile
   const me = await getUser(uid);
-  if (!me.profile) {
-    throw new functions.https.HttpsError(
-      "failed-precondition",
-      "Complete your profile before swiping."
-    );
-  }
+  ensureProfileQuality(me.profile as any, "swiping");
 
   // 1. Write like record
   const likeRef = db.collection("likes").doc();
@@ -291,12 +421,7 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   await ensureNotBlocked(uid, targetUserId);
 
   const me = await getUser(uid);
-  if (!me.profile) {
-    throw new functions.https.HttpsError(
-      "failed-precondition",
-      "Complete your profile before swiping."
-    );
-  }
+  ensureProfileQuality(me.profile as any, "swiping");
 
   await bigquery
     .dataset(BQ_DATASET)
@@ -331,12 +456,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     await ensureNotBlocked(uid, targetUserId);
 
     const me = await getUser(uid);
-    if (!me.profile) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Complete your profile before sending requests."
-      );
-    }
+    ensureProfileQuality(me.profile as any, "sending requests");
 
     // Find or create a "pending match-like" doc for this pair
     const pairId =

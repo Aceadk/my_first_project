@@ -695,6 +695,10 @@ class FakeChatRepository implements ChatRepository {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) async {
     final uri = Uri.parse('$_backendBaseUrl/moderation/report');
     final response = await http
@@ -705,6 +709,10 @@ class FakeChatRepository implements ChatRepository {
             'reporterId': reporterId,
             'reportedId': reportedId,
             'reason': reason,
+            'matchId': matchId,
+            'messageId': messageId,
+            'source': source,
+            'description': description,
           }),
         )
         .timeout(const Duration(seconds: 5));

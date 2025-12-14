@@ -146,7 +146,8 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.grey.shade300,
                     onTap: () {
                       if (userId == null) return;
-                      if (!completeness.meetsSwipeMinimum) {
+                      if (!completeness.meetsSwipeMinimum ||
+                          !completeness.meetsRequiredFields) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -163,7 +164,8 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.blueAccent,
                     onTap: () async {
                       if (userId == null) return;
-                      if (!completeness.meetsMessagingMinimum) {
+                      if (!completeness.meetsMessagingMinimum ||
+                          !completeness.meetsRequiredFields) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -179,7 +181,8 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.pinkAccent,
                     onTap: () {
                       if (userId == null) return;
-                      if (!completeness.meetsSwipeMinimum) {
+                      if (!completeness.meetsSwipeMinimum ||
+                          !completeness.meetsRequiredFields) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -366,7 +369,7 @@ class DeckScreen extends StatelessWidget {
       );
     }
 
-    if (!completeness.meetsSwipeMinimum) {
+    if (!completeness.meetsSwipeMinimum || !completeness.meetsRequiredFields) {
       final percent = (completeness.score * 100).round();
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -391,7 +394,10 @@ class DeckScreen extends StatelessWidget {
     ProfileCompletenessSummary completeness,
   ) {
     final percent = (completeness.score * 100).round();
-    final missing = completeness.missing.take(3).join('\n• ');
+    final missingList = completeness.requiredMissing.isNotEmpty
+        ? completeness.requiredMissing
+        : completeness.missing;
+    final missing = missingList.take(3).join('\n• ');
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -399,7 +405,7 @@ class DeckScreen extends StatelessWidget {
         content: Text(
           percent >= 100
               ? 'Your profile looks good.'
-              : 'Your profile is $percent% complete. Add these to unlock swiping and messaging:\n\n• ${missing.isEmpty ? 'Add photos and a longer bio' : missing}',
+              : 'Your profile is $percent% complete. Add these to unlock swiping and messaging:\n\n• ${missing.isEmpty ? 'Add photos, prompts, and a longer bio' : missing}',
         ),
         actions: [
           TextButton(
@@ -613,13 +619,22 @@ class DeckScreen extends StatelessWidget {
               ListTile(
                 title: Text('Report $reportedName'),
                 subtitle: const Text(
-                  'We will review and may limit accounts that violate guidelines.',
+                  'Reports are anonymous and reviewed by our team. Please follow community guidelines.',
                 ),
               ),
               ...reasons.map(
                 (reason) => ListTile(
                   title: Text(reason),
                   onTap: () => Navigator.pop(sheetContext, reason),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, CrushRoutes.safetyGuidelines),
+                  icon: const Icon(Icons.shield_outlined),
+                  label: const Text('View community guidelines'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -665,13 +680,16 @@ class DeckScreen extends StatelessWidget {
       await safety.reportWithContext(
         reporterId: currentUserId,
         reportedId: reportedId,
-        reason: custom,
+        reason: 'Other',
+        description: custom,
+        source: 'deck',
       );
     } else {
       await safety.reportWithContext(
         reporterId: currentUserId,
         reportedId: reportedId,
         reason: selected,
+        source: 'deck',
       );
     }
 

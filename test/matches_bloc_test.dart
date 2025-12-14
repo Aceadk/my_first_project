@@ -74,6 +74,10 @@ class _ThrowingChatRepository implements ChatRepository {
     required String reporterId,
     required String reportedId,
     required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
   }) {
     throw UnimplementedError();
   }

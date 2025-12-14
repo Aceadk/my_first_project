@@ -17,7 +17,8 @@ class CommunityGuidelinesScreen extends StatelessWidget {
           SizedBox(height: 8),
           Text(
             'We want CrushHour to feel respectful, welcoming, and safe. '
-            'Please follow these guidelines so everyone can connect confidently.',
+            'Please follow these guidelines so everyone can connect confidently. '
+            'Violations may lead to warnings, temporary restrictions, or removal.',
           ),
           SizedBox(height: 16),
           _Bullet('Be yourself. Use your real photos and information.'),
@@ -31,6 +32,8 @@ class CommunityGuidelinesScreen extends StatelessWidget {
               'Protect privacy. Never share someone else’s private info or your own sensitive data.'),
           _Bullet(
               'Report and block. If you feel unsafe or see something off, report and block the user.'),
+          _Bullet(
+              'No impersonation. Do not claim to be someone you are not or share altered documents.'),
           SizedBox(height: 16),
           Text(
             'What happens when you report?',
