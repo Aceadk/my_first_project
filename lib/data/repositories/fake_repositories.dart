@@ -170,7 +170,7 @@ class FakeProfileRepository implements ProfileRepository {
       minAge: 18,
       maxAge: 45,
       maxDistanceKm: 50,
-      showMeGenders: ['women', 'men'],
+      showMeGenders: ['female', 'male'],
       showMyDistance: true,
       showMyAge: true,
       hideFromDiscovery: false,
@@ -301,7 +301,7 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
           minAge: CrushConstants.minAge,
           maxAge: 45,
           maxDistanceKm: 50,
-          showMeGenders: ['women', 'men'],
+          showMeGenders: ['female', 'male'],
           showMyDistance: true,
           showMyAge: true,
           hideFromDiscovery: false,
@@ -310,9 +310,8 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
           city: 'Unknown',
         );
 
-    final genders = prefs.showMeGenders.isEmpty
-        ? const ['women', 'men']
-        : prefs.showMeGenders;
+    final genders =
+        prefs.showMeGenders.isEmpty ? const ['female', 'male'] : prefs.showMeGenders;
     const names = [
       'Alex',
       'Jordan',

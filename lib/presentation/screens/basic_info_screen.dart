@@ -18,7 +18,7 @@ class BasicInfoScreen extends StatefulWidget {
 class _BasicInfoScreenState extends State<BasicInfoScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
-  String _gender = 'woman';
+  String _gender = 'female';
   String? _orientation;
 
   @override
@@ -68,14 +68,14 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                         value: _gender,
                         items: const [
                           DropdownMenuItem(
-                              value: 'woman', child: Text('Woman')),
-                          DropdownMenuItem(value: 'man', child: Text('Man')),
+                              value: 'female', child: Text('Female')),
+                          DropdownMenuItem(value: 'male', child: Text('Male')),
                           DropdownMenuItem(
                               value: 'nonbinary', child: Text('Non-binary')),
                         ],
                         onChanged: (value) {
                           setState(() {
-                            _gender = value ?? 'woman';
+                            _gender = value ?? 'female';
                           });
                         },
                       ),

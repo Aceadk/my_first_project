@@ -163,7 +163,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       maxAge: prefsData['maxAge'] ?? 45,
       maxDistanceKm: (prefsData['maxDistanceKm'] ?? 50).toDouble(),
       showMeGenders:
-          List<String>.from(prefsData['showMeGenders'] ?? ['women', 'men']),
+          List<String>.from(prefsData['showMeGenders'] ?? ['female', 'male']),
       showMyDistance: prefsData['showMyDistance'] ?? true,
       showMyAge: prefsData['showMyAge'] ?? true,
       hideFromDiscovery: prefsData['hideFromDiscovery'] ?? false,

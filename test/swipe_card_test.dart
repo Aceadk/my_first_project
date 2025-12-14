@@ -8,7 +8,7 @@ const _prefs = DiscoveryPreferences(
   minAge: 18,
   maxAge: 30,
   maxDistanceKm: 50,
-  showMeGenders: ['women', 'men'],
+  showMeGenders: ['female', 'male'],
   showMyDistance: true,
   showMyAge: true,
   hideFromDiscovery: false,

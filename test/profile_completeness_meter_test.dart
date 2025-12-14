@@ -5,11 +5,11 @@ import 'package:my_first_project/data/models/profile.dart';
 import 'package:my_first_project/presentation/widgets/profile_completeness_meter.dart';
 
 void main() {
-  const prefs = DiscoveryPreferences(
-    minAge: 18,
-    maxAge: 45,
-    maxDistanceKm: 50,
-    showMeGenders: ['women', 'men'],
+const prefs = DiscoveryPreferences(
+  minAge: 18,
+  maxAge: 45,
+  maxDistanceKm: 50,
+  showMeGenders: ['female', 'male'],
     showMyDistance: true,
     showMyAge: true,
     hideFromDiscovery: false,

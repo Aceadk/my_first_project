@@ -55,7 +55,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             minAge: 18,
             maxAge: 45,
             maxDistanceKm: 50,
-            showMeGenders: ['women', 'men'],
+            showMeGenders: ['female', 'male'],
             showMyDistance: true,
             showMyAge: true,
             hideFromDiscovery: false,

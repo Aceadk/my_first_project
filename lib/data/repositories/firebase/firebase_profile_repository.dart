@@ -53,7 +53,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       minAge: CrushConstants.minAge,
       maxAge: 45,
       maxDistanceKm: 50,
-      showMeGenders: ['women', 'men'],
+      showMeGenders: ['female', 'male'],
       showMyDistance: true,
       showMyAge: true,
       hideFromDiscovery: false,
@@ -203,7 +203,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         maxDistanceKm:
             (prefsData['maxDistanceKm'] ?? 50).toDouble(),
         showMeGenders:
-            List<String>.from(prefsData['showMeGenders'] ?? ['women', 'men']),
+            List<String>.from(prefsData['showMeGenders'] ?? ['female', 'male']),
         showMyDistance: prefsData['showMyDistance'] ?? true,
         showMyAge: prefsData['showMyAge'] ?? true,
         hideFromDiscovery: prefsData['hideFromDiscovery'] ?? false,
