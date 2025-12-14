@@ -15,6 +15,7 @@ import '../../logic/profile/profile_bloc.dart';
 import '../../core/profile_completeness.dart';
 import '../../core/router.dart';
 import '../widgets/plus_feature_gate.dart';
+import '../widgets/async_state_scaffold.dart';
 import '../../core/ui/snackbar_utils.dart';
 import 'video_call_screen.dart';
 import 'profile_edit_screen.dart';
@@ -282,9 +283,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Complete your profile to continue messaging.',
-                                  style: const TextStyle(color: Colors.orange),
+                                  style: TextStyle(color: Colors.orange),
                                 ),
                                 const SizedBox(height: 6),
                                 LinearProgressIndicator(
