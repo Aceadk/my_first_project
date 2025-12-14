@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/safety/safety_cubit.dart';
+import '../../logic/auth/auth_bloc.dart';
+import '../../core/router.dart';
+import '../../core/ui/snackbar_utils.dart';
 
 class SafetyScreen extends StatelessWidget {
   const SafetyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId =
+        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
     return Scaffold(
       appBar: AppBar(title: const Text('Safety & blocking')),
-      body: BlocBuilder<SafetyCubit, SafetyState>(
+      body: BlocConsumer<SafetyCubit, SafetyState>(
+        listenWhen: (previous, current) =>
+            previous.errorMessage != current.errorMessage,
+        listener: (context, state) {
+          final error = state.errorMessage;
+          if (error != null && error.isNotEmpty) {
+            showErrorSnackBar(context, error);
+          }
+        },
         builder: (context, state) {
           final cubit = context.read<SafetyCubit>();
           return ListView(
@@ -20,7 +33,12 @@ class SafetyScreen extends StatelessWidget {
                 emptyText:
                     'People you block can’t see your profile, message, or call you.',
                 items: state.blockedUsers.toList(),
-                onRemove: (userId) => cubit.toggleBlock(userId, block: false),
+                onRemove: (userId) => _unblock(
+                  context,
+                  cubit,
+                  currentUserId,
+                  userId,
+                ),
                 removeLabel: 'Unblock',
               ),
               const SizedBox(height: 16),
@@ -42,23 +60,33 @@ class SafetyScreen extends StatelessWidget {
                 removeLabel: 'Unmute calls',
               ),
               const SizedBox(height: 16),
-              const Card(
+              Card(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Need to report someone?',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
+                      const SizedBox(height: 8),
+                      const Text(
                         'Open their profile or chat, choose Report, and pick a reason. '
                         'We review reports to keep the community safe.',
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            CrushRoutes.safetyGuidelines,
+                          );
+                        },
+                        icon: const Icon(Icons.policy),
+                        label: const Text('Read community guidelines'),
                       ),
                     ],
                   ),
@@ -68,6 +96,23 @@ class SafetyScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Future<void> _unblock(
+    BuildContext context,
+    SafetyCubit cubit,
+    String? currentUserId,
+    String userId,
+  ) async {
+    if (currentUserId == null) {
+      showErrorSnackBar(context, 'Sign in again to manage safety actions.');
+      return;
+    }
+    await cubit.toggleBlock(
+      userId,
+      block: false,
+      currentUserId: currentUserId,
     );
   }
 }

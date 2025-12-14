@@ -11,6 +11,7 @@ import '../presentation/screens/chat_screen.dart';
 import '../presentation/screens/test/test_video_screen.dart';
 import '../presentation/screens/logout_screen.dart';
 import '../presentation/screens/safety_screen.dart';
+import '../presentation/screens/community_guidelines_screen.dart';
 
 class CrushRoutes {
   static const splash = '/';
@@ -24,6 +25,7 @@ class CrushRoutes {
   static const chat = '/chat';
   static const logout = '/logout';
   static const safety = '/safety';
+  static const safetyGuidelines = '/safety-guidelines';
   static const testAgora = '/test-agora';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -54,6 +56,10 @@ class CrushRoutes {
         );
       case safety:
         return MaterialPageRoute(builder: (_) => const SafetyScreen());
+      case safetyGuidelines:
+        return MaterialPageRoute(
+          builder: (_) => const CommunityGuidelinesScreen(),
+        );
       case logout:
         return MaterialPageRoute(builder: (_) => const LogoutScreen());
       case testAgora:

@@ -654,6 +654,14 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> unblockUser({
+    required String blockerId,
+    required String blockedId,
+  }) async {
+    _blockedByUser[blockerId]?.remove(blockedId);
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,

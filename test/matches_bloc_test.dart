@@ -36,6 +36,14 @@ class _ThrowingChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> unblockUser({
+    required String blockerId,
+    required String blockedId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

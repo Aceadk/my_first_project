@@ -1,36 +1,51 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/result.dart';
+import '../../data/repositories/chat_repository.dart';
 
 class SafetyState {
   const SafetyState({
     required this.blockedUsers,
     required this.mutedMessages,
     required this.mutedCalls,
+    this.errorMessage,
   });
 
   final Set<String> blockedUsers;
   final Set<String> mutedMessages;
   final Set<String> mutedCalls;
+  final String? errorMessage;
 
   SafetyState copyWith({
     Set<String>? blockedUsers,
     Set<String>? mutedMessages,
     Set<String>? mutedCalls,
+    Object? errorMessage = _unset,
   }) {
     return SafetyState(
       blockedUsers: blockedUsers ?? this.blockedUsers,
       mutedMessages: mutedMessages ?? this.mutedMessages,
       mutedCalls: mutedCalls ?? this.mutedCalls,
+      errorMessage: identical(errorMessage, _unset)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
+
+  static const _unset = Object();
 }
 
 class SafetyCubit extends Cubit<SafetyState> {
-  SafetyCubit({required SharedPreferences preferences})
+  SafetyCubit({
+    required SharedPreferences preferences,
+    required ChatRepository chatRepository,
+  })
       : _preferences = preferences,
+        _chatRepository = chatRepository,
         super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
+  final ChatRepository _chatRepository;
 
   static const _blockedKey = 'safety_blocked';
   static const _mutedMessagesKey = 'safety_muted_messages';
@@ -49,14 +64,49 @@ class SafetyCubit extends Cubit<SafetyState> {
   bool isMessagesMuted(String userId) => state.mutedMessages.contains(userId);
   bool isCallsMuted(String userId) => state.mutedCalls.contains(userId);
 
-  Future<void> toggleBlock(String userId, {required bool block}) async {
+  Future<void> toggleBlock(
+    String userId, {
+    required bool block,
+    required String currentUserId,
+  }) async {
+    if (currentUserId.isEmpty) {
+      emit(state.copyWith(
+        errorMessage: 'Sign in again to manage safety actions.',
+      ));
+      return;
+    }
     final updated = Set<String>.from(state.blockedUsers);
     if (block) {
       updated.add(userId);
     } else {
       updated.remove(userId);
     }
-    await _persist(state.copyWith(blockedUsers: updated));
+
+    final result = await Result.guard(
+      () async {
+        if (block) {
+          await _chatRepository.blockUser(
+            blockerId: currentUserId,
+            blockedId: userId,
+          );
+        } else {
+          await _chatRepository.unblockUser(
+            blockerId: currentUserId,
+            blockedId: userId,
+          );
+        }
+        await _persist(
+          state.copyWith(blockedUsers: updated, errorMessage: null),
+        );
+      },
+      logLabel: 'SafetyCubit.toggleBlock',
+      fallbackError:
+          'Could not ${block ? 'block' : 'unblock'} this user. Please try again.',
+    );
+
+    if (!result.isSuccess) {
+      emit(state.copyWith(errorMessage: result.errorMessage));
+    }
   }
 
   Future<void> toggleMuteMessages(String userId, {required bool mute}) async {
@@ -80,9 +130,35 @@ class SafetyCubit extends Cubit<SafetyState> {
   }
 
   Future<void> reportUser(String userId, String reason) async {
-    // Placeholder hook: send report to backend in a real app.
-    // Here we simply log it in memory to keep UI responsive.
-    // You can integrate analytics or API call here.
+    // This is a convenience wrapper for UI that only needs reportedId.
+    // For full context (with reporter ID), see reportWithContext below.
+    await reportWithContext(
+      reporterId: 'anonymous',
+      reportedId: userId,
+      reason: reason,
+    );
+  }
+
+  Future<void> reportWithContext({
+    required String reporterId,
+    required String reportedId,
+    required String reason,
+  }) async {
+    final result = await Result.guard(
+      () => _chatRepository.reportUser(
+        reporterId: reporterId,
+        reportedId: reportedId,
+        reason: reason,
+      ),
+      logLabel: 'SafetyCubit.reportUser',
+      fallbackError: 'Could not submit report. Please try again.',
+    );
+
+    if (!result.isSuccess) {
+      emit(state.copyWith(errorMessage: result.errorMessage));
+    } else {
+      emit(state.copyWith(errorMessage: null));
+    }
   }
 
   Future<void> _persist(SafetyState next) async {

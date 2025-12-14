@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth/auth_bloc.dart';
+import '../../logic/profile/profile_bloc.dart';
+import '../../core/profile_completeness.dart';
+import '../../data/models/profile.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
 import '../../data/services/prematch_service.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/result.dart';
+import '../../core/router.dart';
+import '../../logic/safety/safety_cubit.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/plus_feature_gate.dart';
 import 'settings_screen.dart';
+import 'profile_edit_screen.dart';
 
 class DeckScreen extends StatelessWidget {
   const DeckScreen({super.key});
@@ -33,6 +39,8 @@ class DeckScreen extends StatelessWidget {
       builder: (context, state) {
         _requestDeckIfNeeded(context, userId, state);
 
+        final Profile? currentUserProfile = context.select<ProfileBloc, Profile?>((b) => b.state.profile);
+        final completeness = computeProfileCompleteness(currentUserProfile);
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
         final isLoading = status == DeckStatus.loading;
@@ -63,7 +71,34 @@ class DeckScreen extends StatelessWidget {
           appBar: _buildAppBar(context, userId),
           body: Column(
             children: [
-              _buildStatusBar(isLoading, retryInSeconds),
+              _buildStatusBar(isLoading, retryInSeconds, completeness),
+              Align(
+                alignment: Alignment.centerRight,
+                child: PopupMenuButton<_DeckSafetyAction>(
+                  tooltip: 'Safety tools',
+                  onSelected: (action) => _handleSafetyAction(
+                    context,
+                    action,
+                    currentProfileId: currentProfile.id,
+                    currentProfileName: currentProfile.name,
+                    currentUserId: userId,
+                  ),
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: _DeckSafetyAction.report,
+                      child: Text('Report profile'),
+                    ),
+                    PopupMenuItem(
+                      value: _DeckSafetyAction.block,
+                      child: Text('Block & hide profile'),
+                    ),
+                    PopupMenuItem(
+                      value: _DeckSafetyAction.guidelines,
+                      child: Text('Community guidelines'),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: SwipeCard(profile: currentProfile),
               ),
@@ -76,6 +111,10 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.grey.shade300,
                     onTap: () {
                       if (userId == null) return;
+                      if (completeness < 1.0) {
+                        _showProfileIncompleteDialog(context, completeness);
+                        return;
+                      }
                       context.read<DiscoveryBloc>().add(
                             DiscoverySwipedLeft(
                               userId: userId,
@@ -89,6 +128,10 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.blueAccent,
                     onTap: () async {
                       if (userId == null) return;
+                      if (completeness < 1.0) {
+                        _showProfileIncompleteDialog(context, completeness);
+                        return;
+                      }
                       await _showPreMatchDialog(
                         context: context,
                         preMatchService: preMatchService,
@@ -101,6 +144,10 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.pinkAccent,
                     onTap: () {
                       if (userId == null) return;
+                      if (completeness < 1.0) {
+                        _showProfileIncompleteDialog(context, completeness);
+                        return;
+                      }
                       context.read<DiscoveryBloc>().add(
                             DiscoverySwipedRight(
                               userId: userId,
@@ -267,7 +314,7 @@ class DeckScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBar(bool isLoading, int? retryInSeconds) {
+  Widget _buildStatusBar(bool isLoading, int? retryInSeconds, double completeness) {
     if (isLoading) {
       return const LinearProgressIndicator(minHeight: 2);
     }
@@ -288,7 +335,53 @@ class DeckScreen extends StatelessWidget {
         ),
       );
     }
+
+    if (completeness > 0 && completeness < 1.0) {
+      final percent = (completeness * 100).round();
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LinearProgressIndicator(value: completeness, minHeight: 6),
+            const SizedBox(height: 8),
+            Text('Profile completeness: $percent% — complete to unlock swiping'),
+          ],
+        ),
+      );
+    }
+
     return const SizedBox(height: 2);
+  }
+
+  void _showProfileIncompleteDialog(BuildContext context, double completeness) {
+    final percent = (completeness * 100).round();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Complete your profile'),
+        content: Text(
+          percent >= 100
+              ? 'Your profile looks good.'
+              : 'Your profile is $percent% complete. Add photos and fill your bio to unlock swiping and messaging.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const ProfileEditScreen(),
+              ));
+            },
+            child: const Text('Complete profile'),
+          ),
+        ],
+      ),
+    );
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
@@ -307,6 +400,152 @@ class DeckScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _handleSafetyAction(
+    BuildContext context,
+    _DeckSafetyAction action, {
+    required String currentProfileId,
+    required String currentProfileName,
+    required String? currentUserId,
+  }) async {
+    final safety = context.read<SafetyCubit>();
+    switch (action) {
+      case _DeckSafetyAction.report:
+        await _showReportSheet(
+          context,
+          safety,
+          reportedId: currentProfileId,
+          reportedName: currentProfileName,
+          currentUserId: currentUserId,
+        );
+        break;
+      case _DeckSafetyAction.block:
+        if (currentUserId == null) {
+          showErrorSnackBar(context, 'Sign in again to block profiles.');
+          return;
+        }
+        await safety.toggleBlock(
+          currentProfileId,
+          block: true,
+          currentUserId: currentUserId,
+        );
+        final error = safety.state.errorMessage;
+        if (error != null && error.isNotEmpty) {
+          showErrorSnackBar(context, error);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Blocked $currentProfileName and hidden from deck.'),
+            ),
+          );
+        }
+        break;
+      case _DeckSafetyAction.guidelines:
+        Navigator.pushNamed(context, CrushRoutes.safetyGuidelines);
+        break;
+    }
+  }
+
+  Future<void> _showReportSheet(
+    BuildContext context,
+    SafetyCubit safety, {
+    required String reportedId,
+    required String reportedName,
+    required String? currentUserId,
+  }) async {
+    if (currentUserId == null) {
+      showErrorSnackBar(context, 'Sign in again to report this profile.');
+      return;
+    }
+
+    const reasons = [
+      'Spam or scams',
+      'Harassment or hate',
+      'Inappropriate content',
+      'Fake profile',
+      'Other',
+    ];
+
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('Report $reportedName'),
+                subtitle: const Text(
+                  'We will review and may limit accounts that violate guidelines.',
+                ),
+              ),
+              ...reasons.map(
+                (reason) => ListTile(
+                  title: Text(reason),
+                  onTap: () => Navigator.pop(sheetContext, reason),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selected == null) return;
+
+    if (selected == 'Other') {
+      final controller = TextEditingController();
+      final custom = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text('Report $reportedName'),
+            content: TextField(
+              controller: controller,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Describe what happened',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () =>
+                    Navigator.pop(dialogContext, controller.text.trim()),
+                child: const Text('Submit'),
+              ),
+            ],
+          );
+        },
+      );
+      if (custom == null || custom.isEmpty) return;
+      await safety.reportWithContext(
+        reporterId: currentUserId,
+        reportedId: reportedId,
+        reason: custom,
+      );
+    } else {
+      await safety.reportWithContext(
+        reporterId: currentUserId,
+        reportedId: reportedId,
+        reason: selected,
+      );
+    }
+
+    final error = safety.state.errorMessage;
+    if (error != null && error.isNotEmpty) {
+      showErrorSnackBar(context, error);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Report submitted for $reportedName.')),
+      );
+    }
   }
 
   Future<void> _showPreMatchDialog({
@@ -373,3 +612,5 @@ class DeckScreen extends StatelessWidget {
     }
   }
 }
+
+enum _DeckSafetyAction { report, block, guidelines }

@@ -160,6 +160,24 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> unblockUser({
+    required String blockerId,
+    required String blockedId,
+  }) async {
+    final query = await _firestore
+        .collection('blocks')
+        .where('blockerId', isEqualTo: blockerId)
+        .where('blockedId', isEqualTo: blockedId)
+        .get();
+    final batch = _firestore.batch();
+    for (final doc in query.docs) {
+      batch.delete(doc.reference);
+    }
+    if (query.docs.isEmpty) return;
+    await batch.commit();
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,

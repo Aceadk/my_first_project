@@ -153,12 +153,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
-                              safety.toggleBlock(
-                                widget.args.otherUserId,
-                                block: false,
-                              );
-                            },
+                            onPressed: () => _toggleBlock(
+                              context,
+                              safety,
+                              block: false,
+                            ),
                             child: const Text('Unblock'),
                           ),
                         ],
@@ -533,25 +532,13 @@ class _ChatScreenState extends State<ChatScreen> {
     required bool messagesMuted,
     required bool callsMuted,
     required _ChatSafetyAction action,
-  }) {
+  }) async {
     switch (action) {
       case _ChatSafetyAction.report:
         _showReportSheet(context, cubit);
         break;
       case _ChatSafetyAction.block:
-        cubit.toggleBlock(
-          widget.args.otherUserId,
-          block: !isBlocked,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isBlocked
-                  ? 'Unblocked ${widget.args.otherName}.'
-                  : 'Blocked ${widget.args.otherName}.',
-            ),
-          ),
-        );
+        await _toggleBlock(context, cubit, block: !isBlocked);
         break;
       case _ChatSafetyAction.muteMessages:
         cubit.toggleMuteMessages(
@@ -566,6 +553,32 @@ class _ChatScreenState extends State<ChatScreen> {
         );
         break;
     }
+  }
+
+  Future<void> _toggleBlock(
+    BuildContext context,
+    SafetyCubit cubit, {
+    required bool block,
+  }) async {
+    await cubit.toggleBlock(
+      widget.args.otherUserId,
+      block: block,
+      currentUserId: widget.args.currentUserId,
+    );
+    final error = cubit.state.errorMessage;
+    if (error != null && error.isNotEmpty) {
+      showErrorSnackBar(context, error);
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          block
+              ? 'Blocked ${widget.args.otherName}.'
+              : 'Unblocked ${widget.args.otherName}.',
+        ),
+      ),
+    );
   }
 
   void _showReportSheet(BuildContext context, SafetyCubit cubit) {
@@ -596,14 +609,25 @@ class _ChatScreenState extends State<ChatScreen> {
               ...reasons.map(
                 (reason) => ListTile(
                   title: Text(reason),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.of(sheetContext).pop();
                     if (reason == 'Other') {
                       _showCustomReportDialog(context, cubit);
                     } else {
-                      cubit.reportUser(widget.args.otherUserId, reason);
+                      await cubit.reportWithContext(
+                        reporterId: widget.args.currentUserId,
+                        reportedId: widget.args.otherUserId,
+                        reason: reason,
+                      );
+                      final error = cubit.state.errorMessage;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Report submitted: $reason')),
+                        SnackBar(
+                          content: Text(
+                            error == null
+                                ? 'Report submitted: $reason'
+                                : error,
+                          ),
+                        ),
                       );
                     }
                   },
@@ -638,13 +662,20 @@ class _ChatScreenState extends State<ChatScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final reason = controller.text.trim();
                 if (reason.isNotEmpty) {
-                  cubit.reportUser(widget.args.otherUserId, reason);
+                  await cubit.reportWithContext(
+                    reporterId: widget.args.currentUserId,
+                    reportedId: widget.args.otherUserId,
+                    reason: reason,
+                  );
+                  final error = cubit.state.errorMessage;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Report submitted'),
+                    SnackBar(
+                      content: Text(
+                        error ?? 'Report submitted',
+                      ),
                     ),
                   );
                 }

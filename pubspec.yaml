@@ -21,6 +21,7 @@ dependencies:
   firebase_auth: ^6.1.2
   cloud_firestore: ^6.1.0
   firebase_storage: ^13.0.4
+  firebase_messaging: ^16.0.4
   image_picker: ^1.1.2
   flutter_webrtc: ^1.2.1
   firebase_data_connect: ^0.2.2

@@ -29,6 +29,11 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 - `pubspec.yaml`: Flutter deps (Firebase, Stripe client helpers, url_launcher, etc.).
 - `test/`: placeholder widget test.
 
+## Push notifications
+- Mobile client requests FCM permission via `firebase_messaging` and stores tokens under `users/{uid}/fcmTokens/{token}` with platform metadata.
+- Backend/Functions should target those tokens for new matches, new chat messages, and subscription/billing changes (topics or direct send). Add callables/trigger functions to publish to the user’s tokens using that collection.
+- iOS: add APNs key/certs to Firebase, enable push capability. Android: ensure google-services.json includes `project_number`.
+
 ## Backend functions (functions/src/index.ts)
 - `swipeRight`: writes like, checks reverse like, creates/reuses match doc.
 - `sendPreMatchMessageRequest`: limits to 3 requests per sender before reply; stores requests under `preMatchPairs`.

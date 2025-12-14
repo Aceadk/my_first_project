@@ -16,6 +16,7 @@ import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/locale/locale_cubit.dart';
 import '../../logic/storage/storage_settings_cubit.dart';
+import '../../core/push/push_notifications.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -28,6 +29,9 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
+          final push = context.read<PushNotifications>();
+          final currentUserId =
+              context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
           return ListView(
             children: [
               ListTile(
@@ -62,7 +66,40 @@ class SettingsScreen extends StatelessWidget {
                           'Messages, matches, and app updates',
                         ),
                         value: notifState.push,
-                        onChanged: (value) => notifier.togglePush(value),
+                        onChanged: (value) async {
+                          await notifier.togglePush(value);
+                          if (value) {
+                            try {
+                              if (currentUserId == null) {
+                                showErrorSnackBar(
+                                  context,
+                                  'Sign in again to enable push notifications.',
+                                );
+                                return;
+                              }
+                              await push.registerDeviceToken(currentUserId);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Push notifications enabled.'),
+                                ),
+                              );
+                            } catch (e) {
+                              showErrorSnackBar(
+                                context,
+                                'Could not enable push: $e',
+                              );
+                            }
+                          } else {
+                            if (currentUserId != null) {
+                              await push.unregisterDeviceToken(currentUserId);
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Push notifications disabled.'),
+                              ),
+                            );
+                          }
+                        },
                       ),
                       SwitchListTile(
                         title: const Text('Email notifications'),

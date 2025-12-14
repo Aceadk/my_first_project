@@ -42,6 +42,11 @@ abstract class ChatRepository {
     required String blockedId,
   });
 
+  Future<void> unblockUser({
+    required String blockerId,
+    required String blockedId,
+  });
+
   Future<void> unmatch({
     required String matchId,
     required String userId,

@@ -19,6 +19,7 @@ import '../data/repositories/firebase/firebase_discovery_repository.dart';
 import '../data/repositories/firebase/firebase_chat_repository.dart';
 import '../data/repositories/firebase/firebase_subscription_repository.dart';
 import '../data/services/recommendation_api.dart';
+import 'push/push_notifications.dart';
 
 // BLoCs
 import '../logic/auth/auth_bloc.dart';
@@ -65,6 +66,9 @@ class CrushDI {
     final callRepo = AgoraCallRepository(
       agoraAppId: AgoraConfig.appId,
     );
+    final pushNotifications = PushNotifications(
+      firestore: firestore,
+    );
 
     return [
       RepositoryProvider<AuthRepository>.value(value: authRepo),
@@ -73,6 +77,7 @@ class CrushDI {
       RepositoryProvider<DiscoveryRepository>.value(value: discoveryRepo),
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
+      RepositoryProvider<PushNotifications>.value(value: pushNotifications),
     ];
   }
 
@@ -123,7 +128,10 @@ class CrushDI {
         create: (_) => DiscoverySettingsCubit(preferences: preferences),
       ),
       BlocProvider<SafetyCubit>(
-        create: (_) => SafetyCubit(preferences: preferences),
+        create: (context) => SafetyCubit(
+          preferences: preferences,
+          chatRepository: context.read<ChatRepository>(),
+        ),
       ),
       BlocProvider<LocaleCubit>(
         create: (_) => LocaleCubit(preferences: preferences),
