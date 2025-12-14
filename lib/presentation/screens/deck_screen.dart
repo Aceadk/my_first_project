@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
-import '../../logic/profile/profile_state.dart';
 import '../../core/profile_completeness.dart';
+import '../../data/models/profile.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
@@ -12,65 +13,93 @@ import '../../core/ui/snackbar_utils.dart';
 import '../../core/result.dart';
 import '../../core/router.dart';
 import '../../logic/safety/safety_cubit.dart';
+import '../../logic/subscription/subscription_bloc.dart';
+import '../../logic/subscription/subscription_event.dart';
+import '../../logic/subscription/subscription_state.dart';
+import '../../data/models/subscription.dart';
 import '../widgets/swipe_card.dart';
-import '../widgets/plus_feature_gate.dart';
 import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
+import '../widgets/async_state_scaffold.dart';
 
 class DeckScreen extends StatelessWidget {
-  const DeckScreen({super.key});
+  const DeckScreen({super.key, this.preMatchService});
+
+  final PreMatchService? preMatchService;
 
   @override
   Widget build(BuildContext context) {
-    final preMatchService = PreMatchService();
+    final preMatchService = this.preMatchService;
     final userId = context.select<AuthBloc, String?>(
       (bloc) => bloc.state.user?.id,
     );
 
-    return BlocConsumer<DiscoveryBloc, DiscoveryState>(
-      listenWhen: (previous, current) =>
-          previous.errorMessage != current.errorMessage,
-      listener: (context, state) {
-        final error = state.errorMessage;
-        if (error != null && error.isNotEmpty) {
-          showErrorSnackBar(context, error);
-        }
-      },
+    return BlocBuilder<DiscoveryBloc, DiscoveryState>(
       builder: (context, state) {
         _requestDeckIfNeeded(context, userId, state);
 
+        final appBar = _buildAppBar(context, userId);
         final profile = context.select<ProfileBloc, Profile?>(
           (b) => b.state.profile ?? b.state.user?.profile,
         );
         final completeness = evaluateProfileCompleteness(profile);
+        final isPlus = context.select<SubscriptionBloc, bool>(
+          (b) => b.state.plan == SubscriptionPlan.plus,
+        );
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
         final isLoading = status == DeckStatus.loading;
-        final isEmptyDeck =
-            status == DeckStatus.empty || state.deck.isEmpty || state.currentIndex >= state.deck.length;
+        final isEmptyDeck = status == DeckStatus.empty ||
+            state.deck.isEmpty ||
+            state.currentIndex >= state.deck.length;
 
         if (isLoading && state.deck.isEmpty) {
-          return Scaffold(
-            appBar: _buildAppBar(context, userId),
-            body: const Center(child: CircularProgressIndicator()),
+          return AsyncStateScaffold(
+            appBar: appBar,
+            isLoading: true,
+            errorMessage: state.errorMessage,
+            showErrorSnackBar: true,
+            body: const SizedBox.shrink(),
           );
         }
 
         if (status == DeckStatus.error && state.deck.isEmpty) {
-          return _buildErrorState(context, userId, retryInSeconds);
+          return AsyncStateScaffold(
+            appBar: appBar,
+            errorMessage: state.errorMessage,
+            onRetry: userId == null ? null : () => _requestDeck(context, userId),
+            error: _buildErrorState(
+              context,
+              userId,
+              retryInSeconds,
+              isPlus: isPlus,
+            ),
+            showErrorSnackBar: true,
+            body: const SizedBox.shrink(),
+          );
         }
 
         if (isEmptyDeck) {
-          return Scaffold(
-            appBar: _buildAppBar(context, userId),
-            body: _buildOutOfPeople(context, userId),
+          return AsyncStateScaffold(
+            appBar: appBar,
+            errorMessage: state.errorMessage,
+            showErrorSnackBar: true,
+            empty: _buildOutOfPeople(
+              context,
+              userId,
+              isPlus: isPlus,
+            ),
+            body: const SizedBox.shrink(),
           );
         }
 
         final currentProfile = state.deck[state.currentIndex];
 
-        return Scaffold(
-          appBar: _buildAppBar(context, userId),
+        return AsyncStateScaffold(
+          appBar: appBar,
+          errorMessage: state.errorMessage,
+          showErrorSnackBar: true,
+          showBodyOnLoading: true,
           body: Column(
             children: [
               _buildStatusBar(
@@ -112,7 +141,7 @@ class DeckScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _circleButton(
+                  _HapticActionButton(
                     icon: Icons.clear,
                     color: Colors.grey.shade300,
                     onTap: () {
@@ -129,7 +158,7 @@ class DeckScreen extends StatelessWidget {
                           );
                     },
                   ),
-                  _circleButton(
+                  _HapticActionButton(
                     icon: Icons.message,
                     color: Colors.blueAccent,
                     onTap: () async {
@@ -140,12 +169,12 @@ class DeckScreen extends StatelessWidget {
                       }
                       await _showPreMatchDialog(
                         context: context,
-                        preMatchService: preMatchService,
+                        preMatchService: preMatchService ?? PreMatchService(),
                         targetUserId: currentProfile.id,
                       );
                     },
                   ),
-                  _circleButton(
+                  _HapticActionButton(
                     icon: Icons.favorite,
                     color: Colors.pinkAccent,
                     onTap: () {
@@ -180,58 +209,77 @@ class DeckScreen extends StatelessWidget {
     if (userId == null) return;
     if (state.isLoading) return;
     if (state.deck.isNotEmpty) return;
-    if (state.errorMessage != null) return;
-    if (state.status == DeckStatus.empty) return;
-    context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
+
+    // If we are in backoff with a scheduled retry, let the timer fire.
+    if (state.status == DeckStatus.error && state.nextRetrySeconds != null) {
+      return;
+    }
+
+    _requestDeck(context, userId);
   }
 
   Widget _buildErrorState(
-      BuildContext context, String? userId, int? retryInSeconds) {
-    return Scaffold(
-      appBar: _buildAppBar(context, userId),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off, size: 72),
-              const SizedBox(height: 12),
-              const Text(
-                'Trouble loading people',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Check your connection and try again.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              if (retryInSeconds != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'Retrying automatically in ~${retryInSeconds}s',
-                    style: const TextStyle(fontSize: 13),
-                  ),
+    BuildContext context,
+    String? userId,
+    int? retryInSeconds, {
+    required bool isPlus,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off, size: 72),
+            const SizedBox(height: 12),
+            const Text(
+              'Trouble loading people',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Check your connection and try again.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            if (retryInSeconds != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Retrying automatically in ~${retryInSeconds}s',
+                  style: const TextStyle(fontSize: 13),
                 ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-                onPressed: userId == null
-                    ? null
-                    : () => context
-                        .read<DiscoveryBloc>()
-                        .add(DiscoveryDeckRequested(userId)),
+              ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              onPressed:
+                  userId == null ? null : () => _requestDeck(context, userId),
+            ),
+            if (!isPlus) ...[
+              const SizedBox(height: 16),
+              _UpgradeNudgeCard(
+                title: 'Try Plus while we fix this',
+                subtitle:
+                    'Unlock offline likes, queue retries, and Passport so you never miss a match.',
+                bullets: const [
+                  'Intro offer: 50% off your first month',
+                  'Unlimited likes & rewinds',
+                  'Passport to swipe anywhere',
+                ],
               ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildOutOfPeople(BuildContext context, String? userId) {
+  Widget _buildOutOfPeople(
+    BuildContext context,
+    String? userId, {
+    required bool isPlus,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -265,57 +313,29 @@ class DeckScreen extends StatelessWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh deck'),
-              onPressed: userId == null
-                  ? null
-                  : () => context
-                      .read<DiscoveryBloc>()
-                      .add(DiscoveryDeckRequested(userId)),
+              onPressed:
+                  userId == null ? null : () => _requestDeck(context, userId),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (_) => SafeArea(
-                    child: PlusFeatureGate(
-                      onAllowed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('Passport is coming soon in this build.'),
-                          ),
-                        );
-                      },
-                      child: const ListTile(
-                        leading: Icon(Icons.flight_takeoff),
-                        title: Text('Try Passport'),
-                        subtitle: Text('Explore anywhere with CrushHour Plus'),
-                      ),
-                    ),
-                  ),
-                );
-              },
+              onPressed: () => _showPassportUpsell(context),
               child: const Text('Try Passport with Plus'),
             ),
+            if (!isPlus) ...[
+              const SizedBox(height: 12),
+              _UpgradeNudgeCard(
+                title: 'Intro offer: 50% off Plus',
+                subtitle:
+                    'Go global with Passport, see who likes you, and undo swipes.',
+                bullets: const [
+                  'Passport to any city',
+                  'Unlimited likes & rewinds',
+                  'Priority in the deck',
+                ],
+              ),
+            ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _circleButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkResponse(
-      onTap: onTap,
-      radius: 32,
-      child: CircleAvatar(
-        backgroundColor: color,
-        radius: 28,
-        child: Icon(icon, color: Colors.black),
       ),
     );
   }
@@ -404,6 +424,11 @@ class DeckScreen extends StatelessWidget {
       centerTitle: true,
       actions: [
         IconButton(
+          icon: const Icon(Icons.shield_outlined),
+          tooltip: 'Safety center',
+          onPressed: () => Navigator.pushNamed(context, CrushRoutes.safety),
+        ),
+        IconButton(
           icon: const Icon(Icons.refresh),
           tooltip: 'Refresh',
           onPressed: userId == null
@@ -444,13 +469,15 @@ class DeckScreen extends StatelessWidget {
           block: true,
           currentUserId: currentUserId,
         );
+        if (!context.mounted) return;
         final error = safety.state.errorMessage;
         if (error != null && error.isNotEmpty) {
           showErrorSnackBar(context, error);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Blocked $currentProfileName and hidden from deck.'),
+              content:
+                  Text('Blocked $currentProfileName and hidden from deck.'),
             ),
           );
         }
@@ -465,6 +492,94 @@ class DeckScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
+    );
+  }
+
+  void _requestDeck(BuildContext context, String userId) {
+    context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
+  }
+
+  void _showPassportUpsell(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+            builder: (context, subState) {
+              final isPlus = subState.plan == SubscriptionPlan.plus;
+              final loading = subState.isCheckoutInProgress;
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.flight_takeoff),
+                        const SizedBox(width: 8),
+                        Text(
+                          isPlus ? 'Passport available' : 'Passport with Plus',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        const _IntroBadge(),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isPlus
+                          ? 'Change your location and explore anywhere.'
+                          : 'Intro offer: 50% off your first month. Explore any city, see likes, and keep swiping with unlimited likes.',
+                    ),
+                    const SizedBox(height: 12),
+                    const _UpsellBullets(items: [
+                      'Passport to any city',
+                      'See who likes you first',
+                      'Unlimited likes & rewinds',
+                    ]),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: loading
+                            ? null
+                            : () {
+                                Navigator.pop(sheetContext);
+                                if (!isPlus) {
+                                  sheetContext
+                                      .read<SubscriptionBloc>()
+                                      .add(PlusCheckoutRequested());
+                                }
+                              },
+                        child: loading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              )
+                            : Text(isPlus ? 'Got it' : 'Upgrade to Plus'),
+                      ),
+                    ),
+                    if (!isPlus)
+                      TextButton(
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                        child: const Text('Maybe later'),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -514,6 +629,7 @@ class DeckScreen extends StatelessWidget {
       },
     );
 
+    if (!context.mounted) return;
     if (selected == null) return;
 
     if (selected == 'Other') {
@@ -559,13 +675,15 @@ class DeckScreen extends StatelessWidget {
       );
     }
 
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     final error = safety.state.errorMessage;
     if (error != null && error.isNotEmpty) {
       showErrorSnackBar(context, error);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Report submitted for $reportedName.')),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text('Report submitted for $reportedName.'),
+      ));
     }
   }
 
@@ -575,29 +693,55 @@ class DeckScreen extends StatelessWidget {
     required String targetUserId,
   }) async {
     final controller = TextEditingController();
+    var isSending = false;
 
     final content = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Send message request'),
-          content: TextField(
-            controller: controller,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'Say something nice…',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('Send'),
-            ),
-          ],
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (innerContext, setModalState) {
+            return AlertDialog(
+              title: const Text('Send message request'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Say something nice…',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (isSending) const LinearProgressIndicator(minHeight: 2),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSending ? null : () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: isSending
+                      ? null
+                      : () {
+                          setModalState(() {
+                            isSending = true;
+                          });
+                          Navigator.pop(dialogContext, controller.text.trim());
+                        },
+                  child: isSending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -605,6 +749,7 @@ class DeckScreen extends StatelessWidget {
     if (content == null || content.isEmpty) return;
 
     try {
+      HapticFeedback.lightImpact();
       final result = await Result.guard(
         () => preMatchService.sendPreMatchMessageRequest(
           targetUserId: targetUserId,
@@ -635,3 +780,178 @@ class DeckScreen extends StatelessWidget {
 }
 
 enum _DeckSafetyAction { report, block, guidelines }
+
+class _UpgradeNudgeCard extends StatelessWidget {
+  // ignore: prefer_const_constructors_in_immutables
+  _UpgradeNudgeCard({
+    required this.title,
+    required this.subtitle,
+    required this.bullets,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<String> bullets;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Colors.blueGrey.withAlpha((0.1 * 255).round()),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const _IntroBadge(),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(subtitle),
+            const SizedBox(height: 10),
+            _UpsellBullets(items: bullets),
+            const SizedBox(height: 12),
+            BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, subState) {
+                final loading = subState.isCheckoutInProgress;
+                final isPlus = subState.plan == SubscriptionPlan.plus;
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: loading || isPlus
+                        ? null
+                        : () {
+                            context
+                                .read<SubscriptionBloc>()
+                                .add(PlusCheckoutRequested());
+                          },
+                    child: loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            isPlus ? 'Thanks for being Plus!' : 'Upgrade now'),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IntroBadge extends StatelessWidget {
+  const _IntroBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.pink.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Text(
+        'Intro offer',
+        style: TextStyle(
+          color: Colors.pink,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
+class _UpsellBullets extends StatelessWidget {
+  const _UpsellBullets({required this.items});
+
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items
+          .map(
+            (item) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(item)),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _HapticActionButton extends StatefulWidget {
+  const _HapticActionButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  State<_HapticActionButton> createState() => _HapticActionButtonState();
+}
+
+class _HapticActionButtonState extends State<_HapticActionButton>
+    with SingleTickerProviderStateMixin {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _setPressed(true),
+      onTapCancel: () => _setPressed(false),
+      onTapUp: (_) => _setPressed(false),
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        widget.onTap();
+      },
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+        child: CircleAvatar(
+          backgroundColor: widget.color,
+          radius: 28,
+          child: Icon(widget.icon, color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() {
+      _pressed = value;
+    });
+  }
+}

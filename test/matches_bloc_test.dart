@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_first_project/data/models/match.dart';
 import 'package:my_first_project/data/models/message.dart';
@@ -31,7 +32,8 @@ void main() {
 
 class _ThrowingChatRepository implements ChatRepository {
   @override
-  Future<void> blockUser({required String blockerId, required String blockedId}) {
+  Future<void> blockUser(
+      {required String blockerId, required String blockedId}) {
     throw UnimplementedError();
   }
 
@@ -75,6 +77,54 @@ class _ThrowingChatRepository implements ChatRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<Set<String>> watchTyping(String matchId) => const Stream.empty();
+
+  @override
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  }) async {}
+
+  @override
+  Stream<bool> watchPresence(String userId) => const Stream.empty();
+
+  @override
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  }) async {}
+
+  @override
+  Stream<bool> watchMediaSendingEnabled(String matchId) => const Stream.empty();
+
+  @override
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  }) async {}
 
   @override
   Future<void> sendMessage({

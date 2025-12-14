@@ -11,6 +11,7 @@ import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
 import '../../core/result.dart';
 import '../widgets/profile_media_picker.dart';
+import '../widgets/onboarding_progress.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -41,8 +42,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    final userId =
-        state.user?.id ?? fb.FirebaseAuth.instance.currentUser?.uid;
+    final userId = state.user?.id ?? fb.FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
       showErrorSnackBar(context, 'You need to be signed in to continue.');
       return;
@@ -122,6 +122,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        const OnboardingProgress(
+                          currentStep: 5,
+                          caption: 'Add photos, interests, and a short bio',
+                        ),
+                        const SizedBox(height: 20),
                         TextField(
                           controller: _bioController,
                           maxLines: 3,
@@ -176,8 +181,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               if (saving)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black
-                        .withAlpha((0.08 * 255).round()),
+                    color: Colors.black.withAlpha((0.08 * 255).round()),
                     child: const Center(
                       child: CircularProgressIndicator(),
                     ),

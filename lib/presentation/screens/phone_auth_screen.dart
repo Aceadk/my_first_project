@@ -6,6 +6,7 @@ import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../widgets/onboarding_progress.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});
@@ -55,6 +56,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   absorbing: isLoading,
                   child: Column(
                     children: [
+                      const OnboardingProgress(
+                        currentStep: 1,
+                        caption: 'We’ll text you a code next',
+                      ),
+                      const SizedBox(height: 20),
                       TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
@@ -97,7 +103,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                       ),
                       child: const Center(
                         child: CircularProgressIndicator(),

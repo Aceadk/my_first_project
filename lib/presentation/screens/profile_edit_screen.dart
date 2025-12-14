@@ -12,8 +12,6 @@ import '../../data/services/profile_media_service.dart';
 import '../../core/result.dart';
 import '../widgets/profile_media_picker.dart';
 import '../widgets/profile_completeness_meter.dart';
-import '../../core/profile_completeness.dart';
-import '../../core/profile_completeness.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -47,6 +45,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       company: state.user?.profile?.company,
       school: state.user?.profile?.school,
       interests: state.user?.profile?.interests ?? const [],
+      prompts: state.user?.profile?.prompts ?? const [],
       country: state.user?.profile?.country ?? 'Unknown',
       city: state.user?.profile?.city ?? 'Unknown',
       latitude: state.user?.profile?.latitude,

@@ -44,8 +44,7 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
               BlocBuilder<NotificationSettingsCubit, NotificationSettingsState>(
                 builder: (context, notifState) {
-                  final notifier =
-                      context.read<NotificationSettingsCubit>();
+                  final notifier = context.read<NotificationSettingsCubit>();
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -68,6 +67,7 @@ class SettingsScreen extends StatelessWidget {
                         value: notifState.push,
                         onChanged: (value) async {
                           await notifier.togglePush(value);
+                          if (!context.mounted) return;
                           if (value) {
                             try {
                               if (currentUserId == null) {
@@ -78,12 +78,14 @@ class SettingsScreen extends StatelessWidget {
                                 return;
                               }
                               await push.registerDeviceToken(currentUserId);
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Push notifications enabled.'),
                                 ),
                               );
                             } catch (e) {
+                              if (!context.mounted) return;
                               showErrorSnackBar(
                                 context,
                                 'Could not enable push: $e',
@@ -93,6 +95,7 @@ class SettingsScreen extends StatelessWidget {
                             if (currentUserId != null) {
                               await push.unregisterDeviceToken(currentUserId);
                             }
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Push notifications disabled.'),
@@ -118,8 +121,7 @@ class SettingsScreen extends StatelessWidget {
                         subtitle:
                             const Text('Vibrate on new messages or matches'),
                         value: notifState.vibration,
-                        onChanged: (value) =>
-                            notifier.toggleVibration(value),
+                        onChanged: (value) => notifier.toggleVibration(value),
                       ),
                     ],
                   );
@@ -194,7 +196,8 @@ class SettingsScreen extends StatelessWidget {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.chevron_right),
                           onTap: localeState.isDetecting
@@ -239,8 +242,7 @@ class SettingsScreen extends StatelessWidget {
                             max: 200,
                             divisions: 199,
                             value: discoveryState.distanceKm,
-                            label:
-                                '${discoveryState.distanceKm.round()} km',
+                            label: '${discoveryState.distanceKm.round()} km',
                             onChanged: (value) => cubit.setDistance(value),
                           ),
                         ),
@@ -282,11 +284,9 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       SwitchListTile(
                         title: const Text('Show my distance'),
-                        subtitle:
-                            const Text('Display how far away you are'),
+                        subtitle: const Text('Display how far away you are'),
                         value: discoveryState.showDistance,
-                        onChanged: (value) =>
-                            cubit.setShowDistance(value),
+                        onChanged: (value) => cubit.setShowDistance(value),
                       ),
                       SwitchListTile(
                         title: const Text('Show me in discovery'),
@@ -342,8 +342,7 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           value: storageState.mediaDownloadWifiOnly,
                           onChanged: storageState.mediaDownloadEnabled
-                              ? (value) =>
-                                  cubit.setMediaDownloadWifiOnly(value)
+                              ? (value) => cubit.setMediaDownloadWifiOnly(value)
                               : null,
                         ),
                         const Divider(height: 1),
@@ -417,16 +416,42 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            isPlus ? 'Current plan: Plus' : 'Current plan: Free',
+                            isPlus
+                                ? 'Current plan: Plus'
+                                : 'Current plan: Free',
                             style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             isPlus
                                 ? 'Manage billing or renew your Plus plan.'
-                                : 'Upgrade to Plus for unlimited likes and unsend.',
+                                : 'Upgrade to Plus for unlimited likes, rewinds, and Passport.',
                             style: const TextStyle(color: Colors.grey),
                           ),
+                          if (!isPlus) ...[
+                            const SizedBox(height: 8),
+                            const Row(
+                              children: [
+                                Chip(
+                                  label: Text(
+                                    'Intro offer',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  backgroundColor: Color(0xFFFFE4EC),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '50% off your first month when you upgrade today.',
+                                    style: TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
@@ -444,8 +469,8 @@ class SettingsScreen extends StatelessWidget {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Colors.white),
                                       ),
                                     )
                                   : Text(
@@ -463,8 +488,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               const Divider(),
               Card(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   children: [
                     const ListTile(
@@ -479,8 +503,7 @@ class SettingsScreen extends StatelessWidget {
                     ListTile(
                       leading: const Icon(Icons.phone_android),
                       title: const Text('Change phone number'),
-                      subtitle:
-                          const Text('Re-verify with a new phone number'),
+                      subtitle: const Text('Re-verify with a new phone number'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => _confirmChangePhone(context),
                     ),
@@ -512,8 +535,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               const Divider(),
               Card(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   children: [
                     ListTile(
@@ -603,7 +625,6 @@ class SettingsScreen extends StatelessWidget {
       case ThemeMode.dark:
         return 'Dark mode';
       case ThemeMode.system:
-
         return 'Use system setting';
     }
   }

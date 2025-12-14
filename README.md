@@ -4,7 +4,7 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 
 ## What this app does
 - Discovery deck with swipes, mutual matches, and pre-match message requests.
-- Chat with read receipts and Plus-only unsend.
+- Chat with read receipts, typing/presence indicators, reactions, media sending toggle, unmatch, and Plus-only unsend.
 - Stripe Checkout for CrushHour Plus; webhook updates user plan in Firestore.
 - Data Connect client stubs (generated) for server-side operations.
 - Example BigQuery pipelines for recommendations/ranking (optional, offline/analytics).
@@ -37,7 +37,10 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 ## Profile completeness & gating
 - Completeness is calculated client-side with weighted rules (photos, longer bio, interests, work/school, location).
 - Swiping and messaging are gated until the profile meets the minimum threshold; UI surfaces progress + missing items.
-- Optionally enforce server-side in Functions before processing swipes/messages by reading `users/{uid}/profile`.
+- Optionally enforce server-side:
+  - Functions `swipeRight`/`sendPreMatchMessageRequest` should read `users/{uid}/profile` and reject if completeness < 0.7 (check photos count, bio length >= 40, prompts answered >= 2, interests >= 3, work/school, location).
+  - Consider writing a callable `validateProfileCompleteness` that returns a verdict; client can call before enabling swiping, and Functions can reuse the same logic to avoid drift.
+  - Store prompt answers under `profile.prompts` (list of strings). Ensure backend populates this field when users answer prompts.
 
 ## Backend functions (functions/src/index.ts)
 - `swipeRight`: writes like, checks reverse like, creates/reuses match doc.
@@ -49,7 +52,7 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 
 ## App flows
 - **Discovery**: `DeckScreen` fetches profiles via `FirebaseDiscoveryRepository`; swipes call `swipeRight` callable; pre-match dialog sends `sendPreMatchMessageRequest`.
-- **Chat**: Messages in Firestore under `matches/{matchId}/messages`; long-press unsend calls `unsendMessage` callable; read receipts marked in repo.
+- **Chat**: Messages in Firestore under `matches/{matchId}/messages`; long-press unsend calls `unsendMessage` callable; read receipts marked in repo. Typing indicators stored in `matches/{matchId}.typing` map (userId -> bool). Reactions live on each message doc under `reactions.{userId}`. Presence is stored on `users/{uid}.isOnline` + `lastSeenAt`. Media sending can be disabled per match with `matches/{matchId}.mediaSendingEnabled` (default true).
 - **Subscription**: `SettingsScreen` starts Stripe Checkout via `CheckoutService` → `createCheckoutSession`; webhook updates plan in Firestore; Plus gates chat unsend.
 - **Data Connect**: Generated client for example operations (list users, posts, likes); lint ignores kept because generated.
 

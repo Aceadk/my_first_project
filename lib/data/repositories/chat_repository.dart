@@ -37,6 +37,42 @@ abstract class ChatRepository {
     required String reason,
   });
 
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  });
+
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  });
+
+  Stream<Set<String>> watchTyping(String matchId);
+
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  });
+
+  Stream<bool> watchPresence(String userId);
+
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  });
+
+  Stream<bool> watchMediaSendingEnabled(String matchId);
+
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  });
+
   Future<void> blockUser({
     required String blockerId,
     required String blockedId,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/onboarding_progress.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -13,6 +14,8 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const OnboardingProgress(currentStep: 0),
+            const SizedBox(height: 24),
             Text(
               'Welcome to CrushHour',
               style: Theme.of(context).textTheme.headlineMedium,

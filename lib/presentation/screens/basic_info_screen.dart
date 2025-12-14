@@ -6,6 +6,7 @@ import '../../logic/profile/profile_state.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../widgets/onboarding_progress.dart';
 
 class BasicInfoScreen extends StatefulWidget {
   const BasicInfoScreen({super.key});
@@ -48,6 +49,11 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   absorbing: isBusy,
                   child: Column(
                     children: [
+                      const OnboardingProgress(
+                        currentStep: 3,
+                        caption: 'Tell us about you to personalize matches',
+                      ),
+                      const SizedBox(height: 20),
                       TextField(
                         controller: _nameController,
                         decoration: const InputDecoration(labelText: 'Name'),
@@ -61,7 +67,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       DropdownButton<String>(
                         value: _gender,
                         items: const [
-                          DropdownMenuItem(value: 'woman', child: Text('Woman')),
+                          DropdownMenuItem(
+                              value: 'woman', child: Text('Woman')),
                           DropdownMenuItem(value: 'man', child: Text('Man')),
                           DropdownMenuItem(
                               value: 'nonbinary', child: Text('Non-binary')),
@@ -101,7 +108,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                       ),
                       child: const Center(
                         child: CircularProgressIndicator(),

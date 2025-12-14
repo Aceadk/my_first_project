@@ -49,7 +49,7 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
 
   addRule(
     key: 'photos',
-    weight: 0.45,
+    weight: 0.40,
     satisfied: profile.photoUrls.length >= ProfileMediaLimits.minPhotos,
     missingMessage: 'Add at least ${ProfileMediaLimits.minPhotos} photos',
   );
@@ -62,10 +62,10 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
   );
 
   addRule(
-    key: 'name',
-    weight: 0.05,
-    satisfied: profile.name.trim().isNotEmpty,
-    missingMessage: 'Add your display name',
+    key: 'prompts',
+    weight: 0.15,
+    satisfied: profile.prompts.length >= 2,
+    missingMessage: 'Answer 2 prompt questions',
   );
 
   addRule(
@@ -77,7 +77,7 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
 
   addRule(
     key: 'work_or_school',
-    weight: 0.10,
+    weight: 0.08,
     satisfied: (profile.jobTitle?.trim().isNotEmpty ?? false) ||
         (profile.company?.trim().isNotEmpty ?? false) ||
         (profile.school?.trim().isNotEmpty ?? false),
@@ -86,7 +86,7 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
 
   addRule(
     key: 'location',
-    weight: 0.10,
+    weight: 0.07,
     satisfied: profile.city.trim().isNotEmpty &&
         profile.country.trim().isNotEmpty &&
         profile.country.trim().toLowerCase() != 'unknown',

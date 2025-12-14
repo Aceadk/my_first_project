@@ -6,7 +6,7 @@ import '../../logic/chat/chat_bloc.dart';
 import '../../logic/matches/matches_bloc.dart';
 import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';
-import '../../core/ui/snackbar_utils.dart';
+import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
@@ -42,61 +42,49 @@ class _MatchesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<MatchesBloc, MatchesState>(
-      listenWhen: (prev, curr) => prev.errorMessage != curr.errorMessage,
-      listener: (context, state) {
-        final error = state.errorMessage;
-        if (error != null && error.isNotEmpty) {
-          showErrorSnackBar(context, error);
-        }
-      },
+    return BlocBuilder<MatchesBloc, MatchesState>(
       builder: (context, state) {
-        if (state.isLoading && state.matches.isEmpty) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (state.matches.isEmpty) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Matches')),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.favorite_border, size: 72),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'No matches yet',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+        final emptyView = state.matches.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.favorite_border, size: 72),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No matches yet',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Keep swiping and sending message requests.\n'
-                      'When you match with someone, they will appear here.',
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Back to deck'),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Keep swiping and sending message requests.\n'
+                        'When you match with someone, they will appear here.',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Back to deck'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        }
+              )
+            : null;
 
-        return Scaffold(
+        return AsyncStateScaffold(
           appBar: AppBar(title: const Text('Matches')),
+          isLoading: state.isLoading && state.matches.isEmpty,
+          errorMessage: state.errorMessage,
+          showErrorSnackBar: true,
+          empty: emptyView,
           body: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: state.matches.length,

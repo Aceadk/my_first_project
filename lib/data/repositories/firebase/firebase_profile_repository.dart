@@ -70,6 +70,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'bio': '',
       'photoUrls': <String>[],
       'videoUrls': <String>[],
+      'prompts': <String>[],
       'isVerified': false,
       'jobTitle': null,
       'company': null,
@@ -108,6 +109,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
+    List<String>? prompts,
   }) async {
     final doc = await _userDoc.get();
     if (!doc.exists) throw Exception('User document missing.');
@@ -123,6 +125,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     profile['company'] = company;
     profile['school'] = school;
     profile['interests'] = interests;
+    profile['prompts'] = prompts ?? profile['prompts'] ?? <String>[];
 
     await _userDoc.update({'profile': profile});
 
@@ -162,6 +165,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'company': profile.company,
       'school': profile.school,
       'interests': profile.interests,
+      'prompts': profile.prompts,
       'country': profile.country,
       'city': profile.city,
       'latitude': profile.latitude,
@@ -217,6 +221,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         bio: profileData['bio'] ?? '',
         photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
         videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
+        prompts: List<String>.from(profileData['prompts'] ?? []),
         isVerified: profileData['isVerified'] ?? (data['isIdVerified'] ?? false),
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],

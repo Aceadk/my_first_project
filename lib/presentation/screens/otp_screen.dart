@@ -6,6 +6,7 @@ import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../widgets/onboarding_progress.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -20,9 +21,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPhone =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.phoneInProgress) ??
-            widget.phoneNumber;
+    final currentPhone = context
+            .select<AuthBloc, String?>((bloc) => bloc.state.phoneInProgress) ??
+        widget.phoneNumber;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Verify OTP')),
@@ -41,6 +42,11 @@ class _OtpScreenState extends State<OtpScreen> {
           builder: (context, state) {
             return Column(
               children: [
+                const OnboardingProgress(
+                  currentStep: 2,
+                  caption: 'Enter the 6-digit code we sent',
+                ),
+                const SizedBox(height: 20),
                 Text('OTP sent to $currentPhone'),
                 TextField(
                   controller: _otpController,

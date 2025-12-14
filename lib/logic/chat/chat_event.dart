@@ -10,7 +10,18 @@ abstract class ChatEvent extends Equatable {
 class ChatOpened extends ChatEvent {
   final String matchId;
   final String currentUserId;
-  ChatOpened(this.matchId, this.currentUserId);
+  final String otherUserId;
+  ChatOpened(this.matchId, this.currentUserId, this.otherUserId);
+
+  @override
+  List<Object?> get props => [matchId, currentUserId, otherUserId];
+}
+
+class ChatClosed extends ChatEvent {
+  final String matchId;
+  final String currentUserId;
+
+  ChatClosed(this.matchId, this.currentUserId);
 
   @override
   List<Object?> get props => [matchId, currentUserId];
@@ -89,4 +100,103 @@ class ChatMessagesUpdated extends ChatEvent {
 
   @override
   List<Object?> get props => [messages, plan];
+}
+
+class ChatTypingStatusChanged extends ChatEvent {
+  final String matchId;
+  final String userId;
+  final bool isTyping;
+
+  ChatTypingStatusChanged({
+    required this.matchId,
+    required this.userId,
+    required this.isTyping,
+  });
+
+  @override
+  List<Object?> get props => [matchId, userId, isTyping];
+}
+
+class ChatTypingUsersUpdated extends ChatEvent {
+  final Set<String> typingUserIds;
+  ChatTypingUsersUpdated(this.typingUserIds);
+
+  @override
+  List<Object?> get props => [typingUserIds];
+}
+
+class ChatPresenceUpdated extends ChatEvent {
+  final bool isOnline;
+  ChatPresenceUpdated(this.isOnline);
+
+  @override
+  List<Object?> get props => [isOnline];
+}
+
+class ChatReactionAdded extends ChatEvent {
+  final String matchId;
+  final String messageId;
+  final String userId;
+  final String emoji;
+
+  ChatReactionAdded({
+    required this.matchId,
+    required this.messageId,
+    required this.userId,
+    required this.emoji,
+  });
+
+  @override
+  List<Object?> get props => [matchId, messageId, userId, emoji];
+}
+
+class ChatReactionRemoved extends ChatEvent {
+  final String matchId;
+  final String messageId;
+  final String userId;
+
+  ChatReactionRemoved({
+    required this.matchId,
+    required this.messageId,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [matchId, messageId, userId];
+}
+
+class ChatMediaToggleRequested extends ChatEvent {
+  final String matchId;
+  final String requesterId;
+  final bool enabled;
+
+  ChatMediaToggleRequested({
+    required this.matchId,
+    required this.requesterId,
+    required this.enabled,
+  });
+
+  @override
+  List<Object?> get props => [matchId, requesterId, enabled];
+}
+
+class ChatMediaStatusUpdated extends ChatEvent {
+  final bool enabled;
+  ChatMediaStatusUpdated(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}
+
+class ChatUnmatchRequested extends ChatEvent {
+  final String matchId;
+  final String userId;
+
+  ChatUnmatchRequested({
+    required this.matchId,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [matchId, userId];
 }

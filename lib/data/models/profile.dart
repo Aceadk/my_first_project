@@ -15,6 +15,7 @@ class Profile extends Equatable {
   final String? company;
   final String? school;
   final List<String> interests;
+  final List<String> prompts;
   final String country;
   final String city;
   final double? latitude;
@@ -35,6 +36,7 @@ class Profile extends Equatable {
     required this.company,
     required this.school,
     required this.interests,
+    this.prompts = const [],
     required this.country,
     required this.city,
     required this.latitude,
@@ -56,6 +58,7 @@ class Profile extends Equatable {
     String? company,
     String? school,
     List<String>? interests,
+    List<String>? prompts,
     String? country,
     String? city,
     double? latitude,
@@ -76,6 +79,7 @@ class Profile extends Equatable {
       company: company ?? this.company,
       school: school ?? this.school,
       interests: interests ?? this.interests,
+      prompts: prompts ?? this.prompts,
       country: country ?? this.country,
       city: city ?? this.city,
       latitude: latitude ?? this.latitude,
@@ -99,6 +103,7 @@ class Profile extends Equatable {
         company,
         school,
         interests,
+        prompts,
         country,
         city,
         latitude,

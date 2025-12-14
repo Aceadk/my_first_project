@@ -223,6 +223,7 @@ class FakeProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
+    List<String>? prompts,
   }) async {
     final profile = _user!.profile!;
     final updated = profile.copyWith(
@@ -529,6 +530,12 @@ class FakeChatRepository implements ChatRepository {
   final Map<String, List<Message>> _messagesByMatch = {};
   final Map<String, Set<String>> _blockedByUser = {};
   final _streams = <String, StreamController<List<Message>>>{};
+  final Map<String, Set<String>> _typingByMatch = {};
+  final _typingStreams = <String, StreamController<Set<String>>>{};
+  final Map<String, bool> _presence = {};
+  final _presenceStreams = <String, StreamController<bool>>{};
+  final Map<String, bool> _mediaEnabledByMatch = {};
+  final _mediaStreams = <String, StreamController<bool>>{};
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -538,6 +545,70 @@ class FakeChatRepository implements ChatRepository {
     );
     _streams[matchId]!.add(_messagesByMatch[matchId] ?? []);
     return _streams[matchId]!.stream;
+  }
+
+  @override
+  Stream<Set<String>> watchTyping(String matchId) {
+    _typingStreams.putIfAbsent(
+      matchId,
+      () => StreamController<Set<String>>.broadcast(),
+    );
+    _typingStreams[matchId]!.add(_typingByMatch[matchId] ?? <String>{});
+    return _typingStreams[matchId]!.stream;
+  }
+
+  @override
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  }) async {
+    final set = _typingByMatch.putIfAbsent(matchId, () => <String>{});
+    if (isTyping) {
+      set.add(userId);
+    } else {
+      set.remove(userId);
+    }
+    _typingStreams[matchId]?.add(Set.unmodifiable(set));
+  }
+
+  @override
+  Stream<bool> watchPresence(String userId) {
+    _presenceStreams.putIfAbsent(
+      userId,
+      () => StreamController<bool>.broadcast(),
+    );
+    _presenceStreams[userId]!.add(_presence[userId] ?? false);
+    return _presenceStreams[userId]!.stream;
+  }
+
+  @override
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  }) async {
+    _presence[userId] = isOnline;
+    _presenceStreams[userId]?.add(isOnline);
+  }
+
+  @override
+  Stream<bool> watchMediaSendingEnabled(String matchId) {
+    _mediaStreams.putIfAbsent(
+      matchId,
+      () => StreamController<bool>.broadcast(),
+    );
+    _mediaStreams[matchId]!.add(_mediaEnabledByMatch[matchId] ?? true);
+    return _mediaStreams[matchId]!.stream;
+  }
+
+  @override
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  }) async {
+    _mediaEnabledByMatch[matchId] = enabled;
+    _mediaStreams[matchId]?.add(enabled);
   }
 
   @override
@@ -654,6 +725,39 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {
+    final list = _messagesByMatch[matchId];
+    if (list == null) return;
+    final index = list.indexWhere((m) => m.id == messageId);
+    if (index == -1) return;
+    final reactions = Map<String, String>.from(list[index].reactions);
+    reactions[userId] = emoji;
+    list[index] = list[index].copyWith(reactions: reactions);
+    _streams[matchId]?.add(List.unmodifiable(list));
+  }
+
+  @override
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  }) async {
+    final list = _messagesByMatch[matchId];
+    if (list == null) return;
+    final index = list.indexWhere((m) => m.id == messageId);
+    if (index == -1) return;
+    final reactions = Map<String, String>.from(list[index].reactions)
+      ..remove(userId);
+    list[index] = list[index].copyWith(reactions: reactions);
+    _streams[matchId]?.add(List.unmodifiable(list));
+  }
+
+  @override
   Future<void> unblockUser({
     required String blockerId,
     required String blockedId,
@@ -691,7 +795,11 @@ class FakeChatRepository implements ChatRepository {
     }
 
     _messagesByMatch.remove(matchId);
+    _typingByMatch.remove(matchId);
+    _mediaEnabledByMatch.remove(matchId);
     _streams[matchId]?.add(const []);
+    _typingStreams[matchId]?.add(const {});
+    _mediaStreams[matchId]?.add(true);
   }
 
   @override

@@ -10,6 +10,11 @@ class ChatState extends Equatable {
   final String? errorMessage;
   final bool canUnsend;
   final String? uploadingAttachmentName;
+  final Set<String> typingUserIds;
+  final bool otherUserOnline;
+  final bool mediaSendingEnabled;
+  final bool isUnmatching;
+  final bool isUnmatched;
 
   const ChatState({
     this.messages = const [],
@@ -18,6 +23,11 @@ class ChatState extends Equatable {
     this.errorMessage,
     this.canUnsend = false,
     this.uploadingAttachmentName,
+    this.typingUserIds = const {},
+    this.otherUserOnline = false,
+    this.mediaSendingEnabled = true,
+    this.isUnmatching = false,
+    this.isUnmatched = false,
   });
 
   ChatState copyWith({
@@ -27,6 +37,11 @@ class ChatState extends Equatable {
     String? errorMessage,
     bool? canUnsend,
     String? uploadingAttachmentName,
+    Set<String>? typingUserIds,
+    bool? otherUserOnline,
+    bool? mediaSendingEnabled,
+    bool? isUnmatching,
+    bool? isUnmatched,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -36,6 +51,11 @@ class ChatState extends Equatable {
       canUnsend: canUnsend ?? this.canUnsend,
       uploadingAttachmentName:
           uploadingAttachmentName ?? this.uploadingAttachmentName,
+      typingUserIds: typingUserIds ?? this.typingUserIds,
+      otherUserOnline: otherUserOnline ?? this.otherUserOnline,
+      mediaSendingEnabled: mediaSendingEnabled ?? this.mediaSendingEnabled,
+      isUnmatching: isUnmatching ?? this.isUnmatching,
+      isUnmatched: isUnmatched ?? this.isUnmatched,
     );
   }
 
@@ -47,5 +67,10 @@ class ChatState extends Equatable {
         errorMessage,
         canUnsend,
         uploadingAttachmentName,
+        typingUserIds,
+        otherUserOnline,
+        mediaSendingEnabled,
+        isUnmatching,
+        isUnmatched,
       ];
 }

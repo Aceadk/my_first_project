@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_first_project/data/models/match.dart';
 import 'package:my_first_project/data/models/message.dart';
@@ -11,11 +12,62 @@ import 'package:my_first_project/logic/chat/chat_state.dart';
 class _FakeChatRepository implements ChatRepository {
   final List<Message> sent = [];
   int uploads = 0;
+  final _typingController = StreamController<Set<String>>.broadcast()
+    ..add(const {});
+  final _presenceController = StreamController<bool>.broadcast()..add(false);
+  final _mediaController = StreamController<bool>.broadcast()..add(true);
 
   @override
   Stream<List<Message>> watchMessages(String matchId) async* {
     yield const [];
   }
+
+  @override
+  Stream<Set<String>> watchTyping(String matchId) => _typingController.stream;
+
+  @override
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  }) async {}
+
+  @override
+  Stream<bool> watchPresence(String userId) => _presenceController.stream;
+
+  @override
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  }) async {}
+
+  @override
+  Stream<bool> watchMediaSendingEnabled(String matchId) =>
+      _mediaController.stream;
+
+  @override
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  }) async {
+    _mediaController.add(enabled);
+  }
+
+  @override
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {}
+
+  @override
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  }) async {}
 
   @override
   Future<void> sendMessage({
@@ -63,6 +115,12 @@ class _FakeChatRepository implements ChatRepository {
 
   @override
   Future<void> blockUser({
+    required String blockerId,
+    required String blockedId,
+  }) async {}
+
+  @override
+  Future<void> unblockUser({
     required String blockerId,
     required String blockedId,
   }) async {}
@@ -126,7 +184,8 @@ void main() {
     test('blocks media when non-Plus user exceeds limit', () async {
       final chatRepo = _FakeChatRepository();
       final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.free);
-      final bloc = ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
+      final bloc =
+          ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
 
       // Seed 8 existing media messages from current user
       bloc.add(ChatMessagesUpdated(
@@ -153,7 +212,8 @@ void main() {
     test('allows media for Plus users', () async {
       final chatRepo = _FakeChatRepository();
       final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.plus);
-      final bloc = ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
+      final bloc =
+          ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
 
       bloc.add(ChatMediaSendRequested(
         matchId: 'match',
@@ -165,7 +225,8 @@ void main() {
 
       await expectLater(
         bloc.stream,
-        emitsThrough(predicate<ChatState>((s) => s.sendStatus == SendStatus.idle)),
+        emitsThrough(
+            predicate<ChatState>((s) => s.sendStatus == SendStatus.idle)),
       );
       expect(chatRepo.sent.length, 1);
       expect(chatRepo.sent.first.type, MessageType.video);

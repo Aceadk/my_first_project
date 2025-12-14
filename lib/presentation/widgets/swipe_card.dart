@@ -56,27 +56,33 @@ class SwipeCard extends StatelessWidget {
               ),
             ),
             Positioned(
+              top: 16,
+              right: 16,
+              child: _VerificationPill(isVerified: profile.isVerified),
+            ),
+            Positioned(
               left: 16,
               bottom: 24,
               right: 16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Row(
-                  children: [
-                    Text(
-                      '$displayName, $ageText',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    if (profile.isVerified) ...[
-                      const SizedBox(width: 6),
-                      const Icon(Icons.verified, color: Colors.lightBlueAccent),
+                  Row(
+                    children: [
+                      Text(
+                        '$displayName, $ageText',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      if (profile.isVerified) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.verified,
+                            color: Colors.lightBlueAccent),
+                      ],
                     ],
-                  ],
-                ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     bio,
@@ -106,6 +112,40 @@ class SwipeCard extends StatelessWidget {
           color: Colors.white54,
           size: 64,
         ),
+      ),
+    );
+  }
+}
+
+class _VerificationPill extends StatelessWidget {
+  const _VerificationPill({required this.isVerified});
+
+  final bool isVerified;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isVerified ? Colors.lightBlueAccent : Colors.orangeAccent;
+    final text = isVerified ? 'Verified' : 'Not verified';
+    final icon = isVerified ? Icons.verified : Icons.privacy_tip_outlined;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withAlpha((0.18 * 255).round()),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
 import '../../core/constants.dart';
+import '../widgets/onboarding_progress.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -31,7 +32,20 @@ class SplashScreen extends StatelessWidget {
       },
       child: const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 24),
+                OnboardingProgress(
+                  currentStep: 0,
+                  caption: 'Loading your session…',
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

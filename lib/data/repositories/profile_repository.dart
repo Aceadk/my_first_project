@@ -19,6 +19,7 @@ abstract class ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
+    List<String>? prompts,
   });
 
   Future<void> uploadIdDocument(/* e.g. File or bytes type */);

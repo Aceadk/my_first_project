@@ -19,6 +19,8 @@ class FirebaseChatRepository implements ChatRepository {
 
   CollectionReference<Map<String, dynamic>> get _matches =>
       _firestore.collection('matches');
+  CollectionReference<Map<String, dynamic>> get _users =>
+      _firestore.collection('users');
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -40,6 +42,7 @@ class FirebaseChatRepository implements ChatRepository {
           sentAt: (data['sentAt'] as Timestamp).toDate(),
           isRead: data['isRead'] ?? false,
           isDeletedForSender: data['isDeletedForSender'] ?? false,
+          reactions: _reactionsFromData(data['reactions']),
         );
       }).toList();
     });
@@ -53,8 +56,7 @@ class FirebaseChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
-    final msgRef =
-        _matches.doc(matchId).collection('messages').doc();
+    final msgRef = _matches.doc(matchId).collection('messages').doc();
     await msgRef.set({
       'fromUserId': fromUserId,
       'toUserId': toUserId,
@@ -104,6 +106,72 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Stream<Set<String>> watchTyping(String matchId) {
+    return _matches.doc(matchId).snapshots().map((doc) {
+      final data = doc.data();
+      final typingRaw = (data?['typing'] as Map<String, dynamic>? ?? {});
+      final typing = <String>{};
+      typingRaw.forEach((key, value) {
+        if (value == true) typing.add(key);
+      });
+      return typing;
+    });
+  }
+
+  @override
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  }) async {
+    await _matches.doc(matchId).set({
+      'typing': {userId: isTyping}
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Stream<bool> watchPresence(String userId) {
+    return _users.doc(userId).snapshots().map((doc) {
+      final data = doc.data();
+      if (data == null) return false;
+      return data['isOnline'] == true;
+    });
+  }
+
+  @override
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  }) async {
+    await _users.doc(userId).set({
+      'isOnline': isOnline,
+      'lastSeenAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Stream<bool> watchMediaSendingEnabled(String matchId) {
+    return _matches.doc(matchId).snapshots().map((doc) {
+      final data = doc.data();
+      if (data == null) return true;
+      return data['mediaSendingEnabled'] ?? true;
+    });
+  }
+
+  @override
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  }) async {
+    await _matches.doc(matchId).set({
+      'mediaSendingEnabled': enabled,
+      'mediaUpdatedBy': requesterId,
+      'mediaUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
   Future<void> unsendMessage({
     required String matchId,
     required String messageId,
@@ -121,14 +189,14 @@ class FirebaseChatRepository implements ChatRepository {
     required String messageId,
     required String userId,
   }) async {
-    final docRef =
-        _matches.doc(matchId).collection('messages').doc(messageId);
+    final docRef = _matches.doc(matchId).collection('messages').doc(messageId);
     final snapshot = await docRef.get();
     if (!snapshot.exists) return;
     final data = snapshot.data();
     if (data == null) return;
     if (data['fromUserId'] != userId) {
-      throw Exception('Only the sender can delete this message for themselves.');
+      throw Exception(
+          'Only the sender can delete this message for themselves.');
     }
     await docRef.update({'isDeletedForSender': true});
   }
@@ -178,6 +246,29 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {
+    await _matches.doc(matchId).collection('messages').doc(messageId).set({
+      'reactions': {userId: emoji}
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  }) async {
+    await _matches.doc(matchId).collection('messages').doc(messageId).set({
+      'reactions': {userId: FieldValue.delete()}
+    }, SetOptions(merge: true));
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,
@@ -189,9 +280,8 @@ class FirebaseChatRepository implements ChatRepository {
 
   @override
   Future<List<CrushMatch>> fetchUserMatches(String userId) async {
-    final snapshot = await _matches
-        .where('userIds', arrayContains: userId)
-        .get();
+    final snapshot =
+        await _matches.where('userIds', arrayContains: userId).get();
 
     return snapshot.docs.map((doc) {
       final data = doc.data();
@@ -200,11 +290,9 @@ class FirebaseChatRepository implements ChatRepository {
           userIds.firstWhere((id) => id != userId, orElse: () => '');
       final statusStr = data['status'] as String? ?? 'pending';
       final status = _statusFromString(statusStr);
-      final preMap =
-          (data['preMatchRequests'] as Map<String, dynamic>? ?? {});
+      final preMap = (data['preMatchRequests'] as Map<String, dynamic>? ?? {});
       final preCount = (preMap[userId] as num?)?.toInt() ?? 0;
-      final pinnedMap =
-          (data['pinnedForUser'] as Map<String, dynamic>? ?? {});
+      final pinnedMap = (data['pinnedForUser'] as Map<String, dynamic>? ?? {});
       final pinned = pinnedMap[userId] ?? false;
 
       return CrushMatch(
@@ -216,6 +304,17 @@ class FirebaseChatRepository implements ChatRepository {
         pinnedForUser: pinned,
       );
     }).toList();
+  }
+
+  Map<String, String> _reactionsFromData(dynamic reactionsData) {
+    final map = <String, String>{};
+    if (reactionsData is Map<String, dynamic>) {
+      reactionsData.forEach((key, value) {
+        final emoji = value as String?;
+        if (emoji != null) map[key] = emoji;
+      });
+    }
+    return map;
   }
 
   MessageType _typeFromString(String s) {

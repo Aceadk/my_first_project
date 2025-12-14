@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_first_project/data/models/match.dart';
 import 'package:my_first_project/data/models/message.dart';
@@ -104,6 +105,50 @@ class _StubChatRepository implements ChatRepository {
     _maybeThrow();
     reports.add((reporterId, reportedId, reason));
   }
+
+  @override
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {}
+
+  @override
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  }) async {}
+
+  @override
+  Stream<Set<String>> watchTyping(String matchId) => const Stream.empty();
+
+  @override
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  }) async {}
+
+  @override
+  Stream<bool> watchPresence(String userId) => const Stream.empty();
+
+  @override
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  }) async {}
+
+  @override
+  Stream<bool> watchMediaSendingEnabled(String matchId) => const Stream.empty();
+
+  @override
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  }) async {}
 
   @override
   Future<void> deleteForMe({

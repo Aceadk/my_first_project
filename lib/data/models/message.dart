@@ -12,6 +12,7 @@ class Message extends Equatable {
   final DateTime sentAt;
   final bool isRead;
   final bool isDeletedForSender;
+  final Map<String, String> reactions; // userId -> emoji
 
   const Message({
     required this.id,
@@ -23,11 +24,13 @@ class Message extends Equatable {
     required this.sentAt,
     required this.isRead,
     required this.isDeletedForSender,
+    this.reactions = const {},
   });
 
   Message copyWith({
     bool? isRead,
     bool? isDeletedForSender,
+    Map<String, String>? reactions,
   }) {
     return Message(
       id: id,
@@ -39,10 +42,11 @@ class Message extends Equatable {
       sentAt: sentAt,
       isRead: isRead ?? this.isRead,
       isDeletedForSender: isDeletedForSender ?? this.isDeletedForSender,
+      reactions: reactions ?? this.reactions,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, matchId, fromUserId, toUserId, content, type, sentAt, isRead, isDeletedForSender];
+      [id, matchId, fromUserId, toUserId, content, type, sentAt, isRead, isDeletedForSender, reactions];
 }

@@ -6,6 +6,7 @@ import '../../logic/profile/profile_state.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../widgets/onboarding_progress.dart';
 
 class IdVerificationScreen extends StatelessWidget {
   const IdVerificationScreen({super.key});
@@ -38,6 +39,11 @@ class IdVerificationScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const OnboardingProgress(
+                        currentStep: 4,
+                        caption: 'Secure your account to unlock chat',
+                      ),
+                      const SizedBox(height: 20),
                       const Text(
                           'Upload your national ID card/passport for verification. '
                           'Only verified accounts can chat after matching.'),
@@ -72,7 +78,7 @@ class IdVerificationScreen extends StatelessWidget {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                       ),
                       child: const Center(
                         child: CircularProgressIndicator(),

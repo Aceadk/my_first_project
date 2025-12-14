@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,9 +9,11 @@ import '../../logic/chat/chat_bloc.dart';
 import '../../logic/chat/chat_event.dart';
 import '../../logic/chat/chat_state.dart';
 import '../../data/models/message.dart';
+import '../../data/models/profile.dart';
 import '../../logic/safety/safety_cubit.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../core/profile_completeness.dart';
+import '../../core/router.dart';
 import '../widgets/plus_feature_gate.dart';
 import '../../core/ui/snackbar_utils.dart';
 import 'video_call_screen.dart';
@@ -40,6 +43,8 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _picker = ImagePicker();
+  Timer? _typingTimer;
+  bool _isTyping = false;
 
   @override
   void initState() {
@@ -47,7 +52,18 @@ class _ChatScreenState extends State<ChatScreen> {
     context.read<ChatBloc>().add(ChatOpened(
           widget.args.matchId,
           widget.args.currentUserId,
+          widget.args.otherUserId,
         ));
+  }
+
+  @override
+  void dispose() {
+    context.read<ChatBloc>().add(
+          ChatClosed(widget.args.matchId, widget.args.currentUserId),
+        );
+    _typingTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -66,36 +82,58 @@ class _ChatScreenState extends State<ChatScreen> {
             safetyState.mutedMessages.contains(widget.args.otherUserId);
         final callsMuted =
             safetyState.mutedCalls.contains(widget.args.otherUserId);
+        final selfVerified = userProfile?.isVerified ?? false;
 
-        return BlocConsumer<ChatBloc, ChatState>(
-          listenWhen: (previous, current) =>
-              previous.errorMessage != current.errorMessage,
-          listener: (context, state) {
-            final error = state.errorMessage;
-            if (error != null && error.isNotEmpty) {
-              showErrorSnackBar(context, error);
-            }
-          },
+        return BlocBuilder<ChatBloc, ChatState>(
           builder: (context, state) {
             final messages = state.messages;
-            final canMessage = completeness.meetsMessagingMinimum && !isBlocked;
+            final canMessage = completeness.meetsMessagingMinimum &&
+                !isBlocked &&
+                !state.isUnmatched;
+            final isOtherTyping =
+                state.typingUserIds.contains(widget.args.otherUserId);
 
-            return Scaffold(
+            return AsyncStateScaffold(
               appBar: AppBar(
-                title: Text(widget.args.otherName),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.args.otherName),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          size: 9,
+                          color: state.otherUserOnline
+                              ? Colors.greenAccent
+                              : Colors.grey,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          state.otherUserOnline ? 'Online' : 'Offline',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 actions: [
                   IconButton(
-                    tooltip:
-                        isBlocked ? 'Unblock to call' : 'Audio call',
+                    tooltip: isBlocked || state.isUnmatched
+                        ? 'Unavailable for this match'
+                        : 'Audio call',
                     icon: const Icon(Icons.call),
-                    onPressed: isBlocked ? null : _startAudioCall,
+                    onPressed: (isBlocked || state.isUnmatched)
+                        ? null
+                        : _startAudioCall,
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    tooltip:
-                        isBlocked ? 'Unblock to call' : 'Video call',
+                    tooltip: isBlocked || state.isUnmatched
+                        ? 'Unavailable for this match'
+                        : 'Video call',
                     icon: const Icon(Icons.videocam),
-                    onPressed: isBlocked
+                    onPressed: (isBlocked || state.isUnmatched)
                         ? null
                         : () {
                             Navigator.of(context).push(
@@ -125,8 +163,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       PopupMenuItem(
                         value: _ChatSafetyAction.block,
-                        child:
-                            Text(isBlocked ? 'Unblock user' : 'Block user'),
+                        child: Text(isBlocked ? 'Unblock user' : 'Block user'),
+                      ),
+                      const PopupMenuItem(
+                        value: _ChatSafetyAction.unmatch,
+                        child: Text('Unmatch'),
                       ),
                       PopupMenuItem(
                         value: _ChatSafetyAction.muteMessages,
@@ -136,17 +177,72 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       PopupMenuItem(
                         value: _ChatSafetyAction.muteCalls,
-                        child:
-                            Text(callsMuted ? 'Unmute calls' : 'Mute calls'),
+                        child: Text(callsMuted ? 'Unmute calls' : 'Mute calls'),
+                      ),
+                      const PopupMenuItem(
+                        value: _ChatSafetyAction.safetyCenter,
+                        child: Text('Open Safety Center'),
                       ),
                     ],
                   ),
                   const SizedBox(width: 8),
                 ],
               ),
+              errorMessage: state.errorMessage,
+              showErrorSnackBar: true,
+              showBodyOnLoading: true,
               body: Column(
                 children: [
-                  if (isBlocked)
+                  Container(
+                    width: double.infinity,
+                    color: selfVerified
+                        ? Colors.green.withAlpha((0.12 * 255).round())
+                        : Colors.orange.withAlpha((0.12 * 255).round()),
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          selfVerified
+                              ? Icons.verified_user
+                              : Icons.privacy_tip_outlined,
+                          color: selfVerified ? Colors.green : Colors.orange,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            selfVerified
+                                ? 'You are verified. Profiles see your badge as a trust signal.'
+                                : 'Verify your ID to add a trust badge to your messages and matches.',
+                          ),
+                        ),
+                        if (!selfVerified)
+                          TextButton(
+                            onPressed: () => Navigator.pushNamed(
+                                context, CrushRoutes.safety),
+                            child: const Text('Verify'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (state.isUnmatched)
+                    Container(
+                      width: double.infinity,
+                      color: Colors.blueGrey.withAlpha((0.12 * 255).round()),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.heart_broken, color: Colors.white70),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'You unmatched with ${widget.args.otherName}. You can still browse history, but messaging is disabled.',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (isBlocked)
                     Container(
                       width: double.infinity,
                       color: Colors.red.withAlpha((0.1 * 255).round()),
@@ -210,8 +306,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 callsMuted: callsMuted,
                                 name: widget.args.otherName,
                               ),
-                              style:
-                                  const TextStyle(color: Colors.orange),
+                              style: const TextStyle(color: Colors.orange),
                             ),
                           ),
                           TextButton(
@@ -234,6 +329,28 @@ class _ChatScreenState extends State<ChatScreen> {
                         ],
                       ),
                     ),
+                  if (!state.mediaSendingEnabled && !state.isUnmatched)
+                    Container(
+                      width: double.infinity,
+                      color: Colors.blueGrey.withAlpha((0.1 * 255).round()),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.no_photography,
+                              color: Colors.white70),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Media sending is disabled for this match. Enable it from the toolbar to share photos, videos, or audio.',
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => _toggleMedia(state),
+                            child: const Text('Enable'),
+                          ),
+                        ],
+                      ),
+                    ),
                   Expanded(
                     child: ListView.builder(
                       reverse: true,
@@ -243,33 +360,70 @@ class _ChatScreenState extends State<ChatScreen> {
                         final msg = messages[messages.length - 1 - index];
                         final isMe =
                             msg.fromUserId == widget.args.currentUserId;
-                        final text =
-                            msg.isDeletedForSender && isMe
-                                ? '(You unsent this message)'
-                                : msg.content;
+                        final text = msg.isDeletedForSender && isMe
+                            ? '(You unsent this message)'
+                            : msg.content;
+                        final reactionCounts = _reactionCounts(msg);
+                        final alignment =
+                            isMe ? Alignment.centerRight : Alignment.centerLeft;
                         return Align(
-                          alignment: isMe
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                          alignment: alignment,
                           child: GestureDetector(
-                            onLongPress: isMe
-                                ? () => _showMessageActions(
-                                      context: context,
-                                      state: state,
-                                      message: msg,
-                                    )
-                                : null,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 8),
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: isMe
-                                    ? Colors.pinkAccent
-                                    : Colors.grey.shade800,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: _buildMessageContent(msg, text),
+                            onLongPress: () => _showMessageActions(
+                              context: context,
+                              state: state,
+                              message: msg,
+                              isMe: isMe,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 8),
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: isMe
+                                        ? Colors.pinkAccent
+                                        : Colors.grey.shade800,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: _buildMessageContent(msg, text),
+                                ),
+                                if (reactionCounts.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 12,
+                                      right: 12,
+                                      bottom: 2,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 6,
+                                      children: reactionCounts.entries
+                                          .map(
+                                            (entry) => Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black54,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                entry.value > 1
+                                                    ? '${entry.key} ${entry.value}'
+                                                    : entry.key,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         );
@@ -281,8 +435,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: EdgeInsets.only(bottom: 4),
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
+                  if (state.isUnmatching)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: LinearProgressIndicator(minHeight: 2),
+                    ),
                   _SendStatusBar(state: state),
-                  _buildInput(state, isBlocked, canMessage),
+                  if (isOtherTyping)
+                    _TypingIndicator(name: widget.args.otherName),
+                  _buildInput(
+                    state,
+                    isBlocked: isBlocked,
+                    canMessage: canMessage,
+                    isUnmatched: state.isUnmatched,
+                  ),
                 ],
               ),
             );
@@ -296,43 +462,78 @@ class _ChatScreenState extends State<ChatScreen> {
     required BuildContext context,
     required ChatState state,
     required Message message,
+    required bool isMe,
   }) {
+    const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+    final myReaction = message.reactions[widget.args.currentUserId];
+
     showModalBottomSheet<void>(
       context: context,
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PlusFeatureGate(
-              onAllowed: () {
-                Navigator.pop(context);
-                context.read<ChatBloc>().add(
-                      ChatMessageUnsendRequested(
-                        widget.args.matchId,
-                        message.id,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: reactions
+                    .map(
+                      (emoji) => IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _toggleReaction(message, emoji);
+                        },
+                        icon: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 22),
+                        ),
                       ),
-                    );
-              },
-              child: ListTile(
-                leading: const Icon(Icons.undo),
-                title: const Text('Unsend (Plus)'),
-                enabled: !state.isUnsendInProgress,
+                    )
+                    .toList(),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: const Text('Delete for me'),
-              onTap: () {
-                Navigator.pop(context);
-                context.read<ChatBloc>().add(
-                      ChatMessageDeleteForMeRequested(
-                        widget.args.matchId,
-                        message.id,
-                        widget.args.currentUserId,
-                      ),
-                    );
-              },
-            ),
+            if (myReaction != null)
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _toggleReaction(message, myReaction);
+                },
+                icon: const Icon(Icons.remove_circle_outline),
+                label: const Text('Remove my reaction'),
+              ),
+            if (isMe) ...[
+              PlusFeatureGate(
+                onAllowed: () {
+                  Navigator.pop(context);
+                  context.read<ChatBloc>().add(
+                        ChatMessageUnsendRequested(
+                          widget.args.matchId,
+                          message.id,
+                        ),
+                      );
+                },
+                child: ListTile(
+                  leading: const Icon(Icons.undo),
+                  title: const Text('Unsend (Plus)'),
+                  enabled: !state.isUnsendInProgress,
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('Delete for me'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.read<ChatBloc>().add(
+                        ChatMessageDeleteForMeRequested(
+                          widget.args.matchId,
+                          message.id,
+                          widget.args.currentUserId,
+                        ),
+                      );
+                },
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.copy),
               title: const Text('Copy text'),
@@ -352,6 +553,25 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void _toggleReaction(Message message, String emoji) {
+    final existing = message.reactions[widget.args.currentUserId];
+    final bloc = context.read<ChatBloc>();
+    if (existing == emoji) {
+      bloc.add(ChatReactionRemoved(
+        matchId: widget.args.matchId,
+        messageId: message.id,
+        userId: widget.args.currentUserId,
+      ));
+    } else {
+      bloc.add(ChatReactionAdded(
+        matchId: widget.args.matchId,
+        messageId: message.id,
+        userId: widget.args.currentUserId,
+        emoji: emoji,
+      ));
+    }
   }
 
   Future<void> _startAudioCall() async {
@@ -382,38 +602,59 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildInput(ChatState state, bool isBlocked, bool canMessage) {
+  Widget _buildInput(
+    ChatState state, {
+    required bool isBlocked,
+    required bool canMessage,
+    required bool isUnmatched,
+  }) {
     final isSendingText = state.sendStatus == SendStatus.sendingText;
     final isUploading = state.sendStatus == SendStatus.uploadingAttachment;
-    final inputDisabled =
-        isBlocked || isSendingText || isUploading || !canMessage;
+    final canSendText = !isBlocked &&
+        !isUnmatched &&
+        canMessage &&
+        !isSendingText &&
+        !isUploading;
+    final canSendMedia = state.mediaSendingEnabled &&
+        !isBlocked &&
+        !isUnmatched &&
+        canMessage &&
+        !isUploading;
 
     return SafeArea(
       child: Row(
         children: [
           const SizedBox(width: 8),
           IconButton(
+            tooltip: state.mediaSendingEnabled
+                ? 'Disable media for this chat'
+                : 'Enable media for this chat',
+            icon: Icon(state.mediaSendingEnabled
+                ? Icons.photo_camera_back
+                : Icons.no_photography),
+            onPressed:
+                isBlocked || isUnmatched ? null : () => _toggleMedia(state),
+          ),
+          IconButton(
             icon: const Icon(Icons.photo),
-            onPressed: inputDisabled
-                ? null
-                : () => _pickAndSendImage(canMessage),
+            onPressed:
+                canSendMedia ? () => _pickAndSendImage(canMessage) : null,
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: inputDisabled
-                ? null
-                : () => _pickAndSendVideo(canMessage),
+            onPressed:
+                canSendMedia ? () => _pickAndSendVideo(canMessage) : null,
           ),
           IconButton(
             icon: const Icon(Icons.mic),
-            onPressed: inputDisabled
-                ? null
-                : () => _pickAndSendAudio(canMessage),
+            onPressed:
+                canSendMedia ? () => _pickAndSendAudio(canMessage) : null,
           ),
           Expanded(
             child: TextField(
               controller: _controller,
-              enabled: !inputDisabled,
+              enabled: canSendText,
+              onChanged: _onTextChanged,
               decoration: const InputDecoration(
                 hintText: 'Message...',
                 border: InputBorder.none,
@@ -438,6 +679,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                       return;
                     }
+                    if (isUnmatched) {
+                      showErrorSnackBar(
+                        context,
+                        'You unmatched with ${widget.args.otherName}. Messaging is disabled.',
+                      );
+                      return;
+                    }
                     if (!canMessage) {
                       showErrorSnackBar(
                         context,
@@ -456,6 +704,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           type: MessageType.text,
                         ));
                     _controller.clear();
+                    _onTextChanged('');
                   },
           ),
         ],
@@ -473,8 +722,7 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 220,
             height: 260,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                const Text('Image unavailable'),
+            errorBuilder: (_, __, ___) => const Text('Image unavailable'),
           ),
         );
       case MessageType.video:
@@ -492,6 +740,51 @@ class _ChatScreenState extends State<ChatScreen> {
       case MessageType.text:
         return Text(textFallback);
     }
+  }
+
+  Map<String, int> _reactionCounts(Message msg) {
+    final counts = <String, int>{};
+    for (final emoji in msg.reactions.values) {
+      counts[emoji] = (counts[emoji] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  void _toggleMedia(ChatState state) {
+    context.read<ChatBloc>().add(
+          ChatMediaToggleRequested(
+            matchId: widget.args.matchId,
+            requesterId: widget.args.currentUserId,
+            enabled: !state.mediaSendingEnabled,
+          ),
+        );
+  }
+
+  void _onTextChanged(String value) {
+    final shouldType = value.trim().isNotEmpty;
+    if (shouldType != _isTyping) {
+      _isTyping = shouldType;
+      context.read<ChatBloc>().add(
+            ChatTypingStatusChanged(
+              matchId: widget.args.matchId,
+              userId: widget.args.currentUserId,
+              isTyping: shouldType,
+            ),
+          );
+    }
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      if (_isTyping) {
+        _isTyping = false;
+        context.read<ChatBloc>().add(
+              ChatTypingStatusChanged(
+                matchId: widget.args.matchId,
+                userId: widget.args.currentUserId,
+                isTyping: false,
+              ),
+            );
+      }
+    });
   }
 
   Future<void> _pickAndSendImage(bool canMessage) async {
@@ -592,6 +885,42 @@ class _ChatScreenState extends State<ChatScreen> {
       case _ChatSafetyAction.block:
         await _toggleBlock(context, cubit, block: !isBlocked);
         break;
+      case _ChatSafetyAction.unmatch:
+        final chatBloc = context.read<ChatBloc>();
+        final messenger = ScaffoldMessenger.of(context);
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Unmatch?'),
+            content: Text(
+              'This will remove your match with ${widget.args.otherName}. You will not be able to message unless you match again.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Unmatch'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) {
+          chatBloc.add(
+            ChatUnmatchRequested(
+              matchId: widget.args.matchId,
+              userId: widget.args.currentUserId,
+            ),
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Unmatching from ${widget.args.otherName}...'),
+            ),
+          );
+        }
+        break;
       case _ChatSafetyAction.muteMessages:
         cubit.toggleMuteMessages(
           widget.args.otherUserId,
@@ -604,6 +933,10 @@ class _ChatScreenState extends State<ChatScreen> {
           mute: !callsMuted,
         );
         break;
+      case _ChatSafetyAction.safetyCenter:
+        if (!mounted) return;
+        Navigator.pushNamed(context, CrushRoutes.safety);
+        break;
     }
   }
 
@@ -612,17 +945,19 @@ class _ChatScreenState extends State<ChatScreen> {
     SafetyCubit cubit, {
     required bool block,
   }) async {
+    final messenger = ScaffoldMessenger.of(context);
     await cubit.toggleBlock(
       widget.args.otherUserId,
       block: block,
       currentUserId: widget.args.currentUserId,
     );
+    if (!context.mounted) return;
     final error = cubit.state.errorMessage;
     if (error != null && error.isNotEmpty) {
-      showErrorSnackBar(context, error);
+      messenger.showSnackBar(SnackBar(content: Text(error)));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
         content: Text(
           block
@@ -641,6 +976,8 @@ class _ChatScreenState extends State<ChatScreen> {
       'Fake profile',
       'Other',
     ];
+
+    final messenger = ScaffoldMessenger.of(context);
 
     showModalBottomSheet<void>(
       context: context,
@@ -671,16 +1008,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         reportedId: widget.args.otherUserId,
                         reason: reason,
                       );
+                      if (!mounted) return;
                       final error = cubit.state.errorMessage;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            error == null
-                                ? 'Report submitted: $reason'
-                                : error,
-                          ),
-                        ),
-                      );
+                      messenger.showSnackBar(SnackBar(
+                        content: Text(error ?? 'Report submitted: $reason'),
+                      ));
                     }
                   },
                 ),
@@ -695,9 +1027,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showCustomReportDialog(BuildContext context, SafetyCubit cubit) {
     final controller = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
         return AlertDialog(
           title: const Text('Report details'),
           content: TextField(
@@ -722,16 +1056,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     reportedId: widget.args.otherUserId,
                     reason: reason,
                   );
+                  if (!mounted) return;
                   final error = cubit.state.errorMessage;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        error ?? 'Report submitted',
-                      ),
-                    ),
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(error ?? 'Report submitted')),
                   );
                 }
-                Navigator.of(dialogContext).pop();
+                navigator.pop();
               },
               child: const Text('Submit'),
             ),
@@ -791,7 +1122,14 @@ class _AttachmentTile extends StatelessWidget {
   }
 }
 
-enum _ChatSafetyAction { report, block, muteMessages, muteCalls }
+enum _ChatSafetyAction {
+  report,
+  block,
+  unmatch,
+  muteMessages,
+  muteCalls,
+  safetyCenter
+}
 
 class _SendStatusBar extends StatelessWidget {
   const _SendStatusBar({required this.state});
@@ -828,5 +1166,29 @@ class _SendStatusBar extends StatelessWidget {
       case SendStatus.idle:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _TypingIndicator extends StatelessWidget {
+  const _TypingIndicator({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          Text('$name is typing...'),
+        ],
+      ),
+    );
   }
 }

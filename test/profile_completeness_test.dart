@@ -22,7 +22,7 @@ void main() {
   });
 
   test('weights bio length and photos more heavily', () {
-    final profile = Profile(
+    const profile = Profile(
       id: '1',
       name: 'Alice',
       age: 25,
@@ -30,12 +30,13 @@ void main() {
       sexualOrientation: null,
       bio: 'This is a longer bio with more than forty characters.',
       photoUrls: ['a.jpg', 'b.jpg', 'c.jpg'],
-      videoUrls: const [],
+      videoUrls:  [],
+      prompts:  ['p1', 'p2'],
       isVerified: false,
       jobTitle: 'Engineer',
       company: 'Acme',
       school: null,
-      interests: const ['music', 'travel', 'tech'],
+      interests: ['music', 'travel', 'tech'],
       country: 'US',
       city: 'NYC',
       latitude: null,
@@ -49,20 +50,20 @@ void main() {
   });
 
   test('reports missing pieces', () {
-    final profile = Profile(
+    const profile = Profile(
       id: '2',
       name: '',
       age: 25,
       gender: 'female',
       sexualOrientation: null,
       bio: '',
-      photoUrls: const ['a.jpg'],
-      videoUrls: const [],
+      photoUrls:  ['a.jpg'],
+      videoUrls:  [],
       isVerified: false,
       jobTitle: null,
       company: null,
       school: null,
-      interests: const ['music'],
+      interests:  ['music'],
       country: '',
       city: '',
       latitude: null,
