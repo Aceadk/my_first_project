@@ -11,6 +11,9 @@ import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
 import '../../core/result.dart';
 import '../widgets/profile_media_picker.dart';
+import '../widgets/profile_completeness_meter.dart';
+import '../../core/profile_completeness.dart';
+import '../../core/profile_completeness.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -160,6 +163,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         }
 
         final saving = state.isSaving || _uploading;
+        final completenessProfile = profile ?? _fallbackProfile(state);
 
         return Scaffold(
           appBar: AppBar(
@@ -173,6 +177,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
+                      ProfileCompletenessMeter(
+                        profile: completenessProfile,
+                        onAction: () {},
+                      ),
                       TextField(
                         controller: _nameController,
                         decoration:

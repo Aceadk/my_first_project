@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
+import '../../logic/profile/profile_state.dart';
 import '../../core/profile_completeness.dart';
-import '../../data/models/profile.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
@@ -39,8 +39,10 @@ class DeckScreen extends StatelessWidget {
       builder: (context, state) {
         _requestDeckIfNeeded(context, userId, state);
 
-        final Profile? currentUserProfile = context.select<ProfileBloc, Profile?>((b) => b.state.profile);
-        final completeness = computeProfileCompleteness(currentUserProfile);
+        final profile = context.select<ProfileBloc, Profile?>(
+          (b) => b.state.profile ?? b.state.user?.profile,
+        );
+        final completeness = evaluateProfileCompleteness(profile);
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
         final isLoading = status == DeckStatus.loading;
@@ -71,7 +73,11 @@ class DeckScreen extends StatelessWidget {
           appBar: _buildAppBar(context, userId),
           body: Column(
             children: [
-              _buildStatusBar(isLoading, retryInSeconds, completeness),
+              _buildStatusBar(
+                isLoading: isLoading,
+                retryInSeconds: retryInSeconds,
+                completeness: completeness,
+              ),
               Align(
                 alignment: Alignment.centerRight,
                 child: PopupMenuButton<_DeckSafetyAction>(
@@ -111,7 +117,7 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.grey.shade300,
                     onTap: () {
                       if (userId == null) return;
-                      if (completeness < 1.0) {
+                      if (!completeness.meetsSwipeMinimum) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -128,7 +134,7 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.blueAccent,
                     onTap: () async {
                       if (userId == null) return;
-                      if (completeness < 1.0) {
+                      if (!completeness.meetsMessagingMinimum) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -144,7 +150,7 @@ class DeckScreen extends StatelessWidget {
                     color: Colors.pinkAccent,
                     onTap: () {
                       if (userId == null) return;
-                      if (completeness < 1.0) {
+                      if (!completeness.meetsSwipeMinimum) {
                         _showProfileIncompleteDialog(context, completeness);
                         return;
                       }
@@ -314,7 +320,11 @@ class DeckScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBar(bool isLoading, int? retryInSeconds, double completeness) {
+  Widget _buildStatusBar({
+    required bool isLoading,
+    required int? retryInSeconds,
+    required ProfileCompletenessSummary completeness,
+  }) {
     if (isLoading) {
       return const LinearProgressIndicator(minHeight: 2);
     }
@@ -336,16 +346,18 @@ class DeckScreen extends StatelessWidget {
       );
     }
 
-    if (completeness > 0 && completeness < 1.0) {
-      final percent = (completeness * 100).round();
+    if (!completeness.meetsSwipeMinimum) {
+      final percent = (completeness.score * 100).round();
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LinearProgressIndicator(value: completeness, minHeight: 6),
+            LinearProgressIndicator(value: completeness.score, minHeight: 6),
             const SizedBox(height: 8),
-            Text('Profile completeness: $percent% — complete to unlock swiping'),
+            Text(
+              'Profile completeness: $percent% — finish your profile to swipe and message.',
+            ),
           ],
         ),
       );
@@ -354,8 +366,12 @@ class DeckScreen extends StatelessWidget {
     return const SizedBox(height: 2);
   }
 
-  void _showProfileIncompleteDialog(BuildContext context, double completeness) {
-    final percent = (completeness * 100).round();
+  void _showProfileIncompleteDialog(
+    BuildContext context,
+    ProfileCompletenessSummary completeness,
+  ) {
+    final percent = (completeness.score * 100).round();
+    final missing = completeness.missing.take(3).join('\n• ');
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -363,7 +379,7 @@ class DeckScreen extends StatelessWidget {
         content: Text(
           percent >= 100
               ? 'Your profile looks good.'
-              : 'Your profile is $percent% complete. Add photos and fill your bio to unlock swiping and messaging.',
+              : 'Your profile is $percent% complete. Add these to unlock swiping and messaging:\n\n• ${missing.isEmpty ? 'Add photos and a longer bio' : missing}',
         ),
         actions: [
           TextButton(
@@ -373,9 +389,7 @@ class DeckScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const ProfileEditScreen(),
-              ));
+              _goToProfileEdit(context);
             },
             child: const Text('Complete profile'),
           ),
@@ -445,6 +459,13 @@ class DeckScreen extends StatelessWidget {
         Navigator.pushNamed(context, CrushRoutes.safetyGuidelines);
         break;
     }
+  }
+
+  void _goToProfileEdit(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
+    );
   }
 
   Future<void> _showReportSheet(

@@ -9,9 +9,12 @@ import '../../logic/chat/chat_event.dart';
 import '../../logic/chat/chat_state.dart';
 import '../../data/models/message.dart';
 import '../../logic/safety/safety_cubit.dart';
+import '../../logic/profile/profile_bloc.dart';
+import '../../core/profile_completeness.dart';
 import '../widgets/plus_feature_gate.dart';
 import '../../core/ui/snackbar_utils.dart';
 import 'video_call_screen.dart';
+import 'profile_edit_screen.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -49,6 +52,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = context.select<ProfileBloc, Profile?>(
+      (bloc) => bloc.state.profile ?? bloc.state.user?.profile,
+    );
+    final completeness = evaluateProfileCompleteness(userProfile);
+
     return BlocBuilder<SafetyCubit, SafetyState>(
       builder: (context, safetyState) {
         final safety = context.read<SafetyCubit>();
@@ -70,6 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
           },
           builder: (context, state) {
             final messages = state.messages;
+            final canMessage = completeness.meetsMessagingMinimum && !isBlocked;
 
             return Scaffold(
               appBar: AppBar(
@@ -163,6 +172,28 @@ class _ChatScreenState extends State<ChatScreen> {
                         ],
                       ),
                     )
+                  else if (!canMessage)
+                    Container(
+                      width: double.infinity,
+                      color: Colors.orange.withAlpha((0.1 * 255).round()),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.orange),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Complete your profile to continue messaging. Missing: ${completeness.missing.take(2).join(', ')}',
+                              style: const TextStyle(color: Colors.orange),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => _goToProfileEdit(context),
+                            child: const Text('Finish'),
+                          ),
+                        ],
+                      ),
+                    )
                   else if (messagesMuted || callsMuted)
                     Container(
                       width: double.infinity,
@@ -251,7 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
                   _SendStatusBar(state: state),
-                  _buildInput(state, isBlocked),
+                  _buildInput(state, isBlocked, canMessage),
                 ],
               ),
             );
@@ -351,10 +382,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildInput(ChatState state, bool isBlocked) {
+  Widget _buildInput(ChatState state, bool isBlocked, bool canMessage) {
     final isSendingText = state.sendStatus == SendStatus.sendingText;
     final isUploading = state.sendStatus == SendStatus.uploadingAttachment;
-    final inputDisabled = isBlocked || isSendingText || isUploading;
+    final inputDisabled =
+        isBlocked || isSendingText || isUploading || !canMessage;
 
     return SafeArea(
       child: Row(
@@ -364,19 +396,19 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.photo),
             onPressed: inputDisabled
                 ? null
-                : () => _pickAndSendImage(),
+                : () => _pickAndSendImage(canMessage),
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
             onPressed: inputDisabled
                 ? null
-                : () => _pickAndSendVideo(),
+                : () => _pickAndSendVideo(canMessage),
           ),
           IconButton(
             icon: const Icon(Icons.mic),
             onPressed: inputDisabled
                 ? null
-                : () => _pickAndSendAudio(),
+                : () => _pickAndSendAudio(canMessage),
           ),
           Expanded(
             child: TextField(
@@ -404,6 +436,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         context,
                         'Unblock ${widget.args.otherName} to send messages.',
                       );
+                      return;
+                    }
+                    if (!canMessage) {
+                      showErrorSnackBar(
+                        context,
+                        'Finish your profile to continue messaging.',
+                      );
+                      _goToProfileEdit(context);
                       return;
                     }
                     final text = _controller.text.trim();
@@ -454,7 +494,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _pickAndSendImage() async {
+  Future<void> _pickAndSendImage(bool canMessage) async {
+    if (!canMessage) {
+      _goToProfileEdit(context);
+      return;
+    }
     final result = await _picker.pickImage(source: ImageSource.gallery);
     if (!mounted || result == null) return;
     context.read<ChatBloc>().add(
@@ -468,7 +512,11 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  Future<void> _pickAndSendVideo() async {
+  Future<void> _pickAndSendVideo(bool canMessage) async {
+    if (!canMessage) {
+      _goToProfileEdit(context);
+      return;
+    }
     final result = await _picker.pickVideo(
       source: ImageSource.gallery,
       maxDuration: const Duration(seconds: 20),
@@ -485,7 +533,11 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  Future<void> _pickAndSendAudio() async {
+  Future<void> _pickAndSendAudio(bool canMessage) async {
+    if (!canMessage) {
+      _goToProfileEdit(context);
+      return;
+    }
     final result = await FilePicker.platform.pickFiles(type: FileType.audio);
     if (!mounted || result == null || result.files.isEmpty) return;
     final path = result.files.single.path;
@@ -686,6 +738,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _goToProfileEdit(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
     );
   }
 }

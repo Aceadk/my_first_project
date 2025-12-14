@@ -34,6 +34,11 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 - Backend/Functions should target those tokens for new matches, new chat messages, and subscription/billing changes (topics or direct send). Add callables/trigger functions to publish to the user’s tokens using that collection.
 - iOS: add APNs key/certs to Firebase, enable push capability. Android: ensure google-services.json includes `project_number`.
 
+## Profile completeness & gating
+- Completeness is calculated client-side with weighted rules (photos, longer bio, interests, work/school, location).
+- Swiping and messaging are gated until the profile meets the minimum threshold; UI surfaces progress + missing items.
+- Optionally enforce server-side in Functions before processing swipes/messages by reading `users/{uid}/profile`.
+
 ## Backend functions (functions/src/index.ts)
 - `swipeRight`: writes like, checks reverse like, creates/reuses match doc.
 - `sendPreMatchMessageRequest`: limits to 3 requests per sender before reply; stores requests under `preMatchPairs`.
