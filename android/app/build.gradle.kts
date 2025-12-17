@@ -5,6 +5,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+kotlin {
+    // Use JDK 17 toolchain for consistent Android builds.
+    jvmToolchain(17)
+}
+
 android {
     namespace = "com.example.crushhour"
     compileSdk = flutter.compileSdkVersion
