@@ -224,6 +224,23 @@ function setCorsHeaders(res: functions.Response) {
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
 }
 
+async function ensureUserInMatch(matchId: string, uid: string) {
+  const matchSnap = await db.collection("matches").doc(matchId).get();
+  if (!matchSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Match not found.");
+  }
+  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+  const userIds = (matchData.userIds || []) as string[];
+  if (!userIds.includes(uid)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You are not part of this match."
+    );
+  }
+  const otherUserId = userIds.find((id) => id !== uid);
+  return { matchData, otherUserId };
+}
+
 async function getFcmTokens(userId: string): Promise<string[]> {
   const snap = await db
     .collection("users")
@@ -315,6 +332,148 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
 
   const docId = `${blockerId}_${blockedId}`;
   await db.collection("blocks").doc(docId).delete();
+  return { ok: true };
+});
+
+export const setTyping = callable<{
+  matchId?: string;
+  isTyping?: boolean;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "update typing status");
+  const matchId = requireString(data?.matchId, "matchId");
+  const isTyping = !!data?.isTyping;
+
+  await ensureUserInMatch(matchId, uid);
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .set(
+      { typing: { [uid]: isTyping }, typingUpdatedAt: admin.firestore.FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+  return { ok: true };
+});
+
+export const setPresenceStatus = callable<{ isOnline?: boolean }>(
+  async (data, context) => {
+    const uid = requireAuth(context, "update presence");
+    const isOnline = !!data?.isOnline;
+    await db
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          isOnline,
+          lastSeenAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    return { ok: true };
+  }
+);
+
+export const setMediaSendingEnabled = callable<{
+  matchId?: string;
+  enabled?: boolean;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "toggle media sending");
+  const matchId = requireString(data?.matchId, "matchId");
+  const enabled = !!data?.enabled;
+
+  await ensureUserInMatch(matchId, uid);
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .set(
+      {
+        mediaSendingEnabled: enabled,
+        mediaUpdatedBy: uid,
+        mediaUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  return { ok: true };
+});
+
+export const addReaction = callable<{
+  matchId?: string;
+  messageId?: string;
+  emoji?: string;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "add reaction");
+  const matchId = requireString(data?.matchId, "matchId");
+  const messageId = requireString(data?.messageId, "messageId");
+  const emoji = requireString(data?.emoji, "emoji");
+
+  await ensureUserInMatch(matchId, uid);
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .collection("messages")
+    .doc(messageId)
+    .set(
+      {
+        reactions: { [uid]: emoji },
+        reactionsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  return { ok: true };
+});
+
+export const removeReaction = callable<{
+  matchId?: string;
+  messageId?: string;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "remove reaction");
+  const matchId = requireString(data?.matchId, "matchId");
+  const messageId = requireString(data?.messageId, "messageId");
+
+  await ensureUserInMatch(matchId, uid);
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .collection("messages")
+    .doc(messageId)
+    .set(
+      {
+        reactions: { [uid]: admin.firestore.FieldValue.delete() },
+        reactionsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  return { ok: true };
+});
+
+export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
+  const uid = requireAuth(context, "unmatch");
+  const matchId = requireString(data?.matchId, "matchId");
+  const { otherUserId } = await ensureUserInMatch(matchId, uid);
+
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .set(
+      {
+        status: "unmatched",
+        unmatchedBy: uid,
+        unmatchedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+  if (otherUserId) {
+    const tokens = await getFcmTokens(otherUserId);
+    await sendNotification({
+      tokens,
+      notification: {
+        title: "Match ended",
+        body: "Someone unmatched this chat.",
+      },
+      data: { matchId, status: "unmatched" },
+    });
+  }
+
   return { ok: true };
 });
 

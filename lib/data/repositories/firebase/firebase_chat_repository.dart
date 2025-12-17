@@ -124,9 +124,11 @@ class FirebaseChatRepository implements ChatRepository {
     required String userId,
     required bool isTyping,
   }) async {
-    await _matches.doc(matchId).set({
-      'typing': {userId: isTyping}
-    }, SetOptions(merge: true));
+    final callable = _functions.httpsCallable('setTyping');
+    await callable.call(<String, dynamic>{
+      'matchId': matchId,
+      'isTyping': isTyping,
+    });
   }
 
   @override
@@ -143,10 +145,10 @@ class FirebaseChatRepository implements ChatRepository {
     required String userId,
     required bool isOnline,
   }) async {
-    await _users.doc(userId).set({
+    final callable = _functions.httpsCallable('setPresenceStatus');
+    await callable.call(<String, dynamic>{
       'isOnline': isOnline,
-      'lastSeenAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    });
   }
 
   @override
@@ -164,11 +166,11 @@ class FirebaseChatRepository implements ChatRepository {
     required bool enabled,
     required String requesterId,
   }) async {
-    await _matches.doc(matchId).set({
-      'mediaSendingEnabled': enabled,
-      'mediaUpdatedBy': requesterId,
-      'mediaUpdatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    final callable = _functions.httpsCallable('setMediaSendingEnabled');
+    await callable.call(<String, dynamic>{
+      'matchId': matchId,
+      'enabled': enabled,
+    });
   }
 
   @override
@@ -254,9 +256,12 @@ class FirebaseChatRepository implements ChatRepository {
     required String userId,
     required String emoji,
   }) async {
-    await _matches.doc(matchId).collection('messages').doc(messageId).set({
-      'reactions': {userId: emoji}
-    }, SetOptions(merge: true));
+    final callable = _functions.httpsCallable('addReaction');
+    await callable.call(<String, dynamic>{
+      'matchId': matchId,
+      'messageId': messageId,
+      'emoji': emoji,
+    });
   }
 
   @override
@@ -265,9 +270,11 @@ class FirebaseChatRepository implements ChatRepository {
     required String messageId,
     required String userId,
   }) async {
-    await _matches.doc(matchId).collection('messages').doc(messageId).set({
-      'reactions': {userId: FieldValue.delete()}
-    }, SetOptions(merge: true));
+    final callable = _functions.httpsCallable('removeReaction');
+    await callable.call(<String, dynamic>{
+      'matchId': matchId,
+      'messageId': messageId,
+    });
   }
 
   @override
@@ -275,8 +282,9 @@ class FirebaseChatRepository implements ChatRepository {
     required String matchId,
     required String userId,
   }) async {
-    await _matches.doc(matchId).update({
-      'status': 'unmatched',
+    final callable = _functions.httpsCallable('unmatch');
+    await callable.call(<String, dynamic>{
+      'matchId': matchId,
     });
   }
 
