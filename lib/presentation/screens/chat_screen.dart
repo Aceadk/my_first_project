@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -14,6 +15,7 @@ import '../../logic/safety/safety_cubit.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../core/profile_completeness.dart';
 import '../../core/router.dart';
+import '../../data/services/profile_validation_service.dart';
 import '../widgets/plus_feature_gate.dart';
 import '../widgets/async_state_scaffold.dart';
 import '../../core/ui/snackbar_utils.dart';
@@ -46,6 +48,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final _picker = ImagePicker();
   Timer? _typingTimer;
   bool _isTyping = false;
+  RemoteProfileCompleteness? _backendCompleteness;
+  bool _checkingCompleteness = false;
+  String? _completenessError;
+  String? _lastProfileSignature;
+  bool _backendBlocked = false;
+  final ProfileValidationService _validationService =
+      ProfileValidationService();
 
   @override
   void initState() {
@@ -73,6 +82,10 @@ class _ChatScreenState extends State<ChatScreen> {
       (bloc) => bloc.state.profile ?? bloc.state.user?.profile,
     );
     final completeness = evaluateProfileCompleteness(userProfile);
+    _maybeRefreshBackendCompleteness(userProfile);
+    final backendMessageAllowed =
+        _backendCompleteness?.allowsMessaging ??
+            (_backendBlocked ? false : _completenessError != null);
 
     return BlocBuilder<SafetyCubit, SafetyState>(
       builder: (context, safetyState) {
@@ -90,6 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
             final messages = state.messages;
             final canMessage = completeness.meetsMessagingMinimum &&
                 completeness.meetsRequiredFields &&
+                backendMessageAllowed &&
                 !isBlocked &&
                 !state.isUnmatched;
             final isOtherTyping =
@@ -226,6 +240,46 @@ class _ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
+                  if (_checkingCompleteness)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Checking your profile completeness with the server…',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (_completenessError != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        _completenessError!,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: Colors.orange),
+                      ),
+                    ),
                   if (_isNetworkError(state.errorMessage))
                     Container(
                       width: double.infinity,
@@ -315,12 +369,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 LinearProgressIndicator(
-                                  value: completeness.score,
+                                  value:
+                                      _backendCompleteness?.score ?? completeness.score,
                                   minHeight: 5,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'Missing: ${(completeness.requiredMissing.isNotEmpty ? completeness.requiredMissing : completeness.missing).take(2).join(', ')}',
+                                  'Missing: ${_missingMessages(completeness).take(2).join(', ')}',
                                   style: const TextStyle(color: Colors.orange),
                                 ),
                               ],
@@ -536,6 +591,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     isBlocked: isBlocked,
                     canMessage: canMessage,
                     isUnmatched: state.isUnmatched,
+                    completeness: completeness,
                   ),
                 ],
               ),
@@ -713,6 +769,7 @@ class _ChatScreenState extends State<ChatScreen> {
     required bool isBlocked,
     required bool canMessage,
     required bool isUnmatched,
+    required ProfileCompletenessSummary completeness,
   }) {
     final isSendingText = state.sendStatus == SendStatus.sendingText;
     final isUploading = state.sendStatus == SendStatus.uploadingAttachment;
@@ -743,18 +800,21 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.photo),
-            onPressed:
-                canSendMedia ? () => _pickAndSendImage(canMessage) : null,
+            onPressed: canSendMedia
+                ? () => _pickAndSendImage(canMessage, completeness)
+                : null,
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed:
-                canSendMedia ? () => _pickAndSendVideo(canMessage) : null,
+            onPressed: canSendMedia
+                ? () => _pickAndSendVideo(canMessage, completeness)
+                : null,
           ),
           IconButton(
             icon: const Icon(Icons.mic),
-            onPressed:
-                canSendMedia ? () => _pickAndSendAudio(canMessage) : null,
+            onPressed: canSendMedia
+                ? () => _pickAndSendAudio(canMessage, completeness)
+                : null,
           ),
           Expanded(
             child: TextField(
@@ -777,7 +837,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 : const Icon(Icons.send),
             onPressed: isSendingText
                 ? null
-                : () {
+                : () async {
                     if (isBlocked) {
                       showErrorSnackBar(
                         context,
@@ -793,13 +853,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       return;
                     }
                     if (!canMessage) {
-                      showErrorSnackBar(
-                        context,
-                        'Finish your profile to continue messaging.',
-                      );
-                      _goToProfileEdit(context);
+                      _showMessagingIncomplete(completeness);
                       return;
                     }
+                    final allowed =
+                        await _ensureBackendAllowsMessaging(completeness);
+                    if (!allowed || !mounted) return;
                     final text = _controller.text.trim();
                     if (text.isEmpty) return;
                     context.read<ChatBloc>().add(ChatMessageSent(
@@ -929,11 +988,139 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _pickAndSendImage(bool canMessage) async {
+  void _maybeRefreshBackendCompleteness(Profile? profile) {
+    final signature = _profileSignature(profile);
+    if (_lastProfileSignature == signature) return;
+    _lastProfileSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (profile == null) {
+        setState(() {
+          _backendCompleteness = null;
+          _completenessError = null;
+          _backendBlocked = false;
+        });
+        return;
+      }
+      _refreshBackendCompleteness();
+    });
+  }
+
+  Future<void> _refreshBackendCompleteness() async {
+    setState(() {
+      _checkingCompleteness = true;
+      _completenessError = null;
+    });
+    try {
+      final result = await _validationService.validate(minimum: 'message');
+      if (!mounted) return;
+      setState(() {
+        _backendCompleteness = result;
+        _completenessError = null;
+        _backendBlocked = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _backendCompleteness = null;
+        _completenessError = _friendlyError(e);
+        _backendBlocked =
+            e is FirebaseFunctionsException && e.code == 'failed-precondition';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _checkingCompleteness = false;
+        });
+      }
+    }
+  }
+
+  Future<bool> _ensureBackendAllowsMessaging(
+    ProfileCompletenessSummary local,
+  ) async {
+    if (_backendCompleteness == null && !_checkingCompleteness) {
+      await _refreshBackendCompleteness();
+      if (!mounted) return false;
+    }
+    final backend = _backendCompleteness;
+    if (backend == null) {
+      if (_backendBlocked) {
+        if (_completenessError != null) {
+          showErrorSnackBar(context, _completenessError!);
+        }
+        _showMessagingIncomplete(local);
+        return false;
+      }
+      if (_completenessError != null) {
+        showErrorSnackBar(
+          context,
+          'Could not verify profile completeness with the server. Using local checks.',
+        );
+        return true;
+      }
+      if (_checkingCompleteness) {
+        showErrorSnackBar(
+          context,
+          'Checking your profile with the server. Try again in a moment.',
+        );
+      }
+      return false;
+    }
+    if (!backend.allowsMessaging) {
+      _showMessagingIncomplete(local);
+      return false;
+    }
+    return true;
+  }
+
+  List<String> _missingMessages(ProfileCompletenessSummary local) {
+    final remoteMissing = _backendCompleteness?.missingForMessaging;
+    if (remoteMissing != null && remoteMissing.isNotEmpty) {
+      return remoteMissing;
+    }
+    if (local.requiredMissing.isNotEmpty) return local.requiredMissing;
+    return local.missing;
+  }
+
+  void _showMessagingIncomplete(ProfileCompletenessSummary completeness) {
+    final missing = _missingMessages(completeness);
+    final message = missing.isEmpty
+        ? 'Finish your profile to continue messaging.'
+        : 'Finish your profile: ${missing.take(3).join(', ')}';
+    showErrorSnackBar(context, message);
+    _goToProfileEdit(context);
+  }
+
+  String _profileSignature(Profile? profile) {
+    if (profile == null) return 'none';
+    return [
+      profile.id,
+      profile.photoUrls.length,
+      profile.prompts.length,
+      profile.bio.hashCode,
+      profile.interests.length,
+      profile.isVerified,
+    ].join('|');
+  }
+
+  String _friendlyError(Object error) {
+    if (error is FirebaseFunctionsException && error.message != null) {
+      return error.message!;
+    }
+    return 'Could not verify profile completeness. Check your connection.';
+  }
+
+  Future<void> _pickAndSendImage(
+    bool canMessage,
+    ProfileCompletenessSummary completeness,
+  ) async {
     if (!canMessage) {
-      _goToProfileEdit(context);
+      _showMessagingIncomplete(completeness);
       return;
     }
+    final allowed = await _ensureBackendAllowsMessaging(completeness);
+    if (!allowed || !mounted) return;
     final result = await _picker.pickImage(source: ImageSource.gallery);
     if (!mounted || result == null) return;
     context.read<ChatBloc>().add(
@@ -947,11 +1134,16 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  Future<void> _pickAndSendVideo(bool canMessage) async {
+  Future<void> _pickAndSendVideo(
+    bool canMessage,
+    ProfileCompletenessSummary completeness,
+  ) async {
     if (!canMessage) {
-      _goToProfileEdit(context);
+      _showMessagingIncomplete(completeness);
       return;
     }
+    final allowed = await _ensureBackendAllowsMessaging(completeness);
+    if (!allowed || !mounted) return;
     final result = await _picker.pickVideo(
       source: ImageSource.gallery,
       maxDuration: const Duration(seconds: 20),
@@ -968,11 +1160,16 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  Future<void> _pickAndSendAudio(bool canMessage) async {
+  Future<void> _pickAndSendAudio(
+    bool canMessage,
+    ProfileCompletenessSummary completeness,
+  ) async {
     if (!canMessage) {
-      _goToProfileEdit(context);
+      _showMessagingIncomplete(completeness);
       return;
     }
+    final allowed = await _ensureBackendAllowsMessaging(completeness);
+    if (!allowed || !mounted) return;
     final result = await FilePicker.platform.pickFiles(type: FileType.audio);
     if (!mounted || result == null || result.files.isEmpty) return;
     final path = result.files.single.path;

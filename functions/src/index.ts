@@ -78,10 +78,40 @@ interface AppealRequest {
   targetId?: string;
 }
 
+interface ValidateProfileRequest {
+  minimum?: "swipe" | "message";
+}
+
 const PROFILE_MIN_PHOTOS = 1;
 const PROFILE_MIN_PROMPTS = 2;
 const PROFILE_MIN_BIO_LENGTH = 40;
+const PROFILE_MIN_INTERESTS = 3;
+const PROFILE_COMPLETENESS_THRESHOLD = 0.7;
 const BANNED_TERMS = ["kill", "terror", "hate", "shit", "fuck", "bitch", "spam"];
+
+type ProfileData = {
+  bio?: unknown;
+  photoUrls?: unknown;
+  prompts?: unknown;
+  interests?: unknown;
+  jobTitle?: unknown;
+  company?: unknown;
+  school?: unknown;
+  country?: unknown;
+  city?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+};
+
+type ProfileCompletenessResult = {
+  score: number;
+  breakdown: Record<string, number>;
+  missing: string[];
+  requiredMissing: string[];
+  meetsSwipeMinimum: boolean;
+  meetsMessagingMinimum: boolean;
+  meetsRequiredFields: boolean;
+};
 
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
@@ -141,6 +171,131 @@ function optionalString(value: unknown): string | undefined {
   return str.length > 0 ? str : undefined;
 }
 
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return (value as unknown[])
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v) => v.length > 0);
+}
+
+function evaluateProfileCompleteness(
+  profile: ProfileData | null
+): ProfileCompletenessResult {
+  if (!profile) {
+    const missing = [
+      `Add at least ${PROFILE_MIN_PHOTOS} photo(s).`,
+      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
+      `Answer at least ${PROFILE_MIN_PROMPTS} prompts.`,
+    ];
+    return {
+      score: 0,
+      breakdown: {},
+      missing,
+      requiredMissing: missing,
+      meetsSwipeMinimum: false,
+      meetsMessagingMinimum: false,
+      meetsRequiredFields: false,
+    };
+  }
+
+  const photos = toStringArray(profile.photoUrls);
+  const prompts = toStringArray(profile.prompts);
+  const interests = toStringArray(profile.interests);
+  const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
+  const jobTitle =
+    typeof profile.jobTitle === "string" ? profile.jobTitle.trim() : "";
+  const company =
+    typeof profile.company === "string" ? profile.company.trim() : "";
+  const school = typeof profile.school === "string" ? profile.school.trim() : "";
+  const city = typeof profile.city === "string" ? profile.city.trim() : "";
+  const country =
+    typeof profile.country === "string" ? profile.country.trim() : "";
+
+  let score = 0;
+  const breakdown: Record<string, number> = {};
+  const missing: string[] = [];
+  const requiredMissing: string[] = [];
+
+  const rules: Array<{
+    key: string;
+    weight: number;
+    satisfied: boolean;
+    missingMessage: string;
+    requiredForMessaging?: boolean;
+  }> = [
+    {
+      key: "photos",
+      weight: 0.4,
+      satisfied: photos.length >= PROFILE_MIN_PHOTOS,
+      missingMessage: `Add at least ${PROFILE_MIN_PHOTOS} photo(s).`,
+      requiredForMessaging: true,
+    },
+    {
+      key: "bio",
+      weight: 0.2,
+      satisfied: bio.length >= PROFILE_MIN_BIO_LENGTH,
+      missingMessage: `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
+      requiredForMessaging: true,
+    },
+    {
+      key: "prompts",
+      weight: 0.15,
+      satisfied: prompts.length >= PROFILE_MIN_PROMPTS,
+      missingMessage: `Answer at least ${PROFILE_MIN_PROMPTS} prompts.`,
+      requiredForMessaging: true,
+    },
+    {
+      key: "interests",
+      weight: 0.1,
+      satisfied: interests.length >= PROFILE_MIN_INTERESTS,
+      missingMessage: `Add at least ${PROFILE_MIN_INTERESTS} interests.`,
+    },
+    {
+      key: "work_or_school",
+      weight: 0.08,
+      satisfied: !!jobTitle || !!company || !!school,
+      missingMessage: "Add work or school.",
+    },
+    {
+      key: "location",
+      weight: 0.07,
+      satisfied:
+        !!city &&
+        !!country &&
+        country.toLowerCase() !== "unknown",
+      missingMessage: "Add your city & country.",
+    },
+  ];
+
+  for (const rule of rules) {
+    if (rule.satisfied) {
+      score += rule.weight;
+      breakdown[rule.key] = rule.weight;
+    } else {
+      breakdown[rule.key] = 0;
+      missing.push(rule.missingMessage);
+      if (rule.requiredForMessaging) {
+        requiredMissing.push(rule.missingMessage);
+      }
+    }
+  }
+
+  score = Math.max(0, Math.min(1, score));
+  const meetsSwipeMinimum = score >= PROFILE_COMPLETENESS_THRESHOLD;
+  const meetsMessagingMinimum = score >= PROFILE_COMPLETENESS_THRESHOLD;
+  const meetsRequiredFields = requiredMissing.length === 0;
+
+  return {
+    score,
+    breakdown,
+    missing,
+    requiredMissing,
+    meetsSwipeMinimum,
+    meetsMessagingMinimum,
+    meetsRequiredFields,
+  };
+}
+
 type ModerationDecision =
   | { status: "clean"; action: "allow"; reason?: string; severity: "low" }
   | {
@@ -168,39 +323,26 @@ function moderateContent(content: string, type: string): ModerationDecision {
 }
 
 function ensureProfileQuality(
-  profile: { photoUrls?: unknown; prompts?: unknown; bio?: unknown } | null,
-  action: string
+  profile: ProfileData | null,
+  action: string,
+  minimum: "swipe" | "message" = "swipe"
 ) {
-  const photos = Array.isArray(profile?.photoUrls)
-    ? (profile?.photoUrls as unknown[])
-        .map((p) => (typeof p === "string" ? p.trim() : ""))
-        .filter((p) => p.length > 0)
-    : [];
-  const prompts = Array.isArray(profile?.prompts)
-    ? (profile?.prompts as unknown[])
-        .map((p) => (typeof p === "string" ? p.trim() : ""))
-        .filter((p) => p.length > 0)
-    : [];
-  const bio =
-    typeof profile?.bio === "string" ? (profile?.bio as string).trim() : "";
+  const completeness = evaluateProfileCompleteness(profile);
+  const meetsMinimum =
+    minimum === "message"
+      ? completeness.meetsMessagingMinimum && completeness.meetsRequiredFields
+      : completeness.meetsSwipeMinimum && completeness.meetsRequiredFields;
 
-  const missing: string[] = [];
-  if (photos.length < PROFILE_MIN_PHOTOS) {
-    missing.push(`Add at least ${PROFILE_MIN_PHOTOS} photo(s).`);
-  }
-  if (bio.length < PROFILE_MIN_BIO_LENGTH) {
-    missing.push(
-      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`
-    );
-  }
-  if (prompts.length < PROFILE_MIN_PROMPTS) {
-    missing.push(`Answer at least ${PROFILE_MIN_PROMPTS} prompts.`);
-  }
-
-  if (missing.length > 0) {
+  if (!meetsMinimum) {
+    const missing =
+      completeness.requiredMissing.length > 0
+        ? completeness.requiredMissing
+        : completeness.missing;
+    const percent = Math.round(completeness.score * 100);
+    const summary = missing.slice(0, 3).join(" ");
     throw new functions.https.HttpsError(
       "failed-precondition",
-      `Complete your profile before ${action}: ${missing.join(" ")}`
+      `Complete your profile before ${action} (currently ${percent}%): ${summary}`
     );
   }
 }
@@ -306,6 +448,28 @@ async function sendNotification(message: admin.messaging.MulticastMessage) {
   if (!message.tokens || message.tokens.length === 0) return;
   await admin.messaging().sendEachForMulticast(message);
 }
+
+export const validateProfileCompleteness = callable<ValidateProfileRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "check profile completeness");
+    const user = await getUser(uid);
+    const minimum = data?.minimum === "message" ? "message" : "swipe";
+    const completeness = evaluateProfileCompleteness(
+      (user.profile as ProfileData | null) ?? null
+    );
+    const meetsMinimum =
+      minimum === "message"
+        ? completeness.meetsMessagingMinimum && completeness.meetsRequiredFields
+        : completeness.meetsSwipeMinimum && completeness.meetsRequiredFields;
+
+    return {
+      ...completeness,
+      minimum,
+      meetsMinimum,
+      threshold: PROFILE_COMPLETENESS_THRESHOLD,
+    };
+  }
+);
 
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
@@ -717,7 +881,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
 
   // Ensure current user has a profile
   const me = await getUser(uid);
-  ensureProfileQuality(me.profile as any, "swiping");
+  ensureProfileQuality(me.profile as ProfileData | null, "swiping", "swipe");
 
   // 1. Write like record
   const likeRef = db.collection("likes").doc();
@@ -818,7 +982,7 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   await ensureNotBlocked(uid, targetUserId);
 
   const me = await getUser(uid);
-  ensureProfileQuality(me.profile as any, "swiping");
+  ensureProfileQuality(me.profile as ProfileData | null, "swiping", "swipe");
 
   await bigquery
     .dataset(BQ_DATASET)
@@ -853,7 +1017,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     await ensureNotBlocked(uid, targetUserId);
 
     const me = await getUser(uid);
-    ensureProfileQuality(me.profile as any, "sending requests");
+    ensureProfileQuality(me.profile as ProfileData | null, "sending requests", "message");
 
     // Find or create a "pending match-like" doc for this pair
     const pairId =
@@ -1113,6 +1277,8 @@ export const __test__helpers = {
   requireAuth,
   requireString,
   optionalString,
+  evaluateProfileCompleteness,
+  ensureProfileQuality,
 };
 
 // Callable function to generate an Agora token for authenticated users

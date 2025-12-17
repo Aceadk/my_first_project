@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
@@ -8,6 +9,7 @@ import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
 import '../../data/services/prematch_service.dart';
+import '../../data/services/profile_validation_service.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/result.dart';
 import '../../core/router.dart';
@@ -22,14 +24,29 @@ import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
 import '../widgets/async_state_scaffold.dart';
 
-class DeckScreen extends StatelessWidget {
-  const DeckScreen({super.key, this.preMatchService});
+class DeckScreen extends StatefulWidget {
+  const DeckScreen({super.key, this.preMatchService, this.validationService});
 
   final PreMatchService? preMatchService;
+  final ProfileValidationService? validationService;
+
+  @override
+  State<DeckScreen> createState() => _DeckScreenState();
+}
+
+class _DeckScreenState extends State<DeckScreen> {
+  RemoteProfileCompleteness? _backendCompleteness;
+  bool _checkingCompleteness = false;
+  String? _completenessError;
+  String? _lastProfileSignature;
+  bool _backendBlocked = false;
+
+  ProfileValidationService get _validationService =>
+      widget.validationService ?? ProfileValidationService();
 
   @override
   Widget build(BuildContext context) {
-    final preMatchService = this.preMatchService;
+    final preMatchService = widget.preMatchService;
     final userId = context.select<AuthBloc, String?>(
       (bloc) => bloc.state.user?.id,
     );
@@ -50,6 +67,8 @@ class DeckScreen extends StatelessWidget {
           (b) => b.state.profile ?? b.state.user?.profile,
         );
         final completeness = evaluateProfileCompleteness(profile);
+        _maybeRefreshBackendCompleteness(profile);
+
         final locationLabel = _locationLabel(profile);
         final radiusKm = profile?.preferences.maxDistanceKm;
         final isPlus = context.select<SubscriptionBloc, bool>(
@@ -64,6 +83,13 @@ class DeckScreen extends StatelessWidget {
 
         final currentProfile =
             isEmptyDeck ? null : state.deck[state.currentIndex];
+
+        final backendSwipeReady =
+            _backendCompleteness?.allowsSwipe ??
+                (_backendBlocked ? false : _completenessError != null);
+        final backendMessageReady =
+            _backendCompleteness?.allowsMessaging ??
+                (_backendBlocked ? false : _completenessError != null);
 
         return AsyncStateScaffold(
           appBar: _buildAppBar(context, userId),
@@ -99,6 +125,28 @@ class DeckScreen extends StatelessWidget {
                       retryInSeconds: retryInSeconds,
                       completeness: completeness,
                     ),
+                    if (_checkingCompleteness)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Checking profile with server...',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                      ),
+                    if (_completenessError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          _completenessError!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.orange),
+                        ),
+                      ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: PopupMenuButton<_DeckSafetyAction>(
@@ -136,14 +184,31 @@ class DeckScreen extends StatelessWidget {
                         DeckActionButton(
                           icon: Icons.clear,
                           color: Colors.grey.shade300,
-                          onTap: () {
+                          onTap: () async {
                             if (userId == null) return;
-                            if (!completeness.meetsSwipeMinimum) {
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            if (!_canSwipe(completeness, backendSwipeReady)) {
                               _showProfileIncompleteDialog(
-                                  context, completeness);
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'swipe',
+                              );
                               return;
                             }
-                            context.read<DiscoveryBloc>().add(
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'swipe',
+                              local: completeness,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'swipe',
+                              completeness: completeness,
+                            );
+                            if (!allowed) return;
+                            discoveryBloc.add(
                                   DiscoverySwipedLeft(
                                     userId: userId,
                                     targetUserId: currentProfile.id,
@@ -156,11 +221,30 @@ class DeckScreen extends StatelessWidget {
                           color: Colors.blueAccent,
                           onTap: () async {
                             if (userId == null) return;
-                            if (!completeness.meetsMessagingMinimum) {
+                            if (!_canMessage(
+                              completeness,
+                              backendMessageReady,
+                            )) {
                               _showProfileIncompleteDialog(
-                                  context, completeness);
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'message',
+                              );
                               return;
                             }
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'message',
+                              local: completeness,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'message',
+                              completeness: completeness,
+                            );
+                            if (!allowed) return;
                             await _showPreMatchDialog(
                               context: context,
                               preMatchService:
@@ -172,14 +256,31 @@ class DeckScreen extends StatelessWidget {
                         DeckActionButton(
                           icon: Icons.favorite,
                           color: Colors.pinkAccent,
-                          onTap: () {
+                          onTap: () async {
                             if (userId == null) return;
-                            if (!completeness.meetsSwipeMinimum) {
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            if (!_canSwipe(completeness, backendSwipeReady)) {
                               _showProfileIncompleteDialog(
-                                  context, completeness);
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'swipe',
+                              );
                               return;
                             }
-                            context.read<DiscoveryBloc>().add(
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'swipe',
+                              local: completeness,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'swipe',
+                              completeness: completeness,
+                            );
+                            if (!allowed) return;
+                            discoveryBloc.add(
                                   DiscoverySwipedRight(
                                     userId: userId,
                                     targetUserId: currentProfile.id,
@@ -207,6 +308,181 @@ class DeckScreen extends StatelessWidget {
     if (state.deck.isNotEmpty) return;
     if (state.status == DeckStatus.empty) return;
     context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
+  }
+
+  void _maybeRefreshBackendCompleteness(Profile? profile) {
+    final signature = _profileSignature(profile);
+    if (_lastProfileSignature == signature) return;
+    _lastProfileSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (profile == null) {
+        setState(() {
+          _backendCompleteness = null;
+          _completenessError = null;
+          _backendBlocked = false;
+        });
+        return;
+      }
+      _refreshBackendCompleteness();
+    });
+  }
+
+  String _profileSignature(Profile? profile) {
+    if (profile == null) return 'none';
+    return [
+      profile.id,
+      profile.photoUrls.length,
+      profile.prompts.length,
+      profile.bio.hashCode,
+      profile.interests.length,
+      profile.isVerified,
+    ].join('|');
+  }
+
+  Future<void> _refreshBackendCompleteness({String minimum = 'message'}) async {
+    setState(() {
+      _checkingCompleteness = true;
+      _completenessError = null;
+    });
+    try {
+      final result = await _validationService.validate(minimum: minimum);
+      if (!mounted) return;
+      setState(() {
+        _backendCompleteness = result;
+        _completenessError = null;
+        _backendBlocked = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _backendCompleteness = null;
+        _completenessError = _friendlyError(e);
+        _backendBlocked =
+            e is FirebaseFunctionsException && e.code == 'failed-precondition';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _checkingCompleteness = false;
+        });
+      }
+    }
+  }
+
+  Future<_BackendCheckOutcome> _evaluateBackendAllowance({
+    required String minimum,
+    required ProfileCompletenessSummary local,
+  }) async {
+    if ((minimum == 'swipe' && !_canSwipe(local, true)) ||
+        (minimum == 'message' && !_canMessage(local, true))) {
+      return const _BackendCheckOutcome(
+        allowed: false,
+        blocked: true,
+      );
+    }
+
+    if (_backendCompleteness == null && !_checkingCompleteness) {
+      await _refreshBackendCompleteness(minimum: minimum);
+    }
+
+    final backend = _backendCompleteness;
+    if (backend == null) {
+      if (_backendBlocked) {
+        return _BackendCheckOutcome(
+          allowed: false,
+          blocked: true,
+          message: _completenessError,
+        );
+      }
+      if (_completenessError != null) {
+        return const _BackendCheckOutcome(
+          allowed: true,
+          message:
+              'Could not verify profile completeness with the server. Using local checks.',
+        );
+      }
+      if (_checkingCompleteness) {
+        return const _BackendCheckOutcome(
+          allowed: false,
+          message:
+              'Checking your profile with the server. Try again in a moment.',
+        );
+      }
+      return const _BackendCheckOutcome(allowed: false);
+    }
+
+    final allowed =
+        minimum == 'message' ? backend.allowsMessaging : backend.allowsSwipe;
+    return _BackendCheckOutcome(
+      allowed: allowed,
+      remote: backend,
+      blocked: !allowed,
+    );
+  }
+
+  bool _handleBackendOutcome(
+    BuildContext context,
+    _BackendCheckOutcome outcome, {
+    required String minimum,
+    required ProfileCompletenessSummary completeness,
+  }) {
+    if (!outcome.allowed) {
+      if (outcome.blocked) {
+        _showProfileIncompleteDialog(
+          context,
+          completeness,
+          remote: outcome.remote ?? _backendCompleteness,
+          minimum: minimum,
+        );
+      }
+      if (outcome.message != null) {
+        showErrorSnackBar(context, outcome.message!);
+      }
+      return false;
+    }
+    if (outcome.message != null) {
+      showErrorSnackBar(context, outcome.message!);
+    }
+    return true;
+  }
+
+  List<String> _missingMessages(
+    ProfileCompletenessSummary local,
+    RemoteProfileCompleteness? remote, {
+    required String minimum,
+  }) {
+    final remoteMissing = minimum == 'message'
+        ? remote?.missingForMessaging
+        : remote?.missingForSwipe;
+    if (remoteMissing != null && remoteMissing.isNotEmpty) {
+      return remoteMissing;
+    }
+    if (local.requiredMissing.isNotEmpty) return local.requiredMissing;
+    return local.missing;
+  }
+
+  bool _canSwipe(
+    ProfileCompletenessSummary local,
+    bool backendAllowed,
+  ) {
+    return local.meetsSwipeMinimum && local.meetsRequiredFields && backendAllowed;
+  }
+
+  bool _canMessage(
+    ProfileCompletenessSummary local,
+    bool backendAllowed,
+  ) {
+    return local.meetsMessagingMinimum &&
+        local.meetsRequiredFields &&
+        backendAllowed;
+  }
+
+  String _friendlyError(Object error) {
+    if (error is FirebaseFunctionsException && error.message != null) {
+      return error.message!;
+    }
+    return 'Could not verify profile completeness. Check your connection.';
   }
 
   Widget _buildErrorState(
@@ -374,9 +650,13 @@ class DeckScreen extends StatelessWidget {
   void _showProfileIncompleteDialog(
     BuildContext context,
     ProfileCompletenessSummary completeness,
+    {RemoteProfileCompleteness? remote,
+    String minimum = 'swipe',}
   ) {
-    final percent = (completeness.score * 100).round();
-    final missing = completeness.missing.take(3).join('\n• ');
+    final percent = ((remote?.score ?? completeness.score) * 100).round();
+    final missingList =
+        _missingMessages(completeness, remote, minimum: minimum);
+    final missing = missingList.take(3).join('\n• ');
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -817,6 +1097,20 @@ class DeckScreen extends StatelessWidget {
     }
     return null;
   }
+}
+
+class _BackendCheckOutcome {
+  const _BackendCheckOutcome({
+    required this.allowed,
+    this.remote,
+    this.message,
+    this.blocked = false,
+  });
+
+  final bool allowed;
+  final RemoteProfileCompleteness? remote;
+  final String? message;
+  final bool blocked;
 }
 
 enum _DeckSafetyAction { report, block, guidelines }
