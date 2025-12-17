@@ -226,6 +226,32 @@ class _ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
+                  if (_isNetworkError(state.errorMessage))
+                    Container(
+                      width: double.infinity,
+                      color: Colors.red.withAlpha((0.08 * 255).round()),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.wifi_off, color: Colors.red),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Internet connection error. Messages may not send.',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => _refreshChat(context),
+                            icon: const Icon(Icons.refresh, color: Colors.red),
+                            label: const Text(
+                              'Refresh',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (state.isUnmatched)
                     Container(
                       width: double.infinity,
@@ -570,6 +596,24 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void _refreshChat(BuildContext context) {
+    context.read<ChatBloc>().add(
+          ChatOpened(
+            widget.args.matchId,
+            widget.args.currentUserId,
+            widget.args.otherUserId,
+          ),
+        );
+  }
+
+  bool _isNetworkError(String? message) {
+    if (message == null) return false;
+    final lower = message.toLowerCase();
+    return lower.contains('internet connection')
+        || lower.contains('network')
+        || lower.contains('wifi');
   }
 
   void _toggleReaction(Message message, String emoji) {

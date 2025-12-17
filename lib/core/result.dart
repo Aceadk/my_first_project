@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'app_logger.dart';
 import 'errors.dart';
 
@@ -22,7 +25,11 @@ class Result<T> {
       AppLogger.logError(logLabel ?? 'Operation failed', error, stackTrace);
       String? message = fallbackError ?? 'Something went wrong. Please try again.';
       String? code;
-      if (error is RepositoryException) {
+      if (error is SocketException || error is TimeoutException) {
+        message =
+            'Internet connection error. Check Wi-Fi or data, then refresh.';
+        code = 'network_unavailable';
+      } else if (error is RepositoryException) {
         message = error.message;
         code = error.code;
       }

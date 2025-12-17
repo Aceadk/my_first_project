@@ -142,7 +142,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         type: event.type,
       ),
       logLabel: 'ChatRepository.sendMessage',
-      fallbackError: 'Could not send message. Please try again.',
+      fallbackError: 'Message failed to send. Check your connection and retry.',
     );
     await Result.guard(
       () => chatRepository.setTyping(
@@ -205,7 +205,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         type: event.type,
       ),
       logLabel: 'ChatRepository.uploadMedia',
-      fallbackError: 'Could not send media. Please try again.',
+      fallbackError:
+          'Media message failed to send. Check your connection and try again.',
     );
     final url = uploadResult.data;
     if (!uploadResult.isSuccess || url == null) {
@@ -226,7 +227,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         type: event.type,
       ),
       logLabel: 'ChatRepository.sendMessage',
-      fallbackError: 'Could not send media. Please try again.',
+      fallbackError:
+          'Media message failed to send. Check your connection and try again.',
     );
     emit(state.copyWith(
       sendStatus: SendStatus.idle,
