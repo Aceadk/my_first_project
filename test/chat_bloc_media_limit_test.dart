@@ -70,6 +70,14 @@ class _FakeChatRepository implements ChatRepository {
   }) async {}
 
   @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {}
+
+  @override
   Future<void> sendMessage({
     required String matchId,
     required String fromUserId,

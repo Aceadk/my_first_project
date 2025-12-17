@@ -169,6 +169,29 @@ class SafetyCubit extends Cubit<SafetyState> {
     }
   }
 
+  Future<void> submitAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {
+    final result = await Result.guard(
+      () => _chatRepository.submitSafetyAppeal(
+        userId: userId,
+        reason: reason,
+        targetType: targetType,
+        targetId: targetId,
+      ),
+      logLabel: 'SafetyCubit.submitAppeal',
+      fallbackError: 'Could not submit appeal. Please try again.',
+    );
+    if (!result.isSuccess) {
+      emit(state.copyWith(errorMessage: result.errorMessage));
+    } else {
+      emit(state.copyWith(errorMessage: null));
+    }
+  }
+
   Future<void> _persist(SafetyState next) async {
     emit(next);
     await _preferences.setStringList(

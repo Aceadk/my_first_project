@@ -72,9 +72,16 @@ interface BlockRequest {
   blockedId?: string;
 }
 
+interface AppealRequest {
+  reason?: string;
+  targetType?: string;
+  targetId?: string;
+}
+
 const PROFILE_MIN_PHOTOS = 1;
 const PROFILE_MIN_PROMPTS = 2;
 const PROFILE_MIN_BIO_LENGTH = 40;
+const BANNED_TERMS = ["kill", "terror", "hate", "shit", "fuck", "bitch", "spam"];
 
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
@@ -132,6 +139,32 @@ function requireString(value: unknown, field: string): string {
 function optionalString(value: unknown): string | undefined {
   const str = typeof value === "string" ? value.trim() : "";
   return str.length > 0 ? str : undefined;
+}
+
+type ModerationDecision =
+  | { status: "clean"; action: "allow"; reason?: string; severity: "low" }
+  | {
+      status: "flagged" | "held" | "pending_scan";
+      action: "hold" | "scan";
+      reason?: string;
+      severity: "medium" | "high";
+    };
+
+function moderateContent(content: string, type: string): ModerationDecision {
+  if (type !== "text") {
+    return { status: "pending_scan", action: "scan", severity: "medium" };
+  }
+  const lower = content.toLowerCase();
+  const hit = BANNED_TERMS.find((term) => lower.includes(term));
+  if (hit) {
+    return {
+      status: "held",
+      action: "hold",
+      reason: `Prohibited content (${hit})`,
+      severity: "high",
+    };
+  }
+  return { status: "clean", action: "allow", severity: "low" };
 }
 
 function ensureProfileQuality(
@@ -241,6 +274,23 @@ async function ensureUserInMatch(matchId: string, uid: string) {
   return { matchData, otherUserId };
 }
 
+async function flagUserForReview(userId: string, reason: string) {
+  await db
+    .collection("users")
+    .doc(userId)
+    .set(
+      {
+        safetyFlags: {
+          status: "needs_review",
+          lastReason: reason,
+          lastFlaggedAt: admin.firestore.FieldValue.serverTimestamp(),
+          autoFlags: admin.firestore.FieldValue.increment(1),
+        },
+      },
+      { merge: true }
+    );
+}
+
 async function getFcmTokens(userId: string): Promise<string[]> {
   const snap = await db
     .collection("users")
@@ -287,6 +337,40 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
+  const sevenDaysAgo = admin.firestore.Timestamp.fromDate(
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  );
+  const openReportsSnap = await db
+    .collection("reports")
+    .where("reportedId", "==", reportedId)
+    .where("createdAt", ">=", sevenDaysAgo)
+    .get();
+
+  await db
+    .collection("users")
+    .doc(reportedId)
+    .set(
+      {
+        safetyFlags: {
+          openReports: openReportsSnap.size,
+          lastReportAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastReason: reason,
+          status: openReportsSnap.size >= 3 ? "needs_review" : "watch",
+        },
+      },
+      { merge: true }
+    );
+
+  if (openReportsSnap.size >= 5) {
+    await db.collection("automatedFlags").add({
+      userId: reportedId,
+      reason: "multiple_reports",
+      reportCount: openReportsSnap.size,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: "open",
+    });
+  }
+
   return { ok: true };
 });
 
@@ -332,6 +416,38 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
 
   const docId = `${blockerId}_${blockedId}`;
   await db.collection("blocks").doc(docId).delete();
+  return { ok: true };
+});
+
+export const appealSafetyAction = callable<AppealRequest>(async (data, context) => {
+  const uid = requireAuth(context, "submit an appeal");
+  const reason = requireString(data?.reason, "reason");
+  const targetType = optionalString(data?.targetType) ?? "account";
+  const targetId = optionalString(data?.targetId) ?? null;
+
+  await db.collection("appeals").add({
+    userId: uid,
+    reason,
+    targetType,
+    targetId,
+    status: "open",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  await db
+    .collection("users")
+    .doc(uid)
+    .set(
+      {
+        safetyFlags: {
+          appealOpen: true,
+          lastAppealAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastReason: reason,
+        },
+      },
+      { merge: true }
+    );
+
   return { ok: true };
 });
 
@@ -483,7 +599,29 @@ export const onMessageCreated = functions.firestore
     const data = snap.data();
     const toUserId = data?.toUserId as string | undefined;
     const fromUserId = data?.fromUserId as string | undefined;
+    const type = (data?.type as string | undefined) ?? "text";
+    const content = typeof data?.content === "string" ? data.content : "";
     if (!toUserId || !fromUserId) return;
+
+    const decision = moderateContent(content, type);
+    await snap.ref.set(
+      {
+        moderation: {
+          status: decision.status,
+          action: decision.action,
+          reason: decision.reason ?? null,
+          severity: decision.severity,
+          flagged: decision.action !== "allow",
+          reviewedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+      },
+      { merge: true }
+    );
+
+    if (decision.action === "hold") {
+      await flagUserForReview(fromUserId, "message_moderation");
+      return;
+    }
 
     const tokens = await getFcmTokens(toUserId);
     if (tokens.length === 0) return;

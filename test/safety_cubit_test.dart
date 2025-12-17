@@ -232,4 +232,14 @@ class _StubChatRepository implements ChatRepository {
   }) async {
     _maybeThrow();
   }
+
+  @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {
+    _maybeThrow();
+  }
 }

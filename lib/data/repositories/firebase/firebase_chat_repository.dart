@@ -32,6 +32,11 @@ class FirebaseChatRepository implements ChatRepository {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
+        final moderation = (data['moderation'] as Map<String, dynamic>?) ?? {};
+        final moderationStatus = moderation['status'] as String?;
+        final moderationReason = moderation['reason'] as String?;
+        final moderationAction = moderation['action'] as String?;
+        final isFlagged = moderation['flagged'] == true;
         return Message(
           id: doc.id,
           matchId: matchId,
@@ -42,6 +47,10 @@ class FirebaseChatRepository implements ChatRepository {
           sentAt: (data['sentAt'] as Timestamp).toDate(),
           isRead: data['isRead'] ?? false,
           isDeletedForSender: data['isDeletedForSender'] ?? false,
+          moderationStatus: moderationStatus,
+          moderationReason: moderationReason,
+          moderationAction: moderationAction,
+          isFlagged: isFlagged,
           reactions: _reactionsFromData(data['reactions']),
         );
       }).toList();
@@ -57,6 +66,7 @@ class FirebaseChatRepository implements ChatRepository {
     required MessageType type,
   }) async {
     final msgRef = _matches.doc(matchId).collection('messages').doc();
+    final moderation = _initialModeration(content, type);
     await msgRef.set({
       'fromUserId': fromUserId,
       'toUserId': toUserId,
@@ -65,6 +75,7 @@ class FirebaseChatRepository implements ChatRepository {
       'sentAt': FieldValue.serverTimestamp(),
       'isRead': false,
       'isDeletedForSender': false,
+      if (moderation != null) 'moderation': moderation,
     });
   }
 
@@ -278,6 +289,22 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {
+    final callable = _functions.httpsCallable('appealSafetyAction');
+    await callable.call(<String, dynamic>{
+      'reason': reason,
+      'targetType': targetType,
+      'targetId': targetId,
+      'userId': userId,
+    });
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,
@@ -378,5 +405,27 @@ class FirebaseChatRepository implements ChatRepository {
       default:
         return MatchStatus.pending;
     }
+  }
+
+  Map<String, dynamic>? _initialModeration(String content, MessageType type) {
+    if (type == MessageType.text) {
+      final banned = ['damn', 'hell', 'shit', 'fuck', 'bitch'];
+      final lower = content.toLowerCase();
+      if (banned.any((word) => lower.contains(word))) {
+        return {
+          'status': 'flagged',
+          'reason': 'Prohibited language detected',
+          'action': 'hold',
+          'flagged': true,
+        };
+      }
+      return null;
+    }
+    // For media, mark as pending scan so the client can soft-block display until verified.
+    return {
+      'status': 'pending_scan',
+      'action': 'scan',
+      'flagged': false,
+    };
   }
 }

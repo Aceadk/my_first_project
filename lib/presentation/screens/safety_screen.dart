@@ -88,6 +88,18 @@ class SafetyScreen extends StatelessWidget {
                         icon: const Icon(Icons.policy),
                         label: const Text('Read community guidelines'),
                       ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: currentUserId == null
+                            ? null
+                            : () => _showAppealDialog(
+                                  context,
+                                  cubit,
+                                  currentUserId,
+                                ),
+                        icon: const Icon(Icons.gavel_outlined),
+                        label: const Text('Submit an appeal'),
+                      ),
                     ],
                   ),
                 ),
@@ -114,6 +126,54 @@ class SafetyScreen extends StatelessWidget {
       block: false,
       currentUserId: currentUserId,
     );
+  }
+
+  Future<void> _showAppealDialog(
+    BuildContext context,
+    SafetyCubit cubit,
+    String currentUserId,
+  ) async {
+    final controller = TextEditingController();
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Appeal a safety action'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration:
+              const InputDecoration(hintText: 'Share why you are appealing'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+
+    if (!context.mounted) return;
+    if (submitted == true) {
+      final reason = controller.text.trim();
+      if (reason.isEmpty) {
+        showErrorSnackBar(context, 'Please add details for your appeal.');
+        return;
+      }
+      final messenger = ScaffoldMessenger.of(context);
+      await cubit.submitAppeal(
+        userId: currentUserId,
+        reason: reason,
+        targetType: 'account',
+      );
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Appeal submitted')),
+      );
+    }
   }
 }
 

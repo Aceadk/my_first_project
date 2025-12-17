@@ -13,6 +13,10 @@ class Message extends Equatable {
   final bool isRead;
   final bool isDeletedForSender;
   final Map<String, String> reactions; // userId -> emoji
+  final String? moderationStatus;
+  final String? moderationReason;
+  final String? moderationAction;
+  final bool isFlagged;
 
   const Message({
     required this.id,
@@ -24,6 +28,10 @@ class Message extends Equatable {
     required this.sentAt,
     required this.isRead,
     required this.isDeletedForSender,
+    this.moderationStatus,
+    this.moderationReason,
+    this.moderationAction,
+    this.isFlagged = false,
     this.reactions = const {},
   });
 
@@ -31,6 +39,10 @@ class Message extends Equatable {
     bool? isRead,
     bool? isDeletedForSender,
     Map<String, String>? reactions,
+    String? moderationStatus,
+    String? moderationReason,
+    String? moderationAction,
+    bool? isFlagged,
   }) {
     return Message(
       id: id,
@@ -42,11 +54,30 @@ class Message extends Equatable {
       sentAt: sentAt,
       isRead: isRead ?? this.isRead,
       isDeletedForSender: isDeletedForSender ?? this.isDeletedForSender,
+      moderationStatus: moderationStatus ?? this.moderationStatus,
+      moderationReason: moderationReason ?? this.moderationReason,
+      moderationAction: moderationAction ?? this.moderationAction,
+      isFlagged: isFlagged ?? this.isFlagged,
       reactions: reactions ?? this.reactions,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, matchId, fromUserId, toUserId, content, type, sentAt, isRead, isDeletedForSender, reactions];
+      [
+        id,
+        matchId,
+        fromUserId,
+        toUserId,
+        content,
+        type,
+        sentAt,
+        isRead,
+        isDeletedForSender,
+        reactions,
+        moderationStatus,
+        moderationReason,
+        moderationAction,
+        isFlagged,
+      ];
 }

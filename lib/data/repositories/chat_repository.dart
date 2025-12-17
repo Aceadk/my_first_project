@@ -54,6 +54,13 @@ abstract class ChatRepository {
     required String userId,
   });
 
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  });
+
   Stream<Set<String>> watchTyping(String matchId);
 
   Future<void> setTyping({

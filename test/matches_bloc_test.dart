@@ -165,4 +165,14 @@ class _ThrowingChatRepository implements ChatRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) {
+    throw UnimplementedError();
+  }
 }

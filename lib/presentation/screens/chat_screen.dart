@@ -403,9 +403,15 @@ class _ChatScreenState extends State<ChatScreen> {
                         final msg = messages[messages.length - 1 - index];
                         final isMe =
                             msg.fromUserId == widget.args.currentUserId;
+                        final isHeld = msg.moderationAction == 'hold' ||
+                            msg.moderationStatus == 'held';
+                        final pendingScan = msg.moderationStatus == 'pending_scan';
+                        final isFlagged = msg.isFlagged || isHeld;
                         final text = msg.isDeletedForSender && isMe
                             ? '(You unsent this message)'
-                            : msg.content;
+                            : isHeld
+                                ? 'Message held for safety review'
+                                : msg.content;
                         final reactionCounts = _reactionCounts(msg);
                         final alignment =
                             isMe ? Alignment.centerRight : Alignment.centerLeft;
@@ -433,8 +439,47 @@ class _ChatScreenState extends State<ChatScreen> {
                                         : Colors.grey.shade800,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  child: _buildMessageContent(msg, text),
+                                  child: _buildMessageContent(
+                                    msg,
+                                    text,
+                                    isHeld: isHeld,
+                                    pendingScan: pendingScan,
+                                  ),
                                 ),
+                                if (isFlagged || pendingScan)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 12,
+                                      right: 12,
+                                      bottom: 2,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isHeld ? Icons.shield : Icons.shield_outlined,
+                                          size: 14,
+                                          color: isHeld ? Colors.redAccent : Colors.amber,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            _moderationLabel(
+                                              msg,
+                                              isHeld: isHeld,
+                                              pendingScan: pendingScan,
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isHeld
+                                                  ? Colors.redAccent
+                                                  : Colors.amber.shade200,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 if (reactionCounts.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(
@@ -773,9 +818,32 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageContent(Message msg, String textFallback) {
+  Widget _buildMessageContent(
+    Message msg,
+    String textFallback, {
+    required bool isHeld,
+    required bool pendingScan,
+  }) {
+    if (isHeld) {
+      return const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.shield, size: 16, color: Colors.white),
+          SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              'Message held for safety review',
+              style: TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      );
+    }
     switch (msg.type) {
       case MessageType.image:
+        if (pendingScan) {
+          return const Text('Image pending safety scan…');
+        }
         return GestureDetector(
           onTap: () => _launchUrl(msg.content),
           child: Image.network(
@@ -788,13 +856,13 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       case MessageType.video:
         return _AttachmentTile(
-          label: 'Video',
+          label: pendingScan ? 'Video (scan pending)' : 'Video',
           url: msg.content,
           icon: Icons.videocam,
         );
       case MessageType.voice:
         return _AttachmentTile(
-          label: 'Voice message',
+          label: pendingScan ? 'Voice (scan pending)' : 'Voice message',
           url: msg.content,
           icon: Icons.mic,
         );
@@ -809,6 +877,19 @@ class _ChatScreenState extends State<ChatScreen> {
       counts[emoji] = (counts[emoji] ?? 0) + 1;
     }
     return counts;
+  }
+
+  String _moderationLabel(
+    Message msg, {
+    required bool isHeld,
+    required bool pendingScan,
+  }) {
+    if (isHeld) {
+      return msg.moderationReason ?? 'Message held for review';
+    }
+    if (pendingScan) return 'Pending safety scan';
+    if (msg.isFlagged) return msg.moderationReason ?? 'Flagged for review';
+    return 'Safety check';
   }
 
   void _toggleMedia(ChatState state) {

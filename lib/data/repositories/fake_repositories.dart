@@ -810,6 +810,16 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {
+    // Record appeal for tests; no-op for now.
+  }
+
+  @override
   Future<List<CrushMatch>> fetchUserMatches(String userId) async {
     return discoveryRepo.fetchMatches(userId);
   }

@@ -318,6 +318,14 @@ class _NoopChatRepository implements ChatRepository {
   }) async {}
 
   @override
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  }) async {}
+
+  @override
   Stream<Set<String>> watchTyping(String matchId) => const Stream.empty();
 
   @override
