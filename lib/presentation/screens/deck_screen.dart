@@ -19,6 +19,7 @@ import '../../data/models/subscription.dart';
 import '../widgets/swipe_card.dart';
 import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
+import '../widgets/async_state_scaffold.dart';
 import 'deck_buttons.dart';
 import 'deck_buttons.dart';
 
@@ -62,137 +63,136 @@ class DeckScreen extends StatelessWidget {
             state.deck.isEmpty ||
             state.currentIndex >= state.deck.length;
 
-        if (isLoading && state.deck.isEmpty) {
-          return Scaffold(
-            appBar: _buildAppBar(context, userId),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+        final currentProfile =
+            isEmptyDeck ? null : state.deck[state.currentIndex];
 
-        if (status == DeckStatus.error && state.deck.isEmpty) {
-          return _buildErrorState(
-            context,
-            userId,
-            retryInSeconds,
-            isPlus: isPlus,
-            locationLabel: locationLabel,
-            radiusKm: radiusKm,
-          );
-        }
-
-        if (isEmptyDeck) {
-          return Scaffold(
-            appBar: _buildAppBar(context, userId),
-            body: _buildOutOfPeople(
-              context,
-              userId,
-              isPlus: isPlus,
-              locationLabel: locationLabel,
-              radiusKm: radiusKm,
-            ),
-          );
-        }
-
-        final currentProfile = state.deck[state.currentIndex];
-
-        return Scaffold(
+        return AsyncStateScaffold(
           appBar: _buildAppBar(context, userId),
-          body: Column(
-            children: [
-              _buildStatusBar(
-                isLoading: isLoading,
-                retryInSeconds: retryInSeconds,
-                completeness: completeness,
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: PopupMenuButton<_DeckSafetyAction>(
-                  tooltip: 'Safety tools',
-                  onSelected: (action) => _handleSafetyAction(
-                    context,
-                    action,
-                    currentProfileId: currentProfile.id,
-                    currentProfileName: currentProfile.name,
-                    currentUserId: userId,
-                  ),
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: _DeckSafetyAction.report,
-                      child: Text('Report profile'),
+          isLoading: isLoading && state.deck.isEmpty,
+          errorMessage: status == DeckStatus.error ? state.errorMessage : null,
+          error: status == DeckStatus.error && state.deck.isEmpty
+              ? _buildErrorState(
+                  context,
+                  userId,
+                  retryInSeconds,
+                  isPlus: isPlus,
+                  locationLabel: locationLabel,
+                  radiusKm: radiusKm,
+                )
+              : null,
+          empty: isEmptyDeck
+              ? _buildOutOfPeople(
+                  context,
+                  userId,
+                  isPlus: isPlus,
+                  locationLabel: locationLabel,
+                  radiusKm: radiusKm,
+                )
+              : null,
+          showErrorSnackBar: true,
+          showBodyOnLoading: true,
+          body: currentProfile == null
+              ? const SizedBox.shrink()
+              : Column(
+                  children: [
+                    _buildStatusBar(
+                      isLoading: isLoading,
+                      retryInSeconds: retryInSeconds,
+                      completeness: completeness,
                     ),
-                    PopupMenuItem(
-                      value: _DeckSafetyAction.block,
-                      child: Text('Block & hide profile'),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuButton<_DeckSafetyAction>(
+                        tooltip: 'Safety tools',
+                        onSelected: (action) => _handleSafetyAction(
+                          context,
+                          action,
+                          currentProfileId: currentProfile.id,
+                          currentProfileName: currentProfile.name,
+                          currentUserId: userId,
+                        ),
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.report,
+                            child: Text('Report profile'),
+                          ),
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.block,
+                            child: Text('Block & hide profile'),
+                          ),
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.guidelines,
+                            child: Text('Community guidelines'),
+                          ),
+                        ],
+                      ),
                     ),
-                    PopupMenuItem(
-                      value: _DeckSafetyAction.guidelines,
-                      child: Text('Community guidelines'),
+                    Expanded(
+                      child: SwipeCard(profile: currentProfile),
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        DeckButton(
+                          icon: Icons.clear,
+                          color: Colors.grey.shade300,
+                          onTap: () {
+                            if (userId == null) return;
+                            if (!completeness.meetsSwipeMinimum) {
+                              _showProfileIncompleteDialog(
+                                  context, completeness);
+                              return;
+                            }
+                            context.read<DiscoveryBloc>().add(
+                                  DiscoverySwipedLeft(
+                                    userId: userId,
+                                    targetUserId: currentProfile.id,
+                                  ),
+                                );
+                          },
+                        ),
+                        DeckButton(
+                          icon: Icons.message,
+                          color: Colors.blueAccent,
+                          onTap: () async {
+                            if (userId == null) return;
+                            if (!completeness.meetsMessagingMinimum) {
+                              _showProfileIncompleteDialog(
+                                  context, completeness);
+                              return;
+                            }
+                            await _showPreMatchDialog(
+                              context: context,
+                              preMatchService:
+                                  preMatchService ?? PreMatchService(),
+                              targetUserId: currentProfile.id,
+                            );
+                          },
+                        ),
+                        DeckButton(
+                          icon: Icons.favorite,
+                          color: Colors.pinkAccent,
+                          onTap: () {
+                            if (userId == null) return;
+                            if (!completeness.meetsSwipeMinimum) {
+                              _showProfileIncompleteDialog(
+                                  context, completeness);
+                              return;
+                            }
+                            context.read<DiscoveryBloc>().add(
+                                  DiscoverySwipedRight(
+                                    userId: userId,
+                                    targetUserId: currentProfile.id,
+                                  ),
+                                );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
-              ),
-              Expanded(
-                child: SwipeCard(profile: currentProfile),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  DeckButton(
-                    icon: Icons.clear,
-                    color: Colors.grey.shade300,
-                    onTap: () {
-                      if (userId == null) return;
-                      if (!completeness.meetsSwipeMinimum) {
-                        _showProfileIncompleteDialog(context, completeness);
-                        return;
-                      }
-                      context.read<DiscoveryBloc>().add(
-                            DiscoverySwipedLeft(
-                              userId: userId,
-                              targetUserId: currentProfile.id,
-                            ),
-                          );
-                    },
-                  ),
-                  DeckButton(
-                    icon: Icons.message,
-                    color: Colors.blueAccent,
-                    onTap: () async {
-                      if (userId == null) return;
-                      if (!completeness.meetsMessagingMinimum) {
-                        _showProfileIncompleteDialog(context, completeness);
-                        return;
-                      }
-                      await _showPreMatchDialog(
-                        context: context,
-                        preMatchService: preMatchService ?? PreMatchService(),
-                        targetUserId: currentProfile.id,
-                      );
-                    },
-                  ),
-                  DeckButton(
-                    icon: Icons.favorite,
-                    color: Colors.pinkAccent,
-                    onTap: () {
-                      if (userId == null) return;
-                      if (!completeness.meetsSwipeMinimum) {
-                        _showProfileIncompleteDialog(context, completeness);
-                        return;
-                      }
-                      context.read<DiscoveryBloc>().add(
-                            DiscoverySwipedRight(
-                              userId: userId,
-                              targetUserId: currentProfile.id,
-                            ),
-                          );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
         );
       },
     );
