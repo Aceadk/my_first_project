@@ -794,9 +794,7 @@ class DeckScreen extends StatelessWidget {
 
   bool _containsProfanity(String text) {
     const banned = [
-      'damn',
-      'hell',
-      'shit',
+    
       'fuck',
       'bitch',
     ];

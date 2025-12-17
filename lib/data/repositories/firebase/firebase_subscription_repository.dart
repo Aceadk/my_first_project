@@ -25,6 +25,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   final FirebaseFirestore _firestore;
   final CheckoutService _checkoutService;
   final _controller = StreamController<SubscriptionPlan>.broadcast();
+  StreamSubscription<fb.User?>? _authSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _planSub;
 
   FirebaseSubscriptionRepository({
     fb.FirebaseAuth? auth,
@@ -33,23 +35,35 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
         _checkoutService = checkoutService ?? CheckoutService() {
-    _init();
+    _listenForAuthChanges();
   }
 
-  void _init() {
-    final user = _auth.currentUser;
-    if (user != null) {
-      _firestore.collection('users').doc(user.uid).snapshots().listen((doc) {
-        if (!doc.exists) return;
-        final data = doc.data()!;
-        final planStr = data['plan'] as String? ?? 'free';
-        final plan =
-            planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
-        _controller.add(plan);
-      });
-    } else {
+  void _listenForAuthChanges() {
+    // Emit current user immediately, then react to auth changes.
+    _handleUserChanged(_auth.currentUser);
+    _authSub = _auth.authStateChanges().listen(_handleUserChanged);
+  }
+
+  void _handleUserChanged(fb.User? user) {
+    _planSub?.cancel();
+    if (user == null) {
       _controller.add(SubscriptionPlan.free);
+      return;
     }
+
+    _planSub = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((doc) {
+      if (!doc.exists) {
+        _controller.add(SubscriptionPlan.free);
+        return;
+      }
+      final data = doc.data() ?? {};
+      final planStr = data['plan'] as String? ?? 'free';
+      _controller.add(_planFromString(planStr));
+    });
   }
 
   @override
@@ -62,7 +76,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     final doc = await _firestore.collection('users').doc(user.uid).get();
     if (!doc.exists) return SubscriptionPlan.free;
     final planStr = doc.data()!['plan'] as String? ?? 'free';
-    return planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    return _planFromString(planStr);
   }
 
   @override
@@ -76,6 +90,13 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       successUrl: BillingConfig.successUrl,
       cancelUrl: BillingConfig.cancelUrl,
     );
+  }
+
+  SubscriptionPlan _planFromString(String? value) {
+    if (value == null) return SubscriptionPlan.free;
+    return value.toLowerCase() == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
   }
 
   @override
