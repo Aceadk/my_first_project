@@ -198,7 +198,6 @@ class DeckScreen extends StatelessWidget {
     if (userId == null) return;
     if (state.isLoading) return;
     if (state.deck.isNotEmpty) return;
-    if (state.errorMessage != null) return;
     if (state.status == DeckStatus.empty) return;
     context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
   }
