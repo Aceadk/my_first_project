@@ -693,18 +693,45 @@ class DeckScreen extends StatelessWidget {
     required String targetUserId,
   }) async {
     final controller = TextEditingController();
+    String? inlineError;
+    var isSending = false;
 
     final content = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Send message request'),
-          content: TextField(
-            controller: controller,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'Say something nice…',
-            ),
+          content: StatefulBuilder(
+            builder: (ctx, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Say something nice…',
+                    ),
+                    onChanged: (_) {
+                      if (inlineError != null) {
+                        setState(() => inlineError = null);
+                      }
+                    },
+                  ),
+                  if (inlineError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      inlineError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  ],
+                  if (isSending) ...[
+                    const SizedBox(height: 8),
+                    const LinearProgressIndicator(minHeight: 2),
+                  ],
+                ],
+              );
+            },
           ),
           actions: [
             TextButton(
@@ -712,7 +739,21 @@ class DeckScreen extends StatelessWidget {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty || text.length < 4) {
+                  inlineError =
+                      'Write at least 4 characters to send a message request.';
+                } else if (text.length > 200) {
+                  inlineError = 'Keep it under 200 characters.';
+                } else if (_containsProfanity(text)) {
+                  inlineError = 'Please remove inappropriate language.';
+                } else {
+                  Navigator.pop(context, text);
+                  return;
+                }
+                (context as Element).markNeedsBuild();
+              },
               child: const Text('Send'),
             ),
           ],
@@ -749,6 +790,18 @@ class DeckScreen extends StatelessWidget {
         ),
       );
     }
+  }
+
+  bool _containsProfanity(String text) {
+    const banned = [
+      'damn',
+      'hell',
+      'shit',
+      'fuck',
+      'bitch',
+    ];
+    final lower = text.toLowerCase();
+    return banned.any((word) => lower.contains(word));
   }
 }
 
