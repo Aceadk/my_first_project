@@ -85,7 +85,7 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 ## What to focus on next
 - Verify backend enforcement: auth checks and ownership in callables (unsend, swipe, pre-match).
 - Harden security: auth checks and ownership in callables (unsend, swipe, pre-match).
-- Improve UX: error states, loading, empty decks, retry/backoff.
+- Improve UX: add skeletons/empty/error states with retries across deck/chat/settings; surface actionable errors and pull-to-retry when data fails.
 - Web polish: test callables for CORS; verify RTC/calls behavior on web.
 - Payments: confirm Stripe price IDs/URLs; test webhook end-to-end; handle deep links.
 - Tests: add integration tests (Functions with `firebase-functions-test`), widget tests for chat/swipe flows.

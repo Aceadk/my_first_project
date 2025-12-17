@@ -446,6 +446,36 @@ class SettingsScreen extends StatelessWidget {
                                 : 'Upgrade to Plus for unlimited likes, rewinds, and Passport.',
                             style: const TextStyle(color: Colors.grey),
                           ),
+                          if (subState.errorMessage != null &&
+                              subState.errorMessage!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withAlpha((0.12 * 255).round()),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline, color: Colors.orange),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      subState.errorMessage!,
+                                      style: const TextStyle(color: Colors.orange),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => context
+                                        .read<SubscriptionBloc>()
+                                        .add(SubscriptionRestoreRequested()),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (!isPlus) ...[
                             const SizedBox(height: 8),
                             const Row(

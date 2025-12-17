@@ -450,128 +450,136 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   Expanded(
-                    child: ListView.builder(
-                      reverse: true,
-                      padding: const EdgeInsets.all(12),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final msg = messages[messages.length - 1 - index];
-                        final isMe =
-                            msg.fromUserId == widget.args.currentUserId;
-                        final isHeld = msg.moderationAction == 'hold' ||
-                            msg.moderationStatus == 'held';
-                        final pendingScan = msg.moderationStatus == 'pending_scan';
-                        final isFlagged = msg.isFlagged || isHeld;
-                        final text = msg.isDeletedForSender && isMe
-                            ? '(You unsent this message)'
-                            : isHeld
-                                ? 'Message held for safety review'
-                                : msg.content;
-                        final reactionCounts = _reactionCounts(msg);
-                        final alignment =
-                            isMe ? Alignment.centerRight : Alignment.centerLeft;
-                        return Align(
-                          alignment: alignment,
-                          child: GestureDetector(
-                            onLongPress: () => _showMessageActions(
-                              context: context,
-                              state: state,
-                              message: msg,
-                              isMe: isMe,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: isMe
-                                  ? CrossAxisAlignment.end
-                                  : CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 4, horizontal: 8),
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: isMe
-                                        ? Colors.pinkAccent
-                                        : Colors.grey.shade800,
-                                    borderRadius: BorderRadius.circular(16),
+                    child: messages.isEmpty
+                        ? _EmptyChatState(onRefresh: () => _refreshChat(context))
+                        : ListView.builder(
+                            reverse: true,
+                            padding: const EdgeInsets.all(12),
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) {
+                              final msg = messages[messages.length - 1 - index];
+                              final isMe =
+                                  msg.fromUserId == widget.args.currentUserId;
+                              final isHeld = msg.moderationAction == 'hold' ||
+                                  msg.moderationStatus == 'held';
+                              final pendingScan =
+                                  msg.moderationStatus == 'pending_scan';
+                              final isFlagged = msg.isFlagged || isHeld;
+                              final text = msg.isDeletedForSender && isMe
+                                  ? '(You unsent this message)'
+                                  : isHeld
+                                      ? 'Message held for safety review'
+                                      : msg.content;
+                              final reactionCounts = _reactionCounts(msg);
+                              final alignment =
+                                  isMe ? Alignment.centerRight : Alignment.centerLeft;
+                              return Align(
+                                alignment: alignment,
+                                child: GestureDetector(
+                                  onLongPress: () => _showMessageActions(
+                                    context: context,
+                                    state: state,
+                                    message: msg,
+                                    isMe: isMe,
                                   ),
-                                  child: _buildMessageContent(
-                                    msg,
-                                    text,
-                                    isHeld: isHeld,
-                                    pendingScan: pendingScan,
-                                  ),
-                                ),
-                                if (isFlagged || pendingScan)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12,
-                                      right: 12,
-                                      bottom: 2,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          isHeld ? Icons.shield : Icons.shield_outlined,
-                                          size: 14,
-                                          color: isHeld ? Colors.redAccent : Colors.amber,
+                                  child: Column(
+                                    crossAxisAlignment: isMe
+                                        ? CrossAxisAlignment.end
+                                        : CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 4, horizontal: 8),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: isMe
+                                              ? Colors.pinkAccent
+                                              : Colors.grey.shade800,
+                                          borderRadius: BorderRadius.circular(16),
                                         ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            _moderationLabel(
-                                              msg,
-                                              isHeld: isHeld,
-                                              pendingScan: pendingScan,
-                                            ),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isHeld
-                                                  ? Colors.redAccent
-                                                  : Colors.amber.shade200,
-                                            ),
+                                        child: _buildMessageContent(
+                                          msg,
+                                          text,
+                                          isHeld: isHeld,
+                                          pendingScan: pendingScan,
+                                        ),
+                                      ),
+                                      if (isFlagged || pendingScan)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 12,
+                                            right: 12,
+                                            bottom: 2,
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                isHeld
+                                                    ? Icons.shield
+                                                    : Icons.shield_outlined,
+                                                size: 14,
+                                                color: isHeld
+                                                    ? Colors.redAccent
+                                                    : Colors.amber,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  _moderationLabel(
+                                                    msg,
+                                                    isHeld: isHeld,
+                                                    pendingScan: pendingScan,
+                                                  ),
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: isHeld
+                                                        ? Colors.redAccent
+                                                        : Colors.amber.shade200,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      if (reactionCounts.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 12,
+                                            right: 12,
+                                            bottom: 2,
+                                          ),
+                                          child: Wrap(
+                                            spacing: 6,
+                                            children: reactionCounts.entries
+                                                .map(
+                                                  (entry) => Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black54,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                    ),
+                                                    child: Text(
+                                                      entry.value > 1
+                                                          ? '${entry.key} ${entry.value}'
+                                                          : entry.key,
+                                                    ),
+                                                  ),
+                                                )
+                                                .toList(),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                if (reactionCounts.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12,
-                                      right: 12,
-                                      bottom: 2,
-                                    ),
-                                    child: Wrap(
-                                      spacing: 6,
-                                      children: reactionCounts.entries
-                                          .map(
-                                            (entry) => Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black54,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Text(
-                                                entry.value > 1
-                                                    ? '${entry.key} ${entry.value}'
-                                                    : entry.key,
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
                   if (state.isUnsendInProgress)
                     const Padding(
@@ -585,7 +593,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   _SendStatusBar(state: state),
                   if (isOtherTyping)
-                    _TypingIndicator(name: widget.args.otherName),
+                  _TypingIndicator(name: widget.args.otherName),
                   _buildInput(
                     state,
                     isBlocked: isBlocked,
@@ -1541,6 +1549,31 @@ class _TypingIndicator extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text('$name is typing...'),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyChatState extends StatelessWidget {
+  const _EmptyChatState({required this.onRefresh});
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
+          const SizedBox(height: 8),
+          const Text('No messages yet. Say hello!'),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: onRefresh,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
         ],
       ),
     );

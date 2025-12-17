@@ -117,7 +117,9 @@ class _DeckScreenState extends State<DeckScreen> {
           showErrorSnackBar: true,
           showBodyOnLoading: true,
           body: currentProfile == null
-              ? const SizedBox.shrink()
+              ? (isLoading && state.deck.isEmpty
+                  ? const _DeckSkeletonList()
+                  : const SizedBox.shrink())
               : Column(
                   children: [
                     DeckStatusBar(
@@ -1111,6 +1113,69 @@ class _BackendCheckOutcome {
   final RemoteProfileCompleteness? remote;
   final String? message;
   final bool blocked;
+}
+
+class _DeckSkeletonList extends StatelessWidget {
+  const _DeckSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        SizedBox(height: 16),
+        _SkeletonCard(height: 18, widthFactor: 0.6),
+        SizedBox(height: 12),
+        _SkeletonCard(height: 250),
+        SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _SkeletonCircle(size: 60),
+            _SkeletonCircle(size: 60),
+            _SkeletonCircle(size: 60),
+          ],
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard({required this.height, this.widthFactor});
+  final double height;
+  final double? widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    return FractionallySizedBox(
+      widthFactor: widthFactor ?? 0.9,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonCircle extends StatelessWidget {
+  const _SkeletonCircle({required this.size});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
 }
 
 enum _DeckSafetyAction { report, block, guidelines }
