@@ -224,6 +224,22 @@ function setCorsHeaders(res: functions.Response) {
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
 }
 
+async function getFcmTokens(userId: string): Promise<string[]> {
+  const snap = await db
+    .collection("users")
+    .doc(userId)
+    .collection("fcmTokens")
+    .get();
+
+  if (snap.empty) return [];
+  return snap.docs.map((d) => d.id).filter((t) => !!t);
+}
+
+async function sendNotification(message: admin.messaging.MulticastMessage) {
+  if (!message.tokens || message.tokens.length === 0) return;
+  await admin.messaging().sendEachForMulticast(message);
+}
+
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
   const reportedId = requireString(data?.reportedId, "reportedId");
@@ -301,6 +317,90 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
   await db.collection("blocks").doc(docId).delete();
   return { ok: true };
 });
+
+export const onMessageCreated = functions.firestore
+  .document("matches/{matchId}/messages/{messageId}")
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    const toUserId = data?.toUserId as string | undefined;
+    const fromUserId = data?.fromUserId as string | undefined;
+    if (!toUserId || !fromUserId) return;
+
+    const tokens = await getFcmTokens(toUserId);
+    if (tokens.length === 0) return;
+
+    await sendNotification({
+      tokens,
+      notification: {
+        title: "New message",
+        body: data?.content ? String(data.content).slice(0, 80) : "You have a new message.",
+      },
+      data: {
+        matchId: context.params.matchId,
+        fromUserId,
+        type: data?.type ?? "text",
+      },
+    });
+  });
+
+export const onMatchCreated = functions.firestore
+  .document("matches/{matchId}")
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    const userIds = (data?.userIds as string[] | undefined) ?? [];
+    if (userIds.length !== 2) return;
+
+    const tokensByUser = await Promise.all(
+      userIds.map(async (uid) => ({ uid, tokens: await getFcmTokens(uid) }))
+    );
+
+    await Promise.all(
+      tokensByUser.map(({ uid, tokens }) =>
+        sendNotification({
+          tokens,
+          notification: {
+            title: "You have a new match!",
+            body: "Open CrushHour to start chatting.",
+          },
+          data: {
+            matchId: context.params.matchId,
+            userId: uid,
+          },
+        })
+      )
+    );
+  });
+
+export const onSubscriptionUpdated = functions.firestore
+  .document("users/{userId}")
+  .onUpdate(async (change, context) => {
+    const beforePlan = change.before.data()?.plan;
+    const afterPlan = change.after.data()?.plan;
+    if (!afterPlan || beforePlan === afterPlan) return;
+
+    const tokens = await getFcmTokens(context.params.userId);
+    if (tokens.length === 0) return;
+
+    const upgraded = beforePlan !== afterPlan && afterPlan === "plus";
+    const downgraded = beforePlan === "plus" && afterPlan !== "plus";
+
+    const title = upgraded
+      ? "Thanks for upgrading!"
+      : downgraded
+      ? "Your subscription changed"
+      : "Plan updated";
+    const body = upgraded
+      ? "Plus benefits are now active."
+      : downgraded
+      ? "Plus benefits are no longer active."
+      : `Plan set to ${afterPlan}.`;
+
+    await sendNotification({
+      tokens,
+      notification: { title, body },
+      data: { plan: afterPlan },
+    });
+  });
 
 // Swipe right (double opt-in + match creation)
 export const swipeRight = callable<SwipeRequest>(async (data, context) => {
