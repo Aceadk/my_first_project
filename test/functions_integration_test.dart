@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Functions integration (emulator/qa)', () {
     test('swipeRight and preMatch request', () async {
-      // TODO: Wire to emulator with auth + sample users.
+      // Set up Firebase emulator + seeded users before enabling this.
     }, skip: 'Requires Firebase emulator and seeded data.');
 
     test('checkout flow starts and returns url', () async {
-      // TODO: Hit purchasePlusPlan callable in emulator and assert URL.
+      // Configure billing emulator/qa credentials before enabling this.
     }, skip: 'Requires Firebase emulator and billing config.');
   });
 }

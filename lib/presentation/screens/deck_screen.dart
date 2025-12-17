@@ -21,7 +21,6 @@ import '../widgets/deck_ui_helpers.dart';
 import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
 import '../widgets/async_state_scaffold.dart';
-import 'deck_buttons.dart';
 
 class DeckScreen extends StatelessWidget {
   const DeckScreen({super.key, this.preMatchService});
@@ -216,8 +215,9 @@ class DeckScreen extends StatelessWidget {
     int? retryInSeconds, {
     required bool isPlus,
     String? locationLabel,
-    int? radiusKm,
+    double? radiusKm,
   }) {
+    final radiusLabel = radiusKm?.toStringAsFixed(0);
     return Scaffold(
       appBar: _buildAppBar(context, userId),
       body: Center(
@@ -234,7 +234,8 @@ class DeckScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Check your connection and try again.${locationLabel != null ? '\nLooking near ${locationLabel}${radiusKm != null ? ' within ~${radiusKm}km' : ''}.' : ''}',
+                'Check your connection and try again.'
+                '${locationLabel != null ? '\nLooking near $locationLabel${radiusLabel != null ? ' within ~$radiusLabel km' : ''}.' : ''}',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -296,8 +297,9 @@ class DeckScreen extends StatelessWidget {
     String? userId, {
     required bool isPlus,
     String? locationLabel,
-    int? radiusKm,
+    double? radiusKm,
   }) {
+    final radiusLabel = radiusKm?.toStringAsFixed(0);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -320,7 +322,7 @@ class DeckScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Current filters: ${locationLabel ?? 'your area'}'
-                '${radiusKm != null ? ' • ~${radiusKm} km radius' : ''}',
+                '${radiusLabel != null ? ' • ~$radiusLabel km radius' : ''}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

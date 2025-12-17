@@ -9,6 +9,8 @@ import '../../logic/matches/matches_state.dart';
 import '../../logic/subscription/subscription_bloc.dart';
 import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
+import '../../core/router.dart';
+import '../../data/models/subscription.dart';
 import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 

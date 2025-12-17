@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import '../../../config/billing_config.dart';
-import '../../core/config/config_validation.dart';
-import '../../core/errors.dart';
-import '../../services/checkout_service.dart';
-import '../../models/subscription.dart';
-import '../subscription_repository.dart';
+import 'package:my_first_project/config/billing_config.dart';
+import 'package:my_first_project/core/config/config_validation.dart';
+import 'package:my_first_project/core/errors.dart';
+import 'package:my_first_project/data/models/subscription.dart';
+import 'package:my_first_project/data/repositories/subscription_repository.dart';
+import 'package:my_first_project/data/services/checkout_service.dart';
 
 const _billingFunctionBaseUrl = String.fromEnvironment(
   'CRUSH_BILLING_FUNCTION_BASE_URL',
@@ -175,5 +175,11 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       'plan': 'plus',
     });
     _controller.add(SubscriptionPlan.plus);
+  }
+
+  void dispose() {
+    _authSub?.cancel();
+    _planSub?.cancel();
+    _controller.close();
   }
 }
