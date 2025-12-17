@@ -121,7 +121,17 @@ class _MatchesView extends StatelessWidget {
             : null;
 
         return AsyncStateScaffold(
-          appBar: AppBar(title: const Text('Matches')),
+          appBar: AppBar(
+            title: const Text('Matches'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.shield_outlined),
+                tooltip: 'Safety Center',
+                onPressed: () =>
+                    Navigator.pushNamed(context, CrushRoutes.safety),
+              ),
+            ],
+          ),
           isLoading: state.isLoading && state.matches.isEmpty,
           errorMessage: state.errorMessage,
           showErrorSnackBar: true,

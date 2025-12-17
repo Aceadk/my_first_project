@@ -461,6 +461,11 @@ class DeckScreen extends StatelessWidget {
       centerTitle: true,
       actions: [
         IconButton(
+          icon: const Icon(Icons.shield_outlined),
+          tooltip: 'Safety Center',
+          onPressed: () => Navigator.pushNamed(context, CrushRoutes.safety),
+        ),
+        IconButton(
           icon: const Icon(Icons.refresh),
           tooltip: 'Refresh',
           onPressed: userId == null
