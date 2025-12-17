@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../config/billing_config.dart';
 import '../../core/config/config_validation.dart';
+import '../../core/errors.dart';
 import '../../services/checkout_service.dart';
 import '../../models/subscription.dart';
 import '../subscription_repository.dart';
@@ -81,9 +82,17 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<String> startPlusCheckout() async {
-    ConfigValidation.assertBillingConfigured();
+    final billingIssues = ConfigValidation.billingIssues();
+    if (billingIssues.isNotEmpty) {
+      throw RepositoryException(
+        'billing_config',
+        billingIssues.join(' '),
+      );
+    }
     final user = _auth.currentUser;
-    if (user == null) throw Exception('Not authenticated');
+    if (user == null) {
+      throw RepositoryException('auth', 'Sign in to upgrade to Plus.');
+    }
 
     return _checkoutService.createPlusCheckoutSession(
       priceId: BillingConfig.plusPriceId,
@@ -107,15 +116,26 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       mode: LaunchMode.externalApplication,
     );
     if (!launched) {
-      throw Exception('Could not launch checkout URL');
+      throw RepositoryException(
+        'checkout_launch_failed',
+        'Could not open checkout link. Try again.',
+      );
     }
   }
 
   @override
   Future<void> purchasePlusPlan() async {
-    ConfigValidation.assertBillingConfigured();
+    final billingIssues = ConfigValidation.billingIssues();
+    if (billingIssues.isNotEmpty) {
+      throw RepositoryException(
+        'billing_config',
+        billingIssues.join(' '),
+      );
+    }
     final user = _auth.currentUser;
-    if (user == null) throw Exception('Not authenticated');
+    if (user == null) {
+      throw RepositoryException('auth', 'Sign in to complete purchase.');
+    }
 
     final idToken = await user.getIdToken();
     final uri = Uri.parse('$_billingFunctionBaseUrl/$_billingFunctionName');
@@ -132,8 +152,9 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
         .timeout(const Duration(seconds: 12));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Billing function failed (${response.statusCode}): ${response.body}',
+      throw RepositoryException(
+        'billing_http_${response.statusCode}',
+        'Billing service failed (${response.statusCode}). Please try again.',
       );
     }
 
@@ -142,7 +163,10 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       if (decoded is Map<String, dynamic>) {
         final plan = decoded['plan'] as String?;
         if (plan != null && plan.toLowerCase() != 'plus') {
-          throw Exception('Unexpected plan from billing: $plan');
+          throw RepositoryException(
+            'billing_response',
+            'Unexpected billing response. Please try again.',
+          );
         }
       }
     }
