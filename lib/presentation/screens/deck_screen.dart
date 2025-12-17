@@ -679,12 +679,12 @@ class DeckScreen extends StatelessWidget {
 
     final content = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Send message request'),
-          content: StatefulBuilder(
-            builder: (ctx, setState) {
-              return Column(
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return AlertDialog(
+              title: const Text('Send message request'),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
@@ -712,41 +712,47 @@ class DeckScreen extends StatelessWidget {
                     const LinearProgressIndicator(minHeight: 2),
                   ],
                 ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: isSending ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: isSending
-                  ? null
-                  : () {
-                      final text = controller.text.trim();
-                      if (text.isEmpty || text.length < 4) {
-                        inlineError =
-                            'Write at least 4 characters to send a message request.';
-                      } else if (text.length > 200) {
-                        inlineError = 'Keep it under 200 characters.';
-                      } else if (_containsProfanity(text)) {
-                        inlineError = 'Please remove inappropriate language.';
-                      } else {
-                        Navigator.pop(context, text);
-                        return;
-                      }
-                      (context as Element).markNeedsBuild();
-                    },
-              child: isSending
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Send'),
-            ),
-          ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: isSending
+                      ? null
+                      : () {
+                          setState(() {
+                            isSending = true;
+                          });
+                          final text = controller.text.trim();
+                          if (text.isEmpty || text.length < 4) {
+                            inlineError =
+                                'Write at least 4 characters to send a message request.';
+                          } else if (text.length > 200) {
+                            inlineError = 'Keep it under 200 characters.';
+                          } else if (_containsProfanity(text)) {
+                            inlineError =
+                                'Please remove inappropriate language.';
+                          } else {
+                            Navigator.pop(dialogContext, text);
+                            return;
+                          }
+                          setState(() {
+                            isSending = false;
+                          });
+                        },
+                  child: isSending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
