@@ -28,6 +28,8 @@ class SafetyScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              const _SafetyEducationCard(),
+              const SizedBox(height: 16),
               _Section(
                 title: 'Blocked users',
                 emptyText:
@@ -76,7 +78,7 @@ class SafetyScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Text(
                         'Open their profile or chat, choose Report, and pick a reason. '
-                        'We review reports to keep the community safe.',
+                    'We review reports to keep the community safe.',
                       ),
                       TextButton.icon(
                         onPressed: () {
@@ -174,6 +176,88 @@ class SafetyScreen extends StatelessWidget {
         const SnackBar(content: Text('Appeal submitted')),
       );
     }
+  }
+}
+
+class _SafetyEducationCard extends StatelessWidget {
+  const _SafetyEducationCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.shield_outlined, color: Colors.green),
+                SizedBox(width: 8),
+                Text(
+                  'Stay safe while you connect',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const _SafetyTip(
+              icon: Icons.place_outlined,
+              text: 'Plan first meetups in busy public places and share details with a friend.',
+            ),
+            const _SafetyTip(
+              icon: Icons.lock_outline,
+              text: 'Keep chats in CrushHour until you trust someone. Never send money or codes.',
+            ),
+            const _SafetyTip(
+              icon: Icons.verified_user_outlined,
+              text: 'Look for verification badges and report profiles that feel fake or pushy.',
+            ),
+            const _SafetyTip(
+              icon: Icons.flag_outlined,
+              text:
+                  'Use block or report if anyone crosses a boundary. We act on reports to protect the community.',
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  CrushRoutes.safetyGuidelines,
+                );
+              },
+              icon: const Icon(Icons.menu_book_outlined),
+              label: const Text('Review safety & community guidelines'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SafetyTip extends StatelessWidget {
+  const _SafetyTip({required this.text, required this.icon});
+
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text)),
+        ],
+      ),
+    );
   }
 }
 

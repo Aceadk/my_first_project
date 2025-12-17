@@ -18,6 +18,13 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final _otpController = TextEditingController();
+  bool _otpTouched = false;
+
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +54,44 @@ class _OtpScreenState extends State<OtpScreen> {
                   caption: 'Enter the 6-digit code we sent',
                 ),
                 const SizedBox(height: 20),
-                Text('OTP sent to $currentPhone'),
+                Text(
+                  'OTP sent to $currentPhone',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Enter OTP'),
+                  decoration: InputDecoration(
+                    labelText: 'Enter OTP',
+                    helperText: 'Enter the 6-digit code from your SMS.',
+                    errorText: _otpErrorText(),
+                  ),
+                  onTap: () => _markOtpTouched(),
+                  onChanged: (_) => _markOtpTouched(),
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
                   label: 'Verify',
                   loading: state.isLoading,
-                  onPressed: () {
-                    context.read<AuthBloc>().add(AuthOtpSubmitted(
-                          currentPhone,
-                          _otpController.text.trim(),
-                        ));
-                  },
+                  onPressed: state.isLoading || !_canSubmitOtp()
+                      ? null
+                      : () {
+                          setState(() {
+                            _otpTouched = true;
+                          });
+                          final otpDigits = _digitsOnly(_otpController.text);
+                          if (otpDigits.length != 6) {
+                            showErrorSnackBar(
+                              context,
+                              'Enter the 6-digit code to continue.',
+                            );
+                            return;
+                          }
+                          context.read<AuthBloc>().add(AuthOtpSubmitted(
+                                currentPhone,
+                                otpDigits,
+                              ));
+                        },
                 ),
                 TextButton(
                   onPressed: state.isLoading
@@ -79,4 +108,30 @@ class _OtpScreenState extends State<OtpScreen> {
       ),
     );
   }
+
+  void _markOtpTouched() {
+    if (!_otpTouched) {
+      setState(() {
+        _otpTouched = true;
+      });
+    }
+  }
+
+  String? _otpErrorText() {
+    if (!_otpTouched) return null;
+    final otpDigits = _digitsOnly(_otpController.text);
+    if (otpDigits.isEmpty) {
+      return 'Enter the code to verify your phone';
+    }
+    if (otpDigits.length != 6) {
+      return 'The code should be 6 digits';
+    }
+    return null;
+  }
+
+  bool _canSubmitOtp() =>
+      _digitsOnly(_otpController.text).length == 6;
 }
+
+String _digitsOnly(String input) =>
+    input.replaceAll(RegExp(r'[^0-9]'), '');

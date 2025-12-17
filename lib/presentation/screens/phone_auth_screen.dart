@@ -17,9 +17,27 @@ class PhoneAuthScreen extends StatefulWidget {
 
 class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   final _phoneController = TextEditingController();
-  bool _touched = false;
+  final _dialCodeController = TextEditingController();
+  bool _phoneTouched = false;
+  bool _dialTouched = false;
+  bool _submitted = false;
   _CountryCode _selectedCountry =
       _countries.firstWhere((c) => c.name == 'United States', orElse: () => _countries.first);
+
+  @override
+  void initState() {
+    super.initState();
+    _dialCodeController.text = _selectedCountry.dialCode;
+    _phoneController.addListener(_onPhoneChanged);
+    _dialCodeController.addListener(_onDialCodeChanged);
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _dialCodeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,55 +106,65 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                           if (value != null) {
                             setState(() {
                               _selectedCountry = value;
+                              _dialCodeController.text = value.dialCode;
                             });
                           }
                         },
                       ),
                       const SizedBox(height: 16),
                       TextField(
+                        controller: _dialCodeController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.phone_iphone_outlined),
+                          labelText: 'Dial code',
+                          helperText: 'You can edit this if your country code differs.',
+                          errorText: _dialErrorText(),
+                        ),
+                        onTap: () => _markDialTouched(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
-                          prefixText: '${_selectedCountry.dialCode} ',
+                          prefixText: _dialCodeController.text.isEmpty
+                              ? null
+                              : '${_dialCodeController.text} ',
                           labelText: 'Phone number',
-                          errorText:
-                              _touched && _phoneController.text.trim().isEmpty
-                                  ? 'Enter your phone number'
-                                  : null,
+                          helperText: 'SMS rates may apply. We only use this to secure your account.',
+                          errorText: _phoneErrorText(),
                         ),
-                        onChanged: (_) {
-                          if (!_touched) {
-                            setState(() => _touched = true);
-                          }
-                        },
+                        onTap: () => _markPhoneTouched(),
+                        onChanged: (_) => _markPhoneTouched(),
                       ),
                       const SizedBox(height: 24),
                       PrimaryButton(
                         label: 'Send OTP',
                         loading: isLoading,
-                        onPressed: () {
-                          final phone = _phoneController.text.trim();
-                          setState(() => _touched = true);
-                          if (phone.isEmpty) {
-                            showErrorSnackBar(
-                              context,
-                              'Enter your phone number to continue.',
-                            );
-                            return;
-                          }
-                          final normalized =
-                              '${_selectedCountry.dialCode}${_digitsOnly(phone)}';
-                          if (normalized.length < 8) {
-                            showErrorSnackBar(
-                              context,
-                              'Enter a valid phone number.',
-                            );
-                            return;
-                          }
-                          context
-                              .read<AuthBloc>()
-                              .add(AuthPhoneSubmitted(normalized));
-                        },
+                        onPressed: isLoading || !_canSubmitPhone()
+                            ? null
+                            : () {
+                                setState(() {
+                                  _submitted = true;
+                                  _phoneTouched = true;
+                                  _dialTouched = true;
+                                });
+                                final dialError = _dialErrorText();
+                                final phoneError = _phoneErrorText();
+                                if (dialError != null || phoneError != null) {
+                                  showErrorSnackBar(
+                                    context,
+                                    dialError ?? phoneError!,
+                                  );
+                                  return;
+                                }
+                                final normalized =
+                                    '${_normalizedDialCode()}${_digitsOnly(_phoneController.text)}';
+                                context
+                                    .read<AuthBloc>()
+                                    .add(AuthPhoneSubmitted(normalized));
+                              },
                       ),
                     ],
                   ),
@@ -158,6 +186,73 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         ),
       ),
     );
+  }
+
+  void _onPhoneChanged() => setState(() {});
+
+  void _onDialCodeChanged() => setState(() {
+        _dialTouched = true;
+      });
+
+  void _markPhoneTouched() {
+    if (!_phoneTouched) {
+      setState(() {
+        _phoneTouched = true;
+      });
+    }
+  }
+
+  void _markDialTouched() {
+    if (!_dialTouched) {
+      setState(() {
+        _dialTouched = true;
+      });
+    }
+  }
+
+  String? _dialErrorText() {
+    if (!_dialTouched && !_submitted) return null;
+    final raw = _dialCodeController.text.trim();
+    if (raw.isEmpty) {
+      return 'Enter your country code';
+    }
+    if (!_looksLikeDialCode(raw)) {
+      return 'Include + and numbers only';
+    }
+    return null;
+  }
+
+  String? _phoneErrorText() {
+    if (!_phoneTouched && !_submitted) return null;
+    final digits = _digitsOnly(_phoneController.text);
+    if (digits.isEmpty) {
+      return 'Enter your phone number';
+    }
+    if (digits.length < 6) {
+      return 'Add at least 6 digits';
+    }
+    return null;
+  }
+
+  String? _normalizedDialCode() {
+    final raw = _dialCodeController.text.trim();
+    if (raw.isEmpty) return null;
+    final digits = _digitsOnly(raw);
+    if (digits.isEmpty) return null;
+    return '+$digits';
+  }
+
+  bool _canSubmitPhone() {
+    final normalizedDial = _normalizedDialCode();
+    final phoneDigits = _digitsOnly(_phoneController.text);
+    return normalizedDial != null &&
+        _looksLikeDialCode(_dialCodeController.text) &&
+        phoneDigits.length >= 6;
+  }
+
+  bool _looksLikeDialCode(String input) {
+    final trimmed = input.trim();
+    return trimmed.startsWith('+') && _digitsOnly(trimmed).isNotEmpty;
   }
 }
 

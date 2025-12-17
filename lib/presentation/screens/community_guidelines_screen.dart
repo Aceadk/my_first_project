@@ -36,6 +36,18 @@ class CommunityGuidelinesScreen extends StatelessWidget {
               'No impersonation. Do not claim to be someone you are not or share altered documents.'),
           SizedBox(height: 16),
           Text(
+            'Safety basics',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          _Bullet(
+              'Meet in public places first, share your plans with a trusted friend, and arrange your own transportation.'),
+          _Bullet(
+              'Keep conversations in CrushHour until you feel comfortable—never send money or verification codes.'),
+          _Bullet(
+              'Look for verification badges on profiles and report anyone who pressures you or ignores your boundaries.'),
+          SizedBox(height: 16),
+          Text(
             'What happens when you report?',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
