@@ -6,6 +6,9 @@ import '../../logic/chat/chat_bloc.dart';
 import '../../logic/matches/matches_bloc.dart';
 import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';
+import '../../logic/subscription/subscription_bloc.dart';
+import '../../logic/subscription/subscription_event.dart';
+import '../../logic/subscription/subscription_state.dart';
 import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
@@ -72,6 +75,44 @@ class _MatchesView extends StatelessWidget {
                           Navigator.pop(context);
                         },
                         child: const Text('Back to deck'),
+                      ),
+                      const SizedBox(height: 16),
+                      BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                        builder: (context, subState) {
+                          final isPlus = subState.plan == SubscriptionPlan.plus;
+                          final loading = subState.isCheckoutInProgress;
+                          if (isPlus) return const SizedBox.shrink();
+                          return Column(
+                            children: [
+                              const Text(
+                                'Intro offer: 50% off Plus',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'See likes first, Passport to any city, and unlimited likes to help you match faster.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 10),
+                              ElevatedButton(
+                                onPressed: loading
+                                    ? null
+                                    : () => context
+                                        .read<SubscriptionBloc>()
+                                        .add(PlusCheckoutRequested()),
+                                child: loading
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child:
+                                            CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Text('Try Plus intro offer'),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
