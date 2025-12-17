@@ -17,10 +17,10 @@ import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
 import '../../data/models/subscription.dart';
 import '../widgets/swipe_card.dart';
+import '../widgets/deck_ui_helpers.dart';
 import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
 import '../widgets/async_state_scaffold.dart';
-import 'deck_buttons.dart';
 import 'deck_buttons.dart';
 
 class DeckScreen extends StatelessWidget {
@@ -95,7 +95,7 @@ class DeckScreen extends StatelessWidget {
               ? const SizedBox.shrink()
               : Column(
                   children: [
-                    _buildStatusBar(
+                    DeckStatusBar(
                       isLoading: isLoading,
                       retryInSeconds: retryInSeconds,
                       completeness: completeness,
@@ -134,7 +134,7 @@ class DeckScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        DeckButton(
+                        DeckActionButton(
                           icon: Icons.clear,
                           color: Colors.grey.shade300,
                           onTap: () {
@@ -152,7 +152,7 @@ class DeckScreen extends StatelessWidget {
                                 );
                           },
                         ),
-                        DeckButton(
+                        DeckActionButton(
                           icon: Icons.message,
                           color: Colors.blueAccent,
                           onTap: () async {
@@ -170,7 +170,7 @@ class DeckScreen extends StatelessWidget {
                             );
                           },
                         ),
-                        DeckButton(
+                        DeckActionButton(
                           icon: Icons.favorite,
                           color: Colors.pinkAccent,
                           onTap: () {
@@ -367,60 +367,6 @@ class DeckScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _circleButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return DeckButton(icon: icon, color: color, onTap: onTap);
-  }
-
-  Widget _buildStatusBar({
-    required bool isLoading,
-    required int? retryInSeconds,
-    required ProfileCompletenessSummary completeness,
-  }) {
-    if (isLoading) {
-      return const LinearProgressIndicator(minHeight: 2);
-    }
-    if (retryInSeconds != null) {
-      return Container(
-        width: double.infinity,
-        color: Colors.orange.withAlpha((0.08 * 255).round()),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.refresh, size: 16, color: Colors.orange),
-            const SizedBox(width: 8),
-            Text(
-              'Retrying in ~${retryInSeconds}s…',
-              style: const TextStyle(color: Colors.orange),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (!completeness.meetsSwipeMinimum) {
-      final percent = (completeness.score * 100).round();
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LinearProgressIndicator(value: completeness.score, minHeight: 6),
-            const SizedBox(height: 8),
-            Text(
-              'Profile completeness: $percent% — finish your profile to swipe and message.',
-            ),
-          ],
-        ),
-      );
-    }
-
-    return const SizedBox(height: 2);
   }
 
   void _showProfileIncompleteDialog(
