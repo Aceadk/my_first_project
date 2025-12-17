@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../config/billing_config.dart';
+import '../../core/config/config_validation.dart';
 import '../../services/checkout_service.dart';
 import '../../models/subscription.dart';
 import '../subscription_repository.dart';
@@ -66,6 +67,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<String> startPlusCheckout() async {
+    ConfigValidation.assertBillingConfigured();
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
@@ -90,6 +92,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> purchasePlusPlan() async {
+    ConfigValidation.assertBillingConfigured();
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
