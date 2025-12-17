@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:my_first_project/config/billing_config.dart';
-import 'package:my_first_project/core/config/config_validation.dart';
-import 'package:my_first_project/core/errors.dart';
-import 'package:my_first_project/data/models/subscription.dart';
-import 'package:my_first_project/data/repositories/subscription_repository.dart';
-import 'package:my_first_project/data/services/checkout_service.dart';
+import 'package:crushhour/config/billing_config.dart';
+import 'package:crushhour/core/config/config_validation.dart';
+import 'package:crushhour/core/errors.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/repositories/subscription_repository.dart';
+import 'package:crushhour/data/services/checkout_service.dart';
 
 const _billingFunctionBaseUrl = String.fromEnvironment(
   'CRUSH_BILLING_FUNCTION_BASE_URL',

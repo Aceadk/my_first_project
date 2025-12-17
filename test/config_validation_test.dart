@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_first_project/core/config/config_validation.dart';
+import 'package:crushhour/core/config/config_validation.dart';
 
 void main() {
   group('ConfigValidation.billingIssues', () {

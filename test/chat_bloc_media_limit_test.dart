@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_first_project/data/models/match.dart';
-import 'package:my_first_project/data/models/message.dart';
-import 'package:my_first_project/data/models/subscription.dart';
-import 'package:my_first_project/data/repositories/chat_repository.dart';
-import 'package:my_first_project/data/repositories/subscription_repository.dart';
-import 'package:my_first_project/logic/chat/chat_bloc.dart';
-import 'package:my_first_project/logic/chat/chat_event.dart';
-import 'package:my_first_project/logic/chat/chat_state.dart';
+import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/repositories/chat_repository.dart';
+import 'package:crushhour/data/repositories/subscription_repository.dart';
+import 'package:crushhour/logic/chat/chat_bloc.dart';
+import 'package:crushhour/logic/chat/chat_event.dart';
+import 'package:crushhour/logic/chat/chat_state.dart';
 
 class _FakeChatRepository implements ChatRepository {
   final List<Message> sent = [];

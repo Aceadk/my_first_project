@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
-import 'package:my_first_project/core/config/agora_config.dart';
+import 'package:crushhour/core/config/agora_config.dart';
 
 Future<void> testAgoraSetup() async {
   print('Testing Agora configuration...');

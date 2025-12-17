@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_first_project/data/models/preferences.dart';
-import 'package:my_first_project/data/models/profile.dart';
-import 'package:my_first_project/presentation/widgets/swipe_card.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/presentation/widgets/swipe_card.dart';
 
 const _prefs = DiscoveryPreferences(
   minAge: 18,

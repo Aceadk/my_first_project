@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_first_project/core/profile_completeness.dart';
-import 'package:my_first_project/data/models/profile.dart';
-import 'package:my_first_project/data/models/preferences.dart';
+import 'package:crushhour/core/profile_completeness.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/preferences.dart';
 
 void main() {
   const prefs = DiscoveryPreferences(

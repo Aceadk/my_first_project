@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:my_first_project/logic/storage/storage_settings_cubit.dart';
+import 'package:crushhour/logic/storage/storage_settings_cubit.dart';
 
 void main() {
   group('StorageSettingsCubit', () {
