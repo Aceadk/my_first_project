@@ -36,6 +36,12 @@ dependencies:
   video_player: ^2.8.7
   file_picker: ^8.1.2
 
+dependency_overrides:
+  agora_uikit:
+    path: patched_plugins/agora_uikit
+  agora_rtm:
+    path: patched_plugins/agora_rtm
+
 flutter:
   uses-material-design: true
 
