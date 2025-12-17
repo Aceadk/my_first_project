@@ -27,6 +27,18 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<Profile>> fetchDeck(String userId) async {
+    try {
+      final callable = _functions.httpsCallable('fetchDiscoveryCandidates');
+      final result = await callable.call(<String, dynamic>{'limit': 50});
+      final data = result.data as Map<dynamic, dynamic>;
+      final profiles = (data['profiles'] as List<dynamic>? ?? [])
+          .map((entry) => _profileFromRemote(entry))
+          .toList();
+      if (profiles.isNotEmpty) return profiles;
+    } catch (_) {
+      // fall back to existing recommendation pipeline
+    }
+
     final ids = await _reco.fetchRecommendations(limit: 50);
     if (ids.isEmpty) return [];
     return _fetchProfilesByIds(ids);
@@ -187,11 +199,60 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       company: profileData['company'],
       school: profileData['school'],
       interests: List<String>.from(profileData['interests'] ?? []),
+      verificationBadge: profileData['verificationBadge'],
+      drinking: profileData['drinking'],
+      smoking: profileData['smoking'],
+      diet: profileData['diet'],
+      exercise: profileData['exercise'],
       country: profileData['country'] ?? 'Unknown',
       city: profileData['city'] ?? 'Unknown',
       latitude: (profileData['latitude'] as num?)?.toDouble(),
       longitude: (profileData['longitude'] as num?)?.toDouble(),
       preferences: prefs,
+    );
+  }
+
+  Profile _profileFromRemote(dynamic payload) {
+    if (payload is Map<dynamic, dynamic>) {
+      final id = payload['id'] as String? ?? '';
+      final profileMap = (payload['profile'] as Map<dynamic, dynamic>? ?? {})
+          .map((key, value) => MapEntry(key.toString(), value));
+      if (id.isNotEmpty && profileMap.isNotEmpty) {
+        return _profileFromData(id, profileMap);
+      }
+    }
+    return _profileFromData(
+      '',
+      const {
+        'name': '',
+        'age': CrushConstants.minAge,
+        'gender': '',
+        'bio': '',
+        'photoUrls': <String>[],
+        'videoUrls': <String>[],
+        'prompts': <String>[],
+        'isVerified': false,
+        'jobTitle': null,
+        'company': null,
+        'school': null,
+        'interests': <String>[],
+        'country': 'Unknown',
+        'city': 'Unknown',
+        'latitude': null,
+        'longitude': null,
+        'preferences': {
+          'minAge': CrushConstants.minAge,
+          'maxAge': 45,
+          'maxDistanceKm': 50,
+          'showMeGenders': ['female', 'male'],
+          'showMyDistance': true,
+          'showMyAge': true,
+          'hideFromDiscovery': false,
+          'incognitoMode': false,
+          'country': 'Unknown',
+          'city': 'Unknown',
+        },
+      },
     );
   }
 

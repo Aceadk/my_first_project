@@ -15,6 +15,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<SubscriptionWatchStarted>(_onWatchStarted);
     on<PlusCheckoutRequested>(_onPlusCheckoutRequested);
     on<SubscriptionPlanUpdated>(_onPlanUpdated);
+    on<SubscriptionRestoreRequested>(_onRestoreRequested);
+    on<SubscriptionStatusUpdated>(_onStatusUpdated);
   }
 
   Future<void> _onWatchStarted(
@@ -63,6 +65,37 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       plan: event.plan,
       isCheckoutInProgress: false,
       errorMessage: null,
+      isRestoring: false,
+    ));
+  }
+
+  Future<void> _onRestoreRequested(
+      SubscriptionRestoreRequested event, Emitter<SubscriptionState> emit) async {
+    emit(state.copyWith(isRestoring: true, errorMessage: null));
+    final result = await Result.guard(
+      () => subscriptionRepository.refreshStatus(),
+      logLabel: 'SubscriptionRepository.refreshStatus',
+      fallbackError: 'Could not refresh subscription. Please try again.',
+    );
+    if (!result.isSuccess || result.data == null) {
+      emit(state.copyWith(
+        isRestoring: false,
+        errorMessage: result.errorMessage,
+      ));
+      return;
+    }
+    add(SubscriptionStatusUpdated(result.data!));
+  }
+
+  void _onStatusUpdated(
+      SubscriptionStatusUpdated event, Emitter<SubscriptionState> emit) {
+    emit(state.copyWith(
+      plan: event.status.plan,
+      isRestoring: false,
+      errorMessage: null,
+      statusLabel: event.status.status,
+      nextRenewal: event.status.nextRenewal,
+      cancelAtPeriodEnd: event.status.cancelAtPeriodEnd,
     ));
   }
 

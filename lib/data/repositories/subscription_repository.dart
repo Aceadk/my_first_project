@@ -14,4 +14,7 @@ abstract class SubscriptionRepository {
 
   /// Launches the given checkout URL.
   Future<void> launchCheckoutUrl(String url);
+
+  /// Reconciles plan against billing provider and returns latest status.
+  Future<SubscriptionStatus> refreshStatus();
 }

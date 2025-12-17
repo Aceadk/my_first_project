@@ -17,3 +17,13 @@ class SubscriptionPlanUpdated extends SubscriptionEvent {
   @override
   List<Object?> get props => [plan];
 }
+
+class SubscriptionRestoreRequested extends SubscriptionEvent {}
+
+class SubscriptionStatusUpdated extends SubscriptionEvent {
+  final SubscriptionStatus status;
+  SubscriptionStatusUpdated(this.status);
+
+  @override
+  List<Object?> get props => [status];
+}

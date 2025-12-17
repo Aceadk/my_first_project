@@ -147,6 +147,16 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
     _current = SubscriptionPlan.plus;
     _controller.add(_current);
   }
+
+  @override
+  Future<SubscriptionStatus> refreshStatus() async {
+    return SubscriptionStatus(
+      plan: _current,
+      status: _current.isPlus ? 'active' : 'none',
+      nextRenewal: DateTime.now().add(const Duration(days: 30)),
+      cancelAtPeriodEnd: false,
+    );
+  }
 }
 
 class FakeProfileRepository implements ProfileRepository {

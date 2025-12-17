@@ -177,6 +177,10 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
+
+  @override
+  Future<SubscriptionStatus> refreshStatus() async =>
+      SubscriptionStatus(plan: SubscriptionPlan.free);
 }
 
 Message _mediaMessage(String userId, MessageType type) => Message(

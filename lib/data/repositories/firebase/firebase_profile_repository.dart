@@ -76,6 +76,11 @@ class FirebaseProfileRepository implements ProfileRepository {
       'company': null,
       'school': null,
       'interests': <String>[],
+      'verificationBadge': null,
+      'drinking': null,
+      'smoking': null,
+      'diet': null,
+      'exercise': null,
       'country': prefs.country,
       'city': prefs.city,
       'latitude': null,
@@ -110,6 +115,11 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? verificationBadge,
+    String? drinking,
+    String? smoking,
+    String? diet,
+    String? exercise,
   }) async {
     final doc = await _userDoc.get();
     if (!doc.exists) throw Exception('User document missing.');
@@ -126,6 +136,12 @@ class FirebaseProfileRepository implements ProfileRepository {
     profile['school'] = school;
     profile['interests'] = interests;
     profile['prompts'] = prompts ?? profile['prompts'] ?? <String>[];
+    profile['verificationBadge'] =
+        verificationBadge ?? profile['verificationBadge'];
+    profile['drinking'] = drinking ?? profile['drinking'];
+    profile['smoking'] = smoking ?? profile['smoking'];
+    profile['diet'] = diet ?? profile['diet'];
+    profile['exercise'] = exercise ?? profile['exercise'];
 
     await _userDoc.update({'profile': profile});
 
@@ -166,6 +182,11 @@ class FirebaseProfileRepository implements ProfileRepository {
       'school': profile.school,
       'interests': profile.interests,
       'prompts': profile.prompts,
+      'verificationBadge': profile.verificationBadge,
+      'drinking': profile.drinking,
+      'smoking': profile.smoking,
+      'diet': profile.diet,
+      'exercise': profile.exercise,
       'country': profile.country,
       'city': profile.city,
       'latitude': profile.latitude,
@@ -227,6 +248,11 @@ class FirebaseProfileRepository implements ProfileRepository {
         company: profileData['company'],
         school: profileData['school'],
         interests: List<String>.from(profileData['interests'] ?? []),
+        verificationBadge: profileData['verificationBadge'],
+        drinking: profileData['drinking'],
+        smoking: profileData['smoking'],
+        diet: profileData['diet'],
+        exercise: profileData['exercise'],
         country: profileData['country'] ?? 'Unknown',
         city: profileData['city'] ?? 'Unknown',
         latitude: (profileData['latitude'] as num?)?.toDouble(),

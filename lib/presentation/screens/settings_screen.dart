@@ -399,6 +399,9 @@ class SettingsScreen extends StatelessWidget {
                 builder: (context, subState) {
                   final isPlus = subState.plan == SubscriptionPlan.plus;
                   final loading = subState.isCheckoutInProgress;
+                  final statusLabel = subState.statusLabel;
+                  final renewal = subState.nextRenewal;
+                  final cancelAtPeriodEnd = subState.cancelAtPeriodEnd == true;
                   return Card(
                     margin:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -421,6 +424,21 @@ class SettingsScreen extends StatelessWidget {
                                 : 'Current plan: Free',
                             style: const TextStyle(fontSize: 14),
                           ),
+                          if (statusLabel != null || renewal != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              [
+                                if (statusLabel != null)
+                                  'Status: ${statusLabel.toUpperCase()}',
+                                if (renewal != null)
+                                  '${cancelAtPeriodEnd ? 'Access ends' : 'Renews'} on ${formatDate(renewal)}',
+                              ].join(' • '),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 8),
                           Text(
                             isPlus
@@ -479,6 +497,22 @@ class SettingsScreen extends StatelessWidget {
                                           : 'Upgrade to Plus',
                                     ),
                             ),
+                          ),
+                          TextButton(
+                            onPressed: subState.isRestoring
+                                ? null
+                                : () => context
+                                    .read<SubscriptionBloc>()
+                                    .add(SubscriptionRestoreRequested()),
+                            child: subState.isRestoring
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Restore subscription'),
                           ),
                         ],
                       ),
@@ -900,6 +934,10 @@ class SettingsScreen extends StatelessWidget {
         ),
       );
     }
+  }
+
+  String formatDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

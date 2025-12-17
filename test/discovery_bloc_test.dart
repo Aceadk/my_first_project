@@ -89,4 +89,8 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> purchasePlusPlan() async {}
+
+  @override
+  Future<SubscriptionStatus> refreshStatus() async =>
+      SubscriptionStatus(plan: plan);
 }

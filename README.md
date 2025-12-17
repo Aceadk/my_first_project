@@ -14,16 +14,16 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
   - `main.dart`: boots Firebase via `firebase_options.dart` and runs `CrushApp`.
   - `app.dart`: DI, BLoC providers, router, theme.
   - `core/`: `di.dart`, `router.dart`, `theme.dart`.
-  - `logic/`: BLoCs for auth, profile, discovery, chat, subscription, call.
+  - `logic/`: BLoCs for auth, profile, discovery, chat, subscription, call; subscription bloc also restores Stripe status on auth/deep links.
   - `data/`
     - `models/`: Profile, Match, Message, SubscriptionPlan, etc.
-    - `repositories/`: Interfaces; `firebase/` implementations (chat, discovery, subscription, auth/profile).
+    - `repositories/`: Interfaces; `firebase/` implementations (chat, discovery, subscription, auth/profile). Discovery repository prefers the `fetchDiscoveryCandidates` callable (location/preferences/blocks) and falls back to the recommendation API.
     - `services/`: `CheckoutService` (Stripe checkout callable), `PreMatchService` (pre-match message callable).
     - `dataconnect_generated/`: generated client for Data Connect operations.
   - `presentation/`: screens (`deck_screen`, `chat_screen`, `settings_screen`, etc.) and widgets (`swipe_card`, `primary_button`).
   - `config/billing_config.dart`: Stripe price id + success/cancel URLs (replace with real values).
 - `functions/`
-  - `src/index.ts`: Firebase Functions + Stripe webhook. Callables: `swipeRight`, `sendPreMatchMessageRequest`, `createCheckoutSession`; HTTP webhook: `stripeWebhook`.
+  - `src/index.ts`: Firebase Functions + Stripe webhook. Callables: `swipeRight` (with daily like limit), `sendPreMatchMessageRequest`, `createCheckoutSession`, `fetchDiscoveryCandidates` (filters by location/preferences and blocks), `validateProfileCompleteness`, `syncSubscriptionStatus`; HTTP webhook: `stripeWebhook`.
   - `package.json`, `tsconfig.json`.
 - `dataconnect/`: schema + connector config for Data Connect codegen.
 - `pubspec.yaml`: Flutter deps (Firebase, Stripe client helpers, url_launcher, etc.).
@@ -31,16 +31,22 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 
 ## Push notifications
 - Mobile client requests FCM permission via `firebase_messaging` and stores tokens under `users/{uid}/fcmTokens/{token}` with platform metadata.
-- Backend/Functions should target those tokens for new matches, new chat messages, and subscription/billing changes (topics or direct send). Add callables/trigger functions to publish to the user’s tokens using that collection.
+- Backend/Functions target those tokens for new matches, messages, and subscription changes; respects per-user `notificationPrefs` (messages/matches/subscriptions).
 - iOS: add APNs key/certs to Firebase, enable push capability. Android: ensure google-services.json includes `project_number`.
 
 ## Profile completeness & gating
 - Completeness is calculated client-side with weighted rules (photos, longer bio, interests, work/school, location).
 - Swiping and messaging are gated until the profile meets the minimum threshold; UI surfaces progress + missing items.
-- Optionally enforce server-side:
-  - Functions `swipeRight`/`sendPreMatchMessageRequest` should read `users/{uid}/profile` and reject if completeness < 0.7 (check photos count, bio length >= 40, prompts answered >= 2, interests >= 3, work/school, location).
-  - Consider writing a callable `validateProfileCompleteness` that returns a verdict; client can call before enabling swiping, and Functions can reuse the same logic to avoid drift.
-  - Store prompt answers under `profile.prompts` (list of strings). Ensure backend populates this field when users answer prompts.
+- Server-side enforcement is live: `swipeRight`/`sendPreMatchMessageRequest` require minimum profile (photos, 40-char bio, 2 prompts, 3 interests, location), and `validateProfileCompleteness` returns score/missing items for the client.
+- Store prompt answers under `profile.prompts` (list of strings). Ensure backend populates this field when users answer prompts.
+
+## Payments
+- Stripe Checkout via `createCheckoutSession` callable; webhook keeps `plan` in Firestore in sync.
+- Client handles deep links from Checkout (via `uni_links`) and auto-restores subscription status on auth/deeplink using `syncSubscriptionStatus`.
+- Settings screen shows renewal status/cancel-at-period-end when available.
+
+## Auth: phone number
+- Phone auth screen now includes a full alphabetized country picker and manual dial-code input; submitted numbers are normalized (digits + leading `+`) before OTP.
 
 ## Backend functions (functions/src/index.ts)
 - `swipeRight`: writes like, checks reverse like, creates/reuses match doc.

@@ -10,6 +10,7 @@ import 'package:crushhour/core/errors.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/repositories/subscription_repository.dart';
 import 'package:crushhour/data/services/checkout_service.dart';
+import 'package:crushhour/data/services/subscription_service.dart';
 
 const _billingFunctionBaseUrl = String.fromEnvironment(
   'CRUSH_BILLING_FUNCTION_BASE_URL',
@@ -25,6 +26,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   final fb.FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
   final CheckoutService _checkoutService;
+  final SubscriptionService _subscriptionService;
   final _controller = StreamController<SubscriptionPlan>.broadcast();
   StreamSubscription<fb.User?>? _authSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _planSub;
@@ -33,9 +35,11 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
     CheckoutService? checkoutService,
+    SubscriptionService? subscriptionService,
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _checkoutService = checkoutService ?? CheckoutService() {
+        _checkoutService = checkoutService ?? CheckoutService(),
+        _subscriptionService = subscriptionService ?? SubscriptionService() {
     _listenForAuthChanges();
   }
 
@@ -175,6 +179,17 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       'plan': 'plus',
     });
     _controller.add(SubscriptionPlan.plus);
+  }
+
+  @override
+  Future<SubscriptionStatus> refreshStatus() async {
+    final user = _auth.currentUser;
+    if (user == null) return SubscriptionStatus(plan: SubscriptionPlan.free);
+    final status = await _subscriptionService.syncSubscriptionStatus();
+    if (status.plan != SubscriptionPlan.free) {
+      _controller.add(status.plan);
+    }
+    return status;
   }
 
   void dispose() {

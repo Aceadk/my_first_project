@@ -34,6 +34,7 @@ type UserDoc = {
   plan?: string;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
+  notificationPrefs?: Record<string, unknown>;
 };
 
 interface SwipeRequest {
@@ -78,40 +79,14 @@ interface AppealRequest {
   targetId?: string;
 }
 
-interface ValidateProfileRequest {
-  minimum?: "swipe" | "message";
-}
-
 const PROFILE_MIN_PHOTOS = 1;
 const PROFILE_MIN_PROMPTS = 2;
 const PROFILE_MIN_BIO_LENGTH = 40;
 const PROFILE_MIN_INTERESTS = 3;
-const PROFILE_COMPLETENESS_THRESHOLD = 0.7;
-const BANNED_TERMS = ["kill", "terror", "hate", "shit", "fuck", "bitch", "spam"];
-
-type ProfileData = {
-  bio?: unknown;
-  photoUrls?: unknown;
-  prompts?: unknown;
-  interests?: unknown;
-  jobTitle?: unknown;
-  company?: unknown;
-  school?: unknown;
-  country?: unknown;
-  city?: unknown;
-  latitude?: unknown;
-  longitude?: unknown;
-};
-
-type ProfileCompletenessResult = {
-  score: number;
-  breakdown: Record<string, number>;
-  missing: string[];
-  requiredMissing: string[];
-  meetsSwipeMinimum: boolean;
-  meetsMessagingMinimum: boolean;
-  meetsRequiredFields: boolean;
-};
+const DAILY_LIKE_LIMIT_FREE = 30;
+const DAILY_LIKE_LIMIT_PLUS = 300;
+const DISCOVERY_PAGE_SIZE = 120;
+const BANNED_TERMS = ["kill", "terror", "hate", "shit", "fuck", "bitch", "spam", ];
 
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
@@ -171,6 +146,15 @@ function optionalString(value: unknown): string | undefined {
   return str.length > 0 ? str : undefined;
 }
 
+function toNumber(value: unknown): number | undefined {
+  if (typeof value === "number" && !isNaN(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (!isNaN(parsed)) return parsed;
+  }
+  return undefined;
+}
+
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return (value as unknown[])
@@ -178,122 +162,32 @@ function toStringArray(value: unknown): string[] {
     .filter((v) => v.length > 0);
 }
 
-function evaluateProfileCompleteness(
-  profile: ProfileData | null
-): ProfileCompletenessResult {
-  if (!profile) {
-    const missing = [
-      `Add at least ${PROFILE_MIN_PHOTOS} photo(s).`,
-      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
-      `Answer at least ${PROFILE_MIN_PROMPTS} prompts.`,
-    ];
-    return {
-      score: 0,
-      breakdown: {},
-      missing,
-      requiredMissing: missing,
-      meetsSwipeMinimum: false,
-      meetsMessagingMinimum: false,
-      meetsRequiredFields: false,
-    };
-  }
+type ProfileData = {
+  bio?: unknown;
+  photoUrls?: unknown;
+  prompts?: unknown;
+  interests?: unknown;
+  jobTitle?: unknown;
+  company?: unknown;
+  school?: unknown;
+  verificationBadge?: unknown;
+  drinking?: unknown;
+  smoking?: unknown;
+  diet?: unknown;
+  exercise?: unknown;
+  gender?: unknown;
+  age?: unknown;
+  sexualOrientation?: unknown;
+  preferences?: unknown;
+  isVerified?: unknown;
+  country?: unknown;
+  city?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+};
 
-  const photos = toStringArray(profile.photoUrls);
-  const prompts = toStringArray(profile.prompts);
-  const interests = toStringArray(profile.interests);
-  const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
-  const jobTitle =
-    typeof profile.jobTitle === "string" ? profile.jobTitle.trim() : "";
-  const company =
-    typeof profile.company === "string" ? profile.company.trim() : "";
-  const school = typeof profile.school === "string" ? profile.school.trim() : "";
-  const city = typeof profile.city === "string" ? profile.city.trim() : "";
-  const country =
-    typeof profile.country === "string" ? profile.country.trim() : "";
-
-  let score = 0;
-  const breakdown: Record<string, number> = {};
-  const missing: string[] = [];
-  const requiredMissing: string[] = [];
-
-  const rules: Array<{
-    key: string;
-    weight: number;
-    satisfied: boolean;
-    missingMessage: string;
-    requiredForMessaging?: boolean;
-  }> = [
-    {
-      key: "photos",
-      weight: 0.4,
-      satisfied: photos.length >= PROFILE_MIN_PHOTOS,
-      missingMessage: `Add at least ${PROFILE_MIN_PHOTOS} photo(s).`,
-      requiredForMessaging: true,
-    },
-    {
-      key: "bio",
-      weight: 0.2,
-      satisfied: bio.length >= PROFILE_MIN_BIO_LENGTH,
-      missingMessage: `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
-      requiredForMessaging: true,
-    },
-    {
-      key: "prompts",
-      weight: 0.15,
-      satisfied: prompts.length >= PROFILE_MIN_PROMPTS,
-      missingMessage: `Answer at least ${PROFILE_MIN_PROMPTS} prompts.`,
-      requiredForMessaging: true,
-    },
-    {
-      key: "interests",
-      weight: 0.1,
-      satisfied: interests.length >= PROFILE_MIN_INTERESTS,
-      missingMessage: `Add at least ${PROFILE_MIN_INTERESTS} interests.`,
-    },
-    {
-      key: "work_or_school",
-      weight: 0.08,
-      satisfied: !!jobTitle || !!company || !!school,
-      missingMessage: "Add work or school.",
-    },
-    {
-      key: "location",
-      weight: 0.07,
-      satisfied:
-        !!city &&
-        !!country &&
-        country.toLowerCase() !== "unknown",
-      missingMessage: "Add your city & country.",
-    },
-  ];
-
-  for (const rule of rules) {
-    if (rule.satisfied) {
-      score += rule.weight;
-      breakdown[rule.key] = rule.weight;
-    } else {
-      breakdown[rule.key] = 0;
-      missing.push(rule.missingMessage);
-      if (rule.requiredForMessaging) {
-        requiredMissing.push(rule.missingMessage);
-      }
-    }
-  }
-
-  score = Math.max(0, Math.min(1, score));
-  const meetsSwipeMinimum = score >= PROFILE_COMPLETENESS_THRESHOLD;
-  const meetsMessagingMinimum = score >= PROFILE_COMPLETENESS_THRESHOLD;
-  const meetsRequiredFields = requiredMissing.length === 0;
-
-  return {
-    score,
-    breakdown,
-    missing,
-    requiredMissing,
-    meetsSwipeMinimum,
-    meetsMessagingMinimum,
-    meetsRequiredFields,
-  };
+interface DiscoveryRequest {
+  limit?: number;
 }
 
 type ModerationDecision =
@@ -322,27 +216,38 @@ function moderateContent(content: string, type: string): ModerationDecision {
   return { status: "clean", action: "allow", severity: "low" };
 }
 
-function ensureProfileQuality(
-  profile: ProfileData | null,
-  action: string,
-  minimum: "swipe" | "message" = "swipe"
-) {
-  const completeness = evaluateProfileCompleteness(profile);
-  const meetsMinimum =
-    minimum === "message"
-      ? completeness.meetsMessagingMinimum && completeness.meetsRequiredFields
-      : completeness.meetsSwipeMinimum && completeness.meetsRequiredFields;
+function ensureProfileQuality(profile: ProfileData | null, action: string) {
+  const photos = toStringArray(profile?.photoUrls);
+  const prompts = toStringArray(profile?.prompts);
+  const interests = toStringArray(profile?.interests);
+  const bio =
+    typeof profile?.bio === "string" ? (profile?.bio as string).trim() : "";
+  const country = typeof profile?.country === "string" ? profile?.country : "";
+  const city = typeof profile?.city === "string" ? profile?.city : "";
 
-  if (!meetsMinimum) {
-    const missing =
-      completeness.requiredMissing.length > 0
-        ? completeness.requiredMissing
-        : completeness.missing;
-    const percent = Math.round(completeness.score * 100);
-    const summary = missing.slice(0, 3).join(" ");
+  const missing: string[] = [];
+  if (photos.length < PROFILE_MIN_PHOTOS) {
+    missing.push(`Add at least ${PROFILE_MIN_PHOTOS} photo(s).`);
+  }
+  if (bio.length < PROFILE_MIN_BIO_LENGTH) {
+    missing.push(
+      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`
+    );
+  }
+  if (prompts.length < PROFILE_MIN_PROMPTS) {
+    missing.push(`Answer at least ${PROFILE_MIN_PROMPTS} prompts.`);
+  }
+  if (interests.length < PROFILE_MIN_INTERESTS) {
+    missing.push(`Add at least ${PROFILE_MIN_INTERESTS} interests.`);
+  }
+  if (!city || !country) {
+    missing.push("Add your city and country.");
+  }
+
+  if (missing.length > 0) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      `Complete your profile before ${action} (currently ${percent}%): ${summary}`
+      `Complete your profile before ${action}: ${missing.join(" ")}`
     );
   }
 }
@@ -391,6 +296,21 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
       "You cannot interact with this user."
     );
   }
+}
+
+async function blockedUserIds(uid: string): Promise<Set<string>> {
+  const snap = await db
+    .collection("blocks")
+    .where("blockerId", "==", uid)
+    .get();
+  const ids = new Set<string>();
+  snap.forEach((doc) => {
+    const data = doc.data();
+    if (typeof data.blockedId === "string") {
+      ids.add(data.blockedId);
+    }
+  });
+  return ids;
 }
 
 function setCorsHeaders(res: functions.Response) {
@@ -444,32 +364,105 @@ async function getFcmTokens(userId: string): Promise<string[]> {
   return snap.docs.map((d) => d.id).filter((t) => !!t);
 }
 
+type NotificationCategory = "messages" | "matches" | "subscriptions";
+
+async function getNotificationPrefs(userId: string): Promise<{
+  push: boolean;
+  messages: boolean;
+  matches: boolean;
+  subscriptions: boolean;
+}> {
+  try {
+    const doc = await db.collection("users").doc(userId).get();
+    const prefs = (doc.data()?.notificationPrefs as Record<string, unknown>) ?? {};
+    const push = prefs.push !== false; // default true
+    const messages = prefs.messages !== false;
+    const matches = prefs.matches !== false;
+    const subscriptions = prefs.subscriptions !== false;
+    return { push, messages, matches, subscriptions };
+  } catch (err) {
+    console.warn("Failed to load notification prefs", { userId, err });
+    return { push: true, messages: true, matches: true, subscriptions: true };
+  }
+}
+
+async function getPushTokensFor(
+  userId: string,
+  category: NotificationCategory
+): Promise<string[]> {
+  const prefs = await getNotificationPrefs(userId);
+  const allowed =
+    prefs.push &&
+    ((category === "messages" && prefs.messages) ||
+      (category === "matches" && prefs.matches) ||
+      (category === "subscriptions" && prefs.subscriptions));
+  if (!allowed) return [];
+  return getFcmTokens(userId);
+}
+
 async function sendNotification(message: admin.messaging.MulticastMessage) {
   if (!message.tokens || message.tokens.length === 0) return;
   await admin.messaging().sendEachForMulticast(message);
 }
 
-export const validateProfileCompleteness = callable<ValidateProfileRequest>(
-  async (data, context) => {
-    const uid = requireAuth(context, "check profile completeness");
-    const user = await getUser(uid);
-    const minimum = data?.minimum === "message" ? "message" : "swipe";
-    const completeness = evaluateProfileCompleteness(
-      (user.profile as ProfileData | null) ?? null
-    );
-    const meetsMinimum =
-      minimum === "message"
-        ? completeness.meetsMessagingMinimum && completeness.meetsRequiredFields
-        : completeness.meetsSwipeMinimum && completeness.meetsRequiredFields;
-
-    return {
-      ...completeness,
-      minimum,
-      meetsMinimum,
-      threshold: PROFILE_COMPLETENESS_THRESHOLD,
-    };
+function haversineDistanceKm(
+  lat1?: number,
+  lon1?: number,
+  lat2?: number,
+  lon2?: number
+): number | undefined {
+  if (
+    lat1 === undefined ||
+    lon1 === undefined ||
+    lat2 === undefined ||
+    lon2 === undefined
+  ) {
+    return undefined;
   }
-);
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+async function enforceDailyLikeLimit(uid: string, plan?: string) {
+  const limit =
+    (plan ?? "").toLowerCase() === "plus"
+      ? DAILY_LIKE_LIMIT_PLUS
+      : DAILY_LIKE_LIMIT_FREE;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const ref = db.collection("rateLimits").doc(uid);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists ? (snap.data() as Record<string, unknown>) : {};
+    const dailyLikes = (data.dailyLikes as Record<string, number> | undefined) ?? {};
+    const count = dailyLikes[todayKey] ?? 0;
+    if (count >= limit) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        `Daily like limit reached (${limit}). Try again tomorrow.`
+      );
+    }
+    dailyLikes[todayKey] = count + 1;
+    tx.set(
+      ref,
+      {
+        dailyLikes,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  });
+}
 
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
@@ -787,7 +780,7 @@ export const onMessageCreated = functions.firestore
       return;
     }
 
-    const tokens = await getFcmTokens(toUserId);
+    const tokens = await getPushTokensFor(toUserId, "messages");
     if (tokens.length === 0) return;
 
     await sendNotification({
@@ -812,7 +805,10 @@ export const onMatchCreated = functions.firestore
     if (userIds.length !== 2) return;
 
     const tokensByUser = await Promise.all(
-      userIds.map(async (uid) => ({ uid, tokens: await getFcmTokens(uid) }))
+      userIds.map(async (uid) => ({
+        uid,
+        tokens: await getPushTokensFor(uid, "matches"),
+      }))
     );
 
     await Promise.all(
@@ -839,7 +835,7 @@ export const onSubscriptionUpdated = functions.firestore
     const afterPlan = change.after.data()?.plan;
     if (!afterPlan || beforePlan === afterPlan) return;
 
-    const tokens = await getFcmTokens(context.params.userId);
+    const tokens = await getPushTokensFor(context.params.userId, "subscriptions");
     if (tokens.length === 0) return;
 
     const upgraded = beforePlan !== afterPlan && afterPlan === "plus";
@@ -863,6 +859,125 @@ export const onSubscriptionUpdated = functions.firestore
     });
   });
 
+export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "fetch discovery candidates");
+    const limitRaw = typeof data?.limit === "number" ? data.limit : 30;
+    const limit = Math.min(Math.max(limitRaw, 5), 50);
+
+    const me = await getUser(uid);
+    const profile = (me.profile as ProfileData | null) ?? null;
+    ensureProfileQuality(profile, "browsing");
+
+    const prefs = (profile?.preferences as Record<string, unknown> | undefined) ?? {};
+    const maxDistanceKm =
+      toNumber(prefs.maxDistanceKm) !== undefined
+        ? (toNumber(prefs.maxDistanceKm) as number)
+        : 50;
+    const minAge = toNumber(prefs.minAge) ?? 18;
+    const maxAge = toNumber(prefs.maxAge) ?? 100;
+    const showMeGenders = toStringArray(prefs.showMeGenders);
+
+    const myLat = toNumber(profile?.latitude);
+    const myLon = toNumber(profile?.longitude);
+    const myCountry = typeof profile?.country === "string" ? profile?.country : "";
+    const myCity = typeof profile?.city === "string" ? profile?.city : "";
+    const myInterests = new Set(toStringArray(profile?.interests));
+
+    const blockedIds = await blockedUserIds(uid);
+
+    let query: FirebaseFirestore.Query = db
+      .collection("users")
+      .where("profile.preferences.hideFromDiscovery", "==", false)
+      .where("profile.preferences.incognitoMode", "==", false)
+      .limit(DISCOVERY_PAGE_SIZE);
+
+    if (showMeGenders.length > 0 && showMeGenders.length <= 10) {
+      query = query.where("profile.gender", "in", showMeGenders);
+    }
+    if (myCountry) {
+      query = query.where("profile.country", "==", myCountry);
+    }
+
+    let snap: FirebaseFirestore.QuerySnapshot;
+    try {
+      snap = await query.get();
+    } catch (err) {
+      // Fallback to broader query if index/gender filters fail
+      snap = await db
+        .collection("users")
+        .where("profile.preferences.hideFromDiscovery", "==", false)
+        .limit(DISCOVERY_PAGE_SIZE)
+        .get();
+    }
+
+    const candidates: Array<{
+      id: string;
+      profile: ProfileData;
+      score: number;
+      distanceKm?: number;
+    }> = [];
+
+    snap.forEach((doc) => {
+      if (doc.id === uid) return;
+      if (blockedIds.has(doc.id)) return;
+      const data = doc.data() as Record<string, unknown>;
+      const candidateProfile = (data.profile as ProfileData | undefined) ?? null;
+      if (!candidateProfile) return;
+      if (candidateProfile.preferences && (candidateProfile.preferences as any).hideFromDiscovery) {
+        return;
+      }
+      const age = toNumber((candidateProfile as any).age);
+      if (age && (age < minAge || age > maxAge)) return;
+      const lat = toNumber(candidateProfile.latitude);
+      const lon = toNumber(candidateProfile.longitude);
+      const distanceKm = haversineDistanceKm(myLat, myLon, lat, lon);
+      if (distanceKm !== undefined && distanceKm > maxDistanceKm + 5) {
+        return;
+      }
+      if (!lat || !lon) {
+        // Fall back to country/city match if location missing
+        const candCountry =
+          typeof candidateProfile.country === "string" ? candidateProfile.country : "";
+        if (myCountry && candCountry && candCountry !== myCountry) return;
+        const candCity = typeof candidateProfile.city === "string" ? candidateProfile.city : "";
+        if (myCity && candCity && candCity !== myCity) return;
+      }
+      const interests = toStringArray(candidateProfile.interests);
+      const sharedInterests = interests.filter((i) => myInterests.has(i)).length;
+      const verifiedBoost =
+        candidateProfile.verificationBadge || candidateProfile.isVerified ? 0.4 : 0;
+      const distanceBoost =
+        distanceKm !== undefined && maxDistanceKm > 0
+          ? Math.max(0, (maxDistanceKm - distanceKm) / maxDistanceKm)
+          : 0.1;
+      const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
+      const baseScore = 1 + verifiedBoost + distanceBoost + interestBoost;
+
+      candidates.push({
+        id: doc.id,
+        profile: candidateProfile,
+        score: baseScore,
+        distanceKm,
+      });
+    });
+
+    candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+    const limited = candidates.slice(0, limit);
+    return {
+      profiles: limited.map((c) => ({
+        id: c.id,
+        profile: c.profile,
+        distanceKm: c.distanceKm,
+        score: c.score,
+      })),
+      total: candidates.length,
+    };
+  }
+);
+
+
 // Swipe right (double opt-in + match creation)
 export const swipeRight = callable<SwipeRequest>(async (data, context) => {
   const uid = requireAuth(context, "swipe right");
@@ -881,7 +996,8 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
 
   // Ensure current user has a profile
   const me = await getUser(uid);
-  ensureProfileQuality(me.profile as ProfileData | null, "swiping", "swipe");
+  ensureProfileQuality(me.profile as ProfileData | null, "swiping");
+  await enforceDailyLikeLimit(uid, (me.plan as string | undefined) ?? "free");
 
   // 1. Write like record
   const likeRef = db.collection("likes").doc();
@@ -982,7 +1098,7 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   await ensureNotBlocked(uid, targetUserId);
 
   const me = await getUser(uid);
-  ensureProfileQuality(me.profile as ProfileData | null, "swiping", "swipe");
+  ensureProfileQuality(me.profile as ProfileData | null, "swiping");
 
   await bigquery
     .dataset(BQ_DATASET)
@@ -1017,7 +1133,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     await ensureNotBlocked(uid, targetUserId);
 
     const me = await getUser(uid);
-    ensureProfileQuality(me.profile as ProfileData | null, "sending requests", "message");
+    ensureProfileQuality(me.profile as ProfileData | null, "sending requests");
 
     // Find or create a "pending match-like" doc for this pair
     const pairId =
@@ -1272,13 +1388,72 @@ interface AgoraTokenRequest {
   isVideoCall?: boolean;
 }
 
+// Sync subscription against Stripe and update Firestore if needed.
+export const syncSubscriptionStatus = callable(async (_data, context) => {
+  const uid = requireAuth(context, "sync subscription");
+  if (!stripeSecret) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Stripe not configured."
+    );
+  }
+  const user = await getUser(uid);
+  const subscriptionId = optionalString(user.stripeSubscriptionId);
+  const customerId = optionalString(user.stripeCustomerId);
+
+  if (!subscriptionId && !customerId) {
+    await setUserPlan(uid, "free");
+    return { plan: "free", status: "none" };
+  }
+
+  let subscription: Stripe.Subscription | undefined;
+  try {
+    if (subscriptionId) {
+      subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    } else if (customerId) {
+      const list = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "all",
+        limit: 1,
+      });
+      subscription = list.data[0];
+    }
+  } catch (err) {
+    console.error("syncSubscriptionStatus.retrieve_failed", err);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Could not verify subscription."
+    );
+  }
+
+  if (!subscription) {
+    await setUserPlan(uid, "free");
+    return { plan: "free", status: "none" };
+  }
+
+  const status = subscription.status;
+  const isActive =
+    status === "active" || status === "trialing" || status === "past_due";
+  const plan = isActive ? "plus" : "free";
+  await setUserPlan(uid, plan, {
+    stripeCustomerId:
+      (subscription.customer as string | undefined) ?? customerId ?? undefined,
+    stripeSubscriptionId: subscription.id,
+  });
+
+  return {
+    plan,
+    status,
+    currentPeriodEnd: subscription.current_period_end,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+  };
+});
+
 // Expose helpers for testing
 export const __test__helpers = {
   requireAuth,
   requireString,
   optionalString,
-  evaluateProfileCompleteness,
-  ensureProfileQuality,
 };
 
 // Callable function to generate an Agora token for authenticated users

@@ -5,10 +5,13 @@ import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/di.dart';
 import 'core/push/push_notifications.dart';
+import 'core/deep_link_bootstrap.dart';
 import 'logic/theme/theme_cubit.dart';
 import 'logic/auth/auth_bloc.dart';
 import 'logic/auth/auth_state.dart';
 import 'logic/notification/notification_settings_cubit.dart';
+import 'logic/subscription/subscription_bloc.dart';
+import 'logic/subscription/subscription_event.dart';
 
 class CrushApp extends StatelessWidget {
   const CrushApp({super.key, required this.preferences});
@@ -24,14 +27,16 @@ class CrushApp extends StatelessWidget {
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return PushBootstrap(
-              child: MaterialApp(
-                title: 'CrushHour',
-                theme: CrushTheme.light(),
-                darkTheme: CrushTheme.dark(),
-                themeMode: themeMode,
-                onGenerateRoute: CrushRoutes.onGenerateRoute,
-                initialRoute: CrushRoutes.splash,
-                debugShowCheckedModeBanner: false,
+              child: DeepLinkBootstrap(
+                child: MaterialApp(
+                  title: 'CrushHour',
+                  theme: CrushTheme.light(),
+                  darkTheme: CrushTheme.dark(),
+                  themeMode: themeMode,
+                  onGenerateRoute: CrushRoutes.onGenerateRoute,
+                  initialRoute: CrushRoutes.splash,
+                  debugShowCheckedModeBanner: false,
+                ),
               ),
             );
           },
@@ -76,7 +81,10 @@ class _PushBootstrapState extends State<PushBootstrap> {
         if (state.status == AuthStatus.authenticated &&
             state.user?.id != null) {
           try {
+            final subscriptionBloc = context.read<SubscriptionBloc>();
             await push.registerDeviceToken(state.user!.id);
+            if (!context.mounted) return;
+            subscriptionBloc.add(SubscriptionRestoreRequested());
           } catch (e) {
             // We intentionally swallow errors here; UI toggles handle messaging.
           }

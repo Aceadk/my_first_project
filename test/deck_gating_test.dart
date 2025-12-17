@@ -230,6 +230,10 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
+
+  @override
+  Future<SubscriptionStatus> refreshStatus() async =>
+      SubscriptionStatus(plan: SubscriptionPlan.free);
 }
 
 class _StubAuthBloc extends AuthBloc {
