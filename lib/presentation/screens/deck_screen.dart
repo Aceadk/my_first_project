@@ -48,6 +48,8 @@ class DeckScreen extends StatelessWidget {
           (b) => b.state.profile ?? b.state.user?.profile,
         );
         final completeness = evaluateProfileCompleteness(profile);
+        final locationLabel = _locationLabel(profile);
+        final radiusKm = profile?.preferences.maxDistanceKm;
         final isPlus = context.select<SubscriptionBloc, bool>(
           (b) => b.state.plan == SubscriptionPlan.plus,
         );
@@ -71,6 +73,8 @@ class DeckScreen extends StatelessWidget {
             userId,
             retryInSeconds,
             isPlus: isPlus,
+            locationLabel: locationLabel,
+            radiusKm: radiusKm,
           );
         }
 
@@ -81,6 +85,8 @@ class DeckScreen extends StatelessWidget {
               context,
               userId,
               isPlus: isPlus,
+              locationLabel: locationLabel,
+              radiusKm: radiusKm,
             ),
           );
         }
@@ -207,6 +213,8 @@ class DeckScreen extends StatelessWidget {
     String? userId,
     int? retryInSeconds, {
     required bool isPlus,
+    String? locationLabel,
+    int? radiusKm,
   }) {
     return Scaffold(
       appBar: _buildAppBar(context, userId),
@@ -223,8 +231,8 @@ class DeckScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Check your connection and try again.',
+              Text(
+                'Check your connection and try again.${locationLabel != null ? '\nLooking near ${locationLabel}${radiusKm != null ? ' within ~${radiusKm}km' : ''}.' : ''}',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -245,8 +253,24 @@ class DeckScreen extends StatelessWidget {
                         .read<DiscoveryBloc>()
                         .add(DiscoveryDeckRequested(userId)),
               ),
+              if (retryInSeconds != null)
+                TextButton.icon(
+                  icon: const Icon(Icons.timer),
+                  label: Text('Auto-retrying in ~${retryInSeconds}s'),
+                  onPressed: userId == null
+                      ? null
+                      : () => context
+                          .read<DiscoveryBloc>()
+                          .add(DiscoveryDeckRequested(userId)),
+                ),
               if (!isPlus) ...[
                 const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.flight_takeoff),
+                  label: const Text('Try Passport with Plus'),
+                  onPressed: () => _showPassportUpsell(context),
+                ),
+                const SizedBox(height: 8),
                 const _UpgradeNudgeCard(
                   title: 'Try Plus while we fix this',
                   subtitle:
@@ -269,6 +293,8 @@ class DeckScreen extends StatelessWidget {
     BuildContext context,
     String? userId, {
     required bool isPlus,
+    String? locationLabel,
+    int? radiusKm,
   }) {
     return Center(
       child: Padding(
@@ -288,6 +314,14 @@ class DeckScreen extends StatelessWidget {
               'You can adjust your filters or explore with Passport.',
               textAlign: TextAlign.center,
             ),
+            if (locationLabel != null || radiusKm != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Current filters: ${locationLabel ?? 'your area'}'
+                '${radiusKm != null ? ' • ~${radiusKm} km radius' : ''}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () {
@@ -800,6 +834,23 @@ class DeckScreen extends StatelessWidget {
     ];
     final lower = text.toLowerCase();
     return banned.any((word) => lower.contains(word));
+  }
+
+  String? _locationLabel(Profile? profile) {
+    final city = profile?.city.trim();
+    final country = profile?.country.trim();
+    if (city != null &&
+        city.isNotEmpty &&
+        country != null &&
+        country.isNotEmpty &&
+        country.toLowerCase() != 'unknown') {
+      return '$city, $country';
+    }
+    if (city != null && city.isNotEmpty) return city;
+    if (country != null && country.isNotEmpty && country.toLowerCase() != 'unknown') {
+      return country;
+    }
+    return null;
   }
 }
 
