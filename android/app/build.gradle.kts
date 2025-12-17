@@ -11,6 +11,12 @@ kotlin {
 }
 
 android {
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
     namespace = "com.example.crushhour"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
