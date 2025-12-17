@@ -19,6 +19,8 @@ import '../../data/models/subscription.dart';
 import '../widgets/swipe_card.dart';
 import 'settings_screen.dart';
 import 'profile_edit_screen.dart';
+import 'deck_buttons.dart';
+import 'deck_buttons.dart';
 
 class DeckScreen extends StatelessWidget {
   const DeckScreen({super.key, this.preMatchService});
@@ -136,7 +138,7 @@ class DeckScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _circleButton(
+                  DeckButton(
                     icon: Icons.clear,
                     color: Colors.grey.shade300,
                     onTap: () {
@@ -153,7 +155,7 @@ class DeckScreen extends StatelessWidget {
                           );
                     },
                   ),
-                  _circleButton(
+                  DeckButton(
                     icon: Icons.message,
                     color: Colors.blueAccent,
                     onTap: () async {
@@ -169,7 +171,7 @@ class DeckScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _circleButton(
+                  DeckButton(
                     icon: Icons.favorite,
                     color: Colors.pinkAccent,
                     onTap: () {
@@ -372,15 +374,7 @@ class DeckScreen extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkResponse(
-      onTap: onTap,
-      radius: 32,
-      child: CircleAvatar(
-        backgroundColor: color,
-        radius: 28,
-        child: Icon(icon, color: Colors.black),
-      ),
-    );
+    return DeckButton(icon: icon, color: color, onTap: onTap);
   }
 
   Widget _buildStatusBar({
@@ -746,6 +740,7 @@ class DeckScreen extends StatelessWidget {
                     decoration: const InputDecoration(
                       hintText: 'Say something nice…',
                     ),
+                    enabled: !isSending,
                     onChanged: (_) {
                       if (inlineError != null) {
                         setState(() => inlineError = null);
@@ -769,26 +764,34 @@ class DeckScreen extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: isSending ? null : () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                final text = controller.text.trim();
-                if (text.isEmpty || text.length < 4) {
-                  inlineError =
-                      'Write at least 4 characters to send a message request.';
-                } else if (text.length > 200) {
-                  inlineError = 'Keep it under 200 characters.';
-                } else if (_containsProfanity(text)) {
-                  inlineError = 'Please remove inappropriate language.';
-                } else {
-                  Navigator.pop(context, text);
-                  return;
-                }
-                (context as Element).markNeedsBuild();
-              },
-              child: const Text('Send'),
+              onPressed: isSending
+                  ? null
+                  : () {
+                      final text = controller.text.trim();
+                      if (text.isEmpty || text.length < 4) {
+                        inlineError =
+                            'Write at least 4 characters to send a message request.';
+                      } else if (text.length > 200) {
+                        inlineError = 'Keep it under 200 characters.';
+                      } else if (_containsProfanity(text)) {
+                        inlineError = 'Please remove inappropriate language.';
+                      } else {
+                        Navigator.pop(context, text);
+                        return;
+                      }
+                      (context as Element).markNeedsBuild();
+                    },
+              child: isSending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Send'),
             ),
           ],
         );
@@ -798,6 +801,7 @@ class DeckScreen extends StatelessWidget {
     if (content == null || content.isEmpty) return;
 
     try {
+      isSending = true;
       final result = await Result.guard(
         () => preMatchService.sendPreMatchMessageRequest(
           targetUserId: targetUserId,
@@ -828,7 +832,9 @@ class DeckScreen extends StatelessWidget {
 
   bool _containsProfanity(String text) {
     const banned = [
-    
+      'damn',
+      'hell',
+      'shit',
       'fuck',
       'bitch',
     ];
