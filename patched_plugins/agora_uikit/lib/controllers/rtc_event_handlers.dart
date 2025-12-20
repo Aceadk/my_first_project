@@ -302,14 +302,22 @@ Future<RtcEngineEventHandler> rtcEngineEventHandler(
     agoraEventHandlers.onCameraReady?.call();
   }, onEncryptionError: (connection, errorType) {
     agoraEventHandlers.onEncryptionError?.call(connection, errorType);
-  }, onExtensionError: (provider, extension, error, message) {
+  }, onExtensionErrorWithContext: (context, error, message) {
+    final provider = context.providerName ?? '';
+    final extension = context.extensionName ?? '';
     agoraEventHandlers.onExtensionError
         ?.call(provider, extension, error, message);
-  }, onExtensionEvent: (provider, extension, key, value) {
+  }, onExtensionEventWithContext: (context, key, value) {
+    final provider = context.providerName ?? '';
+    final extension = context.extensionName ?? '';
     agoraEventHandlers.onExtensionEvent?.call(provider, extension, key, value);
-  }, onExtensionStarted: (provider, extension) {
+  }, onExtensionStartedWithContext: (context) {
+    final provider = context.providerName ?? '';
+    final extension = context.extensionName ?? '';
     agoraEventHandlers.onExtensionStarted?.call(provider, extension);
-  }, onExtensionStopped: (provider, extension) {
+  }, onExtensionStoppedWithContext: (context) {
+    final provider = context.providerName ?? '';
+    final extension = context.extensionName ?? '';
     agoraEventHandlers.onExtensionStopped?.call(provider, extension);
   }, onIntraRequestReceived: (connection) {
     agoraEventHandlers.onIntraRequestReceived?.call(connection);

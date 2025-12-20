@@ -39,6 +39,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        ndk {
+            // Avoid building 32-bit ABI that fails in agora_rtc_engine CMake config.
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {

@@ -34,13 +34,15 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   video_player: ^2.8.7
-  file_picker: ^8.1.2
+  file_picker: ^10.3.8
 
 dependency_overrides:
   agora_uikit:
     path: patched_plugins/agora_uikit
   agora_rtm:
     path: patched_plugins/agora_rtm
+  uni_links:
+    path: patched_plugins/uni_links
 
 flutter:
   uses-material-design: true
