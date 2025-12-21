@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { BigQuery } from "@google-cloud/bigquery";
 import Stripe from "stripe";
 import { RtcTokenBuilder, RtcRole } from "agora-access-token";
@@ -178,6 +179,14 @@ const OTP_REQUEST_BLOCK_MS = 20 * 60 * 1000;
 const OTP_VERIFY_LIMIT = 10;
 const OTP_VERIFY_WINDOW_MS = 10 * 60 * 1000;
 const OTP_VERIFY_BLOCK_MS = 20 * 60 * 1000;
+const LOGIN_ATTEMPT_LIMIT = 8;
+const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
+const LOGIN_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
+const SIGNUP_ATTEMPT_LIMIT = 5;
+const SIGNUP_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
+const SIGNUP_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/;
 const otpSecret = authOtpSecret || "dev-secret";
@@ -423,6 +432,17 @@ interface ClaimUsernameRequest {
   username?: string;
 }
 
+interface SignUpWithPasswordRequest {
+  username?: string;
+  email?: string;
+  password?: string;
+}
+
+interface LoginWithPasswordRequest {
+  identifier?: string;
+  password?: string;
+}
+
 function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
   const purpose = typeof value === "string" ? value.trim() : "";
   if (!EMAIL_OTP_PURPOSES.has(purpose as EmailOtpPurpose)) {
@@ -447,6 +467,40 @@ function hashOtpValue(otp: string, salt: string): string {
 
 function isValidOtp(otp: string): boolean {
   return new RegExp(`^\\\\d{${OTP_DIGITS}}$`).test(otp);
+}
+
+let dummyPasswordHash: string | null = null;
+
+async function getDummyPasswordHash(): Promise<string> {
+  if (dummyPasswordHash) return dummyPasswordHash;
+  dummyPasswordHash = await bcrypt.hash("dummy-password", PASSWORD_SALT_ROUNDS);
+  return dummyPasswordHash;
+}
+
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, PASSWORD_SALT_ROUNDS);
+}
+
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+async function getPasswordHash(uid: string): Promise<string | undefined> {
+  const snap = await db.collection("auth_credentials").doc(uid).get();
+  if (!snap.exists) return undefined;
+  const data = snap.data();
+  return typeof data?.passwordHash === "string" ? data.passwordHash : undefined;
+}
+
+async function setPasswordHash(uid: string, password: string) {
+  const passwordHash = await hashPassword(password);
+  await db.collection("auth_credentials").doc(uid).set(
+    {
+      passwordHash,
+      passwordUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
 }
 
 async function ensureUserDoc(params: {
@@ -553,8 +607,15 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
         targetEmail = normalizeEmail(identifierRaw);
       }
 
-      if (purpose === "reset_password" && !resolvedUid) {
-        targetEmail = undefined;
+      if (purpose === "reset_password") {
+        if (!resolvedUid) {
+          targetEmail = undefined;
+        } else {
+          const hasPassword = await getPasswordHash(resolvedUid);
+          if (!hasPassword) {
+            targetEmail = undefined;
+          }
+        }
       }
     }
 
@@ -832,16 +893,16 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
 
     if (purpose === "reset_password") {
       const newPassword = data?.newPassword ?? "";
-      if (newPassword.length < 6) {
+      if (newPassword.length < PASSWORD_MIN_LENGTH) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Use at least 6 characters."
+          `Use at least ${PASSWORD_MIN_LENGTH} characters.`
         );
       }
       const resolved = await resolveUserByIdentifier(identifierRaw);
       const uid = resolved?.uid;
       if (uid) {
-        await admin.auth().updateUser(uid, { password: newPassword });
+        await setPasswordHash(uid, newPassword);
       }
       await logAuthAudit({
         action: "verify_email_otp",
@@ -919,6 +980,281 @@ export const claimUsername = callable<ClaimUsernameRequest>(
     });
 
     return { status: "ok", username: trimmed };
+  }
+);
+
+export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
+  async (data, context) => {
+    const usernameRaw = requireString(data?.username, "username");
+    const emailRaw = requireString(data?.email, "email");
+    const passwordRaw = requireString(data?.password, "password");
+    const username = usernameRaw.trim();
+    const email = normalizeEmail(emailRaw);
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+
+    if (!USERNAME_REGEX.test(username)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Username must be 3-20 characters and use letters, numbers, or underscores."
+      );
+    }
+    if (!isEmailLike(email)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Enter a valid email address."
+      );
+    }
+    if (passwordRaw.length < PASSWORD_MIN_LENGTH) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+      );
+    }
+
+    const usernameLower = normalizeUsername(username);
+    const emailLower = normalizeEmail(email);
+    const emailHash = hashIdentifier(emailLower);
+    const usernameHash = hashIdentifier(usernameLower);
+
+    if (ip) {
+      const ipLimit = await applyRateLimit(
+        `signup:ip:${ip}`,
+        SIGNUP_ATTEMPT_LIMIT,
+        SIGNUP_ATTEMPT_WINDOW_MS,
+        SIGNUP_ATTEMPT_BLOCK_MS
+      );
+      if (!ipLimit.allowed) {
+        await logAuthAudit({
+          action: "signup_password",
+          status: "blocked",
+          identifierHash: emailHash,
+          ip,
+          userAgent,
+          metadata: { username: usernameLower },
+        });
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "Too many attempts. Try again later."
+        );
+      }
+    }
+
+    const emailLimit = await applyRateLimit(
+      `signup:id:${emailHash}`,
+      SIGNUP_ATTEMPT_LIMIT,
+      SIGNUP_ATTEMPT_WINDOW_MS,
+      SIGNUP_ATTEMPT_BLOCK_MS
+    );
+    const usernameLimit = await applyRateLimit(
+      `signup:username:${usernameHash}`,
+      SIGNUP_ATTEMPT_LIMIT,
+      SIGNUP_ATTEMPT_WINDOW_MS,
+      SIGNUP_ATTEMPT_BLOCK_MS
+    );
+    if (!emailLimit.allowed || !usernameLimit.allowed) {
+      await logAuthAudit({
+        action: "signup_password",
+        status: "blocked",
+        identifierHash: emailHash,
+        ip,
+        userAgent,
+        metadata: { username: usernameLower },
+      });
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Too many attempts. Try again later."
+      );
+    }
+
+    let emailInUse = false;
+    try {
+      await admin.auth().getUserByEmail(emailLower);
+      emailInUse = true;
+    } catch (_) {}
+
+    const usernameRef = db.collection("usernames").doc(usernameLower);
+    const usernameSnap = await usernameRef.get();
+    const usernameInUse = usernameSnap.exists;
+
+    if (emailInUse || usernameInUse) {
+      await logAuthAudit({
+        action: "signup_password",
+        status: "invalid",
+        identifierHash: emailHash,
+        ip,
+        userAgent,
+        metadata: { username: usernameLower },
+      });
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Could not create account. Check your details and try again."
+      );
+    }
+
+    let createdUid: string | undefined;
+    try {
+      const created = await admin.auth().createUser({
+        email: emailLower,
+        emailVerified: false,
+      });
+      createdUid = created.uid;
+
+      await db.runTransaction(async (tx) => {
+        const nameSnap = await tx.get(usernameRef);
+        if (nameSnap.exists) {
+          throw new functions.https.HttpsError(
+            "already-exists",
+            "Username is not available."
+          );
+        }
+        tx.set(usernameRef, {
+          uid: createdUid,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        tx.set(db.collection("users").doc(createdUid), {
+          username,
+          usernameLower,
+          email: emailLower,
+          emailLower,
+          isEmailVerified: false,
+          phoneNumber: "",
+          isPhoneVerified: false,
+          isIdVerified: false,
+          plan: "free",
+        });
+      });
+
+      await setPasswordHash(createdUid, passwordRaw);
+      const customToken = await admin.auth().createCustomToken(createdUid);
+      await logAuthAudit({
+        action: "signup_password",
+        status: "ok",
+        uid: createdUid,
+        identifierHash: emailHash,
+        ip,
+        userAgent,
+        metadata: { username: usernameLower },
+      });
+      return { status: "ok", customToken };
+    } catch (err) {
+      if (createdUid) {
+        try {
+          await admin.auth().deleteUser(createdUid);
+          const userRef = db.collection("users").doc(createdUid);
+          const credRef = db.collection("auth_credentials").doc(createdUid);
+          await Promise.all([userRef.delete(), credRef.delete()]);
+          const nameSnap = await usernameRef.get();
+          if (nameSnap.exists && nameSnap.data()?.uid === createdUid) {
+            await usernameRef.delete();
+          }
+        } catch (cleanupErr) {
+          console.error("Signup cleanup failed", cleanupErr);
+        }
+      }
+      if (isHttpsError(err)) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Could not create account. Check your details and try again."
+        );
+      }
+      console.error("Signup error", err);
+      throw new functions.https.HttpsError(
+        "internal",
+        "Could not create account. Please try again."
+      );
+    }
+  }
+);
+
+export const loginWithPassword = callable<LoginWithPasswordRequest>(
+  async (data, context) => {
+    const identifierRaw = requireString(data?.identifier, "identifier");
+    const password = requireString(data?.password, "password");
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+
+    const normalizedIdentifier = isEmailLike(identifierRaw)
+      ? normalizeEmail(identifierRaw)
+      : normalizeUsername(identifierRaw);
+    const identifierHash = hashIdentifier(normalizedIdentifier);
+
+    if (ip) {
+      const ipLimit = await applyRateLimit(
+        `login:ip:${ip}`,
+        LOGIN_ATTEMPT_LIMIT,
+        LOGIN_ATTEMPT_WINDOW_MS,
+        LOGIN_ATTEMPT_BLOCK_MS
+      );
+      if (!ipLimit.allowed) {
+        await logAuthAudit({
+          action: "login_password",
+          status: "blocked",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "Too many attempts. Try again later."
+        );
+      }
+    }
+
+    const idLimit = await applyRateLimit(
+      `login:id:${identifierHash}`,
+      LOGIN_ATTEMPT_LIMIT,
+      LOGIN_ATTEMPT_WINDOW_MS,
+      LOGIN_ATTEMPT_BLOCK_MS
+    );
+    if (!idLimit.allowed) {
+      await logAuthAudit({
+        action: "login_password",
+        status: "blocked",
+        identifierHash,
+        ip,
+        userAgent,
+      });
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Too many attempts. Try again later."
+      );
+    }
+
+    const resolved = await resolveUserByIdentifier(identifierRaw);
+    const uid = resolved?.uid;
+    const passwordHash = uid ? await getPasswordHash(uid) : undefined;
+    const dummyHash = await getDummyPasswordHash();
+    const hashToCheck = passwordHash ?? dummyHash;
+    const isValid = await verifyPassword(password, hashToCheck);
+
+    if (!uid || !passwordHash || !isValid) {
+      await logAuthAudit({
+        action: "login_password",
+        status: "invalid",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+      });
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Invalid credentials."
+      );
+    }
+
+    const customToken = await admin.auth().createCustomToken(uid);
+    await logAuthAudit({
+      action: "login_password",
+      status: "ok",
+      identifierHash,
+      uid,
+      ip,
+      userAgent,
+    });
+    return { status: "ok", customToken };
   }
 );
 

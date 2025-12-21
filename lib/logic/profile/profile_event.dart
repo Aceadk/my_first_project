@@ -18,12 +18,14 @@ class ProfileSaveRequested extends ProfileEvent {
 }
 
 class ProfileBasicInfoSubmitted extends ProfileEvent {
+  final String? username;
   final String name;
   final int age;
   final String gender;
   final String? sexualOrientation;
 
   ProfileBasicInfoSubmitted({
+    this.username,
     required this.name,
     required this.age,
     required this.gender,
@@ -31,7 +33,7 @@ class ProfileBasicInfoSubmitted extends ProfileEvent {
   });
 
   @override
-  List<Object?> get props => [name, age, gender, sexualOrientation];
+  List<Object?> get props => [username, name, age, gender, sexualOrientation];
 }
 
 class ProfileDetailsSubmitted extends ProfileEvent {

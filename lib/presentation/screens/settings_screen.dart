@@ -32,6 +32,15 @@ class SettingsScreen extends StatelessWidget {
           final push = context.read<PushNotifications>();
           final currentUserId =
               context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
+          final currentEmail =
+              context.select<AuthBloc, String?>((bloc) => bloc.state.user?.email);
+          final emailVerified = context.select<AuthBloc, bool>(
+            (bloc) => bloc.state.user?.isEmailVerified ?? false,
+          );
+          final hasEmail = currentEmail != null && currentEmail.isNotEmpty;
+          final emailSubtitle = hasEmail
+              ? 'Current: $currentEmail (${emailVerified ? 'verified' : 'not verified'})'
+              : 'Add an email for recovery and OTP';
           return ListView(
             children: [
               ListTile(
@@ -549,6 +558,63 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              const Divider(),
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  children: [
+                    const ListTile(
+                      title: Text(
+                        'Account security',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.email_outlined),
+                      title: const Text('Email protection'),
+                      subtitle: Text(emailSubtitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        CrushRoutes.emailProtection,
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.swap_horiz),
+                      title: const Text('Change email'),
+                      subtitle: Text(
+                        hasEmail
+                            ? 'Use a new email address'
+                            : 'Add an email first',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: hasEmail
+                          ? () => Navigator.pushNamed(
+                                context,
+                                CrushRoutes.changeEmail,
+                              )
+                          : null,
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.devices_outlined),
+                      title: const Text('New device check'),
+                      subtitle: const Text(
+                        'Verify a new device with email OTP',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        CrushRoutes.newDevice,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const Divider(),
               Card(

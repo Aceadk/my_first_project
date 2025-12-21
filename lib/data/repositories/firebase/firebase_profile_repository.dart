@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../../models/user.dart';
 import '../../models/profile.dart';
@@ -10,12 +11,15 @@ import '../profile_repository.dart';
 class FirebaseProfileRepository implements ProfileRepository {
   final fb.FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   FirebaseProfileRepository({
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _functions = functions ?? FirebaseFunctions.instance;
 
   String get _uid {
     final user = _auth.currentUser;
@@ -35,6 +39,7 @@ class FirebaseProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> saveBasicInfo({
+    String? username,
     required String name,
     required int age,
     required String gender,
@@ -42,6 +47,12 @@ class FirebaseProfileRepository implements ProfileRepository {
   }) async {
     if (age < CrushConstants.minAge) {
       throw Exception('User must be at least ${CrushConstants.minAge}.');
+    }
+
+    final requestedUsername = username?.trim();
+    if (requestedUsername != null && requestedUsername.isNotEmpty) {
+      final callable = _functions.httpsCallable('claimUsername');
+      await callable.call({'username': requestedUsername});
     }
 
     final doc = await _userDoc.get();
@@ -269,6 +280,8 @@ class FirebaseProfileRepository implements ProfileRepository {
       id: doc.id,
       phoneNumber: data['phoneNumber'] ?? '',
       email: data['email'],
+      username: data['username'],
+      isEmailVerified: data['isEmailVerified'] ?? false,
       profile: profile,
       isPhoneVerified: data['isPhoneVerified'] ?? false,
       isIdVerified: data['isIdVerified'] ?? false,

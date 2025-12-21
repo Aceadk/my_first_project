@@ -37,7 +37,7 @@ class WelcomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushNamed(context, CrushRoutes.emailAuth);
               },
-              child: const Text('Use email instead'),
+              child: const Text('Use email or username instead'),
             ),
           ],
         ),

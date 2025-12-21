@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants.dart';
@@ -14,6 +15,7 @@ import '../../../firebase_options.dart';
 class FirebaseAuthRepository implements AuthRepository {
   final fb.FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   String? _verificationId;
   int? _resendToken;
@@ -24,12 +26,14 @@ class FirebaseAuthRepository implements AuthRepository {
   FirebaseAuthRepository({
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _functions = functions ?? FirebaseFunctions.instance;
 
   @override
   Stream<CrushUser?> authStateChanges() {
-    return _auth.authStateChanges().asyncMap((fb.User? fbUser) async {
+    return _auth.userChanges().asyncMap((fb.User? fbUser) async {
       if (fbUser == null) return null;
       final userDoc =
           await _firestore.collection('users').doc(fbUser.uid).get();
@@ -39,6 +43,8 @@ class FirebaseAuthRepository implements AuthRepository {
           id: fbUser.uid,
           phoneNumber: fbUser.phoneNumber ?? '',
           email: fbUser.email,
+          username: null,
+          isEmailVerified: fbUser.emailVerified,
           profile: null,
           isPhoneVerified: fbUser.phoneNumber != null,
           isIdVerified: false,
@@ -47,6 +53,8 @@ class FirebaseAuthRepository implements AuthRepository {
         await _firestore.collection('users').doc(fbUser.uid).set({
           'phoneNumber': user.phoneNumber,
           'email': user.email,
+          'emailLower': user.email?.toLowerCase(),
+          'isEmailVerified': user.isEmailVerified,
           'isPhoneVerified': user.isPhoneVerified,
           'isIdVerified': user.isIdVerified,
           'plan': 'free',
@@ -188,29 +196,147 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    fb.UserCredential credential;
+    return loginWithPassword(identifier: email, password: password);
+  }
+
+  @override
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) async {
+    final callable = _functions.httpsCallable('loginWithPassword');
+    HttpsCallableResult result;
     try {
-      credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      result = await callable.call({
+        'identifier': identifier,
+        'password': password,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw RepositoryException(
+        e.code,
+        e.message ?? 'Could not sign in. Please try again.',
       );
-    } on fb.FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        credential = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-      } else {
-        throw RepositoryException(e.code, _friendlyAuthError(e));
-      }
     }
+    final data = result.data;
+    final token = data is Map ? data['customToken'] as String? : null;
+    if (token == null || token.isEmpty) {
+      throw Exception('Missing authentication token.');
+    }
+    final credential = await _auth.signInWithCustomToken(token);
     final fbUser = credential.user;
     if (fbUser == null) {
       throw Exception('Failed to sign in user.');
     }
     return _getOrCreateUserDoc(
       fbUser: fbUser,
-      email: email,
+      email: fbUser.email,
+      phoneNumber: fbUser.phoneNumber,
+      isPhoneVerified: fbUser.phoneNumber != null,
+    );
+  }
+
+  @override
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    final callable = _functions.httpsCallable('signUpWithPassword');
+    HttpsCallableResult result;
+    try {
+      result = await callable.call({
+        'username': username,
+        'email': email,
+        'password': password,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw RepositoryException(
+        e.code,
+        e.message ?? 'Could not create account. Please try again.',
+      );
+    }
+    final data = result.data;
+    final token = data is Map ? data['customToken'] as String? : null;
+    if (token == null || token.isEmpty) {
+      throw Exception('Missing authentication token.');
+    }
+    final credential = await _auth.signInWithCustomToken(token);
+    final fbUser = credential.user;
+    if (fbUser == null) {
+      throw Exception('Failed to create user session.');
+    }
+    return _getOrCreateUserDoc(
+      fbUser: fbUser,
+      email: fbUser.email,
+      phoneNumber: fbUser.phoneNumber,
+      isPhoneVerified: fbUser.phoneNumber != null,
+    );
+  }
+
+  @override
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {
+    final callable = _functions.httpsCallable('requestEmailOtp');
+    await callable.call({
+      'identifier': identifier,
+      'purpose': purpose.value,
+      'email': email,
+    });
+  }
+
+  @override
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async {
+    final callable = _functions.httpsCallable('verifyEmailOtp');
+    final result = await callable.call({
+      'identifier': identifier,
+      'otp': otp,
+      'purpose': purpose.value,
+      'newEmail': newEmail,
+      'newPassword': newPassword,
+    });
+
+    if (purpose == EmailOtpPurpose.login) {
+      final data = result.data;
+      final token = data is Map ? data['customToken'] as String? : null;
+      if (token == null || token.isEmpty) {
+        throw Exception('Missing authentication token.');
+      }
+      final credential = await _auth.signInWithCustomToken(token);
+      final fbUser = credential.user;
+      if (fbUser == null) {
+        throw Exception('Failed to sign in user.');
+      }
+      return _getOrCreateUserDoc(
+        fbUser: fbUser,
+        email: fbUser.email,
+        phoneNumber: fbUser.phoneNumber,
+        isPhoneVerified: fbUser.phoneNumber != null,
+      );
+    }
+
+    final current = _auth.currentUser;
+    if (current == null) {
+      return null;
+    }
+    await current.reload();
+    final refreshed = _auth.currentUser;
+    if (refreshed == null) {
+      return null;
+    }
+    return _getOrCreateUserDoc(
+      fbUser: refreshed,
+      email: refreshed.email,
+      phoneNumber: refreshed.phoneNumber,
+      isPhoneVerified: refreshed.phoneNumber != null,
     );
   }
 
@@ -268,6 +394,8 @@ class FirebaseAuthRepository implements AuthRepository {
       id: doc.id,
       phoneNumber: data['phoneNumber'] ?? '',
       email: data['email'],
+      username: data['username'],
+      isEmailVerified: data['isEmailVerified'] ?? false,
       profile: profile,
       isPhoneVerified: data['isPhoneVerified'] ?? false,
       isIdVerified: data['isIdVerified'] ?? false,
@@ -295,6 +423,8 @@ class FirebaseAuthRepository implements AuthRepository {
       await docRef.set({
         'phoneNumber': resolvedPhone,
         'email': resolvedEmail,
+        'emailLower': resolvedEmail?.toLowerCase(),
+        'isEmailVerified': fbUser.emailVerified,
         'isPhoneVerified': resolvedPhoneVerified,
         'isIdVerified': false,
         'plan': 'free',
@@ -303,6 +433,8 @@ class FirebaseAuthRepository implements AuthRepository {
         id: fbUser.uid,
         phoneNumber: resolvedPhone,
         email: resolvedEmail,
+        username: null,
+        isEmailVerified: fbUser.emailVerified,
         profile: null,
         isPhoneVerified: resolvedPhoneVerified,
         isIdVerified: false,
@@ -314,6 +446,8 @@ class FirebaseAuthRepository implements AuthRepository {
     final updates = <String, Object?>{};
     if (resolvedEmail != null && resolvedEmail.isNotEmpty) {
       updates['email'] = resolvedEmail;
+      updates['emailLower'] = resolvedEmail.toLowerCase();
+      updates['isEmailVerified'] = fbUser.emailVerified;
     }
     if (resolvedPhone.isNotEmpty) {
       updates['phoneNumber'] = resolvedPhone;
@@ -325,6 +459,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
     return user.copyWith(
       email: resolvedEmail ?? user.email,
+      isEmailVerified:
+          resolvedEmail != null ? fbUser.emailVerified : user.isEmailVerified,
       phoneNumber:
           resolvedPhone.isNotEmpty ? resolvedPhone : user.phoneNumber,
       isPhoneVerified: resolvedPhone.isNotEmpty
@@ -348,7 +484,7 @@ class FirebaseAuthRepository implements AuthRepository {
       case 'email-already-in-use':
         return 'That email is already in use.';
       case 'weak-password':
-        return 'Password should be at least 6 characters.';
+        return 'Password should be at least 8 characters.';
       case 'too-many-requests':
         return 'Too many attempts. Try again later.';
       case 'quota-exceeded':

@@ -17,10 +17,20 @@ class BasicInfoScreen extends StatefulWidget {
 }
 
 class _BasicInfoScreenState extends State<BasicInfoScreen> {
+  final _usernameController = TextEditingController();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   String _gender = 'female';
   String? _orientation;
+  bool _usernameTouched = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _nameController.dispose();
+    _ageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +65,17 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                         caption: 'Tell us about you to personalize matches',
                       ),
                       const SizedBox(height: 20),
+                      TextField(
+                        controller: _usernameController,
+                        decoration: InputDecoration(
+                          labelText: 'Username',
+                          helperText: '3-20 characters, letters, numbers, or underscore.',
+                          errorText: _usernameErrorText(),
+                        ),
+                        onTap: () => _markUsernameTouched(),
+                        onChanged: (_) => _markUsernameTouched(),
+                      ),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _nameController,
                         decoration: const InputDecoration(labelText: 'Name'),
@@ -92,10 +113,20 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                         onNext: isBusy
                             ? null
                             : () {
+                                setState(() {
+                                  _usernameTouched = true;
+                                });
+                                final usernameError = _usernameErrorText();
+                                if (usernameError != null) {
+                                  showErrorSnackBar(context, usernameError);
+                                  return;
+                                }
                                 final age =
                                     int.tryParse(_ageController.text) ?? 0;
                                 context.read<ProfileBloc>().add(
                                       ProfileBasicInfoSubmitted(
+                                        username:
+                                            _usernameController.text.trim(),
                                         name: _nameController.text.trim(),
                                         age: age,
                                         gender: _gender,
@@ -138,5 +169,26 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     } else {
       Navigator.pushReplacementNamed(context, CrushRoutes.phoneAuth);
     }
+  }
+
+  void _markUsernameTouched() {
+    if (!_usernameTouched) {
+      setState(() {
+        _usernameTouched = true;
+      });
+    }
+  }
+
+  String? _usernameErrorText() {
+    if (!_usernameTouched) return null;
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) {
+      return 'Choose a username to continue';
+    }
+    final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
+    if (!valid) {
+      return 'Use 3-20 letters, numbers, or underscore';
+    }
+    return null;
   }
 }

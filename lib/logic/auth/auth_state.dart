@@ -6,6 +6,7 @@ enum AuthStatus {
   unauthenticated,
   otpSent,
   emailLinkSent,
+  emailOtpSent,
   authenticating,
   authenticated,
 }
@@ -15,6 +16,7 @@ class AuthState extends Equatable {
   final CrushUser? user;
   final String? phoneInProgress;
   final String? emailInProgress;
+  final String? emailOtpIdentifier;
   final bool isLoading;
   final String? errorMessage;
   static const _unset = Object();
@@ -24,6 +26,7 @@ class AuthState extends Equatable {
     required this.user,
     required this.phoneInProgress,
     required this.emailInProgress,
+    required this.emailOtpIdentifier,
     this.isLoading = false,
     this.errorMessage,
   });
@@ -33,6 +36,7 @@ class AuthState extends Equatable {
         user: null,
         phoneInProgress: null,
         emailInProgress: null,
+        emailOtpIdentifier: null,
         isLoading: false,
         errorMessage: null,
       );
@@ -42,6 +46,7 @@ class AuthState extends Equatable {
     CrushUser? user,
     String? phoneInProgress,
     String? emailInProgress,
+    String? emailOtpIdentifier,
     bool? isLoading,
     Object? errorMessage = _unset,
   }) {
@@ -50,6 +55,7 @@ class AuthState extends Equatable {
       user: user ?? this.user,
       phoneInProgress: phoneInProgress ?? this.phoneInProgress,
       emailInProgress: emailInProgress ?? this.emailInProgress,
+      emailOtpIdentifier: emailOtpIdentifier ?? this.emailOtpIdentifier,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
@@ -59,5 +65,13 @@ class AuthState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [status, user, phoneInProgress, emailInProgress, isLoading, errorMessage];
+      [
+        status,
+        user,
+        phoneInProgress,
+        emailInProgress,
+        emailOtpIdentifier,
+        isLoading,
+        errorMessage,
+      ];
 }

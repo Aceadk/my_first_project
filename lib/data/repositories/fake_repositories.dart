@@ -27,8 +27,11 @@ class FakeAuthRepository implements AuthRepository {
   CrushUser? _current;
   final _otpStore = <String, _OtpEntry>{};
   final _emailLinkStore = <String, _OtpEntry>{};
+  final _emailOtpStore = <String, _OtpEntry>{};
   final _usersByEmail = <String, CrushUser>{};
+  final _usersByUsername = <String, CrushUser>{};
   final _passwordsByEmail = <String, String>{};
+  final _passwordsByUserId = <String, String>{};
   final _rand = Random.secure();
 
   @override
@@ -92,6 +95,8 @@ class FakeAuthRepository implements AuthRepository {
           id: _uuid.v4(),
           phoneNumber: '',
           email: email,
+          username: null,
+          isEmailVerified: true,
           profile: null,
           isPhoneVerified: false,
           isIdVerified: false,
@@ -108,25 +113,157 @@ class FakeAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final existingPassword = _passwordsByEmail[email];
-    if (existingPassword != null && existingPassword != password) {
-      throw Exception('Incorrect password.');
+    return loginWithPassword(identifier: email, password: password);
+  }
+
+  @override
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) async {
+    final normalized = identifier.trim().toLowerCase();
+    final user = normalized.contains('@')
+        ? _usersByEmail[normalized]
+        : _usersByUsername[normalized];
+    if (user == null) {
+      throw Exception('Invalid credentials.');
     }
-    _passwordsByEmail[email] = password;
-    final user = _usersByEmail[email] ??
-        CrushUser(
-          id: _uuid.v4(),
-          phoneNumber: '',
-          email: email,
-          profile: null,
-          isPhoneVerified: false,
-          isIdVerified: false,
-          plan: SubscriptionPlan.free,
-        );
-    _usersByEmail[email] = user;
+    final stored = _passwordsByUserId[user.id];
+    if (stored == null || stored != password) {
+      throw Exception('Invalid credentials.');
+    }
     _current = user;
     _controller.add(_current);
     return user;
+  }
+
+  @override
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final normalizedUsername = username.trim().toLowerCase();
+    if (_usersByEmail.containsKey(normalizedEmail) ||
+        _usersByUsername.containsKey(normalizedUsername)) {
+      throw Exception('Could not create account.');
+    }
+    final user = CrushUser(
+      id: _uuid.v4(),
+      phoneNumber: '',
+      email: normalizedEmail,
+      username: normalizedUsername,
+      isEmailVerified: false,
+      profile: null,
+      isPhoneVerified: false,
+      isIdVerified: false,
+      plan: SubscriptionPlan.free,
+    );
+    _usersByEmail[normalizedEmail] = user;
+    _usersByUsername[normalizedUsername] = user;
+    _passwordsByUserId[user.id] = password;
+    _passwordsByEmail[normalizedEmail] = password;
+    _current = user;
+    _controller.add(_current);
+    return user;
+  }
+
+  @override
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {
+    final normalized = identifier.trim().toLowerCase();
+    final key = '${purpose.value}:$normalized';
+    final otp = (_rand.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(const Duration(minutes: 10));
+    _emailOtpStore[key] = _OtpEntry(code: otp, expiresAt: expiresAt);
+    // ignore: avoid_print
+    print('Email OTP for $identifier (${purpose.value}): $otp');
+  }
+
+  @override
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async {
+    final normalized = identifier.trim().toLowerCase();
+    final key = '${purpose.value}:$normalized';
+    final entry = _emailOtpStore[key];
+    if (entry == null || DateTime.now().isAfter(entry.expiresAt)) {
+      throw Exception('Invalid or expired code.');
+    }
+    if (entry.code != otp) {
+      throw Exception('Invalid or expired code.');
+    }
+    _emailOtpStore.remove(key);
+
+    switch (purpose) {
+      case EmailOtpPurpose.login:
+        final isEmail = normalized.contains('@');
+        if (isEmail) {
+          final user = _usersByEmail[normalized] ??
+              CrushUser(
+                id: _uuid.v4(),
+                phoneNumber: '',
+                email: normalized,
+                username: null,
+                isEmailVerified: true,
+                profile: null,
+                isPhoneVerified: false,
+                isIdVerified: false,
+                plan: SubscriptionPlan.free,
+              );
+          _usersByEmail[normalized] = user;
+          _current = user;
+          _controller.add(_current);
+          return user;
+        }
+        final user = _usersByUsername[normalized] ??
+            CrushUser(
+              id: _uuid.v4(),
+              phoneNumber: '',
+              email: null,
+              username: normalized,
+              isEmailVerified: false,
+              profile: null,
+              isPhoneVerified: false,
+              isIdVerified: false,
+              plan: SubscriptionPlan.free,
+            );
+        _usersByUsername[normalized] = user;
+        _current = user;
+        _controller.add(_current);
+        return user;
+      case EmailOtpPurpose.addEmail:
+      case EmailOtpPurpose.changeEmail:
+        if (_current == null) return null;
+        final resolvedEmail = (newEmail ?? identifier).trim().toLowerCase();
+        final updated = _current!.copyWith(
+          email: resolvedEmail,
+          isEmailVerified: true,
+        );
+        _current = updated;
+        _usersByEmail[resolvedEmail] = updated;
+        _controller.add(_current);
+        return updated;
+      case EmailOtpPurpose.resetPassword:
+        final email = normalized;
+        final user = _usersByEmail[email];
+        if (newPassword != null && newPassword.isNotEmpty && user != null) {
+          _passwordsByUserId[user.id] = newPassword;
+          _passwordsByEmail[email] = newPassword;
+        }
+        return null;
+      case EmailOtpPurpose.newDevice:
+      case EmailOtpPurpose.sensitiveAction:
+        return null;
+    }
   }
 
   @override
@@ -148,6 +285,8 @@ class FakeAuthRepository implements AuthRepository {
       id: _uuid.v4(),
       phoneNumber: phoneNumber,
       email: null,
+      username: null,
+      isEmailVerified: false,
       profile: null,
       isPhoneVerified: true,
       isIdVerified: false,
@@ -242,6 +381,7 @@ class FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> saveBasicInfo({
+    String? username,
     required String name,
     required int age,
     required String gender,
@@ -290,6 +430,8 @@ class FakeProfileRepository implements ProfileRepository {
               id: _uuid.v4(),
               phoneNumber: '',
               email: null,
+              username: null,
+              isEmailVerified: false,
               profile: null,
               isPhoneVerified: true,
               isIdVerified: false,

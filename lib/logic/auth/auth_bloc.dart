@@ -19,6 +19,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEmailLinkRequested>(_onEmailLinkRequested);
     on<AuthEmailLinkSubmitted>(_onEmailLinkSubmitted);
     on<AuthEmailPasswordSubmitted>(_onEmailPasswordSubmitted);
+    on<AuthEmailOtpRequested>(_onEmailOtpRequested);
+    on<AuthEmailOtpSubmitted>(_onEmailOtpSubmitted);
+    on<AuthEmailOtpResendRequested>(_onEmailOtpResendRequested);
     on<AuthSignedOut>(_onSignedOut);
   }
 
@@ -190,6 +193,83 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       isLoading: false,
       errorMessage: result.errorMessage,
     ));
+  }
+
+  Future<void> _onEmailOtpRequested(
+      AuthEmailOtpRequested event, Emitter<AuthState> emit) async {
+    final identifier = event.identifier.trim();
+    if (identifier.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Enter your username or email.'));
+      return;
+    }
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      emailOtpIdentifier: identifier,
+      isLoading: true,
+      errorMessage: null,
+    ));
+    final result = await Result.guard(
+      () => authRepository.requestEmailOtp(
+        identifier: identifier,
+        purpose: EmailOtpPurpose.login,
+      ),
+      logLabel: 'AuthRepository.requestEmailOtp',
+      fallbackError: 'Could not send code. Please try again.',
+    );
+    if (!result.isSuccess) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ));
+      return;
+    }
+    emit(state.copyWith(
+      status: AuthStatus.emailOtpSent,
+      emailOtpIdentifier: identifier,
+      isLoading: false,
+      errorMessage: null,
+    ));
+  }
+
+  Future<void> _onEmailOtpSubmitted(
+      AuthEmailOtpSubmitted event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      emailOtpIdentifier: event.identifier.trim(),
+      isLoading: true,
+      errorMessage: null,
+    ));
+    final result = await Result.guard(
+      () => authRepository.verifyEmailOtp(
+        identifier: event.identifier.trim(),
+        otp: event.otp.trim(),
+        purpose: EmailOtpPurpose.login,
+      ),
+      logLabel: 'AuthRepository.verifyEmailOtp',
+      fallbackError: 'Invalid or expired code. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      status:
+          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
+      user: user ?? state.user,
+      isLoading: false,
+      errorMessage: result.errorMessage,
+    ));
+  }
+
+  Future<void> _onEmailOtpResendRequested(
+      AuthEmailOtpResendRequested event, Emitter<AuthState> emit) async {
+    final identifier =
+        event.identifier.trim().isNotEmpty ? event.identifier.trim() : '';
+    if (identifier.isEmpty) {
+      emit(state.copyWith(
+        errorMessage: 'Enter your username or email to resend the code.',
+      ));
+      return;
+    }
+    await _onEmailOtpRequested(AuthEmailOtpRequested(identifier), emit);
   }
 
   Future<void> _onSignedOut(

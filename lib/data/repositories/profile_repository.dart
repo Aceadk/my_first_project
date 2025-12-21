@@ -5,6 +5,7 @@ abstract class ProfileRepository {
   Future<CrushUser?> getCurrentUser();
 
   Future<CrushUser> saveBasicInfo({
+    String? username,
     required String name,
     required int age,
     required String gender,

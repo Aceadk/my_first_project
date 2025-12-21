@@ -73,6 +73,8 @@ void main() {
       id: 'user-1',
       phoneNumber: '+10000000000',
       email: null,
+      username: 'test_user',
+      isEmailVerified: false,
       profile: incompleteProfile,
       isPhoneVerified: true,
       isIdVerified: true,
@@ -149,6 +151,38 @@ class _StubAuthRepository implements AuthRepository {
       user;
 
   @override
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) async =>
+      user;
+
+  @override
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async =>
+      user;
+
+  @override
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {}
+
+  @override
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async =>
+      user;
+
+  @override
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
@@ -168,6 +202,7 @@ class _StubProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> saveBasicInfo({
+    String? username,
     required String name,
     required int age,
     required String gender,
@@ -261,6 +296,7 @@ class _StubAuthBloc extends AuthBloc {
       user: user,
       phoneInProgress: null,
       emailInProgress: null,
+      emailOtpIdentifier: null,
     ));
   }
 }

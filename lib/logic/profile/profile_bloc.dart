@@ -51,6 +51,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final result = await Result.guard(
       () => profileRepository.saveBasicInfo(
+        username: event.username,
         name: event.name,
         age: event.age,
         gender: event.gender,

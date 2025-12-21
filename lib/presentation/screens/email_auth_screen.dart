@@ -18,26 +18,34 @@ class EmailAuthScreen extends StatefulWidget {
 class _EmailAuthScreenState extends State<EmailAuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _identifierController = TextEditingController();
+  final _otpController = TextEditingController();
   bool _emailTouched = false;
   bool _passwordTouched = false;
   bool _submitted = false;
+  bool _identifierTouched = false;
+  bool _otpTouched = false;
+  bool _otpSubmitted = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _identifierController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Sign in with email'),
           bottom: const TabBar(
             tabs: [
+              Tab(text: 'Email OTP'),
               Tab(text: 'Email link'),
               Tab(text: 'Email + password'),
             ],
@@ -61,6 +69,12 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                   context,
                   'Email link sent to ${state.emailInProgress}.',
                 );
+              } else if (state.status == AuthStatus.emailOtpSent &&
+                  state.emailOtpIdentifier != null) {
+                showSuccessSnackBar(
+                  context,
+                  'If an account exists, we sent a code to the email on file.',
+                );
               }
               final error = state.errorMessage;
               if (error != null && error.isNotEmpty) {
@@ -81,6 +95,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                     Expanded(
                       child: TabBarView(
                         children: [
+                          _buildEmailOtpTab(state),
                           _buildEmailLinkTab(state),
                           _buildEmailPasswordTab(state),
                         ],
@@ -103,6 +118,94 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmailOtpTab(AuthState state) {
+    final identifier = _identifierController.text.trim();
+    final storedIdentifier = state.emailOtpIdentifier;
+    final effectiveIdentifier =
+        (storedIdentifier != null && storedIdentifier.isNotEmpty)
+            ? storedIdentifier
+            : identifier;
+    final otpSent = state.status == AuthStatus.emailOtpSent;
+
+    return Column(
+      children: [
+        TextField(
+          controller: _identifierController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(
+            labelText: 'Username or email',
+            helperText: 'We will send a 6-digit code to the email on file.',
+            errorText: _identifierErrorText(),
+          ),
+          onTap: () => _markIdentifierTouched(),
+          onChanged: (_) => _markIdentifierTouched(),
+        ),
+        if (otpSent) ...[
+          const SizedBox(height: 16),
+          TextField(
+            controller: _otpController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Enter code',
+              helperText: 'Enter the 6-digit code from your email.',
+              errorText: _otpErrorText(),
+            ),
+            onTap: () => _markOtpTouched(),
+            onChanged: (_) => _markOtpTouched(),
+          ),
+        ],
+        const SizedBox(height: 16),
+        OnboardingNavButtons(
+          showBack: false,
+          nextLabel: otpSent ? 'Verify code' : 'Send code',
+          onNext: () {
+            setState(() {
+              _identifierTouched = true;
+              _otpSubmitted = otpSent;
+              if (otpSent) {
+                _otpTouched = true;
+              }
+            });
+            final identifierError = _identifierErrorText();
+            if (identifierError != null) {
+              showErrorSnackBar(context, identifierError);
+              return;
+            }
+            if (otpSent) {
+              final otpError = _otpErrorText();
+              if (otpError != null) {
+                showErrorSnackBar(context, otpError);
+                return;
+              }
+              context.read<AuthBloc>().add(
+                    AuthEmailOtpSubmitted(
+                      effectiveIdentifier,
+                      _otpController.text.trim(),
+                    ),
+                  );
+              return;
+            }
+            context
+                .read<AuthBloc>()
+                .add(AuthEmailOtpRequested(identifier));
+          },
+          nextLoading: state.isLoading,
+        ),
+        if (otpSent) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: state.isLoading
+                ? null
+                : () => context.read<AuthBloc>().add(
+                      AuthEmailOtpResendRequested(effectiveIdentifier),
+                    ),
+            child: const Text('Resend code'),
+          ),
+        ],
+      ],
     );
   }
 
@@ -206,6 +309,16 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
           },
           nextLoading: state.isLoading,
         ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: state.isLoading
+              ? null
+              : () => Navigator.pushNamed(
+                    context,
+                    CrushRoutes.forgotPassword,
+                  ),
+          child: const Text('Forgot password?'),
+        ),
       ],
     );
   }
@@ -226,6 +339,54 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     }
   }
 
+  void _markIdentifierTouched() {
+    if (!_identifierTouched) {
+      setState(() {
+        _identifierTouched = true;
+      });
+    }
+  }
+
+  void _markOtpTouched() {
+    if (!_otpTouched) {
+      setState(() {
+        _otpTouched = true;
+      });
+    }
+  }
+
+  String? _identifierErrorText() {
+    if (!_identifierTouched) return null;
+    final identifier = _identifierController.text.trim();
+    if (identifier.isEmpty) {
+      return 'Enter your username or email';
+    }
+    if (identifier.contains('@')) {
+      if (!_looksLikeEmail(identifier)) {
+        return 'Enter a valid email address';
+      }
+      return null;
+    }
+    final valid =
+        RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(identifier);
+    if (!valid) {
+      return 'Use 3-20 letters, numbers, or underscore';
+    }
+    return null;
+  }
+
+  String? _otpErrorText() {
+    if (!_otpTouched && !_otpSubmitted) return null;
+    final otp = _otpController.text.trim();
+    if (otp.isEmpty) {
+      return 'Enter the 6-digit code';
+    }
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
+      return 'Use the 6-digit code from your email';
+    }
+    return null;
+  }
+
   String? _emailErrorText() {
     if (!_emailTouched && !_submitted) return null;
     final email = _emailController.text.trim();
@@ -244,8 +405,8 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     if (password.isEmpty) {
       return 'Enter your password';
     }
-    if (password.length < 6) {
-      return 'Use at least 6 characters';
+    if (password.length < 8) {
+      return 'Use at least 8 characters';
     }
     return null;
   }

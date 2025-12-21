@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     _fallbackTimer = Timer(_fallbackDelay, () {
-      _navigateTo(CrushRoutes.phoneAuth);
+      _navigateTo(CrushRoutes.authGateway);
     });
   }
 
@@ -47,12 +47,20 @@ class _SplashScreenState extends State<SplashScreen> {
       listenWhen: (prev, current) => prev.status != current.status,
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          _navigateTo(CrushRoutes.home);
+          final user = state.user;
+          if (user?.email != null &&
+              user!.email!.isNotEmpty &&
+              !user.isEmailVerified) {
+            _navigateTo(CrushRoutes.emailProtection, arguments: true);
+          } else {
+            _navigateTo(CrushRoutes.home);
+          }
         } else if (state.status == AuthStatus.unauthenticated ||
             state.status == AuthStatus.otpSent ||
             state.status == AuthStatus.emailLinkSent ||
+            state.status == AuthStatus.emailOtpSent ||
             state.status == AuthStatus.unknown) {
-          _navigateTo(CrushRoutes.phoneAuth);
+          _navigateTo(CrushRoutes.authGateway);
         }
       },
       child: const Scaffold(
@@ -76,10 +84,10 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void _navigateTo(String route) {
+  void _navigateTo(String route, {Object? arguments}) {
     if (_didNavigate || !mounted) return;
     _didNavigate = true;
     _fallbackTimer?.cancel();
-    Navigator.pushReplacementNamed(context, route);
+    Navigator.pushReplacementNamed(context, route, arguments: arguments);
   }
 }
