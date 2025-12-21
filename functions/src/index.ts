@@ -173,12 +173,18 @@ const OTP_DIGITS = 6;
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_VERIFY_MAX_ATTEMPTS = 5;
 const OTP_VERIFY_LOCK_MS = 15 * 60 * 1000;
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_REQUEST_LIMIT = 5;
 const OTP_REQUEST_WINDOW_MS = 10 * 60 * 1000;
 const OTP_REQUEST_BLOCK_MS = 20 * 60 * 1000;
 const OTP_VERIFY_LIMIT = 10;
 const OTP_VERIFY_WINDOW_MS = 10 * 60 * 1000;
 const OTP_VERIFY_BLOCK_MS = 20 * 60 * 1000;
+const SIGNUP_EMAIL_FLOW = "signup";
+const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
+const RESET_ATTEMPT_LIMIT = 5;
+const RESET_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
+const RESET_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
 const LOGIN_ATTEMPT_LIMIT = 8;
 const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
 const LOGIN_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
@@ -467,6 +473,14 @@ function hashOtpValue(otp: string, salt: string): string {
 
 function isValidOtp(otp: string): boolean {
   return new RegExp(`^\\\\d{${OTP_DIGITS}}$`).test(otp);
+}
+
+function generateResetToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function hashResetToken(token: string, salt: string): string {
+  return hashWithSecret(token, salt);
 }
 
 let dummyPasswordHash: string | null = null;
@@ -983,77 +997,56 @@ export const claimUsername = callable<ClaimUsernameRequest>(
   }
 );
 
-export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
-  async (data, context) => {
-    const usernameRaw = requireString(data?.username, "username");
-    const emailRaw = requireString(data?.email, "email");
-    const passwordRaw = requireString(data?.password, "password");
-    const username = usernameRaw.trim();
-    const email = normalizeEmail(emailRaw);
-    const ip = getClientIp(context);
-    const userAgent =
-      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+async function signUpWithPasswordCore(params: {
+  usernameRaw: string;
+  emailRaw: string;
+  passwordRaw: string;
+  ip?: string;
+  userAgent?: string;
+}): Promise<{
+  uid: string;
+  emailLower: string;
+  usernameLower: string;
+  customToken: string;
+}> {
+  const username = params.usernameRaw.trim();
+  const email = normalizeEmail(params.emailRaw);
+  const passwordRaw = params.passwordRaw;
+  const ip = params.ip;
+  const userAgent = params.userAgent;
 
-    if (!USERNAME_REGEX.test(username)) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Username must be 3-20 characters and use letters, numbers, or underscores."
-      );
-    }
-    if (!isEmailLike(email)) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Enter a valid email address."
-      );
-    }
-    if (passwordRaw.length < PASSWORD_MIN_LENGTH) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        `Use at least ${PASSWORD_MIN_LENGTH} characters.`
-      );
-    }
+  if (!USERNAME_REGEX.test(username)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Username must be 3-20 characters and use letters, numbers, or underscores."
+    );
+  }
+  if (!isEmailLike(email)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Enter a valid email address."
+    );
+  }
+  if (passwordRaw.length < PASSWORD_MIN_LENGTH) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+    );
+  }
 
-    const usernameLower = normalizeUsername(username);
-    const emailLower = normalizeEmail(email);
-    const emailHash = hashIdentifier(emailLower);
-    const usernameHash = hashIdentifier(usernameLower);
+  const usernameLower = normalizeUsername(username);
+  const emailLower = normalizeEmail(email);
+  const emailHash = hashIdentifier(emailLower);
+  const usernameHash = hashIdentifier(usernameLower);
 
-    if (ip) {
-      const ipLimit = await applyRateLimit(
-        `signup:ip:${ip}`,
-        SIGNUP_ATTEMPT_LIMIT,
-        SIGNUP_ATTEMPT_WINDOW_MS,
-        SIGNUP_ATTEMPT_BLOCK_MS
-      );
-      if (!ipLimit.allowed) {
-        await logAuthAudit({
-          action: "signup_password",
-          status: "blocked",
-          identifierHash: emailHash,
-          ip,
-          userAgent,
-          metadata: { username: usernameLower },
-        });
-        throw new functions.https.HttpsError(
-          "resource-exhausted",
-          "Too many attempts. Try again later."
-        );
-      }
-    }
-
-    const emailLimit = await applyRateLimit(
-      `signup:id:${emailHash}`,
+  if (ip) {
+    const ipLimit = await applyRateLimit(
+      `signup:ip:${ip}`,
       SIGNUP_ATTEMPT_LIMIT,
       SIGNUP_ATTEMPT_WINDOW_MS,
       SIGNUP_ATTEMPT_BLOCK_MS
     );
-    const usernameLimit = await applyRateLimit(
-      `signup:username:${usernameHash}`,
-      SIGNUP_ATTEMPT_LIMIT,
-      SIGNUP_ATTEMPT_WINDOW_MS,
-      SIGNUP_ATTEMPT_BLOCK_MS
-    );
-    if (!emailLimit.allowed || !usernameLimit.allowed) {
+    if (!ipLimit.allowed) {
       await logAuthAudit({
         action: "signup_password",
         status: "blocked",
@@ -1067,69 +1060,119 @@ export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
         "Too many attempts. Try again later."
       );
     }
+  }
 
-    let emailInUse = false;
-    try {
-      await admin.auth().getUserByEmail(emailLower);
-      emailInUse = true;
-    } catch (_) {}
+  const emailLimit = await applyRateLimit(
+    `signup:id:${emailHash}`,
+    SIGNUP_ATTEMPT_LIMIT,
+    SIGNUP_ATTEMPT_WINDOW_MS,
+    SIGNUP_ATTEMPT_BLOCK_MS
+  );
+  const usernameLimit = await applyRateLimit(
+    `signup:username:${usernameHash}`,
+    SIGNUP_ATTEMPT_LIMIT,
+    SIGNUP_ATTEMPT_WINDOW_MS,
+    SIGNUP_ATTEMPT_BLOCK_MS
+  );
+  if (!emailLimit.allowed || !usernameLimit.allowed) {
+    await logAuthAudit({
+      action: "signup_password",
+      status: "blocked",
+      identifierHash: emailHash,
+      ip,
+      userAgent,
+      metadata: { username: usernameLower },
+    });
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Too many attempts. Try again later."
+    );
+  }
 
-    const usernameRef = db.collection("usernames").doc(usernameLower);
-    const usernameSnap = await usernameRef.get();
-    const usernameInUse = usernameSnap.exists;
+  let emailInUse = false;
+  try {
+    await admin.auth().getUserByEmail(emailLower);
+    emailInUse = true;
+  } catch (_) {}
 
-    if (emailInUse || usernameInUse) {
-      await logAuthAudit({
-        action: "signup_password",
-        status: "invalid",
-        identifierHash: emailHash,
-        ip,
-        userAgent,
-        metadata: { username: usernameLower },
+  const usernameRef = db.collection("usernames").doc(usernameLower);
+  const usernameSnap = await usernameRef.get();
+  const usernameInUse = usernameSnap.exists;
+
+  if (emailInUse || usernameInUse) {
+    await logAuthAudit({
+      action: "signup_password",
+      status: "invalid",
+      identifierHash: emailHash,
+      ip,
+      userAgent,
+      metadata: { username: usernameLower },
+    });
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Could not create account. Check your details and try again."
+    );
+  }
+
+  let createdUid: string | undefined;
+  try {
+    const created = await admin.auth().createUser({
+      email: emailLower,
+      emailVerified: false,
+    });
+    createdUid = created.uid;
+
+    await db.runTransaction(async (tx) => {
+      const nameSnap = await tx.get(usernameRef);
+      if (nameSnap.exists) {
+        throw new functions.https.HttpsError(
+          "already-exists",
+          "Username is not available."
+        );
+      }
+      tx.set(usernameRef, {
+        uid: createdUid,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Could not create account. Check your details and try again."
-      );
-    }
-
-    let createdUid: string | undefined;
-    try {
-      const created = await admin.auth().createUser({
+      tx.set(db.collection("users").doc(createdUid), {
+        username,
+        usernameLower,
         email: emailLower,
-        emailVerified: false,
+        emailLower,
+        isEmailVerified: false,
+        phoneNumber: "",
+        isPhoneVerified: false,
+        isIdVerified: false,
+        plan: "free",
       });
-      createdUid = created.uid;
+    });
 
-      await db.runTransaction(async (tx) => {
-        const nameSnap = await tx.get(usernameRef);
-        if (nameSnap.exists) {
-          throw new functions.https.HttpsError(
-            "already-exists",
-            "Username is not available."
-          );
-        }
-        tx.set(usernameRef, {
-          uid: createdUid,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        tx.set(db.collection("users").doc(createdUid), {
-          username,
-          usernameLower,
-          email: emailLower,
-          emailLower,
-          isEmailVerified: false,
-          phoneNumber: "",
-          isPhoneVerified: false,
-          isIdVerified: false,
-          plan: "free",
-        });
-      });
+    await setPasswordHash(createdUid, passwordRaw);
 
-      await setPasswordHash(createdUid, passwordRaw);
-      const customToken = await admin.auth().createCustomToken(createdUid);
+    const otp = generateOtp();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const otpHash = hashOtpValue(otp, salt);
+    const now = Date.now();
+
+    await db.collection("auth_email_otps").add({
+      identifierHash: emailHash,
+      uid: createdUid,
+      emailLower,
+      purpose: "add_email",
+      flow: SIGNUP_EMAIL_FLOW,
+      otpHash,
+      otpSalt: salt,
+      failedAttempts: 0,
+      usedAt: null,
+      lockedUntil: null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+    });
+
+    try {
+      await sendOtpEmail({ to: emailLower, otp, purpose: "signup" });
       await logAuthAudit({
-        action: "signup_password",
+        action: "signup_email_otp",
         status: "ok",
         uid: createdUid,
         identifierHash: emailHash,
@@ -1137,36 +1180,174 @@ export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
         userAgent,
         metadata: { username: usernameLower },
       });
-      return { status: "ok", customToken };
     } catch (err) {
-      if (createdUid) {
-        try {
-          await admin.auth().deleteUser(createdUid);
-          const userRef = db.collection("users").doc(createdUid);
-          const credRef = db.collection("auth_credentials").doc(createdUid);
-          await Promise.all([userRef.delete(), credRef.delete()]);
-          const nameSnap = await usernameRef.get();
-          if (nameSnap.exists && nameSnap.data()?.uid === createdUid) {
-            await usernameRef.delete();
-          }
-        } catch (cleanupErr) {
-          console.error("Signup cleanup failed", cleanupErr);
+      console.error("Signup OTP email failed", err);
+      await logAuthAudit({
+        action: "signup_email_otp",
+        status: "error",
+        uid: createdUid,
+        identifierHash: emailHash,
+        ip,
+        userAgent,
+        metadata: { username: usernameLower },
+      });
+    }
+
+    const customToken = await admin.auth().createCustomToken(createdUid);
+    await logAuthAudit({
+      action: "signup_password",
+      status: "ok",
+      uid: createdUid,
+      identifierHash: emailHash,
+      ip,
+      userAgent,
+      metadata: { username: usernameLower },
+    });
+    return {
+      uid: createdUid,
+      emailLower,
+      usernameLower,
+      customToken,
+    };
+  } catch (err) {
+    if (createdUid) {
+      try {
+        await admin.auth().deleteUser(createdUid);
+        const userRef = db.collection("users").doc(createdUid);
+        const credRef = db.collection("auth_credentials").doc(createdUid);
+        await Promise.all([userRef.delete(), credRef.delete()]);
+        const nameSnap = await usernameRef.get();
+        if (nameSnap.exists && nameSnap.data()?.uid === createdUid) {
+          await usernameRef.delete();
         }
+      } catch (cleanupErr) {
+        console.error("Signup cleanup failed", cleanupErr);
       }
-      if (isHttpsError(err)) {
-        throw new functions.https.HttpsError(
-          "failed-precondition",
-          "Could not create account. Check your details and try again."
-        );
-      }
-      console.error("Signup error", err);
+    }
+    if (isHttpsError(err)) {
       throw new functions.https.HttpsError(
-        "internal",
-        "Could not create account. Please try again."
+        "failed-precondition",
+        "Could not create account. Check your details and try again."
+      );
+    }
+    console.error("Signup error", err);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Could not create account. Please try again."
+    );
+  }
+}
+
+export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
+  async (data, context) => {
+    const usernameRaw = requireString(data?.username, "username");
+    const emailRaw = requireString(data?.email, "email");
+    const passwordRaw = requireString(data?.password, "password");
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    const result = await signUpWithPasswordCore({
+      usernameRaw,
+      emailRaw,
+      passwordRaw,
+      ip,
+      userAgent,
+    });
+    return { status: "ok", customToken: result.customToken };
+  }
+);
+
+async function loginWithPasswordCore(params: {
+  identifier: string;
+  password: string;
+  ip?: string;
+  userAgent?: string;
+}) {
+  const identifierRaw = params.identifier.trim();
+  const password = params.password;
+  const ip = params.ip;
+  const userAgent = params.userAgent;
+
+  const normalizedIdentifier = isEmailLike(identifierRaw)
+    ? normalizeEmail(identifierRaw)
+    : normalizeUsername(identifierRaw);
+  const identifierHash = hashIdentifier(normalizedIdentifier);
+
+  if (ip) {
+    const ipLimit = await applyRateLimit(
+      `login:ip:${ip}`,
+      LOGIN_ATTEMPT_LIMIT,
+      LOGIN_ATTEMPT_WINDOW_MS,
+      LOGIN_ATTEMPT_BLOCK_MS
+    );
+    if (!ipLimit.allowed) {
+      await logAuthAudit({
+        action: "login_password",
+        status: "blocked",
+        identifierHash,
+        ip,
+        userAgent,
+      });
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Too many attempts. Try again later."
       );
     }
   }
-);
+
+  const idLimit = await applyRateLimit(
+    `login:id:${identifierHash}`,
+    LOGIN_ATTEMPT_LIMIT,
+    LOGIN_ATTEMPT_WINDOW_MS,
+    LOGIN_ATTEMPT_BLOCK_MS
+  );
+  if (!idLimit.allowed) {
+    await logAuthAudit({
+      action: "login_password",
+      status: "blocked",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Too many attempts. Try again later."
+    );
+  }
+
+  const resolved = await resolveUserByIdentifier(identifierRaw);
+  const uid = resolved?.uid;
+  const passwordHash = uid ? await getPasswordHash(uid) : undefined;
+  const dummyHash = await getDummyPasswordHash();
+  const hashToCheck = passwordHash ?? dummyHash;
+  const isValid = await verifyPassword(password, hashToCheck);
+
+  if (!uid || !passwordHash || !isValid) {
+    await logAuthAudit({
+      action: "login_password",
+      status: "invalid",
+      identifierHash,
+      uid,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Invalid credentials."
+    );
+  }
+
+  const customToken = await admin.auth().createCustomToken(uid);
+  await logAuthAudit({
+    action: "login_password",
+    status: "ok",
+    identifierHash,
+    uid,
+    ip,
+    userAgent,
+  });
+  return { status: "ok", customToken };
+}
 
 export const loginWithPassword = callable<LoginWithPasswordRequest>(
   async (data, context) => {
@@ -1175,88 +1356,693 @@ export const loginWithPassword = callable<LoginWithPasswordRequest>(
     const ip = getClientIp(context);
     const userAgent =
       context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    return loginWithPasswordCore({
+      identifier: identifierRaw,
+      password,
+      ip,
+      userAgent,
+    });
+  }
+);
 
-    const normalizedIdentifier = isEmailLike(identifierRaw)
-      ? normalizeEmail(identifierRaw)
-      : normalizeUsername(identifierRaw);
-    const identifierHash = hashIdentifier(normalizedIdentifier);
+export const authApi = functions.https.onRequest(async (req, res) => {
+  setAuthCorsHeaders(res);
+  res.set("Cache-Control", "no-store");
 
-    if (ip) {
-      const ipLimit = await applyRateLimit(
-        `login:ip:${ip}`,
-        LOGIN_ATTEMPT_LIMIT,
-        LOGIN_ATTEMPT_WINDOW_MS,
-        LOGIN_ATTEMPT_BLOCK_MS
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  const path = req.path ?? "/";
+  const normalizedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+  const isLogin = normalizedPath === "/auth/login";
+  const isSignup = normalizedPath === "/auth/signup";
+  const isEmailVerify = normalizedPath === "/auth/email/verify";
+  const isForgotRequest = normalizedPath === "/auth/forgot-password/request";
+  const isForgotVerify = normalizedPath === "/auth/forgot-password/verify";
+  const isForgotReset = normalizedPath === "/auth/forgot-password/reset";
+  if (
+    !isLogin &&
+    !isSignup &&
+    !isEmailVerify &&
+    !isForgotRequest &&
+    !isForgotVerify &&
+    !isForgotReset
+  ) {
+    res.status(404).json({ status: "error", message: "Not found." });
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({ status: "error", message: "Method not allowed." });
+    return;
+  }
+
+  const body = parseJsonBody(req);
+  if (!body) {
+    res.status(400).json({ status: "error", message: "Invalid request." });
+    return;
+  }
+
+  const ip = getRequestIp(req);
+  const userAgent = req.header("user-agent") ?? undefined;
+
+  try {
+    if (isLogin) {
+      const identifier =
+        typeof body.identifier === "string" ? body.identifier.trim() : "";
+      const password = typeof body.password === "string" ? body.password : "";
+
+      if (!identifier || !password) {
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid credentials." });
+        return;
+      }
+
+      const result = await loginWithPasswordCore({
+        identifier,
+        password,
+        ip,
+        userAgent,
+      });
+      res.status(200).json(result);
+      return;
+    }
+
+    if (isSignup) {
+      const username =
+        typeof body.username === "string" ? body.username.trim() : "";
+      const email = typeof body.email === "string" ? body.email.trim() : "";
+      const password =
+        typeof body.password === "string" ? body.password : "";
+
+      if (!username || !email || !password) {
+        res.status(400).json({
+          status: "error",
+          message: "Could not create account. Check your details and try again.",
+        });
+        return;
+      }
+
+      try {
+        const result = await signUpWithPasswordCore({
+          usernameRaw: username,
+          emailRaw: email,
+          passwordRaw: password,
+          ip,
+          userAgent,
+        });
+        res.status(200).json({ status: "ok", customToken: result.customToken });
+        return;
+      } catch (err) {
+        if (isHttpsError(err)) {
+          if (err.code === "resource-exhausted") {
+            res.status(429).json({
+              status: "error",
+              message: "Too many attempts. Try again later.",
+            });
+            return;
+          }
+          if (err.code === "invalid-argument") {
+            res.status(400).json({
+              status: "error",
+              message:
+                err.message ??
+                "Could not create account. Check your details and try again.",
+            });
+            return;
+          }
+          res.status(400).json({
+            status: "error",
+            message:
+              "Could not create account. Check your details and try again.",
+          });
+          return;
+        }
+        console.error("auth/signup error", err);
+        res.status(500).json({
+          status: "error",
+          message: "Unexpected error. Please try again.",
+        });
+        return;
+      }
+    }
+
+    if (isEmailVerify) {
+      const emailRaw =
+        typeof body.email === "string" ? body.email.trim() : "";
+      const otpRaw = typeof body.otp === "string" ? body.otp.trim() : "";
+
+      if (!emailRaw || !isEmailLike(emailRaw) || !isValidOtp(otpRaw)) {
+        res.status(400).json({
+          status: "error",
+          message: "Invalid or expired code.",
+        });
+        return;
+      }
+
+      const email = normalizeEmail(emailRaw);
+      const identifierHash = hashIdentifier(email);
+
+      const ipLimit = ip
+        ? await applyRateLimit(
+            `otp:verify:ip:${ip}`,
+            OTP_VERIFY_LIMIT,
+            OTP_VERIFY_WINDOW_MS,
+            OTP_VERIFY_BLOCK_MS
+          )
+        : { allowed: true };
+      const idLimit = await applyRateLimit(
+        `otp:verify:id:${identifierHash}`,
+        OTP_VERIFY_LIMIT,
+        OTP_VERIFY_WINDOW_MS,
+        OTP_VERIFY_BLOCK_MS
       );
-      if (!ipLimit.allowed) {
+
+      if (!ipLimit.allowed || !idLimit.allowed) {
         await logAuthAudit({
-          action: "login_password",
+          action: "signup_email_verify",
           status: "blocked",
           identifierHash,
           ip,
           userAgent,
         });
-        throw new functions.https.HttpsError(
-          "resource-exhausted",
-          "Too many attempts. Try again later."
+        res
+          .status(429)
+          .json({ status: "error", message: "Too many attempts. Try again." });
+        return;
+      }
+
+      const candidates = await db
+        .collection("auth_email_otps")
+        .where("identifierHash", "==", identifierHash)
+        .where("purpose", "==", "add_email")
+        .orderBy("createdAt", "desc")
+        .limit(5)
+        .get();
+
+      const now = Date.now();
+      let matchedDoc:
+        | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+        | null = null;
+      let matchedData: FirebaseFirestore.DocumentData | undefined;
+      for (const doc of candidates.docs) {
+        const data = doc.data();
+        if (data.flow !== SIGNUP_EMAIL_FLOW) continue;
+        const usedAt = data.usedAt?.toMillis?.() ?? 0;
+        const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+        const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+        if (usedAt) continue;
+        if (expiresAt && expiresAt < now) continue;
+        if (lockedUntil && lockedUntil > now) continue;
+
+        const computed = hashOtpValue(otpRaw, data.otpSalt as string);
+        if (timingSafeEqualHex(computed, data.otpHash as string)) {
+          matchedDoc = doc;
+          matchedData = data;
+          break;
+        }
+        const failedAttempts =
+          (data.failedAttempts as number | undefined) ?? 0;
+        const nextAttempts = failedAttempts + 1;
+        const updates: Record<string, unknown> = {
+          failedAttempts: nextAttempts,
+        };
+        if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
+          updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+            now + OTP_VERIFY_LOCK_MS
+          );
+        }
+        await doc.ref.update(updates);
+      }
+
+      if (!matchedDoc || !matchedData) {
+        await logAuthAudit({
+          action: "signup_email_verify",
+          status: "invalid",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res.status(400).json({
+          status: "error",
+          message: "Invalid or expired code.",
+        });
+        return;
+      }
+
+      await matchedDoc.ref.update({
+        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const uid = matchedData.uid as string | undefined;
+      if (uid) {
+        try {
+          await admin.auth().updateUser(uid, { emailVerified: true });
+        } catch (err) {
+          console.error("Email verify update failed", err);
+        }
+        await db.collection("users").doc(uid).set(
+          {
+            email,
+            emailLower: email,
+            isEmailVerified: true,
+          },
+          { merge: true }
         );
       }
-    }
 
-    const idLimit = await applyRateLimit(
-      `login:id:${identifierHash}`,
-      LOGIN_ATTEMPT_LIMIT,
-      LOGIN_ATTEMPT_WINDOW_MS,
-      LOGIN_ATTEMPT_BLOCK_MS
-    );
-    if (!idLimit.allowed) {
       await logAuthAudit({
-        action: "login_password",
-        status: "blocked",
-        identifierHash,
-        ip,
-        userAgent,
-      });
-      throw new functions.https.HttpsError(
-        "resource-exhausted",
-        "Too many attempts. Try again later."
-      );
-    }
-
-    const resolved = await resolveUserByIdentifier(identifierRaw);
-    const uid = resolved?.uid;
-    const passwordHash = uid ? await getPasswordHash(uid) : undefined;
-    const dummyHash = await getDummyPasswordHash();
-    const hashToCheck = passwordHash ?? dummyHash;
-    const isValid = await verifyPassword(password, hashToCheck);
-
-    if (!uid || !passwordHash || !isValid) {
-      await logAuthAudit({
-        action: "login_password",
-        status: "invalid",
+        action: "signup_email_verify",
+        status: "ok",
         identifierHash,
         uid,
         ip,
         userAgent,
       });
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Invalid credentials."
-      );
+
+      res.status(200).json({ status: "ok" });
+      return;
     }
 
-    const customToken = await admin.auth().createCustomToken(uid);
-    await logAuthAudit({
-      action: "login_password",
-      status: "ok",
-      identifierHash,
-      uid,
-      ip,
-      userAgent,
-    });
-    return { status: "ok", customToken };
+    if (isForgotRequest) {
+      const emailRaw =
+        typeof body.email === "string" ? body.email.trim() : "";
+      const responsePayload = {
+        status: "ok",
+        message:
+          "If the email is registered, a verification code will be sent.",
+      };
+
+      if (!emailRaw || !isEmailLike(emailRaw)) {
+        res.status(200).json(responsePayload);
+        return;
+      }
+
+      const email = normalizeEmail(emailRaw);
+      const identifierHash = hashIdentifier(email);
+      const ipLimit = ip
+        ? await applyRateLimit(
+            `otp:req:ip:${ip}`,
+            OTP_REQUEST_LIMIT,
+            OTP_REQUEST_WINDOW_MS,
+            OTP_REQUEST_BLOCK_MS
+          )
+        : { allowed: true };
+      const idLimit = await applyRateLimit(
+        `otp:req:id:${identifierHash}`,
+        OTP_REQUEST_LIMIT,
+        OTP_REQUEST_WINDOW_MS,
+        OTP_REQUEST_BLOCK_MS
+      );
+
+      if (!ipLimit.allowed || !idLimit.allowed) {
+        await logAuthAudit({
+          action: "forgot_password_request",
+          status: "blocked",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res.status(200).json(responsePayload);
+        return;
+      }
+
+      const recent = await db
+        .collection("auth_email_otps")
+        .where("identifierHash", "==", identifierHash)
+        .where("purpose", "==", "forgot_password")
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+      if (!recent.empty) {
+        const data = recent.docs[0].data();
+        const createdAt = data.createdAt?.toMillis?.() ?? 0;
+        if (createdAt && Date.now() - createdAt < OTP_RESEND_COOLDOWN_MS) {
+          await logAuthAudit({
+            action: "forgot_password_request",
+            status: "blocked",
+            identifierHash,
+            ip,
+            userAgent,
+            metadata: { cooldown: true },
+          });
+          res.status(200).json(responsePayload);
+          return;
+        }
+      }
+
+      let userRecord: admin.auth.UserRecord | null = null;
+      try {
+        userRecord = await admin.auth().getUserByEmail(email);
+      } catch (_) {
+        userRecord = null;
+      }
+
+      if (!userRecord || !userRecord.emailVerified) {
+        await logAuthAudit({
+          action: "forgot_password_request",
+          status: "ok",
+          identifierHash,
+          ip,
+          userAgent,
+          metadata: { skippedSend: true },
+        });
+        res.status(200).json(responsePayload);
+        return;
+      }
+
+      const passwordHash = await getPasswordHash(userRecord.uid);
+      if (!passwordHash) {
+        await logAuthAudit({
+          action: "forgot_password_request",
+          status: "ok",
+          identifierHash,
+          ip,
+          userAgent,
+          metadata: { skippedSend: true, noPassword: true },
+        });
+        res.status(200).json(responsePayload);
+        return;
+      }
+
+      const otp = generateOtp();
+      const salt = crypto.randomBytes(16).toString("hex");
+      const otpHash = hashOtpValue(otp, salt);
+      const now = Date.now();
+
+      await db.collection("auth_email_otps").add({
+        identifierHash,
+        uid: userRecord.uid,
+        emailLower: email,
+        purpose: "forgot_password",
+        otpHash,
+        otpSalt: salt,
+        failedAttempts: 0,
+        usedAt: null,
+        lockedUntil: null,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+      });
+
+      try {
+        await sendOtpEmail({ to: email, otp, purpose: "forgot_password" });
+        await logAuthAudit({
+          action: "forgot_password_request",
+          status: "ok",
+          identifierHash,
+          uid: userRecord.uid,
+          ip,
+          userAgent,
+        });
+      } catch (err) {
+        console.error("Forgot password email failed", err);
+        await logAuthAudit({
+          action: "forgot_password_request",
+          status: "error",
+          identifierHash,
+          uid: userRecord.uid,
+          ip,
+          userAgent,
+        });
+      }
+
+      res.status(200).json(responsePayload);
+      return;
+    }
+
+    if (isForgotVerify) {
+      const emailRaw =
+        typeof body.email === "string" ? body.email.trim() : "";
+      const otpRaw = typeof body.otp === "string" ? body.otp.trim() : "";
+      if (!emailRaw || !isEmailLike(emailRaw) || !isValidOtp(otpRaw)) {
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid or expired code." });
+        return;
+      }
+
+      const email = normalizeEmail(emailRaw);
+      const identifierHash = hashIdentifier(email);
+      const ipLimit = ip
+        ? await applyRateLimit(
+            `otp:verify:ip:${ip}`,
+            OTP_VERIFY_LIMIT,
+            OTP_VERIFY_WINDOW_MS,
+            OTP_VERIFY_BLOCK_MS
+          )
+        : { allowed: true };
+      const idLimit = await applyRateLimit(
+        `otp:verify:id:${identifierHash}`,
+        OTP_VERIFY_LIMIT,
+        OTP_VERIFY_WINDOW_MS,
+        OTP_VERIFY_BLOCK_MS
+      );
+
+      if (!ipLimit.allowed || !idLimit.allowed) {
+        await logAuthAudit({
+          action: "forgot_password_verify",
+          status: "blocked",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res
+          .status(429)
+          .json({ status: "error", message: "Too many attempts. Try again." });
+        return;
+      }
+
+      const candidates = await db
+        .collection("auth_email_otps")
+        .where("identifierHash", "==", identifierHash)
+        .where("purpose", "==", "forgot_password")
+        .orderBy("createdAt", "desc")
+        .limit(5)
+        .get();
+
+      const now = Date.now();
+      let matchedDoc:
+        | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+        | null = null;
+      let matchedData: FirebaseFirestore.DocumentData | undefined;
+      for (const doc of candidates.docs) {
+        const data = doc.data();
+        const usedAt = data.usedAt?.toMillis?.() ?? 0;
+        const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+        const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+        if (usedAt) continue;
+        if (expiresAt && expiresAt < now) continue;
+        if (lockedUntil && lockedUntil > now) continue;
+
+        const computed = hashOtpValue(otpRaw, data.otpSalt as string);
+        if (timingSafeEqualHex(computed, data.otpHash as string)) {
+          matchedDoc = doc;
+          matchedData = data;
+          break;
+        }
+        const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
+        const nextAttempts = failedAttempts + 1;
+        const updates: Record<string, unknown> = {
+          failedAttempts: nextAttempts,
+        };
+        if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
+          updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+            now + OTP_VERIFY_LOCK_MS
+          );
+        }
+        await doc.ref.update(updates);
+      }
+
+      if (!matchedDoc || !matchedData) {
+        await logAuthAudit({
+          action: "forgot_password_verify",
+          status: "invalid",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid or expired code." });
+        return;
+      }
+
+      await matchedDoc.ref.update({
+        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const resetToken = generateResetToken();
+      const resetSalt = crypto.randomBytes(16).toString("hex");
+      const resetHash = hashResetToken(resetToken, resetSalt);
+      const uid = matchedData.uid as string | undefined;
+
+      await db.collection("auth_password_resets").add({
+        identifierHash,
+        uid: uid ?? null,
+        emailLower: email,
+        resetTokenHash: resetHash,
+        resetTokenSalt: resetSalt,
+        usedAt: null,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromMillis(now + RESET_TOKEN_TTL_MS),
+      });
+
+      await logAuthAudit({
+        action: "forgot_password_verify",
+        status: "ok",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+      });
+
+      res.status(200).json({ status: "ok", reset_token: resetToken });
+      return;
+    }
+
+    if (isForgotReset) {
+      const emailRaw =
+        typeof body.email === "string" ? body.email.trim() : "";
+      const resetToken =
+        typeof body.reset_token === "string" ? body.reset_token.trim() : "";
+      const newPassword =
+        typeof body.new_password === "string" ? body.new_password : "";
+
+      if (!emailRaw || !isEmailLike(emailRaw) || !resetToken) {
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid reset request." });
+        return;
+      }
+
+      if (newPassword.length < PASSWORD_MIN_LENGTH) {
+        res.status(400).json({
+          status: "error",
+          message: `Use at least ${PASSWORD_MIN_LENGTH} characters.`,
+        });
+        return;
+      }
+
+      const email = normalizeEmail(emailRaw);
+      const identifierHash = hashIdentifier(email);
+      const ipLimit = ip
+        ? await applyRateLimit(
+            `reset:ip:${ip}`,
+            RESET_ATTEMPT_LIMIT,
+            RESET_ATTEMPT_WINDOW_MS,
+            RESET_ATTEMPT_BLOCK_MS
+          )
+        : { allowed: true };
+      const idLimit = await applyRateLimit(
+        `reset:id:${identifierHash}`,
+        RESET_ATTEMPT_LIMIT,
+        RESET_ATTEMPT_WINDOW_MS,
+        RESET_ATTEMPT_BLOCK_MS
+      );
+
+      if (!ipLimit.allowed || !idLimit.allowed) {
+        await logAuthAudit({
+          action: "forgot_password_reset",
+          status: "blocked",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res
+          .status(429)
+          .json({ status: "error", message: "Too many attempts. Try again." });
+        return;
+      }
+
+      const candidates = await db
+        .collection("auth_password_resets")
+        .where("identifierHash", "==", identifierHash)
+        .orderBy("createdAt", "desc")
+        .limit(5)
+        .get();
+
+      const now = Date.now();
+      let matchedDoc:
+        | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+        | null = null;
+      let matchedData: FirebaseFirestore.DocumentData | undefined;
+      for (const doc of candidates.docs) {
+        const data = doc.data();
+        const usedAt = data.usedAt?.toMillis?.() ?? 0;
+        const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+        if (usedAt) continue;
+        if (expiresAt && expiresAt < now) continue;
+
+        const computed = hashResetToken(resetToken, data.resetTokenSalt as string);
+        if (timingSafeEqualHex(computed, data.resetTokenHash as string)) {
+          matchedDoc = doc;
+          matchedData = data;
+          break;
+        }
+      }
+
+      if (!matchedDoc || !matchedData) {
+        await logAuthAudit({
+          action: "forgot_password_reset",
+          status: "invalid",
+          identifierHash,
+          ip,
+          userAgent,
+        });
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid reset request." });
+        return;
+      }
+
+      const uid = matchedData.uid as string | undefined;
+      if (uid) {
+        await setPasswordHash(uid, newPassword);
+        await admin.auth().revokeRefreshTokens(uid);
+      }
+
+      await matchedDoc.ref.update({
+        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      await logAuthAudit({
+        action: "forgot_password_reset",
+        status: "ok",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+      });
+
+      res.status(200).json({ status: "ok" });
+      return;
+    }
+  } catch (err) {
+    if (isHttpsError(err)) {
+      if (err.code === "resource-exhausted") {
+        res
+          .status(429)
+          .json({ status: "error", message: err.message ?? "Too many attempts." });
+        return;
+      }
+      if (err.code === "failed-precondition") {
+        res.status(401).json({ status: "error", message: "Invalid credentials." });
+        return;
+      }
+      if (err.code === "invalid-argument") {
+        res.status(400).json({ status: "error", message: "Invalid request." });
+        return;
+      }
+    }
+    console.error("authApi error", err);
+    res
+      .status(500)
+      .json({ status: "error", message: "Unexpected error. Please try again." });
   }
-);
+});
 
 type ProfileData = {
   bio?: unknown;
@@ -1413,6 +2199,37 @@ function setCorsHeaders(res: functions.Response) {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
+}
+
+function setAuthCorsHeaders(res: functions.Response) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+}
+
+function getRequestIp(req: functions.Request): string | undefined {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (Array.isArray(forwarded)) {
+    return forwarded[0]?.toString();
+  }
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0]?.trim();
+  }
+  return req.ip;
+}
+
+function parseJsonBody(req: functions.Request): Record<string, unknown> | null {
+  if (typeof req.body === "object" && req.body !== null) {
+    return req.body as Record<string, unknown>;
+  }
+  if (typeof req.body === "string" && req.body.length > 0) {
+    try {
+      return JSON.parse(req.body) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+  return {};
 }
 
 async function ensureUserInMatch(matchId: string, uid: string) {

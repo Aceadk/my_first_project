@@ -128,6 +128,9 @@ class _StubAuthRepository implements AuthRepository {
   final CrushUser user;
 
   @override
+  Future<void> bootstrapSession() async {}
+
+  @override
   Stream<CrushUser?> authStateChanges() => Stream.value(user);
 
   @override
@@ -191,6 +194,23 @@ class _StubAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async {}
+
+  @override
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async =>
+      'reset-token';
+
+  @override
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {}
 }
 
 class _StubProfileRepository implements ProfileRepository {

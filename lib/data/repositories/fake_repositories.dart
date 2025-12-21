@@ -28,11 +28,15 @@ class FakeAuthRepository implements AuthRepository {
   final _otpStore = <String, _OtpEntry>{};
   final _emailLinkStore = <String, _OtpEntry>{};
   final _emailOtpStore = <String, _OtpEntry>{};
+  final _passwordResetTokens = <String, _OtpEntry>{};
   final _usersByEmail = <String, CrushUser>{};
   final _usersByUsername = <String, CrushUser>{};
   final _passwordsByEmail = <String, String>{};
   final _passwordsByUserId = <String, String>{};
   final _rand = Random.secure();
+
+  @override
+  Future<void> bootstrapSession() async {}
 
   @override
   Stream<CrushUser?> authStateChanges() => _controller.stream;
@@ -300,6 +304,61 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> signOut() async {
     _current = null;
     _controller.add(null);
+  }
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async {
+    final normalized = email.trim().toLowerCase();
+    final otp = (_rand.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(const Duration(minutes: 10));
+    _emailOtpStore['forgot_password:$normalized'] =
+        _OtpEntry(code: otp, expiresAt: expiresAt);
+    // ignore: avoid_print
+    print('Password reset OTP for $normalized: $otp');
+  }
+
+  @override
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final normalized = email.trim().toLowerCase();
+    final key = 'forgot_password:$normalized';
+    final entry = _emailOtpStore[key];
+    if (entry == null || DateTime.now().isAfter(entry.expiresAt)) {
+      throw Exception('Invalid or expired code.');
+    }
+    if (entry.code != otp) {
+      throw Exception('Invalid or expired code.');
+    }
+    _emailOtpStore.remove(key);
+    final resetToken = _uuid.v4();
+    final expiresAt = DateTime.now().add(const Duration(minutes: 10));
+    _passwordResetTokens[normalized] =
+        _OtpEntry(code: resetToken, expiresAt: expiresAt);
+    return resetToken;
+  }
+
+  @override
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    final normalized = email.trim().toLowerCase();
+    final entry = _passwordResetTokens[normalized];
+    if (entry == null || DateTime.now().isAfter(entry.expiresAt)) {
+      throw Exception('Invalid reset request.');
+    }
+    if (entry.code != resetToken) {
+      throw Exception('Invalid reset request.');
+    }
+    _passwordResetTokens.remove(normalized);
+    final user = _usersByEmail[normalized];
+    if (user != null) {
+      _passwordsByUserId[user.id] = newPassword;
+      _passwordsByEmail[normalized] = newPassword;
+    }
   }
 }
 

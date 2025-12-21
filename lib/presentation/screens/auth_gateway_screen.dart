@@ -34,12 +34,12 @@ class AuthGatewayScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
+              PrimaryButton(
+                label: 'Sign Up',
                 onPressed: () => Navigator.pushNamed(
                   context,
                   CrushRoutes.signUp,
                 ),
-                child: const Text('Sign Up'),
               ),
             ],
           ),

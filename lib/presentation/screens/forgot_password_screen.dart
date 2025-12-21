@@ -13,19 +13,19 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _identifierController = TextEditingController();
+  final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _identifierTouched = false;
+  bool _emailTouched = false;
   bool _otpTouched = false;
   bool _passwordTouched = false;
   bool _otpSent = false;
   bool _isLoading = false;
-  String? _sentIdentifier;
+  String? _sentEmail;
 
   @override
   void dispose() {
-    _identifierController.dispose();
+    _emailController.dispose();
     _otpController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -44,15 +44,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: _identifierController,
+            controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Email address',
               helperText: 'We will send a 6-digit code to the email on file.',
-              errorText: _identifierErrorText(),
+              errorText: _emailErrorText(),
             ),
-            onTap: () => _markIdentifierTouched(),
-            onChanged: (_) => _markIdentifierTouched(),
+            onTap: () => _markEmailTouched(),
+            onChanged: (_) => _markEmailTouched(),
           ),
           if (_otpSent) ...[
             const SizedBox(height: 16),
@@ -106,10 +106,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  void _markIdentifierTouched() {
-    if (!_identifierTouched) {
+  void _markEmailTouched() {
+    if (!_emailTouched) {
       setState(() {
-        _identifierTouched = true;
+        _emailTouched = true;
       });
     }
   }
@@ -130,13 +130,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  String? _identifierErrorText() {
-    if (!_identifierTouched) return null;
-    final identifier = _identifierController.text.trim();
-    if (identifier.isEmpty) {
+  String? _emailErrorText() {
+    if (!_emailTouched) return null;
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(identifier)) {
+    if (!_looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -171,23 +171,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _requestOtp() async {
     setState(() {
-      _identifierTouched = true;
+      _emailTouched = true;
     });
-    final identifierError = _identifierErrorText();
-    if (identifierError != null) {
-      showErrorSnackBar(context, identifierError);
+    final emailError = _emailErrorText();
+    if (emailError != null) {
+      showErrorSnackBar(context, emailError);
       return;
     }
-    final identifier = _identifierController.text.trim();
+    final email = _emailController.text.trim();
     setState(() {
       _isLoading = true;
     });
     final result = await Result.guard(
-      () => context.read<AuthRepository>().requestEmailOtp(
-            identifier: identifier,
-            purpose: EmailOtpPurpose.resetPassword,
-          ),
-      logLabel: 'AuthRepository.requestEmailOtp',
+      () => context
+          .read<AuthRepository>()
+          .requestPasswordReset(email: email),
+      logLabel: 'AuthRepository.requestPasswordReset',
       fallbackError: 'Could not send code. Please try again.',
     );
 
@@ -201,7 +200,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
     setState(() {
       _otpSent = true;
-      _sentIdentifier = identifier;
+      _sentEmail = email;
     });
     showSuccessSnackBar(
       context,
@@ -224,33 +223,56 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       showErrorSnackBar(context, passwordError);
       return;
     }
-    final identifier = _sentIdentifier ?? _identifierController.text.trim();
+    final email = _sentEmail ?? _emailController.text.trim();
     final otp = _otpController.text.trim();
     final newPassword = _passwordController.text;
     setState(() {
       _isLoading = true;
     });
-    final result = await Result.guard(
-      () => context.read<AuthRepository>().verifyEmailOtp(
-            identifier: identifier,
-            otp: otp,
-            purpose: EmailOtpPurpose.resetPassword,
+    final tokenResult = await Result.guard(
+      () => context
+          .read<AuthRepository>()
+          .verifyPasswordResetOtp(email: email, otp: otp),
+      logLabel: 'AuthRepository.verifyPasswordResetOtp',
+      fallbackError: 'Invalid or expired code. Please try again.',
+    );
+
+    if (!mounted) return;
+    if (!tokenResult.isSuccess || tokenResult.data == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      showErrorSnackBar(
+        context,
+        tokenResult.errorMessage ?? 'Invalid or expired code.',
+      );
+      return;
+    }
+
+    final resetResult = await Result.guard(
+      () => context.read<AuthRepository>().resetPasswordWithToken(
+            email: email,
+            resetToken: tokenResult.data!,
             newPassword: newPassword,
           ),
-      logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+      logLabel: 'AuthRepository.resetPasswordWithToken',
+      fallbackError: 'Could not reset password. Please try again.',
     );
 
     if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
-    if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Reset failed.');
+    if (!resetResult.isSuccess) {
+      showErrorSnackBar(
+        context,
+        resetResult.errorMessage ?? 'Reset failed.',
+      );
       return;
     }
     setState(() {
       _otpSent = false;
+      _sentEmail = null;
       _otpController.clear();
       _passwordController.clear();
     });

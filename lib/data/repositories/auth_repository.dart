@@ -29,6 +29,8 @@ extension EmailOtpPurposeValue on EmailOtpPurpose {
 }
 
 abstract class AuthRepository {
+  Future<void> bootstrapSession();
+
   Stream<CrushUser?> authStateChanges();
 
   Future<void> sendOtp(String phoneNumber);
@@ -73,6 +75,19 @@ abstract class AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
+  });
+
+  Future<void> requestPasswordReset({required String email});
+
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  });
+
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
   });
 
   Future<void> signOut();

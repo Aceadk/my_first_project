@@ -115,6 +115,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: const Text('Resend code'),
             ),
           ],
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _isLoading
+                ? null
+                : () => Navigator.pushReplacementNamed(
+                      context,
+                      CrushRoutes.login,
+                    ),
+            child: const Text('Already have an account? Log in'),
+          ),
         ],
       ),
     );
@@ -245,7 +255,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() {
       _otpSent = true;
     });
-    await _sendOtp();
+    showSuccessSnackBar(
+      context,
+      'Check your email for a 6-digit code to verify your account.',
+    );
   }
 
   Future<void> _sendOtp() async {

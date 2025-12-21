@@ -71,6 +71,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
             child: const Text('Forgot password?'),
           ),
+          TextButton(
+            onPressed: _isLoading
+                ? null
+                : () => Navigator.pushNamed(
+                      context,
+                      CrushRoutes.signUp,
+                    ),
+            child: const Text('Create an account'),
+          ),
         ],
       ),
     );

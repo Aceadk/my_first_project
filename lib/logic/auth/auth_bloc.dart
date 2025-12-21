@@ -30,6 +30,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await Result.guard(
       () async {
         await _sub?.cancel();
+        await authRepository.bootstrapSession();
         final sub = authRepository.authStateChanges().listen((user) {
           add(_AuthUserChanged(user));
         });

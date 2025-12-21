@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/constants.dart';
 import '../../../core/errors.dart';
 import '../../models/user.dart';
@@ -11,25 +13,42 @@ import '../../models/preferences.dart';
 import '../../models/subscription.dart';
 import '../auth_repository.dart';
 import '../../../firebase_options.dart';
+import '../../services/auth_session_manager.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final fb.FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
+  final AuthSessionManager _sessionManager;
 
   String? _verificationId;
   int? _resendToken;
   static const _emailLinkKey = 'auth_email_link_email';
   static const _androidPackageName = 'com.example.crushhour';
   static const _iosBundleId = 'com.example.myFirstProject';
+  static const _authFunctionBaseUrl = String.fromEnvironment(
+    'CRUSH_AUTH_FUNCTION_BASE_URL',
+    defaultValue: 'https://us-central1-crushhour-dev.cloudfunctions.net',
+  );
+  static const _authFunctionName = String.fromEnvironment(
+    'CRUSH_AUTH_FUNCTION_NAME',
+    defaultValue: 'authApi',
+  );
 
   FirebaseAuthRepository({
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
     FirebaseFunctions? functions,
+    AuthSessionManager? sessionManager,
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _functions = functions ?? FirebaseFunctions.instance;
+        _functions = functions ?? FirebaseFunctions.instance,
+        _sessionManager = sessionManager ?? AuthSessionManager();
+
+  @override
+  Future<void> bootstrapSession() async {
+    await _sessionManager.validateOrRefresh();
+  }
 
   @override
   Stream<CrushUser?> authStateChanges() {
@@ -132,6 +151,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       throw Exception('Failed to sign in user.');
     }
+    await _sessionManager.persistFromUser(fbUser);
     return _getOrCreateUserDoc(
       fbUser: fbUser,
       phoneNumber: phoneNumber,
@@ -184,6 +204,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       throw Exception('Failed to sign in user.');
     }
+    await _sessionManager.persistFromUser(fbUser);
     await prefs.remove(_emailLinkKey);
     return _getOrCreateUserDoc(
       fbUser: fbUser,
@@ -227,6 +248,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       throw Exception('Failed to sign in user.');
     }
+    await _sessionManager.persistFromUser(fbUser);
     return _getOrCreateUserDoc(
       fbUser: fbUser,
       email: fbUser.email,
@@ -241,22 +263,25 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final callable = _functions.httpsCallable('signUpWithPassword');
-    HttpsCallableResult result;
-    try {
-      result = await callable.call({
+    final response = await _postAuth(
+      '/auth/signup',
+      {
         'username': username,
         'email': email,
         'password': password,
-      });
-    } on FirebaseFunctionsException catch (e) {
+      },
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       throw RepositoryException(
-        e.code,
-        e.message ?? 'Could not create account. Please try again.',
+        'signup_failed',
+        _extractMessage(
+          response,
+          'Could not create account. Please try again.',
+        ),
       );
     }
-    final data = result.data;
-    final token = data is Map ? data['customToken'] as String? : null;
+    final decoded = _decodeResponse(response.body);
+    final token = decoded is Map ? decoded['customToken'] as String? : null;
     if (token == null || token.isEmpty) {
       throw Exception('Missing authentication token.');
     }
@@ -265,6 +290,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       throw Exception('Failed to create user session.');
     }
+    await _sessionManager.persistFromUser(fbUser);
     return _getOrCreateUserDoc(
       fbUser: fbUser,
       email: fbUser.email,
@@ -315,6 +341,7 @@ class FirebaseAuthRepository implements AuthRepository {
       if (fbUser == null) {
         throw Exception('Failed to sign in user.');
       }
+      await _sessionManager.persistFromUser(fbUser);
       return _getOrCreateUserDoc(
         fbUser: fbUser,
         email: fbUser.email,
@@ -338,6 +365,78 @@ class FirebaseAuthRepository implements AuthRepository {
       phoneNumber: refreshed.phoneNumber,
       isPhoneVerified: refreshed.phoneNumber != null,
     );
+  }
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async {
+    final response = await _postAuth(
+      '/auth/forgot-password/request',
+      {'email': email},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw RepositoryException(
+        'forgot_password_request',
+        _extractMessage(
+          response,
+          'Could not send code. Please try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _postAuth(
+      '/auth/forgot-password/verify',
+      {'email': email, 'otp': otp},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw RepositoryException(
+        'forgot_password_verify',
+        _extractMessage(
+          response,
+          'Invalid or expired code. Please try again.',
+        ),
+      );
+    }
+    final decoded = _decodeResponse(response.body);
+    final resetToken =
+        decoded is Map ? decoded['reset_token'] as String? : null;
+    if (resetToken == null || resetToken.isEmpty) {
+      throw RepositoryException(
+        'forgot_password_verify',
+        'Invalid or expired code. Please try again.',
+      );
+    }
+    return resetToken;
+  }
+
+  @override
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    final response = await _postAuth(
+      '/auth/forgot-password/reset',
+      {
+        'email': email,
+        'reset_token': resetToken,
+        'new_password': newPassword,
+      },
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw RepositoryException(
+        'forgot_password_reset',
+        _extractMessage(
+          response,
+          'Could not reset password. Please try again.',
+        ),
+      );
+    }
   }
 
   CrushUser _fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -404,7 +503,10 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    await _sessionManager.clear();
+    await _auth.signOut();
+  }
 
   Future<CrushUser> _getOrCreateUserDoc({
     required fb.User fbUser,
@@ -501,6 +603,42 @@ class FirebaseAuthRepository implements AuthRepository {
         return 'Network error. Check your connection and try again.';
       default:
         return e.message ?? 'Could not send code. Please try again.';
+    }
+  }
+
+  Uri _authApiUri(String path) {
+    final normalized = path.startsWith('/') ? path : '/$path';
+    return Uri.parse('$_authFunctionBaseUrl/$_authFunctionName$normalized');
+  }
+
+  Future<http.Response> _postAuth(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
+    final uri = _authApiUri(path);
+    return http
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 12));
+  }
+
+  String _extractMessage(http.Response response, String fallback) {
+    final decoded = _decodeResponse(response.body);
+    if (decoded is Map && decoded['message'] is String) {
+      return decoded['message'] as String;
+    }
+    return fallback;
+  }
+
+  Object? _decodeResponse(String body) {
+    if (body.isEmpty) return null;
+    try {
+      return jsonDecode(body);
+    } catch (_) {
+      return null;
     }
   }
 }
