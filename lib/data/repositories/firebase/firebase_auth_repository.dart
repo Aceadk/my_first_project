@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants.dart';
 import '../../../core/errors.dart';
 import '../../models/user.dart';
@@ -8,6 +9,7 @@ import '../../models/profile.dart';
 import '../../models/preferences.dart';
 import '../../models/subscription.dart';
 import '../auth_repository.dart';
+import '../../../firebase_options.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final fb.FirebaseAuth _auth;
@@ -15,6 +17,9 @@ class FirebaseAuthRepository implements AuthRepository {
 
   String? _verificationId;
   int? _resendToken;
+  static const _emailLinkKey = 'auth_email_link_email';
+  static const _androidPackageName = 'com.example.crushhour';
+  static const _iosBundleId = 'com.example.myFirstProject';
 
   FirebaseAuthRepository({
     fb.FirebaseAuth? auth,
@@ -119,38 +124,94 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       throw Exception('Failed to sign in user.');
     }
+    return _getOrCreateUserDoc(
+      fbUser: fbUser,
+      phoneNumber: phoneNumber,
+      email: fbUser.email,
+      isPhoneVerified: true,
+    );
+  }
 
-    final docRef = _firestore.collection('users').doc(fbUser.uid);
-    final doc = await docRef.get();
-    if (!doc.exists) {
-      // Create new user doc
-      await docRef.set({
-        'phoneNumber': phoneNumber,
-        'email': fbUser.email,
-        'isPhoneVerified': true,
-        'isIdVerified': false,
-        'plan': 'free',
-      });
-      return CrushUser(
-        id: fbUser.uid,
-        phoneNumber: phoneNumber,
-        email: fbUser.email,
-        profile: null,
-        isPhoneVerified: true,
-        isIdVerified: false,
-        plan: SubscriptionPlan.free,
-      );
-    } else {
-      final user = _fromDoc(doc);
-      // Ensure phone is set + verified
-      await docRef.update({
-        'phoneNumber': phoneNumber,
-        'isPhoneVerified': true,
-      });
-      return user.copyWith(
-        phoneNumber: phoneNumber,
-      );
+  @override
+  Future<void> sendEmailSignInLink(String email) async {
+    final authDomain = DefaultFirebaseOptions.web.authDomain;
+    final actionCodeSettings = fb.ActionCodeSettings(
+      url: authDomain != null && authDomain.isNotEmpty
+          ? 'https://$authDomain'
+          : 'https://crushhour-40c2d.firebaseapp.com',
+      handleCodeInApp: true,
+      iOSBundleId: _iosBundleId,
+      androidPackageName: _androidPackageName,
+      androidInstallApp: true,
+      androidMinimumVersion: '21',
+    );
+    await _auth.sendSignInLinkToEmail(
+      email: email,
+      actionCodeSettings: actionCodeSettings,
+    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_emailLinkKey, email);
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    if (!_auth.isSignInWithEmailLink(emailLink)) {
+      throw Exception('Invalid email sign-in link.');
     }
+    final prefs = await SharedPreferences.getInstance();
+    final resolvedEmail = email.isNotEmpty
+        ? email
+        : (prefs.getString(_emailLinkKey) ?? '');
+    if (resolvedEmail.isEmpty) {
+      throw Exception('Missing email for sign-in.');
+    }
+    final result = await _auth.signInWithEmailLink(
+      email: resolvedEmail,
+      emailLink: emailLink,
+    );
+    final fbUser = result.user;
+    if (fbUser == null) {
+      throw Exception('Failed to sign in user.');
+    }
+    await prefs.remove(_emailLinkKey);
+    return _getOrCreateUserDoc(
+      fbUser: fbUser,
+      email: resolvedEmail,
+    );
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    fb.UserCredential credential;
+    try {
+      credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        credential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } else {
+        throw RepositoryException(e.code, _friendlyAuthError(e));
+      }
+    }
+    final fbUser = credential.user;
+    if (fbUser == null) {
+      throw Exception('Failed to sign in user.');
+    }
+    return _getOrCreateUserDoc(
+      fbUser: fbUser,
+      email: email,
+    );
   }
 
   CrushUser _fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -217,12 +278,77 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() => _auth.signOut();
 
+  Future<CrushUser> _getOrCreateUserDoc({
+    required fb.User fbUser,
+    String? email,
+    String? phoneNumber,
+    bool? isPhoneVerified,
+  }) async {
+    final docRef = _firestore.collection('users').doc(fbUser.uid);
+    final doc = await docRef.get();
+    final resolvedEmail = email ?? fbUser.email;
+    final resolvedPhone = phoneNumber ?? fbUser.phoneNumber ?? '';
+    final resolvedPhoneVerified =
+        isPhoneVerified ?? resolvedPhone.isNotEmpty;
+
+    if (!doc.exists) {
+      await docRef.set({
+        'phoneNumber': resolvedPhone,
+        'email': resolvedEmail,
+        'isPhoneVerified': resolvedPhoneVerified,
+        'isIdVerified': false,
+        'plan': 'free',
+      });
+      return CrushUser(
+        id: fbUser.uid,
+        phoneNumber: resolvedPhone,
+        email: resolvedEmail,
+        profile: null,
+        isPhoneVerified: resolvedPhoneVerified,
+        isIdVerified: false,
+        plan: SubscriptionPlan.free,
+      );
+    }
+
+    final user = _fromDoc(doc);
+    final updates = <String, Object?>{};
+    if (resolvedEmail != null && resolvedEmail.isNotEmpty) {
+      updates['email'] = resolvedEmail;
+    }
+    if (resolvedPhone.isNotEmpty) {
+      updates['phoneNumber'] = resolvedPhone;
+      updates['isPhoneVerified'] = resolvedPhoneVerified;
+    }
+    if (updates.isNotEmpty) {
+      await docRef.update(updates);
+    }
+
+    return user.copyWith(
+      email: resolvedEmail ?? user.email,
+      phoneNumber:
+          resolvedPhone.isNotEmpty ? resolvedPhone : user.phoneNumber,
+      isPhoneVerified: resolvedPhone.isNotEmpty
+          ? resolvedPhoneVerified
+          : user.isPhoneVerified,
+    );
+  }
+
   String _friendlyAuthError(fb.FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-phone-number':
         return 'Enter a valid phone number.';
       case 'missing-phone-number':
         return 'Enter your phone number.';
+      case 'invalid-email':
+        return 'Enter a valid email address.';
+      case 'user-not-found':
+        return 'No account found for that email.';
+      case 'wrong-password':
+        return 'Incorrect password.';
+      case 'email-already-in-use':
+        return 'That email is already in use.';
+      case 'weak-password':
+        return 'Password should be at least 6 characters.';
       case 'too-many-requests':
         return 'Too many attempts. Try again later.';
       case 'quota-exceeded':

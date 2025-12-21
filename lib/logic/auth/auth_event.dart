@@ -31,4 +31,30 @@ class AuthOtpResendRequested extends AuthEvent {
   List<Object?> get props => [phoneNumber];
 }
 
+class AuthEmailLinkRequested extends AuthEvent {
+  final String email;
+  AuthEmailLinkRequested(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class AuthEmailLinkSubmitted extends AuthEvent {
+  final String email;
+  final String emailLink;
+  AuthEmailLinkSubmitted(this.email, this.emailLink);
+
+  @override
+  List<Object?> get props => [email, emailLink];
+}
+
+class AuthEmailPasswordSubmitted extends AuthEvent {
+  final String email;
+  final String password;
+  AuthEmailPasswordSubmitted(this.email, this.password);
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
 class AuthSignedOut extends AuthEvent {}

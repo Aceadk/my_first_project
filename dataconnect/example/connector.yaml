@@ -3,3 +3,25 @@ generate:
   dartSdk:
     - outputDir: ../../lib/dataconnect_generated
       package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/agora_uikit/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/uni_links/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/agora_rtm/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/agora_uikit/example/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/uni_links/example/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+    - outputDir: ../../patched_plugins/agora_rtm/example/lib/dataconnect_generated
+      package: dataconnect_generated/generated.dart
+  adminNodeSdk:
+    - outputDir: ../../functions/src/dataconnect-admin-generated
+      package: "@dataconnect/admin-generated"
+      packageJsonDir: ../../functions
+  javascriptSdk:
+    - outputDir: ../../crushhour-recommendation-service/src/dataconnect-generated
+      package: "@dataconnect/generated"
+      packageJsonDir: ../../crushhour-recommendation-service
+      react: false
+      angular: false

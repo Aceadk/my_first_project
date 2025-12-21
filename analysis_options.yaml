@@ -27,6 +27,7 @@ linter:
 analyzer:
   exclude:
     - patched_plugins/**
+    - lib/dataconnect_generated/**
     - android/build/**
     - build/**
 

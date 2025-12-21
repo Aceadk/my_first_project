@@ -50,6 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
           _navigateTo(CrushRoutes.home);
         } else if (state.status == AuthStatus.unauthenticated ||
             state.status == AuthStatus.otpSent ||
+            state.status == AuthStatus.emailLinkSent ||
             state.status == AuthStatus.unknown) {
           _navigateTo(CrushRoutes.phoneAuth);
         }

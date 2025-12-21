@@ -194,6 +194,15 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               },
                         nextLoading: isLoading,
                       ),
+                      TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.pushReplacementNamed(
+                                  context,
+                                  CrushRoutes.emailAuth,
+                                ),
+                        child: const Text('Use email instead'),
+                      ),
                     ],
                   ),
                 ),

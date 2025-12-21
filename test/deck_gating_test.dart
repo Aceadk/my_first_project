@@ -132,6 +132,23 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> sendOtp(String phoneNumber) async {}
 
   @override
+  Future<void> sendEmailSignInLink(String email) async {}
+
+  @override
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async =>
+      user;
+
+  @override
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async =>
+      user;
+
+  @override
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
@@ -243,6 +260,7 @@ class _StubAuthBloc extends AuthBloc {
       status: AuthStatus.authenticated,
       user: user,
       phoneInProgress: null,
+      emailInProgress: null,
     ));
   }
 }

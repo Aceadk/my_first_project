@@ -16,6 +16,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPhoneSubmitted>(_onPhoneSubmitted);
     on<AuthOtpSubmitted>(_onOtpSubmitted);
     on<AuthOtpResendRequested>(_onOtpResendRequested);
+    on<AuthEmailLinkRequested>(_onEmailLinkRequested);
+    on<AuthEmailLinkSubmitted>(_onEmailLinkSubmitted);
+    on<AuthEmailPasswordSubmitted>(_onEmailPasswordSubmitted);
     on<AuthSignedOut>(_onSignedOut);
   }
 
@@ -99,6 +102,94 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     await _sendOtp(phone: phone, emit: emit);
+  }
+
+  Future<void> _onEmailLinkRequested(
+      AuthEmailLinkRequested event, Emitter<AuthState> emit) async {
+    final email = event.email.trim();
+    if (email.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Enter your email address.'));
+      return;
+    }
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      emailInProgress: email,
+      isLoading: true,
+      errorMessage: null,
+    ));
+    final result = await Result.guard(
+      () => authRepository.sendEmailSignInLink(email),
+      logLabel: 'AuthRepository.sendEmailSignInLink',
+      fallbackError: 'Could not send sign-in link. Please try again.',
+    );
+    if (!result.isSuccess) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ));
+      return;
+    }
+    emit(state.copyWith(
+      status: AuthStatus.emailLinkSent,
+      emailInProgress: email,
+      isLoading: false,
+      errorMessage: null,
+    ));
+  }
+
+  Future<void> _onEmailLinkSubmitted(
+      AuthEmailLinkSubmitted event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      emailInProgress: event.email.trim().isEmpty
+          ? state.emailInProgress
+          : event.email.trim(),
+      isLoading: true,
+      errorMessage: null,
+    ));
+    final result = await Result.guard(
+      () => authRepository.signInWithEmailLink(
+        email: event.email.trim(),
+        emailLink: event.emailLink,
+      ),
+      logLabel: 'AuthRepository.signInWithEmailLink',
+      fallbackError: 'Invalid or expired email link.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      status:
+          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
+      user: user ?? state.user,
+      isLoading: false,
+      errorMessage: result.errorMessage,
+    ));
+  }
+
+  Future<void> _onEmailPasswordSubmitted(
+      AuthEmailPasswordSubmitted event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(
+      status: AuthStatus.authenticating,
+      emailInProgress: event.email.trim(),
+      isLoading: true,
+      errorMessage: null,
+    ));
+    final result = await Result.guard(
+      () => authRepository.signInWithEmailPassword(
+        email: event.email.trim(),
+        password: event.password,
+      ),
+      logLabel: 'AuthRepository.signInWithEmailPassword',
+      fallbackError: 'Could not sign in. Please try again.',
+    );
+    final user = result.data;
+    emit(state.copyWith(
+      status:
+          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
+      user: user ?? state.user,
+      isLoading: false,
+      errorMessage: result.errorMessage,
+    ));
   }
 
   Future<void> _onSignedOut(

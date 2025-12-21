@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/welcome_screen.dart';
 import '../presentation/screens/phone_auth_screen.dart';
+import '../presentation/screens/email_auth_screen.dart';
 import '../presentation/screens/otp_screen.dart';
 import '../presentation/screens/basic_info_screen.dart';
 import '../presentation/screens/id_verification_screen.dart';
@@ -17,6 +18,7 @@ class CrushRoutes {
   static const splash = '/';
   static const welcome = '/welcome';
   static const phoneAuth = '/phone-auth';
+  static const emailAuth = '/email-auth';
   static const otp = '/otp';
   static const basicInfo = '/basic-info';
   static const idVerification = '/id-verification';
@@ -36,6 +38,8 @@ class CrushRoutes {
         return MaterialPageRoute(builder: (_) => const WelcomeScreen());
       case phoneAuth:
         return MaterialPageRoute(builder: (_) => const PhoneAuthScreen());
+      case emailAuth:
+        return MaterialPageRoute(builder: (_) => const EmailAuthScreen());
       case otp:
         final phone = settings.arguments as String;
         return MaterialPageRoute(

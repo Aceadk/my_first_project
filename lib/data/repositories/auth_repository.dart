@@ -10,5 +10,17 @@ abstract class AuthRepository {
     required String otp,
   });
 
+  Future<void> sendEmailSignInLink(String email);
+
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  });
+
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  });
+
   Future<void> signOut();
 }

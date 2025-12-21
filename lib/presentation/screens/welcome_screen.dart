@@ -28,9 +28,16 @@ class WelcomeScreen extends StatelessWidget {
             const SizedBox(height: 32),
             OnboardingNavButtons(
               showBack: false,
+              nextLabel: 'Continue with phone',
               onNext: () {
                 Navigator.pushNamed(context, CrushRoutes.phoneAuth);
               },
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, CrushRoutes.emailAuth);
+              },
+              child: const Text('Use email instead'),
             ),
           ],
         ),

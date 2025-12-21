@@ -6,9 +6,9 @@ import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final preferences = await SharedPreferences.getInstance();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  final preferences = await SharedPreferences.getInstance();
   runApp(CrushApp(preferences: preferences));
 }

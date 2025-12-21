@@ -26,6 +26,9 @@ class FakeAuthRepository implements AuthRepository {
   final _controller = StreamController<CrushUser?>.broadcast();
   CrushUser? _current;
   final _otpStore = <String, _OtpEntry>{};
+  final _emailLinkStore = <String, _OtpEntry>{};
+  final _usersByEmail = <String, CrushUser>{};
+  final _passwordsByEmail = <String, String>{};
   final _rand = Random.secure();
 
   @override
@@ -52,6 +55,78 @@ class FakeAuthRepository implements AuthRepository {
     // For local testing, surface the OTP in logs.
     // ignore: avoid_print
     print('OTP for $phoneNumber: $otp (expires at $expiresAt)');
+  }
+
+  @override
+  Future<void> sendEmailSignInLink(String email) async {
+    final otp = (_rand.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(const Duration(minutes: 10));
+    _emailLinkStore[email] = _OtpEntry(code: otp, expiresAt: expiresAt);
+    final link = Uri(
+      scheme: 'https',
+      host: 'example.com',
+      path: '/emailSignIn',
+      queryParameters: {'email': email, 'code': otp},
+    );
+    // ignore: avoid_print
+    print('Email sign-in link for $email: $link');
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    final entry = _emailLinkStore[email];
+    if (entry == null || DateTime.now().isAfter(entry.expiresAt)) {
+      throw Exception('Email link expired or not requested.');
+    }
+    final uri = Uri.tryParse(emailLink);
+    final code = uri?.queryParameters['code'];
+    if (code == null || code != entry.code) {
+      throw Exception('Invalid email link.');
+    }
+    _emailLinkStore.remove(email);
+    final user = _usersByEmail[email] ??
+        CrushUser(
+          id: _uuid.v4(),
+          phoneNumber: '',
+          email: email,
+          profile: null,
+          isPhoneVerified: false,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+        );
+    _usersByEmail[email] = user;
+    _current = user;
+    _controller.add(_current);
+    return user;
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    final existingPassword = _passwordsByEmail[email];
+    if (existingPassword != null && existingPassword != password) {
+      throw Exception('Incorrect password.');
+    }
+    _passwordsByEmail[email] = password;
+    final user = _usersByEmail[email] ??
+        CrushUser(
+          id: _uuid.v4(),
+          phoneNumber: '',
+          email: email,
+          profile: null,
+          isPhoneVerified: false,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+        );
+    _usersByEmail[email] = user;
+    _current = user;
+    _controller.add(_current);
+    return user;
   }
 
   @override

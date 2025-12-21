@@ -8,6 +8,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@google-cloud/bigquery": "^7.0.0",
     "express": "^4.19.2"
   }
