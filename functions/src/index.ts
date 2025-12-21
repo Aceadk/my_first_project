@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import * as crypto from "crypto";
 import { BigQuery } from "@google-cloud/bigquery";
 import Stripe from "stripe";
 import { RtcTokenBuilder, RtcRole } from "agora-access-token";
@@ -15,12 +16,17 @@ const config = ((functions as unknown as { config?: () => unknown }).config?.() 
   {}) as {
     stripe?: { secret?: string; webhook_secret?: string };
     agora?: { appid?: string; certificate?: string };
+    auth?: { otp_secret?: string };
+    email?: { resend_key?: string; from?: string };
   };
 const stripeSecret = config.stripe?.secret ?? "";
 const stripeWebhookSecret = config.stripe?.webhook_secret ?? "";
 const agoraAppId = config.agora?.appid ?? process.env.AGORA_APP_ID;
 const agoraCertificate =
   config.agora?.certificate ?? process.env.AGORA_APP_CERTIFICATE;
+const authOtpSecret = config.auth?.otp_secret ?? process.env.OTP_SECRET ?? "";
+const emailResendKey = config.email?.resend_key ?? process.env.RESEND_API_KEY;
+const emailFrom = config.email?.from ?? "CrushHour <no-reply@crushhour.app>";
 
 const stripe = new Stripe(stripeSecret, {
   apiVersion: "2024-06-20",
@@ -161,6 +167,760 @@ function toStringArray(value: unknown): string[] {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v) => v.length > 0);
 }
+
+const OTP_DIGITS = 6;
+const OTP_TTL_MS = 10 * 60 * 1000;
+const OTP_VERIFY_MAX_ATTEMPTS = 5;
+const OTP_VERIFY_LOCK_MS = 15 * 60 * 1000;
+const OTP_REQUEST_LIMIT = 5;
+const OTP_REQUEST_WINDOW_MS = 10 * 60 * 1000;
+const OTP_REQUEST_BLOCK_MS = 20 * 60 * 1000;
+const OTP_VERIFY_LIMIT = 10;
+const OTP_VERIFY_WINDOW_MS = 10 * 60 * 1000;
+const OTP_VERIFY_BLOCK_MS = 20 * 60 * 1000;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const EMAIL_REGEX = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/;
+const otpSecret = authOtpSecret || "dev-secret";
+if (!authOtpSecret) {
+  console.warn("auth.otp_secret not configured; using dev-secret.");
+}
+
+type RateLimitResult = {
+  allowed: boolean;
+  retryAfterMs?: number;
+};
+
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function normalizeUsername(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function isEmailLike(value: string): boolean {
+  return EMAIL_REGEX.test(value.trim());
+}
+
+function generateOtp(): string {
+  const min = Math.pow(10, OTP_DIGITS - 1);
+  const max = Math.pow(10, OTP_DIGITS) - 1;
+  const code = crypto.randomInt(min, max + 1);
+  return `${code}`;
+}
+
+function hashWithSecret(value: string, salt: string): string {
+  return crypto.createHmac("sha256", otpSecret).update(`${salt}:${value}`).digest("hex");
+}
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const aBuf = Buffer.from(a, "hex");
+  const bBuf = Buffer.from(b, "hex");
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+function getClientIp(context: CallableContext): string | undefined {
+  const raw = context.rawRequest;
+  const forwarded = raw?.headers?.["x-forwarded-for"];
+  if (Array.isArray(forwarded)) {
+    return forwarded[0]?.toString();
+  }
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0]?.trim();
+  }
+  return raw?.ip;
+}
+
+async function applyRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+  blockMs: number
+): Promise<RateLimitResult> {
+  const ref = db.collection("auth_rate_limits").doc(key);
+  const now = Date.now();
+  const result = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    let attempts = 0;
+    let windowStart = now;
+    let blockedUntil = 0;
+    if (snap.exists) {
+      const data = snap.data() || {};
+      const windowTs = data.windowStart?.toMillis?.() ?? now;
+      const blockedTs = data.blockedUntil?.toMillis?.() ?? 0;
+      windowStart = typeof windowTs === "number" ? windowTs : now;
+      blockedUntil = typeof blockedTs === "number" ? blockedTs : 0;
+      attempts = typeof data.attempts === "number" ? data.attempts : 0;
+    }
+
+    if (blockedUntil > now) {
+      return { allowed: false, retryAfterMs: blockedUntil - now };
+    }
+
+    if (now - windowStart > windowMs) {
+      windowStart = now;
+      attempts = 0;
+    }
+
+    attempts += 1;
+    if (attempts > limit) {
+      blockedUntil = now + blockMs;
+    }
+
+    tx.set(
+      ref,
+      {
+        key,
+        attempts,
+        windowStart: admin.firestore.Timestamp.fromMillis(windowStart),
+        blockedUntil: blockedUntil
+          ? admin.firestore.Timestamp.fromMillis(blockedUntil)
+          : null,
+      },
+      { merge: true }
+    );
+
+    if (blockedUntil > now) {
+      return { allowed: false, retryAfterMs: blockedUntil - now };
+    }
+    return { allowed: true };
+  });
+
+  return result;
+}
+
+async function logAuthAudit(params: {
+  action: string;
+  status: "ok" | "blocked" | "invalid" | "error";
+  uid?: string;
+  identifierHash?: string;
+  ip?: string;
+  userAgent?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  await db.collection("auth_audit_logs").add({
+    action: params.action,
+    status: params.status,
+    uid: params.uid ?? null,
+    identifierHash: params.identifierHash ?? null,
+    ip: params.ip ?? null,
+    userAgent: params.userAgent ?? null,
+    metadata: params.metadata ?? {},
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function sendOtpEmail(params: {
+  to: string;
+  otp: string;
+  purpose: string;
+}) {
+  if (!emailResendKey) {
+    console.warn("RESEND_API_KEY not set; skipping email send.");
+    return;
+  }
+  const subject = "Your CrushHour verification code";
+  const text = [
+    "Hello,",
+    "",
+    `Your CrushHour verification code is: ${params.otp}`,
+    "This code expires in 10 minutes and can only be used once.",
+    "",
+    "If you did not request this, you can ignore this email.",
+    "",
+    "Thanks,",
+    "CrushHour Security",
+  ].join("\\n");
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${emailResendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: emailFrom,
+      to: [params.to],
+      subject,
+      text,
+      tags: [{ name: "purpose", value: params.purpose }],
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Resend error: ${response.status} ${body}`);
+  }
+}
+
+async function resolveUserByIdentifier(identifier: string): Promise<{
+  uid?: string;
+  emailLower?: string;
+  email?: string;
+  usernameLower?: string;
+} | null> {
+  const trimmed = identifier.trim();
+  if (!trimmed) return null;
+
+  if (isEmailLike(trimmed)) {
+    const emailLower = normalizeEmail(trimmed);
+    try {
+      const user = await admin.auth().getUserByEmail(emailLower);
+      return {
+        uid: user.uid,
+        emailLower,
+        email: user.email ?? emailLower,
+      };
+    } catch (err) {
+      return { emailLower, email: emailLower };
+    }
+  }
+
+  const usernameLower = normalizeUsername(trimmed);
+  const usernameDoc = await db.collection("usernames").doc(usernameLower).get();
+  if (!usernameDoc.exists) {
+    return { usernameLower };
+  }
+  const uid = usernameDoc.data()?.uid as string | undefined;
+  if (!uid) return { usernameLower };
+  const userDoc = await db.collection("users").doc(uid).get();
+  const email = (userDoc.data()?.email as string | undefined) ?? undefined;
+  const emailLower = email ? normalizeEmail(email) : undefined;
+  return { uid, emailLower, email, usernameLower };
+}
+
+type EmailOtpPurpose =
+  | "login"
+  | "add_email"
+  | "change_email"
+  | "reset_password"
+  | "new_device"
+  | "sensitive_action";
+
+const EMAIL_OTP_PURPOSES = new Set<EmailOtpPurpose>([
+  "login",
+  "add_email",
+  "change_email",
+  "reset_password",
+  "new_device",
+  "sensitive_action",
+]);
+
+interface EmailOtpRequest {
+  identifier?: string;
+  purpose?: EmailOtpPurpose;
+  email?: string;
+}
+
+interface EmailOtpVerifyRequest {
+  identifier?: string;
+  purpose?: EmailOtpPurpose;
+  otp?: string;
+  newEmail?: string;
+  newPassword?: string;
+}
+
+interface ClaimUsernameRequest {
+  username?: string;
+}
+
+function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
+  const purpose = typeof value === "string" ? value.trim() : "";
+  if (!EMAIL_OTP_PURPOSES.has(purpose as EmailOtpPurpose)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid OTP purpose."
+    );
+  }
+  return purpose as EmailOtpPurpose;
+}
+
+function hashIdentifier(identifier: string): string {
+  return crypto
+    .createHmac("sha256", otpSecret)
+    .update(`identifier:${identifier}`)
+    .digest("hex");
+}
+
+function hashOtpValue(otp: string, salt: string): string {
+  return hashWithSecret(otp, salt);
+}
+
+function isValidOtp(otp: string): boolean {
+  return new RegExp(`^\\\\d{${OTP_DIGITS}}$`).test(otp);
+}
+
+async function ensureUserDoc(params: {
+  uid: string;
+  email?: string;
+  phoneNumber?: string;
+}) {
+  const userRef = db.collection("users").doc(params.uid);
+  const doc = await userRef.get();
+  if (doc.exists) return;
+
+  const emailLower = params.email ? normalizeEmail(params.email) : null;
+  await userRef.set({
+    phoneNumber: params.phoneNumber ?? "",
+    email: params.email ?? null,
+    emailLower,
+    isEmailVerified: !!params.email,
+    isPhoneVerified: !!params.phoneNumber,
+    isIdVerified: false,
+    plan: "free",
+  });
+}
+
+export const requestEmailOtp = callable<EmailOtpRequest>(
+  async (data, context) => {
+    const identifierRaw = requireString(data?.identifier, "identifier");
+    const purpose = parseEmailOtpPurpose(data?.purpose);
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    const normalizedIdentifier = isEmailLike(identifierRaw)
+      ? normalizeEmail(identifierRaw)
+      : normalizeUsername(identifierRaw);
+    const identifierHash = hashIdentifier(normalizedIdentifier);
+
+    if (ip) {
+      const ipLimit = await applyRateLimit(
+        `otp:req:ip:${ip}`,
+        OTP_REQUEST_LIMIT,
+        OTP_REQUEST_WINDOW_MS,
+        OTP_REQUEST_BLOCK_MS
+      );
+      if (!ipLimit.allowed) {
+        await logAuthAudit({
+          action: "request_email_otp",
+          status: "blocked",
+          identifierHash,
+          ip,
+          userAgent,
+          metadata: { purpose },
+        });
+        return { status: "ok" };
+      }
+    }
+
+    const idLimit = await applyRateLimit(
+      `otp:req:id:${identifierHash}`,
+      OTP_REQUEST_LIMIT,
+      OTP_REQUEST_WINDOW_MS,
+      OTP_REQUEST_BLOCK_MS
+    );
+    if (!idLimit.allowed) {
+      await logAuthAudit({
+        action: "request_email_otp",
+        status: "blocked",
+        identifierHash,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      return { status: "ok" };
+    }
+
+    const otp = generateOtp();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const otpHash = hashOtpValue(otp, salt);
+    const now = Date.now();
+
+    let targetEmail: string | undefined;
+    let resolvedUid: string | undefined;
+
+    if (purpose === "add_email" || purpose === "change_email") {
+      const uid = requireAuth(context, "update your email");
+      const emailInput = data?.email ?? identifierRaw;
+      if (!isEmailLike(emailInput)) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Enter a valid email address."
+        );
+      }
+      targetEmail = normalizeEmail(emailInput);
+      resolvedUid = uid;
+      try {
+        const existing = await admin.auth().getUserByEmail(targetEmail);
+        if (existing.uid !== uid) {
+          targetEmail = undefined;
+        }
+      } catch (_) {}
+    } else {
+      const resolved = await resolveUserByIdentifier(identifierRaw);
+      resolvedUid = resolved?.uid;
+      targetEmail = resolved?.emailLower;
+      if (!targetEmail && isEmailLike(identifierRaw)) {
+        targetEmail = normalizeEmail(identifierRaw);
+      }
+
+      if (purpose === "reset_password" && !resolvedUid) {
+        targetEmail = undefined;
+      }
+    }
+
+    await db.collection("auth_email_otps").add({
+      identifierHash,
+      uid: resolvedUid ?? null,
+      purpose,
+      otpHash,
+      otpSalt: salt,
+      failedAttempts: 0,
+      usedAt: null,
+      lockedUntil: null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+    });
+
+    if (targetEmail) {
+      try {
+        await sendOtpEmail({ to: targetEmail, otp, purpose });
+        await logAuthAudit({
+          action: "request_email_otp",
+          status: "ok",
+          identifierHash,
+          uid: resolvedUid,
+          ip,
+          userAgent,
+          metadata: { purpose },
+        });
+      } catch (err) {
+        console.error("OTP email send failed", err);
+        await logAuthAudit({
+          action: "request_email_otp",
+          status: "error",
+          identifierHash,
+          uid: resolvedUid,
+          ip,
+          userAgent,
+          metadata: { purpose },
+        });
+      }
+    } else {
+      await logAuthAudit({
+        action: "request_email_otp",
+        status: "ok",
+        identifierHash,
+        uid: resolvedUid,
+        ip,
+        userAgent,
+        metadata: { purpose, skippedSend: true },
+      });
+    }
+
+    return { status: "ok" };
+  }
+);
+
+export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
+  async (data, context) => {
+    const identifierRaw = requireString(data?.identifier, "identifier");
+    const otp = requireString(data?.otp, "otp");
+    const purpose = parseEmailOtpPurpose(data?.purpose);
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+
+    if (!isValidOtp(otp)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Enter the 6-digit code."
+      );
+    }
+
+    if (ip) {
+      const ipLimit = await applyRateLimit(
+        `otp:verify:ip:${ip}`,
+        OTP_VERIFY_LIMIT,
+        OTP_VERIFY_WINDOW_MS,
+        OTP_VERIFY_BLOCK_MS
+      );
+      if (!ipLimit.allowed) {
+        await logAuthAudit({
+          action: "verify_email_otp",
+          status: "blocked",
+          ip,
+          userAgent,
+          metadata: { purpose },
+        });
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "Too many attempts. Try again later."
+        );
+      }
+    }
+
+    const normalizedIdentifier = isEmailLike(identifierRaw)
+      ? normalizeEmail(identifierRaw)
+      : normalizeUsername(identifierRaw);
+    const identifierHash = hashIdentifier(normalizedIdentifier);
+    const idLimit = await applyRateLimit(
+      `otp:verify:id:${identifierHash}`,
+      OTP_VERIFY_LIMIT,
+      OTP_VERIFY_WINDOW_MS,
+      OTP_VERIFY_BLOCK_MS
+    );
+    if (!idLimit.allowed) {
+      await logAuthAudit({
+        action: "verify_email_otp",
+        status: "blocked",
+        identifierHash,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Too many attempts. Try again later."
+      );
+    }
+
+    const candidates = await db
+      .collection("auth_email_otps")
+      .where("identifierHash", "==", identifierHash)
+      .where("purpose", "==", purpose)
+      .orderBy("createdAt", "desc")
+      .limit(5)
+      .get();
+
+    const now = Date.now();
+    let matchedDoc:
+      | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+      | null = null;
+    let matchedData: FirebaseFirestore.DocumentData | undefined;
+    for (const doc of candidates.docs) {
+      const data = doc.data();
+      const usedAt = data.usedAt?.toMillis?.() ?? 0;
+      const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+      const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+      if (usedAt) continue;
+      if (expiresAt && expiresAt < now) continue;
+      if (lockedUntil && lockedUntil > now) continue;
+
+      const computed = hashOtpValue(otp, data.otpSalt as string);
+      if (timingSafeEqualHex(computed, data.otpHash as string)) {
+        matchedDoc = doc;
+        matchedData = data;
+        break;
+      }
+      const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
+      const nextAttempts = failedAttempts + 1;
+      const updates: Record<string, unknown> = {
+        failedAttempts: nextAttempts,
+      };
+      if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
+        updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+          now + OTP_VERIFY_LOCK_MS
+        );
+      }
+      await doc.ref.update(updates);
+    }
+
+    if (!matchedDoc || !matchedData) {
+      await logAuthAudit({
+        action: "verify_email_otp",
+        status: "invalid",
+        identifierHash,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Invalid or expired code."
+      );
+    }
+
+    await matchedDoc.ref.update({
+      usedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    if (purpose === "login") {
+      const resolved = await resolveUserByIdentifier(identifierRaw);
+      let uid = matchedData.uid as string | undefined;
+      const emailLower = resolved?.emailLower ?? undefined;
+      if (!uid && resolved?.uid) {
+        uid = resolved.uid;
+      }
+      if (!uid && emailLower) {
+        try {
+          const existing = await admin.auth().getUserByEmail(emailLower);
+          uid = existing.uid;
+        } catch (_) {
+          const created = await admin.auth().createUser({
+            email: emailLower,
+            emailVerified: true,
+          });
+          uid = created.uid;
+        }
+      }
+      if (!uid) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Invalid or expired code."
+        );
+      }
+      await ensureUserDoc({ uid, email: emailLower });
+      const customToken = await admin.auth().createCustomToken(uid);
+      await logAuthAudit({
+        action: "verify_email_otp",
+        status: "ok",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      return { status: "ok", customToken };
+    }
+
+    if (purpose === "add_email" || purpose === "change_email") {
+      const uid = requireAuth(context, "verify your email");
+      const newEmailRaw = data?.newEmail ?? identifierRaw;
+      if (!isEmailLike(newEmailRaw)) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Enter a valid email address."
+        );
+      }
+      const newEmail = normalizeEmail(newEmailRaw);
+      try {
+        const existing = await admin.auth().getUserByEmail(newEmail);
+        if (existing.uid !== uid) {
+          throw new Error("email_in_use");
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message === "email_in_use") {
+          await logAuthAudit({
+            action: "verify_email_otp",
+            status: "invalid",
+            identifierHash,
+            uid,
+            ip,
+            userAgent,
+            metadata: { purpose },
+          });
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            "Could not verify email. Try again."
+          );
+        }
+      }
+
+      await admin.auth().updateUser(uid, {
+        email: newEmail,
+        emailVerified: true,
+      });
+      await db.collection("users").doc(uid).set(
+        {
+          email: newEmail,
+          emailLower: newEmail,
+          isEmailVerified: true,
+        },
+        { merge: true }
+      );
+      await logAuthAudit({
+        action: "verify_email_otp",
+        status: "ok",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      return { status: "ok" };
+    }
+
+    if (purpose === "reset_password") {
+      const newPassword = data?.newPassword ?? "";
+      if (newPassword.length < 6) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Use at least 6 characters."
+        );
+      }
+      const resolved = await resolveUserByIdentifier(identifierRaw);
+      const uid = resolved?.uid;
+      if (uid) {
+        await admin.auth().updateUser(uid, { password: newPassword });
+      }
+      await logAuthAudit({
+        action: "verify_email_otp",
+        status: uid ? "ok" : "invalid",
+        identifierHash,
+        uid,
+        ip,
+        userAgent,
+        metadata: { purpose },
+      });
+      return { status: "ok" };
+    }
+
+    await logAuthAudit({
+      action: "verify_email_otp",
+      status: "ok",
+      identifierHash,
+      ip,
+      userAgent,
+      metadata: { purpose },
+    });
+    return { status: "ok" };
+  }
+);
+
+export const claimUsername = callable<ClaimUsernameRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "claim a username");
+    const usernameRaw = requireString(data?.username, "username");
+    const trimmed = usernameRaw.trim();
+    if (!USERNAME_REGEX.test(trimmed)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Username must be 3-20 characters and use letters, numbers, or underscores."
+      );
+    }
+    const usernameLower = normalizeUsername(trimmed);
+    const usernameRef = db.collection("usernames").doc(usernameLower);
+    const userRef = db.collection("users").doc(uid);
+
+    await db.runTransaction(async (tx) => {
+      const nameSnap = await tx.get(usernameRef);
+      if (nameSnap.exists) {
+        const existingUid = nameSnap.data()?.uid;
+        if (existingUid && existingUid !== uid) {
+          throw new functions.https.HttpsError(
+            "already-exists",
+            "That username is taken."
+          );
+        }
+      }
+      tx.set(
+        usernameRef,
+        {
+          uid,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      tx.set(
+        userRef,
+        {
+          username: trimmed,
+          usernameLower,
+        },
+        { merge: true }
+      );
+    });
+
+    await logAuthAudit({
+      action: "claim_username",
+      status: "ok",
+      uid,
+      metadata: { username: usernameLower },
+    });
+
+    return { status: "ok", username: trimmed };
+  }
+);
 
 type ProfileData = {
   bio?: unknown;

@@ -24,6 +24,24 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // USERNAME INDEX (server only)
+    match /usernames/{username} {
+      allow read, write: if false;
+    }
+
+    // AUTH SECURITY COLLECTIONS (server only)
+    match /auth_email_otps/{otpId} {
+      allow read, write: if false;
+    }
+
+    match /auth_rate_limits/{key} {
+      allow read, write: if false;
+    }
+
+    match /auth_audit_logs/{logId} {
+      allow read, write: if false;
+    }
+
     // MATCHES
     match /matches/{matchId} {
       // Only participants can read.
