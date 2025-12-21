@@ -34,7 +34,7 @@ class CrushApp extends StatelessWidget {
                   darkTheme: CrushTheme.dark(),
                   themeMode: themeMode,
                   onGenerateRoute: CrushRoutes.onGenerateRoute,
-                  initialRoute: CrushRoutes.splash,
+                  initialRoute: CrushRoutes.phoneAuth,
                   debugShowCheckedModeBanner: false,
                 ),
               ),

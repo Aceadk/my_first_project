@@ -578,74 +578,83 @@ class _DeckScreenState extends State<DeckScreen> {
     double? radiusKm,
   }) {
     final radiusLabel = radiusKm?.toStringAsFixed(0);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.people_outline, size: 72),
-            const SizedBox(height: 16),
-            const Text(
-              'You’re all caught up!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 48,
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'There are no more people nearby right now.\n'
-              'You can adjust your filters or explore with Passport.',
-              textAlign: TextAlign.center,
-            ),
-            if (locationLabel != null || radiusKm != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Current filters: ${locationLabel ?? 'your area'}'
-                '${radiusLabel != null ? ' • ~$radiusLabel km radius' : ''}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.people_outline, size: 72),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'You’re all caught up!',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                );
-              },
-              child: const Text('Change filters'),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh deck'),
-              onPressed: userId == null
-                  ? null
-                  : () => context
-                      .read<DiscoveryBloc>()
-                      .add(DiscoveryDeckRequested(userId)),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: () => _showPassportUpsell(context),
-              child: const Text('Try Passport with Plus'),
-            ),
-            if (!isPlus) ...[
-              const SizedBox(height: 12),
-              const _UpgradeNudgeCard(
-                title: 'Intro offer: 50% off Plus',
-                subtitle:
-                    'Go global with Passport, see who likes you, and undo swipes.',
-                bullets:  [
-                  'Passport to any city',
-                  'Unlimited likes & rewinds',
-                  'Priority in the deck',
+                  const SizedBox(height: 8),
+                  const Text(
+                    'There are no more people nearby right now.\n'
+                    'You can adjust your filters or explore with Passport.',
+                    textAlign: TextAlign.center,
+                  ),
+                  if (locationLabel != null || radiusKm != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Current filters: ${locationLabel ?? 'your area'}'
+                      '${radiusLabel != null ? ' • ~$radiusLabel km radius' : ''}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Change filters'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh deck'),
+                    onPressed: userId == null
+                        ? null
+                        : () => context
+                            .read<DiscoveryBloc>()
+                            .add(DiscoveryDeckRequested(userId)),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => _showPassportUpsell(context),
+                    child: const Text('Try Passport with Plus'),
+                  ),
+                  if (!isPlus) ...[
+                    const SizedBox(height: 12),
+                    const _UpgradeNudgeCard(
+                      title: 'Intro offer: 50% off Plus',
+                      subtitle:
+                          'Go global with Passport, see who likes you, and undo swipes.',
+                      bullets:  [
+                        'Passport to any city',
+                        'Unlimited likes & rewinds',
+                        'Priority in the deck',
+                      ],
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 

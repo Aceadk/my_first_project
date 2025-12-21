@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants.dart';
+import '../../../core/errors.dart';
 import '../../models/user.dart';
 import '../../models/profile.dart';
 import '../../models/preferences.dart';
@@ -61,16 +62,36 @@ class FirebaseAuthRepository implements AuthRepository {
       timeout: const Duration(seconds: 60),
       verificationCompleted: (fb.PhoneAuthCredential credential) async {
         // Auto verification on some devices
-        await _auth.signInWithCredential(credential);
-        completer.complete();
+        try {
+          await _auth.signInWithCredential(credential);
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        } on fb.FirebaseAuthException catch (e) {
+          if (!completer.isCompleted) {
+            completer.completeError(
+              RepositoryException(e.code, _friendlyAuthError(e)),
+            );
+          }
+        } catch (e) {
+          if (!completer.isCompleted) {
+            completer.completeError(e);
+          }
+        }
       },
       verificationFailed: (fb.FirebaseAuthException e) {
-        completer.completeError(e);
+        if (!completer.isCompleted) {
+          completer.completeError(
+            RepositoryException(e.code, _friendlyAuthError(e)),
+          );
+        }
       },
       codeSent: (String verificationId, int? resendToken) {
         _verificationId = verificationId;
         _resendToken = resendToken;
-        completer.complete();
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
       },
       codeAutoRetrievalTimeout: (String verificationId) {
         _verificationId = verificationId;
@@ -195,4 +216,29 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() => _auth.signOut();
+
+  String _friendlyAuthError(fb.FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-phone-number':
+        return 'Enter a valid phone number.';
+      case 'missing-phone-number':
+        return 'Enter your phone number.';
+      case 'too-many-requests':
+        return 'Too many attempts. Try again later.';
+      case 'quota-exceeded':
+        return 'SMS quota exceeded. Try again later.';
+      case 'operation-not-allowed':
+        return 'Phone sign-in is disabled. Contact support.';
+      case 'invalid-app-credential':
+        return 'This app is not authorized. Check Firebase config.';
+      case 'app-not-authorized':
+        return 'This app is not authorized to use Firebase Auth.';
+      case 'missing-client-identifier':
+        return 'Firebase Auth is not configured. Check SHA and config.';
+      case 'network-request-failed':
+        return 'Network error. Check your connection and try again.';
+      default:
+        return e.message ?? 'Could not send code. Please try again.';
+    }
+  }
 }

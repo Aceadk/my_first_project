@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/router.dart';
-import '../widgets/primary_button.dart';
 import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_nav_buttons.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -26,9 +26,9 @@ class WelcomeScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            PrimaryButton(
-              label: 'Get Started',
-              onPressed: () {
+            OnboardingNavButtons(
+              showBack: false,
+              onNext: () {
                 Navigator.pushNamed(context, CrushRoutes.phoneAuth);
               },
             ),

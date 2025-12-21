@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
 import '../../core/router.dart';
-import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_nav_buttons.dart';
 
 class BasicInfoScreen extends StatefulWidget {
   const BasicInfoScreen({super.key});
@@ -86,20 +87,23 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                         onChanged: (value) => _orientation = value,
                       ),
                       const SizedBox(height: 24),
-                      PrimaryButton(
-                        label: 'Continue',
-                        loading: isBusy,
-                        onPressed: () {
-                          final age = int.tryParse(_ageController.text) ?? 0;
-                          context.read<ProfileBloc>().add(
-                                ProfileBasicInfoSubmitted(
-                                  name: _nameController.text.trim(),
-                                  age: age,
-                                  gender: _gender,
-                                  sexualOrientation: _orientation,
-                                ),
-                              );
-                        },
+                      OnboardingNavButtons(
+                        onBack: isBusy ? null : _goBack,
+                        onNext: isBusy
+                            ? null
+                            : () {
+                                final age =
+                                    int.tryParse(_ageController.text) ?? 0;
+                                context.read<ProfileBloc>().add(
+                                      ProfileBasicInfoSubmitted(
+                                        name: _nameController.text.trim(),
+                                        age: age,
+                                        gender: _gender,
+                                        sexualOrientation: _orientation,
+                                      ),
+                                    );
+                              },
+                        nextLoading: isBusy,
                       ),
                     ],
                   ),
@@ -121,5 +125,18 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         ),
       ),
     );
+  }
+
+  void _goBack() {
+    final phone = context.read<AuthBloc>().state.phoneInProgress;
+    if (phone != null && phone.isNotEmpty) {
+      Navigator.pushReplacementNamed(
+        context,
+        CrushRoutes.otp,
+        arguments: phone,
+      );
+    } else {
+      Navigator.pushReplacementNamed(context, CrushRoutes.phoneAuth);
+    }
   }
 }

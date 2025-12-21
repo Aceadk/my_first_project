@@ -4,9 +4,9 @@ import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
-import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_nav_buttons.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});
@@ -91,6 +91,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                       const SizedBox(height: 8),
                       DropdownButtonFormField<_CountryCode>(
                         initialValue: _selectedCountry,
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.flag_outlined),
                         ),
@@ -98,7 +99,23 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                             .map(
                               (c) => DropdownMenuItem(
                                 value: c,
-                                child: Text('${c.flag} ${c.name} (${c.dialCode})'),
+                                child: Text(
+                                  '${c.flag} ${c.name} (${c.dialCode})',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        selectedItemBuilder: (context) => _countries
+                            .map(
+                              (c) => Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${c.flag} ${c.name} (${c.dialCode})',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             )
                             .toList(),
@@ -139,10 +156,20 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                         onChanged: (_) => _markPhoneTouched(),
                       ),
                       const SizedBox(height: 24),
-                      PrimaryButton(
-                        label: 'Send OTP',
-                        loading: isLoading,
-                        onPressed: isLoading || !_canSubmitPhone()
+                      OnboardingNavButtons(
+                        onBack: isLoading
+                            ? null
+                            : () {
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                } else {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    CrushRoutes.welcome,
+                                  );
+                                }
+                              },
+                        onNext: isLoading || !_canSubmitPhone()
                             ? null
                             : () {
                                 setState(() {
@@ -165,6 +192,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                     .read<AuthBloc>()
                                     .add(AuthPhoneSubmitted(normalized));
                               },
+                        nextLoading: isLoading,
                       ),
                     ],
                   ),

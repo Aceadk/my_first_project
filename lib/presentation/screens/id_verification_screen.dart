@@ -7,6 +7,7 @@ import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_nav_buttons.dart';
 
 class IdVerificationScreen extends StatelessWidget {
   const IdVerificationScreen({super.key});
@@ -64,12 +65,20 @@ class IdVerificationScreen extends StatelessWidget {
                           style: TextStyle(color: Colors.greenAccent),
                         ),
                       const Spacer(),
-                      PrimaryButton(
-                        label: 'Skip for now (not recommended)',
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(
-                              context, CrushRoutes.profileSetup);
-                        },
+                      OnboardingNavButtons(
+                        onBack: isBusy
+                            ? null
+                            : () => Navigator.pushReplacementNamed(
+                                  context,
+                                  CrushRoutes.basicInfo,
+                                ),
+                        onNext: isBusy
+                            ? null
+                            : () => Navigator.pushReplacementNamed(
+                                  context,
+                                  CrushRoutes.profileSetup,
+                                ),
+                        nextLoading: isBusy,
                       ),
                     ],
                   ),

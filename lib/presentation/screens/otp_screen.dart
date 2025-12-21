@@ -4,9 +4,9 @@ import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
-import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_nav_buttons.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -70,10 +70,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   onChanged: (_) => _markOtpTouched(),
                 ),
                 const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Verify',
-                  loading: state.isLoading,
-                  onPressed: state.isLoading || !_canSubmitOtp()
+                OnboardingNavButtons(
+                  onBack: state.isLoading ? null : () => Navigator.pop(context),
+                  onNext: state.isLoading || !_canSubmitOtp()
                       ? null
                       : () {
                           setState(() {
@@ -92,6 +91,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                 otpDigits,
                               ));
                         },
+                  nextLoading: state.isLoading,
                 ),
                 TextButton(
                   onPressed: state.isLoading
