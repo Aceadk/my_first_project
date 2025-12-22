@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
@@ -56,11 +57,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 context,
                 'Code sent. Check your messages.',
               );
-              Navigator.pushNamed(
-                context,
-                CrushRoutes.otp,
-                arguments: state.phoneInProgress!,
-              );
+              final phone = Uri.encodeComponent(state.phoneInProgress!);
+              context.push('${CrushRoutes.otp}?phone=$phone');
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {
@@ -163,10 +161,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                 if (Navigator.canPop(context)) {
                                   Navigator.pop(context);
                                 } else {
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    CrushRoutes.welcome,
-                                  );
+                                  context.go(CrushRoutes.welcome);
                                 }
                               },
                         onNext: isLoading || !_canSubmitPhone()
@@ -197,10 +192,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                       TextButton(
                         onPressed: isLoading
                             ? null
-                            : () => Navigator.pushReplacementNamed(
-                                  context,
-                                  CrushRoutes.emailAuth,
-                                ),
+                            : () => context.go(CrushRoutes.emailAuth),
                         child: const Text('Use email instead'),
                       ),
                     ],

@@ -127,6 +127,11 @@ Flutter implementations:
 - lib/presentation/screens/change_email_screen.dart
 - lib/presentation/screens/new_device_screen.dart
 
+## Web parity
+- Web uses the same Flutter routes and screens as mobile, so auth flows are identical.
+- Ensure Functions CORS is enabled (authApi already sets CORS headers).
+- If you deploy to a non-default Functions domain, pass `--dart-define=CRUSH_AUTH_FUNCTION_BASE_URL=...` (and optionally `CRUSH_AUTH_FUNCTION_NAME`) for web builds.
+
 ## Email template (OTP)
 Subject: Your CrushHour verification code
 Body:

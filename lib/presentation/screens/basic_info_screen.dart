@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
@@ -44,8 +45,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               previous.errorMessage != current.errorMessage,
           listener: (context, state) {
             if (state.user != null) {
-              Navigator.pushReplacementNamed(
-                  context, CrushRoutes.idVerification);
+              context.go(CrushRoutes.idVerification);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {
@@ -161,13 +161,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   void _goBack() {
     final phone = context.read<AuthBloc>().state.phoneInProgress;
     if (phone != null && phone.isNotEmpty) {
-      Navigator.pushReplacementNamed(
-        context,
-        CrushRoutes.otp,
-        arguments: phone,
-      );
+      final encoded = Uri.encodeComponent(phone);
+      context.go('${CrushRoutes.otp}?phone=$encoded');
     } else {
-      Navigator.pushReplacementNamed(context, CrushRoutes.phoneAuth);
+      context.go(CrushRoutes.phoneAuth);
     }
   }
 

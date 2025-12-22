@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
@@ -20,11 +21,7 @@ class LogoutScreen extends StatelessWidget {
           listener: (context, state) {
             if (state.status == AuthStatus.unauthenticated ||
                 state.status == AuthStatus.unknown) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                CrushRoutes.phoneAuth,
-                (route) => false,
-              );
+              context.go(CrushRoutes.phoneAuth);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {

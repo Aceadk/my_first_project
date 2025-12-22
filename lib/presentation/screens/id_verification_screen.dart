@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
@@ -24,7 +25,7 @@ class IdVerificationScreen extends StatelessWidget {
               previous.errorMessage != current.errorMessage,
           listener: (context, state) {
             if (state.user != null && state.user!.isIdVerified) {
-              Navigator.pushReplacementNamed(context, CrushRoutes.profileSetup);
+              context.go(CrushRoutes.profileSetup);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {
@@ -68,16 +69,10 @@ class IdVerificationScreen extends StatelessWidget {
                       OnboardingNavButtons(
                         onBack: isBusy
                             ? null
-                            : () => Navigator.pushReplacementNamed(
-                                  context,
-                                  CrushRoutes.basicInfo,
-                                ),
+                            : () => context.go(CrushRoutes.basicInfo),
                         onNext: isBusy
                             ? null
-                            : () => Navigator.pushReplacementNamed(
-                                  context,
-                                  CrushRoutes.profileSetup,
-                                ),
+                            : () => context.go(CrushRoutes.profileSetup),
                         nextLoading: isBusy,
                       ),
                     ],

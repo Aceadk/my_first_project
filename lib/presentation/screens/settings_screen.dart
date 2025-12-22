@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/router.dart';
 import '../../logic/theme/theme_cubit.dart';
 import '../../logic/notification/notification_settings_cubit.dart';
@@ -578,10 +579,7 @@ class SettingsScreen extends StatelessWidget {
                       title: const Text('Email protection'),
                       subtitle: Text(emailSubtitle),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        CrushRoutes.emailProtection,
-                      ),
+                      onTap: () => context.push(CrushRoutes.emailProtection),
                     ),
                     const Divider(height: 1),
                     ListTile(
@@ -594,10 +592,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: hasEmail
-                          ? () => Navigator.pushNamed(
-                                context,
-                                CrushRoutes.changeEmail,
-                              )
+                          ? () => context.push(CrushRoutes.changeEmail)
                           : null,
                     ),
                     const Divider(height: 1),
@@ -608,10 +603,7 @@ class SettingsScreen extends StatelessWidget {
                         'Verify a new device with email OTP',
                       ),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        CrushRoutes.newDevice,
-                      ),
+                      onTap: () => context.push(CrushRoutes.newDevice),
                     ),
                   ],
                 ),
@@ -721,7 +713,7 @@ class SettingsScreen extends StatelessWidget {
                 title: const Text('Log out'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  Navigator.pushNamed(context, CrushRoutes.logout);
+                  context.push(CrushRoutes.logout);
                 },
               ),
               BlocBuilder<SafetyCubit, SafetyState>(
@@ -736,7 +728,7 @@ class SettingsScreen extends StatelessWidget {
                     subtitle: Text(subtitle),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      Navigator.pushNamed(context, CrushRoutes.safety);
+                      context.push(CrushRoutes.safety);
                     },
                   );
                 },
@@ -992,11 +984,7 @@ class SettingsScreen extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       context.read<AuthBloc>().add(AuthSignedOut());
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        CrushRoutes.phoneAuth,
-        (route) => false,
-      );
+      context.go(CrushRoutes.phoneAuth);
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
@@ -39,7 +40,7 @@ class _OtpScreenState extends State<OtpScreen> {
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state.status == AuthStatus.authenticated) {
-              Navigator.pushReplacementNamed(context, CrushRoutes.basicInfo);
+              context.go(CrushRoutes.basicInfo);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {

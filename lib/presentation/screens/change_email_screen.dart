@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/result.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/models/user.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../logic/auth/auth_bloc.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
@@ -37,10 +39,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
     final currentEmail = user?.email;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Change email')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'Change email',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Use a new email to keep your account recoverable.',
@@ -123,11 +125,11 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -145,9 +147,6 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _requestOtp() async {
     setState(() {
       _emailTouched = true;
@@ -158,7 +157,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       return;
     }
 
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     setState(() {
       _isLoading = true;
     });
@@ -199,7 +198,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       showErrorSnackBar(context, otpError);
       return;
     }
-    final email = (_sentEmail ?? _emailController.text.trim());
+    final email = normalizeEmail(_sentEmail ?? _emailController.text);
     final otp = _otpController.text.trim();
     setState(() {
       _isLoading = true;

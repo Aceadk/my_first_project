@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/router.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_nav_buttons.dart';
@@ -30,12 +31,12 @@ class WelcomeScreen extends StatelessWidget {
               showBack: false,
               nextLabel: 'Continue with phone',
               onNext: () {
-                Navigator.pushNamed(context, CrushRoutes.phoneAuth);
+                context.push(CrushRoutes.phoneAuth);
               },
             ),
             TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, CrushRoutes.emailAuth);
+                context.push(CrushRoutes.emailAuth);
               },
               child: const Text('Use email or username instead'),
             ),

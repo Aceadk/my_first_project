@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -233,8 +234,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         if (!selfVerified)
                           TextButton(
-                            onPressed: () => Navigator.pushNamed(
-                                context, CrushRoutes.safety),
+                            onPressed: () => context.push(CrushRoutes.safety),
                             child: const Text('Verify'),
                           ),
                       ],
@@ -1282,7 +1282,7 @@ class _ChatScreenState extends State<ChatScreen> {
         break;
       case _ChatSafetyAction.safetyCenter:
         if (!mounted) return;
-        Navigator.pushNamed(context, CrushRoutes.safety);
+        context.push(CrushRoutes.safety);
         break;
     }
   }
@@ -1371,7 +1371,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   onPressed: () =>
-                      Navigator.pushNamed(context, CrushRoutes.safetyGuidelines),
+                      context.push(CrushRoutes.safetyGuidelines),
                   icon: const Icon(Icons.shield_outlined),
                   label: const Text('View community guidelines'),
                 ),

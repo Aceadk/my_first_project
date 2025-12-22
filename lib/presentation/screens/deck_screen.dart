@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth/auth_bloc.dart';
@@ -702,7 +703,7 @@ class _DeckScreenState extends State<DeckScreen> {
         IconButton(
           icon: const Icon(Icons.shield_outlined),
           tooltip: 'Safety Center',
-          onPressed: () => Navigator.pushNamed(context, CrushRoutes.safety),
+          onPressed: () => context.push(CrushRoutes.safety),
         ),
         IconButton(
           icon: const Icon(Icons.refresh),
@@ -759,7 +760,7 @@ class _DeckScreenState extends State<DeckScreen> {
         }
         break;
       case _DeckSafetyAction.guidelines:
-        Navigator.pushNamed(context, CrushRoutes.safetyGuidelines);
+        context.push(CrushRoutes.safetyGuidelines);
         break;
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:uni_links/uni_links.dart';
@@ -24,7 +25,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
   void initState() {
     super.initState();
     _listenInitial();
-    _sub = uriLinkStream.listen(_handleUri, onError: (_) {});
+    if (!kIsWeb) {
+      _sub = uriLinkStream.listen(_handleUri, onError: (_) {});
+    }
   }
 
   Future<void> _listenInitial() async {

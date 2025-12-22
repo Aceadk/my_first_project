@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_nav_buttons.dart';
 
@@ -59,10 +61,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                 previous.errorMessage != current.errorMessage,
             listener: (context, state) {
               if (state.status == AuthStatus.authenticated) {
-                Navigator.pushReplacementNamed(
-                  context,
-                  CrushRoutes.basicInfo,
-                );
+                context.go(CrushRoutes.basicInfo);
               } else if (state.status == AuthStatus.emailLinkSent &&
                   state.emailInProgress != null) {
                 showSuccessSnackBar(
@@ -105,10 +104,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                     TextButton(
                       onPressed: isLoading
                           ? null
-                          : () => Navigator.pushReplacementNamed(
-                                context,
-                                CrushRoutes.phoneAuth,
-                              ),
+                          : () => context.go(CrushRoutes.phoneAuth),
                       child: const Text('Use phone instead'),
                     ),
                   ],
@@ -122,7 +118,10 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
   }
 
   Widget _buildEmailOtpTab(AuthState state) {
-    final identifier = _identifierController.text.trim();
+    final rawIdentifier = _identifierController.text.trim();
+    final identifier = rawIdentifier.contains('@')
+        ? normalizeEmail(rawIdentifier)
+        : rawIdentifier;
     final storedIdentifier = state.emailOtpIdentifier;
     final effectiveIdentifier =
         (storedIdentifier != null && storedIdentifier.isNotEmpty)
@@ -210,7 +209,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
   }
 
   Widget _buildEmailLinkTab(AuthState state) {
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     final linkSent = state.status == AuthStatus.emailLinkSent &&
         (state.emailInProgress?.isNotEmpty ?? false);
 
@@ -302,7 +301,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
             }
             context.read<AuthBloc>().add(
                   AuthEmailPasswordSubmitted(
-                    _emailController.text.trim(),
+                    normalizeEmail(_emailController.text),
                     _passwordController.text,
                   ),
                 );
@@ -311,14 +310,11 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: state.isLoading
-              ? null
-              : () => Navigator.pushNamed(
-                    context,
-                    CrushRoutes.forgotPassword,
-                  ),
-          child: const Text('Forgot password?'),
-        ),
+            onPressed: state.isLoading
+                ? null
+                : () => context.push(CrushRoutes.forgotPassword),
+            child: const Text('Forgot password?'),
+          ),
       ],
     );
   }
@@ -362,7 +358,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
       return 'Enter your username or email';
     }
     if (identifier.contains('@')) {
-      if (!_looksLikeEmail(identifier)) {
+      if (!looksLikeEmail(identifier)) {
         return 'Enter a valid email address';
       }
       return null;
@@ -389,11 +385,11 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched && !_submitted) return null;
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -411,6 +407,4 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
 }

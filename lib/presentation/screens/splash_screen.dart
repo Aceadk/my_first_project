@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
@@ -88,6 +89,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (_didNavigate || !mounted) return;
     _didNavigate = true;
     _fallbackTimer?.cancel();
-    Navigator.pushReplacementNamed(context, route, arguments: arguments);
+    if (route == CrushRoutes.emailProtection && arguments is bool) {
+      final suffix = arguments ? '?redirect=1' : '';
+      context.go('$route$suffix');
+      return;
+    }
+    context.go(route);
   }
 }

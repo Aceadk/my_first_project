@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/result.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class NewDeviceScreen extends StatefulWidget {
@@ -30,10 +32,10 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('New device check')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'New device check',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Verify a new device before continuing.',
@@ -114,7 +116,7 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
       return 'Enter your username or email';
     }
     if (identifier.contains('@')) {
-      if (!_looksLikeEmail(identifier)) {
+      if (!looksLikeEmail(identifier)) {
         return 'Enter a valid email address';
       }
       return null;
@@ -138,9 +140,6 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _requestOtp() async {
     setState(() {
       _identifierTouched = true;
@@ -150,7 +149,10 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
       showErrorSnackBar(context, identifierError);
       return;
     }
-    final identifier = _identifierController.text.trim();
+    final rawIdentifier = _identifierController.text.trim();
+    final identifier = rawIdentifier.contains('@')
+        ? normalizeEmail(rawIdentifier)
+        : rawIdentifier;
     setState(() {
       _isLoading = true;
     });
@@ -190,7 +192,10 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
       showErrorSnackBar(context, otpError);
       return;
     }
-    final identifier = _sentIdentifier ?? _identifierController.text.trim();
+    final rawIdentifier = _sentIdentifier ?? _identifierController.text.trim();
+    final identifier = rawIdentifier.contains('@')
+        ? normalizeEmail(rawIdentifier)
+        : rawIdentifier;
     final otp = _otpController.text.trim();
     setState(() {
       _isLoading = true;

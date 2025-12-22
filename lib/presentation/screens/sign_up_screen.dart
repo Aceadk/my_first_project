@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -38,10 +41,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final fieldsDisabled = _otpSent || _isLoading;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'Sign Up',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
             controller: _usernameController,
@@ -119,10 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           TextButton(
             onPressed: _isLoading
                 ? null
-                : () => Navigator.pushReplacementNamed(
-                      context,
-                      CrushRoutes.login,
-                    ),
+                : () => context.go(CrushRoutes.login),
             child: const Text('Already have an account? Log in'),
           ),
         ],
@@ -177,11 +177,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -211,9 +211,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _createAccount() async {
     setState(() {
       _usernameTouched = true;
@@ -231,13 +228,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
+    final email = normalizeEmail(_emailController.text);
     setState(() {
       _isLoading = true;
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().signUpWithPassword(
             username: _usernameController.text.trim(),
-            email: _emailController.text.trim(),
+            email: email,
             password: _passwordController.text,
           ),
       logLabel: 'AuthRepository.signUpWithPassword',
@@ -251,7 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showErrorSnackBar(context, result.errorMessage ?? 'Sign up failed.');
       return;
     }
-    _registeredEmail = _emailController.text.trim();
+    _registeredEmail = email;
     setState(() {
       _otpSent = true;
     });
@@ -262,7 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _sendOtp() async {
-    final email = _registeredEmail ?? _emailController.text.trim();
+    final email = normalizeEmail(_registeredEmail ?? _emailController.text);
     if (email.isEmpty) {
       showErrorSnackBar(context, 'Enter your email address.');
       return;
@@ -302,7 +300,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showErrorSnackBar(context, otpError);
       return;
     }
-    final email = _registeredEmail ?? _emailController.text.trim();
+    final email = normalizeEmail(_registeredEmail ?? _emailController.text);
     setState(() {
       _isLoading = true;
     });
@@ -324,6 +322,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
       return;
     }
-    Navigator.pushReplacementNamed(context, CrushRoutes.home);
+    context.go(CrushRoutes.home);
   }
 }

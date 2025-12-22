@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:go_router/go_router.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
@@ -99,7 +100,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             previous.errorMessage != current.errorMessage,
         listener: (context, state) {
           if (state.user != null) {
-            Navigator.pushReplacementNamed(context, CrushRoutes.home);
+            context.go(CrushRoutes.home);
           }
           final error = state.errorMessage;
           if (error != null && error.isNotEmpty) {
@@ -171,10 +172,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         OnboardingNavButtons(
                           onBack: saving
                               ? null
-                              : () => Navigator.pushReplacementNamed(
-                                    context,
-                                    CrushRoutes.idVerification,
-                                  ),
+                              : () => context.go(CrushRoutes.idVerification),
                           onNext: saving ? null : () => _submit(state),
                           nextLabel: 'Finish',
                           nextLoading: saving,

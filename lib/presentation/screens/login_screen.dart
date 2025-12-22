@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -29,10 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'Login',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
             controller: _identifierController,
@@ -65,19 +68,13 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(
             onPressed: _isLoading
                 ? null
-                : () => Navigator.pushNamed(
-                      context,
-                      CrushRoutes.forgotPassword,
-                    ),
+                : () => context.push(CrushRoutes.forgotPassword),
             child: const Text('Forgot password?'),
           ),
           TextButton(
             onPressed: _isLoading
                 ? null
-                : () => Navigator.pushNamed(
-                      context,
-                      CrushRoutes.signUp,
-                    ),
+                : () => context.push(CrushRoutes.signUp),
             child: const Text('Create an account'),
           ),
         ],
@@ -108,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Enter your username or email';
     }
     if (identifier.contains('@')) {
-      if (!_looksLikeEmail(identifier)) {
+      if (!looksLikeEmail(identifier)) {
         return 'Enter a valid email address';
       }
       return null;
@@ -129,9 +126,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _submit() async {
     setState(() {
       _identifierTouched = true;
@@ -144,12 +138,16 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
+    final rawIdentifier = _identifierController.text.trim();
+    final identifier = rawIdentifier.contains('@')
+        ? normalizeEmail(rawIdentifier)
+        : rawIdentifier;
     setState(() {
       _isLoading = true;
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().loginWithPassword(
-            identifier: _identifierController.text.trim(),
+            identifier: identifier,
             password: _passwordController.text,
           ),
       logLabel: 'AuthRepository.loginWithPassword',
@@ -167,13 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (user?.email != null &&
         user!.email!.isNotEmpty &&
         !user.isEmailVerified) {
-      Navigator.pushReplacementNamed(
-        context,
-        CrushRoutes.emailProtection,
-        arguments: true,
-      );
+      context.go('${CrushRoutes.emailProtection}?redirect=1');
       return;
     }
-    Navigator.pushReplacementNamed(context, CrushRoutes.home);
+    context.go(CrushRoutes.home);
   }
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/result.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -33,10 +35,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Forgot password')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'Forgot password',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Enter your email to reset your password.',
@@ -132,11 +134,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -166,9 +168,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _requestOtp() async {
     setState(() {
       _emailTouched = true;
@@ -178,7 +177,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       showErrorSnackBar(context, emailError);
       return;
     }
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     setState(() {
       _isLoading = true;
     });
@@ -223,7 +222,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       showErrorSnackBar(context, passwordError);
       return;
     }
-    final email = _sentEmail ?? _emailController.text.trim();
+    final email = normalizeEmail(_sentEmail ?? _emailController.text);
     final otp = _otpController.text.trim();
     final newPassword = _passwordController.text;
     setState(() {

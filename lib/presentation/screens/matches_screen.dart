@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../logic/auth/auth_bloc.dart';
@@ -130,7 +131,7 @@ class _MatchesView extends StatelessWidget {
                 icon: const Icon(Icons.shield_outlined),
                 tooltip: 'Safety Center',
                 onPressed: () =>
-                    Navigator.pushNamed(context, CrushRoutes.safety),
+                    context.push(CrushRoutes.safety),
               ),
             ],
           ),

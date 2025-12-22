@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../core/validators.dart';
 import '../../data/models/user.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../logic/auth/auth_bloc.dart';
+import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 
 class EmailProtectionScreen extends StatefulWidget {
@@ -44,10 +47,10 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     final currentEmail = user?.email;
     final emailVerified = user?.isEmailVerified ?? false;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Email protection')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+    return AuthScaffold(
+      title: 'Email protection',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Add and verify an email to protect your account and enable recovery.',
@@ -135,11 +138,11 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
       return 'Enter your email address';
     }
-    if (!_looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -157,9 +160,6 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     return null;
   }
 
-  bool _looksLikeEmail(String email) =>
-      RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(email);
-
   Future<void> _requestOtp() async {
     setState(() {
       _emailTouched = true;
@@ -170,7 +170,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
       return;
     }
 
-    final email = _emailController.text.trim();
+    final email = normalizeEmail(_emailController.text);
     setState(() {
       _isLoading = true;
     });
@@ -211,7 +211,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
       showErrorSnackBar(context, otpError);
       return;
     }
-    final email = (_sentEmail ?? _emailController.text.trim());
+    final email = normalizeEmail(_sentEmail ?? _emailController.text);
     final otp = _otpController.text.trim();
     setState(() {
       _isLoading = true;
@@ -241,7 +241,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     });
     showSuccessSnackBar(context, 'Email verified.');
     if (widget.redirectOnSuccess && mounted) {
-      Navigator.pushReplacementNamed(context, CrushRoutes.home);
+      context.go(CrushRoutes.home);
     }
   }
 }

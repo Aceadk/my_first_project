@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/safety/safety_cubit.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../core/router.dart';
@@ -82,10 +83,7 @@ class SafetyScreen extends StatelessWidget {
                       ),
                       TextButton.icon(
                         onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            CrushRoutes.safetyGuidelines,
-                          );
+                          context.push(CrushRoutes.safetyGuidelines);
                         },
                         icon: const Icon(Icons.policy),
                         label: const Text('Read community guidelines'),
@@ -224,10 +222,7 @@ class _SafetyEducationCard extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  CrushRoutes.safetyGuidelines,
-                );
+                context.push(CrushRoutes.safetyGuidelines);
               },
               icon: const Icon(Icons.menu_book_outlined),
               label: const Text('Review safety & community guidelines'),
