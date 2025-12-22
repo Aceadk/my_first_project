@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { BigQuery } from "@google-cloud/bigquery";
 import Stripe from "stripe";
 import { RtcTokenBuilder, RtcRole } from "agora-access-token";
+import { FieldValue } from "firebase-admin/firestore";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -169,6 +170,13 @@ function toStringArray(value: unknown): string[] {
     .filter((v) => v.length > 0);
 }
 
+function toMillis(value: unknown, fallback: number): number {
+  if (typeof value === "number") return value;
+  if (value instanceof Date) return value.getTime();
+  const millis = (value as { toMillis?: () => number })?.toMillis?.();
+  return typeof millis === "number" ? millis : fallback;
+}
+
 const OTP_DIGITS = 6;
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_VERIFY_MAX_ATTEMPTS = 5;
@@ -194,7 +202,7 @@ const SIGNUP_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
-const EMAIL_REGEX = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/;
+const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const otpSecret = authOtpSecret || "dev-secret";
 if (!authOtpSecret) {
   console.warn("auth.otp_secret not configured; using dev-secret.");
@@ -262,10 +270,8 @@ async function applyRateLimit(
     let blockedUntil = 0;
     if (snap.exists) {
       const data = snap.data() || {};
-      const windowTs = data.windowStart?.toMillis?.() ?? now;
-      const blockedTs = data.blockedUntil?.toMillis?.() ?? 0;
-      windowStart = typeof windowTs === "number" ? windowTs : now;
-      blockedUntil = typeof blockedTs === "number" ? blockedTs : 0;
+      windowStart = toMillis(data.windowStart, now);
+      blockedUntil = toMillis(data.blockedUntil, 0);
       attempts = typeof data.attempts === "number" ? data.attempts : 0;
     }
 
@@ -288,10 +294,8 @@ async function applyRateLimit(
       {
         key,
         attempts,
-        windowStart: admin.firestore.Timestamp.fromMillis(windowStart),
-        blockedUntil: blockedUntil
-          ? admin.firestore.Timestamp.fromMillis(blockedUntil)
-          : null,
+        windowStart: new Date(windowStart),
+        blockedUntil: blockedUntil ? new Date(blockedUntil) : null,
       },
       { merge: true }
     );
@@ -322,7 +326,7 @@ async function logAuthAudit(params: {
     ip: params.ip ?? null,
     userAgent: params.userAgent ?? null,
     metadata: params.metadata ?? {},
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 }
 
@@ -528,7 +532,7 @@ async function setPasswordHash(uid: string, password: string) {
   await db.collection("auth_credentials").doc(uid).set(
     {
       passwordHash,
-      passwordUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      passwordUpdatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -659,8 +663,8 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
       failedAttempts: 0,
       usedAt: null,
       lockedUntil: null,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: new Date(now + OTP_TTL_MS),
     });
 
     if (targetEmail) {
@@ -781,9 +785,9 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
     let matchedData: FirebaseFirestore.DocumentData | undefined;
     for (const doc of candidates.docs) {
       const data = doc.data();
-      const usedAt = data.usedAt?.toMillis?.() ?? 0;
-      const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
-      const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+      const usedAt = toMillis(data.usedAt, 0);
+      const expiresAt = toMillis(data.expiresAt, 0);
+      const lockedUntil = toMillis(data.lockedUntil, 0);
       if (usedAt) continue;
       if (expiresAt && expiresAt < now) continue;
       if (lockedUntil && lockedUntil > now) continue;
@@ -800,7 +804,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
         failedAttempts: nextAttempts,
       };
       if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-        updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+        updates.lockedUntil = new Date(
           now + OTP_VERIFY_LOCK_MS
         );
       }
@@ -823,7 +827,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
     }
 
     await matchedDoc.ref.update({
-      usedAt: admin.firestore.FieldValue.serverTimestamp(),
+      usedAt: FieldValue.serverTimestamp(),
     });
 
     if (purpose === "login") {
@@ -989,7 +993,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
         usernameRef,
         {
           uid,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -1149,7 +1153,7 @@ async function signUpWithPasswordCore(params: {
       }
       tx.set(usernameRef, {
         uid: createdUid,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
       tx.set(db.collection("users").doc(createdUid), {
         username,
@@ -1182,8 +1186,8 @@ async function signUpWithPasswordCore(params: {
       failedAttempts: 0,
       usedAt: null,
       lockedUntil: null,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: new Date(now + OTP_TTL_MS),
     });
 
     try {
@@ -1310,7 +1314,7 @@ async function requestPasswordResetCore(params: {
     .get();
   if (!recent.empty) {
     const data = recent.docs[0].data();
-    const createdAt = data.createdAt?.toMillis?.() ?? 0;
+    const createdAt = toMillis(data.createdAt, 0);
     if (createdAt && Date.now() - createdAt < OTP_RESEND_COOLDOWN_MS) {
       await logAuthAudit({
         action: "forgot_password_request",
@@ -1371,8 +1375,8 @@ async function requestPasswordResetCore(params: {
     failedAttempts: 0,
     usedAt: null,
     lockedUntil: null,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+    createdAt: FieldValue.serverTimestamp(),
+    expiresAt: new Date(now + OTP_TTL_MS),
   });
 
   try {
@@ -1464,9 +1468,9 @@ async function verifyPasswordResetOtpCore(params: {
   let matchedData: FirebaseFirestore.DocumentData | undefined;
   for (const doc of candidates.docs) {
     const data = doc.data();
-    const usedAt = data.usedAt?.toMillis?.() ?? 0;
-    const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
-    const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+    const usedAt = toMillis(data.usedAt, 0);
+    const expiresAt = toMillis(data.expiresAt, 0);
+    const lockedUntil = toMillis(data.lockedUntil, 0);
     if (usedAt) continue;
     if (expiresAt && expiresAt < now) continue;
     if (lockedUntil && lockedUntil > now) continue;
@@ -1483,7 +1487,7 @@ async function verifyPasswordResetOtpCore(params: {
       failedAttempts: nextAttempts,
     };
     if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-      updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+      updates.lockedUntil = new Date(
         now + OTP_VERIFY_LOCK_MS
       );
     }
@@ -1505,7 +1509,7 @@ async function verifyPasswordResetOtpCore(params: {
   }
 
   await matchedDoc.ref.update({
-    usedAt: admin.firestore.FieldValue.serverTimestamp(),
+    usedAt: FieldValue.serverTimestamp(),
   });
 
   const resetToken = generateResetToken();
@@ -1520,8 +1524,8 @@ async function verifyPasswordResetOtpCore(params: {
     resetTokenHash: resetHash,
     resetTokenSalt: resetSalt,
     usedAt: null,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    expiresAt: admin.firestore.Timestamp.fromMillis(now + RESET_TOKEN_TTL_MS),
+    createdAt: FieldValue.serverTimestamp(),
+    expiresAt: new Date(now + RESET_TOKEN_TTL_MS),
   });
 
   await logAuthAudit({
@@ -1608,8 +1612,8 @@ async function resetPasswordWithTokenCore(params: {
   let matchedData: FirebaseFirestore.DocumentData | undefined;
   for (const doc of candidates.docs) {
     const data = doc.data();
-    const usedAt = data.usedAt?.toMillis?.() ?? 0;
-    const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+    const usedAt = toMillis(data.usedAt, 0);
+    const expiresAt = toMillis(data.expiresAt, 0);
     if (usedAt) continue;
     if (expiresAt && expiresAt < now) continue;
 
@@ -1642,7 +1646,7 @@ async function resetPasswordWithTokenCore(params: {
   }
 
   await matchedDoc.ref.update({
-    usedAt: admin.firestore.FieldValue.serverTimestamp(),
+    usedAt: FieldValue.serverTimestamp(),
   });
 
   await logAuthAudit({
@@ -2040,8 +2044,8 @@ async function flagUserForReview(userId: string, reason: string) {
         safetyFlags: {
           status: "needs_review",
           lastReason: reason,
-          lastFlaggedAt: admin.firestore.FieldValue.serverTimestamp(),
-          autoFlags: admin.firestore.FieldValue.increment(1),
+          lastFlaggedAt: FieldValue.serverTimestamp(),
+          autoFlags: FieldValue.increment(1),
         },
       },
       { merge: true }
@@ -2152,7 +2156,7 @@ async function enforceDailyLikeLimit(uid: string, plan?: string) {
       ref,
       {
         dailyLikes,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -2186,7 +2190,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     source: source ?? null,
     description: description ?? null,
     status: "open",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   const sevenDaysAgo = admin.firestore.Timestamp.fromDate(
@@ -2205,7 +2209,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
       {
         safetyFlags: {
           openReports: openReportsSnap.size,
-          lastReportAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastReportAt: FieldValue.serverTimestamp(),
           lastReason: reason,
           status: openReportsSnap.size >= 3 ? "needs_review" : "watch",
         },
@@ -2218,7 +2222,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
       userId: reportedId,
       reason: "multiple_reports",
       reportCount: openReportsSnap.size,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       status: "open",
     });
   }
@@ -2248,7 +2252,7 @@ export const blockUser = callable<BlockRequest>(async (data, context) => {
   await db.collection("blocks").doc(docId).set({
     blockerId,
     blockedId,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   return { ok: true };
@@ -2283,7 +2287,7 @@ export const appealSafetyAction = callable<AppealRequest>(async (data, context) 
     targetType,
     targetId,
     status: "open",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   await db
@@ -2293,7 +2297,7 @@ export const appealSafetyAction = callable<AppealRequest>(async (data, context) 
       {
         safetyFlags: {
           appealOpen: true,
-          lastAppealAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastAppealAt: FieldValue.serverTimestamp(),
           lastReason: reason,
         },
       },
@@ -2316,7 +2320,7 @@ export const setTyping = callable<{
     .collection("matches")
     .doc(matchId)
     .set(
-      { typing: { [uid]: isTyping }, typingUpdatedAt: admin.firestore.FieldValue.serverTimestamp() },
+      { typing: { [uid]: isTyping }, typingUpdatedAt: FieldValue.serverTimestamp() },
       { merge: true }
     );
   return { ok: true };
@@ -2332,7 +2336,7 @@ export const setPresenceStatus = callable<{ isOnline?: boolean }>(
       .set(
         {
           isOnline,
-          lastSeenAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastSeenAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -2356,7 +2360,7 @@ export const setMediaSendingEnabled = callable<{
       {
         mediaSendingEnabled: enabled,
         mediaUpdatedBy: uid,
-        mediaUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        mediaUpdatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -2382,7 +2386,7 @@ export const addReaction = callable<{
     .set(
       {
         reactions: { [uid]: emoji },
-        reactionsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reactionsUpdatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -2405,8 +2409,8 @@ export const removeReaction = callable<{
     .doc(messageId)
     .set(
       {
-        reactions: { [uid]: admin.firestore.FieldValue.delete() },
-        reactionsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reactions: { [uid]: FieldValue.delete() },
+        reactionsUpdatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -2425,7 +2429,7 @@ export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
       {
         status: "unmatched",
         unmatchedBy: uid,
-        unmatchedAt: admin.firestore.FieldValue.serverTimestamp(),
+        unmatchedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -2464,7 +2468,7 @@ export const onMessageCreated = functions.firestore
           reason: decision.reason ?? null,
           severity: decision.severity,
           flagged: decision.action !== "allow",
-          reviewedAt: admin.firestore.FieldValue.serverTimestamp(),
+          reviewedAt: FieldValue.serverTimestamp(),
         },
       },
       { merge: true }
@@ -2700,7 +2704,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     fromUserId: uid,
     toUserId: targetUserId,
     attachedMessage: attachedMessage ?? null,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   await bigquery
@@ -2754,7 +2758,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
         [uid]: false,
         [targetUserId]: false,
       },
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
     existing = await matchRef.get();
     matchId = matchRef.id;
@@ -2844,7 +2848,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
           [uid]: 0,
           [targetUserId]: 0,
         },
-        lastRequestAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastRequestAt: FieldValue.serverTimestamp(),
       });
     }
 
@@ -2863,7 +2867,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     requests[uid] = myCount + 1;
     await preRef.update({
       requests,
-      lastRequestAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastRequestAt: FieldValue.serverTimestamp(),
     });
 
     // Store the request message (optional UI for receiver)
@@ -2871,7 +2875,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
       fromUserId: uid,
       toUserId: targetUserId,
       content,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     return { ok: true };
@@ -2940,7 +2944,7 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   // Soft delete for sender
   await msgRef.update({
     isDeletedForSender: true,
-    unsentAt: admin.firestore.FieldValue.serverTimestamp(),
+    unsentAt: FieldValue.serverTimestamp(),
   });
 
   return { ok: true };
