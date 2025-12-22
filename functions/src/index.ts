@@ -449,6 +449,23 @@ interface LoginWithPasswordRequest {
   password?: string;
 }
 
+interface PasswordResetRequest {
+  email?: string;
+}
+
+interface PasswordResetVerifyRequest {
+  email?: string;
+  otp?: string;
+}
+
+interface PasswordResetFinalizeRequest {
+  email?: string;
+  resetToken?: string;
+  reset_token?: string;
+  newPassword?: string;
+  new_password?: string;
+}
+
 function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
   const purpose = typeof value === "string" ? value.trim() : "";
   if (!EMAIL_OTP_PURPOSES.has(purpose as EmailOtpPurpose)) {
@@ -1238,6 +1255,406 @@ async function signUpWithPasswordCore(params: {
   }
 }
 
+const FORGOT_PASSWORD_RESPONSE = {
+  status: "ok",
+  message: "If the email is registered, a verification code will be sent.",
+};
+
+async function requestPasswordResetCore(params: {
+  emailRaw: string;
+  ip?: string;
+  userAgent?: string;
+}) {
+  const emailRaw = params.emailRaw.trim();
+  const ip = params.ip;
+  const userAgent = params.userAgent;
+
+  if (!emailRaw || !isEmailLike(emailRaw)) {
+    return FORGOT_PASSWORD_RESPONSE;
+  }
+
+  const email = normalizeEmail(emailRaw);
+  const identifierHash = hashIdentifier(email);
+  const ipLimit = ip
+    ? await applyRateLimit(
+        `otp:req:ip:${ip}`,
+        OTP_REQUEST_LIMIT,
+        OTP_REQUEST_WINDOW_MS,
+        OTP_REQUEST_BLOCK_MS
+      )
+    : { allowed: true };
+  const idLimit = await applyRateLimit(
+    `otp:req:id:${identifierHash}`,
+    OTP_REQUEST_LIMIT,
+    OTP_REQUEST_WINDOW_MS,
+    OTP_REQUEST_BLOCK_MS
+  );
+
+  if (!ipLimit.allowed || !idLimit.allowed) {
+    await logAuthAudit({
+      action: "forgot_password_request",
+      status: "blocked",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    return FORGOT_PASSWORD_RESPONSE;
+  }
+
+  const recent = await db
+    .collection("auth_email_otps")
+    .where("identifierHash", "==", identifierHash)
+    .where("purpose", "==", "forgot_password")
+    .orderBy("createdAt", "desc")
+    .limit(1)
+    .get();
+  if (!recent.empty) {
+    const data = recent.docs[0].data();
+    const createdAt = data.createdAt?.toMillis?.() ?? 0;
+    if (createdAt && Date.now() - createdAt < OTP_RESEND_COOLDOWN_MS) {
+      await logAuthAudit({
+        action: "forgot_password_request",
+        status: "blocked",
+        identifierHash,
+        ip,
+        userAgent,
+        metadata: { cooldown: true },
+      });
+      return FORGOT_PASSWORD_RESPONSE;
+    }
+  }
+
+  let userRecord: admin.auth.UserRecord | null = null;
+  try {
+    userRecord = await admin.auth().getUserByEmail(email);
+  } catch (_) {
+    userRecord = null;
+  }
+
+  if (!userRecord || !userRecord.emailVerified) {
+    await logAuthAudit({
+      action: "forgot_password_request",
+      status: "ok",
+      identifierHash,
+      ip,
+      userAgent,
+      metadata: { skippedSend: true },
+    });
+    return FORGOT_PASSWORD_RESPONSE;
+  }
+
+  const passwordHash = await getPasswordHash(userRecord.uid);
+  if (!passwordHash) {
+    await logAuthAudit({
+      action: "forgot_password_request",
+      status: "ok",
+      identifierHash,
+      ip,
+      userAgent,
+      metadata: { skippedSend: true, noPassword: true },
+    });
+    return FORGOT_PASSWORD_RESPONSE;
+  }
+
+  const otp = generateOtp();
+  const salt = crypto.randomBytes(16).toString("hex");
+  const otpHash = hashOtpValue(otp, salt);
+  const now = Date.now();
+
+  await db.collection("auth_email_otps").add({
+    identifierHash,
+    uid: userRecord.uid,
+    emailLower: email,
+    purpose: "forgot_password",
+    otpHash,
+    otpSalt: salt,
+    failedAttempts: 0,
+    usedAt: null,
+    lockedUntil: null,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+  });
+
+  try {
+    await sendOtpEmail({ to: email, otp, purpose: "forgot_password" });
+    await logAuthAudit({
+      action: "forgot_password_request",
+      status: "ok",
+      identifierHash,
+      uid: userRecord.uid,
+      ip,
+      userAgent,
+    });
+  } catch (err) {
+    console.error("Forgot password email failed", err);
+    await logAuthAudit({
+      action: "forgot_password_request",
+      status: "error",
+      identifierHash,
+      uid: userRecord.uid,
+      ip,
+      userAgent,
+    });
+  }
+
+  return FORGOT_PASSWORD_RESPONSE;
+}
+
+async function verifyPasswordResetOtpCore(params: {
+  emailRaw: string;
+  otpRaw: string;
+  ip?: string;
+  userAgent?: string;
+}): Promise<string> {
+  const emailRaw = params.emailRaw.trim();
+  const otpRaw = params.otpRaw.trim();
+  const ip = params.ip;
+  const userAgent = params.userAgent;
+
+  if (!emailRaw || !isEmailLike(emailRaw) || !isValidOtp(otpRaw)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid or expired code."
+    );
+  }
+
+  const email = normalizeEmail(emailRaw);
+  const identifierHash = hashIdentifier(email);
+  const ipLimit = ip
+    ? await applyRateLimit(
+        `otp:verify:ip:${ip}`,
+        OTP_VERIFY_LIMIT,
+        OTP_VERIFY_WINDOW_MS,
+        OTP_VERIFY_BLOCK_MS
+      )
+    : { allowed: true };
+  const idLimit = await applyRateLimit(
+    `otp:verify:id:${identifierHash}`,
+    OTP_VERIFY_LIMIT,
+    OTP_VERIFY_WINDOW_MS,
+    OTP_VERIFY_BLOCK_MS
+  );
+
+  if (!ipLimit.allowed || !idLimit.allowed) {
+    await logAuthAudit({
+      action: "forgot_password_verify",
+      status: "blocked",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Too many attempts. Try again."
+    );
+  }
+
+  const candidates = await db
+    .collection("auth_email_otps")
+    .where("identifierHash", "==", identifierHash)
+    .where("purpose", "==", "forgot_password")
+    .orderBy("createdAt", "desc")
+    .limit(5)
+    .get();
+
+  const now = Date.now();
+  let matchedDoc:
+    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+    | null = null;
+  let matchedData: FirebaseFirestore.DocumentData | undefined;
+  for (const doc of candidates.docs) {
+    const data = doc.data();
+    const usedAt = data.usedAt?.toMillis?.() ?? 0;
+    const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+    const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
+    if (usedAt) continue;
+    if (expiresAt && expiresAt < now) continue;
+    if (lockedUntil && lockedUntil > now) continue;
+
+    const computed = hashOtpValue(otpRaw, data.otpSalt as string);
+    if (timingSafeEqualHex(computed, data.otpHash as string)) {
+      matchedDoc = doc;
+      matchedData = data;
+      break;
+    }
+    const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
+    const nextAttempts = failedAttempts + 1;
+    const updates: Record<string, unknown> = {
+      failedAttempts: nextAttempts,
+    };
+    if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
+      updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
+        now + OTP_VERIFY_LOCK_MS
+      );
+    }
+    await doc.ref.update(updates);
+  }
+
+  if (!matchedDoc || !matchedData) {
+    await logAuthAudit({
+      action: "forgot_password_verify",
+      status: "invalid",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid or expired code."
+    );
+  }
+
+  await matchedDoc.ref.update({
+    usedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const resetToken = generateResetToken();
+  const resetSalt = crypto.randomBytes(16).toString("hex");
+  const resetHash = hashResetToken(resetToken, resetSalt);
+  const uid = matchedData.uid as string | undefined;
+
+  await db.collection("auth_password_resets").add({
+    identifierHash,
+    uid: uid ?? null,
+    emailLower: email,
+    resetTokenHash: resetHash,
+    resetTokenSalt: resetSalt,
+    usedAt: null,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(now + RESET_TOKEN_TTL_MS),
+  });
+
+  await logAuthAudit({
+    action: "forgot_password_verify",
+    status: "ok",
+    identifierHash,
+    uid,
+    ip,
+    userAgent,
+  });
+
+  return resetToken;
+}
+
+async function resetPasswordWithTokenCore(params: {
+  emailRaw: string;
+  resetToken: string;
+  newPassword: string;
+  ip?: string;
+  userAgent?: string;
+}): Promise<void> {
+  const emailRaw = params.emailRaw.trim();
+  const resetToken = params.resetToken.trim();
+  const newPassword = params.newPassword;
+  const ip = params.ip;
+  const userAgent = params.userAgent;
+
+  if (!emailRaw || !isEmailLike(emailRaw) || !resetToken) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid reset request."
+    );
+  }
+
+  if (newPassword.length < PASSWORD_MIN_LENGTH) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+    );
+  }
+
+  const email = normalizeEmail(emailRaw);
+  const identifierHash = hashIdentifier(email);
+  const ipLimit = ip
+    ? await applyRateLimit(
+        `reset:ip:${ip}`,
+        RESET_ATTEMPT_LIMIT,
+        RESET_ATTEMPT_WINDOW_MS,
+        RESET_ATTEMPT_BLOCK_MS
+      )
+    : { allowed: true };
+  const idLimit = await applyRateLimit(
+    `reset:id:${identifierHash}`,
+    RESET_ATTEMPT_LIMIT,
+    RESET_ATTEMPT_WINDOW_MS,
+    RESET_ATTEMPT_BLOCK_MS
+  );
+
+  if (!ipLimit.allowed || !idLimit.allowed) {
+    await logAuthAudit({
+      action: "forgot_password_reset",
+      status: "blocked",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Too many attempts. Try again."
+    );
+  }
+
+  const candidates = await db
+    .collection("auth_password_resets")
+    .where("identifierHash", "==", identifierHash)
+    .orderBy("createdAt", "desc")
+    .limit(5)
+    .get();
+
+  const now = Date.now();
+  let matchedDoc:
+    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+    | null = null;
+  let matchedData: FirebaseFirestore.DocumentData | undefined;
+  for (const doc of candidates.docs) {
+    const data = doc.data();
+    const usedAt = data.usedAt?.toMillis?.() ?? 0;
+    const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
+    if (usedAt) continue;
+    if (expiresAt && expiresAt < now) continue;
+
+    const computed = hashResetToken(resetToken, data.resetTokenSalt as string);
+    if (timingSafeEqualHex(computed, data.resetTokenHash as string)) {
+      matchedDoc = doc;
+      matchedData = data;
+      break;
+    }
+  }
+
+  if (!matchedDoc || !matchedData) {
+    await logAuthAudit({
+      action: "forgot_password_reset",
+      status: "invalid",
+      identifierHash,
+      ip,
+      userAgent,
+    });
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid reset request."
+    );
+  }
+
+  const uid = matchedData.uid as string | undefined;
+  if (uid) {
+    await setPasswordHash(uid, newPassword);
+    await admin.auth().revokeRefreshTokens(uid);
+  }
+
+  await matchedDoc.ref.update({
+    usedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  await logAuthAudit({
+    action: "forgot_password_reset",
+    status: "ok",
+    identifierHash,
+    uid,
+    ip,
+    userAgent,
+  });
+}
+
 export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
   async (data, context) => {
     const usernameRaw = requireString(data?.username, "username");
@@ -1362,6 +1779,69 @@ export const loginWithPassword = callable<LoginWithPasswordRequest>(
       ip,
       userAgent,
     });
+  }
+);
+
+export const requestPasswordReset = callable<PasswordResetRequest>(
+  async (data, context) => {
+    const emailRaw =
+      typeof data?.email === "string" ? data.email.trim() : "";
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    return requestPasswordResetCore({
+      emailRaw,
+      ip,
+      userAgent,
+    });
+  }
+);
+
+export const verifyPasswordResetOtp = callable<PasswordResetVerifyRequest>(
+  async (data, context) => {
+    const emailRaw =
+      typeof data?.email === "string" ? data.email.trim() : "";
+    const otpRaw = typeof data?.otp === "string" ? data.otp.trim() : "";
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    const resetToken = await verifyPasswordResetOtpCore({
+      emailRaw,
+      otpRaw,
+      ip,
+      userAgent,
+    });
+    return { status: "ok", resetToken };
+  }
+);
+
+export const resetPasswordWithToken = callable<PasswordResetFinalizeRequest>(
+  async (data, context) => {
+    const emailRaw =
+      typeof data?.email === "string" ? data.email.trim() : "";
+    const resetToken =
+      typeof data?.resetToken === "string"
+        ? data.resetToken.trim()
+        : typeof data?.reset_token === "string"
+          ? data.reset_token.trim()
+          : "";
+    const newPassword =
+      typeof data?.newPassword === "string"
+        ? data.newPassword
+        : typeof data?.new_password === "string"
+          ? data.new_password
+          : "";
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+    await resetPasswordWithTokenCore({
+      emailRaw,
+      resetToken,
+      newPassword,
+      ip,
+      userAgent,
+    });
+    return { status: "ok" };
   }
 );
 
@@ -1630,146 +2110,12 @@ export const authApi = functions.https.onRequest(async (req, res) => {
     if (isForgotRequest) {
       const emailRaw =
         typeof body.email === "string" ? body.email.trim() : "";
-      const responsePayload = {
-        status: "ok",
-        message:
-          "If the email is registered, a verification code will be sent.",
-      };
-
-      if (!emailRaw || !isEmailLike(emailRaw)) {
-        res.status(200).json(responsePayload);
-        return;
-      }
-
-      const email = normalizeEmail(emailRaw);
-      const identifierHash = hashIdentifier(email);
-      const ipLimit = ip
-        ? await applyRateLimit(
-            `otp:req:ip:${ip}`,
-            OTP_REQUEST_LIMIT,
-            OTP_REQUEST_WINDOW_MS,
-            OTP_REQUEST_BLOCK_MS
-          )
-        : { allowed: true };
-      const idLimit = await applyRateLimit(
-        `otp:req:id:${identifierHash}`,
-        OTP_REQUEST_LIMIT,
-        OTP_REQUEST_WINDOW_MS,
-        OTP_REQUEST_BLOCK_MS
-      );
-
-      if (!ipLimit.allowed || !idLimit.allowed) {
-        await logAuthAudit({
-          action: "forgot_password_request",
-          status: "blocked",
-          identifierHash,
-          ip,
-          userAgent,
-        });
-        res.status(200).json(responsePayload);
-        return;
-      }
-
-      const recent = await db
-        .collection("auth_email_otps")
-        .where("identifierHash", "==", identifierHash)
-        .where("purpose", "==", "forgot_password")
-        .orderBy("createdAt", "desc")
-        .limit(1)
-        .get();
-      if (!recent.empty) {
-        const data = recent.docs[0].data();
-        const createdAt = data.createdAt?.toMillis?.() ?? 0;
-        if (createdAt && Date.now() - createdAt < OTP_RESEND_COOLDOWN_MS) {
-          await logAuthAudit({
-            action: "forgot_password_request",
-            status: "blocked",
-            identifierHash,
-            ip,
-            userAgent,
-            metadata: { cooldown: true },
-          });
-          res.status(200).json(responsePayload);
-          return;
-        }
-      }
-
-      let userRecord: admin.auth.UserRecord | null = null;
-      try {
-        userRecord = await admin.auth().getUserByEmail(email);
-      } catch (_) {
-        userRecord = null;
-      }
-
-      if (!userRecord || !userRecord.emailVerified) {
-        await logAuthAudit({
-          action: "forgot_password_request",
-          status: "ok",
-          identifierHash,
-          ip,
-          userAgent,
-          metadata: { skippedSend: true },
-        });
-        res.status(200).json(responsePayload);
-        return;
-      }
-
-      const passwordHash = await getPasswordHash(userRecord.uid);
-      if (!passwordHash) {
-        await logAuthAudit({
-          action: "forgot_password_request",
-          status: "ok",
-          identifierHash,
-          ip,
-          userAgent,
-          metadata: { skippedSend: true, noPassword: true },
-        });
-        res.status(200).json(responsePayload);
-        return;
-      }
-
-      const otp = generateOtp();
-      const salt = crypto.randomBytes(16).toString("hex");
-      const otpHash = hashOtpValue(otp, salt);
-      const now = Date.now();
-
-      await db.collection("auth_email_otps").add({
-        identifierHash,
-        uid: userRecord.uid,
-        emailLower: email,
-        purpose: "forgot_password",
-        otpHash,
-        otpSalt: salt,
-        failedAttempts: 0,
-        usedAt: null,
-        lockedUntil: null,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        expiresAt: admin.firestore.Timestamp.fromMillis(now + OTP_TTL_MS),
+      const result = await requestPasswordResetCore({
+        emailRaw,
+        ip,
+        userAgent,
       });
-
-      try {
-        await sendOtpEmail({ to: email, otp, purpose: "forgot_password" });
-        await logAuthAudit({
-          action: "forgot_password_request",
-          status: "ok",
-          identifierHash,
-          uid: userRecord.uid,
-          ip,
-          userAgent,
-        });
-      } catch (err) {
-        console.error("Forgot password email failed", err);
-        await logAuthAudit({
-          action: "forgot_password_request",
-          status: "error",
-          identifierHash,
-          uid: userRecord.uid,
-          ip,
-          userAgent,
-        });
-      }
-
-      res.status(200).json(responsePayload);
+      res.status(200).json(result);
       return;
     }
 
@@ -1777,129 +2123,31 @@ export const authApi = functions.https.onRequest(async (req, res) => {
       const emailRaw =
         typeof body.email === "string" ? body.email.trim() : "";
       const otpRaw = typeof body.otp === "string" ? body.otp.trim() : "";
-      if (!emailRaw || !isEmailLike(emailRaw) || !isValidOtp(otpRaw)) {
-        res
-          .status(400)
-          .json({ status: "error", message: "Invalid or expired code." });
-        return;
-      }
-
-      const email = normalizeEmail(emailRaw);
-      const identifierHash = hashIdentifier(email);
-      const ipLimit = ip
-        ? await applyRateLimit(
-            `otp:verify:ip:${ip}`,
-            OTP_VERIFY_LIMIT,
-            OTP_VERIFY_WINDOW_MS,
-            OTP_VERIFY_BLOCK_MS
-          )
-        : { allowed: true };
-      const idLimit = await applyRateLimit(
-        `otp:verify:id:${identifierHash}`,
-        OTP_VERIFY_LIMIT,
-        OTP_VERIFY_WINDOW_MS,
-        OTP_VERIFY_BLOCK_MS
-      );
-
-      if (!ipLimit.allowed || !idLimit.allowed) {
-        await logAuthAudit({
-          action: "forgot_password_verify",
-          status: "blocked",
-          identifierHash,
+      try {
+        const resetToken = await verifyPasswordResetOtpCore({
+          emailRaw,
+          otpRaw,
           ip,
           userAgent,
         });
-        res
-          .status(429)
-          .json({ status: "error", message: "Too many attempts. Try again." });
-        return;
-      }
-
-      const candidates = await db
-        .collection("auth_email_otps")
-        .where("identifierHash", "==", identifierHash)
-        .where("purpose", "==", "forgot_password")
-        .orderBy("createdAt", "desc")
-        .limit(5)
-        .get();
-
-      const now = Date.now();
-      let matchedDoc:
-        | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-        | null = null;
-      let matchedData: FirebaseFirestore.DocumentData | undefined;
-      for (const doc of candidates.docs) {
-        const data = doc.data();
-        const usedAt = data.usedAt?.toMillis?.() ?? 0;
-        const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
-        const lockedUntil = data.lockedUntil?.toMillis?.() ?? 0;
-        if (usedAt) continue;
-        if (expiresAt && expiresAt < now) continue;
-        if (lockedUntil && lockedUntil > now) continue;
-
-        const computed = hashOtpValue(otpRaw, data.otpSalt as string);
-        if (timingSafeEqualHex(computed, data.otpHash as string)) {
-          matchedDoc = doc;
-          matchedData = data;
-          break;
+        res.status(200).json({ status: "ok", reset_token: resetToken });
+      } catch (err) {
+        if (isHttpsError(err)) {
+          if (err.code === "resource-exhausted") {
+            res.status(429).json({
+              status: "error",
+              message: err.message ?? "Too many attempts. Try again.",
+            });
+            return;
+          }
+          res.status(400).json({
+            status: "error",
+            message: err.message ?? "Invalid or expired code.",
+          });
+          return;
         }
-        const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
-        const nextAttempts = failedAttempts + 1;
-        const updates: Record<string, unknown> = {
-          failedAttempts: nextAttempts,
-        };
-        if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-          updates.lockedUntil = admin.firestore.Timestamp.fromMillis(
-            now + OTP_VERIFY_LOCK_MS
-          );
-        }
-        await doc.ref.update(updates);
+        throw err;
       }
-
-      if (!matchedDoc || !matchedData) {
-        await logAuthAudit({
-          action: "forgot_password_verify",
-          status: "invalid",
-          identifierHash,
-          ip,
-          userAgent,
-        });
-        res
-          .status(400)
-          .json({ status: "error", message: "Invalid or expired code." });
-        return;
-      }
-
-      await matchedDoc.ref.update({
-        usedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      const resetToken = generateResetToken();
-      const resetSalt = crypto.randomBytes(16).toString("hex");
-      const resetHash = hashResetToken(resetToken, resetSalt);
-      const uid = matchedData.uid as string | undefined;
-
-      await db.collection("auth_password_resets").add({
-        identifierHash,
-        uid: uid ?? null,
-        emailLower: email,
-        resetTokenHash: resetHash,
-        resetTokenSalt: resetSalt,
-        usedAt: null,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        expiresAt: admin.firestore.Timestamp.fromMillis(now + RESET_TOKEN_TTL_MS),
-      });
-
-      await logAuthAudit({
-        action: "forgot_password_verify",
-        status: "ok",
-        identifierHash,
-        uid,
-        ip,
-        userAgent,
-      });
-
-      res.status(200).json({ status: "ok", reset_token: resetToken });
       return;
     }
 
@@ -1910,114 +2158,32 @@ export const authApi = functions.https.onRequest(async (req, res) => {
         typeof body.reset_token === "string" ? body.reset_token.trim() : "";
       const newPassword =
         typeof body.new_password === "string" ? body.new_password : "";
-
-      if (!emailRaw || !isEmailLike(emailRaw) || !resetToken) {
-        res
-          .status(400)
-          .json({ status: "error", message: "Invalid reset request." });
-        return;
-      }
-
-      if (newPassword.length < PASSWORD_MIN_LENGTH) {
-        res.status(400).json({
-          status: "error",
-          message: `Use at least ${PASSWORD_MIN_LENGTH} characters.`,
-        });
-        return;
-      }
-
-      const email = normalizeEmail(emailRaw);
-      const identifierHash = hashIdentifier(email);
-      const ipLimit = ip
-        ? await applyRateLimit(
-            `reset:ip:${ip}`,
-            RESET_ATTEMPT_LIMIT,
-            RESET_ATTEMPT_WINDOW_MS,
-            RESET_ATTEMPT_BLOCK_MS
-          )
-        : { allowed: true };
-      const idLimit = await applyRateLimit(
-        `reset:id:${identifierHash}`,
-        RESET_ATTEMPT_LIMIT,
-        RESET_ATTEMPT_WINDOW_MS,
-        RESET_ATTEMPT_BLOCK_MS
-      );
-
-      if (!ipLimit.allowed || !idLimit.allowed) {
-        await logAuthAudit({
-          action: "forgot_password_reset",
-          status: "blocked",
-          identifierHash,
+      try {
+        await resetPasswordWithTokenCore({
+          emailRaw,
+          resetToken,
+          newPassword,
           ip,
           userAgent,
         });
-        res
-          .status(429)
-          .json({ status: "error", message: "Too many attempts. Try again." });
-        return;
-      }
-
-      const candidates = await db
-        .collection("auth_password_resets")
-        .where("identifierHash", "==", identifierHash)
-        .orderBy("createdAt", "desc")
-        .limit(5)
-        .get();
-
-      const now = Date.now();
-      let matchedDoc:
-        | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-        | null = null;
-      let matchedData: FirebaseFirestore.DocumentData | undefined;
-      for (const doc of candidates.docs) {
-        const data = doc.data();
-        const usedAt = data.usedAt?.toMillis?.() ?? 0;
-        const expiresAt = data.expiresAt?.toMillis?.() ?? 0;
-        if (usedAt) continue;
-        if (expiresAt && expiresAt < now) continue;
-
-        const computed = hashResetToken(resetToken, data.resetTokenSalt as string);
-        if (timingSafeEqualHex(computed, data.resetTokenHash as string)) {
-          matchedDoc = doc;
-          matchedData = data;
-          break;
+        res.status(200).json({ status: "ok" });
+      } catch (err) {
+        if (isHttpsError(err)) {
+          if (err.code === "resource-exhausted") {
+            res.status(429).json({
+              status: "error",
+              message: err.message ?? "Too many attempts. Try again.",
+            });
+            return;
+          }
+          res.status(400).json({
+            status: "error",
+            message: err.message ?? "Invalid reset request.",
+          });
+          return;
         }
+        throw err;
       }
-
-      if (!matchedDoc || !matchedData) {
-        await logAuthAudit({
-          action: "forgot_password_reset",
-          status: "invalid",
-          identifierHash,
-          ip,
-          userAgent,
-        });
-        res
-          .status(400)
-          .json({ status: "error", message: "Invalid reset request." });
-        return;
-      }
-
-      const uid = matchedData.uid as string | undefined;
-      if (uid) {
-        await setPasswordHash(uid, newPassword);
-        await admin.auth().revokeRefreshTokens(uid);
-      }
-
-      await matchedDoc.ref.update({
-        usedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      await logAuthAudit({
-        action: "forgot_password_reset",
-        status: "ok",
-        identifierHash,
-        uid,
-        ip,
-        userAgent,
-      });
-
-      res.status(200).json({ status: "ok" });
       return;
     }
   } catch (err) {

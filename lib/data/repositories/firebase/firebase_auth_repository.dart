@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/constants.dart';
 import '../../../core/errors.dart';
 import '../../models/user.dart';
@@ -26,15 +24,6 @@ class FirebaseAuthRepository implements AuthRepository {
   static const _emailLinkKey = 'auth_email_link_email';
   static const _androidPackageName = 'com.example.crushhour';
   static const _iosBundleId = 'com.example.myFirstProject';
-  static const _authFunctionBaseUrl = String.fromEnvironment(
-    'CRUSH_AUTH_FUNCTION_BASE_URL',
-    defaultValue: 'https://us-central1-crushhour-dev.cloudfunctions.net',
-  );
-  static const _authFunctionName = String.fromEnvironment(
-    'CRUSH_AUTH_FUNCTION_NAME',
-    defaultValue: 'authApi',
-  );
-
   FirebaseAuthRepository({
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
@@ -263,25 +252,22 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final response = await _postAuth(
-      '/auth/signup',
-      {
+    final callable = _functions.httpsCallable('signUpWithPassword');
+    HttpsCallableResult result;
+    try {
+      result = await callable.call({
         'username': username,
         'email': email,
         'password': password,
-      },
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+      });
+    } on FirebaseFunctionsException catch (e) {
       throw RepositoryException(
-        'signup_failed',
-        _extractMessage(
-          response,
-          'Could not create account. Please try again.',
-        ),
+        e.code,
+        e.message ?? 'Could not create account. Please try again.',
       );
     }
-    final decoded = _decodeResponse(response.body);
-    final token = decoded is Map ? decoded['customToken'] as String? : null;
+    final data = result.data;
+    final token = data is Map ? data['customToken'] as String? : null;
     if (token == null || token.isEmpty) {
       throw Exception('Missing authentication token.');
     }
@@ -369,17 +355,13 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> requestPasswordReset({required String email}) async {
-    final response = await _postAuth(
-      '/auth/forgot-password/request',
-      {'email': email},
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+    final callable = _functions.httpsCallable('requestPasswordReset');
+    try {
+      await callable.call({'email': email});
+    } on FirebaseFunctionsException catch (e) {
       throw RepositoryException(
-        'forgot_password_request',
-        _extractMessage(
-          response,
-          'Could not send code. Please try again.',
-        ),
+        e.code,
+        e.message ?? 'Could not send code. Please try again.',
       );
     }
   }
@@ -389,22 +371,20 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    final response = await _postAuth(
-      '/auth/forgot-password/verify',
-      {'email': email, 'otp': otp},
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+    final callable = _functions.httpsCallable('verifyPasswordResetOtp');
+    HttpsCallableResult result;
+    try {
+      result = await callable.call({'email': email, 'otp': otp});
+    } on FirebaseFunctionsException catch (e) {
       throw RepositoryException(
-        'forgot_password_verify',
-        _extractMessage(
-          response,
-          'Invalid or expired code. Please try again.',
-        ),
+        e.code,
+        e.message ?? 'Invalid or expired code. Please try again.',
       );
     }
-    final decoded = _decodeResponse(response.body);
-    final resetToken =
-        decoded is Map ? decoded['reset_token'] as String? : null;
+    final data = result.data;
+    final resetToken = data is Map
+        ? (data['resetToken'] as String? ?? data['reset_token'] as String?)
+        : null;
     if (resetToken == null || resetToken.isEmpty) {
       throw RepositoryException(
         'forgot_password_verify',
@@ -420,21 +400,17 @@ class FirebaseAuthRepository implements AuthRepository {
     required String resetToken,
     required String newPassword,
   }) async {
-    final response = await _postAuth(
-      '/auth/forgot-password/reset',
-      {
+    final callable = _functions.httpsCallable('resetPasswordWithToken');
+    try {
+      await callable.call({
         'email': email,
-        'reset_token': resetToken,
-        'new_password': newPassword,
-      },
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+        'resetToken': resetToken,
+        'newPassword': newPassword,
+      });
+    } on FirebaseFunctionsException catch (e) {
       throw RepositoryException(
-        'forgot_password_reset',
-        _extractMessage(
-          response,
-          'Could not reset password. Please try again.',
-        ),
+        e.code,
+        e.message ?? 'Could not reset password. Please try again.',
       );
     }
   }
@@ -606,39 +582,4 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  Uri _authApiUri(String path) {
-    final normalized = path.startsWith('/') ? path : '/$path';
-    return Uri.parse('$_authFunctionBaseUrl/$_authFunctionName$normalized');
-  }
-
-  Future<http.Response> _postAuth(
-    String path,
-    Map<String, dynamic> payload,
-  ) async {
-    final uri = _authApiUri(path);
-    return http
-        .post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(payload),
-        )
-        .timeout(const Duration(seconds: 12));
-  }
-
-  String _extractMessage(http.Response response, String fallback) {
-    final decoded = _decodeResponse(response.body);
-    if (decoded is Map && decoded['message'] is String) {
-      return decoded['message'] as String;
-    }
-    return fallback;
-  }
-
-  Object? _decodeResponse(String body) {
-    if (body.isEmpty) return null;
-    try {
-      return jsonDecode(body);
-    } catch (_) {
-      return null;
-    }
-  }
 }

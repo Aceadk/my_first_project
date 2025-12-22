@@ -16,6 +16,15 @@
             "deviceId": "chrome"
         },
         {
+            "name": "Crush App (Chrome emulator)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
+            "toolArgs": [
+                "--dart-define=USE_FIREBASE_EMULATOR=true"
+            ]
+        },
+        {
             "name": "Crush App (Chrome release)",
             "request": "launch",
             "type": "dart",
