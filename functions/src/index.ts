@@ -112,6 +112,38 @@ const isHttpsError = (err: unknown): err is functions.https.HttpsError => {
   return err instanceof functions.https.HttpsError;
 };
 
+function toAuthHttpsError(
+  err: unknown
+): functions.https.HttpsError | null {
+  const code = (err as { code?: unknown })?.code;
+  if (typeof code !== "string") return null;
+
+  switch (code) {
+    case "auth/email-already-exists":
+      return new functions.https.HttpsError(
+        "already-exists",
+        "That email is already in use."
+      );
+    case "auth/invalid-email":
+      return new functions.https.HttpsError(
+        "invalid-argument",
+        "Enter a valid email address."
+      );
+    case "auth/invalid-password":
+      return new functions.https.HttpsError(
+        "invalid-argument",
+        `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+      );
+    case "auth/uid-already-exists":
+      return new functions.https.HttpsError(
+        "already-exists",
+        "Account already exists."
+      );
+    default:
+      return null;
+  }
+}
+
 function callable<TData>(handler: CallableHandler<TData>) {
   return functions.https.onCall(async (data: TData, context: CallableContext) => {
     try {
@@ -1237,6 +1269,10 @@ async function signUpWithPasswordCore(params: {
       customToken,
     };
   } catch (err) {
+    const authError = toAuthHttpsError(err);
+    if (authError) {
+      throw authError;
+    }
     if (createdUid) {
       try {
         await admin.auth().deleteUser(createdUid);
@@ -1252,10 +1288,7 @@ async function signUpWithPasswordCore(params: {
       }
     }
     if (isHttpsError(err)) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Could not create account. Check your details and try again."
-      );
+      throw err;
     }
     console.error("Signup error", err);
     throw new functions.https.HttpsError(

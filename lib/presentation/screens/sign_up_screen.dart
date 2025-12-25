@@ -27,6 +27,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _otpTouched = false;
   bool _otpSent = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
   String? _registeredEmail;
 
   @override
@@ -78,11 +79,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
           TextField(
             controller: _passwordController,
             enabled: !fieldsDisabled,
-            obscureText: true,
+            obscureText: _obscurePassword,
             decoration: InputDecoration(
               labelText: 'Password',
               helperText: 'Use at least 8 characters.',
               errorText: _passwordErrorText(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
             ),
             onTap: () => _markPasswordTouched(),
             onChanged: (_) => _markPasswordTouched(),
@@ -256,9 +267,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (context.read<AuthRepository>().isVerificationBypassEnabled) {
       showSuccessSnackBar(
         context,
-        'Test mode: verification disabled.',
+        'Account created. Please log in.',
       );
-      context.go(CrushRoutes.home);
+      await _completeSignup();
       return;
     }
     _registeredEmail = email;
@@ -334,6 +345,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
       return;
     }
-    context.go(CrushRoutes.home);
+    showSuccessSnackBar(context, 'Email verified. Please log in.');
+    await _completeSignup();
+  }
+
+  Future<void> _completeSignup() async {
+    final result = await Result.guard(
+      () => context.read<AuthRepository>().signOut(),
+      logLabel: 'AuthRepository.signOut',
+      fallbackError: 'Could not finish signup. Try logging in again.',
+    );
+    if (!mounted) return;
+    if (!result.isSuccess) {
+      showErrorSnackBar(context, result.errorMessage ?? 'Sign out failed.');
+      return;
+    }
+    context.go(CrushRoutes.login);
   }
 }

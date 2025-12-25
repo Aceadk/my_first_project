@@ -53,26 +53,26 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCs44KspLwJcp_Y5R5QQGSf2nGnC3LTyrg',
+    appId: '1:662206384362:web:77c6605afaa637da1b6f93',
+    messagingSenderId: '662206384362',
+    projectId: 'crushhour-40c2d',
+    storageBucket: 'crushhour-40c2d.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_WINDOWS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCs44KspLwJcp_Y5R5QQGSf2nGnC3LTyrg',
+    appId: '1:662206384362:web:77c6605afaa637da1b6f93',
+    messagingSenderId: '662206384362',
+    projectId: 'crushhour-40c2d',
+    storageBucket: 'crushhour-40c2d.firebasestorage.app',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_LINUX_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCs44KspLwJcp_Y5R5QQGSf2nGnC3LTyrg',
+    appId: '1:662206384362:web:77c6605afaa637da1b6f93',
+    messagingSenderId: '662206384362',
+    projectId: 'crushhour-40c2d',
+    storageBucket: 'crushhour-40c2d.firebasestorage.app',
   );
 }

@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _identifierTouched = false;
   bool _passwordTouched = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -50,10 +51,20 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _passwordController,
-            obscureText: true,
+            obscureText: _obscurePassword,
             decoration: InputDecoration(
               labelText: 'Password',
               errorText: _passwordErrorText(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
             ),
             onTap: () => _markPasswordTouched(),
             onChanged: (_) => _markPasswordTouched(),
