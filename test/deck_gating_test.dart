@@ -128,6 +128,9 @@ class _StubAuthRepository implements AuthRepository {
   final CrushUser user;
 
   @override
+  bool get isVerificationBypassEnabled => false;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override

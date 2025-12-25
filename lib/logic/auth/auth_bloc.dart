@@ -320,6 +320,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ));
       return;
     }
+    if (authRepository.isVerificationBypassEnabled) {
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        phoneInProgress: phone,
+        isLoading: false,
+        errorMessage: null,
+      ));
+      return;
+    }
     emit(state.copyWith(
       status: AuthStatus.otpSent,
       phoneInProgress: phone,

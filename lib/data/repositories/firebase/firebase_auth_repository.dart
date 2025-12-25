@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/app_env.dart';
+import '../../../core/app_logger.dart';
 import '../../../core/constants.dart';
 import '../../../core/errors.dart';
 import '../../models/user.dart';
@@ -32,7 +34,33 @@ class FirebaseAuthRepository implements AuthRepository {
   })  : _auth = auth ?? fb.FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
         _functions = functions ?? FirebaseFunctions.instance,
-        _sessionManager = sessionManager ?? AuthSessionManager();
+        _sessionManager = sessionManager ?? AuthSessionManager() {
+    AppEnvConfig.logBypassIfActive();
+  }
+
+  @override
+  bool get isVerificationBypassEnabled => AppEnvConfig.bypassVerification;
+
+  bool _shouldBypassEmailVerification(String? email) {
+    return isVerificationBypassEnabled && email != null && email.isNotEmpty;
+  }
+
+  bool _shouldBypassPhoneVerification(String phoneNumber) {
+    return isVerificationBypassEnabled && phoneNumber.isNotEmpty;
+  }
+
+  bool _effectiveEmailVerified(String? email, bool firebaseVerified) {
+    return _shouldBypassEmailVerification(email) ? true : firebaseVerified;
+  }
+
+  bool _effectivePhoneVerified(String phoneNumber, bool phoneVerified) {
+    return _shouldBypassPhoneVerification(phoneNumber) ? true : phoneVerified;
+  }
+
+  void _logBypass(String action) {
+    if (!isVerificationBypassEnabled) return;
+    AppLogger.logInfo('DEV auth bypass: $action');
+  }
 
   @override
   Future<void> bootstrapSession() async {
@@ -43,18 +71,23 @@ class FirebaseAuthRepository implements AuthRepository {
   Stream<CrushUser?> authStateChanges() {
     return _auth.userChanges().asyncMap((fb.User? fbUser) async {
       if (fbUser == null) return null;
+      final emailVerified =
+          _effectiveEmailVerified(fbUser.email, fbUser.emailVerified);
+      final phoneNumber = fbUser.phoneNumber ?? '';
+      final phoneVerified =
+          _effectivePhoneVerified(phoneNumber, fbUser.phoneNumber != null);
       final userDoc =
           await _firestore.collection('users').doc(fbUser.uid).get();
       if (!userDoc.exists) {
         // create basic doc with defaults
         final user = CrushUser(
           id: fbUser.uid,
-          phoneNumber: fbUser.phoneNumber ?? '',
+          phoneNumber: phoneNumber,
           email: fbUser.email,
           username: null,
-          isEmailVerified: fbUser.emailVerified,
+          isEmailVerified: emailVerified,
           profile: null,
-          isPhoneVerified: fbUser.phoneNumber != null,
+          isPhoneVerified: phoneVerified,
           isIdVerified: false,
           plan: SubscriptionPlan.free,
         );
@@ -69,13 +102,29 @@ class FirebaseAuthRepository implements AuthRepository {
         });
         return user;
       } else {
-        return _fromDoc(userDoc);
+        var user = _fromDoc(userDoc);
+        if (isVerificationBypassEnabled) {
+          user = user.copyWith(
+            isEmailVerified: _shouldBypassEmailVerification(user.email)
+                ? true
+                : user.isEmailVerified,
+            isPhoneVerified: _shouldBypassPhoneVerification(user.phoneNumber)
+                ? true
+                : user.isPhoneVerified,
+          );
+        }
+        return user;
       }
     });
   }
 
   @override
   Future<void> sendOtp(String phoneNumber) async {
+    if (isVerificationBypassEnabled) {
+      _logBypass('phone_otp_send');
+      await _devSignInWithPhone(phoneNumber);
+      return;
+    }
     final completer = Completer<void>();
 
     await _auth.verifyPhoneNumber(
@@ -128,6 +177,10 @@ class FirebaseAuthRepository implements AuthRepository {
     required String phoneNumber,
     required String otp,
   }) async {
+    if (isVerificationBypassEnabled) {
+      _logBypass('phone_otp_verify');
+      return _devSignInWithPhone(phoneNumber);
+    }
     if (_verificationId == null) {
       throw Exception('No verification in progress.');
     }
@@ -496,14 +549,18 @@ class FirebaseAuthRepository implements AuthRepository {
     final resolvedPhone = phoneNumber ?? fbUser.phoneNumber ?? '';
     final resolvedPhoneVerified =
         isPhoneVerified ?? resolvedPhone.isNotEmpty;
+    final emailVerified =
+        _effectiveEmailVerified(resolvedEmail, fbUser.emailVerified);
+    final phoneVerified =
+        _effectivePhoneVerified(resolvedPhone, resolvedPhoneVerified);
 
     if (!doc.exists) {
       await docRef.set({
         'phoneNumber': resolvedPhone,
         'email': resolvedEmail,
         'emailLower': resolvedEmail?.toLowerCase(),
-        'isEmailVerified': fbUser.emailVerified,
-        'isPhoneVerified': resolvedPhoneVerified,
+        'isEmailVerified': emailVerified,
+        'isPhoneVerified': phoneVerified,
         'isIdVerified': false,
         'plan': 'free',
       });
@@ -512,9 +569,9 @@ class FirebaseAuthRepository implements AuthRepository {
         phoneNumber: resolvedPhone,
         email: resolvedEmail,
         username: null,
-        isEmailVerified: fbUser.emailVerified,
+        isEmailVerified: emailVerified,
         profile: null,
-        isPhoneVerified: resolvedPhoneVerified,
+        isPhoneVerified: phoneVerified,
         isIdVerified: false,
         plan: SubscriptionPlan.free,
       );
@@ -525,11 +582,11 @@ class FirebaseAuthRepository implements AuthRepository {
     if (resolvedEmail != null && resolvedEmail.isNotEmpty) {
       updates['email'] = resolvedEmail;
       updates['emailLower'] = resolvedEmail.toLowerCase();
-      updates['isEmailVerified'] = fbUser.emailVerified;
+      updates['isEmailVerified'] = emailVerified;
     }
     if (resolvedPhone.isNotEmpty) {
       updates['phoneNumber'] = resolvedPhone;
-      updates['isPhoneVerified'] = resolvedPhoneVerified;
+      updates['isPhoneVerified'] = phoneVerified;
     }
     if (updates.isNotEmpty) {
       await docRef.update(updates);
@@ -538,12 +595,32 @@ class FirebaseAuthRepository implements AuthRepository {
     return user.copyWith(
       email: resolvedEmail ?? user.email,
       isEmailVerified:
-          resolvedEmail != null ? fbUser.emailVerified : user.isEmailVerified,
+          resolvedEmail != null ? emailVerified : user.isEmailVerified,
       phoneNumber:
           resolvedPhone.isNotEmpty ? resolvedPhone : user.phoneNumber,
-      isPhoneVerified: resolvedPhone.isNotEmpty
-          ? resolvedPhoneVerified
-          : user.isPhoneVerified,
+      isPhoneVerified:
+          resolvedPhone.isNotEmpty ? phoneVerified : user.isPhoneVerified,
+    );
+  }
+
+  Future<CrushUser> _devSignInWithPhone(String phoneNumber) async {
+    final existing = _auth.currentUser;
+    final fb.User fbUser;
+    if (existing != null) {
+      fbUser = existing;
+    } else {
+      final credential = await _auth.signInAnonymously();
+      final created = credential.user;
+      if (created == null) {
+        throw Exception('Failed to create a dev session.');
+      }
+      fbUser = created;
+    }
+    await _sessionManager.persistFromUser(fbUser);
+    return _getOrCreateUserDoc(
+      fbUser: fbUser,
+      phoneNumber: phoneNumber,
+      isPhoneVerified: true,
     );
   }
 

@@ -40,6 +40,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bypassVerification =
+        context.read<AuthRepository>().isVerificationBypassEnabled;
     final fieldsDisabled = _otpSent || _isLoading;
     return AuthScaffold(
       title: 'Sign Up',
@@ -64,7 +66,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Email address',
-              helperText: 'We will send a verification code after sign up.',
+              helperText: bypassVerification
+                  ? 'Test mode: verification disabled.'
+                  : 'We will send a verification code after sign up.',
               errorText: _emailErrorText(),
             ),
             onTap: () => _markEmailTouched(),
@@ -247,6 +251,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
     if (!result.isSuccess) {
       showErrorSnackBar(context, result.errorMessage ?? 'Sign up failed.');
+      return;
+    }
+    if (context.read<AuthRepository>().isVerificationBypassEnabled) {
+      showSuccessSnackBar(
+        context,
+        'Test mode: verification disabled.',
+      );
+      context.go(CrushRoutes.home);
       return;
     }
     _registeredEmail = email;

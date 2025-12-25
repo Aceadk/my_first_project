@@ -36,6 +36,9 @@ class FakeAuthRepository implements AuthRepository {
   final _rand = Random.secure();
 
   @override
+  bool get isVerificationBypassEnabled => false;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override

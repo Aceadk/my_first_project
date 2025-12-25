@@ -5,7 +5,6 @@ import bcrypt from "bcryptjs";
 import { BigQuery } from "@google-cloud/bigquery";
 import Stripe from "stripe";
 import { RtcTokenBuilder, RtcRole } from "agora-access-token";
-import { FieldValue } from "firebase-admin/firestore";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -13,6 +12,13 @@ const BQ_TABLE_INTERACTIONS = "interaction_events";
 
 admin.initializeApp();
 const db = admin.firestore();
+const fieldValue = (admin.firestore as unknown as { FieldValue?: { serverTimestamp?: () => unknown; increment?: (n: number) => unknown; delete?: () => unknown } })
+  ?.FieldValue;
+const serverTimestamp = () =>
+  fieldValue?.serverTimestamp ? fieldValue.serverTimestamp() : new Date();
+const incrementBy = (value: number) =>
+  fieldValue?.increment ? fieldValue.increment(value) : value;
+const deleteField = () => (fieldValue?.delete ? fieldValue.delete() : null);
 
 const config = ((functions as unknown as { config?: () => unknown }).config?.() ??
   {}) as {
@@ -326,7 +332,7 @@ async function logAuthAudit(params: {
     ip: params.ip ?? null,
     userAgent: params.userAgent ?? null,
     metadata: params.metadata ?? {},
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 }
 
@@ -532,7 +538,7 @@ async function setPasswordHash(uid: string, password: string) {
   await db.collection("auth_credentials").doc(uid).set(
     {
       passwordHash,
-      passwordUpdatedAt: FieldValue.serverTimestamp(),
+      passwordUpdatedAt: serverTimestamp(),
     },
     { merge: true }
   );
@@ -663,7 +669,7 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
       failedAttempts: 0,
       usedAt: null,
       lockedUntil: null,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
       expiresAt: new Date(now + OTP_TTL_MS),
     });
 
@@ -827,7 +833,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
     }
 
     await matchedDoc.ref.update({
-      usedAt: FieldValue.serverTimestamp(),
+      usedAt: serverTimestamp(),
     });
 
     if (purpose === "login") {
@@ -993,7 +999,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
         usernameRef,
         {
           uid,
-          createdAt: FieldValue.serverTimestamp(),
+          createdAt: serverTimestamp(),
         },
         { merge: true }
       );
@@ -1153,7 +1159,7 @@ async function signUpWithPasswordCore(params: {
       }
       tx.set(usernameRef, {
         uid: createdUid,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: serverTimestamp(),
       });
       tx.set(db.collection("users").doc(createdUid), {
         username,
@@ -1186,7 +1192,7 @@ async function signUpWithPasswordCore(params: {
       failedAttempts: 0,
       usedAt: null,
       lockedUntil: null,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
       expiresAt: new Date(now + OTP_TTL_MS),
     });
 
@@ -1375,7 +1381,7 @@ async function requestPasswordResetCore(params: {
     failedAttempts: 0,
     usedAt: null,
     lockedUntil: null,
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
     expiresAt: new Date(now + OTP_TTL_MS),
   });
 
@@ -1509,7 +1515,7 @@ async function verifyPasswordResetOtpCore(params: {
   }
 
   await matchedDoc.ref.update({
-    usedAt: FieldValue.serverTimestamp(),
+    usedAt: serverTimestamp(),
   });
 
   const resetToken = generateResetToken();
@@ -1524,7 +1530,7 @@ async function verifyPasswordResetOtpCore(params: {
     resetTokenHash: resetHash,
     resetTokenSalt: resetSalt,
     usedAt: null,
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
     expiresAt: new Date(now + RESET_TOKEN_TTL_MS),
   });
 
@@ -1646,7 +1652,7 @@ async function resetPasswordWithTokenCore(params: {
   }
 
   await matchedDoc.ref.update({
-    usedAt: FieldValue.serverTimestamp(),
+    usedAt: serverTimestamp(),
   });
 
   await logAuthAudit({
@@ -2044,8 +2050,8 @@ async function flagUserForReview(userId: string, reason: string) {
         safetyFlags: {
           status: "needs_review",
           lastReason: reason,
-          lastFlaggedAt: FieldValue.serverTimestamp(),
-          autoFlags: FieldValue.increment(1),
+          lastFlaggedAt: serverTimestamp(),
+          autoFlags: incrementBy(1),
         },
       },
       { merge: true }
@@ -2156,7 +2162,7 @@ async function enforceDailyLikeLimit(uid: string, plan?: string) {
       ref,
       {
         dailyLikes,
-        updatedAt: FieldValue.serverTimestamp(),
+        updatedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -2190,7 +2196,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     source: source ?? null,
     description: description ?? null,
     status: "open",
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 
   const sevenDaysAgo = admin.firestore.Timestamp.fromDate(
@@ -2209,7 +2215,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
       {
         safetyFlags: {
           openReports: openReportsSnap.size,
-          lastReportAt: FieldValue.serverTimestamp(),
+          lastReportAt: serverTimestamp(),
           lastReason: reason,
           status: openReportsSnap.size >= 3 ? "needs_review" : "watch",
         },
@@ -2222,7 +2228,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
       userId: reportedId,
       reason: "multiple_reports",
       reportCount: openReportsSnap.size,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
       status: "open",
     });
   }
@@ -2252,7 +2258,7 @@ export const blockUser = callable<BlockRequest>(async (data, context) => {
   await db.collection("blocks").doc(docId).set({
     blockerId,
     blockedId,
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 
   return { ok: true };
@@ -2287,7 +2293,7 @@ export const appealSafetyAction = callable<AppealRequest>(async (data, context) 
     targetType,
     targetId,
     status: "open",
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 
   await db
@@ -2297,7 +2303,7 @@ export const appealSafetyAction = callable<AppealRequest>(async (data, context) 
       {
         safetyFlags: {
           appealOpen: true,
-          lastAppealAt: FieldValue.serverTimestamp(),
+          lastAppealAt: serverTimestamp(),
           lastReason: reason,
         },
       },
@@ -2320,7 +2326,7 @@ export const setTyping = callable<{
     .collection("matches")
     .doc(matchId)
     .set(
-      { typing: { [uid]: isTyping }, typingUpdatedAt: FieldValue.serverTimestamp() },
+      { typing: { [uid]: isTyping }, typingUpdatedAt: serverTimestamp() },
       { merge: true }
     );
   return { ok: true };
@@ -2336,7 +2342,7 @@ export const setPresenceStatus = callable<{ isOnline?: boolean }>(
       .set(
         {
           isOnline,
-          lastSeenAt: FieldValue.serverTimestamp(),
+          lastSeenAt: serverTimestamp(),
         },
         { merge: true }
       );
@@ -2360,7 +2366,7 @@ export const setMediaSendingEnabled = callable<{
       {
         mediaSendingEnabled: enabled,
         mediaUpdatedBy: uid,
-        mediaUpdatedAt: FieldValue.serverTimestamp(),
+        mediaUpdatedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -2386,7 +2392,7 @@ export const addReaction = callable<{
     .set(
       {
         reactions: { [uid]: emoji },
-        reactionsUpdatedAt: FieldValue.serverTimestamp(),
+        reactionsUpdatedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -2409,8 +2415,8 @@ export const removeReaction = callable<{
     .doc(messageId)
     .set(
       {
-        reactions: { [uid]: FieldValue.delete() },
-        reactionsUpdatedAt: FieldValue.serverTimestamp(),
+        reactions: { [uid]: deleteField() },
+        reactionsUpdatedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -2429,7 +2435,7 @@ export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
       {
         status: "unmatched",
         unmatchedBy: uid,
-        unmatchedAt: FieldValue.serverTimestamp(),
+        unmatchedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -2468,7 +2474,7 @@ export const onMessageCreated = functions.firestore
           reason: decision.reason ?? null,
           severity: decision.severity,
           flagged: decision.action !== "allow",
-          reviewedAt: FieldValue.serverTimestamp(),
+          reviewedAt: serverTimestamp(),
         },
       },
       { merge: true }
@@ -2704,7 +2710,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     fromUserId: uid,
     toUserId: targetUserId,
     attachedMessage: attachedMessage ?? null,
-    createdAt: FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 
   await bigquery
@@ -2758,7 +2764,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
         [uid]: false,
         [targetUserId]: false,
       },
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
     });
     existing = await matchRef.get();
     matchId = matchRef.id;
@@ -2848,7 +2854,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
           [uid]: 0,
           [targetUserId]: 0,
         },
-        lastRequestAt: FieldValue.serverTimestamp(),
+        lastRequestAt: serverTimestamp(),
       });
     }
 
@@ -2867,7 +2873,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     requests[uid] = myCount + 1;
     await preRef.update({
       requests,
-      lastRequestAt: FieldValue.serverTimestamp(),
+      lastRequestAt: serverTimestamp(),
     });
 
     // Store the request message (optional UI for receiver)
@@ -2875,7 +2881,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
       fromUserId: uid,
       toUserId: targetUserId,
       content,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
     });
 
     return { ok: true };
@@ -2944,7 +2950,7 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   // Soft delete for sender
   await msgRef.update({
     isDeletedForSender: true,
-    unsentAt: FieldValue.serverTimestamp(),
+    unsentAt: serverTimestamp(),
   });
 
   return { ok: true };

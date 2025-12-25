@@ -29,6 +29,8 @@ extension EmailOtpPurposeValue on EmailOtpPurpose {
 }
 
 abstract class AuthRepository {
+  bool get isVerificationBypassEnabled;
+
   Future<void> bootstrapSession();
 
   Stream<CrushUser?> authStateChanges();
