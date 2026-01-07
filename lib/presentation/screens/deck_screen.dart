@@ -1,31 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:cloud_functions/cloud_functions.dart' hide Result;
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/profanity_filter.dart';
+import '../../core/profile_completeness.dart';
+import '../../core/result.dart';
+import '../../core/router.dart';
+import '../../core/ui/snackbar_utils.dart';
+import '../../data/models/profile.dart';
+import '../../data/models/subscription.dart';
+import '../../data/services/prematch_service.dart';
+import '../../data/services/profile_validation_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
 import '../../logic/auth/auth_bloc.dart';
-import '../../logic/profile/profile_bloc.dart';
-import '../../core/profile_completeness.dart';
-import '../../data/models/profile.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
-import '../../data/services/prematch_service.dart';
-import '../../data/services/profile_validation_service.dart';
-import '../../core/ui/snackbar_utils.dart';
-import '../../core/result.dart';
-import '../../core/router.dart';
+import '../../logic/profile/profile_bloc.dart';
 import '../../logic/safety/safety_cubit.dart';
 import '../../logic/subscription/subscription_bloc.dart';
 import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
-import '../../data/models/subscription.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/deck_ui_helpers.dart';
-import 'settings_screen.dart';
-import 'profile_edit_screen.dart';
 import '../widgets/async_state_scaffold.dart';
+import '../widgets/deck_ui_helpers.dart';
+import '../widgets/swipe_card.dart';
+import 'profile_edit_screen.dart';
+import 'settings_screen.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});
@@ -87,12 +89,10 @@ class _DeckScreenState extends State<DeckScreen> {
         final currentProfile =
             isEmptyDeck ? null : state.deck[state.currentIndex];
 
-        final backendSwipeReady =
-            _backendCompleteness?.allowsSwipe ??
-                (_backendBlocked ? false : _completenessError != null);
-        final backendMessageReady =
-            _backendCompleteness?.allowsMessaging ??
-                (_backendBlocked ? false : _completenessError != null);
+        final backendSwipeReady = _backendCompleteness?.allowsSwipe ??
+            (_backendBlocked ? false : _completenessError != null);
+        final backendMessageReady = _backendCompleteness?.allowsMessaging ??
+            (_backendBlocked ? false : _completenessError != null);
 
         return AsyncStateScaffold(
           appBar: _buildAppBar(context, userId),
@@ -214,11 +214,11 @@ class _DeckScreenState extends State<DeckScreen> {
                             );
                             if (!allowed) return;
                             discoveryBloc.add(
-                                  DiscoverySwipedLeft(
-                                    userId: userId,
-                                    targetUserId: currentProfile.id,
-                                  ),
-                                );
+                              DiscoverySwipedLeft(
+                                userId: userId,
+                                targetUserId: currentProfile.id,
+                              ),
+                            );
                           },
                         ),
                         DeckActionButton(
@@ -286,11 +286,11 @@ class _DeckScreenState extends State<DeckScreen> {
                             );
                             if (!allowed) return;
                             discoveryBloc.add(
-                                  DiscoverySwipedRight(
-                                    userId: userId,
-                                    targetUserId: currentProfile.id,
-                                  ),
-                                );
+                              DiscoverySwipedRight(
+                                userId: userId,
+                                targetUserId: currentProfile.id,
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -471,7 +471,9 @@ class _DeckScreenState extends State<DeckScreen> {
     ProfileCompletenessSummary local,
     bool backendAllowed,
   ) {
-    return local.meetsSwipeMinimum && local.meetsRequiredFields && backendAllowed;
+    return local.meetsSwipeMinimum &&
+        local.meetsRequiredFields &&
+        backendAllowed;
   }
 
   bool _canMessage(
@@ -559,7 +561,7 @@ class _DeckScreenState extends State<DeckScreen> {
                   title: 'Try Plus while we fix this',
                   subtitle:
                       'Unlock offline likes, queue retries, and Passport so you never miss a match.',
-                  bullets:  [
+                  bullets: [
                     'Intro offer: 50% off your first month',
                     'Unlimited likes & rewinds',
                     'Passport to swipe anywhere',
@@ -645,7 +647,7 @@ class _DeckScreenState extends State<DeckScreen> {
                       title: 'Intro offer: 50% off Plus',
                       subtitle:
                           'Go global with Passport, see who likes you, and undo swipes.',
-                      bullets:  [
+                      bullets: [
                         'Passport to any city',
                         'Unlimited likes & rewinds',
                         'Priority in the deck',
@@ -663,10 +665,10 @@ class _DeckScreenState extends State<DeckScreen> {
 
   void _showProfileIncompleteDialog(
     BuildContext context,
-    ProfileCompletenessSummary completeness,
-    {RemoteProfileCompleteness? remote,
-    String minimum = 'swipe',}
-  ) {
+    ProfileCompletenessSummary completeness, {
+    RemoteProfileCompleteness? remote,
+    String minimum = 'swipe',
+  }) {
     final percent = ((remote?.score ?? completeness.score) * 100).round();
     final missingList =
         _missingMessages(completeness, remote, minimum: minimum);
@@ -1009,7 +1011,8 @@ class _DeckScreenState extends State<DeckScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: isSending ? null : () => Navigator.pop(dialogContext),
+                  onPressed:
+                      isSending ? null : () => Navigator.pop(dialogContext),
                   child: const Text('Cancel'),
                 ),
                 TextButton(
@@ -1084,15 +1087,7 @@ class _DeckScreenState extends State<DeckScreen> {
   }
 
   bool _containsProfanity(String text) {
-    const banned = [
-      'damn',
-      'hell',
-      'shit',
-      'fuck',
-      'bitch',
-    ];
-    final lower = text.toLowerCase();
-    return banned.any((word) => lower.contains(word));
+    return ProfanityFilter.containsProfanity(text);
   }
 
   String? _locationLabel(Profile? profile) {
@@ -1106,7 +1101,9 @@ class _DeckScreenState extends State<DeckScreen> {
       return '$city, $country';
     }
     if (city != null && city.isNotEmpty) return city;
-    if (country != null && country.isNotEmpty && country.toLowerCase() != 'unknown') {
+    if (country != null &&
+        country.isNotEmpty &&
+        country.toLowerCase() != 'unknown') {
       return country;
     }
     return null;
@@ -1165,7 +1162,7 @@ class _SkeletonCard extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: DsColors.actionPass,
+          color: DsColors.skeletonLight,
           borderRadius: BorderRadius.circular(12),
         ),
       ),
@@ -1182,8 +1179,8 @@ class _SkeletonCircle extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: DsColors.actionPass,
+      decoration: const BoxDecoration(
+        color: DsColors.skeletonLight,
         shape: BoxShape.circle,
       ),
     );
