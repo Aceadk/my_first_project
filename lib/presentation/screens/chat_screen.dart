@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
 import '../../logic/chat/chat_bloc.dart';
 import '../../logic/chat/chat_event.dart';
 import '../../logic/chat/chat_state.dart';
@@ -60,11 +62,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatBloc>().add(ChatOpened(
-          widget.args.matchId,
-          widget.args.currentUserId,
-          widget.args.otherUserId,
-        ));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatBloc>().add(ChatOpened(
+              widget.args.matchId,
+              widget.args.currentUserId,
+              widget.args.otherUserId,
+            ));
+      }
+    });
   }
 
   @override
@@ -122,8 +128,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           Icons.circle,
                           size: 9,
                           color: state.otherUserOnline
-                              ? Colors.greenAccent
-                              : Colors.grey,
+                              ? DsColors.onlineIndicator
+                              : DsColors.surfaceLight,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -144,7 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ? null
                         : _startAudioCall,
                   ),
-                  const SizedBox(width: 8),
+                  DsGap.smH,
                   IconButton(
                     tooltip: isBlocked || state.isUnmatched
                         ? 'Unavailable for this match'
@@ -202,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 8),
+                  DsGap.smH,
                 ],
               ),
               errorMessage: state.errorMessage,
@@ -224,7 +230,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               : Icons.privacy_tip_outlined,
                           color: selfVerified ? Colors.green : Colors.orange,
                         ),
-                        const SizedBox(width: 8),
+                        DsGap.smH,
                         Expanded(
                           child: Text(
                             selfVerified
@@ -253,7 +259,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          const SizedBox(width: 8),
+                          DsGap.smH,
                           Expanded(
                             child: Text(
                               'Checking your profile completeness with the server…',
@@ -287,20 +293,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.wifi_off, color: Colors.red),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.wifi_off, color: DsColors.error),
+                          DsGap.smH,
                           const Expanded(
                             child: Text(
                               'Internet connection error. Messages may not send.',
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: DsColors.error),
                             ),
                           ),
                           TextButton.icon(
                             onPressed: () => _refreshChat(context),
-                            icon: const Icon(Icons.refresh, color: Colors.red),
+                            icon: const Icon(Icons.refresh, color: DsColors.error),
                             label: const Text(
                               'Refresh',
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: DsColors.error),
                             ),
                           ),
                         ],
@@ -314,7 +320,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Row(
                         children: [
                           const Icon(Icons.heart_broken, color: Colors.white70),
-                          const SizedBox(width: 8),
+                          DsGap.smH,
                           Expanded(
                             child: Text(
                               'You unmatched with ${widget.args.otherName}. You can still browse history, but messaging is disabled.',
@@ -331,12 +337,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.block, color: Colors.red),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.block, color: DsColors.error),
+                          DsGap.smH,
                           Expanded(
                             child: Text(
                               'You blocked ${widget.args.otherName}. Unblock to chat or call.',
-                              style: const TextStyle(color: Colors.red),
+                              style: const TextStyle(color: DsColors.error),
                             ),
                           ),
                           TextButton(
@@ -357,15 +363,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline, color: Colors.orange),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.info_outline, color: DsColors.warning),
+                          DsGap.smH,
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
                                   'Complete your profile to continue messaging.',
-                                  style: TextStyle(color: Colors.orange),
+                                  style: TextStyle(color: DsColors.warning),
                                 ),
                                 const SizedBox(height: 6),
                                 LinearProgressIndicator(
@@ -376,7 +382,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   'Missing: ${_missingMessages(completeness).take(2).join(', ')}',
-                                  style: const TextStyle(color: Colors.orange),
+                                  style: const TextStyle(color: DsColors.warning),
                                 ),
                               ],
                             ),
@@ -395,8 +401,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.volume_off, color: Colors.orange),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.volume_off, color: DsColors.warning),
+                          DsGap.smH,
                           Expanded(
                             child: Text(
                               _muteSummary(
@@ -404,7 +410,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 callsMuted: callsMuted,
                                 name: widget.args.otherName,
                               ),
-                              style: const TextStyle(color: Colors.orange),
+                              style: const TextStyle(color: DsColors.warning),
                             ),
                           ),
                           TextButton(
@@ -436,7 +442,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           const Icon(Icons.no_photography,
                               color: Colors.white70),
-                          const SizedBox(width: 8),
+                          DsGap.smH,
                           const Expanded(
                             child: Text(
                               'Media sending is disabled for this match. Enable it from the toolbar to share photos, videos, or audio.',
@@ -493,8 +499,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
                                           color: isMe
-                                              ? Colors.pinkAccent
-                                              : Colors.grey.shade800,
+                                              ? DsColors.messageOutgoing
+                                              : DsColors.messageIncoming,
                                           borderRadius: BorderRadius.circular(16),
                                         ),
                                         child: _buildMessageContent(
@@ -523,7 +529,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     ? Colors.redAccent
                                                     : Colors.amber,
                                               ),
-                                              const SizedBox(width: 4),
+                                              DsGap.xsH,
                                               Flexible(
                                                 child: Text(
                                                   _moderationLabel(
@@ -795,7 +801,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return SafeArea(
       child: Row(
         children: [
-          const SizedBox(width: 8),
+          DsGap.smH,
           IconButton(
             tooltip: state.mediaSendingEnabled
                 ? 'Disable media for this chat'
@@ -1460,7 +1466,7 @@ class _AttachmentTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 18),
-          const SizedBox(width: 6),
+          DsGap.xsH,
           Text(
             label,
             style: const TextStyle(decoration: TextDecoration.underline),
@@ -1513,7 +1519,7 @@ class _SendStatusBar extends StatelessWidget {
                 height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              const SizedBox(width: 8),
+              DsGap.smH,
               Expanded(
                 child: Text(
                   'Uploading ${state.uploadingAttachmentName ?? 'attachment'}…',
@@ -1547,7 +1553,7 @@ class _TypingIndicator extends StatelessWidget {
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          const SizedBox(width: 8),
+          DsGap.smH,
           Text('$name is typing...'),
         ],
       ),
@@ -1565,10 +1571,10 @@ class _EmptyChatState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
-          const SizedBox(height: 8),
+          const Icon(Icons.chat_bubble_outline, size: 48, color: DsColors.surfaceLight),
+          DsGap.sm,
           const Text('No messages yet. Say hello!'),
-          const SizedBox(height: 12),
+          DsGap.md,
           OutlinedButton.icon(
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../core/profile_completeness.dart';
@@ -180,13 +182,13 @@ class _DeckScreenState extends State<DeckScreen> {
                     Expanded(
                       child: SwipeCard(profile: currentProfile),
                     ),
-                    const SizedBox(height: 16),
+                    DsGap.lg,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         DeckActionButton(
                           icon: Icons.clear,
-                          color: Colors.grey.shade300,
+                          color: DsColors.actionPass,
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
@@ -221,7 +223,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         ),
                         DeckActionButton(
                           icon: Icons.message,
-                          color: Colors.blueAccent,
+                          color: DsColors.actionMessage,
                           onTap: () async {
                             if (userId == null) return;
                             if (!_canMessage(
@@ -258,7 +260,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         ),
                         DeckActionButton(
                           icon: Icons.favorite,
-                          color: Colors.pinkAccent,
+                          color: DsColors.actionLike,
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
@@ -293,7 +295,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    DsGap.xxl,
                   ],
                 ),
         );
@@ -506,18 +508,18 @@ class _DeckScreenState extends State<DeckScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.wifi_off, size: 72),
-              const SizedBox(height: 12),
+              DsGap.md,
               const Text(
                 'Trouble loading people',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              DsGap.sm,
               Text(
                 'Check your connection and try again.'
                 '${locationLabel != null ? '\nLooking near $locationLabel${radiusLabel != null ? ' within ~$radiusLabel km' : ''}.' : ''}',
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              DsGap.lg,
               if (retryInSeconds != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -546,13 +548,13 @@ class _DeckScreenState extends State<DeckScreen> {
                           .add(DiscoveryDeckRequested(userId)),
                 ),
               if (!isPlus) ...[
-                const SizedBox(height: 16),
+                DsGap.lg,
                 OutlinedButton.icon(
                   icon: const Icon(Icons.flight_takeoff),
                   label: const Text('Try Passport with Plus'),
                   onPressed: () => _showPassportUpsell(context),
                 ),
-                const SizedBox(height: 8),
+                DsGap.sm,
                 const _UpgradeNudgeCard(
                   title: 'Try Plus while we fix this',
                   subtitle:
@@ -592,26 +594,26 @@ class _DeckScreenState extends State<DeckScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.people_outline, size: 72),
-                  const SizedBox(height: 16),
+                  DsGap.lg,
                   const Text(
                     'You’re all caught up!',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  DsGap.sm,
                   const Text(
                     'There are no more people nearby right now.\n'
                     'You can adjust your filters or explore with Passport.',
                     textAlign: TextAlign.center,
                   ),
                   if (locationLabel != null || radiusKm != null) ...[
-                    const SizedBox(height: 8),
+                    DsGap.sm,
                     Text(
                       'Current filters: ${locationLabel ?? 'your area'}'
                       '${radiusLabel != null ? ' • ~$radiusLabel km radius' : ''}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  DsGap.xxl,
                   FilledButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -622,7 +624,7 @@ class _DeckScreenState extends State<DeckScreen> {
                     },
                     child: const Text('Change filters'),
                   ),
-                  const SizedBox(height: 12),
+                  DsGap.md,
                   OutlinedButton.icon(
                     icon: const Icon(Icons.refresh),
                     label: const Text('Refresh deck'),
@@ -632,13 +634,13 @@ class _DeckScreenState extends State<DeckScreen> {
                             .read<DiscoveryBloc>()
                             .add(DiscoveryDeckRequested(userId)),
                   ),
-                  const SizedBox(height: 12),
+                  DsGap.md,
                   OutlinedButton(
                     onPressed: () => _showPassportUpsell(context),
                     child: const Text('Try Passport with Plus'),
                   ),
                   if (!isPlus) ...[
-                    const SizedBox(height: 12),
+                    DsGap.md,
                     const _UpgradeNudgeCard(
                       title: 'Intro offer: 50% off Plus',
                       subtitle:
@@ -790,7 +792,7 @@ class _DeckScreenState extends State<DeckScreen> {
                     Row(
                       children: [
                         const Icon(Icons.flight_takeoff),
-                        const SizedBox(width: 8),
+                        DsGap.smH,
                         Text(
                           isPlus ? 'Passport available' : 'Passport with Plus',
                           style: const TextStyle(
@@ -802,19 +804,19 @@ class _DeckScreenState extends State<DeckScreen> {
                         const _IntroBadge(),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    DsGap.sm,
                     Text(
                       isPlus
                           ? 'Change your location and explore anywhere.'
                           : 'Intro offer: 50% off your first month. Explore any city, see likes, and keep swiping with unlimited likes.',
                     ),
-                    const SizedBox(height: 12),
+                    DsGap.md,
                     const _UpsellBullets(items: [
                       'Passport to any city',
                       'See who likes you first',
                       'Unlimited likes & rewinds',
                     ]),
-                    const SizedBox(height: 16),
+                    DsGap.lg,
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -895,7 +897,7 @@ class _DeckScreenState extends State<DeckScreen> {
                   onTap: () => Navigator.pop(sheetContext, reason),
                 ),
               ),
-              const SizedBox(height: 8),
+              DsGap.sm,
             ],
           ),
         );
@@ -993,14 +995,14 @@ class _DeckScreenState extends State<DeckScreen> {
                     },
                   ),
                   if (inlineError != null) ...[
-                    const SizedBox(height: 8),
+                    DsGap.sm,
                     Text(
                       inlineError!,
                       style: const TextStyle(color: Colors.red, fontSize: 13),
                     ),
                   ],
                   if (isSending) ...[
-                    const SizedBox(height: 8),
+                    DsGap.sm,
                     const LinearProgressIndicator(minHeight: 2),
                   ],
                 ],
@@ -1163,7 +1165,7 @@ class _SkeletonCard extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: Colors.grey.shade300,
+          color: DsColors.actionPass,
           borderRadius: BorderRadius.circular(12),
         ),
       ),
@@ -1181,7 +1183,7 @@ class _SkeletonCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: DsColors.actionPass,
         shape: BoxShape.circle,
       ),
     );
@@ -1214,7 +1216,7 @@ class _UpgradeNudgeCard extends StatelessWidget {
             Row(
               children: [
                 const _IntroBadge(),
-                const SizedBox(width: 8),
+                DsGap.smH,
                 Expanded(
                   child: Text(
                     title,
@@ -1230,7 +1232,7 @@ class _UpgradeNudgeCard extends StatelessWidget {
             Text(subtitle),
             const SizedBox(height: 10),
             _UpsellBullets(items: bullets),
-            const SizedBox(height: 12),
+            DsGap.md,
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
               builder: (context, subState) {
                 final loading = subState.isCheckoutInProgress;

@@ -7,6 +7,12 @@ abstract class MatchesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Load matches, using cache if available and fresh.
 class MatchesLoadRequested extends MatchesEvent {
   const MatchesLoadRequested();
+}
+
+/// Force refresh matches, ignoring cache.
+class MatchesRefreshRequested extends MatchesEvent {
+  const MatchesRefreshRequested();
 }

@@ -24,6 +24,9 @@ import 'push/push_notifications.dart';
 // BLoCs
 import '../logic/auth/auth_bloc.dart';
 import '../logic/auth/auth_event.dart';
+import '../logic/auth/session_bloc.dart';
+import '../logic/auth/phone_auth_bloc.dart';
+import '../logic/auth/email_auth_bloc.dart';
 import '../logic/profile/profile_bloc.dart';
 import '../logic/discovery/discovery_bloc.dart';
 import '../logic/chat/chat_bloc.dart';
@@ -89,6 +92,21 @@ class CrushDI {
         create: (context) => AuthBloc(
           authRepository: context.read<AuthRepository>(),
         )..add(AuthStarted()),
+      ),
+      BlocProvider<SessionBloc>(
+        create: (context) => SessionBloc(
+          authRepository: context.read<AuthRepository>(),
+        ),
+      ),
+      BlocProvider<PhoneAuthBloc>(
+        create: (context) => PhoneAuthBloc(
+          authRepository: context.read<AuthRepository>(),
+        ),
+      ),
+      BlocProvider<EmailAuthBloc>(
+        create: (context) => EmailAuthBloc(
+          authRepository: context.read<AuthRepository>(),
+        ),
       ),
       BlocProvider<SubscriptionBloc>(
         create: (context) => SubscriptionBloc(

@@ -1,8 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DiscoverySettingsState {
+class DiscoverySettingsState extends Equatable {
   const DiscoverySettingsState({
     required this.distanceKm,
     required this.minAge,
@@ -18,6 +19,16 @@ class DiscoverySettingsState {
   final List<String> interests;
   final bool showDistance;
   final bool visible;
+
+  @override
+  List<Object?> get props => [
+        distanceKm,
+        minAge,
+        maxAge,
+        interests,
+        showDistance,
+        visible,
+      ];
 
   DiscoverySettingsState copyWith({
     double? distanceKm,
