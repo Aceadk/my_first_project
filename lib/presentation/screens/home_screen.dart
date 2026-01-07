@@ -4,7 +4,7 @@ import '../../design_system/tokens/spacing_widgets.dart';
 import 'deck_screen.dart';
 import 'matches_screen.dart';
 import 'chat_list_screen.dart';
-import 'settings_screen.dart';
+import 'profile_view_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const DeckScreen(),
       MatchesScreen(onBackToDeck: _goToDeck),
       const ChatListScreen(),
-      const SettingsScreen(),
+      const ProfileViewScreen(),
     ];
 
     return Scaffold(
@@ -79,9 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 _NavItem(
-                  icon: Icons.settings_outlined,
-                  activeIcon: Icons.settings,
-                  label: 'Settings',
+                  icon: Icons.person_outline,
+                  activeIcon: Icons.person,
+                  label: 'Profile',
                   isSelected: _index == 3,
                   onTap: () => setState(() => _index = 3),
                   gradient: const LinearGradient(

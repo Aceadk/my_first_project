@@ -23,6 +23,9 @@ import '../presentation/screens/logout_screen.dart';
 import '../presentation/screens/safety_screen.dart';
 import '../presentation/screens/community_guidelines_screen.dart';
 import '../presentation/screens/test/test_video_screen.dart';
+import '../presentation/screens/profile_view_screen.dart';
+import '../presentation/screens/profile_edit_screen.dart';
+import '../presentation/screens/settings_screen.dart' as settings;
 
 class CrushRoutes {
   static const root = '/';
@@ -47,6 +50,9 @@ class CrushRoutes {
   static const safety = '/safety';
   static const safetyGuidelines = '/safety-guidelines';
   static const testAgora = '/test-agora';
+  static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
+  static const settings = '/settings';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
@@ -222,6 +228,21 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.testAgora,
         pageBuilder: (context, state) =>
             _buildPage(state, const TestVideoScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.profile,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const ProfileViewScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.profileEdit,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const ProfileEditScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.settings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const settings.SettingsScreen()),
       ),
     ],
   );

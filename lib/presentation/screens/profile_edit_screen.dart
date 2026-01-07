@@ -11,9 +11,12 @@ import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
 import '../../core/result.dart';
 import '../../core/profile_completeness.dart';
+import '../../core/profile_field_options.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
 import '../widgets/profile_media_picker.dart';
+import '../widgets/profile/profile_widgets.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -25,6 +28,13 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
+  final _jobTitleController = TextEditingController();
+  final _companyController = TextEditingController();
+  final _schoolController = TextEditingController();
+  final _livingInController = TextEditingController();
+  final _favoriteSingerController = TextEditingController();
+  final _scrollController = ScrollController();
+
   String? _lastProfileId;
   final _mediaService = ProfileMediaService();
   List<String> _photos = [];
@@ -32,22 +42,59 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   bool _uploading = false;
   bool _hasLoadedProfile = false;
 
+  // New profile fields
+  int? _heightCm;
+  String? _relationshipGoals;
+  List<String> _languages = [];
+  String? _zodiacSign;
+  String? _educationLevel;
+  String? _familyPlans;
+  String? _personalityType;
+  String? _workout;
+  String? _socialMedia;
+  String? _sleepingHabits;
+  String? _smoking;
+  String? _drinking;
+  String? _pets;
+  List<String> _favoriteSongs = [];
+  List<String> _interests = [];
+  DateTime? _dateOfBirth;
+  String? _gender;
+  String? _sexualOrientation;
+
   Profile _fallbackProfile(ProfileState state) {
     return Profile(
       id: state.user?.id ?? 'TEMP',
       name: '',
       age: state.user?.profile?.age ?? 18,
-      gender: state.user?.profile?.gender ?? '',
-      sexualOrientation: state.user?.profile?.sexualOrientation,
+      gender: _gender ?? state.user?.profile?.gender ?? '',
+      sexualOrientation: _sexualOrientation ?? state.user?.profile?.sexualOrientation,
+      dateOfBirth: _dateOfBirth ?? state.user?.profile?.dateOfBirth,
       bio: '',
       photoUrls: List.of(_photos),
       videoUrls: List.of(_videos),
       isVerified: state.user?.profile?.isVerified ?? false,
-      jobTitle: state.user?.profile?.jobTitle,
-      company: state.user?.profile?.company,
-      school: state.user?.profile?.school,
-      interests: state.user?.profile?.interests ?? const [],
+      jobTitle: _jobTitleController.text.isNotEmpty ? _jobTitleController.text : state.user?.profile?.jobTitle,
+      company: _companyController.text.isNotEmpty ? _companyController.text : state.user?.profile?.company,
+      school: _schoolController.text.isNotEmpty ? _schoolController.text : state.user?.profile?.school,
+      interests: _interests.isNotEmpty ? _interests : (state.user?.profile?.interests ?? const []),
       prompts: state.user?.profile?.prompts ?? const [],
+      heightCm: _heightCm ?? state.user?.profile?.heightCm,
+      relationshipGoals: _relationshipGoals ?? state.user?.profile?.relationshipGoals,
+      languages: _languages.isNotEmpty ? _languages : (state.user?.profile?.languages ?? const []),
+      zodiacSign: _zodiacSign ?? state.user?.profile?.zodiacSign,
+      educationLevel: _educationLevel ?? state.user?.profile?.educationLevel,
+      familyPlans: _familyPlans ?? state.user?.profile?.familyPlans,
+      personalityType: _personalityType ?? state.user?.profile?.personalityType,
+      workout: _workout ?? state.user?.profile?.workout,
+      socialMedia: _socialMedia ?? state.user?.profile?.socialMedia,
+      sleepingHabits: _sleepingHabits ?? state.user?.profile?.sleepingHabits,
+      smoking: _smoking ?? state.user?.profile?.smoking,
+      drinking: _drinking ?? state.user?.profile?.drinking,
+      pets: _pets ?? state.user?.profile?.pets,
+      livingIn: _livingInController.text.isNotEmpty ? _livingInController.text : state.user?.profile?.livingIn,
+      favoriteSongs: _favoriteSongs.isNotEmpty ? _favoriteSongs : (state.user?.profile?.favoriteSongs ?? const []),
+      favoriteSinger: _favoriteSingerController.text.isNotEmpty ? _favoriteSingerController.text : state.user?.profile?.favoriteSinger,
       country: state.user?.profile?.country ?? 'Unknown',
       city: state.user?.profile?.city ?? 'Unknown',
       latitude: state.user?.profile?.latitude,
@@ -113,6 +160,30 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       bio: _bioController.text.trim(),
       photoUrls: uploads.photoUrls,
       videoUrls: uploads.videoUrls,
+      // New fields
+      heightCm: _heightCm,
+      relationshipGoals: _relationshipGoals,
+      languages: _languages,
+      zodiacSign: _zodiacSign,
+      educationLevel: _educationLevel,
+      familyPlans: _familyPlans,
+      personalityType: _personalityType,
+      workout: _workout,
+      socialMedia: _socialMedia,
+      sleepingHabits: _sleepingHabits,
+      smoking: _smoking,
+      drinking: _drinking,
+      pets: _pets,
+      interests: _interests,
+      jobTitle: _jobTitleController.text.trim().isNotEmpty ? _jobTitleController.text.trim() : null,
+      company: _companyController.text.trim().isNotEmpty ? _companyController.text.trim() : null,
+      school: _schoolController.text.trim().isNotEmpty ? _schoolController.text.trim() : null,
+      livingIn: _livingInController.text.trim().isNotEmpty ? _livingInController.text.trim() : null,
+      favoriteSongs: _favoriteSongs,
+      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty ? _favoriteSingerController.text.trim() : null,
+      dateOfBirth: _dateOfBirth,
+      gender: _gender,
+      sexualOrientation: _sexualOrientation,
     );
 
     context.read<ProfileBloc>().add(ProfileSaveRequested(profile: updated));
@@ -132,7 +203,445 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
+    _jobTitleController.dispose();
+    _companyController.dispose();
+    _schoolController.dispose();
+    _livingInController.dispose();
+    _favoriteSingerController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HELPER METHODS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(DsSpacing.lg),
+            child: Row(
+              children: [
+                Icon(icon, color: DsColors.primary, size: 20),
+                const SizedBox(width: DsSpacing.sm),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(
+            height: 1,
+            color: isDark ? DsColors.dividerDark : DsColors.dividerLight,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(DsSpacing.sm),
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PICKER METHODS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _showHeightPicker(BuildContext context) async {
+    final result = await ProfileHeightPicker.show(
+      context: context,
+      initialHeightCm: _heightCm,
+    );
+    if (result != null || _heightCm != null) {
+      setState(() => _heightCm = result);
+    }
+  }
+
+  Future<void> _showRelationshipGoalsPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.relationshipGoals;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Relationship Goals',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _relationshipGoals,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _relationshipGoals != null) {
+      setState(() => _relationshipGoals = result);
+    }
+  }
+
+  Future<void> _showDateOfBirthPicker(BuildContext context) async {
+    final now = DateTime.now();
+    const minAge = 18;
+    const maxAge = 100;
+    final result = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 25),
+      firstDate: DateTime(now.year - maxAge),
+      lastDate: DateTime(now.year - minAge),
+      helpText: 'Select your date of birth',
+    );
+    if (result != null) {
+      setState(() => _dateOfBirth = result);
+    }
+  }
+
+  Future<void> _showInterestsPicker(BuildContext context) async {
+    final result = await ProfileMultiSelectSheet.show<String>(
+      context: context,
+      title: 'Your Interests',
+      options: ProfileFieldOptions.interests,
+      selectedValues: _interests,
+      labelBuilder: (v) => v,
+      maxSelections: 10,
+    );
+    if (result != null) {
+      setState(() => _interests = result);
+    }
+  }
+
+  Future<void> _showLanguagesPicker(BuildContext context) async {
+    final result = await ProfileMultiSelectSheet.show<String>(
+      context: context,
+      title: 'Languages I Speak',
+      options: ProfileFieldOptions.languages,
+      selectedValues: _languages,
+      labelBuilder: (v) => v,
+      maxSelections: 10,
+    );
+    if (result != null) {
+      setState(() => _languages = result);
+    }
+  }
+
+  Future<void> _showZodiacPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.zodiacSigns;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Zodiac Sign',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _zodiacSign,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      subtitleBuilder: (v) => options.firstWhere((e) => e.value == v).dateRange,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _zodiacSign != null) {
+      setState(() => _zodiacSign = result);
+    }
+  }
+
+  Future<void> _showEducationPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.educationLevels;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Education Level',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _educationLevel,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _educationLevel != null) {
+      setState(() => _educationLevel = result);
+    }
+  }
+
+  Future<void> _showFamilyPlansPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.familyPlans;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Family Plans',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _familyPlans,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _familyPlans != null) {
+      setState(() => _familyPlans = result);
+    }
+  }
+
+  Future<void> _showPersonalityPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.personalityTypes;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Personality Type (MBTI)',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _personalityType,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      subtitleBuilder: (v) => options.firstWhere((e) => e.value == v).description,
+    );
+    if (result != null || _personalityType != null) {
+      setState(() => _personalityType = result);
+    }
+  }
+
+  Future<void> _showWorkoutPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.workoutHabits;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Workout Habits',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _workout,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _workout != null) {
+      setState(() => _workout = result);
+    }
+  }
+
+  Future<void> _showSocialMediaPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.socialMediaUsage;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Social Media Usage',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _socialMedia,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _socialMedia != null) {
+      setState(() => _socialMedia = result);
+    }
+  }
+
+  Future<void> _showSleepingPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.sleepingHabits;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Sleeping Habits',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _sleepingHabits,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _sleepingHabits != null) {
+      setState(() => _sleepingHabits = result);
+    }
+  }
+
+  Future<void> _showSmokingPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.smokingHabits;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Smoking',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _smoking,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _smoking != null) {
+      setState(() => _smoking = result);
+    }
+  }
+
+  Future<void> _showDrinkingPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.drinkingHabits;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Drinking',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _drinking,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _drinking != null) {
+      setState(() => _drinking = result);
+    }
+  }
+
+  Future<void> _showPetsPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.petOptions;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Pets',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _pets,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _pets != null) {
+      setState(() => _pets = result);
+    }
+  }
+
+  Future<void> _showFavoriteSongsDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final songs = List<String>.from(_favoriteSongs);
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(DsSpacing.lg),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Favorite Songs',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _favoriteSongs = songs);
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                              color: DsColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: controller,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (value) {
+                              if (value.trim().isNotEmpty) {
+                                setModalState(() {
+                                  songs.add(value.trim());
+                                  controller.clear();
+                                });
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Add a song...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: DsSpacing.md,
+                                vertical: DsSpacing.sm,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: DsSpacing.sm),
+                        IconButton(
+                          onPressed: () {
+                            if (controller.text.trim().isNotEmpty) {
+                              setModalState(() {
+                                songs.add(controller.text.trim());
+                                controller.clear();
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.add_circle, color: DsColors.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: DsSpacing.md),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom + DsSpacing.lg,
+                      ),
+                      itemCount: songs.length,
+                      itemBuilder: (context, index) => ListTile(
+                        leading: const Icon(Icons.music_note),
+                        title: Text(songs[index]),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          onPressed: () => setModalState(() => songs.removeAt(index)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showGenderPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.genderOptions;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Gender',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _gender,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+    );
+    if (result != null || _gender != null) {
+      setState(() => _gender = result);
+    }
+  }
+
+  Future<void> _showOrientationPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.sexualOrientationOptions;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Sexual Orientation',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _sexualOrientation,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+    );
+    if (result != null || _sexualOrientation != null) {
+      setState(() => _sexualOrientation = result);
+    }
   }
 
   @override
@@ -167,6 +676,30 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _bioController.text = profile.bio;
           _photos = List.of(profile.photoUrls);
           _videos = List.of(profile.videoUrls);
+          // Load new fields
+          _jobTitleController.text = profile.jobTitle ?? '';
+          _companyController.text = profile.company ?? '';
+          _schoolController.text = profile.school ?? '';
+          _livingInController.text = profile.livingIn ?? '';
+          _favoriteSingerController.text = profile.favoriteSinger ?? '';
+          _heightCm = profile.heightCm;
+          _relationshipGoals = profile.relationshipGoals;
+          _languages = List.of(profile.languages);
+          _zodiacSign = profile.zodiacSign;
+          _educationLevel = profile.educationLevel;
+          _familyPlans = profile.familyPlans;
+          _personalityType = profile.personalityType;
+          _workout = profile.workout;
+          _socialMedia = profile.socialMedia;
+          _sleepingHabits = profile.sleepingHabits;
+          _smoking = profile.smoking;
+          _drinking = profile.drinking;
+          _pets = profile.pets;
+          _favoriteSongs = List.of(profile.favoriteSongs);
+          _interests = List.of(profile.interests);
+          _dateOfBirth = profile.dateOfBirth;
+          _gender = profile.gender.isNotEmpty ? profile.gender : null;
+          _sexualOrientation = profile.sexualOrientation;
         }
 
         final saving = state.isSaving || _uploading;
@@ -185,6 +718,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             child: AbsorbPointer(
               absorbing: saving,
               child: SingleChildScrollView(
+                controller: _scrollController,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: DsEdgeInsets.screenPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,6 +774,254 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       icon: Icons.edit_note,
                       maxLines: 4,
                       minLines: 3,
+                    ),
+                    DsGap.xl,
+
+                    // Physical & Dating Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Dating Basics',
+                      icon: Icons.favorite_outline,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'Height',
+                          value: _heightCm != null
+                              ? ProfileFieldOptions.formatHeightDisplay(_heightCm!)
+                              : null,
+                          leadingIcon: Icons.height,
+                          onTap: () => _showHeightPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Relationship Goals',
+                          value: ProfileFieldOptions.getRelationshipGoalLabel(_relationshipGoals),
+                          leadingIcon: Icons.favorite,
+                          onTap: () => _showRelationshipGoalsPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Date of Birth',
+                          value: _dateOfBirth != null
+                              ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
+                              : null,
+                          leadingIcon: Icons.cake_outlined,
+                          onTap: () => _showDateOfBirthPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Interests Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Interests',
+                      icon: Icons.interests_outlined,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'Your Interests',
+                          value: _interests.isNotEmpty
+                              ? '${_interests.length} selected'
+                              : null,
+                          leadingIcon: Icons.local_fire_department,
+                          onTap: () => _showInterestsPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Languages Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Languages',
+                      icon: Icons.language,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'I speak',
+                          value: _languages.isNotEmpty
+                              ? _languages.take(3).join(', ') + (_languages.length > 3 ? '...' : '')
+                              : null,
+                          leadingIcon: Icons.translate,
+                          onTap: () => _showLanguagesPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // More About Me Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'More About Me',
+                      icon: Icons.psychology_outlined,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'Zodiac Sign',
+                          value: ProfileFieldOptions.getZodiacLabel(_zodiacSign),
+                          leadingIcon: Icons.auto_awesome,
+                          onTap: () => _showZodiacPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Education',
+                          value: ProfileFieldOptions.getEducationLabel(_educationLevel),
+                          leadingIcon: Icons.school_outlined,
+                          onTap: () => _showEducationPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Family Plans',
+                          value: ProfileFieldOptions.getFamilyPlanLabel(_familyPlans),
+                          leadingIcon: Icons.family_restroom,
+                          onTap: () => _showFamilyPlansPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Personality Type',
+                          value: ProfileFieldOptions.getPersonalityLabel(_personalityType),
+                          leadingIcon: Icons.emoji_people,
+                          onTap: () => _showPersonalityPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Lifestyle Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Lifestyle',
+                      icon: Icons.spa_outlined,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'Workout',
+                          value: ProfileFieldOptions.getWorkoutLabel(_workout),
+                          leadingIcon: Icons.fitness_center,
+                          onTap: () => _showWorkoutPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Social Media',
+                          value: ProfileFieldOptions.getSocialMediaLabel(_socialMedia),
+                          leadingIcon: Icons.phone_android,
+                          onTap: () => _showSocialMediaPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Sleeping Habits',
+                          value: ProfileFieldOptions.getSleepingLabel(_sleepingHabits),
+                          leadingIcon: Icons.bedtime_outlined,
+                          onTap: () => _showSleepingPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Smoking',
+                          value: ProfileFieldOptions.getSmokingLabel(_smoking),
+                          leadingIcon: Icons.smoking_rooms,
+                          onTap: () => _showSmokingPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Drinking',
+                          value: ProfileFieldOptions.getDrinkingLabel(_drinking),
+                          leadingIcon: Icons.local_bar,
+                          onTap: () => _showDrinkingPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Pets',
+                          value: ProfileFieldOptions.getPetLabel(_pets),
+                          leadingIcon: Icons.pets,
+                          onTap: () => _showPetsPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Work & Education Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Work & Education',
+                      icon: Icons.work_outline,
+                      children: [
+                        _StyledTextField(
+                          controller: _jobTitleController,
+                          label: 'Job Title',
+                          hint: 'What do you do?',
+                          icon: Icons.badge_outlined,
+                        ),
+                        const SizedBox(height: DsSpacing.md),
+                        _StyledTextField(
+                          controller: _companyController,
+                          label: 'Company',
+                          hint: 'Where do you work?',
+                          icon: Icons.business,
+                        ),
+                        const SizedBox(height: DsSpacing.md),
+                        _StyledTextField(
+                          controller: _schoolController,
+                          label: 'School/College',
+                          hint: 'Where did you study?',
+                          icon: Icons.school,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Location Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Location',
+                      icon: Icons.location_on_outlined,
+                      children: [
+                        _StyledTextField(
+                          controller: _livingInController,
+                          label: 'Currently Living In',
+                          hint: 'City, Country',
+                          icon: Icons.home,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Music Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Music',
+                      icon: Icons.music_note_outlined,
+                      children: [
+                        _StyledTextField(
+                          controller: _favoriteSingerController,
+                          label: 'Favorite Singer/Artist',
+                          hint: 'Who do you listen to?',
+                          icon: Icons.person,
+                        ),
+                        const SizedBox(height: DsSpacing.md),
+                        ProfileFieldTile(
+                          label: 'Favorite Songs',
+                          value: _favoriteSongs.isNotEmpty
+                              ? '${_favoriteSongs.length} songs'
+                              : null,
+                          leadingIcon: Icons.queue_music,
+                          onTap: () => _showFavoriteSongsDialog(context),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+
+                    // Personal Details Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Personal Details',
+                      icon: Icons.person_pin_outlined,
+                      children: [
+                        ProfileFieldTile(
+                          label: 'Gender',
+                          value: ProfileFieldOptions.getGenderLabel(_gender),
+                          leadingIcon: Icons.wc,
+                          onTap: () => _showGenderPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Sexual Orientation',
+                          value: ProfileFieldOptions.getSexualOrientationLabel(_sexualOrientation),
+                          leadingIcon: Icons.favorite_border,
+                          onTap: () => _showOrientationPicker(context),
+                          showDivider: false,
+                        ),
+                      ],
                     ),
                     DsGap.xxl,
 
@@ -484,6 +1267,8 @@ class _StyledTextField extends StatelessWidget {
     required this.icon,
     this.maxLines = 1,
     this.minLines,
+    this.textInputAction,
+    this.onEditingComplete,
   });
 
   final TextEditingController controller;
@@ -492,6 +1277,8 @@ class _StyledTextField extends StatelessWidget {
   final IconData icon;
   final int maxLines;
   final int? minLines;
+  final TextInputAction? textInputAction;
+  final VoidCallback? onEditingComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -499,6 +1286,8 @@ class _StyledTextField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       minLines: minLines,
+      textInputAction: maxLines > 1 ? TextInputAction.newline : (textInputAction ?? TextInputAction.done),
+      onEditingComplete: onEditingComplete ?? () => FocusScope.of(context).unfocus(),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
