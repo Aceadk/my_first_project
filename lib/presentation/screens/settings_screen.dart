@@ -14,10 +14,16 @@ import '../../logic/subscription/subscription_state.dart';
 import '../../data/models/subscription.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../logic/auth/auth_bloc.dart';
-import '../../logic/auth/auth_event.dart';
 import '../../logic/locale/locale_cubit.dart';
 import '../../logic/storage/storage_settings_cubit.dart';
-import '../../core/push/push_notifications.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
+import 'settings/notifications_settings_screen.dart';
+import 'settings/language_region_settings_screen.dart';
+import 'settings/discovery_filters_settings_screen.dart';
+import 'settings/data_storage_settings_screen.dart';
+import 'settings/account_security_settings_screen.dart';
+import 'settings/account_actions_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -26,377 +32,148 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
-          final push = context.read<PushNotifications>();
-          final currentUserId =
-              context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
-          final currentEmail =
-              context.select<AuthBloc, String?>((bloc) => bloc.state.user?.email);
-          final emailVerified = context.select<AuthBloc, bool>(
-            (bloc) => bloc.state.user?.isEmailVerified ?? false,
-          );
-          final hasEmail = currentEmail != null && currentEmail.isNotEmpty;
-          final emailSubtitle = hasEmail
-              ? 'Current: $currentEmail (${emailVerified ? 'verified' : 'not verified'})'
-              : 'Add an email for recovery and OTP';
           return ListView(
             children: [
-              ListTile(
-                leading: const Icon(Icons.brightness_6_outlined),
-                title: const Text('Appearance'),
-                subtitle: Text(_themeLabel(themeMode)),
-                trailing: const Icon(Icons.chevron_right),
+              // Appearance
+              _SettingsTile(
+                icon: Icons.brightness_6_outlined,
+                iconColor: Colors.amber,
+                title: 'Appearance',
+                subtitle: _themeLabel(themeMode),
                 onTap: () => _showThemeSheet(context, themeMode),
               ),
-              const Divider(),
+              const Divider(height: 1),
+              // Notifications
               BlocBuilder<NotificationSettingsCubit, NotificationSettingsState>(
                 builder: (context, notifState) {
-                  final notifier = context.read<NotificationSettingsCubit>();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Text(
-                          'Notifications',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  final enabledCount = [
+                    notifState.push,
+                    notifState.email,
+                    notifState.sound,
+                    notifState.vibration,
+                  ].where((e) => e).length;
+                  return _SettingsTile(
+                    icon: Icons.notifications_outlined,
+                    iconColor: DsColors.primary,
+                    title: 'Notifications',
+                    subtitle: '$enabledCount of 4 enabled',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationsSettingsScreen(),
                       ),
-                      SwitchListTile(
-                        title: const Text('Push notifications'),
-                        subtitle: const Text(
-                          'Messages, matches, and app updates',
-                        ),
-                        value: notifState.push,
-                        onChanged: (value) async {
-                          await notifier.togglePush(value);
-                          if (!context.mounted) return;
-                          if (value) {
-                            try {
-                              if (currentUserId == null) {
-                                showErrorSnackBar(
-                                  context,
-                                  'Sign in again to enable push notifications.',
-                                );
-                                return;
-                              }
-                              await push.registerDeviceToken(currentUserId);
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Push notifications enabled.'),
-                                ),
-                              );
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              showErrorSnackBar(
-                                context,
-                                'Could not enable push: $e',
-                              );
-                            }
-                          } else {
-                            if (currentUserId != null) {
-                              await push.unregisterDeviceToken(currentUserId);
-                            }
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Push notifications disabled.'),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      SwitchListTile(
-                        title: const Text('Email notifications'),
-                        subtitle: const Text('Updates sent to your inbox'),
-                        value: notifState.email,
-                        onChanged: (value) => notifier.toggleEmail(value),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Sound'),
-                        subtitle: const Text('Play sounds for alerts'),
-                        value: notifState.sound,
-                        onChanged: (value) => notifier.toggleSound(value),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Vibration'),
-                        subtitle:
-                            const Text('Vibrate on new messages or matches'),
-                        value: notifState.vibration,
-                        onChanged: (value) => notifier.toggleVibration(value),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const Divider(),
-              BlocConsumer<LocaleCubit, LocaleState>(
-                listenWhen: (previous, current) =>
-                    previous.errorMessage != current.errorMessage ||
-                    (previous.isDetecting && !current.isDetecting),
-                listener: (context, localeState) {
-                  if (localeState.errorMessage != null &&
-                      localeState.errorMessage!.isNotEmpty) {
-                    showErrorSnackBar(context, localeState.errorMessage!);
-                  } else if (!localeState.isDetecting &&
-                      localeState.errorMessage == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Region updated from device location.'),
-                      ),
-                    );
-                  }
-                },
-                builder: (context, localeState) {
-                  final localeCubit = context.read<LocaleCubit>();
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Column(
-                      children: [
-                        const ListTile(
-                          title: Text(
-                            'Language & region',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.language),
-                          title: const Text('Language'),
-                          subtitle: Text(_languageLabel(
-                            localeState.languageCode,
-                          )),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showLanguageSheet(
-                            context,
-                            localeState.languageCode,
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.public),
-                          title: const Text('Region'),
-                          subtitle: Text(localeState.region),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showRegionDialog(
-                            context,
-                            localeState.region,
-                            localeCubit,
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.my_location),
-                          title: const Text('Use device location'),
-                          subtitle: const Text(
-                            'Detect your region automatically',
-                          ),
-                          trailing: localeState.isDetecting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.chevron_right),
-                          onTap: localeState.isDetecting
-                              ? null
-                              : () => localeCubit.detectFromLocation(),
-                        ),
-                      ],
                     ),
                   );
                 },
               ),
-              const Divider(),
+              const Divider(height: 1),
+              // Language & Region
+              BlocBuilder<LocaleCubit, LocaleState>(
+                builder: (context, localeState) {
+                  return _SettingsTile(
+                    icon: Icons.language,
+                    iconColor: DsColors.secondary,
+                    title: 'Language & Region',
+                    subtitle: '${_languageLabel(localeState.languageCode)} - ${localeState.region}',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LanguageRegionSettingsScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              // Discovery & Filters
               BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
                 builder: (context, discoveryState) {
-                  final cubit = context.read<DiscoverySettingsCubit>();
-                  final ageRange = RangeValues(
-                    discoveryState.minAge.toDouble(),
-                    discoveryState.maxAge.toDouble(),
-                  );
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Text(
-                          'Discovery & content filters',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  return _SettingsTile(
+                    icon: Icons.tune,
+                    iconColor: Colors.orange,
+                    title: 'Discovery & Filters',
+                    subtitle: '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DiscoveryFiltersSettingsScreen(),
                       ),
-                      ListTile(
-                        title: const Text('Max distance'),
-                        subtitle: Text(
-                            '${discoveryState.distanceKm.round()} km away'),
-                        trailing: SizedBox(
-                          width: 180,
-                          child: Slider(
-                            min: 1,
-                            max: 200,
-                            divisions: 199,
-                            value: discoveryState.distanceKm,
-                            label: '${discoveryState.distanceKm.round()} km',
-                            onChanged: (value) => cubit.setDistance(value),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Age range',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            RangeSlider(
-                              min: 18,
-                              max: 99,
-                              divisions: 81,
-                              values: ageRange,
-                              labels: RangeLabels(
-                                '${ageRange.start.round()}',
-                                '${ageRange.end.round()}',
-                              ),
-                              onChanged: (range) => cubit.setAgeRange(range),
-                            ),
-                            Text(
-                              '${ageRange.start.round()} - ${ageRange.end.round()} years',
-                            ),
-                          ],
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Interests'),
-                        subtitle: Text(_formatInterests(
-                          discoveryState.interests,
-                        )),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () =>
-                            _showInterestsDialog(context, discoveryState),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Show my distance'),
-                        subtitle: const Text('Display how far away you are'),
-                        value: discoveryState.showDistance,
-                        onChanged: (value) => cubit.setShowDistance(value),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Show me in discovery'),
-                        subtitle: const Text(
-                          'Turn off to hide your profile',
-                        ),
-                        value: discoveryState.visible,
-                        onChanged: (value) => cubit.setVisible(value),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const Divider(),
-              BlocBuilder<StorageSettingsCubit, StorageSettingsState>(
-                builder: (context, storageState) {
-                  final cubit = context.read<StorageSettingsCubit>();
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Column(
-                      children: [
-                        const ListTile(
-                          title: Text(
-                            'Data & storage',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.cloud_download_outlined),
-                          title: const Text('Media downloads'),
-                          subtitle: Text(
-                            storageState.mediaDownloadEnabled
-                                ? storageState.mediaDownloadWifiOnly
-                                    ? 'Download on Wi‑Fi only'
-                                    : 'Download on Wi‑Fi or mobile data'
-                                : 'Downloads off',
-                          ),
-                          trailing: Switch(
-                            value: storageState.mediaDownloadEnabled,
-                            onChanged: (enabled) {
-                              cubit.setMediaDownloadEnabled(enabled);
-                            },
-                          ),
-                        ),
-                        SwitchListTile(
-                          title: const Text('Download only on Wi‑Fi'),
-                          subtitle: const Text(
-                            'Avoid using mobile data for media',
-                          ),
-                          value: storageState.mediaDownloadWifiOnly,
-                          onChanged: storageState.mediaDownloadEnabled
-                              ? (value) => cubit.setMediaDownloadWifiOnly(value)
-                              : null,
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.storage_outlined),
-                          title: const Text('Cache size'),
-                          subtitle:
-                              Text('${storageState.cacheSizeMb} MB reserved'),
-                          trailing: SizedBox(
-                            width: 180,
-                            child: Slider(
-                              min: 50,
-                              max: 1000,
-                              divisions: 19,
-                              value: storageState.cacheSizeMb.toDouble(),
-                              label: '${storageState.cacheSizeMb} MB',
-                              onChanged: (value) =>
-                                  cubit.setCacheSize(value.round()),
-                            ),
-                          ),
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.cleaning_services_outlined),
-                          title: const Text('Clear cache'),
-                          subtitle: const Text(
-                            'Free up space from temporary files',
-                          ),
-                          onTap: () async {
-                            await cubit.clearCache();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Cache cleared.'),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
                     ),
                   );
                 },
               ),
-              const Divider(),
+              const Divider(height: 1),
+              // Data & Storage
+              BlocBuilder<StorageSettingsCubit, StorageSettingsState>(
+                builder: (context, storageState) {
+                  return _SettingsTile(
+                    icon: Icons.storage_outlined,
+                    iconColor: Colors.blue,
+                    title: 'Data & Storage',
+                    subtitle: 'Cache: ${storageState.cacheSizeMb} MB',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DataStorageSettingsScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              // Account Security
+              Builder(
+                builder: (context) {
+                  final emailVerified = context.select<AuthBloc, bool>(
+                    (bloc) => bloc.state.user?.isEmailVerified ?? false,
+                  );
+                  final hasEmail = context.select<AuthBloc, bool>(
+                    (bloc) => (bloc.state.user?.email ?? '').isNotEmpty,
+                  );
+                  String subtitle;
+                  if (!hasEmail) {
+                    subtitle = 'No email added';
+                  } else if (emailVerified) {
+                    subtitle = 'Email verified';
+                  } else {
+                    subtitle = 'Email not verified';
+                  }
+                  return _SettingsTile(
+                    icon: Icons.shield_outlined,
+                    iconColor: Colors.green,
+                    title: 'Account Security',
+                    subtitle: subtitle,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AccountSecuritySettingsScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              // Account Actions
+              _SettingsTile(
+                icon: Icons.manage_accounts_outlined,
+                iconColor: Colors.deepPurple,
+                title: 'Account Actions',
+                subtitle: 'Change phone, deactivate, or delete',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AccountActionsSettingsScreen(),
+                  ),
+                ),
+              ),
+              DsGap.lg,
+              // Subscription section
               BlocConsumer<SubscriptionBloc, SubscriptionState>(
                 listenWhen: (previous, current) =>
                     previous.errorMessage != current.errorMessage,
@@ -413,146 +190,133 @@ class SettingsScreen extends StatelessWidget {
                   final renewal = subState.nextRenewal;
                   final cancelAtPeriodEnd = subState.cancelAtPeriodEnd == true;
                   return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Subscription',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: DsColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.workspace_premium,
+                                  color: DsColors.primary,
+                                ),
+                              ),
+                              DsGap.mdH,
+                              Text(
+                                'Subscription',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          DsGap.md,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isPlus
+                                  ? DsColors.primary.withValues(alpha: 0.1)
+                                  : (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              isPlus ? 'Plus Member' : 'Free Plan',
+                              style: TextStyle(
+                                color: isPlus ? DsColors.primary : null,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isPlus
-                                ? 'Current plan: Plus'
-                                : 'Current plan: Free',
-                            style: const TextStyle(fontSize: 14),
-                          ),
                           if (statusLabel != null || renewal != null) ...[
-                            const SizedBox(height: 6),
+                            DsGap.sm,
                             Text(
                               [
                                 if (statusLabel != null)
                                   'Status: ${statusLabel.toUpperCase()}',
                                 if (renewal != null)
                                   '${cancelAtPeriodEnd ? 'Access ends' : 'Renews'} on ${formatDate(renewal)}',
-                              ].join(' • '),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
+                              ].join(' - '),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 8),
+                          DsGap.sm,
                           Text(
                             isPlus
                                 ? 'Manage billing or renew your Plus plan.'
                                 : 'Upgrade to Plus for unlimited likes, rewinds, and Passport.',
-                            style: const TextStyle(color: Colors.grey),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
                           ),
-                          if (subState.errorMessage != null &&
-                              subState.errorMessage!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
+                          if (!isPlus) ...[
+                            DsGap.md,
                             Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(10),
+                              padding: DsEdgeInsets.allSm,
                               decoration: BoxDecoration(
-                                color: Colors.orange.withAlpha((0.12 * 255).round()),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    DsColors.primary.withValues(alpha: 0.1),
+                                    DsColors.secondary.withValues(alpha: 0.1),
+                                  ],
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.error_outline, color: Colors.orange),
-                                  const SizedBox(width: 8),
-                                  Expanded(
+                                  const Icon(Icons.local_offer, size: 16, color: DsColors.primary),
+                                  DsGap.smH,
+                                  const Expanded(
                                     child: Text(
-                                      subState.errorMessage!,
-                                      style: const TextStyle(color: Colors.orange),
+                                      '50% off your first month!',
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                                     ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => context
-                                        .read<SubscriptionBloc>()
-                                        .add(SubscriptionRestoreRequested()),
-                                    child: const Text('Retry'),
                                   ),
                                 ],
                               ),
                             ),
                           ],
-                          if (!isPlus) ...[
-                            const SizedBox(height: 8),
-                            const Row(
-                              children: [
-                                Chip(
-                                  label: Text(
-                                    'Intro offer',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  backgroundColor: Color(0xFFFFE4EC),
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '50% off your first month when you upgrade today.',
-                                    style: TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                          const SizedBox(height: 12),
+                          DsGap.md,
                           SizedBox(
                             width: double.infinity,
-                            child: ElevatedButton(
+                            child: FilledButton(
                               onPressed: loading
                                   ? null
-                                  : () {
-                                      context
-                                          .read<SubscriptionBloc>()
-                                          .add(PlusCheckoutRequested());
-                                    },
+                                  : () => context.read<SubscriptionBloc>().add(PlusCheckoutRequested()),
                               child: loading
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                            Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
                                       ),
                                     )
-                                  : Text(
-                                      isPlus
-                                          ? 'Manage subscription'
-                                          : 'Upgrade to Plus',
-                                    ),
+                                  : Text(isPlus ? 'Manage subscription' : 'Upgrade to Plus'),
                             ),
                           ),
-                          TextButton(
-                            onPressed: subState.isRestoring
-                                ? null
-                                : () => context
-                                    .read<SubscriptionBloc>()
-                                    .add(SubscriptionRestoreRequested()),
-                            child: subState.isRestoring
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Restore subscription'),
+                          Center(
+                            child: TextButton(
+                              onPressed: subState.isRestoring
+                                  ? null
+                                  : () => context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested()),
+                              child: subState.isRestoring
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Text('Restore subscription'),
+                            ),
                           ),
                         ],
                       ),
@@ -560,184 +324,81 @@ class SettingsScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(),
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  children: [
-                    const ListTile(
-                      title: Text(
-                        'Account security',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.email_outlined),
-                      title: const Text('Email protection'),
-                      subtitle: Text(emailSubtitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(CrushRoutes.emailProtection),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.swap_horiz),
-                      title: const Text('Change email'),
-                      subtitle: Text(
-                        hasEmail
-                            ? 'Use a new email address'
-                            : 'Add an email first',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: hasEmail
-                          ? () => context.push(CrushRoutes.changeEmail)
-                          : null,
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.devices_outlined),
-                      title: const Text('New device check'),
-                      subtitle: const Text(
-                        'Verify a new device with email OTP',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(CrushRoutes.newDevice),
-                    ),
-                  ],
+              DsGap.lg,
+              // Other options
+              _SettingsTile(
+                icon: Icons.shield_outlined,
+                iconColor: Colors.teal,
+                title: 'Safety & Blocking',
+                subtitle: _safetySubtitle(context),
+                onTap: () => context.push(CrushRoutes.safety),
+              ),
+              const Divider(height: 1),
+              _SettingsTile(
+                icon: Icons.logout,
+                iconColor: Colors.grey,
+                title: 'Log out',
+                subtitle: 'Sign out of your account',
+                onTap: () => context.push(CrushRoutes.logout),
+              ),
+              DsGap.lg,
+              // Legal section
+              Padding(
+                padding: DsEdgeInsets.horizontalLg,
+                child: Text(
+                  'Legal',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
                 ),
               ),
-              const Divider(),
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  children: [
-                    const ListTile(
-                      title: Text(
-                        'Account actions',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.phone_android),
-                      title: const Text('Change phone number'),
-                      subtitle: const Text('Re-verify with a new phone number'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _confirmChangePhone(context),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.pause_circle_outline),
-                      title: const Text('Deactivate account'),
-                      subtitle:
-                          const Text('Hide your profile until you return'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _confirmDeactivate(context),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(
-                        Icons.delete_forever_outlined,
-                        color: Colors.red,
-                      ),
-                      title: const Text(
-                        'Delete account',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      subtitle: const Text('Permanently remove your data'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _confirmDelete(context),
-                    ),
-                  ],
+              DsGap.sm,
+              ListTile(
+                leading: const Icon(Icons.article_outlined),
+                title: const Text('Terms of Service'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showLegalDialog(
+                  context,
+                  'Terms of Service',
+                  'Full terms will be available soon.',
                 ),
-              ),
-              const Divider(),
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.article_outlined),
-                      title: const Text('Terms of Service'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showLegalDialog(
-                        context,
-                        'Terms of Service',
-                        'Full terms will be available soon.',
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.privacy_tip_outlined),
-                      title: const Text('Privacy Policy'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showLegalDialog(
-                        context,
-                        'Privacy Policy',
-                        'Privacy details will be available soon.',
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: const Text('App version'),
-                      trailing: const Text(_appVersion),
-                      onTap: () => _showLegalDialog(
-                        context,
-                        'App version',
-                        'Version $_appVersion',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              const ListTile(
-                leading: Icon(Icons.verified_user),
-                title: Text('Account & verification'),
-              ),
-              const ListTile(
-                leading: Icon(Icons.lock),
-                title: Text('Privacy'),
-              ),
-              const ListTile(
-                leading: Icon(Icons.help_outline),
-                title: Text('Help & support'),
               ),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Log out'),
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Privacy Policy'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  context.push(CrushRoutes.logout);
-                },
+                onTap: () => _showLegalDialog(
+                  context,
+                  'Privacy Policy',
+                  'Privacy details will be available soon.',
+                ),
               ),
-              BlocBuilder<SafetyCubit, SafetyState>(
-                builder: (context, safetyState) {
-                  final blockedCount = safetyState.blockedUsers.length;
-                  final subtitle = blockedCount == 0
-                      ? 'Manage blocked & muted users'
-                      : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
-                  return ListTile(
-                    leading: const Icon(Icons.shield_outlined),
-                    title: const Text('Safety & blocking'),
-                    subtitle: Text(subtitle),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      context.push(CrushRoutes.safety);
-                    },
-                  );
-                },
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('App version'),
+                trailing: Text(
+                  _appVersion,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
+                ),
               ),
+              DsGap.xxl,
             ],
           );
         },
       ),
     );
+  }
+
+  String _safetySubtitle(BuildContext context) {
+    final blockedCount = context.select<SafetyCubit, int>(
+      (cubit) => cubit.state.blockedUsers.length,
+    );
+    return blockedCount == 0
+        ? 'Manage blocked users'
+        : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
   }
 
   String _themeLabel(ThemeMode mode) {
@@ -747,100 +408,8 @@ class SettingsScreen extends StatelessWidget {
       case ThemeMode.dark:
         return 'Dark mode';
       case ThemeMode.system:
-        return 'Use system setting';
+        return 'System default';
     }
-  }
-
-  void _showThemeSheet(BuildContext context, ThemeMode current) {
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _ThemeOptionTile(
-                title: 'Use system setting',
-                subtitle: 'Match your device appearance',
-                mode: ThemeMode.system,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              _ThemeOptionTile(
-                title: 'Light',
-                subtitle: 'Bright backgrounds and dark text',
-                mode: ThemeMode.light,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              _ThemeOptionTile(
-                title: 'Dark',
-                subtitle: 'Dim backgrounds and light text',
-                mode: ThemeMode.dark,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showInterestsDialog(
-    BuildContext context,
-    DiscoverySettingsState state,
-  ) {
-    final controller = TextEditingController(
-      text: state.interests.join(', '),
-    );
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        final cubit = dialogContext.read<DiscoverySettingsCubit>();
-        return AlertDialog(
-          title: const Text('Edit interests'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            minLines: 1,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'Add interests separated by commas',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final parts = controller.text.split(',');
-                cubit.setInterests(parts);
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatInterests(List<String> interests) {
-    if (interests.isEmpty) return 'Add interests to refine matches';
-    return interests.join(', ');
   }
 
   String _languageLabel(String code) {
@@ -857,81 +426,66 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  void _showLanguageSheet(BuildContext context, String current) {
-    const options = [
-      {'code': 'en', 'label': 'English'},
-      {'code': 'es', 'label': 'Spanish'},
-      {'code': 'fr', 'label': 'French'},
-      {'code': 'de', 'label': 'German'},
-    ];
-
-    showModalBottomSheet<void>(
+  void _showThemeSheet(BuildContext context, ThemeMode current) {
+    showModalBottomSheet(
       context: context,
       builder: (sheetContext) {
-        final cubit = sheetContext.read<LocaleCubit>();
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
-                title: Text(
-                  'Choose language',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              Padding(
+                padding: DsEdgeInsets.allLg,
+                child: Row(
+                  children: [
+                    const Icon(Icons.brightness_6_outlined, color: Colors.amber),
+                    DsGap.mdH,
+                    Text(
+                      'Choose appearance',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              ...options.map(
-                (option) => RadioListTile<String>(
-                  value: option['code']!,
-                  groupValue: current,
-                  title: Text(option['label']!),
-                  onChanged: (value) {
-                    if (value != null) {
-                      cubit.setLanguage(value);
-                      Navigator.of(sheetContext).pop();
-                    }
-                  },
-                ),
+              const Divider(height: 1),
+              _ThemeOptionTile(
+                title: 'System default',
+                subtitle: 'Match your device appearance',
+                icon: Icons.settings_suggest_outlined,
+                mode: ThemeMode.system,
+                groupValue: current,
+                onSelected: (mode) {
+                  sheetContext.read<ThemeCubit>().setTheme(mode);
+                  Navigator.of(sheetContext).pop();
+                },
               ),
+              _ThemeOptionTile(
+                title: 'Light',
+                subtitle: 'Bright backgrounds',
+                icon: Icons.light_mode_outlined,
+                mode: ThemeMode.light,
+                groupValue: current,
+                onSelected: (mode) {
+                  sheetContext.read<ThemeCubit>().setTheme(mode);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+              _ThemeOptionTile(
+                title: 'Dark',
+                subtitle: 'Dim backgrounds',
+                icon: Icons.dark_mode_outlined,
+                mode: ThemeMode.dark,
+                groupValue: current,
+                onSelected: (mode) {
+                  sheetContext.read<ThemeCubit>().setTheme(mode);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+              DsGap.lg,
             ],
           ),
-        );
-      },
-    );
-  }
-
-  void _showRegionDialog(
-    BuildContext context,
-    String currentRegion,
-    LocaleCubit cubit,
-  ) {
-    final controller = TextEditingController(text: currentRegion);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Set region'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'City, State/Province, Country',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final value = controller.text.trim();
-                if (value.isNotEmpty) {
-                  cubit.setRegion(value);
-                }
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );
@@ -959,104 +513,42 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmChangePhone(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Change phone number'),
-          content: const Text(
-            'You will be signed out to verify a new phone number. Continue?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Continue'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true && context.mounted) {
-      context.read<AuthBloc>().add(AuthSignedOut());
-      context.go(CrushRoutes.phoneAuth);
-    }
-  }
-
-  Future<void> _confirmDeactivate(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Deactivate account'),
-          content: const Text(
-            'We will hide your profile and pause matches until you sign back in.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Deactivate'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Deactivation request received (placeholder).'),
-        ),
-      );
-    }
-  }
-
   String formatDate(DateTime date) {
     return '${date.month}/${date.day}/${date.year}';
   }
+}
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Delete account?'),
-          content: const Text(
-            'This will permanently remove your data. This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text(
-                'Delete account',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+class _SettingsTile extends StatelessWidget {
+  const _SettingsTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
-    if (confirmed == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account deletion flow pending backend integration.'),
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
-      );
-    }
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
   }
 }
 
@@ -1064,6 +556,7 @@ class _ThemeOptionTile extends StatelessWidget {
   const _ThemeOptionTile({
     required this.title,
     required this.subtitle,
+    required this.icon,
     required this.mode,
     required this.groupValue,
     required this.onSelected,
@@ -1071,22 +564,30 @@ class _ThemeOptionTile extends StatelessWidget {
 
   final String title;
   final String subtitle;
+  final IconData icon;
   final ThemeMode mode;
   final ThemeMode groupValue;
   final ValueChanged<ThemeMode> onSelected;
 
   @override
   Widget build(BuildContext context) {
+    final isSelected = mode == groupValue;
     return ListTile(
-      leading: Radio<ThemeMode>(
-        value: mode,
-        groupValue: groupValue,
-        onChanged: (value) {
-          if (value != null) onSelected(value);
-        },
+      leading: Icon(
+        icon,
+        color: isSelected ? DsColors.primary : null,
       ),
-      title: Text(title),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w600 : null,
+          color: isSelected ? DsColors.primary : null,
+        ),
+      ),
       subtitle: Text(subtitle),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle, color: DsColors.primary)
+          : null,
       onTap: () => onSelected(mode),
     );
   }

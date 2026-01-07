@@ -18,7 +18,9 @@ import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
-  const MatchesScreen({super.key});
+  const MatchesScreen({super.key, this.onBackToDeck});
+
+  final VoidCallback? onBackToDeck;
 
   @override
   Widget build(BuildContext context) {
@@ -38,15 +40,16 @@ class MatchesScreen extends StatelessWidget {
         chatRepository: context.read<ChatRepository>(),
         userId: userId,
       )..add(const MatchesLoadRequested()),
-      child: _MatchesView(currentUserId: userId),
+      child: _MatchesView(currentUserId: userId, onBackToDeck: onBackToDeck),
     );
   }
 }
 
 class _MatchesView extends StatelessWidget {
   final String currentUserId;
+  final VoidCallback? onBackToDeck;
 
-  const _MatchesView({required this.currentUserId});
+  const _MatchesView({required this.currentUserId, this.onBackToDeck});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +101,7 @@ class _MatchesView extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: onBackToDeck,
                           icon: const Icon(Icons.style_outlined),
                           label: const Text('Back to deck'),
                         ),

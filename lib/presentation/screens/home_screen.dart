@@ -16,19 +16,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
 
-  final _screens = const [
-    DeckScreen(),
-    MatchesScreen(),
-    ChatListScreen(),
-    SettingsScreen(),
-  ];
+  void _goToDeck() => setState(() => _index = 0);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final screens = [
+      const DeckScreen(),
+      MatchesScreen(onBackToDeck: _goToDeck),
+      const ChatListScreen(),
+      const SettingsScreen(),
+    ];
+
     return Scaffold(
-      body: _screens[_index],
+      body: screens[_index],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
