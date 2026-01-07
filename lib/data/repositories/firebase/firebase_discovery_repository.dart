@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import '../../models/profile.dart';
 import '../../models/preferences.dart';
 import '../../models/match.dart';
@@ -27,6 +28,11 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<Profile>> fetchDeck(String userId) async {
+    // Return dummy profiles for dev bypass users
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      return _generateDummyProfiles();
+    }
+
     try {
       final callable = _functions.httpsCallable('fetchDiscoveryCandidates');
       final result = await callable.call(<String, dynamic>{'limit': 50});
@@ -44,12 +50,93 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     return _fetchProfilesByIds(ids);
   }
 
+  List<Profile> _generateDummyProfiles() {
+    const names = [
+      'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella',
+      'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
+      'Liam', 'Noah', 'Oliver', 'James', 'Elijah',
+      'William', 'Henry', 'Lucas', 'Benjamin', 'Mason',
+    ];
+    const bios = [
+      'Love hiking and outdoor adventures! 🏔️',
+      'Coffee enthusiast and bookworm 📚☕',
+      'Traveling the world one city at a time ✈️',
+      'Fitness lover and foodie 🏋️‍♀️🍕',
+      'Music is my passion 🎵',
+      'Dog parent and proud of it 🐕',
+      'Looking for someone to share adventures with',
+      'Let\'s grab coffee and see where it goes!',
+    ];
+    const interests = [
+      ['Travel', 'Photography', 'Hiking'],
+      ['Music', 'Movies', 'Reading'],
+      ['Fitness', 'Yoga', 'Cooking'],
+      ['Art', 'Museums', 'Coffee'],
+      ['Dogs', 'Nature', 'Beach'],
+    ];
+    const genders = ['female', 'male'];
+
+    return List.generate(20, (index) {
+      final gender = genders[index % 2];
+      final nameIndex = index % names.length;
+      return Profile(
+        id: 'dummy-profile-$index',
+        name: names[nameIndex],
+        age: 22 + (index % 10),
+        gender: gender,
+        sexualOrientation: null,
+        bio: bios[index % bios.length],
+        photoUrls: [
+          'https://picsum.photos/seed/dummy$index/400/600',
+          'https://picsum.photos/seed/dummy${index}b/400/600',
+        ],
+        videoUrls: const [],
+        prompts: const [],
+        isVerified: index % 3 == 0,
+        jobTitle: index % 2 == 0 ? 'Software Engineer' : 'Designer',
+        company: index % 2 == 0 ? 'Tech Corp' : 'Creative Studio',
+        school: 'University of Demo',
+        interests: interests[index % interests.length],
+        country: 'United States',
+        city: 'San Francisco',
+        latitude: 37.7749,
+        longitude: -122.4194,
+        preferences: const DiscoveryPreferences(
+          minAge: 18,
+          maxAge: 45,
+          maxDistanceKm: 50,
+          showMeGenders: ['female', 'male'],
+          showMyDistance: true,
+          showMyAge: true,
+          hideFromDiscovery: false,
+          incognitoMode: false,
+          country: 'United States',
+          city: 'San Francisco',
+        ),
+      );
+    });
+  }
+
   @override
   Future<CrushMatch?> swipeRight({
     required String userId,
     required String targetUserId,
     String? attachedMessage,
   }) async {
+    // Dev bypass: simulate match on every 3rd swipe
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      final shouldMatch = targetUserId.hashCode % 3 == 0;
+      if (!shouldMatch) return null;
+      return CrushMatch(
+        id: 'dummy-match-${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        otherUserId: targetUserId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+      );
+    }
+
     final callable = _functions.httpsCallable('swipeRight');
     final result = await callable.call(<String, dynamic>{
       'targetUserId': targetUserId,
@@ -91,11 +178,20 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     required String userId,
     required String targetUserId,
   }) async {
+    // Dev bypass: no-op for swipe left
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      return;
+    }
     // Optional: you can create a 'passes' collection, but not required for MVP.
   }
 
   @override
   Future<List<Profile>> fetchTopPicks(String userId) async {
+    // Dev bypass: return subset of dummy profiles
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      return _generateDummyProfiles().take(10).toList();
+    }
+
     final ids = await _reco.fetchTopPicks(limit: 10);
     if (ids.isEmpty) return [];
     return _fetchProfilesByIds(ids);
@@ -103,6 +199,11 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<Profile>> fetchLikesYou(String userId) async {
+    // Dev bypass: return some dummy profiles as "likes"
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      return _generateDummyProfiles().skip(10).take(5).toList();
+    }
+
     final ids = await _reco.fetchLikesYou(limit: 50);
     if (ids.isEmpty) return [];
     return _fetchProfilesByIds(ids);
@@ -110,6 +211,11 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<CrushMatch>> fetchMatches(String userId) async {
+    // Dev bypass: return empty matches
+    if (!kReleaseMode && userId.startsWith('dev-admin-')) {
+      return [];
+    }
+
     final q = await _matches
         .where('userIds', arrayContains: userId)
         .get();

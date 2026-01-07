@@ -310,6 +310,28 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  }) async {
+    if (identifier != 'admin123' || password != 'admin123') return null;
+    final user = CrushUser(
+      id: _uuid.v4(),
+      phoneNumber: '',
+      email: 'admin@dev.local',
+      username: 'admin123',
+      isEmailVerified: true,
+      profile: null,
+      isPhoneVerified: false,
+      isIdVerified: true,
+      plan: SubscriptionPlan.free,
+    );
+    _current = user;
+    _controller.add(_current);
+    return user;
+  }
+
+  @override
   Future<void> requestPasswordReset({required String email}) async {
     final normalized = email.trim().toLowerCase();
     final otp = (_rand.nextInt(900000) + 100000).toString();

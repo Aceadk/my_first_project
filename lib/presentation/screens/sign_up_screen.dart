@@ -267,9 +267,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (context.read<AuthRepository>().isVerificationBypassEnabled) {
       showSuccessSnackBar(
         context,
-        'Account created. Please log in.',
+        'Account created! Welcome to CrushHour.',
       );
-      await _completeSignup();
+      // In bypass mode, user is signed in, go to home
+      context.go(CrushRoutes.home);
       return;
     }
     _registeredEmail = email;
@@ -294,7 +295,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final result = await Result.guard(
       () => context.read<AuthRepository>().requestEmailOtp(
             identifier: email,
-            purpose: EmailOtpPurpose.addEmail,
+            purpose: EmailOtpPurpose.login,
             email: email,
           ),
       logLabel: 'AuthRepository.requestEmailOtp',
@@ -331,7 +332,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       () => context.read<AuthRepository>().verifyEmailOtp(
             identifier: email,
             otp: _otpController.text.trim(),
-            purpose: EmailOtpPurpose.addEmail,
+            purpose: EmailOtpPurpose.login,
             newEmail: email,
           ),
       logLabel: 'AuthRepository.verifyEmailOtp',
@@ -345,21 +346,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
       return;
     }
-    showSuccessSnackBar(context, 'Email verified. Please log in.');
-    await _completeSignup();
+    showSuccessSnackBar(context, 'Email verified! Welcome to CrushHour.');
+    // User is now signed in automatically, redirect to home
+    context.go(CrushRoutes.home);
   }
 
-  Future<void> _completeSignup() async {
-    final result = await Result.guard(
-      () => context.read<AuthRepository>().signOut(),
-      logLabel: 'AuthRepository.signOut',
-      fallbackError: 'Could not finish signup. Try logging in again.',
-    );
-    if (!mounted) return;
-    if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Sign out failed.');
-      return;
-    }
-    context.go(CrushRoutes.login);
-  }
 }

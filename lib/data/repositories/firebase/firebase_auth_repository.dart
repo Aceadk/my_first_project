@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_env.dart';
 import '../../../core/app_logger.dart';
@@ -26,6 +27,10 @@ class FirebaseAuthRepository implements AuthRepository {
   static const _emailLinkKey = 'auth_email_link_email';
   static const _androidPackageName = 'com.example.crushhour';
   static const _iosBundleId = 'com.example.myFirstProject';
+
+  // Dev bypass user (works without Firebase)
+  CrushUser? _devBypassUser;
+  final _devBypassController = StreamController<CrushUser?>.broadcast();
   FirebaseAuthRepository({
     fb.FirebaseAuth? auth,
     FirebaseFirestore? firestore,
@@ -69,7 +74,13 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Stream<CrushUser?> authStateChanges() {
+    // If dev bypass user is set, return a stream that emits it
+    if (_devBypassUser != null) {
+      return _devBypassController.stream;
+    }
     return _auth.userChanges().asyncMap((fb.User? fbUser) async {
+      // Check again in case dev bypass was set after stream started
+      if (_devBypassUser != null) return _devBypassUser;
       if (fbUser == null) return null;
       final emailVerified =
           _effectiveEmailVerified(fbUser.email, fbUser.emailVerified);
@@ -533,6 +544,11 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    // Clear dev bypass user if set
+    if (_devBypassUser != null) {
+      _devBypassUser = null;
+      _devBypassController.add(null);
+    }
     await _sessionManager.clear();
     await _auth.signOut();
   }
@@ -601,6 +617,36 @@ class FirebaseAuthRepository implements AuthRepository {
       isPhoneVerified:
           resolvedPhone.isNotEmpty ? phoneVerified : user.isPhoneVerified,
     );
+  }
+
+  @override
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  }) async {
+    // Allow admin bypass in any debug build
+    if (kReleaseMode) return null;
+    if (identifier != 'admin123' || password != 'admin123') return null;
+    _logBypass('admin_login');
+
+    // Create dev user without requiring Firebase
+    final devUser = CrushUser(
+      id: 'dev-admin-${DateTime.now().millisecondsSinceEpoch}',
+      phoneNumber: '',
+      email: 'admin@dev.local',
+      username: 'admin123',
+      isEmailVerified: true,
+      profile: null,
+      isPhoneVerified: false,
+      isIdVerified: true,
+      plan: SubscriptionPlan.free,
+    );
+
+    // Set the dev bypass user and emit to stream
+    _devBypassUser = devUser;
+    _devBypassController.add(devUser);
+
+    return devUser;
   }
 
   Future<CrushUser> _devSignInWithPhone(String phoneNumber) async {

@@ -83,3 +83,12 @@ class AuthEmailOtpResendRequested extends AuthEvent {
 }
 
 class AuthSignedOut extends AuthEvent {}
+
+class AuthDevBypassRequested extends AuthEvent {
+  final String identifier;
+  final String password;
+  AuthDevBypassRequested(this.identifier, this.password);
+
+  @override
+  List<Object?> get props => [identifier, password];
+}

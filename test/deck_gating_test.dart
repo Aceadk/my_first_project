@@ -214,6 +214,13 @@ class _StubAuthRepository implements AuthRepository {
     required String resetToken,
     required String newPassword,
   }) async {}
+
+  @override
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  }) async =>
+      null;
 }
 
 class _StubProfileRepository implements ProfileRepository {

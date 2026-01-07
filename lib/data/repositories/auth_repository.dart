@@ -93,4 +93,11 @@ abstract class AuthRepository {
   });
 
   Future<void> signOut();
+
+  /// Dev-only: bypass authentication with admin123/admin123 credentials.
+  /// Returns null if bypass is disabled or credentials don't match.
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  });
 }

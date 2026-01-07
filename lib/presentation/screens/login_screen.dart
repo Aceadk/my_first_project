@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,8 @@ import '../../core/ui/snackbar_utils.dart';
 import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../design_system/widgets/auth_scaffold.dart';
+import '../../logic/auth/auth_bloc.dart';
+import '../../logic/auth/auth_event.dart';
 import '../widgets/primary_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -156,8 +159,23 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
     });
+    // Try dev admin bypass first (only in debug mode with admin123 credentials)
+    if (!kReleaseMode &&
+        identifier == 'admin123' &&
+        _passwordController.text == 'admin123') {
+      context.read<AuthBloc>().add(
+            AuthDevBypassRequested(identifier, _passwordController.text),
+          );
+      // The router will handle navigation when auth state changes
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    final authRepo = context.read<AuthRepository>();
     final result = await Result.guard(
-      () => context.read<AuthRepository>().loginWithPassword(
+      () => authRepo.loginWithPassword(
             identifier: identifier,
             password: _passwordController.text,
           ),
