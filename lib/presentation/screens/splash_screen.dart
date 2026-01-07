@@ -17,7 +17,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  static const _fallbackDelay = Duration(seconds: 2);
+  // Give enough time for Firebase to restore session from secure storage
+  static const _fallbackDelay = Duration(seconds: 5);
   Timer? _fallbackTimer;
   bool _didNavigate = false;
 
@@ -59,10 +60,12 @@ class _SplashScreenState extends State<SplashScreen> {
         } else if (state.status == AuthStatus.unauthenticated ||
             state.status == AuthStatus.otpSent ||
             state.status == AuthStatus.emailLinkSent ||
-            state.status == AuthStatus.emailOtpSent ||
-            state.status == AuthStatus.unknown) {
+            state.status == AuthStatus.emailOtpSent) {
+          // Only navigate when we know the user is NOT authenticated.
+          // Don't navigate on 'unknown' - that means auth is still loading.
           _navigateTo(CrushRoutes.authGateway);
         }
+        // When status is 'unknown', stay on splash and wait for auth to resolve.
       },
       child: const Scaffold(
         body: Center(

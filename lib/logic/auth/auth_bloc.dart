@@ -35,7 +35,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final sub = authRepository.authStateChanges().listen((user) {
           add(_AuthUserChanged(user));
         });
-        add(_AuthUserChanged(null));
+        // Don't emit null here - let the Firebase stream determine auth state.
+        // The stream will emit null if no user is logged in, or the user if
+        // a session was restored from secure storage.
         return sub;
       },
       logLabel: 'AuthRepository.authStateChanges',

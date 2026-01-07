@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/router.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
@@ -76,8 +77,8 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               const Spacer(flex: 2),
               // Logo/Brand section
               Container(
-                width: 120,
-                height: 120,
+                width: 130,
+                height: 130,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [DsColors.primary, DsColors.secondary],
@@ -127,17 +128,22 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                         ).createShader(bounds),
                         child: Text(
                           'Crush',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .displaySmall
+                              ?.copyWith(
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.5,
                             color: Colors.white,
                             shadows: [
                               Shadow(
-                                color: DsColors.primary.withValues(alpha: glowOpacity),
+                                color: DsColors.primary
+                                    .withValues(alpha: glowOpacity),
                                 blurRadius: glowIntensity,
                               ),
                               Shadow(
-                                color: DsColors.secondary.withValues(alpha: glowOpacity * 0.7),
+                                color: DsColors.secondary
+                                    .withValues(alpha: glowOpacity * 0.7),
                                 blurRadius: glowIntensity * 1.5,
                               ),
                             ],
@@ -152,8 +158,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               Text(
                 'Find your perfect match',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
               ),
               const Spacer(flex: 3),
               // Features highlights
@@ -204,7 +212,8 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                   onPressed: () => context.push(CrushRoutes.login),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                       width: 1.5,
                     ),
                     shape: RoundedRectangleBorder(
@@ -216,7 +225,9 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                      color: isDark
+                          ? DsColors.textPrimaryDark
+                          : DsColors.textPrimaryLight,
                     ),
                   ),
                 ),
@@ -227,8 +238,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                 'By continuing, you agree to our Terms of Service\nand Privacy Policy',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
               ),
               DsGap.lg,
             ],
@@ -272,8 +285,10 @@ class _FeatureRow extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-            ),
+                  color: isDark
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight,
+                ),
           ),
         ),
       ],

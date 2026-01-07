@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'router_refresh_stream.dart';
 import '../logic/auth/auth_bloc.dart';
 import '../logic/auth/auth_state.dart';
+import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/auth_gateway_screen.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/sign_up_screen.dart';
@@ -25,6 +26,7 @@ import '../presentation/screens/test/test_video_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
+  static const splash = '/splash';
   static const authGateway = '/auth';
   static const login = '/auth/login';
   static const signUp = '/auth/signup';
@@ -49,21 +51,41 @@ class CrushRoutes {
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
+    initialLocation: CrushRoutes.splash,
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
     redirect: (context, state) {
       final status = authBloc.state.status;
       final isLoggedIn = status == AuthStatus.authenticated;
+      final isUnknown = status == AuthStatus.unknown;
       final path = state.uri.path;
       final isAuthRoute = path.startsWith(CrushRoutes.authGateway);
+      final isSplash = path == CrushRoutes.splash;
 
+      // While auth status is unknown, stay on splash screen
+      // Don't redirect - let the splash screen handle navigation via BlocListener
+      if (isUnknown) {
+        if (!isSplash) {
+          return CrushRoutes.splash;
+        }
+        return null;
+      }
+
+      // Auth status is known - redirect away from splash
+      if (isSplash) {
+        return isLoggedIn ? CrushRoutes.home : CrushRoutes.authGateway;
+      }
+
+      // Not logged in and trying to access protected route
       if (!isLoggedIn && !isAuthRoute) {
         return CrushRoutes.authGateway;
       }
 
+      // Logged in and trying to access auth route
       if (isLoggedIn && isAuthRoute) {
         return CrushRoutes.home;
       }
 
+      // Root path redirect
       if (path == CrushRoutes.root) {
         return isLoggedIn ? CrushRoutes.home : CrushRoutes.authGateway;
       }
@@ -76,7 +98,12 @@ GoRouter createRouter(AuthBloc authBloc) {
     routes: [
       GoRoute(
         path: CrushRoutes.root,
-        redirect: (context, state) => CrushRoutes.authGateway,
+        redirect: (context, state) => CrushRoutes.splash,
+      ),
+      GoRoute(
+        path: CrushRoutes.splash,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const SplashScreen()),
       ),
       GoRoute(
         path: CrushRoutes.authGateway,
