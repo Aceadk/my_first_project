@@ -75,7 +75,7 @@ class DataStorageSettingsScreen extends StatelessWidget {
                 ),
               ),
               // Media Downloads section
-              _SectionHeader(title: 'Media Downloads'),
+              const _SectionHeader(title: 'Media Downloads'),
               SwitchListTile(
                 secondary: const Icon(Icons.cloud_download_outlined),
                 title: const Text('Auto-download media'),
@@ -102,7 +102,7 @@ class DataStorageSettingsScreen extends StatelessWidget {
               DsGap.lg,
               const Divider(),
               // Cache section
-              _SectionHeader(title: 'Cache'),
+              const _SectionHeader(title: 'Cache'),
               Padding(
                 padding: DsEdgeInsets.horizontalLg,
                 child: Column(

@@ -211,18 +211,27 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
               ),
               const Divider(height: 1),
               ...options.map(
-                (option) => RadioListTile<String>(
-                  value: option['code']!,
-                  groupValue: current,
-                  title: Text(option['label']!),
-                  subtitle: Text(option['native']!),
-                  onChanged: (value) {
-                    if (value != null) {
-                      cubit.setLanguage(value);
+                (option) {
+                  final isSelected = option['code'] == current;
+                  return ListTile(
+                    leading: Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                      color: isSelected ? DsColors.primary : null,
+                    ),
+                    title: Text(
+                      option['label']!,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.w600 : null,
+                        color: isSelected ? DsColors.primary : null,
+                      ),
+                    ),
+                    subtitle: Text(option['native']!),
+                    onTap: () {
+                      cubit.setLanguage(option['code']!);
                       Navigator.of(sheetContext).pop();
-                    }
-                  },
-                ),
+                    },
+                  );
+                },
               ),
               DsGap.md,
             ],

@@ -271,11 +271,11 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
-                                  const Icon(Icons.local_offer, size: 16, color: DsColors.primary),
+                                  Icon(Icons.local_offer, size: 16, color: DsColors.primary),
                                   DsGap.smH,
-                                  const Expanded(
+                                  Expanded(
                                     child: Text(
                                       '50% off your first month!',
                                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),

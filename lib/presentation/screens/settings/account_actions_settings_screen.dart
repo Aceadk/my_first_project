@@ -298,11 +298,11 @@ class AccountActionsSettingsScreen extends StatelessWidget {
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Are you absolutely sure?'),
-          content: Column(
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('You will lose:'),
+              Text('You will lose:'),
               DsGap.md,
               _DeleteWarningItem(text: 'All your matches'),
               _DeleteWarningItem(text: 'All your messages'),

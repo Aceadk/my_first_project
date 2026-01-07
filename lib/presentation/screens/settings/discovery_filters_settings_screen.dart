@@ -79,7 +79,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                 ),
               ),
               // Distance section
-              _SectionHeader(title: 'Distance'),
+              const _SectionHeader(title: 'Distance'),
               Padding(
                 padding: DsEdgeInsets.horizontalLg,
                 child: Column(
@@ -140,7 +140,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
               DsGap.lg,
               const Divider(),
               // Age section
-              _SectionHeader(title: 'Age Range'),
+              const _SectionHeader(title: 'Age Range'),
               Padding(
                 padding: DsEdgeInsets.horizontalLg,
                 child: Column(
@@ -204,7 +204,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
               DsGap.lg,
               const Divider(),
               // Interests section
-              _SectionHeader(title: 'Interests'),
+              const _SectionHeader(title: 'Interests'),
               ListTile(
                 leading: const Icon(Icons.interests_outlined),
                 title: const Text('My interests'),
@@ -215,7 +215,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
               DsGap.lg,
               const Divider(),
               // Visibility section
-              _SectionHeader(title: 'Visibility'),
+              const _SectionHeader(title: 'Visibility'),
               SwitchListTile(
                 secondary: const Icon(Icons.social_distance_outlined),
                 title: const Text('Show my distance'),
