@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import '../logic/auth/auth_bloc.dart';
 import '../logic/auth/auth_event.dart';
 import '../logic/subscription/subscription_bloc.dart';
@@ -19,6 +19,7 @@ class DeepLinkBootstrap extends StatefulWidget {
 }
 
 class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
+  final _appLinks = AppLinks();
   StreamSubscription<Uri?>? _sub;
 
   @override
@@ -26,13 +27,13 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     super.initState();
     _listenInitial();
     if (!kIsWeb) {
-      _sub = uriLinkStream.listen(_handleUri, onError: (_) {});
+      _sub = _appLinks.uriLinkStream.listen(_handleUri, onError: (_) {});
     }
   }
 
   Future<void> _listenInitial() async {
     try {
-      final initial = await getInitialUri();
+      final initial = await _appLinks.getInitialLink();
       if (!mounted) return;
       _handleUri(initial);
     } catch (_) {}

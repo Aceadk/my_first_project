@@ -27,7 +27,7 @@ dependencies:
   firebase_data_connect: ^0.2.2
   cloud_functions: ^6.0.4
   url_launcher: ^6.3.2
-  uni_links: ^0.5.1
+  app_links: ^6.3.2
   agora_rtc_engine: ^6.3.0
   permission_handler: ^11.3.0
   agora_uikit: ^1.2.1
@@ -44,8 +44,6 @@ dependency_overrides:
     path: patched_plugins/agora_uikit
   agora_rtm:
     path: patched_plugins/agora_rtm
-  uni_links:
-    path: patched_plugins/uni_links
 
 flutter:
   uses-material-design: true

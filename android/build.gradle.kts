@@ -4,8 +4,6 @@ allprojects {
         mavenCentral()
     }
 }
-dependencies{
-    calsspath ("com.google.gms.google-services:4.4.4") }
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
