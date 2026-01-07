@@ -5,7 +5,8 @@ import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
-import '../widgets/primary_button.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
 import '../../core/ui/snackbar_utils.dart';
 
 class LogoutScreen extends StatelessWidget {
@@ -16,12 +17,13 @@ class LogoutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Log out')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: DsEdgeInsets.allXxl,
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state.status == AuthStatus.unauthenticated ||
                 state.status == AuthStatus.unknown) {
-              context.go(CrushRoutes.phoneAuth);
+              // Redirect to auth gateway (login/signup choice) instead of phone auth
+              context.go(CrushRoutes.authGateway);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {
@@ -29,41 +31,109 @@ class LogoutScreen extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            final phoneNumber = state.user?.phoneNumber;
+            final email = state.user?.email;
+            final username = state.user?.username;
+            final identifier = username ?? email ?? 'your account';
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        DsColors.primary.withValues(alpha: 0.1),
+                        DsColors.secondary.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    size: 36,
+                    color: DsColors.primary,
+                  ),
+                ),
+                DsGap.xxl,
                 Text(
                   'Ready to log out?',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                DsGap.md,
                 Text(
-                  phoneNumber != null
-                      ? 'You are signed in as $phoneNumber.'
-                      : 'You are signed in.',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Sign back in with your phone number '
-              'Logging out will pause new matches and messages until you return.',
-            ),
-            const Spacer(),
-            PrimaryButton(
-              label: 'Log out',
-              loading: state.isLoading,
-              onPressed: () {
-                if (state.isLoading) return;
-                context.read<AuthBloc>().add(AuthSignedOut());
-              },
-            ),
-            TextButton(
-              onPressed:
-                  state.isLoading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ],
+                  'You are signed in as $identifier.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: DsColors.textMutedLight,
+                  ),
+                ),
+                DsGap.md,
+                Container(
+                  padding: DsEdgeInsets.allLg,
+                  decoration: BoxDecoration(
+                    color: DsColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: DsColors.warning.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: DsColors.warning,
+                      ),
+                      DsGap.mdH,
+                      Expanded(
+                        child: Text(
+                          'Logging out will pause new matches and messages until you return.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: DsColors.warning,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () => context.read<AuthBloc>().add(AuthSignedOut()),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: DsColors.error,
+                      padding: DsEdgeInsets.buttonPadding,
+                    ),
+                    child: state.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Log out'),
+                  ),
+                ),
+                DsGap.md,
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: state.isLoading ? null : () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: DsEdgeInsets.buttonPadding,
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                DsGap.lg,
+              ],
             );
           },
         ),

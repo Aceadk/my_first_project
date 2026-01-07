@@ -320,7 +320,9 @@ class FirebaseChatRepository implements ChatRepository {
     final snapshot =
         await _matches.where('userIds', arrayContains: userId).get();
 
-    return snapshot.docs.map((doc) {
+    final matches = <CrushMatch>[];
+
+    for (final doc in snapshot.docs) {
       final data = doc.data();
       final userIds = List<String>.from(data['userIds'] ?? []);
       final otherUserId =
@@ -332,15 +334,41 @@ class FirebaseChatRepository implements ChatRepository {
       final pinnedMap = (data['pinnedForUser'] as Map<String, dynamic>? ?? {});
       final pinned = pinnedMap[userId] ?? false;
 
-      return CrushMatch(
+      // Fetch other user's profile for name and photo
+      String? otherUserName;
+      String? otherUserPhotoUrl;
+      if (otherUserId.isNotEmpty) {
+        try {
+          final userDoc = await _users.doc(otherUserId).get();
+          final userData = userDoc.data();
+          if (userData != null) {
+            final profile = userData['profile'] as Map<String, dynamic>?;
+            if (profile != null) {
+              otherUserName = profile['name'] as String?;
+              final photoUrls = profile['photoUrls'] as List<dynamic>?;
+              if (photoUrls != null && photoUrls.isNotEmpty) {
+                otherUserPhotoUrl = photoUrls.first as String?;
+              }
+            }
+          }
+        } catch (_) {
+          // Ignore errors fetching profile, use defaults
+        }
+      }
+
+      matches.add(CrushMatch(
         id: doc.id,
         userId: userId,
         otherUserId: otherUserId,
         status: status,
         preMatchMessageRequestsCount: preCount,
         pinnedForUser: pinned,
-      );
-    }).toList();
+        otherUserName: otherUserName,
+        otherUserPhotoUrl: otherUserPhotoUrl,
+      ));
+    }
+
+    return matches;
   }
 
   Map<String, String> _reactionsFromData(dynamic reactionsData) {

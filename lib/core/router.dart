@@ -9,7 +9,6 @@ import '../presentation/screens/sign_up_screen.dart';
 import '../presentation/screens/forgot_password_screen.dart';
 import '../presentation/screens/otp_screen.dart';
 import '../presentation/screens/home_screen.dart';
-import '../presentation/screens/welcome_screen.dart';
 import '../presentation/screens/phone_auth_screen.dart';
 import '../presentation/screens/email_auth_screen.dart';
 import '../presentation/screens/email_protection_screen.dart';
@@ -32,7 +31,6 @@ class CrushRoutes {
   static const forgotPassword = '/auth/forgot';
   static const otp = '/auth/otp';
   static const resetPassword = '/auth/reset';
-  static const welcome = '/auth/welcome';
   static const phoneAuth = '/auth/phone';
   static const emailAuth = '/auth/email';
   static const emailProtection = '/email-protection';
@@ -114,11 +112,6 @@ GoRouter createRouter(AuthBloc authBloc) {
             path: 'reset',
             pageBuilder: (context, state) =>
                 _buildPage(state, const ForgotPasswordScreen()),
-          ),
-          GoRoute(
-            path: 'welcome',
-            pageBuilder: (context, state) =>
-                _buildPage(state, const WelcomeScreen()),
           ),
           GoRoute(
             path: 'phone',

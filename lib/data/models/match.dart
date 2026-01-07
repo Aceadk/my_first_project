@@ -9,6 +9,8 @@ class CrushMatch extends Equatable {
   final MatchStatus status;
   final int preMatchMessageRequestsCount;
   final bool pinnedForUser;
+  final String? otherUserName;
+  final String? otherUserPhotoUrl;
 
   const CrushMatch({
     required this.id,
@@ -17,6 +19,8 @@ class CrushMatch extends Equatable {
     required this.status,
     required this.preMatchMessageRequestsCount,
     required this.pinnedForUser,
+    this.otherUserName,
+    this.otherUserPhotoUrl,
   });
 
   bool get isMutual => status == MatchStatus.mutual;
@@ -25,6 +29,8 @@ class CrushMatch extends Equatable {
     MatchStatus? status,
     int? preMatchMessageRequestsCount,
     bool? pinnedForUser,
+    String? otherUserName,
+    String? otherUserPhotoUrl,
   }) {
     return CrushMatch(
       id: id,
@@ -34,6 +40,8 @@ class CrushMatch extends Equatable {
       preMatchMessageRequestsCount:
           preMatchMessageRequestsCount ?? this.preMatchMessageRequestsCount,
       pinnedForUser: pinnedForUser ?? this.pinnedForUser,
+      otherUserName: otherUserName ?? this.otherUserName,
+      otherUserPhotoUrl: otherUserPhotoUrl ?? this.otherUserPhotoUrl,
     );
   }
 
@@ -45,5 +53,7 @@ class CrushMatch extends Equatable {
         status,
         preMatchMessageRequestsCount,
         pinnedForUser,
+        otherUserName,
+        otherUserPhotoUrl,
       ];
 }

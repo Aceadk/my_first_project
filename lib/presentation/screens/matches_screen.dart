@@ -12,6 +12,8 @@ import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
 import '../../core/router.dart';
 import '../../data/models/subscription.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
 import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
@@ -53,67 +55,65 @@ class _MatchesView extends StatelessWidget {
         final emptyView = state.matches.isEmpty
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: DsEdgeInsets.allXxl,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.favorite_border, size: 72),
-                      const SizedBox(height: 16),
-                      const Text(
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              DsColors.primary.withValues(alpha: 0.1),
+                              DsColors.secondary.withValues(alpha: 0.1),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.favorite_border_rounded,
+                          size: 56,
+                          color: DsColors.primary,
+                        ),
+                      ),
+                      DsGap.xxl,
+                      Text(
                         'No matches yet',
-                        style: TextStyle(
-                          fontSize: 20,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Keep swiping and sending message requests.\n'
-                        'When you match with someone, they will appear here.',
+                      DsGap.sm,
+                      Text(
+                        'Keep swiping and sending message requests.\nWhen you match with someone, they will appear here.',
                         textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: DsColors.textMutedLight,
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Back to deck'),
+                      DsGap.xxl,
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.style_outlined),
+                          label: const Text('Back to deck'),
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      DsGap.lg,
                       BlocBuilder<SubscriptionBloc, SubscriptionState>(
                         builder: (context, subState) {
                           final isPlus = subState.plan == SubscriptionPlan.plus;
                           final loading = subState.isCheckoutInProgress;
                           if (isPlus) return const SizedBox.shrink();
-                          return Column(
-                            children: [
-                              const Text(
-                                'Intro offer: 50% off Plus',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'See likes first, Passport to any city, and unlimited likes to help you match faster.',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: loading
-                                    ? null
-                                    : () => context
-                                        .read<SubscriptionBloc>()
-                                        .add(PlusCheckoutRequested()),
-                                child: loading
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child:
-                                            CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Text('Try Plus intro offer'),
-                              ),
-                            ],
+                          return _PlusOfferCard(
+                            loading: loading,
+                            onTap: () => context
+                                .read<SubscriptionBloc>()
+                                .add(PlusCheckoutRequested()),
                           );
                         },
                       ),
@@ -140,19 +140,18 @@ class _MatchesView extends StatelessWidget {
           showErrorSnackBar: true,
           empty: emptyView,
           body: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: DsEdgeInsets.allLg,
             itemCount: state.matches.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, __) => DsGap.sm,
             itemBuilder: (context, index) {
               final match = state.matches[index];
-              final otherName =
+              final otherName = match.otherUserName ??
                   (match.otherUserId.trim().isNotEmpty ? match.otherUserId : null) ??
-                      'Name unavailable';
+                  'Name unavailable';
 
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(otherName),
-                subtitle: const Text('Tap to open chat'),
+              return _MatchTile(
+                name: otherName,
+                photoUrl: match.otherUserPhotoUrl,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -176,6 +175,170 @@ class _MatchesView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _MatchTile extends StatelessWidget {
+  const _MatchTile({
+    required this.name,
+    required this.onTap,
+    this.photoUrl,
+  });
+
+  final String name;
+  final String? photoUrl;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: DsEdgeInsets.listItemPadding,
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: DsColors.skeletonLight,
+                    backgroundImage:
+                        photoUrl != null ? NetworkImage(photoUrl!) : null,
+                    child: photoUrl == null
+                        ? const Icon(Icons.person, color: DsColors.textMutedLight)
+                        : null,
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: DsColors.onlineIndicator,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).cardColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              DsGap.lgH,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    DsGap.xs,
+                    Text(
+                      'Tap to open chat',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: DsColors.textMutedLight,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: DsColors.textMutedLight,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlusOfferCard extends StatelessWidget {
+  const _PlusOfferCard({
+    required this.loading,
+    required this.onTap,
+  });
+
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: DsEdgeInsets.allLg,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            DsColors.secondary.withValues(alpha: 0.1),
+            DsColors.primary.withValues(alpha: 0.1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: DsColors.primary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.workspace_premium,
+                color: DsColors.primary,
+                size: 20,
+              ),
+              DsGap.smH,
+              Text(
+                'Intro offer: 50% off Plus',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: DsColors.primary,
+                    ),
+              ),
+            ],
+          ),
+          DsGap.sm,
+          Text(
+            'See likes first, Passport to any city, and unlimited likes to help you match faster.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: DsColors.textMutedLight,
+                ),
+          ),
+          DsGap.md,
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: loading ? null : onTap,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: DsColors.primary),
+              ),
+              child: loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Try Plus intro offer'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

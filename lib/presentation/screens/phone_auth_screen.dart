@@ -161,7 +161,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                 if (Navigator.canPop(context)) {
                                   Navigator.pop(context);
                                 } else {
-                                  context.go(CrushRoutes.welcome);
+                                  context.go(CrushRoutes.authGateway);
                                 }
                               },
                         onNext: isLoading || !_canSubmitPhone()

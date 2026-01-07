@@ -549,14 +549,14 @@ class _TipsCard extends StatelessWidget {
           color: DsColors.info.withAlpha(40),
         ),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: DsColors.info, size: 20),
+              Icon(Icons.lightbulb_outline, color: DsColors.info, size: 20),
               DsGap.smH,
-              const Text(
+              Text(
                 'Profile Tips',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -566,11 +566,11 @@ class _TipsCard extends StatelessWidget {
             ],
           ),
           DsGap.md,
-          const _TipItem(text: 'Profiles with 3+ photos get 5x more matches'),
+          _TipItem(text: 'Profiles with 3+ photos get 5x more matches'),
           DsGap.sm,
-          const _TipItem(text: 'A bio with 50+ characters shows personality'),
+          _TipItem(text: 'A bio with 50+ characters shows personality'),
           DsGap.sm,
-          const _TipItem(text: 'Smile in your first photo for best results'),
+          _TipItem(text: 'Smile in your first photo for best results'),
         ],
       ),
     );

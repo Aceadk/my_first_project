@@ -6,8 +6,11 @@ import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/validators.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../design_system/widgets/auth_scaffold.dart';
-import '../widgets/primary_button.dart';
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/spacing_widgets.dart';
+import '../../logic/auth/auth_bloc.dart';
+import '../../logic/auth/auth_event.dart';
+import '../../logic/auth/auth_state.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,14 +24,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _otpController = TextEditingController();
-  bool _usernameTouched = false;
-  bool _emailTouched = false;
-  bool _passwordTouched = false;
-  bool _otpTouched = false;
-  bool _otpSent = false;
+  final _phoneController = TextEditingController();
+  final _dialCodeController = TextEditingController();
+
+  // Auth method: 'email' or 'phone'
+  String _authMethod = 'email';
+  _CountryCode _selectedCountry = _countries.firstWhere(
+    (c) => c.name == 'United States',
+    orElse: () => _countries.first,
+  );
+
+  int _currentStep = 0;
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _registeredEmail;
+  String? _phoneInProgress;
+
+  // Field errors
+  String? _usernameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _otpError;
+  String? _phoneError;
+
+  @override
+  void initState() {
+    super.initState();
+    _dialCodeController.text = _selectedCountry.dialCode;
+  }
 
   @override
   void dispose() {
@@ -36,262 +59,398 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _otpController.dispose();
+    _phoneController.dispose();
+    _dialCodeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bypassVerification =
         context.read<AuthRepository>().isVerificationBypassEnabled;
-    final fieldsDisabled = _otpSent || _isLoading;
-    return AuthScaffold(
-      title: 'Sign Up',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextField(
-            controller: _usernameController,
-            enabled: !fieldsDisabled,
-            decoration: InputDecoration(
-              labelText: 'Username',
-              helperText: 'Use 3-20 letters, numbers, or underscore.',
-              errorText: _usernameErrorText(),
-            ),
-            onTap: () => _markUsernameTouched(),
-            onChanged: (_) => _markUsernameTouched(),
+
+    // Calculate total steps based on auth method
+    final totalSteps = _authMethod == 'phone'
+        ? 2 // Phone number → OTP
+        : (bypassVerification ? 3 : 4); // Username → Email → Password → (OTP)
+
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.errorMessage != current.errorMessage,
+      listener: (context, state) {
+        // Handle phone auth state changes
+        if (_authMethod == 'phone') {
+          if (state.status == AuthStatus.otpSent && state.phoneInProgress != null) {
+            setState(() {
+              _phoneInProgress = state.phoneInProgress;
+              _currentStep = 1; // Move to OTP step
+              _isLoading = false;
+            });
+            showSuccessSnackBar(context, 'Code sent. Check your messages.');
+          } else if (state.status == AuthStatus.authenticated) {
+            setState(() => _isLoading = false);
+            context.go(CrushRoutes.home);
+          }
+          final error = state.errorMessage;
+          if (error != null && error.isNotEmpty) {
+            setState(() => _isLoading = false);
+            showErrorSnackBar(context, error);
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _handleBack,
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _emailController,
-            enabled: !fieldsDisabled,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email address',
-              helperText: bypassVerification
-                  ? 'Test mode: verification disabled.'
-                  : 'We will send a verification code after sign up.',
-              errorText: _emailErrorText(),
-            ),
-            onTap: () => _markEmailTouched(),
-            onChanged: (_) => _markEmailTouched(),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _passwordController,
-            enabled: !fieldsDisabled,
-            obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              helperText: 'Use at least 8 characters.',
-              errorText: _passwordErrorText(),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: DsEdgeInsets.allXxl,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Progress indicator
+                _StepProgress(
+                  currentStep: _currentStep,
+                  totalSteps: totalSteps,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
+                DsGap.xxl,
+                // Step content
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _buildCurrentStep(isDark, bypassVerification),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            onTap: () => _markPasswordTouched(),
-            onChanged: (_) => _markPasswordTouched(),
           ),
-          if (_otpSent) ...[
-            const SizedBox(height: 16),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Verification code',
-                helperText: 'Enter the 6-digit code from your email.',
-                errorText: _otpErrorText(),
-              ),
-              onTap: () => _markOtpTouched(),
-              onChanged: (_) => _markOtpTouched(),
-            ),
-          ],
-          const SizedBox(height: 20),
-          PrimaryButton(
-            label: _otpSent ? 'Verify email' : 'Create account',
-            loading: _isLoading,
-            onPressed: _isLoading
-                ? null
-                : () {
-                    if (_otpSent) {
-                      _verifyOtp();
-                    } else {
-                      _createAccount();
-                    }
-                  },
-          ),
-          if (_otpSent) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _isLoading ? null : _sendOtp,
-              child: const Text('Resend code'),
-            ),
-          ],
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: _isLoading
-                ? null
-                : () => context.go(CrushRoutes.login),
-            child: const Text('Already have an account? Log in'),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  void _markUsernameTouched() {
-    if (!_usernameTouched) {
+  void _handleBack() {
+    if (_currentStep > 0) {
+      setState(() => _currentStep--);
+    } else if (_authMethod == 'phone') {
+      // Go back to email auth method
       setState(() {
-        _usernameTouched = true;
+        _authMethod = 'email';
+        _currentStep = 0;
       });
+    } else {
+      Navigator.pop(context);
     }
   }
 
-  void _markEmailTouched() {
-    if (!_emailTouched) {
-      setState(() {
-        _emailTouched = true;
-      });
+  Widget _buildCurrentStep(bool isDark, bool bypassVerification) {
+    // Phone auth flow
+    if (_authMethod == 'phone') {
+      switch (_currentStep) {
+        case 0:
+          return _PhoneStep(
+            key: const ValueKey('phone'),
+            phoneController: _phoneController,
+            dialCodeController: _dialCodeController,
+            selectedCountry: _selectedCountry,
+            error: _phoneError,
+            isLoading: _isLoading,
+            isDark: isDark,
+            onCountryChanged: (country) {
+              setState(() {
+                _selectedCountry = country;
+                _dialCodeController.text = country.dialCode;
+              });
+            },
+            onNext: _submitPhone,
+            onChanged: () => setState(() => _phoneError = null),
+            onSwitchToEmail: () {
+              setState(() {
+                _authMethod = 'email';
+                _currentStep = 0;
+              });
+            },
+          );
+        case 1:
+          return _PhoneOtpStep(
+            key: const ValueKey('phone-otp'),
+            controller: _otpController,
+            error: _otpError,
+            isLoading: _isLoading,
+            isDark: isDark,
+            phoneNumber: _phoneInProgress ?? _getFullPhoneNumber(),
+            onVerify: _verifyPhoneOtp,
+            onResend: _resendPhoneOtp,
+            onChanged: () => setState(() => _otpError = null),
+          );
+        default:
+          return const SizedBox.shrink();
+      }
+    }
+
+    // Email auth flow
+    switch (_currentStep) {
+      case 0:
+        return _UsernameStep(
+          key: const ValueKey('username'),
+          controller: _usernameController,
+          error: _usernameError,
+          isLoading: _isLoading,
+          isDark: isDark,
+          onNext: _validateUsername,
+          onChanged: () => setState(() => _usernameError = null),
+          onSwitchToPhone: () {
+            setState(() {
+              _authMethod = 'phone';
+              _currentStep = 0;
+            });
+          },
+        );
+      case 1:
+        return _EmailStep(
+          key: const ValueKey('email'),
+          controller: _emailController,
+          error: _emailError,
+          isLoading: _isLoading,
+          isDark: isDark,
+          bypassVerification: bypassVerification,
+          onNext: _validateEmail,
+          onChanged: () => setState(() => _emailError = null),
+        );
+      case 2:
+        return _PasswordStep(
+          key: const ValueKey('password'),
+          controller: _passwordController,
+          error: _passwordError,
+          isLoading: _isLoading,
+          isDark: isDark,
+          obscurePassword: _obscurePassword,
+          onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+          onNext: _createAccount,
+          onChanged: () => setState(() => _passwordError = null),
+          hasUsername: _usernameController.text.trim().isNotEmpty,
+          hasEmail: _emailController.text.trim().isNotEmpty,
+        );
+      case 3:
+        return _OtpStep(
+          key: const ValueKey('otp'),
+          controller: _otpController,
+          error: _otpError,
+          isLoading: _isLoading,
+          isDark: isDark,
+          email: _registeredEmail ?? _emailController.text,
+          onVerify: _verifyOtp,
+          onResend: _sendOtp,
+          onChanged: () => setState(() => _otpError = null),
+        );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
-  void _markPasswordTouched() {
-    if (!_passwordTouched) {
-      setState(() {
-        _passwordTouched = true;
-      });
-    }
+  String _getFullPhoneNumber() {
+    final dialCode = _dialCodeController.text.trim();
+    final phone = _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final normalizedDialCode = dialCode.startsWith('+')
+        ? dialCode.replaceAll(RegExp(r'[^0-9]'), '')
+        : dialCode.replaceAll(RegExp(r'[^0-9]'), '');
+    return '+$normalizedDialCode$phone';
   }
 
-  void _markOtpTouched() {
-    if (!_otpTouched) {
-      setState(() {
-        _otpTouched = true;
-      });
+  void _submitPhone() {
+    final phone = _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (phone.isEmpty) {
+      setState(() => _phoneError = 'Enter your phone number');
+      return;
     }
+    if (phone.length < 6) {
+      setState(() => _phoneError = 'Add at least 6 digits');
+      return;
+    }
+
+    final fullNumber = _getFullPhoneNumber();
+    setState(() {
+      _phoneError = null;
+      _isLoading = true;
+    });
+
+    context.read<AuthBloc>().add(AuthPhoneSubmitted(fullNumber));
   }
 
-  String? _usernameErrorText() {
-    if (!_usernameTouched) return null;
+  void _verifyPhoneOtp() {
+    final otp = _otpController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (otp.isEmpty) {
+      setState(() => _otpError = 'Enter the verification code');
+      return;
+    }
+    if (otp.length != 6) {
+      setState(() => _otpError = 'Enter the 6-digit code');
+      return;
+    }
+
+    final phoneNumber = _phoneInProgress ?? _getFullPhoneNumber();
+    setState(() {
+      _otpError = null;
+      _isLoading = true;
+    });
+
+    context.read<AuthBloc>().add(AuthOtpSubmitted(phoneNumber, otp));
+  }
+
+  void _resendPhoneOtp() {
+    final phoneNumber = _phoneInProgress ?? _getFullPhoneNumber();
+    setState(() => _isLoading = true);
+    context.read<AuthBloc>().add(AuthOtpResendRequested(phoneNumber));
+  }
+
+  /// Validates username - allows skip if empty, validates format if filled
+  void _validateUsername() {
     final username = _usernameController.text.trim();
+
+    // Allow skipping if empty
     if (username.isEmpty) {
-      return 'Choose a username';
+      setState(() {
+        _usernameError = null;
+        _currentStep = 1;
+      });
+      return;
     }
+
+    // If filled, must be valid
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
     if (!valid) {
-      return 'Use 3-20 letters, numbers, or underscore';
+      setState(() => _usernameError = 'Use 3-20 letters, numbers, or underscore');
+      return;
     }
-    return null;
+    setState(() {
+      _usernameError = null;
+      _currentStep = 1;
+    });
   }
 
-  String? _emailErrorText() {
-    if (!_emailTouched) return null;
+  /// Validates email - allows skip if empty, validates format if filled
+  void _validateEmail() {
     final email = normalizeEmail(_emailController.text);
+
+    // Allow skipping if empty
     if (email.isEmpty) {
-      return 'Enter your email address';
+      setState(() {
+        _emailError = null;
+        _currentStep = 2;
+      });
+      return;
     }
+
+    // If filled, must be valid
     if (!looksLikeEmail(email)) {
-      return 'Enter a valid email address';
+      setState(() => _emailError = 'Please enter a valid email');
+      return;
     }
-    return null;
-  }
-
-  String? _passwordErrorText() {
-    if (!_passwordTouched) return null;
-    final password = _passwordController.text;
-    if (password.isEmpty) {
-      return 'Enter a password';
-    }
-    if (password.length < 8) {
-      return 'Use at least 8 characters';
-    }
-    return null;
-  }
-
-  String? _otpErrorText() {
-    if (!_otpTouched) return null;
-    final otp = _otpController.text.trim();
-    if (otp.isEmpty) {
-      return 'Enter the 6-digit code';
-    }
-    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      return 'Use the 6-digit code from your email';
-    }
-    return null;
+    setState(() {
+      _emailError = null;
+      _currentStep = 2;
+    });
   }
 
   Future<void> _createAccount() async {
-    setState(() {
-      _usernameTouched = true;
-      _emailTouched = true;
-      _passwordTouched = true;
-    });
-    final usernameError = _usernameErrorText();
-    final emailError = _emailErrorText();
-    final passwordError = _passwordErrorText();
-    if (usernameError != null || emailError != null || passwordError != null) {
-      showErrorSnackBar(
-        context,
-        usernameError ?? emailError ?? passwordError!,
-      );
+    final username = _usernameController.text.trim();
+    final email = normalizeEmail(_emailController.text);
+    final password = _passwordController.text;
+
+    // Collect all validation errors
+    final errors = <String>[];
+
+    // Validate username (required for account creation)
+    if (username.isEmpty) {
+      errors.add('Username is required');
+    } else if (!RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username)) {
+      errors.add('Invalid username format');
+    }
+
+    // Validate email (required for account creation)
+    if (email.isEmpty) {
+      errors.add('Email is required');
+    } else if (!looksLikeEmail(email)) {
+      errors.add('Invalid email format');
+    }
+
+    // Validate password (required for account creation)
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Please create a password');
+      if (errors.isNotEmpty) {
+        showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+      }
       return;
     }
+    if (password.length < 8) {
+      setState(() => _passwordError = 'Password must be at least 8 characters');
+      if (errors.isNotEmpty) {
+        showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+      }
+      return;
+    }
+
+    // If there are missing required fields, show error and let user go back
+    if (errors.isNotEmpty) {
+      showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+      return;
+    }
+
     FocusScope.of(context).unfocus();
-    final email = normalizeEmail(_emailController.text);
+
     setState(() {
+      _passwordError = null;
       _isLoading = true;
     });
+
     final result = await Result.guard(
       () => context.read<AuthRepository>().signUpWithPassword(
-            username: _usernameController.text.trim(),
+            username: username,
             email: email,
-            password: _passwordController.text,
+            password: password,
           ),
       logLabel: 'AuthRepository.signUpWithPassword',
-      fallbackError: 'Could not create account. Check your details and try again.',
+      fallbackError: 'Could not create account. Please try again.',
     );
+
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+
+    setState(() => _isLoading = false);
+
     if (!result.isSuccess) {
       showErrorSnackBar(context, result.errorMessage ?? 'Sign up failed.');
       return;
     }
+
     if (context.read<AuthRepository>().isVerificationBypassEnabled) {
-      showSuccessSnackBar(
-        context,
-        'Account created! Welcome to CrushHour.',
-      );
-      // In bypass mode, user is signed in, go to home
+      showSuccessSnackBar(context, 'Account created! Welcome to CrushHour.');
       context.go(CrushRoutes.home);
       return;
     }
+
     _registeredEmail = email;
-    setState(() {
-      _otpSent = true;
-    });
-    showSuccessSnackBar(
-      context,
-      'Check your email for a 6-digit code to verify your account.',
-    );
+    setState(() => _currentStep = 3);
+    showSuccessSnackBar(context, 'Check your email for a verification code.');
   }
 
   Future<void> _sendOtp() async {
     final email = normalizeEmail(_registeredEmail ?? _emailController.text);
     if (email.isEmpty) {
-      showErrorSnackBar(context, 'Enter your email address.');
+      showErrorSnackBar(context, 'Email address is required.');
       return;
     }
-    setState(() {
-      _isLoading = true;
-    });
+
+    setState(() => _isLoading = true);
+
     final result = await Result.guard(
       () => context.read<AuthRepository>().requestEmailOtp(
             identifier: email,
@@ -301,54 +460,1195 @@ class _SignUpScreenState extends State<SignUpScreen> {
       logLabel: 'AuthRepository.requestEmailOtp',
       fallbackError: 'Could not send code. Please try again.',
     );
+
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+
+    setState(() => _isLoading = false);
+
     if (!result.isSuccess) {
       showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
       return;
     }
-    showSuccessSnackBar(
-      context,
-      'If that email is reachable, a 6-digit code is on the way.',
-    );
+
+    showSuccessSnackBar(context, 'A new code has been sent to your email.');
   }
 
   Future<void> _verifyOtp() async {
-    setState(() {
-      _otpTouched = true;
-    });
-    final otpError = _otpErrorText();
-    if (otpError != null) {
-      showErrorSnackBar(context, otpError);
+    final otp = _otpController.text.trim();
+    if (otp.isEmpty) {
+      setState(() => _otpError = 'Please enter the verification code');
       return;
     }
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
+      setState(() => _otpError = 'Please enter a valid 6-digit code');
+      return;
+    }
+
     final email = normalizeEmail(_registeredEmail ?? _emailController.text);
+
     setState(() {
+      _otpError = null;
       _isLoading = true;
     });
+
     final result = await Result.guard(
       () => context.read<AuthRepository>().verifyEmailOtp(
             identifier: email,
-            otp: _otpController.text.trim(),
+            otp: otp,
             purpose: EmailOtpPurpose.login,
             newEmail: email,
           ),
       logLabel: 'AuthRepository.verifyEmailOtp',
       fallbackError: 'Invalid or expired code. Please try again.',
     );
+
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+
+    setState(() => _isLoading = false);
+
     if (!result.isSuccess) {
       showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
       return;
     }
+
     showSuccessSnackBar(context, 'Email verified! Welcome to CrushHour.');
-    // User is now signed in automatically, redirect to home
     context.go(CrushRoutes.home);
   }
-
 }
+
+// Progress indicator widget
+class _StepProgress extends StatelessWidget {
+  const _StepProgress({
+    required this.currentStep,
+    required this.totalSteps,
+  });
+
+  final int currentStep;
+  final int totalSteps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Step ${currentStep + 1} of $totalSteps',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: DsColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${((currentStep + 1) / totalSteps * 100).round()}%',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: DsColors.textMutedLight,
+              ),
+            ),
+          ],
+        ),
+        DsGap.sm,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: (currentStep + 1) / totalSteps,
+            minHeight: 6,
+            backgroundColor: DsColors.skeletonLight,
+            valueColor: const AlwaysStoppedAnimation<Color>(DsColors.primary),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Step 1: Username
+class _UsernameStep extends StatelessWidget {
+  const _UsernameStep({
+    super.key,
+    required this.controller,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.onNext,
+    required this.onChanged,
+    this.onSwitchToPhone,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final VoidCallback onNext;
+  final VoidCallback onChanged;
+  final VoidCallback? onSwitchToPhone;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasContent = controller.text.trim().isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Choose your username',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        Text(
+          'This is how others will find you on CrushHour.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxl,
+        _StyledTextField(
+          controller: controller,
+          label: 'Username',
+          hint: 'e.g., john_doe123',
+          prefixIcon: Icons.person_outline,
+          error: error,
+          enabled: !isLoading,
+          onChanged: (_) => onChanged(),
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => onNext(),
+        ),
+        DsGap.sm,
+        Text(
+          '3-20 characters, letters, numbers, and underscore only',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxl,
+        _NextButton(
+          label: hasContent ? 'Continue' : 'Skip for now',
+          isLoading: isLoading,
+          onPressed: onNext,
+        ),
+        DsGap.lg,
+        _LoginLink(),
+        if (onSwitchToPhone != null) ...[
+          DsGap.md,
+          Center(
+            child: TextButton.icon(
+              onPressed: isLoading ? null : onSwitchToPhone,
+              icon: const Icon(Icons.phone_outlined, size: 18),
+              label: const Text('Sign up with phone instead'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// Step 2: Email
+class _EmailStep extends StatelessWidget {
+  const _EmailStep({
+    super.key,
+    required this.controller,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.bypassVerification,
+    required this.onNext,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final bool bypassVerification;
+  final VoidCallback onNext;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasContent = controller.text.trim().isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What\'s your email?',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        Text(
+          bypassVerification
+              ? 'Test mode: verification is disabled.'
+              : 'We\'ll send you a code to verify your account.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxl,
+        _StyledTextField(
+          controller: controller,
+          label: 'Email address',
+          hint: 'you@example.com',
+          prefixIcon: Icons.email_outlined,
+          error: error,
+          enabled: !isLoading,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => onChanged(),
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => onNext(),
+        ),
+        DsGap.xxl,
+        _NextButton(
+          label: hasContent ? 'Continue' : 'Skip for now',
+          isLoading: isLoading,
+          onPressed: onNext,
+        ),
+      ],
+    );
+  }
+}
+
+// Step 3: Password
+class _PasswordStep extends StatelessWidget {
+  const _PasswordStep({
+    super.key,
+    required this.controller,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.obscurePassword,
+    required this.onToggleObscure,
+    required this.onNext,
+    required this.onChanged,
+    required this.hasUsername,
+    required this.hasEmail,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final bool obscurePassword;
+  final VoidCallback onToggleObscure;
+  final VoidCallback onNext;
+  final VoidCallback onChanged;
+  final bool hasUsername;
+  final bool hasEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    final missingFields = <String>[];
+    if (!hasUsername) missingFields.add('username');
+    if (!hasEmail) missingFields.add('email');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Create a password',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        Text(
+          'Make it strong with at least 8 characters.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        if (missingFields.isNotEmpty) ...[
+          DsGap.md,
+          Container(
+            padding: DsEdgeInsets.allMd,
+            decoration: BoxDecoration(
+              color: DsColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: DsColors.warning.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  color: DsColors.warning,
+                  size: 20,
+                ),
+                DsGap.smH,
+                Expanded(
+                  child: Text(
+                    'You skipped: ${missingFields.join(", ")}. Go back to fill them before creating your account.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: DsColors.warning,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        DsGap.xxl,
+        _StyledTextField(
+          controller: controller,
+          label: 'Password',
+          hint: '••••••••',
+          prefixIcon: Icons.lock_outline,
+          error: error,
+          enabled: !isLoading,
+          obscureText: obscurePassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            ),
+            onPressed: onToggleObscure,
+          ),
+          onChanged: (_) => onChanged(),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => onNext(),
+        ),
+        DsGap.md,
+        _PasswordStrength(password: controller.text),
+        DsGap.xxl,
+        _NextButton(
+          label: 'Create Account',
+          isLoading: isLoading,
+          onPressed: onNext,
+        ),
+      ],
+    );
+  }
+}
+
+// Step 4: OTP Verification
+class _OtpStep extends StatelessWidget {
+  const _OtpStep({
+    super.key,
+    required this.controller,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.email,
+    required this.onVerify,
+    required this.onResend,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final String email;
+  final VoidCallback onVerify;
+  final VoidCallback onResend;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: DsColors.success.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.mark_email_read_outlined,
+            size: 32,
+            color: DsColors.success,
+          ),
+        ),
+        DsGap.xl,
+        Text(
+          'Verify your email',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        RichText(
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+            children: [
+              const TextSpan(text: 'We sent a 6-digit code to '),
+              TextSpan(
+                text: email,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        DsGap.xxl,
+        _StyledTextField(
+          controller: controller,
+          label: 'Verification code',
+          hint: '000000',
+          prefixIcon: Icons.pin_outlined,
+          error: error,
+          enabled: !isLoading,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          onChanged: (_) => onChanged(),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => onVerify(),
+        ),
+        DsGap.xxl,
+        _NextButton(
+          label: 'Verify Email',
+          isLoading: isLoading,
+          onPressed: onVerify,
+        ),
+        DsGap.md,
+        Center(
+          child: TextButton(
+            onPressed: isLoading ? null : onResend,
+            child: const Text('Didn\'t receive code? Resend'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Reusable styled text field
+class _StyledTextField extends StatelessWidget {
+  const _StyledTextField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.prefixIcon,
+    this.error,
+    this.enabled = true,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.keyboardType,
+    this.maxLength,
+    this.onChanged,
+    this.textInputAction,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData prefixIcon;
+  final String? error;
+  final bool enabled;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextInputType? keyboardType;
+  final int? maxLength;
+  final ValueChanged<String>? onChanged;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      maxLength: maxLength,
+      textInputAction: textInputAction,
+      onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      style: TextStyle(
+        fontSize: 16,
+        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        errorText: error,
+        counterText: '',
+        prefixIcon: Icon(prefixIcon),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
+        labelStyle: TextStyle(
+          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+        ),
+        hintStyle: TextStyle(
+          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: DsColors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: DsColors.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: DsColors.error, width: 2),
+        ),
+      ),
+    );
+  }
+}
+
+// Next button
+class _NextButton extends StatelessWidget {
+  const _NextButton({
+    required this.label,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: FilledButton(
+        onPressed: isLoading ? null : onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: DsColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+// Password strength indicator
+class _PasswordStrength extends StatelessWidget {
+  const _PasswordStrength({required this.password});
+
+  final String password;
+
+  @override
+  Widget build(BuildContext context) {
+    final strength = _calculateStrength(password);
+    final color = _getColor(strength);
+    final label = _getLabel(strength);
+
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: strength,
+              minHeight: 4,
+              backgroundColor: DsColors.skeletonLight,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ),
+        DsGap.mdH,
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  double _calculateStrength(String password) {
+    if (password.isEmpty) return 0;
+    double strength = 0;
+    if (password.length >= 8) strength += 0.25;
+    if (password.length >= 12) strength += 0.25;
+    if (RegExp(r'[A-Z]').hasMatch(password)) strength += 0.15;
+    if (RegExp(r'[a-z]').hasMatch(password)) strength += 0.1;
+    if (RegExp(r'[0-9]').hasMatch(password)) strength += 0.15;
+    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) strength += 0.1;
+    return strength.clamp(0.0, 1.0);
+  }
+
+  Color _getColor(double strength) {
+    if (strength < 0.3) return DsColors.error;
+    if (strength < 0.6) return DsColors.warning;
+    return DsColors.success;
+  }
+
+  String _getLabel(double strength) {
+    if (strength == 0) return '';
+    if (strength < 0.3) return 'Weak';
+    if (strength < 0.6) return 'Fair';
+    if (strength < 0.8) return 'Good';
+    return 'Strong';
+  }
+}
+
+// Login link
+class _LoginLink extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton(
+        onPressed: () => context.go(CrushRoutes.login),
+        child: RichText(
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyMedium,
+            children: const [
+              TextSpan(
+                text: 'Already have an account? ',
+                style: TextStyle(color: DsColors.textMutedLight),
+              ),
+              TextSpan(
+                text: 'Sign in',
+                style: TextStyle(
+                  color: DsColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Phone Step
+class _PhoneStep extends StatelessWidget {
+  const _PhoneStep({
+    super.key,
+    required this.phoneController,
+    required this.dialCodeController,
+    required this.selectedCountry,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.onCountryChanged,
+    required this.onNext,
+    required this.onChanged,
+    required this.onSwitchToEmail,
+  });
+
+  final TextEditingController phoneController;
+  final TextEditingController dialCodeController;
+  final _CountryCode selectedCountry;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final ValueChanged<_CountryCode> onCountryChanged;
+  final VoidCallback onNext;
+  final VoidCallback onChanged;
+  final VoidCallback onSwitchToEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Enter your phone number',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        Text(
+          'We\'ll send you a code to verify your account.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxl,
+        // Country picker
+        DropdownButtonFormField<_CountryCode>(
+          initialValue: selectedCountry,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'Country',
+            prefixIcon: const Icon(Icons.flag_outlined),
+            filled: true,
+            fillColor: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: _countries
+              .map(
+                (c) => DropdownMenuItem(
+                  value: c,
+                  child: Text(
+                    '${c.flag} ${c.name} (${c.dialCode})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          selectedItemBuilder: (context) => _countries
+              .map(
+                (c) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${c.flag} ${c.name} (${c.dialCode})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: isLoading
+              ? null
+              : (value) {
+                  if (value != null) {
+                    onCountryChanged(value);
+                  }
+                },
+        ),
+        DsGap.lg,
+        // Phone number input
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 100,
+              child: _StyledTextField(
+                controller: dialCodeController,
+                label: 'Code',
+                hint: '+1',
+                prefixIcon: Icons.dialpad,
+                enabled: !isLoading,
+                keyboardType: TextInputType.phone,
+              ),
+            ),
+            DsGap.mdH,
+            Expanded(
+              child: _StyledTextField(
+                controller: phoneController,
+                label: 'Phone number',
+                hint: '(555) 123-4567',
+                prefixIcon: Icons.phone_outlined,
+                error: error,
+                enabled: !isLoading,
+                keyboardType: TextInputType.phone,
+                onChanged: (_) => onChanged(),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => onNext(),
+              ),
+            ),
+          ],
+        ),
+        DsGap.sm,
+        Text(
+          'SMS rates may apply. We only use this to secure your account.',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxl,
+        _NextButton(
+          label: 'Send Code',
+          isLoading: isLoading,
+          onPressed: onNext,
+        ),
+        DsGap.lg,
+        _LoginLink(),
+        DsGap.md,
+        Center(
+          child: TextButton.icon(
+            onPressed: isLoading ? null : onSwitchToEmail,
+            icon: const Icon(Icons.email_outlined, size: 18),
+            label: const Text('Sign up with email instead'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Phone OTP Step
+class _PhoneOtpStep extends StatelessWidget {
+  const _PhoneOtpStep({
+    super.key,
+    required this.controller,
+    required this.error,
+    required this.isLoading,
+    required this.isDark,
+    required this.phoneNumber,
+    required this.onVerify,
+    required this.onResend,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final bool isLoading;
+  final bool isDark;
+  final String phoneNumber;
+  final VoidCallback onVerify;
+  final VoidCallback onResend;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: DsColors.success.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.sms_outlined,
+            size: 32,
+            color: DsColors.success,
+          ),
+        ),
+        DsGap.xl,
+        Text(
+          'Enter verification code',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        RichText(
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+            children: [
+              const TextSpan(text: 'We sent a 6-digit code to '),
+              TextSpan(
+                text: phoneNumber,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        DsGap.xxl,
+        _StyledTextField(
+          controller: controller,
+          label: 'Verification code',
+          hint: '000000',
+          prefixIcon: Icons.pin_outlined,
+          error: error,
+          enabled: !isLoading,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          onChanged: (_) => onChanged(),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => onVerify(),
+        ),
+        DsGap.xxl,
+        _NextButton(
+          label: 'Verify',
+          isLoading: isLoading,
+          onPressed: onVerify,
+        ),
+        DsGap.md,
+        Center(
+          child: TextButton(
+            onPressed: isLoading ? null : onResend,
+            child: const Text('Didn\'t receive code? Resend'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Country code model
+class _CountryCode {
+  const _CountryCode({
+    required this.name,
+    required this.dialCode,
+    required this.flag,
+  });
+
+  final String name;
+  final String dialCode;
+  final String flag;
+}
+
+// Full country list sorted alphabetically
+const _countries = <_CountryCode>[
+  _CountryCode(name: 'Afghanistan', dialCode: '+93', flag: '🇦🇫'),
+  _CountryCode(name: 'Albania', dialCode: '+355', flag: '🇦🇱'),
+  _CountryCode(name: 'Algeria', dialCode: '+213', flag: '🇩🇿'),
+  _CountryCode(name: 'American Samoa', dialCode: '+1684', flag: '🇦🇸'),
+  _CountryCode(name: 'Andorra', dialCode: '+376', flag: '🇦🇩'),
+  _CountryCode(name: 'Angola', dialCode: '+244', flag: '🇦🇴'),
+  _CountryCode(name: 'Anguilla', dialCode: '+1264', flag: '🇦🇮'),
+  _CountryCode(name: 'Antarctica', dialCode: '+672', flag: '🇦🇶'),
+  _CountryCode(name: 'Antigua and Barbuda', dialCode: '+1268', flag: '🇦🇬'),
+  _CountryCode(name: 'Argentina', dialCode: '+54', flag: '🇦🇷'),
+  _CountryCode(name: 'Armenia', dialCode: '+374', flag: '🇦🇲'),
+  _CountryCode(name: 'Aruba', dialCode: '+297', flag: '🇦🇼'),
+  _CountryCode(name: 'Australia', dialCode: '+61', flag: '🇦🇺'),
+  _CountryCode(name: 'Austria', dialCode: '+43', flag: '🇦🇹'),
+  _CountryCode(name: 'Azerbaijan', dialCode: '+994', flag: '🇦🇿'),
+  _CountryCode(name: 'Bahamas', dialCode: '+1242', flag: '🇧🇸'),
+  _CountryCode(name: 'Bahrain', dialCode: '+973', flag: '🇧🇭'),
+  _CountryCode(name: 'Bangladesh', dialCode: '+880', flag: '🇧🇩'),
+  _CountryCode(name: 'Barbados', dialCode: '+1246', flag: '🇧🇧'),
+  _CountryCode(name: 'Belarus', dialCode: '+375', flag: '🇧🇾'),
+  _CountryCode(name: 'Belgium', dialCode: '+32', flag: '🇧🇪'),
+  _CountryCode(name: 'Belize', dialCode: '+501', flag: '🇧🇿'),
+  _CountryCode(name: 'Benin', dialCode: '+229', flag: '🇧🇯'),
+  _CountryCode(name: 'Bermuda', dialCode: '+1441', flag: '🇧🇲'),
+  _CountryCode(name: 'Bhutan', dialCode: '+975', flag: '🇧🇹'),
+  _CountryCode(name: 'Bolivia', dialCode: '+591', flag: '🇧🇴'),
+  _CountryCode(name: 'Bosnia and Herzegovina', dialCode: '+387', flag: '🇧🇦'),
+  _CountryCode(name: 'Botswana', dialCode: '+267', flag: '🇧🇼'),
+  _CountryCode(name: 'Brazil', dialCode: '+55', flag: '🇧🇷'),
+  _CountryCode(name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
+  _CountryCode(name: 'British Virgin Islands', dialCode: '+1284', flag: '🇻🇬'),
+  _CountryCode(name: 'Brunei', dialCode: '+673', flag: '🇧🇳'),
+  _CountryCode(name: 'Bulgaria', dialCode: '+359', flag: '🇧🇬'),
+  _CountryCode(name: 'Burkina Faso', dialCode: '+226', flag: '🇧🇫'),
+  _CountryCode(name: 'Burundi', dialCode: '+257', flag: '🇧🇮'),
+  _CountryCode(name: 'Cambodia', dialCode: '+855', flag: '🇰🇭'),
+  _CountryCode(name: 'Cameroon', dialCode: '+237', flag: '🇨🇲'),
+  _CountryCode(name: 'Canada', dialCode: '+1', flag: '🇨🇦'),
+  _CountryCode(name: 'Cape Verde', dialCode: '+238', flag: '🇨🇻'),
+  _CountryCode(name: 'Cayman Islands', dialCode: '+1345', flag: '🇰🇾'),
+  _CountryCode(name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
+  _CountryCode(name: 'Chad', dialCode: '+235', flag: '🇹🇩'),
+  _CountryCode(name: 'Chile', dialCode: '+56', flag: '🇨🇱'),
+  _CountryCode(name: 'China', dialCode: '+86', flag: '🇨🇳'),
+  _CountryCode(name: 'Christmas Island', dialCode: '+61', flag: '🇨🇽'),
+  _CountryCode(name: 'Cocos (Keeling) Islands', dialCode: '+61', flag: '🇨🇨'),
+  _CountryCode(name: 'Colombia', dialCode: '+57', flag: '🇨🇴'),
+  _CountryCode(name: 'Comoros', dialCode: '+269', flag: '🇰🇲'),
+  _CountryCode(name: 'Cook Islands', dialCode: '+682', flag: '🇨🇰'),
+  _CountryCode(name: 'Costa Rica', dialCode: '+506', flag: '🇨🇷'),
+  _CountryCode(name: "Cote d'Ivoire", dialCode: '+225', flag: '🇨🇮'),
+  _CountryCode(name: 'Croatia', dialCode: '+385', flag: '🇭🇷'),
+  _CountryCode(name: 'Cuba', dialCode: '+53', flag: '🇨🇺'),
+  _CountryCode(name: 'Curacao', dialCode: '+599', flag: '🇨🇼'),
+  _CountryCode(name: 'Cyprus', dialCode: '+357', flag: '🇨🇾'),
+  _CountryCode(name: 'Czech Republic', dialCode: '+420', flag: '🇨🇿'),
+  _CountryCode(name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
+  _CountryCode(name: 'Denmark', dialCode: '+45', flag: '🇩🇰'),
+  _CountryCode(name: 'Djibouti', dialCode: '+253', flag: '🇩🇯'),
+  _CountryCode(name: 'Dominica', dialCode: '+1767', flag: '🇩🇲'),
+  _CountryCode(name: 'Dominican Republic', dialCode: '+1809', flag: '🇩🇴'),
+  _CountryCode(name: 'Ecuador', dialCode: '+593', flag: '🇪🇨'),
+  _CountryCode(name: 'Egypt', dialCode: '+20', flag: '🇪🇬'),
+  _CountryCode(name: 'El Salvador', dialCode: '+503', flag: '🇸🇻'),
+  _CountryCode(name: 'Equatorial Guinea', dialCode: '+240', flag: '🇬🇶'),
+  _CountryCode(name: 'Eritrea', dialCode: '+291', flag: '🇪🇷'),
+  _CountryCode(name: 'Estonia', dialCode: '+372', flag: '🇪🇪'),
+  _CountryCode(name: 'Ethiopia', dialCode: '+251', flag: '🇪🇹'),
+  _CountryCode(name: 'Falkland Islands', dialCode: '+500', flag: '🇫🇰'),
+  _CountryCode(name: 'Faroe Islands', dialCode: '+298', flag: '🇫🇴'),
+  _CountryCode(name: 'Fiji', dialCode: '+679', flag: '🇫🇯'),
+  _CountryCode(name: 'Finland', dialCode: '+358', flag: '🇫🇮'),
+  _CountryCode(name: 'France', dialCode: '+33', flag: '🇫🇷'),
+  _CountryCode(name: 'French Guiana', dialCode: '+594', flag: '🇬🇫'),
+  _CountryCode(name: 'French Polynesia', dialCode: '+689', flag: '🇵🇫'),
+  _CountryCode(name: 'Gabon', dialCode: '+241', flag: '🇬🇦'),
+  _CountryCode(name: 'Gambia', dialCode: '+220', flag: '🇬🇲'),
+  _CountryCode(name: 'Georgia', dialCode: '+995', flag: '🇬🇪'),
+  _CountryCode(name: 'Germany', dialCode: '+49', flag: '🇩🇪'),
+  _CountryCode(name: 'Ghana', dialCode: '+233', flag: '🇬🇭'),
+  _CountryCode(name: 'Gibraltar', dialCode: '+350', flag: '🇬🇮'),
+  _CountryCode(name: 'Greece', dialCode: '+30', flag: '🇬🇷'),
+  _CountryCode(name: 'Greenland', dialCode: '+299', flag: '🇬🇱'),
+  _CountryCode(name: 'Grenada', dialCode: '+1473', flag: '🇬🇩'),
+  _CountryCode(name: 'Guadeloupe', dialCode: '+590', flag: '🇬🇵'),
+  _CountryCode(name: 'Guam', dialCode: '+1671', flag: '🇬🇺'),
+  _CountryCode(name: 'Guatemala', dialCode: '+502', flag: '🇬🇹'),
+  _CountryCode(name: 'Guernsey', dialCode: '+44', flag: '🇬🇬'),
+  _CountryCode(name: 'Guinea', dialCode: '+224', flag: '🇬🇳'),
+  _CountryCode(name: 'Guinea-Bissau', dialCode: '+245', flag: '🇬🇼'),
+  _CountryCode(name: 'Guyana', dialCode: '+592', flag: '🇬🇾'),
+  _CountryCode(name: 'Haiti', dialCode: '+509', flag: '🇭🇹'),
+  _CountryCode(name: 'Honduras', dialCode: '+504', flag: '🇭🇳'),
+  _CountryCode(name: 'Hong Kong', dialCode: '+852', flag: '🇭🇰'),
+  _CountryCode(name: 'Hungary', dialCode: '+36', flag: '🇭🇺'),
+  _CountryCode(name: 'Iceland', dialCode: '+354', flag: '🇮🇸'),
+  _CountryCode(name: 'India', dialCode: '+91', flag: '🇮🇳'),
+  _CountryCode(name: 'Indonesia', dialCode: '+62', flag: '🇮🇩'),
+  _CountryCode(name: 'Iran', dialCode: '+98', flag: '🇮🇷'),
+  _CountryCode(name: 'Iraq', dialCode: '+964', flag: '🇮🇶'),
+  _CountryCode(name: 'Ireland', dialCode: '+353', flag: '🇮🇪'),
+  _CountryCode(name: 'Isle of Man', dialCode: '+44', flag: '🇮🇲'),
+  _CountryCode(name: 'Israel', dialCode: '+972', flag: '🇮🇱'),
+  _CountryCode(name: 'Italy', dialCode: '+39', flag: '🇮🇹'),
+  _CountryCode(name: 'Jamaica', dialCode: '+1876', flag: '🇯🇲'),
+  _CountryCode(name: 'Japan', dialCode: '+81', flag: '🇯🇵'),
+  _CountryCode(name: 'Jersey', dialCode: '+44', flag: '🇯🇪'),
+  _CountryCode(name: 'Jordan', dialCode: '+962', flag: '🇯🇴'),
+  _CountryCode(name: 'Kazakhstan', dialCode: '+7', flag: '🇰🇿'),
+  _CountryCode(name: 'Kenya', dialCode: '+254', flag: '🇰🇪'),
+  _CountryCode(name: 'Kiribati', dialCode: '+686', flag: '🇰🇮'),
+  _CountryCode(name: 'Kuwait', dialCode: '+965', flag: '🇰🇼'),
+  _CountryCode(name: 'Kyrgyzstan', dialCode: '+996', flag: '🇰🇬'),
+  _CountryCode(name: 'Laos', dialCode: '+856', flag: '🇱🇦'),
+  _CountryCode(name: 'Latvia', dialCode: '+371', flag: '🇱🇻'),
+  _CountryCode(name: 'Lebanon', dialCode: '+961', flag: '🇱🇧'),
+  _CountryCode(name: 'Lesotho', dialCode: '+266', flag: '🇱🇸'),
+  _CountryCode(name: 'Liberia', dialCode: '+231', flag: '🇱🇷'),
+  _CountryCode(name: 'Libya', dialCode: '+218', flag: '🇱🇾'),
+  _CountryCode(name: 'Liechtenstein', dialCode: '+423', flag: '🇱🇮'),
+  _CountryCode(name: 'Lithuania', dialCode: '+370', flag: '🇱🇹'),
+  _CountryCode(name: 'Luxembourg', dialCode: '+352', flag: '🇱🇺'),
+  _CountryCode(name: 'Macao', dialCode: '+853', flag: '🇲🇴'),
+  _CountryCode(name: 'Madagascar', dialCode: '+261', flag: '🇲🇬'),
+  _CountryCode(name: 'Malawi', dialCode: '+265', flag: '🇲🇼'),
+  _CountryCode(name: 'Malaysia', dialCode: '+60', flag: '🇲🇾'),
+  _CountryCode(name: 'Maldives', dialCode: '+960', flag: '🇲🇻'),
+  _CountryCode(name: 'Mali', dialCode: '+223', flag: '🇲🇱'),
+  _CountryCode(name: 'Malta', dialCode: '+356', flag: '🇲🇹'),
+  _CountryCode(name: 'Marshall Islands', dialCode: '+692', flag: '🇲🇭'),
+  _CountryCode(name: 'Martinique', dialCode: '+596', flag: '🇲🇶'),
+  _CountryCode(name: 'Mauritania', dialCode: '+222', flag: '🇲🇷'),
+  _CountryCode(name: 'Mauritius', dialCode: '+230', flag: '🇲🇺'),
+  _CountryCode(name: 'Mayotte', dialCode: '+262', flag: '🇾🇹'),
+  _CountryCode(name: 'Mexico', dialCode: '+52', flag: '🇲🇽'),
+  _CountryCode(name: 'Micronesia', dialCode: '+691', flag: '🇫🇲'),
+  _CountryCode(name: 'Moldova', dialCode: '+373', flag: '🇲🇩'),
+  _CountryCode(name: 'Monaco', dialCode: '+377', flag: '🇲🇨'),
+  _CountryCode(name: 'Mongolia', dialCode: '+976', flag: '🇲🇳'),
+  _CountryCode(name: 'Montenegro', dialCode: '+382', flag: '🇲🇪'),
+  _CountryCode(name: 'Montserrat', dialCode: '+1664', flag: '🇲🇸'),
+  _CountryCode(name: 'Morocco', dialCode: '+212', flag: '🇲🇦'),
+  _CountryCode(name: 'Mozambique', dialCode: '+258', flag: '🇲🇿'),
+  _CountryCode(name: 'Myanmar', dialCode: '+95', flag: '🇲🇲'),
+  _CountryCode(name: 'Namibia', dialCode: '+264', flag: '🇳🇦'),
+  _CountryCode(name: 'Nauru', dialCode: '+674', flag: '🇳🇷'),
+  _CountryCode(name: 'Nepal', dialCode: '+977', flag: '🇳🇵'),
+  _CountryCode(name: 'Netherlands', dialCode: '+31', flag: '🇳🇱'),
+  _CountryCode(name: 'New Caledonia', dialCode: '+687', flag: '🇳🇨'),
+  _CountryCode(name: 'New Zealand', dialCode: '+64', flag: '🇳🇿'),
+  _CountryCode(name: 'Nicaragua', dialCode: '+505', flag: '🇳🇮'),
+  _CountryCode(name: 'Niger', dialCode: '+227', flag: '🇳🇪'),
+  _CountryCode(name: 'Nigeria', dialCode: '+234', flag: '🇳🇬'),
+  _CountryCode(name: 'Niue', dialCode: '+683', flag: '🇳🇺'),
+  _CountryCode(name: 'Norfolk Island', dialCode: '+672', flag: '🇳🇫'),
+  _CountryCode(name: 'North Korea', dialCode: '+850', flag: '🇰🇵'),
+  _CountryCode(name: 'North Macedonia', dialCode: '+389', flag: '🇲🇰'),
+  _CountryCode(name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
+  _CountryCode(name: 'Norway', dialCode: '+47', flag: '🇳🇴'),
+  _CountryCode(name: 'Oman', dialCode: '+968', flag: '🇴🇲'),
+  _CountryCode(name: 'Pakistan', dialCode: '+92', flag: '🇵🇰'),
+  _CountryCode(name: 'Palau', dialCode: '+680', flag: '🇵🇼'),
+  _CountryCode(name: 'Palestine', dialCode: '+970', flag: '🇵🇸'),
+  _CountryCode(name: 'Panama', dialCode: '+507', flag: '🇵🇦'),
+  _CountryCode(name: 'Papua New Guinea', dialCode: '+675', flag: '🇵🇬'),
+  _CountryCode(name: 'Paraguay', dialCode: '+595', flag: '🇵🇾'),
+  _CountryCode(name: 'Peru', dialCode: '+51', flag: '🇵🇪'),
+  _CountryCode(name: 'Philippines', dialCode: '+63', flag: '🇵🇭'),
+  _CountryCode(name: 'Poland', dialCode: '+48', flag: '🇵🇱'),
+  _CountryCode(name: 'Portugal', dialCode: '+351', flag: '🇵🇹'),
+  _CountryCode(name: 'Puerto Rico', dialCode: '+1787', flag: '🇵🇷'),
+  _CountryCode(name: 'Qatar', dialCode: '+974', flag: '🇶🇦'),
+  _CountryCode(name: 'Republic of the Congo', dialCode: '+242', flag: '🇨🇬'),
+  _CountryCode(name: 'Reunion', dialCode: '+262', flag: '🇷🇪'),
+  _CountryCode(name: 'Romania', dialCode: '+40', flag: '🇷🇴'),
+  _CountryCode(name: 'Russia', dialCode: '+7', flag: '🇷🇺'),
+  _CountryCode(name: 'Rwanda', dialCode: '+250', flag: '🇷🇼'),
+  _CountryCode(name: 'Saint Barthelemy', dialCode: '+590', flag: '🇧🇱'),
+  _CountryCode(name: 'Saint Helena', dialCode: '+290', flag: '🇸🇭'),
+  _CountryCode(name: 'Saint Kitts and Nevis', dialCode: '+1869', flag: '🇰🇳'),
+  _CountryCode(name: 'Saint Lucia', dialCode: '+1758', flag: '🇱🇨'),
+  _CountryCode(name: 'Saint Martin', dialCode: '+590', flag: '🇲🇫'),
+  _CountryCode(name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
+  _CountryCode(name: 'Saint Vincent and the Grenadines', dialCode: '+1784', flag: '🇻🇨'),
+  _CountryCode(name: 'Samoa', dialCode: '+685', flag: '🇼🇸'),
+  _CountryCode(name: 'San Marino', dialCode: '+378', flag: '🇸🇲'),
+  _CountryCode(name: 'Sao Tome and Principe', dialCode: '+239', flag: '🇸🇹'),
+  _CountryCode(name: 'Saudi Arabia', dialCode: '+966', flag: '🇸🇦'),
+  _CountryCode(name: 'Senegal', dialCode: '+221', flag: '🇸🇳'),
+  _CountryCode(name: 'Serbia', dialCode: '+381', flag: '🇷🇸'),
+  _CountryCode(name: 'Seychelles', dialCode: '+248', flag: '🇸🇨'),
+  _CountryCode(name: 'Sierra Leone', dialCode: '+232', flag: '🇸🇱'),
+  _CountryCode(name: 'Singapore', dialCode: '+65', flag: '🇸🇬'),
+  _CountryCode(name: 'Sint Maarten', dialCode: '+1721', flag: '🇸🇽'),
+  _CountryCode(name: 'Slovakia', dialCode: '+421', flag: '🇸🇰'),
+  _CountryCode(name: 'Slovenia', dialCode: '+386', flag: '🇸🇮'),
+  _CountryCode(name: 'Solomon Islands', dialCode: '+677', flag: '🇸🇧'),
+  _CountryCode(name: 'Somalia', dialCode: '+252', flag: '🇸🇴'),
+  _CountryCode(name: 'South Africa', dialCode: '+27', flag: '🇿🇦'),
+  _CountryCode(name: 'South Korea', dialCode: '+82', flag: '🇰🇷'),
+  _CountryCode(name: 'South Sudan', dialCode: '+211', flag: '🇸🇸'),
+  _CountryCode(name: 'Spain', dialCode: '+34', flag: '🇪🇸'),
+  _CountryCode(name: 'Sri Lanka', dialCode: '+94', flag: '🇱🇰'),
+  _CountryCode(name: 'Sudan', dialCode: '+249', flag: '🇸🇩'),
+  _CountryCode(name: 'Suriname', dialCode: '+597', flag: '🇸🇷'),
+  _CountryCode(name: 'Sweden', dialCode: '+46', flag: '🇸🇪'),
+  _CountryCode(name: 'Switzerland', dialCode: '+41', flag: '🇨🇭'),
+  _CountryCode(name: 'Syria', dialCode: '+963', flag: '🇸🇾'),
+  _CountryCode(name: 'Taiwan', dialCode: '+886', flag: '🇹🇼'),
+  _CountryCode(name: 'Tajikistan', dialCode: '+992', flag: '🇹🇯'),
+  _CountryCode(name: 'Tanzania', dialCode: '+255', flag: '🇹🇿'),
+  _CountryCode(name: 'Thailand', dialCode: '+66', flag: '🇹🇭'),
+  _CountryCode(name: 'Timor-Leste', dialCode: '+670', flag: '🇹🇱'),
+  _CountryCode(name: 'Togo', dialCode: '+228', flag: '🇹🇬'),
+  _CountryCode(name: 'Tokelau', dialCode: '+690', flag: '🇹🇰'),
+  _CountryCode(name: 'Tonga', dialCode: '+676', flag: '🇹🇴'),
+  _CountryCode(name: 'Trinidad and Tobago', dialCode: '+1868', flag: '🇹🇹'),
+  _CountryCode(name: 'Tunisia', dialCode: '+216', flag: '🇹🇳'),
+  _CountryCode(name: 'Turkey', dialCode: '+90', flag: '🇹🇷'),
+  _CountryCode(name: 'Turkmenistan', dialCode: '+993', flag: '🇹🇲'),
+  _CountryCode(name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
+  _CountryCode(name: 'Tuvalu', dialCode: '+688', flag: '🇹🇻'),
+  _CountryCode(name: 'Uganda', dialCode: '+256', flag: '🇺🇬'),
+  _CountryCode(name: 'Ukraine', dialCode: '+380', flag: '🇺🇦'),
+  _CountryCode(name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪'),
+  _CountryCode(name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧'),
+  _CountryCode(name: 'United States', dialCode: '+1', flag: '🇺🇸'),
+  _CountryCode(name: 'Uruguay', dialCode: '+598', flag: '🇺🇾'),
+  _CountryCode(name: 'Uzbekistan', dialCode: '+998', flag: '🇺🇿'),
+  _CountryCode(name: 'Vanuatu', dialCode: '+678', flag: '🇻🇺'),
+  _CountryCode(name: 'Vatican City', dialCode: '+379', flag: '🇻🇦'),
+  _CountryCode(name: 'Venezuela', dialCode: '+58', flag: '🇻🇪'),
+  _CountryCode(name: 'Vietnam', dialCode: '+84', flag: '🇻🇳'),
+  _CountryCode(name: 'Wallis and Futuna', dialCode: '+681', flag: '🇼🇫'),
+  _CountryCode(name: 'Yemen', dialCode: '+967', flag: '🇾🇪'),
+  _CountryCode(name: 'Zambia', dialCode: '+260', flag: '🇿🇲'),
+  _CountryCode(name: 'Zimbabwe', dialCode: '+263', flag: '🇿🇼'),
+];
