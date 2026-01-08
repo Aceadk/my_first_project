@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:go_router/go_router.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
@@ -43,7 +42,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    final userId = state.user?.id ?? fb.FirebaseAuth.instance.currentUser?.uid;
+    final userId = state.user?.id;
     if (userId == null) {
       showErrorSnackBar(context, 'You need to be signed in to continue.');
       return;

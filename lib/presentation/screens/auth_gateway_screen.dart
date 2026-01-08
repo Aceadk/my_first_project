@@ -127,7 +127,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                           ],
                         ).createShader(bounds),
                         child: Text(
-                          'Crush',
+                          'CrushHour',
                           style: Theme.of(context)
                               .textTheme
                               .displaySmall

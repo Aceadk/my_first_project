@@ -1,20 +1,11 @@
-import 'package:cloud_functions/cloud_functions.dart';
-
+/// Stub implementation of PreMatchService.
+/// Replace with your actual backend integration.
 class PreMatchService {
-  final FirebaseFunctions _functions;
-
-  PreMatchService({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
-
   Future<void> sendPreMatchMessageRequest({
     required String targetUserId,
     required String content,
   }) async {
-    final callable =
-        _functions.httpsCallable('sendPreMatchMessageRequest');
-    await callable.call(<String, dynamic>{
-      'targetUserId': targetUserId,
-      'content': content,
-    });
+    // TODO: Implement pre-match message sending with your backend
+    throw UnimplementedError('Pre-match messaging not implemented. Connect your backend.');
   }
 }

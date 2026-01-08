@@ -1,5 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
-
 class RemoteProfileCompleteness {
   RemoteProfileCompleteness({
     required this.score,
@@ -76,19 +74,23 @@ class RemoteProfileCompleteness {
   }
 }
 
+/// Stub implementation of ProfileValidationService.
+/// Replace with your actual backend integration.
 class ProfileValidationService {
-  ProfileValidationService({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
-
-  final FirebaseFunctions _functions;
-
   Future<RemoteProfileCompleteness> validate({String minimum = 'swipe'}) async {
-    final callable =
-        _functions.httpsCallable('validateProfileCompleteness');
-    final result = await callable.call(<String, dynamic>{
-      'minimum': minimum,
-    });
-    final data = Map<String, dynamic>.from(result.data as Map);
-    return RemoteProfileCompleteness.fromMap(data);
+    // TODO: Implement profile validation with your backend
+    // For now, return a default that allows all actions
+    return RemoteProfileCompleteness(
+      score: 100.0,
+      breakdown: {},
+      missing: [],
+      requiredMissing: [],
+      meetsSwipeMinimum: true,
+      meetsMessagingMinimum: true,
+      meetsRequiredFields: true,
+      meetsMinimum: true,
+      minimum: minimum,
+      threshold: 0.0,
+    );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
@@ -126,9 +125,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     final base = state.profile ?? _fallbackProfile(state);
-    final userId = state.user?.id ??
-        state.profile?.id ??
-        fb.FirebaseAuth.instance.currentUser?.uid;
+    final userId = state.user?.id ?? state.profile?.id;
     if (userId == null) {
       showErrorSnackBar(context, 'You need to be signed in to save changes.');
       return;
@@ -1267,8 +1264,6 @@ class _StyledTextField extends StatelessWidget {
     required this.icon,
     this.maxLines = 1,
     this.minLines,
-    this.textInputAction,
-    this.onEditingComplete,
   });
 
   final TextEditingController controller;
@@ -1277,8 +1272,6 @@ class _StyledTextField extends StatelessWidget {
   final IconData icon;
   final int maxLines;
   final int? minLines;
-  final TextInputAction? textInputAction;
-  final VoidCallback? onEditingComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -1286,8 +1279,8 @@ class _StyledTextField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       minLines: minLines,
-      textInputAction: maxLines > 1 ? TextInputAction.newline : (textInputAction ?? TextInputAction.done),
-      onEditingComplete: onEditingComplete ?? () => FocusScope.of(context).unfocus(),
+      textInputAction: maxLines > 1 ? TextInputAction.newline : TextInputAction.done,
+      onEditingComplete: () => FocusScope.of(context).unfocus(),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

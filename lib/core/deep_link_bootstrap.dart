@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:app_links/app_links.dart';
 import '../logic/auth/auth_bloc.dart';
 import '../logic/auth/auth_event.dart';
@@ -42,10 +41,14 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
   void _handleUri(Uri? uri) {
     if (uri == null || !mounted) return;
     final link = uri.toString();
-    if (fb.FirebaseAuth.instance.isSignInWithEmailLink(link)) {
+
+    // TODO: Implement email link sign-in detection with your backend
+    // Check if this is an email sign-in link from your auth system
+    if (_isEmailSignInLink(link)) {
       context.read<AuthBloc>().add(AuthEmailLinkSubmitted('', link));
       return;
     }
+
     final host = uri.host.toLowerCase();
     final path = uri.path.toLowerCase();
     final isBillingCallback =
@@ -56,6 +59,14 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     if (isBillingCallback || status != null) {
       context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested());
     }
+  }
+
+  /// Check if the link is an email sign-in link.
+  /// TODO: Implement this based on your auth backend's email link format.
+  bool _isEmailSignInLink(String link) {
+    // Example: Check for specific patterns in your email sign-in links
+    // return link.contains('your-domain.com/auth/email-signin');
+    return false;
   }
 
   @override

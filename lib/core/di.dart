@@ -1,6 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/repositories/auth_repository.dart';
@@ -9,17 +7,14 @@ import '../data/repositories/discovery_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/subscription_repository.dart';
 import '../data/repositories/call_repository.dart';
-import '../data/repositories/agora_call_repository.dart';
-import 'config/agora_config.dart';
 
-// Firebase implementations
-import '../data/repositories/firebase/firebase_auth_repository.dart';
-import '../data/repositories/firebase/firebase_profile_repository.dart';
-import '../data/repositories/firebase/firebase_discovery_repository.dart';
-import '../data/repositories/firebase/firebase_chat_repository.dart';
-import '../data/repositories/firebase/firebase_subscription_repository.dart';
-import '../data/services/recommendation_api.dart';
-import 'push/push_notifications.dart';
+// Stub implementations (replace with your actual backend implementations)
+import '../data/repositories/stub/stub_auth_repository.dart';
+import '../data/repositories/stub/stub_profile_repository.dart';
+import '../data/repositories/stub/stub_discovery_repository.dart';
+import '../data/repositories/stub/stub_chat_repository.dart';
+import '../data/repositories/stub/stub_subscription_repository.dart';
+import '../data/repositories/stub/stub_call_repository.dart';
 
 // BLoCs
 import '../logic/auth/auth_bloc.dart';
@@ -42,36 +37,14 @@ import '../logic/storage/storage_settings_cubit.dart';
 
 class CrushDI {
   static List<RepositoryProvider> buildRepositories() {
-    final auth = fb.FirebaseAuth.instance;
-    final firestore = FirebaseFirestore.instance;
-
-    final authRepo =
-        FirebaseAuthRepository(auth: auth, firestore: firestore);
-    final profileRepo = FirebaseProfileRepository(
-      auth: auth,
-      firestore: firestore,
-    );
-    final subRepo = FirebaseSubscriptionRepository(
-      auth: auth,
-      firestore: firestore,
-    );
-    final recoApi = RecommendationApi(
-      baseUrl: kRecoBaseUrl,
-      auth: auth,
-    );
-    final discoveryRepo = FirebaseDiscoveryRepository(
-      firestore: firestore,
-      recommendationApi: recoApi,
-    );
-    final chatRepo = FirebaseChatRepository(
-      firestore: firestore,
-    );
-    final callRepo = AgoraCallRepository(
-      agoraAppId: AgoraConfig.appId,
-    );
-    final pushNotifications = PushNotifications(
-      firestore: firestore,
-    );
+    // Create stub repositories
+    // TODO: Replace these with your actual backend implementations
+    final authRepo = StubAuthRepository();
+    final profileRepo = StubProfileRepository();
+    final subRepo = StubSubscriptionRepository();
+    final discoveryRepo = StubDiscoveryRepository();
+    final chatRepo = StubChatRepository();
+    final callRepo = StubCallRepository();
 
     return [
       RepositoryProvider<AuthRepository>.value(value: authRepo),
@@ -80,7 +53,6 @@ class CrushDI {
       RepositoryProvider<DiscoveryRepository>.value(value: discoveryRepo),
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
-      RepositoryProvider<PushNotifications>.value(value: pushNotifications),
     ];
   }
 

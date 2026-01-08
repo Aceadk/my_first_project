@@ -17,20 +17,10 @@ dependencies:
   uuid: ^4.5.0
   http: ^1.2.2
   shared_preferences: ^2.3.2
-  firebase_core: ^4.2.1
-  firebase_auth: ^6.1.2
-  cloud_firestore: ^6.1.0
-  firebase_storage: ^13.0.4
-  firebase_messaging: ^16.0.4
   image_picker: ^1.1.2
-  flutter_webrtc: ^1.2.1
-  firebase_data_connect: ^0.2.2
-  cloud_functions: ^6.0.4
   url_launcher: ^6.3.2
   app_links: ^6.3.2
-  agora_rtc_engine: ^6.3.0
   permission_handler: ^11.3.0
-  agora_uikit: ^1.2.1
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   video_player: ^2.8.7
@@ -39,13 +29,6 @@ dependencies:
   go_router: ^14.6.0
   google_fonts: ^6.2.1
 
-
-dependency_overrides:
-  agora_uikit:
-    path: patched_plugins/agora_uikit
-  agora_rtm:
-    path: patched_plugins/agora_rtm
-
 flutter:
   uses-material-design: true
 
@@ -53,5 +36,3 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-
-  

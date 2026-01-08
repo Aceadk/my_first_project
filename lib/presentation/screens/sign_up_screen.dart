@@ -592,13 +592,35 @@ class _UsernameStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Choose your username',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+        // Welcome header
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [DsColors.primary, DsColors.secondary],
+          ).createShader(bounds),
+          child: Text(
+            'Welcome to CrushHour',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-        DsGap.sm,
+        DsGap.xs,
+        Text(
+          'Step 1',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: DsColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        DsGap.lg,
+        Text(
+          'Choose your username',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        DsGap.xs,
         Text(
           'This is how others will find you on CrushHour.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
