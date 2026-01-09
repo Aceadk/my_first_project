@@ -8,8 +8,10 @@ import '../data/repositories/chat_repository.dart';
 import '../data/repositories/subscription_repository.dart';
 import '../data/repositories/call_repository.dart';
 
+// Firebase implementations
+import '../data/repositories/firebase/firebase_auth_repository.dart';
+
 // Stub implementations (replace with your actual backend implementations)
-import '../data/repositories/stub/stub_auth_repository.dart';
 import '../data/repositories/stub/stub_profile_repository.dart';
 import '../data/repositories/stub/stub_discovery_repository.dart';
 import '../data/repositories/stub/stub_chat_repository.dart';
@@ -38,9 +40,8 @@ import '../logic/privacy/privacy_settings_cubit.dart';
 
 class CrushDI {
   static List<RepositoryProvider> buildRepositories() {
-    // Create stub repositories
-    // TODO: Replace these with your actual backend implementations
-    final authRepo = StubAuthRepository();
+    // Create repositories
+    final authRepo = FirebaseAuthRepository();
     final profileRepo = StubProfileRepository();
     final subRepo = StubSubscriptionRepository();
     final discoveryRepo = StubDiscoveryRepository();

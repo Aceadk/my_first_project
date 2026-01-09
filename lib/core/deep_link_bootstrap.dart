@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_links/app_links.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../logic/auth/auth_bloc.dart';
 import '../logic/auth/auth_event.dart';
 import '../logic/subscription/subscription_bloc.dart';
@@ -19,6 +21,9 @@ class DeepLinkBootstrap extends StatefulWidget {
 
 class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
   final _appLinks = AppLinks();
+  final _firebaseAuth = FirebaseAuth.instance;
+  final _secureStorage = const FlutterSecureStorage();
+  static const _pendingEmailKey = 'pending_email_link_email';
   StreamSubscription<Uri?>? _sub;
 
   @override
@@ -38,14 +43,17 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     } catch (_) {}
   }
 
-  void _handleUri(Uri? uri) {
+  void _handleUri(Uri? uri) async {
     if (uri == null || !mounted) return;
     final link = uri.toString();
 
-    // TODO: Implement email link sign-in detection with your backend
-    // Check if this is an email sign-in link from your auth system
+    // Check if this is a Firebase email sign-in link
     if (_isEmailSignInLink(link)) {
-      context.read<AuthBloc>().add(AuthEmailLinkSubmitted('', link));
+      // Get the pending email from secure storage
+      final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
+      if (pendingEmail != null && mounted) {
+        context.read<AuthBloc>().add(AuthEmailLinkSubmitted(pendingEmail, link));
+      }
       return;
     }
 
@@ -61,12 +69,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     }
   }
 
-  /// Check if the link is an email sign-in link.
-  /// TODO: Implement this based on your auth backend's email link format.
+  /// Check if the link is a Firebase email sign-in link.
   bool _isEmailSignInLink(String link) {
-    // Example: Check for specific patterns in your email sign-in links
-    // return link.contains('your-domain.com/auth/email-signin');
-    return false;
+    return _firebaseAuth.isSignInWithEmailLink(link);
   }
 
   @override

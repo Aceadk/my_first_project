@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "72015170328",
+    "project_id": "crush-265f7",
+    "storage_bucket": "crush-265f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:72015170328:android:c7ad7f26450e2ed717ec6d",
+        "android_client_info": {
+          "package_name": "com.example.crushhour"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4gYpqwSFXzMgfTZF1LPMZZ92M0-Fwi7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
