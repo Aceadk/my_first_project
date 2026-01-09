@@ -1,14 +1,34 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/user.dart';
 import '../../models/profile.dart';
+import '../../models/preferences.dart';
+import '../../models/subscription.dart';
+import '../../models/privacy_settings.dart';
 import '../profile_repository.dart';
 
-/// Stub implementation of ProfileRepository.
-/// Replace this with your actual backend implementation.
+/// Mock implementation of ProfileRepository with local storage.
+/// This allows the app to function for development/demo without a backend.
 class StubProfileRepository implements ProfileRepository {
+  static const _usersKey = 'mock_users';
+  static const _currentUserKey = 'mock_current_user_id';
+  final _secureStorage = const FlutterSecureStorage();
+
   @override
   Future<CrushUser?> getCurrentUser() async {
-    // TODO: Implement fetching current user from your backend
-    return null;
+    final userId = await _secureStorage.read(key: _currentUserKey);
+    if (userId == null) return null;
+
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString(_usersKey);
+    if (usersJson == null) return null;
+
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+    final userData = users[userId];
+    if (userData == null) return null;
+
+    return _userFromJson(userData);
   }
 
   @override
@@ -19,8 +39,63 @@ class StubProfileRepository implements ProfileRepository {
     required String gender,
     String? sexualOrientation,
   }) async {
-    // TODO: Implement saving basic info to your backend
-    throw UnimplementedError('Save basic info not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    // Create or update profile
+    final existingProfile = currentUser.profile;
+    final newProfile = Profile(
+      id: existingProfile?.id ?? 'profile_${currentUser.id}',
+      name: name,
+      age: age,
+      gender: gender,
+      sexualOrientation: sexualOrientation ?? existingProfile?.sexualOrientation,
+      bio: existingProfile?.bio ?? '',
+      photoUrls: existingProfile?.photoUrls ?? [],
+      videoUrls: existingProfile?.videoUrls ?? [],
+      interests: existingProfile?.interests ?? [],
+      country: existingProfile?.country ?? '',
+      city: existingProfile?.city ?? '',
+      isVerified: existingProfile?.isVerified ?? false,
+      heightCm: existingProfile?.heightCm,
+      relationshipGoals: existingProfile?.relationshipGoals,
+      languages: existingProfile?.languages ?? [],
+      zodiacSign: existingProfile?.zodiacSign,
+      educationLevel: existingProfile?.educationLevel,
+      familyPlans: existingProfile?.familyPlans,
+      personalityType: existingProfile?.personalityType,
+      workout: existingProfile?.workout,
+      smoking: existingProfile?.smoking,
+      drinking: existingProfile?.drinking,
+      pets: existingProfile?.pets,
+      jobTitle: existingProfile?.jobTitle,
+      company: existingProfile?.company,
+      school: existingProfile?.school,
+      preferences: existingProfile?.preferences ?? const DiscoveryPreferences(
+        minAge: 18,
+        maxAge: 50,
+        maxDistanceKm: 100,
+        showMeGenders: ['All'],
+        showMyDistance: true,
+        showMyAge: true,
+        hideFromDiscovery: false,
+        incognitoMode: false,
+        country: '',
+        city: '',
+      ),
+    );
+
+    final updatedUser = currentUser.copyWith(
+      username: username ?? currentUser.username,
+      profile: newProfile,
+    );
+
+    await _saveUser(updatedUser);
+    return updatedUser;
   }
 
   @override
@@ -34,25 +109,214 @@ class StubProfileRepository implements ProfileRepository {
     required List<String> interests,
     List<String>? prompts,
   }) async {
-    // TODO: Implement saving profile details to your backend
-    throw UnimplementedError('Save profile details not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final existingProfile = currentUser.profile;
+    if (existingProfile == null) {
+      throw Exception('Basic info must be saved first');
+    }
+
+    final newProfile = existingProfile.copyWith(
+      bio: bio,
+      photoUrls: photoUrls,
+      videoUrls: videoUrls,
+      jobTitle: jobTitle,
+      company: company,
+      school: school,
+      interests: interests,
+    );
+
+    final updatedUser = currentUser.copyWith(profile: newProfile);
+    await _saveUser(updatedUser);
+    return updatedUser;
   }
 
   @override
   Future<void> uploadIdDocument(/* e.g. File or bytes type */) async {
-    // TODO: Implement ID document upload to your backend
-    throw UnimplementedError('ID upload not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 500));
+    // In mock mode, we just simulate the upload
+    // The actual verification happens in markIdVerified
   }
 
   @override
   Future<CrushUser> markIdVerified() async {
-    // TODO: Implement ID verification marking
-    throw UnimplementedError('ID verification not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final existingProfile = currentUser.profile;
+    if (existingProfile == null) {
+      throw Exception('Profile must be created first');
+    }
+
+    final newProfile = existingProfile.copyWith(isVerified: true);
+    final updatedUser = currentUser.copyWith(
+      isIdVerified: true,
+      profile: newProfile,
+    );
+
+    await _saveUser(updatedUser);
+    return updatedUser;
   }
 
   @override
   Future<CrushUser> updateProfile(Profile profile) async {
-    // TODO: Implement profile update to your backend
-    throw UnimplementedError('Profile update not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final updatedUser = currentUser.copyWith(profile: profile);
+    await _saveUser(updatedUser);
+    return updatedUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PRIVATE HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _saveUser(CrushUser user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString(_usersKey);
+    final users = usersJson != null
+        ? Map<String, dynamic>.from(jsonDecode(usersJson))
+        : <String, dynamic>{};
+
+    users[user.id] = _userToJson(user);
+    await prefs.setString(_usersKey, jsonEncode(users));
+  }
+
+  CrushUser _userFromJson(Map<String, dynamic> json) {
+    Profile? profile;
+    if (json['profile'] != null) {
+      final p = json['profile'] as Map<String, dynamic>;
+      profile = Profile(
+        id: p['id'] ?? '',
+        name: p['name'] ?? '',
+        age: p['age'] ?? 0,
+        gender: p['gender'] ?? '',
+        sexualOrientation: p['sexualOrientation'],
+        bio: p['bio'] ?? '',
+        photoUrls: List<String>.from(p['photoUrls'] ?? []),
+        videoUrls: List<String>.from(p['videoUrls'] ?? []),
+        primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
+        interests: List<String>.from(p['interests'] ?? []),
+        country: p['country'] ?? '',
+        city: p['city'] ?? '',
+        isVerified: p['isVerified'] ?? false,
+        heightCm: p['heightCm'],
+        relationshipGoals: p['relationshipGoals'],
+        languages: List<String>.from(p['languages'] ?? []),
+        zodiacSign: p['zodiacSign'],
+        educationLevel: p['educationLevel'],
+        familyPlans: p['familyPlans'],
+        personalityType: p['personalityType'],
+        workout: p['workout'],
+        smoking: p['smoking'],
+        drinking: p['drinking'],
+        pets: p['pets'],
+        jobTitle: p['jobTitle'],
+        company: p['company'],
+        school: p['school'],
+        preferences: DiscoveryPreferences(
+          minAge: p['preferences']?['minAge'] ?? 18,
+          maxAge: p['preferences']?['maxAge'] ?? 50,
+          maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
+          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['All']),
+          showMyDistance: p['preferences']?['showMyDistance'] ?? true,
+          showMyAge: p['preferences']?['showMyAge'] ?? true,
+          hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,
+          incognitoMode: p['preferences']?['incognitoMode'] ?? false,
+          country: p['preferences']?['country'] ?? '',
+          city: p['preferences']?['city'] ?? '',
+        ),
+        privacySettings: ProfilePrivacySettings.fromJson(
+          p['privacySettings'] as Map<String, dynamic>?,
+        ),
+      );
+    }
+
+    return CrushUser(
+      id: json['id'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      email: json['email'],
+      username: json['username'],
+      isEmailVerified: json['isEmailVerified'] ?? false,
+      isPhoneVerified: json['isPhoneVerified'] ?? false,
+      isIdVerified: json['isIdVerified'] ?? false,
+      plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      profile: profile,
+    );
+  }
+
+  Map<String, dynamic> _userToJson(CrushUser user) {
+    Map<String, dynamic>? profileJson;
+    if (user.profile != null) {
+      final p = user.profile!;
+      profileJson = {
+        'id': p.id,
+        'name': p.name,
+        'age': p.age,
+        'gender': p.gender,
+        'sexualOrientation': p.sexualOrientation,
+        'bio': p.bio,
+        'photoUrls': p.photoUrls,
+        'videoUrls': p.videoUrls,
+        'primaryPhotoIndex': p.primaryPhotoIndex,
+        'interests': p.interests,
+        'country': p.country,
+        'city': p.city,
+        'isVerified': p.isVerified,
+        'heightCm': p.heightCm,
+        'relationshipGoals': p.relationshipGoals,
+        'languages': p.languages,
+        'zodiacSign': p.zodiacSign,
+        'educationLevel': p.educationLevel,
+        'familyPlans': p.familyPlans,
+        'personalityType': p.personalityType,
+        'workout': p.workout,
+        'smoking': p.smoking,
+        'drinking': p.drinking,
+        'pets': p.pets,
+        'jobTitle': p.jobTitle,
+        'company': p.company,
+        'school': p.school,
+        'preferences': {
+          'minAge': p.preferences.minAge,
+          'maxAge': p.preferences.maxAge,
+          'maxDistanceKm': p.preferences.maxDistanceKm,
+          'showMeGenders': p.preferences.showMeGenders,
+          'showMyDistance': p.preferences.showMyDistance,
+          'showMyAge': p.preferences.showMyAge,
+          'hideFromDiscovery': p.preferences.hideFromDiscovery,
+          'incognitoMode': p.preferences.incognitoMode,
+          'country': p.preferences.country,
+          'city': p.preferences.city,
+        },
+        'privacySettings': p.privacySettings.toJson(),
+      };
+    }
+
+    return {
+      'id': user.id,
+      'phoneNumber': user.phoneNumber,
+      'email': user.email,
+      'username': user.username,
+      'isEmailVerified': user.isEmailVerified,
+      'isPhoneVerified': user.isPhoneVerified,
+      'isIdVerified': user.isIdVerified,
+      'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
+      'profile': profileJson,
+    };
   }
 }

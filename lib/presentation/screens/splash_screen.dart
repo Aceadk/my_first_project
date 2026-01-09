@@ -175,6 +175,8 @@ class _SplashScreenState extends State<SplashScreen>
       },
       child: Scaffold(
         body: Container(
+          width: double.infinity,
+          height: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -245,7 +247,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ],
                           ).createShader(bounds),
                           child: const Text(
-                            'CrushHour',
+                            'Crush',
                             style: TextStyle(
                               fontSize: 42,
                               fontWeight: FontWeight.bold,

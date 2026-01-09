@@ -1,30 +1,71 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user.dart';
 import '../../models/profile.dart';
 import '../../models/preferences.dart';
 import '../../models/subscription.dart';
 import '../auth_repository.dart';
 
-/// Stub implementation of AuthRepository.
-/// Replace this with your actual authentication backend implementation.
+/// Mock implementation of AuthRepository with local storage.
+/// This allows the app to function for development/demo without a backend.
+/// Replace with your actual backend implementation when ready.
 class StubAuthRepository implements AuthRepository {
   final _authStateController = StreamController<CrushUser?>.broadcast();
+  final _secureStorage = const FlutterSecureStorage();
+
+  static const _usersKey = 'mock_users';
+  static const _currentUserKey = 'mock_current_user_id';
+  static const _mockOtpCode = '123456'; // Mock OTP for development
+
+  CrushUser? _currentUser;
+
+  // Store pending OTP verifications
+  final Map<String, _PendingOtp> _pendingOtps = {};
 
   @override
   bool get isVerificationBypassEnabled => true;
 
   @override
   Future<void> bootstrapSession() async {
-    // No-op for stub
+    // Try to restore session from secure storage
+    final userId = await _secureStorage.read(key: _currentUserKey);
+    CrushUser? user;
+    if (userId != null) {
+      user = await _getUserById(userId);
+      if (user != null) {
+        _currentUser = user;
+      }
+    }
+    // Emit after a microtask to ensure stream subscription is ready
+    Future.microtask(() {
+      _authStateController.add(user);
+    });
   }
 
   @override
   Stream<CrushUser?> authStateChanges() => _authStateController.stream;
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHONE OTP AUTHENTICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
   @override
   Future<void> sendOtp(String phoneNumber) async {
-    // TODO: Implement OTP sending via your backend
-    throw UnimplementedError('OTP sending not implemented. Connect your backend.');
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Store pending OTP
+    _pendingOtps[phoneNumber] = _PendingOtp(
+      identifier: phoneNumber,
+      code: _mockOtpCode,
+      type: _OtpType.phone,
+      createdAt: DateTime.now(),
+    );
+
+    // In a real app, this would send an SMS
+    // For development, the OTP is always 123456
   }
 
   @override
@@ -32,14 +73,55 @@ class StubAuthRepository implements AuthRepository {
     required String phoneNumber,
     required String otp,
   }) async {
-    // TODO: Implement OTP verification via your backend
-    throw UnimplementedError('OTP verification not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final pending = _pendingOtps[phoneNumber];
+    if (pending == null) {
+      throw Exception('No OTP requested for this phone number');
+    }
+
+    if (otp != _mockOtpCode && otp != pending.code) {
+      throw Exception('Invalid OTP code');
+    }
+
+    // Check if OTP is expired (5 minutes)
+    if (DateTime.now().difference(pending.createdAt).inMinutes > 5) {
+      _pendingOtps.remove(phoneNumber);
+      throw Exception('OTP expired. Please request a new code.');
+    }
+
+    _pendingOtps.remove(phoneNumber);
+
+    // Check if user exists or create new one
+    var user = await _getUserByPhone(phoneNumber);
+    if (user == null) {
+      user = await _createUser(
+        phoneNumber: phoneNumber,
+        isPhoneVerified: true,
+      );
+    }
+
+    await _setCurrentUser(user);
+    return user;
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL LINK AUTHENTICATION
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> sendEmailSignInLink(String email) async {
-    // TODO: Implement email sign-in link sending
-    throw UnimplementedError('Email sign-in link not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Store pending email verification
+    _pendingOtps[email] = _PendingOtp(
+      identifier: email,
+      code: _mockOtpCode,
+      type: _OtpType.emailLink,
+      createdAt: DateTime.now(),
+    );
+
+    // In a real app, this would send an email with a magic link
   }
 
   @override
@@ -47,17 +129,45 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String emailLink,
   }) async {
-    // TODO: Implement email link sign-in
-    throw UnimplementedError('Email link sign-in not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // For mock, accept any link with the email
+    var user = await _getUserByEmail(email);
+    if (user == null) {
+      user = await _createUser(
+        email: email,
+        isEmailVerified: true,
+      );
+    }
+
+    await _setCurrentUser(user);
+    return user;
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL/PASSWORD AUTHENTICATION
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
   }) async {
-    // TODO: Implement email/password sign-in
-    throw UnimplementedError('Email/password sign-in not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final user = await _getUserByEmail(email);
+    if (user == null) {
+      throw Exception('No account found with this email');
+    }
+
+    // Check password (stored in secure storage)
+    final storedPassword = await _secureStorage.read(key: 'pwd_${user.id}');
+    if (storedPassword != password) {
+      throw Exception('Incorrect password');
+    }
+
+    await _setCurrentUser(user);
+    return user;
   }
 
   @override
@@ -65,8 +175,25 @@ class StubAuthRepository implements AuthRepository {
     required String identifier,
     required String password,
   }) async {
-    // TODO: Implement login with password
-    throw UnimplementedError('Login not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // Try to find user by email, username, or phone
+    CrushUser? user = await _getUserByEmail(identifier);
+    user ??= await _getUserByUsername(identifier);
+    user ??= await _getUserByPhone(identifier);
+
+    if (user == null) {
+      throw Exception('No account found with this identifier');
+    }
+
+    // Check password
+    final storedPassword = await _secureStorage.read(key: 'pwd_${user.id}');
+    if (storedPassword != password) {
+      throw Exception('Incorrect password');
+    }
+
+    await _setCurrentUser(user);
+    return user;
   }
 
   @override
@@ -75,9 +202,37 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    // TODO: Implement sign-up
-    throw UnimplementedError('Sign-up not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Check if email already exists
+    final existingEmail = await _getUserByEmail(email);
+    if (existingEmail != null) {
+      throw Exception('An account with this email already exists');
+    }
+
+    // Check if username already exists
+    final existingUsername = await _getUserByUsername(username);
+    if (existingUsername != null) {
+      throw Exception('This username is already taken');
+    }
+
+    // Create new user
+    final user = await _createUser(
+      email: email,
+      username: username,
+      isEmailVerified: false,
+    );
+
+    // Store password securely
+    await _secureStorage.write(key: 'pwd_${user.id}', value: password);
+
+    await _setCurrentUser(user);
+    return user;
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL OTP (for verification, password reset, etc.)
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> requestEmailOtp({
@@ -85,8 +240,18 @@ class StubAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? email,
   }) async {
-    // TODO: Implement email OTP request
-    throw UnimplementedError('Email OTP not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final key = '${identifier}_${purpose.value}';
+    _pendingOtps[key] = _PendingOtp(
+      identifier: identifier,
+      code: _mockOtpCode,
+      type: _OtpType.email,
+      purpose: purpose,
+      createdAt: DateTime.now(),
+    );
+
+    // In a real app, this would send an email with the OTP
   }
 
   @override
@@ -97,14 +262,82 @@ class StubAuthRepository implements AuthRepository {
     String? newEmail,
     String? newPassword,
   }) async {
-    // TODO: Implement email OTP verification
-    throw UnimplementedError('Email OTP verification not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final key = '${identifier}_${purpose.value}';
+    final pending = _pendingOtps[key];
+
+    if (pending == null) {
+      throw Exception('No OTP requested');
+    }
+
+    if (otp != _mockOtpCode && otp != pending.code) {
+      throw Exception('Invalid OTP code');
+    }
+
+    if (DateTime.now().difference(pending.createdAt).inMinutes > 10) {
+      _pendingOtps.remove(key);
+      throw Exception('OTP expired');
+    }
+
+    _pendingOtps.remove(key);
+
+    // Handle different purposes
+    switch (purpose) {
+      case EmailOtpPurpose.login:
+        var user = await _getUserByEmail(identifier);
+        user ??= await _getUserByUsername(identifier);
+        if (user != null) {
+          await _setCurrentUser(user);
+          return user;
+        }
+        break;
+
+      case EmailOtpPurpose.addEmail:
+      case EmailOtpPurpose.changeEmail:
+        if (_currentUser != null && newEmail != null) {
+          final updatedUser = _currentUser!.copyWith(
+            email: newEmail,
+            isEmailVerified: true,
+          );
+          await _updateUser(updatedUser);
+          return updatedUser;
+        }
+        break;
+
+      case EmailOtpPurpose.resetPassword:
+        // Password reset is handled separately
+        break;
+
+      case EmailOtpPurpose.newDevice:
+      case EmailOtpPurpose.sensitiveAction:
+        // Just verify, no action needed
+        return _currentUser;
+    }
+
+    return _currentUser;
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PASSWORD RESET
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> requestPasswordReset({required String email}) async {
-    // TODO: Implement password reset request
-    throw UnimplementedError('Password reset not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final user = await _getUserByEmail(email);
+    if (user == null) {
+      // Don't reveal if email exists for security
+      return;
+    }
+
+    _pendingOtps['reset_$email'] = _PendingOtp(
+      identifier: email,
+      code: _mockOtpCode,
+      type: _OtpType.passwordReset,
+      createdAt: DateTime.now(),
+    );
   }
 
   @override
@@ -112,8 +345,24 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    // TODO: Implement password reset OTP verification
-    throw UnimplementedError('Password reset OTP not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final pending = _pendingOtps['reset_$email'];
+    if (pending == null) {
+      throw Exception('No password reset requested');
+    }
+
+    if (otp != _mockOtpCode && otp != pending.code) {
+      throw Exception('Invalid OTP code');
+    }
+
+    // Return a mock reset token
+    final token = 'reset_token_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Store token for verification
+    await _secureStorage.write(key: 'reset_token_$email', value: token);
+
+    return token;
   }
 
   @override
@@ -122,14 +371,40 @@ class StubAuthRepository implements AuthRepository {
     required String resetToken,
     required String newPassword,
   }) async {
-    // TODO: Implement password reset with token
-    throw UnimplementedError('Password reset with token not implemented. Connect your backend.');
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final storedToken = await _secureStorage.read(key: 'reset_token_$email');
+    if (storedToken != resetToken) {
+      throw Exception('Invalid reset token');
+    }
+
+    final user = await _getUserByEmail(email);
+    if (user == null) {
+      throw Exception('User not found');
+    }
+
+    // Update password
+    await _secureStorage.write(key: 'pwd_${user.id}', value: newPassword);
+
+    // Clean up
+    await _secureStorage.delete(key: 'reset_token_$email');
+    _pendingOtps.remove('reset_$email');
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SIGN OUT
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> signOut() async {
+    _currentUser = null;
+    await _secureStorage.delete(key: _currentUserKey);
     _authStateController.add(null);
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DEV BYPASS
+  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<CrushUser?> devLoginBypass({
@@ -139,7 +414,7 @@ class StubAuthRepository implements AuthRepository {
     // Dev bypass for testing - admin123/admin123
     if (identifier == 'admin123' && password == 'admin123') {
       final user = CrushUser(
-        id: 'dev-admin-${DateTime.now().millisecondsSinceEpoch}',
+        id: 'dev-admin-user',
         phoneNumber: '+1234567890',
         email: 'admin@crushhour.dev',
         username: 'admin123',
@@ -147,19 +422,19 @@ class StubAuthRepository implements AuthRepository {
         isPhoneVerified: true,
         isIdVerified: true,
         plan: SubscriptionPlan.plus,
-        profile: Profile(
+        profile: const Profile(
           id: 'dev-admin-profile',
           name: 'Dev Admin',
           age: 25,
           gender: 'Other',
           bio: 'Development test account',
-          photoUrls: const [],
-          videoUrls: const [],
-          interests: const ['Development', 'Testing'],
+          photoUrls: [],
+          videoUrls: [],
+          interests: ['Development', 'Testing'],
           country: 'United States',
           city: 'San Francisco',
           isVerified: true,
-          preferences: const DiscoveryPreferences(
+          preferences: DiscoveryPreferences(
             minAge: 18,
             maxAge: 50,
             maxDistanceKm: 100,
@@ -173,13 +448,257 @@ class StubAuthRepository implements AuthRepository {
           ),
         ),
       );
-      _authStateController.add(user);
+      await _setCurrentUser(user);
       return user;
     }
     return null;
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PRIVATE HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Map<String, dynamic>> _getAllUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString(_usersKey);
+    if (usersJson == null) return {};
+    return Map<String, dynamic>.from(jsonDecode(usersJson));
+  }
+
+  Future<void> _saveAllUsers(Map<String, dynamic> users) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_usersKey, jsonEncode(users));
+  }
+
+  Future<CrushUser?> _getUserById(String id) async {
+    final users = await _getAllUsers();
+    final userData = users[id];
+    if (userData == null) return null;
+    return _userFromJson(userData);
+  }
+
+  Future<CrushUser?> _getUserByEmail(String email) async {
+    final users = await _getAllUsers();
+    for (final userData in users.values) {
+      if (userData['email']?.toString().toLowerCase() == email.toLowerCase()) {
+        return _userFromJson(userData);
+      }
+    }
+    return null;
+  }
+
+  Future<CrushUser?> _getUserByPhone(String phone) async {
+    final users = await _getAllUsers();
+    for (final userData in users.values) {
+      if (userData['phoneNumber'] == phone) {
+        return _userFromJson(userData);
+      }
+    }
+    return null;
+  }
+
+  Future<CrushUser?> _getUserByUsername(String username) async {
+    final users = await _getAllUsers();
+    for (final userData in users.values) {
+      if (userData['username']?.toString().toLowerCase() == username.toLowerCase()) {
+        return _userFromJson(userData);
+      }
+    }
+    return null;
+  }
+
+  Future<CrushUser> _createUser({
+    String? email,
+    String? phoneNumber,
+    String? username,
+    bool isEmailVerified = false,
+    bool isPhoneVerified = false,
+  }) async {
+    final id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+
+    final user = CrushUser(
+      id: id,
+      phoneNumber: phoneNumber ?? '',
+      email: email,
+      username: username,
+      isEmailVerified: isEmailVerified,
+      isPhoneVerified: isPhoneVerified,
+      isIdVerified: false,
+      plan: SubscriptionPlan.free,
+      profile: null,
+    );
+
+    final users = await _getAllUsers();
+    users[id] = _userToJson(user);
+    await _saveAllUsers(users);
+
+    return user;
+  }
+
+  Future<void> _updateUser(CrushUser user) async {
+    final users = await _getAllUsers();
+    users[user.id] = _userToJson(user);
+    await _saveAllUsers(users);
+
+    if (_currentUser?.id == user.id) {
+      _currentUser = user;
+      _authStateController.add(user);
+    }
+  }
+
+  Future<void> _setCurrentUser(CrushUser user) async {
+    _currentUser = user;
+    await _secureStorage.write(key: _currentUserKey, value: user.id);
+
+    // Make sure user is saved
+    final users = await _getAllUsers();
+    users[user.id] = _userToJson(user);
+    await _saveAllUsers(users);
+
+    _authStateController.add(user);
+  }
+
+  CrushUser _userFromJson(Map<String, dynamic> json) {
+    Profile? profile;
+    if (json['profile'] != null) {
+      final p = json['profile'] as Map<String, dynamic>;
+      profile = Profile(
+        id: p['id'] ?? '',
+        name: p['name'] ?? '',
+        age: p['age'] ?? 0,
+        gender: p['gender'] ?? '',
+        sexualOrientation: p['sexualOrientation'],
+        bio: p['bio'] ?? '',
+        photoUrls: List<String>.from(p['photoUrls'] ?? []),
+        videoUrls: List<String>.from(p['videoUrls'] ?? []),
+        interests: List<String>.from(p['interests'] ?? []),
+        country: p['country'] ?? '',
+        city: p['city'] ?? '',
+        isVerified: p['isVerified'] ?? false,
+        heightCm: p['heightCm'],
+        relationshipGoals: p['relationshipGoals'],
+        languages: List<String>.from(p['languages'] ?? []),
+        zodiacSign: p['zodiacSign'],
+        educationLevel: p['educationLevel'],
+        familyPlans: p['familyPlans'],
+        personalityType: p['personalityType'],
+        workout: p['workout'],
+        smoking: p['smoking'],
+        drinking: p['drinking'],
+        pets: p['pets'],
+        jobTitle: p['jobTitle'],
+        company: p['company'],
+        school: p['school'],
+        preferences: DiscoveryPreferences(
+          minAge: p['preferences']?['minAge'] ?? 18,
+          maxAge: p['preferences']?['maxAge'] ?? 50,
+          maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
+          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['All']),
+          showMyDistance: p['preferences']?['showMyDistance'] ?? true,
+          showMyAge: p['preferences']?['showMyAge'] ?? true,
+          hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,
+          incognitoMode: p['preferences']?['incognitoMode'] ?? false,
+          country: p['preferences']?['country'] ?? '',
+          city: p['preferences']?['city'] ?? '',
+        ),
+      );
+    }
+
+    return CrushUser(
+      id: json['id'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      email: json['email'],
+      username: json['username'],
+      isEmailVerified: json['isEmailVerified'] ?? false,
+      isPhoneVerified: json['isPhoneVerified'] ?? false,
+      isIdVerified: json['isIdVerified'] ?? false,
+      plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      profile: profile,
+    );
+  }
+
+  Map<String, dynamic> _userToJson(CrushUser user) {
+    Map<String, dynamic>? profileJson;
+    if (user.profile != null) {
+      final p = user.profile!;
+      profileJson = {
+        'id': p.id,
+        'name': p.name,
+        'age': p.age,
+        'gender': p.gender,
+        'sexualOrientation': p.sexualOrientation,
+        'bio': p.bio,
+        'photoUrls': p.photoUrls,
+        'videoUrls': p.videoUrls,
+        'interests': p.interests,
+        'country': p.country,
+        'city': p.city,
+        'isVerified': p.isVerified,
+        'heightCm': p.heightCm,
+        'relationshipGoals': p.relationshipGoals,
+        'languages': p.languages,
+        'zodiacSign': p.zodiacSign,
+        'educationLevel': p.educationLevel,
+        'familyPlans': p.familyPlans,
+        'personalityType': p.personalityType,
+        'workout': p.workout,
+        'smoking': p.smoking,
+        'drinking': p.drinking,
+        'pets': p.pets,
+        'jobTitle': p.jobTitle,
+        'company': p.company,
+        'school': p.school,
+        'preferences': {
+          'minAge': p.preferences.minAge,
+          'maxAge': p.preferences.maxAge,
+          'maxDistanceKm': p.preferences.maxDistanceKm,
+          'showMeGenders': p.preferences.showMeGenders,
+          'showMyDistance': p.preferences.showMyDistance,
+          'showMyAge': p.preferences.showMyAge,
+          'hideFromDiscovery': p.preferences.hideFromDiscovery,
+          'incognitoMode': p.preferences.incognitoMode,
+          'country': p.preferences.country,
+          'city': p.preferences.city,
+        },
+      };
+    }
+
+    return {
+      'id': user.id,
+      'phoneNumber': user.phoneNumber,
+      'email': user.email,
+      'username': user.username,
+      'isEmailVerified': user.isEmailVerified,
+      'isPhoneVerified': user.isPhoneVerified,
+      'isIdVerified': user.isIdVerified,
+      'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
+      'profile': profileJson,
+    };
+  }
+
   void dispose() {
     _authStateController.close();
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPER CLASSES
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum _OtpType { phone, email, emailLink, passwordReset }
+
+class _PendingOtp {
+  final String identifier;
+  final String code;
+  final _OtpType type;
+  final EmailOtpPurpose? purpose;
+  final DateTime createdAt;
+
+  _PendingOtp({
+    required this.identifier,
+    required this.code,
+    required this.type,
+    this.purpose,
+    required this.createdAt,
+  });
 }

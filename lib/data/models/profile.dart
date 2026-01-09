@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'preferences.dart';
+import 'privacy_settings.dart';
 
 class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
@@ -17,6 +18,14 @@ class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
   final List<String> photoUrls;
   final List<String> videoUrls;
+  final int primaryPhotoIndex; // Index of the photo to use as display picture
+
+  /// Returns the primary/display photo URL, or null if no photos exist
+  String? get displayPhotoUrl {
+    if (photoUrls.isEmpty) return null;
+    final index = primaryPhotoIndex.clamp(0, photoUrls.length - 1);
+    return photoUrls[index];
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BIO & INTERESTS
@@ -93,6 +102,11 @@ class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
   final DiscoveryPreferences preferences;
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PRIVACY SETTINGS
+  // ═══════════════════════════════════════════════════════════════════════════
+  final ProfilePrivacySettings privacySettings;
+
   const Profile({
     required this.id,
     required this.name,
@@ -102,6 +116,7 @@ class Profile extends Equatable {
     this.dateOfBirth,
     required this.photoUrls,
     required this.videoUrls,
+    this.primaryPhotoIndex = 0,
     required this.bio,
     required this.interests,
     this.prompts = const [],
@@ -133,6 +148,7 @@ class Profile extends Equatable {
     required this.isVerified,
     this.verificationBadge,
     required this.preferences,
+    this.privacySettings = const ProfilePrivacySettings(),
   });
 
   /// Sentinel object for copyWith null handling
@@ -147,6 +163,7 @@ class Profile extends Equatable {
     Object? dateOfBirth = _unset,
     List<String>? photoUrls,
     List<String>? videoUrls,
+    int? primaryPhotoIndex,
     String? bio,
     List<String>? interests,
     List<String>? prompts,
@@ -178,6 +195,7 @@ class Profile extends Equatable {
     bool? isVerified,
     Object? verificationBadge = _unset,
     DiscoveryPreferences? preferences,
+    ProfilePrivacySettings? privacySettings,
   }) {
     return Profile(
       id: id ?? this.id,
@@ -192,6 +210,7 @@ class Profile extends Equatable {
           : dateOfBirth as DateTime?,
       photoUrls: photoUrls ?? this.photoUrls,
       videoUrls: videoUrls ?? this.videoUrls,
+      primaryPhotoIndex: primaryPhotoIndex ?? this.primaryPhotoIndex,
       bio: bio ?? this.bio,
       interests: interests ?? this.interests,
       prompts: prompts ?? this.prompts,
@@ -252,6 +271,7 @@ class Profile extends Equatable {
           ? this.verificationBadge
           : verificationBadge as String?,
       preferences: preferences ?? this.preferences,
+      privacySettings: privacySettings ?? this.privacySettings,
     );
   }
 
@@ -265,6 +285,7 @@ class Profile extends Equatable {
         dateOfBirth,
         photoUrls,
         videoUrls,
+        primaryPhotoIndex,
         bio,
         interests,
         prompts,
@@ -296,5 +317,6 @@ class Profile extends Equatable {
         isVerified,
         verificationBadge,
         preferences,
+        privacySettings,
       ];
 }

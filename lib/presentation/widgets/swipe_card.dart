@@ -9,8 +9,7 @@ class SwipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl =
-        profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
+    final imageUrl = profile.displayPhotoUrl;
     final displayName =
         profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
     final ageText = profile.age > 0 ? '${profile.age}' : 'N/A';

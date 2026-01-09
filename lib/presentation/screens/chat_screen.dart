@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_functions/cloud_functions.dart' hide Result;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1038,8 +1037,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _backendCompleteness = null;
         _completenessError = _friendlyError(e);
-        _backendBlocked =
-            e is FirebaseFunctionsException && e.code == 'failed-precondition';
+        _backendBlocked = false;
       });
     } finally {
       if (mounted) {
@@ -1119,8 +1117,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   String _friendlyError(Object error) {
-    if (error is FirebaseFunctionsException && error.message != null) {
-      return error.message!;
+    if (error is Exception) {
+      return error.toString();
     }
     return 'Could not verify profile completeness. Check your connection.';
   }

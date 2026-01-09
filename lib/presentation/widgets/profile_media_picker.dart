@@ -8,10 +8,12 @@ import '../../core/profile_media_limits.dart';
 class ProfileMediaSelection {
   final List<String> photos;
   final List<String> videos;
+  final int primaryPhotoIndex;
 
   const ProfileMediaSelection({
     required this.photos,
     required this.videos,
+    this.primaryPhotoIndex = 0,
   });
 }
 
@@ -21,12 +23,14 @@ class ProfileMediaPicker extends StatefulWidget {
     required this.initialPhotos,
     required this.initialVideos,
     required this.onChanged,
+    this.initialPrimaryIndex = 0,
     this.enabled = true,
     this.onError,
   });
 
   final List<String> initialPhotos;
   final List<String> initialVideos;
+  final int initialPrimaryIndex;
   final bool enabled;
   final ValueChanged<ProfileMediaSelection> onChanged;
   final ValueChanged<String>? onError;
@@ -38,6 +42,7 @@ class ProfileMediaPicker extends StatefulWidget {
 class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
   late List<String> _photos;
   late List<String> _videos;
+  late int _primaryPhotoIndex;
   final _picker = ImagePicker();
 
   @override
@@ -45,24 +50,39 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     super.initState();
     _photos = List.of(widget.initialPhotos);
     _videos = List.of(widget.initialVideos);
+    _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
   }
 
   @override
   void didUpdateWidget(covariant ProfileMediaPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialPhotos != widget.initialPhotos ||
-        oldWidget.initialVideos != widget.initialVideos) {
+        oldWidget.initialVideos != widget.initialVideos ||
+        oldWidget.initialPrimaryIndex != widget.initialPrimaryIndex) {
       setState(() {
         _photos = List.of(widget.initialPhotos);
         _videos = List.of(widget.initialVideos);
+        _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
       });
     }
   }
 
   void _notify() {
     widget.onChanged(
-      ProfileMediaSelection(photos: List.of(_photos), videos: List.of(_videos)),
+      ProfileMediaSelection(
+        photos: List.of(_photos),
+        videos: List.of(_videos),
+        primaryPhotoIndex: _primaryPhotoIndex,
+      ),
     );
+  }
+
+  void _setPrimaryPhoto(int index) {
+    if (!widget.enabled || index < 0 || index >= _photos.length) return;
+    setState(() {
+      _primaryPhotoIndex = index;
+    });
+    _notify();
   }
 
   void _showError(String message) {
@@ -115,9 +135,19 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     _notify();
   }
 
-  void _removePhoto(String path) {
+  void _removePhoto(int index) {
     setState(() {
-      _photos.remove(path);
+      _photos.removeAt(index);
+      // Adjust primary index if needed
+      if (_photos.isEmpty) {
+        _primaryPhotoIndex = 0;
+      } else if (_primaryPhotoIndex >= _photos.length) {
+        _primaryPhotoIndex = _photos.length - 1;
+      } else if (index < _primaryPhotoIndex) {
+        _primaryPhotoIndex--;
+      } else if (index == _primaryPhotoIndex && _primaryPhotoIndex >= _photos.length) {
+        _primaryPhotoIndex = _photos.length - 1;
+      }
     });
     _notify();
   }
@@ -138,13 +168,14 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            ..._photos.map(
-              (path) => _MediaTile(
-                path: path,
+            for (int i = 0; i < _photos.length; i++)
+              _MediaTile(
+                path: _photos[i],
                 isVideo: false,
-                onRemove: widget.enabled ? () => _removePhoto(path) : null,
+                isPrimary: i == _primaryPhotoIndex,
+                onRemove: widget.enabled ? () => _removePhoto(i) : null,
+                onTap: widget.enabled ? () => _setPrimaryPhoto(i) : null,
               ),
-            ),
             ..._videos.map(
               (path) => _MediaTile(
                 path: path,
@@ -170,6 +201,17 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
           'Videos ${_videos.length}/${ProfileMediaLimits.maxVideos}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        if (_photos.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Tap a photo to set as display picture',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -179,12 +221,16 @@ class _MediaTile extends StatelessWidget {
   const _MediaTile({
     required this.path,
     required this.isVideo,
+    this.isPrimary = false,
     this.onRemove,
+    this.onTap,
   });
 
   final String path;
   final bool isVideo;
+  final bool isPrimary;
   final VoidCallback? onRemove;
+  final VoidCallback? onTap;
 
   bool get _isRemote {
     final uri = Uri.tryParse(path);
@@ -193,59 +239,99 @@ class _MediaTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 96,
-            height: 128,
-            color: Colors.grey.shade200,
-            child: isVideo
-                ? const Center(child: Icon(Icons.videocam, size: 32))
-                : _isRemote
-                    ? Image.network(path, fit: BoxFit.cover)
-                    : Image.file(File(path), fit: BoxFit.cover),
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 96,
+              height: 128,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                border: isPrimary
+                    ? Border.all(color: Colors.pink, width: 3)
+                    : null,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(isPrimary ? 9 : 12),
+                child: isVideo
+                    ? const Center(child: Icon(Icons.videocam, size: 32))
+                    : _isRemote
+                        ? Image.network(path, fit: BoxFit.cover)
+                        : Image.file(File(path), fit: BoxFit.cover),
+              ),
+            ),
           ),
-        ),
-        Positioned(
-          right: 4,
-          top: 4,
-          child: Row(
-            children: [
-              if (isVideo)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Video',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
+          // Primary photo badge
+          if (isPrimary && !isVideo)
+            Positioned(
+              left: 4,
+              bottom: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.pink,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.star, color: Colors.white, size: 12),
+                    SizedBox(width: 2),
+                    Text(
+                      'Display',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Positioned(
+            right: 4,
+            top: 4,
+            child: Row(
+              children: [
+                if (isVideo)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Video',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                      ),
                     ),
                   ),
-                ),
-              if (onRemove != null)
-                IconButton(
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  color: Colors.black87,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white70,
-                    shape: const CircleBorder(),
+                if (onRemove != null)
+                  IconButton(
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    color: Colors.black87,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white70,
+                      shape: const CircleBorder(),
+                    ),
+                    onPressed: onRemove,
+                    icon: const Icon(Icons.close),
                   ),
-                  onPressed: onRemove,
-                  icon: const Icon(Icons.close),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

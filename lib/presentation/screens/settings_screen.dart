@@ -24,6 +24,7 @@ import 'settings/discovery_filters_settings_screen.dart';
 import 'settings/data_storage_settings_screen.dart';
 import 'settings/account_security_settings_screen.dart';
 import 'settings/account_actions_settings_screen.dart';
+import 'settings/privacy_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -157,6 +158,20 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              const Divider(height: 1),
+              // Privacy Settings
+              _SettingsTile(
+                icon: Icons.visibility_outlined,
+                iconColor: Colors.indigo,
+                title: 'Privacy',
+                subtitle: 'Control what others can see',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PrivacySettingsScreen(),
+                  ),
+                ),
               ),
               const Divider(height: 1),
               // Account Actions

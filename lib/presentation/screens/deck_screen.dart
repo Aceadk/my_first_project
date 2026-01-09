@@ -27,6 +27,7 @@ import '../widgets/deck_ui_helpers.dart';
 import '../widgets/swipe_card.dart';
 import 'profile_edit_screen.dart';
 import 'settings_screen.dart';
+import 'other_user_profile_screen.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});
@@ -158,11 +159,14 @@ class _DeckScreenState extends State<DeckScreen> {
                         onSelected: (action) => _handleSafetyAction(
                           context,
                           action,
-                          currentProfileId: currentProfile.id,
-                          currentProfileName: currentProfile.name,
+                          currentProfile: currentProfile,
                           currentUserId: userId,
                         ),
                         itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.viewProfile,
+                            child: Text('View full profile'),
+                          ),
                           PopupMenuItem(
                             value: _DeckSafetyAction.report,
                             child: Text('Report profile'),
@@ -179,7 +183,77 @@ class _DeckScreenState extends State<DeckScreen> {
                       ),
                     ),
                     Expanded(
-                      child: SwipeCard(profile: currentProfile),
+                      child: _SwipeableCard(
+                        profile: currentProfile,
+                        onTap: () => context.push(
+                          CrushRoutes.userProfile,
+                          extra: OtherUserProfileArgs(profile: currentProfile),
+                        ),
+                        onSwipeLeft: () async {
+                          // Pass action (swipe right to left)
+                          if (userId == null) return;
+                          final discoveryBloc = context.read<DiscoveryBloc>();
+                          if (!_canSwipe(completeness, backendSwipeReady)) {
+                            _showProfileIncompleteDialog(
+                              context,
+                              completeness,
+                              remote: _backendCompleteness,
+                              minimum: 'swipe',
+                            );
+                            return;
+                          }
+                          final outcome = await _evaluateBackendAllowance(
+                            minimum: 'swipe',
+                            local: completeness,
+                          );
+                          if (!context.mounted) return;
+                          final allowed = _handleBackendOutcome(
+                            context,
+                            outcome,
+                            minimum: 'swipe',
+                            completeness: completeness,
+                          );
+                          if (!allowed) return;
+                          discoveryBloc.add(
+                            DiscoverySwipedLeft(
+                              userId: userId,
+                              targetUserId: currentProfile.id,
+                            ),
+                          );
+                        },
+                        onSwipeRight: () async {
+                          // Like action (swipe left to right)
+                          if (userId == null) return;
+                          final discoveryBloc = context.read<DiscoveryBloc>();
+                          if (!_canSwipe(completeness, backendSwipeReady)) {
+                            _showProfileIncompleteDialog(
+                              context,
+                              completeness,
+                              remote: _backendCompleteness,
+                              minimum: 'swipe',
+                            );
+                            return;
+                          }
+                          final outcome = await _evaluateBackendAllowance(
+                            minimum: 'swipe',
+                            local: completeness,
+                          );
+                          if (!context.mounted) return;
+                          final allowed = _handleBackendOutcome(
+                            context,
+                            outcome,
+                            minimum: 'swipe',
+                            completeness: completeness,
+                          );
+                          if (!allowed) return;
+                          discoveryBloc.add(
+                            DiscoverySwipedRight(
+                              userId: userId,
+                              targetUserId: currentProfile.id,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                     DsGap.lg,
                     Row(
@@ -362,8 +436,7 @@ class _DeckScreenState extends State<DeckScreen> {
       setState(() {
         _backendCompleteness = null;
         _completenessError = _friendlyError(e);
-        _backendBlocked =
-            e is FirebaseFunctionsException && e.code == 'failed-precondition';
+        _backendBlocked = false;
       });
     } finally {
       if (mounted) {
@@ -485,8 +558,8 @@ class _DeckScreenState extends State<DeckScreen> {
   }
 
   String _friendlyError(Object error) {
-    if (error is FirebaseFunctionsException && error.message != null) {
-      return error.message!;
+    if (error is Exception) {
+      return error.toString();
     }
     return 'Could not verify profile completeness. Check your connection.';
   }
@@ -700,7 +773,7 @@ class _DeckScreenState extends State<DeckScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
     return AppBar(
-      title: const Text('CrushHour'),
+      title: const Text('Crush'),
       centerTitle: true,
       actions: [
         IconButton(
@@ -724,12 +797,19 @@ class _DeckScreenState extends State<DeckScreen> {
   Future<void> _handleSafetyAction(
     BuildContext context,
     _DeckSafetyAction action, {
-    required String currentProfileId,
-    required String currentProfileName,
+    required Profile currentProfile,
     required String? currentUserId,
   }) async {
     final safety = context.read<SafetyCubit>();
+    final currentProfileId = currentProfile.id;
+    final currentProfileName = currentProfile.name;
     switch (action) {
+      case _DeckSafetyAction.viewProfile:
+        context.push(
+          CrushRoutes.userProfile,
+          extra: OtherUserProfileArgs(profile: currentProfile),
+        );
+        break;
       case _DeckSafetyAction.report:
         await _showReportSheet(
           context,
@@ -1186,7 +1266,7 @@ class _SkeletonCircle extends StatelessWidget {
   }
 }
 
-enum _DeckSafetyAction { report, block, guidelines }
+enum _DeckSafetyAction { viewProfile, report, block, guidelines }
 
 class _UpgradeNudgeCard extends StatelessWidget {
   const _UpgradeNudgeCard({
@@ -1308,6 +1388,230 @@ class _UpsellBullets extends StatelessWidget {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+/// A swipeable card widget that handles horizontal swipe gestures.
+/// Swipe left to right = Like, Swipe right to left = Pass
+class _SwipeableCard extends StatefulWidget {
+  const _SwipeableCard({
+    required this.profile,
+    required this.onTap,
+    required this.onSwipeLeft,
+    required this.onSwipeRight,
+  });
+
+  final Profile profile;
+  final VoidCallback onTap;
+  final VoidCallback onSwipeLeft;
+  final VoidCallback onSwipeRight;
+
+  @override
+  State<_SwipeableCard> createState() => _SwipeableCardState();
+}
+
+class _SwipeableCardState extends State<_SwipeableCard>
+    with SingleTickerProviderStateMixin {
+  double _dragX = 0;
+  double _dragStartX = 0;
+  bool _isDragging = false;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  static const double _swipeThreshold = 100.0;
+  static const double _maxRotation = 0.1; // radians
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _animation = Tween<double>(begin: 0, end: 0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    _dragStartX = details.globalPosition.dx;
+    _isDragging = true;
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if (!_isDragging) return;
+    setState(() {
+      _dragX = details.globalPosition.dx - _dragStartX;
+    });
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (!_isDragging) return;
+    _isDragging = false;
+
+    final velocity = details.velocity.pixelsPerSecond.dx;
+    final shouldSwipeRight = _dragX > _swipeThreshold || velocity > 500;
+    final shouldSwipeLeft = _dragX < -_swipeThreshold || velocity < -500;
+
+    if (shouldSwipeRight) {
+      // Swipe left to right = Like
+      _animateOut(true);
+    } else if (shouldSwipeLeft) {
+      // Swipe right to left = Pass
+      _animateOut(false);
+    } else {
+      // Snap back to center
+      _animateBack();
+    }
+  }
+
+  void _animateOut(bool isLike) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final targetX = isLike ? screenWidth : -screenWidth;
+
+    _animation = Tween<double>(begin: _dragX, end: targetX).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _animationController.forward(from: 0).then((_) {
+      if (isLike) {
+        widget.onSwipeRight();
+      } else {
+        widget.onSwipeLeft();
+      }
+      // Reset position for next card
+      setState(() {
+        _dragX = 0;
+      });
+      _animationController.reset();
+    });
+  }
+
+  void _animateBack() {
+    _animation = Tween<double>(begin: _dragX, end: 0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _animationController.addListener(() {
+      setState(() {
+        _dragX = _animation.value;
+      });
+    });
+
+    _animationController.forward(from: 0).then((_) {
+      _animationController.removeListener(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rotation = (_dragX / 500).clamp(-_maxRotation, _maxRotation);
+    final opacity = 1 - (_dragX.abs() / 300).clamp(0.0, 0.3);
+
+    return GestureDetector(
+      onTap: _isDragging ? null : widget.onTap,
+      onPanStart: _onPanStart,
+      onPanUpdate: _onPanUpdate,
+      onPanEnd: _onPanEnd,
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          final currentX = _animationController.isAnimating ? _animation.value : _dragX;
+          return Transform(
+            transform: Matrix4.identity()
+              ..setTranslationRaw(currentX, 0, 0)
+              ..rotateZ(rotation),
+            alignment: Alignment.center,
+            child: Stack(
+              children: [
+                Opacity(
+                  opacity: opacity,
+                  child: SwipeCard(profile: widget.profile),
+                ),
+                // Like indicator (right side)
+                if (_dragX > 20)
+                  Positioned(
+                    left: 30,
+                    top: 30,
+                    child: Transform.rotate(
+                      angle: -0.3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.green,
+                            width: 3,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'LIKE',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Pass indicator (left side)
+                if (_dragX < -20)
+                  Positioned(
+                    right: 30,
+                    top: 30,
+                    child: Transform.rotate(
+                      angle: 0.3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.red,
+                            width: 3,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'NOPE',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/ui/snackbar_utils.dart';
-import '../../../core/push/push_notifications.dart';
-import '../../../logic/auth/auth_bloc.dart';
 import '../../../logic/notification/notification_settings_cubit.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing_widgets.dart';
@@ -12,9 +9,6 @@ class NotificationsSettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final push = context.read<PushNotifications>();
-    final currentUserId =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -89,40 +83,14 @@ class NotificationsSettingsScreen extends StatelessWidget {
                   onChanged: (value) async {
                     await notifier.togglePush(value);
                     if (!context.mounted) return;
-                    if (value) {
-                      try {
-                        if (currentUserId == null) {
-                          showErrorSnackBar(
-                            context,
-                            'Sign in again to enable push notifications.',
-                          );
-                          return;
-                        }
-                        await push.registerDeviceToken(currentUserId);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Push notifications enabled.'),
-                          ),
-                        );
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        showErrorSnackBar(
-                          context,
-                          'Could not enable push: $e',
-                        );
-                      }
-                    } else {
-                      if (currentUserId != null) {
-                        await push.unregisterDeviceToken(currentUserId);
-                      }
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Push notifications disabled.'),
-                        ),
-                      );
-                    }
+                    // TODO: Connect to your push notification service
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(value
+                            ? 'Push notifications enabled.'
+                            : 'Push notifications disabled.'),
+                      ),
+                    );
                   },
                 ),
               ),

@@ -38,6 +38,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _mediaService = ProfileMediaService();
   List<String> _photos = [];
   List<String> _videos = [];
+  int _primaryPhotoIndex = 0;
   bool _uploading = false;
   bool _hasLoadedProfile = false;
 
@@ -72,6 +73,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       bio: '',
       photoUrls: List.of(_photos),
       videoUrls: List.of(_videos),
+      primaryPhotoIndex: _primaryPhotoIndex,
       isVerified: state.user?.profile?.isVerified ?? false,
       jobTitle: _jobTitleController.text.isNotEmpty ? _jobTitleController.text : state.user?.profile?.jobTitle,
       company: _companyController.text.isNotEmpty ? _companyController.text : state.user?.profile?.company,
@@ -157,6 +159,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       bio: _bioController.text.trim(),
       photoUrls: uploads.photoUrls,
       videoUrls: uploads.videoUrls,
+      primaryPhotoIndex: _primaryPhotoIndex,
       // New fields
       heightCm: _heightCm,
       relationshipGoals: _relationshipGoals,
@@ -673,6 +676,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _bioController.text = profile.bio;
           _photos = List.of(profile.photoUrls);
           _videos = List.of(profile.videoUrls);
+          _primaryPhotoIndex = profile.primaryPhotoIndex;
           // Load new fields
           _jobTitleController.text = profile.jobTitle ?? '';
           _companyController.text = profile.company ?? '';
@@ -739,12 +743,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ProfileMediaPicker(
                       initialPhotos: _photos,
                       initialVideos: _videos,
+                      initialPrimaryIndex: _primaryPhotoIndex,
                       enabled: !saving,
                       onError: (msg) => showErrorSnackBar(context, msg),
                       onChanged: (selection) {
                         setState(() {
                           _photos = selection.photos;
                           _videos = selection.videos;
+                          _primaryPhotoIndex = selection.primaryPhotoIndex;
                         });
                       },
                     ),
