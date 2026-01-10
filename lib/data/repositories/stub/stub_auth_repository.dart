@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user.dart';
@@ -408,6 +409,12 @@ class StubAuthRepository implements AuthRepository {
     required String identifier,
     required String password,
   }) async {
+    // SECURITY: Dev bypass ONLY available in debug builds
+    // This is completely disabled in release/production builds
+    if (!kDebugMode) {
+      return null;
+    }
+
     // Dev bypass for testing - admin123/admin123
     if (identifier == 'admin123' && password == 'admin123') {
       const user = CrushUser(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user.dart';
 import '../../core/result.dart';
+import '../../core/security/session_manager.dart';
 
 // Events
 abstract class SessionEvent extends Equatable {
@@ -31,6 +32,10 @@ class SessionDevBypassRequested extends SessionEvent {
   @override
   List<Object?> get props => [identifier, password];
 }
+
+class SessionTimeoutOccurred extends SessionEvent {}
+
+class SessionActivityRecorded extends SessionEvent {}
 
 // State
 enum SessionStatus {
@@ -79,13 +84,23 @@ class SessionState extends Equatable {
 // Bloc
 class SessionBloc extends Bloc<SessionEvent, SessionState> {
   final AuthRepository authRepository;
+  final SessionManager _sessionManager = SessionManager.instance;
   StreamSubscription<CrushUser?>? _authSubscription;
 
-  SessionBloc({required this.authRepository}) : super(SessionState.unknown()) {
+  /// Session timeout duration. Default is 30 minutes.
+  /// Can be configured at startup.
+  final Duration sessionTimeout;
+
+  SessionBloc({
+    required this.authRepository,
+    this.sessionTimeout = const Duration(minutes: 30),
+  }) : super(SessionState.unknown()) {
     on<SessionStarted>(_onStarted);
     on<SessionUserChanged>(_onUserChanged);
     on<SessionSignOutRequested>(_onSignOutRequested);
     on<SessionDevBypassRequested>(_onDevBypassRequested);
+    on<SessionTimeoutOccurred>(_onSessionTimeout);
+    on<SessionActivityRecorded>(_onActivityRecorded);
   }
 
   Future<void> _onStarted(
@@ -102,6 +117,12 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         _authSubscription = authRepository.authStateChanges().listen((user) {
           add(SessionUserChanged(user));
         });
+
+        // Initialize session manager for inactivity timeout
+        await _sessionManager.initialize(
+          timeout: sessionTimeout,
+          onExpired: () => add(SessionTimeoutOccurred()),
+        );
 
         return true;
       },
@@ -139,7 +160,10 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     emit(state.copyWith(isLoading: true, clearError: true));
 
     final result = await Result.guard(
-      () => authRepository.signOut(),
+      () async {
+        await authRepository.signOut();
+        await _sessionManager.clearSession();
+      },
       logLabel: 'SessionBloc.signOut',
       fallbackError: 'Could not sign out. Try again.',
     );
@@ -153,6 +177,30 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     }
 
     emit(SessionState.unknown());
+  }
+
+  Future<void> _onSessionTimeout(
+    SessionTimeoutOccurred event,
+    Emitter<SessionState> emit,
+  ) async {
+    // Auto-logout due to inactivity
+    await authRepository.signOut();
+    await _sessionManager.clearSession();
+
+    emit(state.copyWith(
+      status: SessionStatus.unauthenticated,
+      user: null,
+      isLoading: false,
+      errorMessage: 'Session expired due to inactivity. Please sign in again.',
+    ));
+  }
+
+  void _onActivityRecorded(
+    SessionActivityRecorded event,
+    Emitter<SessionState> emit,
+  ) {
+    // Record user activity to reset inactivity timer
+    _sessionManager.recordActivity();
   }
 
   Future<void> _onDevBypassRequested(
@@ -195,6 +243,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   @override
   Future<void> close() {
     _authSubscription?.cancel();
+    _sessionManager.dispose();
     return super.close();
   }
 }

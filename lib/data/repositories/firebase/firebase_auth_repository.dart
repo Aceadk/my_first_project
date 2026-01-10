@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/user.dart';
 import '../../models/subscription.dart';
 import '../auth_repository.dart';
 import '../../../core/services/email_service.dart';
+import '../../../core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository implements AuthRepository {
@@ -160,18 +160,11 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendOtp(String phoneNumber) async {
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print('');
-      // ignore: avoid_print
-      print('═══════════════════════════════════════════════════════');
-      // ignore: avoid_print
-      print('  SENDING PHONE OTP to: $phoneNumber');
-      // ignore: avoid_print
-      print('═══════════════════════════════════════════════════════');
-      // ignore: avoid_print
-      print('');
-    }
+    SecureLogger.logOtp(
+      type: 'PHONE (sending)',
+      recipient: phoneNumber,
+      code: '******',
+    );
 
     final completer = Completer<void>();
 
@@ -181,18 +174,12 @@ class FirebaseAuthRepository implements AuthRepository {
         timeout: const Duration(seconds: 60),
         verificationCompleted: (fb.PhoneAuthCredential credential) async {
           // Auto-verification (Android only)
-          if (kDebugMode) {
-            // ignore: avoid_print
-            print('Phone OTP: Auto-verification completed');
-          }
+          SecureLogger.debug('Phone OTP: Auto-verification completed');
           await _firebaseAuth.signInWithCredential(credential);
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (fb.FirebaseAuthException e) {
-          if (kDebugMode) {
-            // ignore: avoid_print
-            print('Phone OTP Error: ${e.code} - ${e.message}');
-          }
+          SecureLogger.error('Phone OTP Error: ${e.code}', e.message);
           if (!completer.isCompleted) {
             String errorMessage = e.message ?? 'Verification failed';
             // Provide more helpful error messages
@@ -209,26 +196,17 @@ class FirebaseAuthRepository implements AuthRepository {
           }
         },
         codeSent: (String verificationId, int? resendToken) {
-          if (kDebugMode) {
-            // ignore: avoid_print
-            print('Phone OTP: Code sent successfully! Verification ID: ${verificationId.substring(0, 10)}...');
-          }
+          SecureLogger.debug('Phone OTP: Code sent successfully');
           _verificationId = verificationId;
           if (!completer.isCompleted) completer.complete();
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          if (kDebugMode) {
-            // ignore: avoid_print
-            print('Phone OTP: Auto-retrieval timeout');
-          }
+          SecureLogger.debug('Phone OTP: Auto-retrieval timeout');
           _verificationId = verificationId;
         },
       );
     } catch (e) {
-      if (kDebugMode) {
-        // ignore: avoid_print
-        print('Phone OTP Exception: $e');
-      }
+      SecureLogger.error('Phone OTP Exception', e);
       if (!completer.isCompleted) {
         completer.completeError(Exception('Failed to send OTP: $e'));
       }
@@ -359,31 +337,22 @@ class FirebaseAuthRepository implements AuthRepository {
     // Determine recipient email
     final recipientEmail = email ?? identifier;
 
-    // Always log OTP in debug mode for development convenience
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print('');
-      // ignore: avoid_print
-      print('═══════════════════════════════════════════════════════');
-      // ignore: avoid_print
-      print('  EMAIL OTP for $recipientEmail');
-      // ignore: avoid_print
-      print('  CODE: $otp');
-      // ignore: avoid_print
-      print('═══════════════════════════════════════════════════════');
-      // ignore: avoid_print
-      print('');
-    }
+    // Log OTP securely - only in debug mode with proper security warnings
+    SecureLogger.logOtp(
+      type: 'EMAIL',
+      recipient: recipientEmail,
+      code: otp,
+    );
 
     // Send OTP via email if email service is configured
-    if (EmailService.isConfigured) {
+    final isEmailConfigured = await EmailService.isConfigured;
+    if (isEmailConfigured) {
       final sent = await EmailService.sendOtpEmail(
         recipientEmail: recipientEmail,
         otpCode: otp,
       );
-      if (!sent && kDebugMode) {
-        // ignore: avoid_print
-        print('Warning: Email sending failed, but OTP is logged above.');
+      if (!sent) {
+        SecureLogger.warning('Email sending failed, but OTP is logged above.');
       }
     }
   }
@@ -413,10 +382,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final storedTimestamp = await _secureStorage.read(key: _emailOtpTimestampKey);
       final storedPurpose = await _secureStorage.read(key: _emailOtpPurposeKey);
 
-      if (kDebugMode) {
-        // ignore: avoid_print
-        print('OTP Verify Debug: identifier=$normalizedIdentifier, storedIdentifier=$storedIdentifier, purpose=${purpose.value}, storedPurpose=$storedPurpose');
-      }
+      SecureLogger.debug('OTP Verify: checking stored values for ${purpose.value}');
 
       // Compare identifiers case-insensitively and trimmed
       final storedNormalized = storedIdentifier?.trim().toLowerCase();
@@ -473,10 +439,7 @@ class FirebaseAuthRepository implements AuthRepository {
           try {
             await firebaseUser.verifyBeforeUpdateEmail(newEmail);
           } catch (e) {
-            if (kDebugMode) {
-              // ignore: avoid_print
-              print('Warning: Could not update email in Firebase: $e');
-            }
+            SecureLogger.warning('Could not update email in Firebase: $e');
           }
         }
         // Return current user or create a placeholder to indicate success

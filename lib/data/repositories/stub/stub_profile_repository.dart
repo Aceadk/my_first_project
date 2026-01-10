@@ -7,6 +7,7 @@ import '../../models/preferences.dart';
 import '../../models/subscription.dart';
 import '../../models/privacy_settings.dart';
 import '../profile_repository.dart';
+import '../../../core/security/input_sanitizer.dart';
 
 /// Mock implementation of ProfileRepository with local storage.
 /// This allows the app to function for development/demo without a backend.
@@ -46,14 +47,29 @@ class StubProfileRepository implements ProfileRepository {
       throw Exception('No user logged in');
     }
 
+    // Sanitize input data
+    final sanitizedName = InputSanitizer.sanitizeName(name);
+    final sanitizedUsername = username != null
+        ? InputSanitizer.sanitizeUsername(username)
+        : null;
+    final sanitizedAge = InputSanitizer.sanitizeAge(age);
+    final sanitizedGender = InputSanitizer.sanitizeText(gender, maxLength: 50);
+    final sanitizedOrientation = sexualOrientation != null
+        ? InputSanitizer.sanitizeText(sexualOrientation, maxLength: 50)
+        : null;
+
+    if (sanitizedAge == null) {
+      throw Exception('Invalid age');
+    }
+
     // Create or update profile
     final existingProfile = currentUser.profile;
     final newProfile = Profile(
       id: existingProfile?.id ?? 'profile_${currentUser.id}',
-      name: name,
-      age: age,
-      gender: gender,
-      sexualOrientation: sexualOrientation ?? existingProfile?.sexualOrientation,
+      name: sanitizedName,
+      age: sanitizedAge,
+      gender: sanitizedGender,
+      sexualOrientation: sanitizedOrientation ?? existingProfile?.sexualOrientation,
       bio: existingProfile?.bio ?? '',
       photoUrls: existingProfile?.photoUrls ?? [],
       videoUrls: existingProfile?.videoUrls ?? [],
@@ -90,7 +106,7 @@ class StubProfileRepository implements ProfileRepository {
     );
 
     final updatedUser = currentUser.copyWith(
-      username: username ?? currentUser.username,
+      username: sanitizedUsername ?? currentUser.username,
       profile: newProfile,
     );
 
@@ -121,14 +137,29 @@ class StubProfileRepository implements ProfileRepository {
       throw Exception('Basic info must be saved first');
     }
 
+    // Sanitize input data
+    final sanitizedBio = InputSanitizer.sanitizeBio(bio);
+    final sanitizedPhotoUrls = InputSanitizer.sanitizeUrls(photoUrls);
+    final sanitizedVideoUrls = InputSanitizer.sanitizeUrls(videoUrls);
+    final sanitizedJobTitle = jobTitle != null
+        ? InputSanitizer.sanitizeJobField(jobTitle)
+        : null;
+    final sanitizedCompany = company != null
+        ? InputSanitizer.sanitizeJobField(company, maxLength: InputSanitizer.maxCompanyLength)
+        : null;
+    final sanitizedSchool = school != null
+        ? InputSanitizer.sanitizeText(school, maxLength: InputSanitizer.maxSchoolLength)
+        : null;
+    final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
+
     final newProfile = existingProfile.copyWith(
-      bio: bio,
-      photoUrls: photoUrls,
-      videoUrls: videoUrls,
-      jobTitle: jobTitle,
-      company: company,
-      school: school,
-      interests: interests,
+      bio: sanitizedBio,
+      photoUrls: sanitizedPhotoUrls,
+      videoUrls: sanitizedVideoUrls,
+      jobTitle: sanitizedJobTitle,
+      company: sanitizedCompany,
+      school: sanitizedSchool,
+      interests: sanitizedInterests,
     );
 
     final updatedUser = currentUser.copyWith(profile: newProfile);
