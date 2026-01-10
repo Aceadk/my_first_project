@@ -204,12 +204,13 @@ GoRouter createRouter(AuthBloc authBloc) {
             _buildPage(state, const HomeScreen()),
       ),
       GoRoute(
-        path: CrushRoutes.chat,
+        path: '${CrushRoutes.chat}/:matchId',
         pageBuilder: (context, state) {
           final args = state.extra;
           if (args is ChatScreenArgs) {
             return _buildPage(state, ChatScreen(args: args));
           }
+          // Fallback if no args provided - go back home
           return _buildPage(state, const HomeScreen());
         },
       ),

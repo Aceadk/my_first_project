@@ -23,8 +23,10 @@ import '../../logic/subscription/subscription_bloc.dart';
 import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
 import '../widgets/async_state_scaffold.dart';
+import '../widgets/deck_skeleton.dart';
 import '../widgets/deck_ui_helpers.dart';
-import '../widgets/swipe_card.dart';
+import '../widgets/swipeable_card.dart';
+import '../widgets/upsell_widgets.dart';
 import 'profile_edit_screen.dart';
 import 'settings_screen.dart';
 import 'other_user_profile_screen.dart';
@@ -123,7 +125,7 @@ class _DeckScreenState extends State<DeckScreen> {
           showBodyOnLoading: true,
           body: currentProfile == null
               ? (isLoading && state.deck.isEmpty
-                  ? const _DeckSkeletonList()
+                  ? const DeckSkeletonList()
                   : const SizedBox.shrink())
               : Column(
                   children: [
@@ -185,7 +187,7 @@ class _DeckScreenState extends State<DeckScreen> {
                       ),
                     ),
                     Expanded(
-                      child: _SwipeableCard(
+                      child: SwipeableCard(
                         profile: currentProfile,
                         onTap: () => context.push(
                           CrushRoutes.userProfile,
@@ -652,7 +654,7 @@ class _DeckScreenState extends State<DeckScreen> {
                   onPressed: () => _showPassportUpsell(context),
                 ),
                 DsGap.sm,
-                const _UpgradeNudgeCard(
+                const UpgradeNudgeCard(
                   title: 'Try Plus while we fix this',
                   subtitle:
                       'Unlock offline likes, queue retries, and Passport so you never miss a match.',
@@ -738,7 +740,7 @@ class _DeckScreenState extends State<DeckScreen> {
                   ),
                   if (!isPlus) ...[
                     DsGap.md,
-                    const _UpgradeNudgeCard(
+                    const UpgradeNudgeCard(
                       title: 'Intro offer: 50% off Plus',
                       subtitle:
                           'Go global with Passport, see who likes you, and undo swipes.',
@@ -934,7 +936,7 @@ class _DeckScreenState extends State<DeckScreen> {
                           ),
                         ),
                         const Spacer(),
-                        const _IntroBadge(),
+                        const IntroBadge(),
                       ],
                     ),
                     DsGap.sm,
@@ -944,7 +946,7 @@ class _DeckScreenState extends State<DeckScreen> {
                           : 'Intro offer: 50% off your first month. Explore any city, see likes, and keep swiping with unlimited likes.',
                     ),
                     DsGap.md,
-                    const _UpsellBullets(items: [
+                    const UpsellBullets(items: [
                       'Passport to any city',
                       'See who likes you first',
                       'Unlimited likes & rewinds',
@@ -1255,415 +1257,4 @@ class _BackendCheckOutcome {
   final bool blocked;
 }
 
-class _DeckSkeletonList extends StatelessWidget {
-  const _DeckSkeletonList();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        SizedBox(height: 16),
-        _SkeletonCard(height: 18, widthFactor: 0.6),
-        SizedBox(height: 12),
-        _SkeletonCard(height: 250),
-        SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _SkeletonCircle(size: 60),
-            _SkeletonCircle(size: 60),
-            _SkeletonCircle(size: 60),
-          ],
-        ),
-        SizedBox(height: 16),
-      ],
-    );
-  }
-}
-
-class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard({required this.height, this.widthFactor});
-  final double height;
-  final double? widthFactor;
-
-  @override
-  Widget build(BuildContext context) {
-    return FractionallySizedBox(
-      widthFactor: widthFactor ?? 0.9,
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          color: DsColors.skeletonLight,
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-}
-
-class _SkeletonCircle extends StatelessWidget {
-  const _SkeletonCircle({required this.size});
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: const BoxDecoration(
-        color: DsColors.skeletonLight,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}
-
 enum _DeckSafetyAction { viewProfile, report, block, guidelines }
-
-class _UpgradeNudgeCard extends StatelessWidget {
-  const _UpgradeNudgeCard({
-    required this.title,
-    required this.subtitle,
-    required this.bullets,
-  });
-
-  final String title;
-  final String subtitle;
-  final List<String> bullets;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Colors.blueGrey.withAlpha((0.1 * 255).round()),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const _IntroBadge(),
-                DsGap.smH,
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(subtitle),
-            const SizedBox(height: 10),
-            _UpsellBullets(items: bullets),
-            DsGap.md,
-            BlocBuilder<SubscriptionBloc, SubscriptionState>(
-              builder: (context, subState) {
-                final loading = subState.isCheckoutInProgress;
-                final isPlus = subState.plan == SubscriptionPlan.plus;
-                return SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: loading || isPlus
-                        ? null
-                        : () {
-                            context
-                                .read<SubscriptionBloc>()
-                                .add(PlusCheckoutRequested());
-                          },
-                    child: loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            isPlus ? 'Thanks for being Plus!' : 'Upgrade now'),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _IntroBadge extends StatelessWidget {
-  const _IntroBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.pink.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Text(
-        'Intro offer',
-        style: TextStyle(
-          color: Colors.pink,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-}
-
-class _UpsellBullets extends StatelessWidget {
-  const _UpsellBullets({required this.items});
-
-  final List<String> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items
-          .map(
-            (item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(item)),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-}
-
-/// A swipeable card widget that handles horizontal swipe gestures.
-/// Swipe left to right = Like, Swipe right to left = Pass
-class _SwipeableCard extends StatefulWidget {
-  const _SwipeableCard({
-    required this.profile,
-    required this.onTap,
-    required this.onSwipeLeft,
-    required this.onSwipeRight,
-  });
-
-  final Profile profile;
-  final VoidCallback onTap;
-  final VoidCallback onSwipeLeft;
-  final VoidCallback onSwipeRight;
-
-  @override
-  State<_SwipeableCard> createState() => _SwipeableCardState();
-}
-
-class _SwipeableCardState extends State<_SwipeableCard>
-    with SingleTickerProviderStateMixin {
-  double _dragX = 0;
-  double _dragStartX = 0;
-  bool _isDragging = false;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  static const double _swipeThreshold = 100.0;
-  static const double _maxRotation = 0.1; // radians
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _animation = Tween<double>(begin: 0, end: 0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _onPanStart(DragStartDetails details) {
-    _dragStartX = details.globalPosition.dx;
-    _isDragging = true;
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    if (!_isDragging) return;
-    setState(() {
-      _dragX = details.globalPosition.dx - _dragStartX;
-    });
-  }
-
-  void _onPanEnd(DragEndDetails details) {
-    if (!_isDragging) return;
-    _isDragging = false;
-
-    final velocity = details.velocity.pixelsPerSecond.dx;
-    final shouldSwipeRight = _dragX > _swipeThreshold || velocity > 500;
-    final shouldSwipeLeft = _dragX < -_swipeThreshold || velocity < -500;
-
-    if (shouldSwipeRight) {
-      // Swipe left to right = Like
-      _animateOut(true);
-    } else if (shouldSwipeLeft) {
-      // Swipe right to left = Pass
-      _animateOut(false);
-    } else {
-      // Snap back to center
-      _animateBack();
-    }
-  }
-
-  void _animateOut(bool isLike) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final targetX = isLike ? screenWidth : -screenWidth;
-
-    _animation = Tween<double>(begin: _dragX, end: targetX).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-
-    _animationController.forward(from: 0).then((_) {
-      if (isLike) {
-        widget.onSwipeRight();
-      } else {
-        widget.onSwipeLeft();
-      }
-      // Reset position for next card
-      setState(() {
-        _dragX = 0;
-      });
-      _animationController.reset();
-    });
-  }
-
-  void _animateBack() {
-    _animation = Tween<double>(begin: _dragX, end: 0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-
-    _animationController.addListener(() {
-      setState(() {
-        _dragX = _animation.value;
-      });
-    });
-
-    _animationController.forward(from: 0).then((_) {
-      _animationController.removeListener(() {});
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final rotation = (_dragX / 500).clamp(-_maxRotation, _maxRotation);
-    final opacity = 1 - (_dragX.abs() / 300).clamp(0.0, 0.3);
-
-    return GestureDetector(
-      onTap: _isDragging ? null : widget.onTap,
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          final currentX = _animationController.isAnimating ? _animation.value : _dragX;
-          return Transform(
-            transform: Matrix4.identity()
-              ..setTranslationRaw(currentX, 0, 0)
-              ..rotateZ(rotation),
-            alignment: Alignment.center,
-            child: Stack(
-              children: [
-                Opacity(
-                  opacity: opacity,
-                  child: SwipeCard(profile: widget.profile),
-                ),
-                // Like indicator (right side)
-                if (_dragX > 20)
-                  Positioned(
-                    left: 30,
-                    top: 30,
-                    child: Transform.rotate(
-                      angle: -0.3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.green,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'LIKE',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                // Pass indicator (left side)
-                if (_dragX < -20)
-                  Positioned(
-                    right: 30,
-                    top: 30,
-                    child: Transform.rotate(
-                      angle: 0.3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.red,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'NOPE',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}

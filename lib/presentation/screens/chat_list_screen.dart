@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,7 +7,6 @@ import '../../data/repositories/chat_repository.dart';
 import '../../data/models/match.dart';
 import '../../data/models/message.dart';
 import '../../logic/auth/auth_bloc.dart';
-import '../../logic/chat/chat_bloc.dart';
 import '../../logic/matches/matches_bloc.dart';
 import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';
@@ -131,20 +132,14 @@ class _ChatListView extends StatelessWidget {
                             : null) ??
                         'Unknown';
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<ChatBloc>(),
-                          child: ChatScreen(
-                            args: ChatScreenArgs(
-                              matchId: match.id,
-                              currentUserId: currentUserId,
-                              otherUserId: match.otherUserId,
-                              otherName: otherName,
-                            ),
-                          ),
-                        ),
+                    // Use go_router for navigation - ChatScreen will create its own ChatBloc
+                    context.push(
+                      '/chat/${match.id}',
+                      extra: ChatScreenArgs(
+                        matchId: match.id,
+                        currentUserId: currentUserId,
+                        otherUserId: match.otherUserId,
+                        otherName: otherName,
                       ),
                     );
                   },
@@ -176,18 +171,31 @@ class _ChatTile extends StatefulWidget {
 class _ChatTileState extends State<_ChatTile> {
   Message? _lastMessage;
   int _unreadCount = 0;
+  bool _isOnline = false;
+
+  // Properly managed stream subscriptions to prevent memory leaks
+  StreamSubscription<List<Message>>? _messagesSubscription;
+  StreamSubscription<bool>? _presenceSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadLastMessage();
+    _subscribeToMessages();
+    _subscribeToPresence();
   }
 
-  Future<void> _loadLastMessage() async {
-    try {
-      final chatRepo = context.read<ChatRepository>();
-      // Watch messages to get the last one
-      await for (final messages in chatRepo.watchMessages(widget.match.id)) {
+  @override
+  void dispose() {
+    // Cancel subscriptions to prevent memory leaks
+    _messagesSubscription?.cancel();
+    _presenceSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeToMessages() {
+    final chatRepo = context.read<ChatRepository>();
+    _messagesSubscription = chatRepo.watchMessages(widget.match.id).listen(
+      (messages) {
         if (!mounted) return;
         setState(() {
           if (messages.isNotEmpty) {
@@ -202,11 +210,26 @@ class _ChatTileState extends State<_ChatTile> {
                 .length;
           }
         });
-        break; // Just need the first emission
-      }
-    } catch (_) {
-      // Silently handle errors - just show default text
-    }
+      },
+      onError: (_) {
+        // Silently handle errors - just show default text
+      },
+    );
+  }
+
+  void _subscribeToPresence() {
+    final chatRepo = context.read<ChatRepository>();
+    _presenceSubscription = chatRepo.watchPresence(widget.match.otherUserId).listen(
+      (isOnline) {
+        if (!mounted) return;
+        setState(() {
+          _isOnline = isOnline;
+        });
+      },
+      onError: (_) {
+        // Silently handle errors - default to offline
+      },
+    );
   }
 
   @override
@@ -245,23 +268,24 @@ class _ChatTileState extends State<_ChatTile> {
                         ? const Icon(Icons.person, color: DsColors.textMutedLight)
                         : null,
                   ),
-                  // Online indicator
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: DsColors.onlineIndicator,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).cardColor,
-                          width: 2,
+                  // Online indicator - only show when user is online
+                  if (_isOnline)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: DsColors.onlineIndicator,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).cardColor,
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
               DsGap.lgH,

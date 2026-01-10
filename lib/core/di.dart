@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,7 +12,8 @@ import '../data/repositories/call_repository.dart';
 // Firebase implementations
 import '../data/repositories/firebase/firebase_auth_repository.dart';
 
-// Stub implementations (replace with your actual backend implementations)
+// Stub implementations (for development/demo without backend)
+import '../data/repositories/stub/stub_auth_repository.dart';
 import '../data/repositories/stub/stub_profile_repository.dart';
 import '../data/repositories/stub/stub_discovery_repository.dart';
 import '../data/repositories/stub/stub_chat_repository.dart';
@@ -38,15 +40,57 @@ import '../logic/locale/locale_cubit.dart';
 import '../logic/storage/storage_settings_cubit.dart';
 import '../logic/privacy/privacy_settings_cubit.dart';
 
+/// Backend configuration for the app.
+/// Switch between stub (development/demo) and Firebase (production) implementations.
+enum BackendMode {
+  /// Use stub repositories for development and demo without a real backend.
+  /// All data is stored locally using SharedPreferences.
+  stub,
+
+  /// Use Firebase repositories for production.
+  /// Requires proper Firebase configuration.
+  firebase,
+}
+
 class CrushDI {
+  /// Current backend mode. Change this to switch between implementations.
+  /// In production builds, this should be [BackendMode.firebase].
+  /// For development/demo, use [BackendMode.stub].
+  static const BackendMode backendMode = kDebugMode
+      ? BackendMode.stub
+      : BackendMode.firebase;
+
   static List<RepositoryProvider> buildRepositories() {
-    // Create repositories
-    final authRepo = FirebaseAuthRepository();
-    final profileRepo = StubProfileRepository();
-    final subRepo = StubSubscriptionRepository();
-    final discoveryRepo = StubDiscoveryRepository();
-    final chatRepo = StubChatRepository();
-    final callRepo = StubCallRepository();
+    // Create repositories based on backend mode
+    final AuthRepository authRepo;
+    final ProfileRepository profileRepo;
+    final SubscriptionRepository subRepo;
+    final DiscoveryRepository discoveryRepo;
+    final ChatRepository chatRepo;
+    final CallRepository callRepo;
+
+    switch (backendMode) {
+      case BackendMode.stub:
+        // Stub implementations for development/demo
+        authRepo = StubAuthRepository();
+        profileRepo = StubProfileRepository();
+        subRepo = StubSubscriptionRepository();
+        discoveryRepo = StubDiscoveryRepository();
+        chatRepo = StubChatRepository();
+        callRepo = StubCallRepository();
+        break;
+
+      case BackendMode.firebase:
+        // Firebase implementations for production
+        authRepo = FirebaseAuthRepository();
+        // Note: Add Firebase implementations for these when available
+        profileRepo = StubProfileRepository(); // TODO: Replace with FirebaseProfileRepository
+        subRepo = StubSubscriptionRepository(); // TODO: Replace with FirebaseSubscriptionRepository
+        discoveryRepo = StubDiscoveryRepository(); // TODO: Replace with FirebaseDiscoveryRepository
+        chatRepo = StubChatRepository(); // TODO: Replace with FirebaseChatRepository
+        callRepo = StubCallRepository(); // TODO: Replace with FirebaseCallRepository
+        break;
+    }
 
     return [
       RepositoryProvider<AuthRepository>.value(value: authRepo),

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../logic/auth/auth_bloc.dart';
-import '../../logic/chat/chat_bloc.dart';
 import '../../logic/matches/matches_bloc.dart';
 import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';
@@ -156,20 +155,14 @@ class _MatchesView extends StatelessWidget {
                 name: otherName,
                 photoUrl: match.otherUserPhotoUrl,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<ChatBloc>(),
-                        child: ChatScreen(
-                          args: ChatScreenArgs(
-                            matchId: match.id,
-                            currentUserId: currentUserId,
-                            otherUserId: match.otherUserId,
-                            otherName: otherName,
-                          ),
-                        ),
-                      ),
+                  // Use go_router for navigation - ChatScreen will use app-level ChatBloc
+                  context.push(
+                    '/chat/${match.id}',
+                    extra: ChatScreenArgs(
+                      matchId: match.id,
+                      currentUserId: currentUserId,
+                      otherUserId: match.otherUserId,
+                      otherName: otherName,
                     ),
                   );
                 },
@@ -205,34 +198,15 @@ class _MatchTile extends StatelessWidget {
           padding: DsEdgeInsets.listItemPadding,
           child: Row(
             children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: DsColors.skeletonLight,
-                    backgroundImage:
-                        photoUrl != null ? NetworkImage(photoUrl!) : null,
-                    child: photoUrl == null
-                        ? const Icon(Icons.person, color: DsColors.textMutedLight)
-                        : null,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: DsColors.onlineIndicator,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).cardColor,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              // Simple avatar without online indicator - presence not tracked in matches list
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: DsColors.skeletonLight,
+                backgroundImage:
+                    photoUrl != null ? NetworkImage(photoUrl!) : null,
+                child: photoUrl == null
+                    ? const Icon(Icons.person, color: DsColors.textMutedLight)
+                    : null,
               ),
               DsGap.lgH,
               Expanded(
