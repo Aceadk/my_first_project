@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/user.dart';
 import '../../models/subscription.dart';
 import '../auth_repository.dart';
+import '../../../core/services/email_service.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository implements AuthRepository {
@@ -12,6 +15,13 @@ class FirebaseAuthRepository implements AuthRepository {
   final _secureStorage = const FlutterSecureStorage();
 
   static const _pendingEmailKey = 'pending_email_link_email';
+  static const _emailOtpKey = 'email_otp_code';
+  static const _emailOtpIdentifierKey = 'email_otp_identifier';
+  static const _emailOtpTimestampKey = 'email_otp_timestamp';
+  static const _emailOtpPurposeKey = 'email_otp_purpose';
+
+  // Pending OTP data stored in memory for quick access
+  final Map<String, _PendingEmailOtp> _pendingEmailOtps = {};
 
   CrushUser? _currentUser;
   StreamSubscription<fb.User?>? _firebaseAuthSubscription;
@@ -150,28 +160,79 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendOtp(String phoneNumber) async {
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print('');
+      // ignore: avoid_print
+      print('═══════════════════════════════════════════════════════');
+      // ignore: avoid_print
+      print('  SENDING PHONE OTP to: $phoneNumber');
+      // ignore: avoid_print
+      print('═══════════════════════════════════════════════════════');
+      // ignore: avoid_print
+      print('');
+    }
+
     final completer = Completer<void>();
 
-    await _firebaseAuth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (fb.PhoneAuthCredential credential) async {
-        // Auto-verification (Android only)
-        await _firebaseAuth.signInWithCredential(credential);
-        if (!completer.isCompleted) completer.complete();
-      },
-      verificationFailed: (fb.FirebaseAuthException e) {
-        if (!completer.isCompleted) {
-          completer.completeError(Exception(e.message ?? 'Verification failed'));
-        }
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        _verificationId = verificationId;
-        if (!completer.isCompleted) completer.complete();
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-    );
+    try {
+      await _firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (fb.PhoneAuthCredential credential) async {
+          // Auto-verification (Android only)
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('Phone OTP: Auto-verification completed');
+          }
+          await _firebaseAuth.signInWithCredential(credential);
+          if (!completer.isCompleted) completer.complete();
+        },
+        verificationFailed: (fb.FirebaseAuthException e) {
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('Phone OTP Error: ${e.code} - ${e.message}');
+          }
+          if (!completer.isCompleted) {
+            String errorMessage = e.message ?? 'Verification failed';
+            // Provide more helpful error messages
+            if (e.code == 'invalid-phone-number') {
+              errorMessage = 'Invalid phone number format. Use format: +1234567890';
+            } else if (e.code == 'too-many-requests') {
+              errorMessage = 'Too many requests. Please try again later.';
+            } else if (e.code == 'app-not-authorized') {
+              errorMessage = 'Phone auth not configured. Please enable it in Firebase Console.';
+            } else if (e.code == 'missing-client-identifier') {
+              errorMessage = 'Missing SHA fingerprint. Add SHA-1 to Firebase Console.';
+            }
+            completer.completeError(Exception(errorMessage));
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('Phone OTP: Code sent successfully! Verification ID: ${verificationId.substring(0, 10)}...');
+          }
+          _verificationId = verificationId;
+          if (!completer.isCompleted) completer.complete();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('Phone OTP: Auto-retrieval timeout');
+          }
+          _verificationId = verificationId;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('Phone OTP Exception: $e');
+      }
+      if (!completer.isCompleted) {
+        completer.completeError(Exception('Failed to send OTP: $e'));
+      }
+    }
 
     return completer.future;
   }
@@ -258,8 +319,14 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // EMAIL OTP (Not directly supported by Firebase - using email link instead)
+  // EMAIL OTP (Custom implementation - Firebase doesn't have native email OTP)
   // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Generate a random 6-digit OTP
+  String _generateOtp() {
+    final random = Random.secure();
+    return List.generate(6, (_) => random.nextInt(10)).join();
+  }
 
   @override
   Future<void> requestEmailOtp({
@@ -267,8 +334,58 @@ class FirebaseAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? email,
   }) async {
-    // Firebase doesn't have native email OTP - redirect to email link
-    await sendEmailSignInLink(email ?? identifier);
+    // Generate OTP
+    final otp = _generateOtp();
+    final now = DateTime.now();
+
+    // Normalize identifier for consistent storage/lookup
+    final normalizedIdentifier = identifier.trim().toLowerCase();
+
+    // Store OTP in memory and secure storage
+    final key = '${normalizedIdentifier}_${purpose.value}';
+    _pendingEmailOtps[key] = _PendingEmailOtp(
+      identifier: normalizedIdentifier,
+      code: otp,
+      purpose: purpose,
+      createdAt: now,
+    );
+
+    // Also persist to secure storage for app restart scenarios
+    await _secureStorage.write(key: _emailOtpKey, value: otp);
+    await _secureStorage.write(key: _emailOtpIdentifierKey, value: normalizedIdentifier);
+    await _secureStorage.write(key: _emailOtpTimestampKey, value: now.toIso8601String());
+    await _secureStorage.write(key: _emailOtpPurposeKey, value: purpose.value);
+
+    // Determine recipient email
+    final recipientEmail = email ?? identifier;
+
+    // Always log OTP in debug mode for development convenience
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print('');
+      // ignore: avoid_print
+      print('═══════════════════════════════════════════════════════');
+      // ignore: avoid_print
+      print('  EMAIL OTP for $recipientEmail');
+      // ignore: avoid_print
+      print('  CODE: $otp');
+      // ignore: avoid_print
+      print('═══════════════════════════════════════════════════════');
+      // ignore: avoid_print
+      print('');
+    }
+
+    // Send OTP via email if email service is configured
+    if (EmailService.isConfigured) {
+      final sent = await EmailService.sendOtpEmail(
+        recipientEmail: recipientEmail,
+        otpCode: otp,
+      );
+      if (!sent && kDebugMode) {
+        // ignore: avoid_print
+        print('Warning: Email sending failed, but OTP is logged above.');
+      }
+    }
   }
 
   @override
@@ -279,9 +396,115 @@ class FirebaseAuthRepository implements AuthRepository {
     String? newEmail,
     String? newPassword,
   }) async {
-    // This would need to be handled differently with Firebase
-    // For now, throw an error indicating to use email link
-    throw Exception('Use email link authentication instead');
+    final normalizedIdentifier = identifier.trim().toLowerCase();
+    final key = '${normalizedIdentifier}_${purpose.value}';
+    var pending = _pendingEmailOtps[key];
+
+    // Also try with original identifier key (for backwards compatibility)
+    if (pending == null) {
+      final altKey = '${identifier}_${purpose.value}';
+      pending = _pendingEmailOtps[altKey];
+    }
+
+    // Try to restore from secure storage if not in memory
+    if (pending == null) {
+      final storedOtp = await _secureStorage.read(key: _emailOtpKey);
+      final storedIdentifier = await _secureStorage.read(key: _emailOtpIdentifierKey);
+      final storedTimestamp = await _secureStorage.read(key: _emailOtpTimestampKey);
+      final storedPurpose = await _secureStorage.read(key: _emailOtpPurposeKey);
+
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('OTP Verify Debug: identifier=$normalizedIdentifier, storedIdentifier=$storedIdentifier, purpose=${purpose.value}, storedPurpose=$storedPurpose');
+      }
+
+      // Compare identifiers case-insensitively and trimmed
+      final storedNormalized = storedIdentifier?.trim().toLowerCase();
+      if (storedOtp != null && storedNormalized == normalizedIdentifier && storedPurpose == purpose.value) {
+        pending = _PendingEmailOtp(
+          identifier: storedIdentifier!,
+          code: storedOtp,
+          purpose: purpose,
+          createdAt: DateTime.tryParse(storedTimestamp ?? '') ?? DateTime.now(),
+        );
+      }
+    }
+
+    if (pending == null) {
+      throw Exception('No OTP requested for this identifier');
+    }
+
+    // Check if OTP matches
+    if (otp.trim() != pending.code) {
+      throw Exception('Invalid OTP code');
+    }
+
+    // Check if OTP is expired (10 minutes)
+    if (DateTime.now().difference(pending.createdAt).inMinutes > 10) {
+      _pendingEmailOtps.remove(key);
+      await _clearEmailOtpStorage();
+      throw Exception('OTP expired. Please request a new code.');
+    }
+
+    // Clear OTP data
+    _pendingEmailOtps.remove(key);
+    await _clearEmailOtpStorage();
+
+    // Handle different purposes
+    switch (purpose) {
+      case EmailOtpPurpose.login:
+        // For login, sign in with email link as fallback or create anonymous user
+        // Since Firebase doesn't support email OTP natively, we sign in anonymously
+        // and link the email later, OR use a custom token from your backend
+        final credential = await _firebaseAuth.signInAnonymously();
+        final firebaseUser = credential.user;
+        if (firebaseUser != null) {
+          // Update display name with identifier
+          await firebaseUser.updateDisplayName(identifier);
+          return _mapFirebaseUser(firebaseUser);
+        }
+        break;
+
+      case EmailOtpPurpose.addEmail:
+      case EmailOtpPurpose.changeEmail:
+        // Update email in Firebase if user is logged in
+        final firebaseUser = _firebaseAuth.currentUser;
+        if (firebaseUser != null && newEmail != null) {
+          try {
+            await firebaseUser.verifyBeforeUpdateEmail(newEmail);
+          } catch (e) {
+            if (kDebugMode) {
+              // ignore: avoid_print
+              print('Warning: Could not update email in Firebase: $e');
+            }
+          }
+        }
+        // Return current user or create a placeholder to indicate success
+        return _currentUser ?? CrushUser(
+          id: firebaseUser?.uid ?? 'verified',
+          phoneNumber: '',
+          email: newEmail,
+          isEmailVerified: true,
+          isPhoneVerified: false,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+        );
+
+      case EmailOtpPurpose.resetPassword:
+      case EmailOtpPurpose.newDevice:
+      case EmailOtpPurpose.sensitiveAction:
+        // Just verify, return current user
+        return _currentUser;
+    }
+
+    return _currentUser;
+  }
+
+  Future<void> _clearEmailOtpStorage() async {
+    await _secureStorage.delete(key: _emailOtpKey);
+    await _secureStorage.delete(key: _emailOtpIdentifierKey);
+    await _secureStorage.delete(key: _emailOtpTimestampKey);
+    await _secureStorage.delete(key: _emailOtpPurposeKey);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -345,4 +568,22 @@ class FirebaseAuthRepository implements AuthRepository {
     _firebaseAuthSubscription?.cancel();
     _authStateController.close();
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPER CLASSES
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _PendingEmailOtp {
+  final String identifier;
+  final String code;
+  final EmailOtpPurpose purpose;
+  final DateTime createdAt;
+
+  _PendingEmailOtp({
+    required this.identifier,
+    required this.code,
+    required this.purpose,
+    required this.createdAt,
+  });
 }

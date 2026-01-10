@@ -71,3 +71,6 @@ macos/Pods/
 
 # Generated dataconnect
 lib/dataconnect_generated/
+
+# Email credentials (contains sensitive SMTP credentials)
+lib/core/services/email_service.dart

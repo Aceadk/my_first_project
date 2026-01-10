@@ -58,12 +58,16 @@ class _ChatScreenState extends State<ChatScreen> {
   final ProfileValidationService _validationService =
       ProfileValidationService();
 
+  // Store reference to ChatBloc to safely use in dispose()
+  ChatBloc? _chatBloc;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<ChatBloc>().add(ChatOpened(
+        _chatBloc = context.read<ChatBloc>();
+        _chatBloc?.add(ChatOpened(
               widget.args.matchId,
               widget.args.currentUserId,
               widget.args.otherUserId,
@@ -74,7 +78,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    context.read<ChatBloc>().add(
+    // Use stored reference instead of context.read() which is unsafe in dispose
+    _chatBloc?.add(
           ChatClosed(widget.args.matchId, widget.args.currentUserId),
         );
     _typingTimer?.cancel();

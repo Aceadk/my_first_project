@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEmailOtpRequested>(_onEmailOtpRequested);
     on<AuthEmailOtpSubmitted>(_onEmailOtpSubmitted);
     on<AuthEmailOtpResendRequested>(_onEmailOtpResendRequested);
+    on<AuthEmailOtpCancelled>(_onEmailOtpCancelled);
     on<AuthSignedOut>(_onSignedOut);
     on<AuthDevBypassRequested>(_onDevBypassRequested);
   }
@@ -274,6 +275,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     await _onEmailOtpRequested(AuthEmailOtpRequested(identifier), emit);
+  }
+
+  void _onEmailOtpCancelled(
+      AuthEmailOtpCancelled event, Emitter<AuthState> emit) {
+    emit(state.copyWith(
+      status: AuthStatus.unauthenticated,
+      emailOtpIdentifier: null,
+      isLoading: false,
+      errorMessage: null,
+    ));
   }
 
   Future<void> _onSignedOut(

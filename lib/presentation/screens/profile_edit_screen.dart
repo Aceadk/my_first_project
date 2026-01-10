@@ -154,12 +154,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     final uploads = uploadResult.data!;
+    final newName = _nameController.text.trim();
+    final nameChanged = newName != base.name;
     final updated = base.copyWith(
-      name: _nameController.text.trim(),
+      name: newName,
       bio: _bioController.text.trim(),
       photoUrls: uploads.photoUrls,
       videoUrls: uploads.videoUrls,
       primaryPhotoIndex: _primaryPhotoIndex,
+      // Track name change date if name was modified
+      lastNameChangeAt: nameChanged ? DateTime.now() : base.lastNameChangeAt,
       // New fields
       heightCm: _heightCm,
       relationshipGoals: _relationshipGoals,
@@ -768,6 +772,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       label: 'Display Name',
                       hint: 'What should we call you?',
                       icon: Icons.badge_outlined,
+                      enabled: profile?.canChangeName ?? true,
+                      helperText: profile != null && !profile.canChangeName
+                          ? 'You can change your name again in ${profile.daysUntilNameChange} days'
+                          : 'You can change your name once per month',
                     ),
                     DsGap.md,
                     _StyledTextField(
@@ -1270,6 +1278,8 @@ class _StyledTextField extends StatelessWidget {
     required this.icon,
     this.maxLines = 1,
     this.minLines,
+    this.enabled = true,
+    this.helperText,
   });
 
   final TextEditingController controller;
@@ -1278,6 +1288,8 @@ class _StyledTextField extends StatelessWidget {
   final IconData icon;
   final int maxLines;
   final int? minLines;
+  final bool enabled;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -1285,12 +1297,14 @@ class _StyledTextField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       minLines: minLines,
+      enabled: enabled,
       textInputAction: maxLines > 1 ? TextInputAction.newline : TextInputAction.done,
       onEditingComplete: () => FocusScope.of(context).unfocus(),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: DsColors.primary),
+        helperText: helperText,
+        prefixIcon: Icon(icon, color: enabled ? DsColors.primary : DsColors.textMutedLight),
         filled: true,
         fillColor: Theme.of(context).brightness == Brightness.dark
             ? DsColors.inputFillDark

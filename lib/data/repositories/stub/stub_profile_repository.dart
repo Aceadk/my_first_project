@@ -206,6 +206,9 @@ class StubProfileRepository implements ProfileRepository {
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
+        lastNameChangeAt: p['lastNameChangeAt'] != null
+            ? DateTime.parse(p['lastNameChangeAt'])
+            : null,
         bio: p['bio'] ?? '',
         photoUrls: List<String>.from(p['photoUrls'] ?? []),
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
@@ -269,6 +272,7 @@ class StubProfileRepository implements ProfileRepository {
         'age': p.age,
         'gender': p.gender,
         'sexualOrientation': p.sexualOrientation,
+        'lastNameChangeAt': p.lastNameChangeAt?.toIso8601String(),
         'bio': p.bio,
         'photoUrls': p.photoUrls,
         'videoUrls': p.videoUrls,

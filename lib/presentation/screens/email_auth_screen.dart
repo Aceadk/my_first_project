@@ -196,13 +196,39 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
         ),
         if (otpSent) ...[
           const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: state.isLoading
+                    ? null
+                    : () => context.read<AuthBloc>().add(
+                          AuthEmailOtpResendRequested(effectiveIdentifier),
+                        ),
+                child: const Text('Resend code'),
+              ),
+              const SizedBox(width: 16),
+              TextButton(
+                onPressed: state.isLoading
+                    ? null
+                    : () {
+                        _otpController.clear();
+                        setState(() {
+                          _otpTouched = false;
+                          _otpSubmitted = false;
+                        });
+                        context.read<AuthBloc>().add(AuthEmailOtpCancelled());
+                      },
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: state.isLoading
                 ? null
-                : () => context.read<AuthBloc>().add(
-                      AuthEmailOtpResendRequested(effectiveIdentifier),
-                    ),
-            child: const Text('Resend code'),
+                : () => context.go(CrushRoutes.home),
+            child: const Text('Skip for now'),
           ),
         ],
       ],

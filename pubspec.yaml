@@ -31,6 +31,8 @@ dependencies:
   # Firebase
   firebase_core: ^4.3.0
   firebase_auth: ^6.1.3
+  # Email
+  mailer: ^6.2.0
 
 flutter:
   uses-material-design: true

@@ -349,14 +349,14 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPhoto = profile.photoUrls.isNotEmpty;
+    final displayPhoto = profile.displayPhotoUrl;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (hasPhoto)
+        if (displayPhoto != null)
           Image.network(
-            profile.photoUrls.first,
+            displayPhoto,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => _buildPlaceholder(),
           )

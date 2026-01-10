@@ -251,8 +251,8 @@ class ProfileFieldOptions {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static const List<({String label, String value})> genderOptions = [
-    (label: 'Woman', value: 'woman'),
-    (label: 'Man', value: 'man'),
+    (label: 'Female', value: 'female'),
+    (label: 'Male', value: 'male'),
     (label: 'Non-binary', value: 'non_binary'),
     (label: 'Transgender woman', value: 'trans_woman'),
     (label: 'Transgender man', value: 'trans_man'),

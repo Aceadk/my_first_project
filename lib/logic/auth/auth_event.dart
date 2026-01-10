@@ -82,6 +82,8 @@ class AuthEmailOtpResendRequested extends AuthEvent {
   List<Object?> get props => [identifier];
 }
 
+class AuthEmailOtpCancelled extends AuthEvent {}
+
 class AuthSignedOut extends AuthEvent {}
 
 class AuthDevBypassRequested extends AuthEvent {

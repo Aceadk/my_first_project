@@ -25,6 +25,9 @@ class CrushUser extends Equatable {
     required this.plan,
   });
 
+  /// User can swipe if EITHER email OR phone is verified (not both required)
+  bool get isAccountVerified => isEmailVerified || isPhoneVerified;
+
   bool get canChat => isIdVerified;
 
   CrushUser copyWith({

@@ -12,6 +12,7 @@ class Profile extends Equatable {
   final String gender;
   final String? sexualOrientation;
   final DateTime? dateOfBirth;
+  final DateTime? lastNameChangeAt; // Track when name was last changed (once per month)
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MEDIA
@@ -25,6 +26,20 @@ class Profile extends Equatable {
     if (photoUrls.isEmpty) return null;
     final index = primaryPhotoIndex.clamp(0, photoUrls.length - 1);
     return photoUrls[index];
+  }
+
+  /// Check if user can change their display name (once per month)
+  bool get canChangeName {
+    if (lastNameChangeAt == null) return true;
+    final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
+    return daysSinceLastChange >= 30;
+  }
+
+  /// Days remaining until name can be changed again
+  int get daysUntilNameChange {
+    if (lastNameChangeAt == null) return 0;
+    final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
+    return (30 - daysSinceLastChange).clamp(0, 30);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -114,6 +129,7 @@ class Profile extends Equatable {
     required this.gender,
     this.sexualOrientation,
     this.dateOfBirth,
+    this.lastNameChangeAt,
     required this.photoUrls,
     required this.videoUrls,
     this.primaryPhotoIndex = 0,
@@ -161,6 +177,7 @@ class Profile extends Equatable {
     String? gender,
     Object? sexualOrientation = _unset,
     Object? dateOfBirth = _unset,
+    Object? lastNameChangeAt = _unset,
     List<String>? photoUrls,
     List<String>? videoUrls,
     int? primaryPhotoIndex,
@@ -208,6 +225,9 @@ class Profile extends Equatable {
       dateOfBirth: identical(dateOfBirth, _unset)
           ? this.dateOfBirth
           : dateOfBirth as DateTime?,
+      lastNameChangeAt: identical(lastNameChangeAt, _unset)
+          ? this.lastNameChangeAt
+          : lastNameChangeAt as DateTime?,
       photoUrls: photoUrls ?? this.photoUrls,
       videoUrls: videoUrls ?? this.videoUrls,
       primaryPhotoIndex: primaryPhotoIndex ?? this.primaryPhotoIndex,
@@ -283,6 +303,7 @@ class Profile extends Equatable {
         gender,
         sexualOrientation,
         dateOfBirth,
+        lastNameChangeAt,
         photoUrls,
         videoUrls,
         primaryPhotoIndex,

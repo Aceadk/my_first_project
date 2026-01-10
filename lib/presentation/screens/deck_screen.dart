@@ -52,9 +52,11 @@ class _DeckScreenState extends State<DeckScreen> {
   @override
   Widget build(BuildContext context) {
     final preMatchService = widget.preMatchService;
-    final userId = context.select<AuthBloc, String?>(
-      (bloc) => bloc.state.user?.id,
+    final user = context.select<AuthBloc, dynamic>(
+      (bloc) => bloc.state.user,
     );
+    final userId = user?.id as String?;
+    final isAccountVerified = user?.isAccountVerified ?? false;
 
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listenWhen: (previous, current) =>
@@ -193,18 +195,20 @@ class _DeckScreenState extends State<DeckScreen> {
                           // Pass action (swipe right to left)
                           if (userId == null) return;
                           final discoveryBloc = context.read<DiscoveryBloc>();
-                          if (!_canSwipe(completeness, backendSwipeReady)) {
+                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
                             _showProfileIncompleteDialog(
                               context,
                               completeness,
                               remote: _backendCompleteness,
                               minimum: 'swipe',
+                              isAccountVerified: isAccountVerified,
                             );
                             return;
                           }
                           final outcome = await _evaluateBackendAllowance(
                             minimum: 'swipe',
                             local: completeness,
+                            isAccountVerified: isAccountVerified,
                           );
                           if (!context.mounted) return;
                           final allowed = _handleBackendOutcome(
@@ -212,6 +216,7 @@ class _DeckScreenState extends State<DeckScreen> {
                             outcome,
                             minimum: 'swipe',
                             completeness: completeness,
+                            isAccountVerified: isAccountVerified,
                           );
                           if (!allowed) return;
                           discoveryBloc.add(
@@ -225,18 +230,20 @@ class _DeckScreenState extends State<DeckScreen> {
                           // Like action (swipe left to right)
                           if (userId == null) return;
                           final discoveryBloc = context.read<DiscoveryBloc>();
-                          if (!_canSwipe(completeness, backendSwipeReady)) {
+                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
                             _showProfileIncompleteDialog(
                               context,
                               completeness,
                               remote: _backendCompleteness,
                               minimum: 'swipe',
+                              isAccountVerified: isAccountVerified,
                             );
                             return;
                           }
                           final outcome = await _evaluateBackendAllowance(
                             minimum: 'swipe',
                             local: completeness,
+                            isAccountVerified: isAccountVerified,
                           );
                           if (!context.mounted) return;
                           final allowed = _handleBackendOutcome(
@@ -244,6 +251,7 @@ class _DeckScreenState extends State<DeckScreen> {
                             outcome,
                             minimum: 'swipe',
                             completeness: completeness,
+                            isAccountVerified: isAccountVerified,
                           );
                           if (!allowed) return;
                           discoveryBloc.add(
@@ -265,18 +273,20 @@ class _DeckScreenState extends State<DeckScreen> {
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
-                            if (!_canSwipe(completeness, backendSwipeReady)) {
+                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
                               _showProfileIncompleteDialog(
                                 context,
                                 completeness,
                                 remote: _backendCompleteness,
                                 minimum: 'swipe',
+                                isAccountVerified: isAccountVerified,
                               );
                               return;
                             }
                             final outcome = await _evaluateBackendAllowance(
                               minimum: 'swipe',
                               local: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!context.mounted) return;
                             final allowed = _handleBackendOutcome(
@@ -284,6 +294,7 @@ class _DeckScreenState extends State<DeckScreen> {
                               outcome,
                               minimum: 'swipe',
                               completeness: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!allowed) return;
                             discoveryBloc.add(
@@ -308,12 +319,14 @@ class _DeckScreenState extends State<DeckScreen> {
                                 completeness,
                                 remote: _backendCompleteness,
                                 minimum: 'message',
+                                isAccountVerified: isAccountVerified,
                               );
                               return;
                             }
                             final outcome = await _evaluateBackendAllowance(
                               minimum: 'message',
                               local: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!context.mounted) return;
                             final allowed = _handleBackendOutcome(
@@ -321,6 +334,7 @@ class _DeckScreenState extends State<DeckScreen> {
                               outcome,
                               minimum: 'message',
                               completeness: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!allowed) return;
                             await _showPreMatchDialog(
@@ -337,18 +351,20 @@ class _DeckScreenState extends State<DeckScreen> {
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
-                            if (!_canSwipe(completeness, backendSwipeReady)) {
+                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
                               _showProfileIncompleteDialog(
                                 context,
                                 completeness,
                                 remote: _backendCompleteness,
                                 minimum: 'swipe',
+                                isAccountVerified: isAccountVerified,
                               );
                               return;
                             }
                             final outcome = await _evaluateBackendAllowance(
                               minimum: 'swipe',
                               local: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!context.mounted) return;
                             final allowed = _handleBackendOutcome(
@@ -356,6 +372,7 @@ class _DeckScreenState extends State<DeckScreen> {
                               outcome,
                               minimum: 'swipe',
                               completeness: completeness,
+                              isAccountVerified: isAccountVerified,
                             );
                             if (!allowed) return;
                             discoveryBloc.add(
@@ -450,8 +467,9 @@ class _DeckScreenState extends State<DeckScreen> {
   Future<_BackendCheckOutcome> _evaluateBackendAllowance({
     required String minimum,
     required ProfileCompletenessSummary local,
+    required bool isAccountVerified,
   }) async {
-    if ((minimum == 'swipe' && !_canSwipe(local, true)) ||
+    if ((minimum == 'swipe' && !_canSwipe(local, true, isAccountVerified: isAccountVerified)) ||
         (minimum == 'message' && !_canMessage(local, true))) {
       return const _BackendCheckOutcome(
         allowed: false,
@@ -503,6 +521,7 @@ class _DeckScreenState extends State<DeckScreen> {
     _BackendCheckOutcome outcome, {
     required String minimum,
     required ProfileCompletenessSummary completeness,
+    required bool isAccountVerified,
   }) {
     if (!outcome.allowed) {
       if (outcome.blocked) {
@@ -511,6 +530,7 @@ class _DeckScreenState extends State<DeckScreen> {
           completeness,
           remote: outcome.remote ?? _backendCompleteness,
           minimum: minimum,
+          isAccountVerified: isAccountVerified,
         );
       }
       if (outcome.message != null) {
@@ -541,8 +561,11 @@ class _DeckScreenState extends State<DeckScreen> {
 
   bool _canSwipe(
     ProfileCompletenessSummary local,
-    bool backendAllowed,
-  ) {
+    bool backendAllowed, {
+    required bool isAccountVerified,
+  }) {
+    // User must have EITHER email OR phone verified to swipe
+    if (!isAccountVerified) return false;
     return local.meetsSwipeMinimum &&
         local.meetsRequiredFields &&
         backendAllowed;
@@ -740,11 +763,40 @@ class _DeckScreenState extends State<DeckScreen> {
     ProfileCompletenessSummary completeness, {
     RemoteProfileCompleteness? remote,
     String minimum = 'swipe',
+    bool isAccountVerified = true,
   }) {
     final percent = ((remote?.score ?? completeness.score) * 100).round();
     final missingList =
         _missingMessages(completeness, remote, minimum: minimum);
     final missing = missingList.take(3).join('\n• ');
+
+    // Check if account verification is the issue
+    if (!isAccountVerified) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Verify your account'),
+          content: const Text(
+            'Please verify your email or phone number to start swiping and matching with others.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Later'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push(CrushRoutes.emailProtection);
+              },
+              child: const Text('Verify now'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
