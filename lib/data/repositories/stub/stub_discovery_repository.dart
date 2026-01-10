@@ -11,6 +11,7 @@ import '../discovery_repository.dart';
 class StubDiscoveryRepository implements DiscoveryRepository {
   static const _matchesKey = 'mock_matches';
   static const _swipedKey = 'mock_swiped';
+  static const _likesKey = 'mock_likes'; // Track who liked whom for mutual matching
 
   final _random = Random();
 
@@ -212,8 +213,14 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     // Record the swipe
     await _recordSwipe(userId, targetUserId, true);
 
-    // 50% chance of instant match for demo purposes
-    if (_random.nextBool()) {
+    // Record the like
+    await _recordLike(userId, targetUserId);
+
+    // Check if the target user has already liked the current user (mutual like)
+    final targetLikedUser = await _hasLiked(targetUserId, userId);
+
+    // Only create a match if BOTH users have liked each other
+    if (targetLikedUser) {
       final matchedProfile = _mockProfiles.firstWhere(
         (p) => p.id == targetUserId,
         orElse: () => _mockProfiles.first,
@@ -233,6 +240,19 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       );
 
       await _saveMatch(userId, match);
+
+      // Also save match for the other user so they can see it too
+      await _saveMatch(targetUserId, CrushMatch(
+        id: match.id,
+        userId: targetUserId,
+        otherUserId: userId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+        otherUserName: null, // We don't have the current user's profile here
+        otherUserPhotoUrl: null,
+      ));
+
       return match;
     }
 
@@ -263,9 +283,33 @@ class StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchLikesYou(String userId) async {
     await Future.delayed(const Duration(milliseconds: 400));
 
-    // Return 2 random profiles as "likes you" for demo
-    final shuffled = List<Profile>.from(_mockProfiles)..shuffle(_random);
-    return shuffled.take(2).toList();
+    // Return profiles that have liked the current user but haven't been matched yet
+    final likesYou = <Profile>[];
+    for (final profile in _mockProfiles) {
+      final hasLikedUser = await _hasLiked(profile.id, userId);
+      if (hasLikedUser) {
+        // Check if already matched
+        final matches = await _getMatches(userId);
+        final alreadyMatched = matches.any((m) => m.otherUserId == profile.id);
+        if (!alreadyMatched) {
+          likesYou.add(profile);
+        }
+      }
+    }
+
+    // For demo purposes, if no one has liked the user yet, return some mock profiles
+    // that "simulate" having liked the user (helps testing)
+    if (likesYou.isEmpty) {
+      // Simulate that some mock profiles have liked the current user
+      final shuffled = List<Profile>.from(_mockProfiles)..shuffle(_random);
+      final simulatedLikes = shuffled.take(2).toList();
+      for (final profile in simulatedLikes) {
+        await _recordLike(profile.id, userId);
+      }
+      return simulatedLikes;
+    }
+
+    return likesYou;
   }
 
   @override
@@ -290,6 +334,26 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     final swiped = await _getSwipedProfiles(userId);
     swiped.add(targetId);
     await prefs.setString('${_swipedKey}_$userId', jsonEncode(swiped.toList()));
+  }
+
+  /// Record that userId liked targetId
+  Future<void> _recordLike(String userId, String targetId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final likesJson = prefs.getString('${_likesKey}_$userId');
+    final likes = likesJson != null
+        ? Set<String>.from(jsonDecode(likesJson))
+        : <String>{};
+    likes.add(targetId);
+    await prefs.setString('${_likesKey}_$userId', jsonEncode(likes.toList()));
+  }
+
+  /// Check if userId has liked targetId
+  Future<bool> _hasLiked(String userId, String targetId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final likesJson = prefs.getString('${_likesKey}_$userId');
+    if (likesJson == null) return false;
+    final likes = Set<String>.from(jsonDecode(likesJson));
+    return likes.contains(targetId);
   }
 
   Future<void> _saveMatch(String userId, CrushMatch match) async {

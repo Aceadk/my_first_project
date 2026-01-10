@@ -159,11 +159,16 @@ class _SplashScreenState extends State<SplashScreen>
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           final user = state.user;
-          if (user?.email != null &&
-              user!.email!.isNotEmpty &&
-              !user.isEmailVerified) {
+          // User is verified if EITHER email OR phone is verified
+          if (user != null && user.isAccountVerified) {
+            // Account is verified (email or phone), go directly to home
+            _setNavigationTarget(CrushRoutes.home);
+          } else if (user?.email != null && user!.email!.isNotEmpty) {
+            // Has email but not verified, and phone not verified - show email protection
             _setNavigationTarget(CrushRoutes.emailProtection, arguments: true);
           } else {
+            // No verification yet, but authenticated - go to home
+            // They can verify from settings or will be prompted when swiping
             _setNavigationTarget(CrushRoutes.home);
           }
         } else if (state.status == AuthStatus.unauthenticated ||

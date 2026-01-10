@@ -6,6 +6,7 @@ import '../../models/user.dart';
 import '../../models/profile.dart';
 import '../../models/preferences.dart';
 import '../../models/subscription.dart';
+import '../../models/privacy_settings.dart';
 import '../auth_repository.dart';
 
 /// Mock implementation of AuthRepository with local storage.
@@ -568,13 +569,25 @@ class StubAuthRepository implements AuthRepository {
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
+        dateOfBirth: p['dateOfBirth'] != null
+            ? DateTime.parse(p['dateOfBirth'])
+            : null,
+        lastNameChangeAt: p['lastNameChangeAt'] != null
+            ? DateTime.parse(p['lastNameChangeAt'])
+            : null,
         bio: p['bio'] ?? '',
         photoUrls: List<String>.from(p['photoUrls'] ?? []),
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
+        primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(p['interests'] ?? []),
+        prompts: List<String>.from(p['prompts'] ?? []),
         country: p['country'] ?? '',
         city: p['city'] ?? '',
+        livingIn: p['livingIn'],
+        latitude: p['latitude']?.toDouble(),
+        longitude: p['longitude']?.toDouble(),
         isVerified: p['isVerified'] ?? false,
+        verificationBadge: p['verificationBadge'],
         heightCm: p['heightCm'],
         relationshipGoals: p['relationshipGoals'],
         languages: List<String>.from(p['languages'] ?? []),
@@ -583,12 +596,18 @@ class StubAuthRepository implements AuthRepository {
         familyPlans: p['familyPlans'],
         personalityType: p['personalityType'],
         workout: p['workout'],
+        socialMedia: p['socialMedia'],
+        sleepingHabits: p['sleepingHabits'],
         smoking: p['smoking'],
         drinking: p['drinking'],
+        diet: p['diet'],
+        exercise: p['exercise'],
         pets: p['pets'],
         jobTitle: p['jobTitle'],
         company: p['company'],
         school: p['school'],
+        favoriteSongs: List<String>.from(p['favoriteSongs'] ?? []),
+        favoriteSinger: p['favoriteSinger'],
         preferences: DiscoveryPreferences(
           minAge: p['preferences']?['minAge'] ?? 18,
           maxAge: p['preferences']?['maxAge'] ?? 50,
@@ -600,6 +619,9 @@ class StubAuthRepository implements AuthRepository {
           incognitoMode: p['preferences']?['incognitoMode'] ?? false,
           country: p['preferences']?['country'] ?? '',
           city: p['preferences']?['city'] ?? '',
+        ),
+        privacySettings: ProfilePrivacySettings.fromJson(
+          p['privacySettings'] as Map<String, dynamic>?,
         ),
       );
     }
@@ -627,13 +649,21 @@ class StubAuthRepository implements AuthRepository {
         'age': p.age,
         'gender': p.gender,
         'sexualOrientation': p.sexualOrientation,
+        'dateOfBirth': p.dateOfBirth?.toIso8601String(),
+        'lastNameChangeAt': p.lastNameChangeAt?.toIso8601String(),
         'bio': p.bio,
         'photoUrls': p.photoUrls,
         'videoUrls': p.videoUrls,
+        'primaryPhotoIndex': p.primaryPhotoIndex,
         'interests': p.interests,
+        'prompts': p.prompts,
         'country': p.country,
         'city': p.city,
+        'livingIn': p.livingIn,
+        'latitude': p.latitude,
+        'longitude': p.longitude,
         'isVerified': p.isVerified,
+        'verificationBadge': p.verificationBadge,
         'heightCm': p.heightCm,
         'relationshipGoals': p.relationshipGoals,
         'languages': p.languages,
@@ -642,12 +672,18 @@ class StubAuthRepository implements AuthRepository {
         'familyPlans': p.familyPlans,
         'personalityType': p.personalityType,
         'workout': p.workout,
+        'socialMedia': p.socialMedia,
+        'sleepingHabits': p.sleepingHabits,
         'smoking': p.smoking,
         'drinking': p.drinking,
+        'diet': p.diet,
+        'exercise': p.exercise,
         'pets': p.pets,
         'jobTitle': p.jobTitle,
         'company': p.company,
         'school': p.school,
+        'favoriteSongs': p.favoriteSongs,
+        'favoriteSinger': p.favoriteSinger,
         'preferences': {
           'minAge': p.preferences.minAge,
           'maxAge': p.preferences.maxAge,
@@ -660,6 +696,7 @@ class StubAuthRepository implements AuthRepository {
           'country': p.preferences.country,
           'city': p.preferences.city,
         },
+        'privacySettings': p.privacySettings.toJson(),
       };
     }
 

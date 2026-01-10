@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -921,27 +922,47 @@ class _ChatScreenState extends State<ChatScreen> {
         if (pendingScan) {
           return const Text('Image pending safety scan…');
         }
+        // Check if it's a local file path or a network URL
+        final isLocalFile = msg.content.startsWith('/') ||
+            msg.content.startsWith('file://');
         return GestureDetector(
-          onTap: () => _launchUrl(msg.content),
-          child: Image.network(
-            msg.content,
-            width: 220,
-            height: 260,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Text('Image unavailable'),
+          onTap: () => isLocalFile ? null : _launchUrl(msg.content),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: isLocalFile
+                ? Image.file(
+                    File(msg.content.replaceFirst('file://', '')),
+                    width: 220,
+                    height: 260,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Text('Image unavailable'),
+                  )
+                : Image.network(
+                    msg.content,
+                    width: 220,
+                    height: 260,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Text('Image unavailable'),
+                  ),
           ),
         );
       case MessageType.video:
+        final isLocalVideo = msg.content.startsWith('/') ||
+            msg.content.startsWith('file://');
         return _AttachmentTile(
           label: pendingScan ? 'Video (scan pending)' : 'Video',
           url: msg.content,
           icon: Icons.videocam,
+          isLocal: isLocalVideo,
         );
       case MessageType.voice:
+        final isLocalAudio = msg.content.startsWith('/') ||
+            msg.content.startsWith('file://');
         return _AttachmentTile(
           label: pendingScan ? 'Voice (scan pending)' : 'Voice message',
           url: msg.content,
           icon: Icons.mic,
+          isLocal: isLocalAudio,
         );
       case MessageType.text:
         return Text(textFallback);
@@ -1455,32 +1476,57 @@ class _AttachmentTile extends StatelessWidget {
     required this.label,
     required this.url,
     required this.icon,
+    this.isLocal = false,
   });
 
   final String label;
   final String url;
   final IconData icon;
+  final bool isLocal;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _launch(context, url),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          DsGap.xsH,
-          Text(
-            label,
-            style: const TextStyle(decoration: TextDecoration.underline),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black26,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: Colors.white70),
+            DsGap.xsH,
+            Text(
+              label,
+              style: const TextStyle(
+                decoration: TextDecoration.underline,
+                color: Colors.white,
+              ),
+            ),
+            if (isLocal) ...[
+              DsGap.xsH,
+              const Icon(Icons.check_circle, size: 14, color: Colors.green),
+            ],
+          ],
+        ),
       ),
     );
   }
 
   void _launch(BuildContext context, String url) async {
     final messenger = ScaffoldMessenger.of(context);
+
+    // For local files, show a message that it's stored locally
+    if (isLocal) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Media saved locally on your device.')),
+      );
+      return;
+    }
+
     final uri = Uri.parse(url);
     final can = await canLaunchUrl(uri);
     if (can) {
