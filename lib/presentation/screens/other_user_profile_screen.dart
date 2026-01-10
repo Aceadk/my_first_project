@@ -381,13 +381,13 @@ class OtherUserProfileScreen extends StatelessWidget {
                           children: [
                             // Email and phone are very sensitive - only show to matches
                             if (privacy.showEmail)
-                              _InfoRow(
+                              const _InfoRow(
                                 icon: Icons.email_outlined,
                                 label: 'Email',
                                 value: 'Contact via chat first',
                               ),
                             if (privacy.showPhoneNumber)
-                              _InfoRow(
+                              const _InfoRow(
                                 icon: Icons.phone_outlined,
                                 label: 'Phone',
                                 value: 'Contact via chat first',

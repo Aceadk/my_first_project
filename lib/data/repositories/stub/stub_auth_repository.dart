@@ -95,12 +95,10 @@ class StubAuthRepository implements AuthRepository {
 
     // Check if user exists or create new one
     var user = await _getUserByPhone(phoneNumber);
-    if (user == null) {
-      user = await _createUser(
-        phoneNumber: phoneNumber,
-        isPhoneVerified: true,
-      );
-    }
+    user ??= await _createUser(
+      phoneNumber: phoneNumber,
+      isPhoneVerified: true,
+    );
 
     await _setCurrentUser(user);
     return user;
@@ -134,12 +132,10 @@ class StubAuthRepository implements AuthRepository {
 
     // For mock, accept any link with the email
     var user = await _getUserByEmail(email);
-    if (user == null) {
-      user = await _createUser(
-        email: email,
-        isEmailVerified: true,
-      );
-    }
+    user ??= await _createUser(
+      email: email,
+      isEmailVerified: true,
+    );
 
     await _setCurrentUser(user);
     return user;
@@ -414,7 +410,7 @@ class StubAuthRepository implements AuthRepository {
   }) async {
     // Dev bypass for testing - admin123/admin123
     if (identifier == 'admin123' && password == 'admin123') {
-      final user = CrushUser(
+      const user = CrushUser(
         id: 'dev-admin-user',
         phoneNumber: '+1234567890',
         email: 'admin@crushhour.dev',
@@ -423,7 +419,7 @@ class StubAuthRepository implements AuthRepository {
         isPhoneVerified: true,
         isIdVerified: true,
         plan: SubscriptionPlan.plus,
-        profile: const Profile(
+        profile: Profile(
           id: 'dev-admin-profile',
           name: 'Dev Admin',
           age: 25,

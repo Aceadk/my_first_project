@@ -130,7 +130,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Sensitive Information Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Sensitive Information',
                 subtitle: 'These are private by default',
                 icon: Icons.security,
@@ -177,7 +177,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Dating Basics Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Dating Basics',
                 subtitle: 'Basic dating profile information',
                 icon: Icons.favorite_outline,
@@ -206,7 +206,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Personal Details Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'About Me',
                 subtitle: 'Personal characteristics',
                 icon: Icons.person_outline,
@@ -235,7 +235,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Lifestyle Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Lifestyle',
                 subtitle: 'Your habits and preferences',
                 icon: Icons.spa_outlined,
@@ -285,7 +285,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Work Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Work & Education',
                 subtitle: 'Professional information',
                 icon: Icons.work_outline,
@@ -314,7 +314,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Music Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Music',
                 subtitle: 'Your music taste',
                 icon: Icons.music_note_outlined,
@@ -336,7 +336,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Social Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Social',
                 subtitle: 'Social information',
                 icon: Icons.people_outline,
@@ -358,7 +358,7 @@ class PrivacySettingsScreen extends StatelessWidget {
               ),
 
               // Activity Section
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Activity Status',
                 subtitle: 'Online presence',
                 icon: Icons.circle,
