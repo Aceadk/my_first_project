@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/router.dart';
 import '../../logic/profile/profile_bloc.dart';
 import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
@@ -71,7 +72,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.settings_outlined),
-                    onPressed: () => context.push('/settings'),
+                    onPressed: () => context.push(CrushRoutes.settings),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -141,7 +142,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           ),
                           // Edit button
                           FilledButton.icon(
-                            onPressed: () => context.push('/profile/edit'),
+                            onPressed: () => context.push(CrushRoutes.profileEdit),
                             icon: const Icon(Icons.edit, size: 18),
                             label: const Text('Edit'),
                             style: FilledButton.styleFrom(
@@ -474,7 +475,7 @@ class _CompletionCard extends StatelessWidget {
                 ),
               ),
               FilledButton(
-                onPressed: () => context.push('/profile/edit'),
+                onPressed: () => context.push(CrushRoutes.profileEdit),
                 style: FilledButton.styleFrom(
                   backgroundColor: DsColors.primary,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

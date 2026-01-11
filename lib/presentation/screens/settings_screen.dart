@@ -18,13 +18,6 @@ import '../../logic/locale/locale_cubit.dart';
 import '../../logic/storage/storage_settings_cubit.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
-import 'settings/notifications_settings_screen.dart';
-import 'settings/language_region_settings_screen.dart';
-import 'settings/discovery_filters_settings_screen.dart';
-import 'settings/data_storage_settings_screen.dart';
-import 'settings/account_security_settings_screen.dart';
-import 'settings/account_actions_settings_screen.dart';
-import 'settings/privacy_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -64,12 +57,7 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: DsColors.primary,
                     title: 'Notifications',
                     subtitle: '$enabledCount of 4 enabled',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationsSettingsScreen(),
-                      ),
-                    ),
+                    onTap: () => context.push(CrushRoutes.notificationsSettings),
                   );
                 },
               ),
@@ -82,12 +70,7 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: DsColors.secondary,
                     title: 'Language & Region',
                     subtitle: '${_languageLabel(localeState.languageCode)} - ${localeState.region}',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const LanguageRegionSettingsScreen(),
-                      ),
-                    ),
+                    onTap: () => context.push(CrushRoutes.languageSettings),
                   );
                 },
               ),
@@ -100,12 +83,7 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: Colors.orange,
                     title: 'Discovery & Filters',
                     subtitle: '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DiscoveryFiltersSettingsScreen(),
-                      ),
-                    ),
+                    onTap: () => context.push(CrushRoutes.discoverySettings),
                   );
                 },
               ),
@@ -118,12 +96,7 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: Colors.blue,
                     title: 'Data & Storage',
                     subtitle: 'Cache: ${storageState.cacheSizeMb} MB',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DataStorageSettingsScreen(),
-                      ),
-                    ),
+                    onTap: () => context.push(CrushRoutes.storageSettings),
                   );
                 },
               ),
@@ -150,12 +123,7 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: Colors.green,
                     title: 'Account Security',
                     subtitle: subtitle,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AccountSecuritySettingsScreen(),
-                      ),
-                    ),
+                    onTap: () => context.push(CrushRoutes.securitySettings),
                   );
                 },
               ),
@@ -166,12 +134,7 @@ class SettingsScreen extends StatelessWidget {
                 iconColor: Colors.indigo,
                 title: 'Privacy',
                 subtitle: 'Control what others can see',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PrivacySettingsScreen(),
-                  ),
-                ),
+                onTap: () => context.push(CrushRoutes.privacySettings),
               ),
               const Divider(height: 1),
               // Account Actions
@@ -180,12 +143,7 @@ class SettingsScreen extends StatelessWidget {
                 iconColor: Colors.deepPurple,
                 title: 'Account Actions',
                 subtitle: 'Change phone, deactivate, or delete',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AccountActionsSettingsScreen(),
-                  ),
-                ),
+                onTap: () => context.push(CrushRoutes.accountSettings),
               ),
               DsGap.lg,
               // Subscription section

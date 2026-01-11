@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+import '../../core/security/secure_logger.dart';
 import '../models/user.dart';
 import '../models/profile.dart';
 import '../models/preferences.dart';
@@ -62,9 +63,8 @@ class FakeAuthRepository implements AuthRepository {
           .timeout(const Duration(seconds: 5));
     } catch (_) {}
 
-    // For local testing, surface the OTP in logs.
-    // ignore: avoid_print
-    print('OTP for $phoneNumber: $otp (expires at $expiresAt)');
+    // Use secure logger for OTP (redacted by default)
+    SecureLogger.logOtp(type: 'PHONE', recipient: phoneNumber, code: otp);
   }
 
   @override
@@ -72,14 +72,8 @@ class FakeAuthRepository implements AuthRepository {
     final otp = (_rand.nextInt(900000) + 100000).toString();
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
     _emailLinkStore[email] = _OtpEntry(code: otp, expiresAt: expiresAt);
-    final link = Uri(
-      scheme: 'https',
-      host: 'example.com',
-      path: '/emailSignIn',
-      queryParameters: {'email': email, 'code': otp},
-    );
-    // ignore: avoid_print
-    print('Email sign-in link for $email: $link');
+    // Use secure logger for email link (redacted by default)
+    SecureLogger.logOtp(type: 'EMAIL_LINK', recipient: email, code: otp);
   }
 
   @override
@@ -187,8 +181,8 @@ class FakeAuthRepository implements AuthRepository {
     final otp = (_rand.nextInt(900000) + 100000).toString();
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
     _emailOtpStore[key] = _OtpEntry(code: otp, expiresAt: expiresAt);
-    // ignore: avoid_print
-    print('Email OTP for $identifier (${purpose.value}): $otp');
+    // Use secure logger (redacted by default)
+    SecureLogger.logOtp(type: 'EMAIL_${purpose.value.toUpperCase()}', recipient: identifier, code: otp);
   }
 
   @override
@@ -338,8 +332,8 @@ class FakeAuthRepository implements AuthRepository {
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
     _emailOtpStore['forgot_password:$normalized'] =
         _OtpEntry(code: otp, expiresAt: expiresAt);
-    // ignore: avoid_print
-    print('Password reset OTP for $normalized: $otp');
+    // Use secure logger (redacted by default)
+    SecureLogger.logOtp(type: 'PASSWORD_RESET', recipient: normalized, code: otp);
   }
 
   @override
@@ -384,6 +378,11 @@ class FakeAuthRepository implements AuthRepository {
       _passwordsByUserId[user.id] = newPassword;
       _passwordsByEmail[normalized] = newPassword;
     }
+  }
+
+  /// Clean up resources
+  void dispose() {
+    _controller.close();
   }
 }
 
@@ -454,6 +453,11 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
       nextRenewal: DateTime.now().add(const Duration(days: 30)),
       cancelAtPeriodEnd: false,
     );
+  }
+
+  /// Clean up resources
+  void dispose() {
+    _controller.close();
   }
 }
 
@@ -1133,5 +1137,21 @@ class FakeChatRepository implements ChatRepository {
   @override
   Future<List<CrushMatch>> fetchUserMatches(String userId) async {
     return discoveryRepo.fetchMatches(userId);
+  }
+
+  /// Clean up all stream controllers
+  void dispose() {
+    for (final controller in _streams.values) {
+      controller.close();
+    }
+    for (final controller in _typingStreams.values) {
+      controller.close();
+    }
+    for (final controller in _presenceStreams.values) {
+      controller.close();
+    }
+    for (final controller in _mediaStreams.values) {
+      controller.close();
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/router.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/models/match.dart';
 import '../../data/models/message.dart';
@@ -57,7 +58,7 @@ class _ChatListView extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () => context.push('/settings'),
+                onPressed: () => context.push(CrushRoutes.settings),
               ),
             ],
           ),

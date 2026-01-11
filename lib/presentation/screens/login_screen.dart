@@ -233,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               DsGap.xl,
-              // Dev mode hint
+              // Dev mode indicator (credentials not shown for security)
               if (!kReleaseMode)
                 Container(
                   padding: DsEdgeInsets.allMd,
@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       DsGap.mdH,
                       Expanded(
                         child: Text(
-                          'Dev mode: Use admin123/admin123 for quick access',
+                          'Development build',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: DsColors.info,
                           ),

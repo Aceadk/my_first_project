@@ -28,6 +28,12 @@ import '../presentation/screens/profile_edit_screen.dart';
 import '../presentation/screens/other_user_profile_screen.dart';
 import '../presentation/screens/settings_screen.dart' as settings;
 import '../presentation/screens/settings/privacy_settings_screen.dart';
+import '../presentation/screens/settings/notifications_settings_screen.dart';
+import '../presentation/screens/settings/language_region_settings_screen.dart';
+import '../presentation/screens/settings/discovery_filters_settings_screen.dart';
+import '../presentation/screens/settings/data_storage_settings_screen.dart';
+import '../presentation/screens/settings/account_security_settings_screen.dart';
+import '../presentation/screens/settings/account_actions_settings_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -57,6 +63,12 @@ class CrushRoutes {
   static const userProfile = '/user-profile';
   static const settings = '/settings';
   static const privacySettings = '/settings/privacy';
+  static const notificationsSettings = '/settings/notifications';
+  static const languageSettings = '/settings/language';
+  static const discoverySettings = '/settings/discovery';
+  static const storageSettings = '/settings/storage';
+  static const securitySettings = '/settings/security';
+  static const accountSettings = '/settings/account';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
@@ -253,6 +265,36 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.privacySettings,
         pageBuilder: (context, state) =>
             _buildPage(state, const PrivacySettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.notificationsSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const NotificationsSettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.languageSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const LanguageRegionSettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.discoverySettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const DiscoveryFiltersSettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.storageSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const DataStorageSettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.securitySettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const AccountSecuritySettingsScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.accountSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const AccountActionsSettingsScreen()),
       ),
       GoRoute(
         path: CrushRoutes.userProfile,

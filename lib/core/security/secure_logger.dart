@@ -15,7 +15,8 @@ class SecureLogger {
 
   /// When true, sensitive data like OTPs will be partially redacted.
   /// e.g., "123456" becomes "12****"
-  static bool redactSensitiveData = false;
+  /// Defaults to true for security - only set to false for local debugging.
+  static bool redactSensitiveData = true;
 
   /// Log an OTP code with appropriate security handling.
   /// Only logs in debug mode when [enableSensitiveLogging] is true.
