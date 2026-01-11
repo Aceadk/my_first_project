@@ -38,3 +38,12 @@ class DiscoverySwipedLeft extends DiscoveryEvent {
   @override
   List<Object?> get props => [userId, targetUserId];
 }
+
+/// Request to load more profiles when approaching end of deck.
+class DiscoveryLoadMoreRequested extends DiscoveryEvent {
+  final String userId;
+  DiscoveryLoadMoreRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/profile.dart';
 import '../screens/profile_media_screen.dart';
+import 'cached_network_image.dart';
 
 class SwipeCard extends StatelessWidget {
   final Profile profile;
@@ -38,10 +39,11 @@ class SwipeCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (imageUrl != null)
-              Image.network(
-                imageUrl,
+              CachedNetworkImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _placeholder(),
+                placeholder: _placeholder(),
+                errorWidget: _placeholder(),
               )
             else
               _placeholder(),

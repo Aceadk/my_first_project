@@ -24,6 +24,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<DiscoveryDeckRequested>(_onDeckRequested);
     on<DiscoverySwipedRight>(_onSwipedRight);
     on<DiscoverySwipedLeft>(_onSwipedLeft);
+    on<DiscoveryLoadMoreRequested>(_onLoadMoreRequested);
   }
 
   Future<void> _onDeckRequested(
@@ -133,6 +134,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         errorMessage: swipeResult.errorMessage,
       ));
     }
+
+    // Preload more profiles if running low
+    _maybeLoadMore(event.userId);
   }
 
   Future<void> _onSwipedLeft(
@@ -162,6 +166,50 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         status: DeckStatus.ready,
         errorMessage: result.errorMessage,
       ));
+    }
+
+    // Preload more profiles if running low
+    _maybeLoadMore(event.userId);
+  }
+
+  /// Load more profiles when approaching end of deck.
+  Future<void> _onLoadMoreRequested(
+      DiscoveryLoadMoreRequested event, Emitter<DiscoveryState> emit) async {
+    // Don't load if already loading or no more profiles
+    if (state.isLoadingMore || !state.hasMoreProfiles) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    final deckResult = await Result.guard(
+      () => discoveryRepository.fetchDeck(event.userId),
+      logLabel: 'DiscoveryRepository.fetchDeck (pagination)',
+      fallbackError: 'Could not load more people.',
+    );
+
+    if (!deckResult.isSuccess) {
+      emit(state.copyWith(isLoadingMore: false));
+      return;
+    }
+
+    final newProfiles = deckResult.data ?? const [];
+
+    // Filter out profiles already in the deck
+    final existingIds = state.deck.map((p) => p.id).toSet();
+    final uniqueNewProfiles = newProfiles
+        .where((p) => !existingIds.contains(p.id))
+        .toList();
+
+    emit(state.copyWith(
+      isLoadingMore: false,
+      deck: [...state.deck, ...uniqueNewProfiles],
+      hasMoreProfiles: uniqueNewProfiles.isNotEmpty,
+    ));
+  }
+
+  /// Check if we should preload more and trigger loading if needed.
+  void _maybeLoadMore(String userId) {
+    if (state.shouldLoadMore) {
+      add(DiscoveryLoadMoreRequested(userId));
     }
   }
 

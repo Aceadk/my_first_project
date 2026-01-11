@@ -29,6 +29,7 @@ class _SwipeableCardState extends State<SwipeableCard>
   bool _isDragging = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
+  bool _hasAnimationListener = false;
 
   static const double _swipeThreshold = 100.0;
   static const double _maxRotation = 0.1; // radians
@@ -47,8 +48,24 @@ class _SwipeableCardState extends State<SwipeableCard>
 
   @override
   void dispose() {
+    // Ensure listener is removed before disposing
+    _removeAnimationListener();
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _addAnimationListener() {
+    if (!_hasAnimationListener) {
+      _animationController.addListener(_onAnimationUpdate);
+      _hasAnimationListener = true;
+    }
+  }
+
+  void _removeAnimationListener() {
+    if (_hasAnimationListener) {
+      _animationController.removeListener(_onAnimationUpdate);
+      _hasAnimationListener = false;
+    }
   }
 
   void _onPanStart(DragStartDetails details) {
@@ -110,10 +127,10 @@ class _SwipeableCardState extends State<SwipeableCard>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _animationController.addListener(_onAnimationUpdate);
+    _addAnimationListener();
 
     _animationController.forward(from: 0).then((_) {
-      _animationController.removeListener(_onAnimationUpdate);
+      _removeAnimationListener();
     });
   }
 
