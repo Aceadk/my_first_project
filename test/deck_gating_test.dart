@@ -22,6 +22,7 @@ import 'package:crushhour/logic/discovery/discovery_state.dart';
 import 'package:crushhour/logic/profile/profile_bloc.dart';
 import 'package:crushhour/logic/profile/profile_state.dart';
 import 'package:crushhour/logic/safety/safety_cubit.dart';
+import 'package:crushhour/logic/subscription/subscription_bloc.dart';
 import 'package:crushhour/presentation/screens/deck_screen.dart';
 
 void main() {
@@ -105,6 +106,11 @@ void main() {
               create: (_) => SafetyCubit(
                 preferences: prefsInstance,
                 chatRepository: _NoopChatRepository(),
+              ),
+            ),
+            BlocProvider<SubscriptionBloc>(
+              create: (_) => SubscriptionBloc(
+                subscriptionRepository: _StubSubscriptionRepository(),
               ),
             ),
           ],

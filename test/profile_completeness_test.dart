@@ -22,26 +22,27 @@ void main() {
   });
 
   test('weights bio length and photos more heavily', () {
-    const profile = Profile(
+    final profile = Profile(
       id: '1',
       name: 'Alice',
       age: 25,
       gender: 'female',
-      sexualOrientation: null,
+      sexualOrientation: 'straight',
       bio: 'This is a longer bio with more than forty characters.',
-      photoUrls: ['a.jpg', 'b.jpg', 'c.jpg'],
-      videoUrls:  [],
-      prompts:  ['p1', 'p2'],
+      photoUrls: const ['a.jpg', 'b.jpg', 'c.jpg'],
+      videoUrls: const [],
+      prompts: const ['p1', 'p2'],
       isVerified: false,
       jobTitle: 'Engineer',
       company: 'Acme',
       school: null,
-      interests: ['music', 'travel', 'tech'],
+      interests: const ['music', 'travel', 'tech'],
       country: 'US',
       city: 'NYC',
       latitude: null,
       longitude: null,
       preferences: prefs,
+      dateOfBirth: DateTime(1998, 5, 15),
     );
 
     final summary = evaluateProfileCompleteness(profile);
@@ -74,7 +75,7 @@ void main() {
 
     final summary = evaluateProfileCompleteness(profile);
     expect(summary.score, lessThan(kSwipeMinimumCompleteness));
-    expect(summary.missing, contains('Write a bio (40+ characters)'));
-    expect(summary.missing, contains('Add at least 3 interests'));
+    expect(summary.missing, contains('Write about yourself for a better profile'));
+    expect(summary.missing, contains('Add interests to find better matches'));
   });
 }

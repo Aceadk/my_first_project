@@ -53,7 +53,8 @@ const prefs = DiscoveryPreferences(
 
     expect(find.textContaining('Profile completeness'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.textContaining('Add at least'), findsWidgets);
+    // Profile is missing: name, dateOfBirth, sexualOrientation, bio, interests
+    expect(find.textContaining('Add your display name'), findsOneWidget);
     expect(find.textContaining('Finish profile'), findsOneWidget);
   });
 }
