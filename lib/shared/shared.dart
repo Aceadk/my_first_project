@@ -1,0 +1,22 @@
+/// Shared components barrel export.
+/// Re-exports shared widgets, models, and utilities.
+library shared;
+
+// Shared Widgets
+export '../presentation/widgets/async_state_scaffold.dart';
+export '../presentation/widgets/cached_network_image.dart';
+export '../presentation/widgets/plus_feature_gate.dart';
+
+// Shared Models
+export '../data/models/user.dart';
+export '../data/models/profile.dart';
+export '../data/models/message.dart';
+export '../data/models/match.dart';
+export '../data/models/subscription.dart';
+export '../data/models/preferences.dart';
+export '../data/models/privacy_settings.dart';
+
+// Core Utilities
+export '../core/result.dart';
+export '../core/constants.dart';
+export '../core/validators.dart';
