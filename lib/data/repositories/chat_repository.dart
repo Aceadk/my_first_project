@@ -100,4 +100,27 @@ abstract class ChatRepository {
   });
 
   Future<List<CrushMatch>> fetchUserMatches(String userId);
+
+  /// Fetch paginated matches for a user.
+  ///
+  /// [offset] - Number of matches to skip.
+  /// [limit] - Maximum number of matches to return.
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  });
+}
+
+/// Result wrapper for paginated data.
+class PaginatedResult<T> {
+  final List<T> items;
+  final int total;
+  final bool hasMore;
+
+  const PaginatedResult({
+    required this.items,
+    required this.total,
+    required this.hasMore,
+  });
 }

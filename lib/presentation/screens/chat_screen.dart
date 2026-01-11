@@ -22,6 +22,7 @@ import '../../data/services/profile_validation_service.dart';
 import '../widgets/plus_feature_gate.dart';
 import '../widgets/async_state_scaffold.dart';
 import '../../core/ui/snackbar_utils.dart';
+import '../../shared/widgets/cached_image.dart';
 import 'video_call_screen.dart';
 import 'profile_edit_screen.dart';
 
@@ -937,12 +938,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Text('Image unavailable'),
                   )
-                : Image.network(
-                    msg.content,
+                : CachedImage(
+                    imageUrl: msg.content,
                     width: 220,
                     height: 260,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Text('Image unavailable'),
+                    borderRadius: BorderRadius.circular(8),
+                    errorWidget: const Text('Image unavailable'),
                   ),
           ),
         );

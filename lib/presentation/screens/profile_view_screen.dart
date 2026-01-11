@@ -11,6 +11,7 @@ import '../../core/profile_completeness.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
+import '../../shared/widgets/cached_image.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -356,10 +357,10 @@ class _ProfileHeader extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (displayPhoto != null)
-          Image.network(
-            displayPhoto,
+          CachedImage(
+            imageUrl: displayPhoto,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+            errorWidget: _buildPlaceholder(),
           )
         else
           _buildPlaceholder(),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/profile_media_limits.dart';
+import '../../shared/widgets/cached_image.dart';
 
 class ProfileMediaSelection {
   final List<String> photos;
@@ -260,7 +261,7 @@ class _MediaTile extends StatelessWidget {
                 child: isVideo
                     ? const Center(child: Icon(Icons.videocam, size: 32))
                     : _isRemote
-                        ? Image.network(path, fit: BoxFit.cover)
+                        ? CachedImage(imageUrl: path, fit: BoxFit.cover)
                         : Image.file(File(path), fit: BoxFit.cover),
               ),
             ),

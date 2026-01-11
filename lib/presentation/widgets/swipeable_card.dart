@@ -4,6 +4,11 @@ import 'swipe_card.dart';
 
 /// A swipeable card widget that handles horizontal swipe gestures.
 /// Swipe left to right = Like, Swipe right to left = Pass
+///
+/// Performance optimizations:
+/// - Uses ValueNotifier to avoid setState during drag operations
+/// - Uses RepaintBoundary to isolate repaints to this subtree
+/// - Uses AnimatedBuilder's child parameter for static content
 class SwipeableCard extends StatefulWidget {
   const SwipeableCard({
     super.key,
@@ -24,12 +29,12 @@ class SwipeableCard extends StatefulWidget {
 
 class _SwipeableCardState extends State<SwipeableCard>
     with SingleTickerProviderStateMixin {
-  double _dragX = 0;
+  // Use ValueNotifier for efficient updates without setState
+  final ValueNotifier<double> _dragXNotifier = ValueNotifier(0);
   double _dragStartX = 0;
   bool _isDragging = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
-  bool _hasAnimationListener = false;
 
   static const double _swipeThreshold = 100.0;
   static const double _maxRotation = 0.1; // radians
@@ -44,27 +49,23 @@ class _SwipeableCardState extends State<SwipeableCard>
     _animation = Tween<double>(begin: 0, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
+
+    // Single listener for animation updates
+    _animationController.addListener(_onAnimationUpdate);
   }
 
   @override
   void dispose() {
-    // Ensure listener is removed before disposing
-    _removeAnimationListener();
+    _animationController.removeListener(_onAnimationUpdate);
     _animationController.dispose();
+    _dragXNotifier.dispose();
     super.dispose();
   }
 
-  void _addAnimationListener() {
-    if (!_hasAnimationListener) {
-      _animationController.addListener(_onAnimationUpdate);
-      _hasAnimationListener = true;
-    }
-  }
-
-  void _removeAnimationListener() {
-    if (_hasAnimationListener) {
-      _animationController.removeListener(_onAnimationUpdate);
-      _hasAnimationListener = false;
+  void _onAnimationUpdate() {
+    // Update notifier during animation - no setState needed
+    if (_animationController.isAnimating) {
+      _dragXNotifier.value = _animation.value;
     }
   }
 
@@ -75,27 +76,24 @@ class _SwipeableCardState extends State<SwipeableCard>
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
-    setState(() {
-      _dragX = details.globalPosition.dx - _dragStartX;
-    });
+    // Update ValueNotifier instead of calling setState
+    _dragXNotifier.value = details.globalPosition.dx - _dragStartX;
   }
 
   void _onPanEnd(DragEndDetails details) {
     if (!_isDragging) return;
     _isDragging = false;
 
+    final dragX = _dragXNotifier.value;
     final velocity = details.velocity.pixelsPerSecond.dx;
-    final shouldSwipeRight = _dragX > _swipeThreshold || velocity > 500;
-    final shouldSwipeLeft = _dragX < -_swipeThreshold || velocity < -500;
+    final shouldSwipeRight = dragX > _swipeThreshold || velocity > 500;
+    final shouldSwipeLeft = dragX < -_swipeThreshold || velocity < -500;
 
     if (shouldSwipeRight) {
-      // Swipe left to right = Like
       _animateOut(true);
     } else if (shouldSwipeLeft) {
-      // Swipe right to left = Pass
       _animateOut(false);
     } else {
-      // Snap back to center
       _animateBack();
     }
   }
@@ -104,7 +102,7 @@ class _SwipeableCardState extends State<SwipeableCard>
     final screenWidth = MediaQuery.of(context).size.width;
     final targetX = isLike ? screenWidth : -screenWidth;
 
-    _animation = Tween<double>(begin: _dragX, end: targetX).animate(
+    _animation = Tween<double>(begin: _dragXNotifier.value, end: targetX).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
@@ -114,134 +112,122 @@ class _SwipeableCardState extends State<SwipeableCard>
       } else {
         widget.onSwipeLeft();
       }
-      // Reset position for next card
-      setState(() {
-        _dragX = 0;
-      });
+      // Reset position
+      _dragXNotifier.value = 0;
       _animationController.reset();
     });
   }
 
   void _animateBack() {
-    _animation = Tween<double>(begin: _dragX, end: 0).animate(
+    _animation = Tween<double>(begin: _dragXNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-
-    _addAnimationListener();
-
-    _animationController.forward(from: 0).then((_) {
-      _removeAnimationListener();
-    });
-  }
-
-  void _onAnimationUpdate() {
-    setState(() {
-      _dragX = _animation.value;
-    });
+    _animationController.forward(from: 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final rotation = (_dragX / 500).clamp(-_maxRotation, _maxRotation);
-    final opacity = 1 - (_dragX.abs() / 300).clamp(0.0, 0.3);
-
     return GestureDetector(
       onTap: _isDragging ? null : widget.onTap,
       onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          final currentX =
-              _animationController.isAnimating ? _animation.value : _dragX;
-          return Transform(
-            transform: Matrix4.identity()
-              ..setTranslationRaw(currentX, 0, 0)
-              ..rotateZ(rotation),
-            alignment: Alignment.center,
-            child: Stack(
-              children: [
-                Opacity(
-                  opacity: opacity,
-                  child: SwipeCard(profile: widget.profile),
-                ),
-                // Like indicator (right side)
-                if (_dragX > 20)
-                  Positioned(
-                    left: 30,
-                    top: 30,
-                    child: Transform.rotate(
-                      angle: -0.3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.green,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'LIKE',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
+      // RepaintBoundary isolates repaints to this subtree
+      child: RepaintBoundary(
+        child: ValueListenableBuilder<double>(
+          valueListenable: _dragXNotifier,
+          builder: (context, dragX, child) {
+            final rotation = (dragX / 500).clamp(-_maxRotation, _maxRotation);
+            final opacity = 1 - (dragX.abs() / 300).clamp(0.0, 0.3);
+
+            return Transform(
+              transform: Matrix4.identity()
+                ..setTranslationRaw(dragX, 0, 0)
+                ..rotateZ(rotation),
+              alignment: Alignment.center,
+              child: Stack(
+                children: [
+                  Opacity(
+                    opacity: opacity,
+                    // Use child parameter for static content optimization
+                    child: child,
+                  ),
+                  // Like indicator (right side)
+                  if (dragX > 20)
+                    const Positioned(
+                      left: 30,
+                      top: 30,
+                      child: _SwipeIndicator(
+                        text: 'LIKE',
+                        color: Colors.green,
+                        angle: -0.3,
                       ),
                     ),
-                  ),
-                // Pass indicator (left side)
-                if (_dragX < -20)
-                  Positioned(
-                    right: 30,
-                    top: 30,
-                    child: Transform.rotate(
-                      angle: 0.3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.red,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'NOPE',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
+                  // Pass indicator (left side)
+                  if (dragX < -20)
+                    const Positioned(
+                      right: 30,
+                      top: 30,
+                      child: _SwipeIndicator(
+                        text: 'NOPE',
+                        color: Colors.red,
+                        angle: 0.3,
                       ),
                     ),
-                  ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+          // Static child passed to builder for optimization
+          child: SwipeCard(profile: widget.profile),
+        ),
+      ),
+    );
+  }
+}
+
+/// Extracted swipe indicator widget to avoid rebuilds
+class _SwipeIndicator extends StatelessWidget {
+  final String text;
+  final Color color;
+  final double angle;
+
+  const _SwipeIndicator({
+    required this.text,
+    required this.color,
+    required this.angle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: color,
+            width: 3,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

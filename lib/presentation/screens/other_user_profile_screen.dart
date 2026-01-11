@@ -6,6 +6,7 @@ import '../../core/profile_field_options.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
+import '../../shared/widgets/cached_image.dart';
 
 /// Arguments for viewing another user's profile
 class OtherUserProfileArgs {
@@ -567,10 +568,10 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
         fit: StackFit.expand,
         children: [
           if (hasPhotos)
-            Image.network(
-              widget.profile.photoUrls[_currentPhotoIndex],
+            CachedImage(
+              imageUrl: widget.profile.photoUrls[_currentPhotoIndex],
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+              errorWidget: _buildPlaceholder(),
             )
           else
             _buildPlaceholder(),

@@ -396,6 +396,23 @@ class StubChatRepository implements ChatRepository {
     )).toList();
   }
 
+  @override
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    final allMatches = await fetchUserMatches(userId);
+    final total = allMatches.length;
+    final end = (offset + limit).clamp(0, total);
+    final items = offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
+    return PaginatedResult(
+      items: items,
+      total: total,
+      hasMore: end < total,
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════

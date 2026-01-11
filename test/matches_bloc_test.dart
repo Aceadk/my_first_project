@@ -60,6 +60,15 @@ class _ThrowingChatRepository implements ChatRepository {
   }
 
   @override
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  }) {
+    throw Exception('network failed');
+  }
+
+  @override
   Stream<List<Message>> watchMessages(String matchId) {
     throw UnimplementedError();
   }
@@ -175,4 +184,9 @@ class _ThrowingChatRepository implements ChatRepository {
   }) {
     throw UnimplementedError();
   }
+}
+
+// Helper extension for the tests
+extension on PaginatedResult<CrushMatch> {
+  // Can be used if we need helpers
 }

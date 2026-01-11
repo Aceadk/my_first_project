@@ -147,6 +147,13 @@ class _FakeChatRepository implements ChatRepository {
   Future<List<CrushMatch>> fetchUserMatches(String userId) async => [];
 
   @override
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
+
+  @override
   Future<String> uploadMedia({
     required String matchId,
     required String filePath,

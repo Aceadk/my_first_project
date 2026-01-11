@@ -13,6 +13,7 @@ import '../../core/router.dart';
 import '../../data/models/subscription.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
+import '../../shared/widgets/cached_image.dart';
 import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
@@ -141,33 +142,59 @@ class _MatchesView extends StatelessWidget {
           errorMessage: state.errorMessage,
           showErrorSnackBar: true,
           empty: emptyView,
-          body: ListView.separated(
-            padding: DsEdgeInsets.allLg,
-            itemCount: state.matches.length,
-            separatorBuilder: (_, __) => DsGap.sm,
-            itemBuilder: (context, index) {
-              final match = state.matches[index];
-              final otherName = match.otherUserName ??
-                  (match.otherUserId.trim().isNotEmpty ? match.otherUserId : null) ??
-                  'Name unavailable';
-
-              return _MatchTile(
-                name: otherName,
-                photoUrl: match.otherUserPhotoUrl,
-                onTap: () {
-                  // Use go_router for navigation - ChatScreen will use app-level ChatBloc
-                  context.push(
-                    '/chat/${match.id}',
-                    extra: ChatScreenArgs(
-                      matchId: match.id,
-                      currentUserId: currentUserId,
-                      otherUserId: match.otherUserId,
-                      otherName: otherName,
+          body: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              // Load more when user scrolls near the bottom
+              if (notification is ScrollEndNotification &&
+                  notification.metrics.extentAfter < 200 &&
+                  state.hasMore &&
+                  !state.isLoadingMore) {
+                context.read<MatchesBloc>().add(const MatchesLoadMoreRequested());
+              }
+              return false;
+            },
+            child: ListView.separated(
+              padding: DsEdgeInsets.allLg,
+              itemCount: state.matches.length + (state.isLoadingMore ? 1 : 0),
+              separatorBuilder: (_, __) => DsGap.sm,
+              itemBuilder: (context, index) {
+                // Show loading indicator at the end
+                if (index == state.matches.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
                   );
-                },
-              );
-            },
+                }
+
+                final match = state.matches[index];
+                final otherName = match.otherUserName ??
+                    (match.otherUserId.trim().isNotEmpty ? match.otherUserId : null) ??
+                    'Name unavailable';
+
+                return _MatchTile(
+                  name: otherName,
+                  photoUrl: match.otherUserPhotoUrl,
+                  onTap: () {
+                    // Use go_router for navigation - ChatScreen will use app-level ChatBloc
+                    context.push(
+                      '/chat/${match.id}',
+                      extra: ChatScreenArgs(
+                        matchId: match.id,
+                        currentUserId: currentUserId,
+                        otherUserId: match.otherUserId,
+                        otherName: otherName,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         );
       },
@@ -199,14 +226,9 @@ class _MatchTile extends StatelessWidget {
           child: Row(
             children: [
               // Simple avatar without online indicator - presence not tracked in matches list
-              CircleAvatar(
+              CachedCircleAvatar(
+                imageUrl: photoUrl,
                 radius: 28,
-                backgroundColor: DsColors.skeletonLight,
-                backgroundImage:
-                    photoUrl != null ? NetworkImage(photoUrl!) : null,
-                child: photoUrl == null
-                    ? const Icon(Icons.person, color: DsColors.textMutedLight)
-                    : null,
               ),
               DsGap.lgH,
               Expanded(

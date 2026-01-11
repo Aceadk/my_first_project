@@ -13,6 +13,7 @@ import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
+import '../../shared/widgets/cached_image.dart';
 import '../widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
@@ -169,7 +170,8 @@ class _ChatTile extends StatefulWidget {
   State<_ChatTile> createState() => _ChatTileState();
 }
 
-class _ChatTileState extends State<_ChatTile> {
+class _ChatTileState extends State<_ChatTile>
+    with AutomaticKeepAliveClientMixin {
   Message? _lastMessage;
   int _unreadCount = 0;
   bool _isOnline = false;
@@ -177,6 +179,9 @@ class _ChatTileState extends State<_ChatTile> {
   // Properly managed stream subscriptions to prevent memory leaks
   StreamSubscription<List<Message>>? _messagesSubscription;
   StreamSubscription<bool>? _presenceSubscription;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -235,6 +240,8 @@ class _ChatTileState extends State<_ChatTile> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
     final name = widget.match.otherUserName ??
         (widget.match.otherUserId.trim().isNotEmpty
             ? widget.match.otherUserId
@@ -259,15 +266,9 @@ class _ChatTileState extends State<_ChatTile> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
+                  CachedCircleAvatar(
+                    imageUrl: widget.match.otherUserPhotoUrl,
                     radius: 28,
-                    backgroundColor: DsColors.skeletonLight,
-                    backgroundImage: widget.match.otherUserPhotoUrl != null
-                        ? NetworkImage(widget.match.otherUserPhotoUrl!)
-                        : null,
-                    child: widget.match.otherUserPhotoUrl == null
-                        ? const Icon(Icons.person, color: DsColors.textMutedLight)
-                        : null,
                   ),
                   // Online indicator - only show when user is online
                   if (_isOnline)

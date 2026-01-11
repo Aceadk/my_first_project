@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../data/models/profile.dart';
+import '../../shared/widgets/cached_image.dart';
 
 class ProfileMediaScreen extends StatefulWidget {
   const ProfileMediaScreen({super.key, required this.profile});
@@ -87,10 +88,10 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                       itemBuilder: (context, index) {
                         final url = photos[index];
                         return InteractiveViewer(
-                          child: Image.network(
-                            url,
+                          child: CachedImage(
+                            imageUrl: url,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Center(
+                            errorWidget: const Center(
                               child: Text('Photo unavailable'),
                             ),
                           ),

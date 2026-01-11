@@ -16,3 +16,8 @@ class MatchesLoadRequested extends MatchesEvent {
 class MatchesRefreshRequested extends MatchesEvent {
   const MatchesRefreshRequested();
 }
+
+/// Load more matches for pagination.
+class MatchesLoadMoreRequested extends MatchesEvent {
+  const MatchesLoadMoreRequested();
+}

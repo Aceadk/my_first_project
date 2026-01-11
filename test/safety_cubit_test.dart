@@ -187,6 +187,16 @@ class _StubChatRepository implements ChatRepository {
   }
 
   @override
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    _maybeThrow();
+    return const PaginatedResult(items: [], total: 0, hasMore: false);
+  }
+
+  @override
   Future<void> markMessagesRead(String matchId, String userId) async {
     _maybeThrow();
   }
