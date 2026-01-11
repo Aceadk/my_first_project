@@ -11,6 +11,13 @@ class Result<T> {
 
   const Result._({this.data, this.errorMessage, this.errorCode});
 
+  /// Create a successful result with data.
+  const Result.success(T data) : this._(data: data);
+
+  /// Create a failed result with an error message.
+  const Result.failure(String message, {String? code})
+      : this._(errorMessage: message, errorCode: code);
+
   bool get isSuccess => errorMessage == null;
 
   static Future<Result<T>> guard<T>(
