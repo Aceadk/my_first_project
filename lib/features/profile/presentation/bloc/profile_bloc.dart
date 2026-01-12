@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
@@ -9,6 +11,12 @@ import 'profile_state.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository profileRepository;
   final AuthRepository authRepository;
+
+  Timer? _retryTimer;
+  int _retryDelayMs = 1000;
+  int _retryCount = 0;
+  static const int _maxAutoRetries = 2;
+  bool _isManualRefresh = false;
 
   ProfileBloc({
     required this.profileRepository,
@@ -24,19 +32,62 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onLoadRequested(
       ProfileLoadRequested event, Emitter<ProfileState> emit) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    // Track if this is a manual refresh (user-triggered) vs auto-retry
+    final isManualRefresh =
+        _isManualRefresh || state.status != ProfileStatus.error;
+
+    if (isManualRefresh) {
+      _retryCount = 0;
+      _retryDelayMs = 1000;
+    }
+    _isManualRefresh = false;
+    _retryTimer?.cancel();
+
+    emit(state.copyWith(
+      isLoading: true,
+      status: ProfileStatus.loading,
+      errorMessage: null,
+      nextRetrySeconds: null,
+    ));
+
     final result = await Result.guard(
       () => profileRepository.getCurrentUser(),
       logLabel: 'ProfileRepository.getCurrentUser',
       fallbackError: 'Could not load profile. Please try again.',
     );
+
     if (!result.isSuccess) {
+      _retryCount++;
+      final errorMsg = result.errorMessage;
+
+      // Check if error indicates "no profile" rather than actual failure
+      final isNoProfileError = _isNoProfileError(errorMsg);
+
+      // If we've retried enough times or error indicates no profile, show empty state
+      if (_retryCount > _maxAutoRetries || isNoProfileError) {
+        emit(state.copyWith(
+          isLoading: false,
+          status: ProfileStatus.empty,
+          errorMessage: null,
+          nextRetrySeconds: null,
+        ));
+        return;
+      }
+
+      // Otherwise show error and schedule retry
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: result.errorMessage,
+        status: ProfileStatus.error,
+        errorMessage: errorMsg,
+        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
       ));
+      _scheduleRetry();
       return;
     }
+
+    // Success - reset retry state
+    _retryCount = 0;
+    _retryDelayMs = 1000;
 
     final user = result.data;
 
@@ -45,12 +96,43 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       AnalyticsService.instance.logProfileViewed();
     }
 
+    // If user is null or has no profile, they need to create one
+    final hasProfile = user?.profile != null;
+
     emit(state.copyWith(
       user: user,
       profile: user?.profile,
       isLoading: false,
+      status: hasProfile ? ProfileStatus.loaded : ProfileStatus.empty,
       errorMessage: null,
+      nextRetrySeconds: null,
     ));
+  }
+
+  /// Check if error message indicates no profile available vs actual error.
+  bool _isNoProfileError(String? errorMsg) {
+    if (errorMsg == null) return false;
+    final lower = errorMsg.toLowerCase();
+    return lower.contains('no profile') ||
+        lower.contains('not found') ||
+        lower.contains('does not exist') ||
+        lower.contains('no user') ||
+        lower.contains('empty');
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    final delay = Duration(milliseconds: _retryDelayMs);
+    _retryDelayMs = (_retryDelayMs * 2).clamp(1000, 8000);
+    _retryTimer = Timer(delay, () {
+      if (!isClosed) add(ProfileLoadRequested());
+    });
+  }
+
+  /// Trigger a manual refresh (resets retry count).
+  void manualRefresh() {
+    _isManualRefresh = true;
+    add(ProfileLoadRequested());
   }
 
   Future<void> _onBasicInfoSubmitted(
@@ -193,7 +275,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       user: updatedUser ?? state.user,
       profile: updatedUser?.profile ?? state.profile,
       isSaving: false,
+      status: ProfileStatus.loaded,
       errorMessage: result.errorMessage,
     ));
+  }
+
+  @override
+  Future<void> close() {
+    _retryTimer?.cancel();
+    return super.close();
   }
 }
