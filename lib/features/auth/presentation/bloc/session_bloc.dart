@@ -5,6 +5,7 @@ import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/security/session_manager.dart';
+import 'package:crushhour/core/services/push_notification_service.dart';
 
 // Events
 abstract class SessionEvent extends Equatable {
@@ -139,15 +140,22 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     }
   }
 
-  void _onUserChanged(
+  Future<void> _onUserChanged(
     SessionUserChanged event,
     Emitter<SessionState> emit,
-  ) {
+  ) async {
+    final user = event.user;
+
+    // Register/unregister FCM token based on auth state
+    if (user != null) {
+      await PushNotificationService.instance.registerForUser(user.id);
+    }
+
     emit(state.copyWith(
-      status: event.user == null
+      status: user == null
           ? SessionStatus.unauthenticated
           : SessionStatus.authenticated,
-      user: event.user,
+      user: user,
       isLoading: false,
       clearError: true,
     ));
@@ -161,6 +169,8 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
 
     final result = await Result.guard(
       () async {
+        // Unregister FCM token before signing out
+        await PushNotificationService.instance.unregisterForUser();
         await authRepository.signOut();
         await _sessionManager.clearSession();
       },
@@ -184,6 +194,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     Emitter<SessionState> emit,
   ) async {
     // Auto-logout due to inactivity
+    await PushNotificationService.instance.unregisterForUser();
     await authRepository.signOut();
     await _sessionManager.clearSession();
 

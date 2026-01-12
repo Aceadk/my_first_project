@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -20,6 +21,9 @@ class PushNotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String? _currentUserId;
 
   /// Callback when notification is tapped
   void Function(String? payload)? onNotificationTapped;
@@ -195,6 +199,65 @@ class PushNotificationService {
   Future<void> _printFCMToken() async {
     final token = await getToken();
     debugPrint('FCM Token: $token');
+  }
+
+  /// Register FCM token for a user (call after login)
+  Future<void> registerForUser(String userId) async {
+    _currentUserId = userId;
+    final token = await getToken();
+    if (token != null) {
+      await _saveTokenToFirestore(userId, token);
+    }
+
+    // Listen for token refresh
+    _messaging.onTokenRefresh.listen((newToken) {
+      if (_currentUserId != null) {
+        _saveTokenToFirestore(_currentUserId!, newToken);
+      }
+    });
+  }
+
+  /// Unregister FCM token (call on logout)
+  Future<void> unregisterForUser() async {
+    final userId = _currentUserId;
+    final token = await getToken();
+    if (userId != null && token != null) {
+      await _deleteTokenFromFirestore(userId, token);
+    }
+    _currentUserId = null;
+  }
+
+  /// Save FCM token to Firestore
+  Future<void> _saveTokenToFirestore(String userId, String token) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('fcmTokens')
+          .doc(token)
+          .set({
+        'createdAt': Timestamp.now(),
+        'platform': Platform.isIOS ? 'ios' : 'android',
+      });
+      debugPrint('FCM token saved for user: $userId');
+    } catch (e) {
+      debugPrint('Error saving FCM token: $e');
+    }
+  }
+
+  /// Delete FCM token from Firestore
+  Future<void> _deleteTokenFromFirestore(String userId, String token) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('fcmTokens')
+          .doc(token)
+          .delete();
+      debugPrint('FCM token deleted for user: $userId');
+    } catch (e) {
+      debugPrint('Error deleting FCM token: $e');
+    }
   }
 
   /// Subscribe to a topic
