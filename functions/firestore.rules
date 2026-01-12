@@ -22,6 +22,11 @@ service cloud.firestore {
       // Users should not create themselves; server does that
       allow create: if false;
       allow delete: if false;
+
+      // FCM tokens subcollection - users can manage their own tokens
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
     // Likes: only the liker can create; no updates
