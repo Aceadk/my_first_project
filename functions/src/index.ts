@@ -3316,3 +3316,112 @@ export const getAgoraToken = callable<AgoraTokenRequest>(async (data, context) =
     isVideoCall,
   };
 });
+
+// Profile completeness check
+interface ProfileCompletenessRequest {
+  minimum?: "swipe" | "messaging";
+}
+
+export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "check profile completeness");
+    const minimum = (data?.minimum as string) ?? "swipe";
+
+    const user = await getUser(uid);
+    const profile = (user as unknown as { profile?: ProfileData }).profile;
+
+    const photos = toStringArray(profile?.photoUrls);
+    const prompts = toStringArray(profile?.prompts);
+    const interests = toStringArray(profile?.interests);
+    const bio =
+      typeof profile?.bio === "string" ? (profile.bio as string).trim() : "";
+    const country = typeof profile?.country === "string" ? profile.country : "";
+    const city = typeof profile?.city === "string" ? profile.city : "";
+
+    // Calculate breakdown scores (0-100 for each category)
+    const photoScore = Math.min(100, (photos.length / PROFILE_MIN_PHOTOS) * 100);
+    const bioScore = Math.min(100, (bio.length / PROFILE_MIN_BIO_LENGTH) * 100);
+    const promptsScore = Math.min(
+      100,
+      (prompts.length / PROFILE_MIN_PROMPTS) * 100
+    );
+    const interestsScore = Math.min(
+      100,
+      (interests.length / PROFILE_MIN_INTERESTS) * 100
+    );
+    const locationScore = city && country ? 100 : 0;
+
+    const breakdown: Record<string, number> = {
+      photos: photoScore,
+      bio: bioScore,
+      prompts: promptsScore,
+      interests: interestsScore,
+      location: locationScore,
+    };
+
+    // Calculate overall weighted score
+    const weights = {
+      photos: 0.25,
+      bio: 0.2,
+      prompts: 0.2,
+      interests: 0.2,
+      location: 0.15,
+    };
+    const score =
+      photoScore * weights.photos +
+      bioScore * weights.bio +
+      promptsScore * weights.prompts +
+      interestsScore * weights.interests +
+      locationScore * weights.location;
+
+    // Build missing list
+    const missing: string[] = [];
+    const requiredMissing: string[] = [];
+
+    if (photos.length < PROFILE_MIN_PHOTOS) {
+      const msg = `Add at least ${PROFILE_MIN_PHOTOS} photo(s).`;
+      missing.push(msg);
+      requiredMissing.push(msg);
+    }
+    if (bio.length < PROFILE_MIN_BIO_LENGTH) {
+      missing.push(
+        `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`
+      );
+    }
+    if (prompts.length < PROFILE_MIN_PROMPTS) {
+      missing.push(`Answer at least ${PROFILE_MIN_PROMPTS} prompts.`);
+    }
+    if (interests.length < PROFILE_MIN_INTERESTS) {
+      missing.push(`Add at least ${PROFILE_MIN_INTERESTS} interests.`);
+    }
+    if (!city || !country) {
+      const msg = "Add your city and country.";
+      missing.push(msg);
+      requiredMissing.push(msg);
+    }
+
+    // Thresholds for different actions
+    const swipeThreshold = 60;
+    const messagingThreshold = 80;
+
+    const meetsSwipeMinimum = score >= swipeThreshold;
+    const meetsMessagingMinimum = score >= messagingThreshold;
+    const meetsRequiredFields = requiredMissing.length === 0;
+    const threshold = minimum === "messaging" ? messagingThreshold : swipeThreshold;
+    const meetsMinimum =
+      minimum === "messaging" ? meetsMessagingMinimum : meetsSwipeMinimum;
+
+    return {
+      score,
+      breakdown,
+      missing,
+      requiredMissing,
+      meetsSwipeMinimum,
+      meetsMessagingMinimum,
+      meetsRequiredFields,
+      meetsMinimum: meetsMinimum && meetsRequiredFields,
+      minimum,
+      threshold,
+    };
+  }
+);
