@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/data/repositories/chat_repository.dart';
-import 'package:crushhour/logic/safety/safety_cubit.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

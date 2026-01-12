@@ -4,10 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import '../data/repositories/discovery_repository.dart';
-import '../data/repositories/chat_repository.dart';
-import '../data/repositories/subscription_repository.dart';
-import '../data/repositories/call_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/calls/data/repositories/call_repository.dart';
 
 // Firebase implementations
 import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_repository.dart';
@@ -15,10 +15,10 @@ import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_rep
 // Stub implementations (for development/demo without backend)
 import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/impl/stub_profile_repository.dart';
-import '../data/repositories/stub/stub_discovery_repository.dart';
-import '../data/repositories/stub/stub_chat_repository.dart';
-import '../data/repositories/stub/stub_subscription_repository.dart';
-import '../data/repositories/stub/stub_call_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/stub_discovery_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
+import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
 
 // BLoCs
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -27,18 +27,18 @@ import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/phone_auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/email_auth_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
-import '../logic/discovery/discovery_bloc.dart';
-import '../logic/chat/chat_bloc.dart';
-import '../logic/subscription/subscription_bloc.dart';
-import '../logic/subscription/subscription_event.dart';
-import '../logic/call/call_bloc.dart';
-import '../logic/theme/theme_cubit.dart';
-import '../logic/notification/notification_settings_cubit.dart';
-import '../logic/discovery/discovery_settings_cubit.dart';
-import '../logic/safety/safety_cubit.dart';
-import '../logic/locale/locale_cubit.dart';
-import '../logic/storage/storage_settings_cubit.dart';
-import '../logic/privacy/privacy_settings_cubit.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
+import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 
 /// Backend configuration for the app.
 /// Switch between stub (development/demo) and Firebase (production) implementations.

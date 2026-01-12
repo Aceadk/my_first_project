@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
-import 'deck_screen.dart';
-import 'matches_screen.dart';
-import 'chat_list_screen.dart';
+import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
+import 'package:crushhour/features/chat/presentation/screens/matches_screen.dart';
+import 'package:crushhour/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
 
 class HomeScreen extends StatefulWidget {

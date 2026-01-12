@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:crushhour/logic/locale/locale_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 
 void main() {
   group('LocaleCubit', () {

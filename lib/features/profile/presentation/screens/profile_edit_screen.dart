@@ -335,10 +335,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (confirmed != true) return;
     }
 
+    if (!mounted) return;
+
     final now = DateTime.now();
     const minAge = 18;
     const maxAge = 100;
     final result = await showDatePicker(
+      // ignore: use_build_context_synchronously
       context: context,
       initialDate: _dateOfBirth ?? DateTime(now.year - 25),
       firstDate: DateTime(now.year - maxAge),
@@ -347,12 +350,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ? 'Select your date of birth (cannot be easily changed later)'
           : 'Select your date of birth',
     );
-    if (result != null) {
-      // Show final confirmation with warning
-      if (!mounted) return;
-      final finalConfirm = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
+
+    if (result == null) return;
+    if (!mounted) return;
+
+    // Show final confirmation with warning
+    final finalConfirm = await showDialog<bool>(
+      // ignore: use_build_context_synchronously
+      context: context,
+      builder: (context) => AlertDialog(
           icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
           title: const Text('Confirm Date of Birth'),
           content: Text(
@@ -372,9 +378,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ],
         ),
       );
-      if (finalConfirm == true) {
-        setState(() => _dateOfBirth = result);
-      }
+    if (finalConfirm == true) {
+      setState(() => _dateOfBirth = result);
     }
   }
 

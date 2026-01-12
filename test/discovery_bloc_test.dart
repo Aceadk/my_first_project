@@ -2,11 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/repositories/discovery_repository.dart';
-import 'package:crushhour/data/repositories/subscription_repository.dart';
-import 'package:crushhour/logic/discovery/discovery_bloc.dart';
-import 'package:crushhour/logic/discovery/discovery_event.dart';
-import 'package:crushhour/logic/discovery/discovery_state.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 
 void main() {
   group('DiscoveryBloc', () {

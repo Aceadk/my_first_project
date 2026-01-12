@@ -10,20 +10,20 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import 'package:crushhour/logic/discovery/discovery_bloc.dart';
-import 'package:crushhour/logic/discovery/discovery_state.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
-import 'package:crushhour/logic/safety/safety_cubit.dart';
-import 'package:crushhour/logic/subscription/subscription_bloc.dart';
-import 'package:crushhour/presentation/screens/deck_screen.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

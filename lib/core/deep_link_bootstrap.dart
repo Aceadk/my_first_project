@@ -7,8 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
-import '../logic/subscription/subscription_bloc.dart';
-import '../logic/subscription/subscription_event.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 
 class DeepLinkBootstrap extends StatefulWidget {
   const DeepLinkBootstrap({super.key, required this.child});

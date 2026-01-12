@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/repositories/chat_repository.dart';
-import 'package:crushhour/data/repositories/subscription_repository.dart';
-import 'package:crushhour/logic/chat/chat_bloc.dart';
-import 'package:crushhour/logic/chat/chat_event.dart';
-import 'package:crushhour/logic/chat/chat_state.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 
 class _FakeChatRepository implements ChatRepository {
   final List<Message> sent = [];

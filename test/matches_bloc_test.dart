@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/data/repositories/chat_repository.dart';
-import 'package:crushhour/logic/matches/matches_bloc.dart';
-import 'package:crushhour/logic/matches/matches_event.dart';
-import 'package:crushhour/logic/matches/matches_state.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
 
 void main() {
   test('emits error state when fetching matches fails', () async {

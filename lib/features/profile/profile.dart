@@ -6,7 +6,7 @@ library profile;
 export 'presentation/bloc/profile_bloc.dart';
 export 'presentation/bloc/profile_event.dart';
 export 'presentation/bloc/profile_state.dart';
-export 'package:crushhour/logic/privacy/privacy_settings_cubit.dart';
+export 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 
 // Data (Repositories)
 export 'data/repositories/profile_repository.dart';

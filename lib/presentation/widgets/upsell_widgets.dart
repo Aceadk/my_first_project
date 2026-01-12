@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/subscription.dart';
-import '../../design_system/tokens/spacing_widgets.dart';
-import '../../logic/subscription/subscription_bloc.dart';
-import '../../logic/subscription/subscription_event.dart';
-import '../../logic/subscription/subscription_state.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 
 /// A card that promotes upgrading to Plus subscription.
 class UpgradeNudgeCard extends StatelessWidget {
