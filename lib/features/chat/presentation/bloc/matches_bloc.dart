@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'matches_event.dart';
 import 'matches_state.dart';
@@ -14,7 +16,14 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
   /// Page size for pagination.
   static const _pageSize = 20;
 
+  /// Max auto-retries before showing empty state.
+  static const int _maxAutoRetries = 2;
+
   DateTime? _lastFetchTime;
+  Timer? _retryTimer;
+  int _retryDelayMs = 1000;
+  int _retryCount = 0;
+  bool _isManualRefresh = false;
 
   MatchesBloc({
     required this.chatRepository,
@@ -47,8 +56,9 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     MatchesRefreshRequested event,
     Emitter<MatchesState> emit,
   ) async {
-    // Force refresh - invalidate cache
+    // Force refresh - invalidate cache and reset retry state
     _lastFetchTime = null;
+    _isManualRefresh = true;
     await _fetchMatches(emit, refresh: true);
   }
 
@@ -89,9 +99,21 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
   }
 
   Future<void> _fetchMatches(Emitter<MatchesState> emit, {required bool refresh}) async {
+    // Track if this is a manual refresh vs auto-retry
+    final isManualRefresh = _isManualRefresh || state.status != MatchesStatus.error;
+
+    if (isManualRefresh) {
+      _retryCount = 0;
+      _retryDelayMs = 1000;
+    }
+    _isManualRefresh = false;
+    _retryTimer?.cancel();
+
     emit(state.copyWith(
       isLoading: true,
+      status: MatchesStatus.loading,
       errorMessage: null,
+      nextRetrySeconds: null,
       // Reset pagination on refresh
       hasMore: true,
     ));
@@ -103,25 +125,80 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     );
 
     if (result.isSuccess && result.data != null) {
+      // Success - reset retry state
+      _retryCount = 0;
+      _retryDelayMs = 1000;
       _lastFetchTime = DateTime.now();
+
       final paginated = result.data!;
+      final hasMatches = paginated.items.isNotEmpty;
+
       emit(state.copyWith(
         matches: paginated.items,
         isLoading: false,
+        status: hasMatches ? MatchesStatus.loaded : MatchesStatus.empty,
         hasMore: paginated.hasMore,
         total: paginated.total,
         errorMessage: null,
+        nextRetrySeconds: null,
       ));
     } else {
+      _retryCount++;
+      final errorMsg = result.errorMessage;
+
+      // Check if error indicates "no matches" rather than actual failure
+      final isNoMatchesError = _isNoMatchesError(errorMsg);
+
+      // If we've retried enough times or error indicates no matches, show empty state
+      if (_retryCount > _maxAutoRetries || isNoMatchesError) {
+        emit(state.copyWith(
+          isLoading: false,
+          status: MatchesStatus.empty,
+          matches: const [],
+          errorMessage: null,
+          nextRetrySeconds: null,
+        ));
+        return;
+      }
+
+      // Otherwise show error and schedule retry
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: result.errorMessage,
+        status: MatchesStatus.error,
+        errorMessage: errorMsg,
+        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
       ));
+      _scheduleRetry();
     }
+  }
+
+  /// Check if error message indicates no matches available vs actual error.
+  bool _isNoMatchesError(String? errorMsg) {
+    if (errorMsg == null) return false;
+    final lower = errorMsg.toLowerCase();
+    return lower.contains('no matches') ||
+        lower.contains('no results') ||
+        lower.contains('not found') ||
+        lower.contains('empty');
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    final delay = Duration(milliseconds: _retryDelayMs);
+    _retryDelayMs = (_retryDelayMs * 2).clamp(1000, 8000);
+    _retryTimer = Timer(delay, () {
+      if (!isClosed) add(const MatchesLoadRequested());
+    });
   }
 
   /// Invalidates the cache, forcing a refresh on next load.
   void invalidateCache() {
     _lastFetchTime = null;
+  }
+
+  @override
+  Future<void> close() {
+    _retryTimer?.cancel();
+    return super.close();
   }
 }

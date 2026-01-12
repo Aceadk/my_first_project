@@ -1,6 +1,24 @@
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/match.dart';
 
+/// Matches loading status.
+enum MatchesStatus {
+  /// Initial state, no load attempted yet.
+  initial,
+
+  /// Loading matches from server.
+  loading,
+
+  /// Matches loaded successfully.
+  loaded,
+
+  /// No matches found (empty state).
+  empty,
+
+  /// Error loading matches (after retries exhausted).
+  error,
+}
+
 class MatchesState extends Equatable {
   final List<CrushMatch> matches;
   final bool isLoading;
@@ -8,6 +26,8 @@ class MatchesState extends Equatable {
   final bool hasMore;
   final int total;
   final String? errorMessage;
+  final MatchesStatus status;
+  final int? nextRetrySeconds;
   static const _unset = Object();
 
   const MatchesState({
@@ -17,6 +37,8 @@ class MatchesState extends Equatable {
     this.hasMore = true,
     this.total = 0,
     this.errorMessage,
+    this.status = MatchesStatus.initial,
+    this.nextRetrySeconds,
   });
 
   MatchesState copyWith({
@@ -26,6 +48,8 @@ class MatchesState extends Equatable {
     bool? hasMore,
     int? total,
     Object? errorMessage = _unset,
+    MatchesStatus? status,
+    Object? nextRetrySeconds = _unset,
   }) {
     return MatchesState(
       matches: matches ?? this.matches,
@@ -36,9 +60,22 @@ class MatchesState extends Equatable {
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
           : errorMessage as String?,
+      status: status ?? this.status,
+      nextRetrySeconds: identical(nextRetrySeconds, _unset)
+          ? this.nextRetrySeconds
+          : nextRetrySeconds as int?,
     );
   }
 
   @override
-  List<Object?> get props => [matches, isLoading, isLoadingMore, hasMore, total, errorMessage];
+  List<Object?> get props => [
+        matches,
+        isLoading,
+        isLoadingMore,
+        hasMore,
+        total,
+        errorMessage,
+        status,
+        nextRetrySeconds,
+      ];
 }
