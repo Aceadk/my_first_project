@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../data/repositories/chat_repository.dart';
 
 class SafetyState {

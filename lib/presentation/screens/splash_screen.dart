@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../logic/auth/auth_bloc.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
-import '../../core/constants.dart';
+import 'package:crushhour/core/utils/constants.dart';
 import '../../design_system/tokens/colors.dart';
 
 class SplashScreen extends StatefulWidget {

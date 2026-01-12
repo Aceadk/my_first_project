@@ -8,7 +8,7 @@ import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../widgets/profile_media_picker.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_nav_buttons.dart';

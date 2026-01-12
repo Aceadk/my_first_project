@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../core/validators.dart';
+import 'package:crushhour/core/utils/validators.dart';
 import '../../data/models/user.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../logic/auth/auth_bloc.dart';

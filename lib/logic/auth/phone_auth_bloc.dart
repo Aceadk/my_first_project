@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 
 // Events
 abstract class PhoneAuthEvent extends Equatable {

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants.dart';
+import 'package:crushhour/core/utils/constants.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/discovery_repository.dart';
 import '../../data/repositories/subscription_repository.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 

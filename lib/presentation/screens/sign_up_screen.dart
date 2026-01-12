@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../core/validators.dart';
+import 'package:crushhour/core/utils/validators.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/subscription_repository.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
 

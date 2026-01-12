@@ -8,7 +8,7 @@ import '../../data/models/preferences.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../core/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../core/profile_completeness.dart';
 import '../../core/profile_field_options.dart';
 import '../../design_system/tokens/colors.dart';
@@ -156,6 +156,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final uploads = uploadResult.data!;
     final newName = _nameController.text.trim();
     final nameChanged = newName != base.name;
+    final dobChanged = _dateOfBirth != base.dateOfBirth;
     final updated = base.copyWith(
       name: newName,
       bio: _bioController.text.trim(),
@@ -164,6 +165,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       primaryPhotoIndex: _primaryPhotoIndex,
       // Track name change date if name was modified
       lastNameChangeAt: nameChanged ? DateTime.now() : base.lastNameChangeAt,
+      // Track DOB change date if DOB was modified
+      lastDobChangeAt: dobChanged ? DateTime.now() : base.lastDobChangeAt,
       // New fields
       heightCm: _heightCm,
       relationshipGoals: _relationshipGoals,
@@ -296,7 +299,42 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
-  Future<void> _showDateOfBirthPicker(BuildContext context) async {
+  Future<void> _showDateOfBirthPicker(BuildContext context, Profile? profile) async {
+    // Check if DOB is locked
+    if (profile != null && !profile.canChangeDob) {
+      showErrorSnackBar(
+        context,
+        'You can change your date of birth again in ${profile.daysUntilDobChange} days',
+      );
+      return;
+    }
+
+    // Show confirmation dialog if DOB already exists
+    final isFirstTime = profile?.dateOfBirth == null;
+    if (!isFirstTime) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Change Date of Birth'),
+          content: const Text(
+            'Please make sure you enter your real date of birth.\n\n'
+            'After saving, you will need to wait 1 month before you can change it again.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
     final now = DateTime.now();
     const minAge = 18;
     const maxAge = 100;
@@ -305,10 +343,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       initialDate: _dateOfBirth ?? DateTime(now.year - 25),
       firstDate: DateTime(now.year - maxAge),
       lastDate: DateTime(now.year - minAge),
-      helpText: 'Select your date of birth',
+      helpText: isFirstTime
+          ? 'Select your date of birth (cannot be easily changed later)'
+          : 'Select your date of birth',
     );
     if (result != null) {
-      setState(() => _dateOfBirth = result);
+      // Show final confirmation with warning
+      if (!mounted) return;
+      final finalConfirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+          title: const Text('Confirm Date of Birth'),
+          content: Text(
+            'You selected: ${result.day}/${result.month}/${result.year}\n\n'
+            'Please verify this is your correct date of birth. '
+            'You will not be able to change it for 1 month after saving.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Go Back'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Confirm'),
+            ),
+          ],
+        ),
+      );
+      if (finalConfirm == true) {
+        setState(() => _dateOfBirth = result);
+      }
     }
   }
 
@@ -809,12 +875,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           onTap: () => _showRelationshipGoalsPicker(context),
                         ),
                         ProfileFieldTile(
-                          label: 'Date of Birth',
+                          label: profile != null && !profile.canChangeDob
+                              ? 'Date of Birth 🔒'
+                              : 'Date of Birth',
                           value: _dateOfBirth != null
                               ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
                               : null,
+                          placeholder: profile != null && !profile.canChangeDob
+                              ? 'Locked (${profile.daysUntilDobChange}d)'
+                              : 'Add',
                           leadingIcon: Icons.cake_outlined,
-                          onTap: () => _showDateOfBirthPicker(context),
+                          onTap: () => _showDateOfBirthPicker(context, profile),
                           showDivider: false,
                         ),
                       ],

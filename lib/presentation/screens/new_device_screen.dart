@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../core/validators.dart';
+import 'package:crushhour/core/utils/validators.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';

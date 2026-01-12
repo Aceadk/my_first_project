@@ -12,6 +12,7 @@ class Profile extends Equatable {
   final String gender;
   final String? sexualOrientation;
   final DateTime? dateOfBirth;
+  final DateTime? lastDobChangeAt; // Track when DOB was last changed (once per month)
   final DateTime? lastNameChangeAt; // Track when name was last changed (once per month)
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -39,6 +40,20 @@ class Profile extends Equatable {
   int get daysUntilNameChange {
     if (lastNameChangeAt == null) return 0;
     final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
+    return (30 - daysSinceLastChange).clamp(0, 30);
+  }
+
+  /// Check if user can change their date of birth (once per month)
+  bool get canChangeDob {
+    if (lastDobChangeAt == null) return true;
+    final daysSinceLastChange = DateTime.now().difference(lastDobChangeAt!).inDays;
+    return daysSinceLastChange >= 30;
+  }
+
+  /// Days remaining until DOB can be changed again
+  int get daysUntilDobChange {
+    if (lastDobChangeAt == null) return 0;
+    final daysSinceLastChange = DateTime.now().difference(lastDobChangeAt!).inDays;
     return (30 - daysSinceLastChange).clamp(0, 30);
   }
 
@@ -129,6 +144,7 @@ class Profile extends Equatable {
     required this.gender,
     this.sexualOrientation,
     this.dateOfBirth,
+    this.lastDobChangeAt,
     this.lastNameChangeAt,
     required this.photoUrls,
     required this.videoUrls,
@@ -177,6 +193,7 @@ class Profile extends Equatable {
     String? gender,
     Object? sexualOrientation = _unset,
     Object? dateOfBirth = _unset,
+    Object? lastDobChangeAt = _unset,
     Object? lastNameChangeAt = _unset,
     List<String>? photoUrls,
     List<String>? videoUrls,
@@ -225,6 +242,9 @@ class Profile extends Equatable {
       dateOfBirth: identical(dateOfBirth, _unset)
           ? this.dateOfBirth
           : dateOfBirth as DateTime?,
+      lastDobChangeAt: identical(lastDobChangeAt, _unset)
+          ? this.lastDobChangeAt
+          : lastDobChangeAt as DateTime?,
       lastNameChangeAt: identical(lastNameChangeAt, _unset)
           ? this.lastNameChangeAt
           : lastNameChangeAt as DateTime?,
@@ -303,6 +323,7 @@ class Profile extends Equatable {
         gender,
         sexualOrientation,
         dateOfBirth,
+        lastDobChangeAt,
         lastNameChangeAt,
         photoUrls,
         videoUrls,

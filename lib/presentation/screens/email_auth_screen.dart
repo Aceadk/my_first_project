@@ -6,7 +6,7 @@ import '../../logic/auth/auth_event.dart';
 import '../../logic/auth/auth_state.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../core/validators.dart';
+import 'package:crushhour/core/utils/validators.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_nav_buttons.dart';
 

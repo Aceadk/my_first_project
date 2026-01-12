@@ -1,5 +1,5 @@
-import '../../../core/constants.dart';
-import '../../../core/result.dart';
+import 'package:crushhour/core/utils/constants.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../../data/models/match.dart';
 import '../../../data/models/subscription.dart';
 import '../../../data/repositories/discovery_repository.dart';

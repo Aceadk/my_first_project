@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'matches_event.dart';
 import 'matches_state.dart';
 import '../../data/repositories/chat_repository.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 
 class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
   final ChatRepository chatRepository;

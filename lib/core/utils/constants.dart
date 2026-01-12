@@ -1,4 +1,4 @@
-import 'app_env.dart';
+import '../app_env.dart';
 
 class CrushConstants {
   static const int minAge = 18;

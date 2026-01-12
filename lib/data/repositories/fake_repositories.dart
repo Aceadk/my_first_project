@@ -15,7 +15,7 @@ import 'profile_repository.dart';
 import 'discovery_repository.dart';
 import 'chat_repository.dart';
 import 'subscription_repository.dart';
-import '../../core/constants.dart';
+import 'package:crushhour/core/utils/constants.dart';
 
 const _uuid = Uuid();
 const _backendBaseUrl = String.fromEnvironment(

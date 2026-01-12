@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 

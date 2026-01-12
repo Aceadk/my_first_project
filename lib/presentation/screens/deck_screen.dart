@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/profanity_filter.dart';
 import '../../core/profile_completeness.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../data/models/profile.dart';

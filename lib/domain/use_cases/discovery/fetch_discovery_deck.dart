@@ -1,4 +1,4 @@
-import '../../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../../data/models/profile.dart';
 import '../../../data/repositories/discovery_repository.dart';
 import '../use_case.dart';

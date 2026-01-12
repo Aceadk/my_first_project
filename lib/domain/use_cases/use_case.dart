@@ -1,4 +1,4 @@
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 
 /// Base interface for all use cases.
 /// Use cases encapsulate single business operations, separating

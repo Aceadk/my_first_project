@@ -1,4 +1,4 @@
-import '../../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../../../data/models/message.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../use_case.dart';

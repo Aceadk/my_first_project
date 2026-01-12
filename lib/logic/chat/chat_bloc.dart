@@ -4,7 +4,7 @@ import '../../data/models/message.dart';
 import '../../data/models/subscription.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/subscription_repository.dart';
-import '../../core/result.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 

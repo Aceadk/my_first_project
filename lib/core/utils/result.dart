@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'app_logger.dart';
+import '../app_logger.dart';
 import 'errors.dart';
 
 class Result<T> {

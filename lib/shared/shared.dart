@@ -17,6 +17,6 @@ export '../data/models/preferences.dart';
 export '../data/models/privacy_settings.dart';
 
 // Core Utilities
-export '../core/result.dart';
-export '../core/constants.dart';
-export '../core/validators.dart';
+export '../core/utils/result.dart';
+export '../core/utils/constants.dart';
+export '../core/utils/validators.dart';
