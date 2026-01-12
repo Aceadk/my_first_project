@@ -16,7 +16,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   int? _remainingFreeSwipesToday;
   Timer? _retryTimer;
   int _retryDelayMs = 1000;
+  int _retryCount = 0;
+  static const int _maxAutoRetries = 2;
   String? _lastRequestedUserId;
+  bool _isManualRefresh = false;
 
   DiscoveryBloc({
     required this.discoveryRepository,
@@ -30,6 +33,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
   Future<void> _onDeckRequested(
       DiscoveryDeckRequested event, Emitter<DiscoveryState> emit) async {
+    // Track if this is a manual refresh (user-triggered) vs auto-retry
+    final isManualRefresh = _lastRequestedUserId != event.userId ||
+        _isManualRefresh ||
+        state.status != DeckStatus.error;
+
+    if (isManualRefresh) {
+      _retryCount = 0;
+      _retryDelayMs = 1000;
+    }
+    _isManualRefresh = false;
+
     _lastRequestedUserId = event.userId;
     _retryTimer?.cancel();
     emit(state.copyWith(
@@ -48,23 +62,47 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       logLabel: 'SubscriptionRepository.getCurrentPlan',
       fallbackError: 'Could not load people. Please try again.',
     );
+
     if (!deckResult.isSuccess || !planResult.isSuccess) {
+      _retryCount++;
+      final errorMsg = deckResult.errorMessage ?? planResult.errorMessage;
+
+      // Check if error indicates "no people" rather than actual failure
+      final isNoPeopleError = _isNoPeopleError(errorMsg);
+
+      // If we've retried enough times or error indicates no people, show empty state
+      if (_retryCount > _maxAutoRetries || isNoPeopleError) {
+        emit(state.copyWith(
+          isLoading: false,
+          status: DeckStatus.empty,
+          deck: const [],
+          currentIndex: 0,
+          errorMessage: null,
+          nextRetrySeconds: null,
+        ));
+        AnalyticsService.instance.logDeckEmpty();
+        return;
+      }
+
+      // Otherwise show error and schedule retry
       emit(state.copyWith(
         isLoading: false,
         status: DeckStatus.error,
-        errorMessage:
-            deckResult.errorMessage ?? planResult.errorMessage,
+        errorMessage: errorMsg,
         nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
       ));
       _scheduleRetry();
       return;
     }
 
+    // Success - reset retry state
+    _retryCount = 0;
+    _retryDelayMs = 1000;
+
     final deck = deckResult.data ?? const [];
     final plan = planResult.data ?? SubscriptionPlan.free;
     _remainingFreeSwipesToday =
         plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
-    _retryDelayMs = 1000;
 
     // Track deck loaded or empty
     if (deck.isEmpty) {
@@ -81,6 +119,19 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       errorMessage: null,
       nextRetrySeconds: null,
     ));
+  }
+
+  /// Check if error message indicates no people available vs actual error.
+  bool _isNoPeopleError(String? errorMsg) {
+    if (errorMsg == null) return false;
+    final lower = errorMsg.toLowerCase();
+    return lower.contains('no people') ||
+        lower.contains('no profiles') ||
+        lower.contains('no candidates') ||
+        lower.contains('no users') ||
+        lower.contains('empty') ||
+        lower.contains('not found') ||
+        lower.contains('no results');
   }
 
   Future<void> _onSwipedRight(

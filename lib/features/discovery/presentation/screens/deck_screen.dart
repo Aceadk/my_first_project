@@ -407,6 +407,8 @@ class _DeckScreenState extends State<DeckScreen> {
     if (state.isLoading) return;
     if (state.deck.isNotEmpty) return;
     if (state.status == DeckStatus.empty) return;
+    // Don't auto-request on error - bloc handles retries with limits
+    if (state.status == DeckStatus.error) return;
     context.read<DiscoveryBloc>().add(DiscoveryDeckRequested(userId));
   }
 
