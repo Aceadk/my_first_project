@@ -15,6 +15,12 @@ class ChatState extends Equatable {
   final bool mediaSendingEnabled;
   final bool isUnmatching;
   final bool isUnmatched;
+  /// Whether initial messages are loading.
+  final bool isInitialLoading;
+  /// Whether older messages are being loaded (load more).
+  final bool isLoadingMore;
+  /// Whether there are more older messages to load.
+  final bool hasMoreMessages;
 
   const ChatState({
     this.messages = const [],
@@ -28,6 +34,9 @@ class ChatState extends Equatable {
     this.mediaSendingEnabled = true,
     this.isUnmatching = false,
     this.isUnmatched = false,
+    this.isInitialLoading = false,
+    this.isLoadingMore = false,
+    this.hasMoreMessages = true,
   });
 
   ChatState copyWith({
@@ -42,6 +51,9 @@ class ChatState extends Equatable {
     bool? mediaSendingEnabled,
     bool? isUnmatching,
     bool? isUnmatched,
+    bool? isInitialLoading,
+    bool? isLoadingMore,
+    bool? hasMoreMessages,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -56,6 +68,9 @@ class ChatState extends Equatable {
       mediaSendingEnabled: mediaSendingEnabled ?? this.mediaSendingEnabled,
       isUnmatching: isUnmatching ?? this.isUnmatching,
       isUnmatched: isUnmatched ?? this.isUnmatched,
+      isInitialLoading: isInitialLoading ?? this.isInitialLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
     );
   }
 
@@ -72,5 +87,8 @@ class ChatState extends Equatable {
         mediaSendingEnabled,
         isUnmatching,
         isUnmatched,
+        isInitialLoading,
+        isLoadingMore,
+        hasMoreMessages,
       ];
 }

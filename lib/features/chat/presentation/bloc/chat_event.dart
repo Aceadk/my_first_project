@@ -200,3 +200,22 @@ class ChatUnmatchRequested extends ChatEvent {
   @override
   List<Object?> get props => [matchId, userId];
 }
+
+/// Request to load more (older) messages when scrolling up.
+class ChatLoadMoreMessagesRequested extends ChatEvent {
+  final String matchId;
+
+  ChatLoadMoreMessagesRequested(this.matchId);
+
+  @override
+  List<Object?> get props => [matchId];
+}
+
+/// Event for new messages received in real-time (after initial load).
+class ChatNewMessagesReceived extends ChatEvent {
+  final List<Message> newMessages;
+  ChatNewMessagesReceived(this.newMessages);
+
+  @override
+  List<Object?> get props => [newMessages];
+}

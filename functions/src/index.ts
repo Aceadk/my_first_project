@@ -13,6 +13,22 @@ const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
 const BQ_TABLE_INTERACTIONS = "interaction_events";
 
+// Safe BigQuery insert - logs interaction events but doesn't fail the main operation
+async function logInteractionEvent(eventData: Record<string, unknown>): Promise<void> {
+  try {
+    await bigquery
+      .dataset(BQ_DATASET)
+      .table(BQ_TABLE_INTERACTIONS)
+      .insert(eventData);
+  } catch (error) {
+    // Log the error but don't throw - analytics shouldn't break core functionality
+    console.error("BigQuery insert failed (non-critical):", {
+      error: error instanceof Error ? error.message : String(error),
+      eventData,
+    });
+  }
+}
+
 admin.initializeApp();
 const db = admin.firestore();
 const fieldValue = (admin.firestore as unknown as { FieldValue?: { serverTimestamp?: () => unknown; increment?: (n: number) => unknown; delete?: () => unknown } })
@@ -29,7 +45,40 @@ const config = ((functions as unknown as { config?: () => unknown }).config?.() 
     agora?: { appid?: string; certificate?: string };
     auth?: { otp_secret?: string };
     email?: { resend_key?: string; from?: string };
+    cors?: { allowed_origins?: string };
   };
+
+// CORS configuration - comma-separated list of allowed origins
+// Set via: firebase functions:config:set cors.allowed_origins="https://crushhour.app,https://app.crushhour.app"
+const corsAllowedOrigins = (
+  config.cors?.allowed_origins ??
+  process.env.CORS_ALLOWED_ORIGINS ??
+  ""
+).split(",").filter(Boolean);
+
+// Default to strict CORS in production, allow localhost in development
+const isDevelopment = process.env.FUNCTIONS_EMULATOR === "true";
+const corsOriginValidator = (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) => {
+  // Allow requests with no origin (mobile apps, curl, etc.)
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+  // In development, allow localhost
+  if (isDevelopment && (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+    callback(null, true);
+    return;
+  }
+  // Check against whitelist
+  if (corsAllowedOrigins.length === 0 || corsAllowedOrigins.includes(origin)) {
+    callback(null, true);
+    return;
+  }
+  callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+};
 const stripeSecret = config.stripe?.secret ?? "";
 const stripeWebhookSecret = config.stripe?.webhook_secret ?? "";
 const agoraAppId = config.agora?.appid ?? process.env.AGORA_APP_ID;
@@ -244,9 +293,10 @@ const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const otpSecret = authOtpSecret || "dev-secret";
+// OTP secret is required - never fall back to a predictable value
+const otpSecret = authOtpSecret;
 if (!authOtpSecret) {
-  console.warn("auth.otp_secret not configured; using dev-secret.");
+  console.error("CRITICAL: auth.otp_secret not configured. OTP functions will fail.");
 }
 
 type RateLimitResult = {
@@ -274,6 +324,12 @@ function generateOtp(): string {
 }
 
 function hashWithSecret(value: string, salt: string): string {
+  if (!otpSecret) {
+    throw new functions.https.HttpsError(
+      "internal",
+      "OTP service not configured. Please contact support."
+    );
+  }
   return crypto.createHmac("sha256", otpSecret).update(`${salt}:${value}`).digest("hex");
 }
 
@@ -348,6 +404,27 @@ async function applyRateLimit(
   });
 
   return result;
+}
+
+// Format retry time for user-friendly message
+function formatRetryTime(ms?: number): string {
+  if (!ms) return "a few moments";
+  const seconds = Math.ceil(ms / 1000);
+  if (seconds < 60) return `${seconds} seconds`;
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} hour${hours > 1 ? "s" : ""}`;
+}
+
+// Throw a standardized rate limit error with retry timing
+function throwRateLimitError(retryAfterMs?: number): never {
+  const retryTime = formatRetryTime(retryAfterMs);
+  throw new functions.https.HttpsError(
+    "resource-exhausted",
+    `Too many attempts. Please try again in ${retryTime}.`,
+    { retryAfterMs: retryAfterMs ?? 60000 }
+  );
 }
 
 async function logAuthAudit(params: {
@@ -523,6 +600,12 @@ function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
 }
 
 function hashIdentifier(identifier: string): string {
+  if (!otpSecret) {
+    throw new functions.https.HttpsError(
+      "internal",
+      "OTP service not configured. Please contact support."
+    );
+  }
   return crypto
     .createHmac("sha256", otpSecret)
     .update(`identifier:${identifier}`)
@@ -779,10 +862,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
           userAgent,
           metadata: { purpose },
         });
-        throw new functions.https.HttpsError(
-          "resource-exhausted",
-          "Too many attempts. Try again later."
-        );
+        throwRateLimitError(ipLimit.retryAfterMs);
       }
     }
 
@@ -805,10 +885,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
         userAgent,
         metadata: { purpose },
       });
-      throw new functions.https.HttpsError(
-        "resource-exhausted",
-        "Too many attempts. Try again later."
-      );
+      throwRateLimitError(idLimit.retryAfterMs);
     }
 
     const candidates = await db
@@ -1117,10 +1194,7 @@ async function signUpWithPasswordCore(params: {
         userAgent,
         metadata: { username: usernameLower },
       });
-      throw new functions.https.HttpsError(
-        "resource-exhausted",
-        "Too many attempts. Try again later."
-      );
+      throwRateLimitError(ipLimit.retryAfterMs);
     }
   }
 
@@ -1145,10 +1219,8 @@ async function signUpWithPasswordCore(params: {
       userAgent,
       metadata: { username: usernameLower },
     });
-    throw new functions.https.HttpsError(
-      "resource-exhausted",
-      "Too many attempts. Try again later."
-    );
+    const retryMs = emailLimit.retryAfterMs || usernameLimit.retryAfterMs;
+    throwRateLimitError(retryMs);
   }
 
   let emailInUse = false;
@@ -1490,10 +1562,8 @@ async function verifyPasswordResetOtpCore(params: {
       ip,
       userAgent,
     });
-    throw new functions.https.HttpsError(
-      "resource-exhausted",
-      "Too many attempts. Try again."
-    );
+    const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
+    throwRateLimitError(retryMs);
   }
 
   const candidates = await db
@@ -1635,10 +1705,8 @@ async function resetPasswordWithTokenCore(params: {
       ip,
       userAgent,
     });
-    throw new functions.https.HttpsError(
-      "resource-exhausted",
-      "Too many attempts. Try again."
-    );
+    const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
+    throwRateLimitError(retryMs);
   }
 
   const candidates = await db
@@ -1752,10 +1820,7 @@ async function loginWithPasswordCore(params: {
         ip,
         userAgent,
       });
-      throw new functions.https.HttpsError(
-        "resource-exhausted",
-        "Too many attempts. Try again later."
-      );
+      throwRateLimitError(ipLimit.retryAfterMs);
     }
   }
 
@@ -1773,10 +1838,7 @@ async function loginWithPasswordCore(params: {
       ip,
       userAgent,
     });
-    throw new functions.https.HttpsError(
-      "resource-exhausted",
-      "Too many attempts. Try again later."
-    );
+    throwRateLimitError(idLimit.retryAfterMs);
   }
 
   const resolved = await resolveUserByIdentifier(identifierRaw);
@@ -2044,8 +2106,13 @@ async function blockedUserIds(uid: string): Promise<Set<string>> {
   return ids;
 }
 
-function setCorsHeaders(res: functions.Response) {
-  res.set("Access-Control-Allow-Origin", "*");
+function setCorsHeaders(res: functions.Response, req?: functions.Request) {
+  // Use whitelisted origin or default for server-to-server requests
+  const origin = req?.headers?.origin;
+  const allowedOrigin = origin && corsAllowedOrigins.includes(origin) ? origin : corsAllowedOrigins[0] || "";
+  if (allowedOrigin) {
+    res.set("Access-Control-Allow-Origin", allowedOrigin);
+  }
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
 }
@@ -2750,17 +2817,15 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     createdAt: serverTimestamp(),
   });
 
-  await bigquery
-    .dataset(BQ_DATASET)
-    .table(BQ_TABLE_INTERACTIONS)
-    .insert({
-      event_timestamp: new Date().toISOString(),
-      event_type: "SWIPE_RIGHT",
-      user_id: uid,
-      other_user_id: targetUserId,
-      liked: true,
-      matched: false, // will update or log MATCH_CREATED later
-    });
+  // Log swipe event (non-blocking, won't fail the operation)
+  logInteractionEvent({
+    event_timestamp: new Date().toISOString(),
+    event_type: "SWIPE_RIGHT",
+    user_id: uid,
+    other_user_id: targetUserId,
+    liked: true,
+    matched: false, // will update or log MATCH_CREATED later
+  });
 
   // 2. Check for reverse like
   const reverseLikeSnap = await db
@@ -2809,17 +2874,15 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     matchId = existing.id;
   }
 
-  await bigquery
-    .dataset(BQ_DATASET)
-    .table(BQ_TABLE_INTERACTIONS)
-    .insert({
-      event_timestamp: new Date().toISOString(),
-      event_type: "MATCH_CREATED",
-      user_id: uid,
-      other_user_id: targetUserId,
-      match_id: matchId,
-      matched: true,
-    });
+  // Log match event (non-blocking, won't fail the operation)
+  logInteractionEvent({
+    event_timestamp: new Date().toISOString(),
+    event_type: "MATCH_CREATED",
+    user_id: uid,
+    other_user_id: targetUserId,
+    match_id: matchId,
+    matched: true,
+  });
 
   return { matched: true, matchId };
 });
@@ -2842,17 +2905,15 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   const me = await getUser(uid);
   ensureProfileQuality(me.profile as ProfileData | null, "swiping");
 
-  await bigquery
-    .dataset(BQ_DATASET)
-    .table(BQ_TABLE_INTERACTIONS)
-    .insert({
-      event_timestamp: new Date().toISOString(),
-      event_type: "SWIPE_LEFT",
-      user_id: uid,
-      other_user_id: targetUserId,
-      liked: false,
-      matched: false,
-    });
+  // Log swipe event (non-blocking, won't fail the operation)
+  logInteractionEvent({
+    event_timestamp: new Date().toISOString(),
+    event_type: "SWIPE_LEFT",
+    user_id: uid,
+    other_user_id: targetUserId,
+    liked: false,
+    matched: false,
+  });
 
   return { ok: true };
 });
@@ -3043,12 +3104,12 @@ export const createCheckoutSession = callable<CheckoutSessionRequest>(
 export const stripeWebhook = functions.https.onRequest(async (req, res) => {
   // Basic CORS handling for browser preflight and requests
   if (req.method === "OPTIONS") {
-    setCorsHeaders(res);
+    setCorsHeaders(res, req);
     res.status(204).send("");
     return;
   }
 
-  setCorsHeaders(res);
+  setCorsHeaders(res, req);
 
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
@@ -3236,16 +3297,27 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
   }
 );
 
-// HTTP endpoint for local testing (not authenticated)
+// HTTP endpoint for local testing (not authenticated) - only enabled in emulator
 export const testAgoraToken = functions.https.onRequest((req, res) => {
+  // Only allow in development/emulator
+  if (!isDevelopment) {
+    res.status(403).json({ error: "This endpoint is only available in development mode" });
+    return;
+  }
+
   // Basic CORS handling for browser preflight and requests
+  const origin = req.headers.origin;
+  const allowedOrigin = isDevelopment && origin ? origin : "";
+
   if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Origin", "*");
+    if (allowedOrigin) res.set("Access-Control-Allow-Origin", allowedOrigin);
     res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type");
     res.status(204).send("");
     return;
   }
+
+  if (allowedOrigin) res.set("Access-Control-Allow-Origin", allowedOrigin);
 
   if (!agoraAppId || !agoraCertificate) {
     res.status(500).json({ error: "Agora credentials not configured" });
@@ -3437,8 +3509,8 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Middleware
-app.use(cors({ origin: true }));
+// Middleware - use CORS whitelist for security
+app.use(cors({ origin: corsOriginValidator }));
 app.use(express.json());
 
 // Auth middleware

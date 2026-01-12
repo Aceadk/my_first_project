@@ -862,6 +862,35 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async {
+    var messages = _messagesByMatch[matchId] ?? [];
+    messages.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    if (beforeTimestamp != null) {
+      messages = messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+    }
+    final hasMore = messages.length > limit;
+    final items = messages.take(limit).toList();
+    return PaginatedResult(
+      items: items.reversed.toList(),
+      total: messages.length,
+      hasMore: hasMore,
+    );
+  }
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) {
+    return watchMessages(matchId).map((messages) =>
+        messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList());
+  }
+
+  @override
   Stream<Set<String>> watchTyping(String matchId) {
     _typingStreams.putIfAbsent(
       matchId,

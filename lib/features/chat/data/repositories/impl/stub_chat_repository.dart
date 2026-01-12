@@ -39,6 +39,60 @@ class StubChatRepository implements ChatRepository {
   }
 
   @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async {
+    var messages = await _loadMessages(matchId);
+
+    // Sort by sentAt descending (newest first)
+    messages.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+
+    // Apply cursor filter
+    if (beforeTimestamp != null) {
+      messages = messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+    }
+
+    // Check if there's more
+    final hasMore = messages.length > limit;
+    final items = messages.take(limit).toList();
+
+    // Reverse to chronological order for UI
+    return PaginatedResult(
+      items: items.reversed.toList(),
+      total: messages.length,
+      hasMore: hasMore,
+    );
+  }
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) {
+    final controller = StreamController<List<Message>>.broadcast();
+
+    // Check for new messages periodically (simulated real-time)
+    Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (controller.isClosed) {
+        timer.cancel();
+        return;
+      }
+      final messages = await _loadMessages(matchId);
+      final newMessages = messages
+          .where((m) => m.sentAt.isAfter(afterTimestamp))
+          .toList()
+        ..sort((a, b) => a.sentAt.compareTo(b.sentAt));
+      if (newMessages.isNotEmpty) {
+        controller.add(newMessages);
+      }
+    });
+
+    return controller.stream;
+  }
+
+  @override
   Future<void> sendMessage({
     required String matchId,
     required String fromUserId,

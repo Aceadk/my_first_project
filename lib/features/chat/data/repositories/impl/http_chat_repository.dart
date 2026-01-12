@@ -45,6 +45,51 @@ class HttpChatRepository implements ChatRepository {
     return _messageControllers[matchId]!.stream;
   }
 
+  @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async {
+    final queryParams = <String, String>{
+      'limit': limit.toString(),
+    };
+    if (beforeTimestamp != null) {
+      queryParams['before'] = beforeTimestamp.toIso8601String();
+    }
+
+    final result = await _apiClient.get<Map<String, dynamic>>(
+      ApiEndpoints.chatMessages(matchId),
+      queryParams: queryParams,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      return const PaginatedResult(items: [], total: -1, hasMore: false);
+    }
+
+    final response = dto.MessagesResponseDto.fromJson(result.data!);
+    final messages = response.messages
+        .map((m) => ChatMapper.messageFromDto(m, toUserId: ''))
+        .toList();
+
+    return PaginatedResult(
+      items: messages,
+      total: -1,
+      hasMore: messages.length >= limit,
+    );
+  }
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) {
+    // Use the existing message stream but filter for new messages
+    return watchMessages(matchId).map((messages) =>
+        messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList());
+  }
+
   void _startMessagePolling(String matchId) {
     // Initial fetch
     _fetchMessages(matchId);

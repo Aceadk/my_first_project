@@ -13,9 +13,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository chatRepository;
   final SubscriptionRepository subscriptionRepository;
   StreamSubscription<List<Message>>? _sub;
+  StreamSubscription<List<Message>>? _newMessagesSub;
   StreamSubscription<Set<String>>? _typingSub;
   StreamSubscription<bool>? _presenceSub;
   StreamSubscription<bool>? _mediaSub;
+
+  static const int _pageSize = 30;
 
   ChatBloc({
     required this.chatRepository,
@@ -36,6 +39,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatMediaToggleRequested>(_onMediaToggleRequested);
     on<ChatMediaStatusUpdated>(_onMediaStatusUpdated);
     on<ChatUnmatchRequested>(_onUnmatchRequested);
+    on<ChatLoadMoreMessagesRequested>(_onLoadMoreMessages);
+    on<ChatNewMessagesReceived>(_onNewMessagesReceived);
   }
 
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
@@ -424,6 +429,67 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ));
   }
 
+  /// Load more (older) messages when user scrolls to the top.
+  Future<void> _onLoadMoreMessages(
+    ChatLoadMoreMessagesRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    if (state.isLoadingMore || !state.hasMoreMessages) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    // Get the oldest message timestamp for cursor
+    final oldestMessage = state.messages.isNotEmpty ? state.messages.first : null;
+    final beforeTimestamp = oldestMessage?.sentAt;
+
+    final result = await Result.guard(
+      () => chatRepository.fetchMessagesPaginated(
+        event.matchId,
+        limit: _pageSize,
+        beforeTimestamp: beforeTimestamp,
+      ),
+      logLabel: 'ChatRepository.fetchMessagesPaginated',
+      fallbackError: 'Could not load more messages.',
+    );
+
+    if (result.isSuccess && result.data != null) {
+      final paginated = result.data!;
+      // Prepend older messages to the existing list
+      final allMessages = [...paginated.items, ...state.messages];
+      emit(state.copyWith(
+        messages: allMessages,
+        isLoadingMore: false,
+        hasMoreMessages: paginated.hasMore,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingMore: false,
+        errorMessage: result.errorMessage,
+      ));
+    }
+  }
+
+  /// Handle new messages received in real-time.
+  void _onNewMessagesReceived(
+    ChatNewMessagesReceived event,
+    Emitter<ChatState> emit,
+  ) {
+    if (event.newMessages.isEmpty) return;
+
+    // Filter out duplicates
+    final existingIds = state.messages.map((m) => m.id).toSet();
+    final uniqueNewMessages = event.newMessages
+        .where((m) => !existingIds.contains(m.id))
+        .toList();
+
+    if (uniqueNewMessages.isEmpty) return;
+
+    // Append new messages to the end
+    final allMessages = [...state.messages, ...uniqueNewMessages];
+
+    emit(state.copyWith(messages: allMessages));
+  }
+
   int _mediaCountForUser(String userId) {
     return state.messages
         .where((m) =>
@@ -441,6 +507,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   @override
   Future<void> close() {
     _sub?.cancel();
+    _newMessagesSub?.cancel();
     _typingSub?.cancel();
     _presenceSub?.cancel();
     _mediaSub?.cancel();

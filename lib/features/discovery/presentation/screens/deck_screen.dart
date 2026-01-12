@@ -30,6 +30,7 @@ import 'package:crushhour/presentation/widgets/upsell_widgets.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/match_celebration_modal.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});
@@ -62,11 +63,40 @@ class _DeckScreenState extends State<DeckScreen> {
 
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listenWhen: (previous, current) =>
-          previous.errorMessage != current.errorMessage,
+          previous.errorMessage != current.errorMessage ||
+          previous.newMatch != current.newMatch,
       listener: (context, state) {
         final error = state.errorMessage;
         if (error != null && error.isNotEmpty) {
           showErrorSnackBar(context, error);
+        }
+        // Show match celebration when a new match occurs
+        final newMatch = state.newMatch;
+        if (newMatch != null) {
+          // Get current user's photo for the celebration modal
+          final currentProfile = context.read<ProfileBloc>().state.profile;
+          final currentUserPhotoUrl = currentProfile?.photoUrls.isNotEmpty == true
+              ? currentProfile!.photoUrls.first
+              : null;
+
+          // Show the celebration modal
+          MatchCelebrationModal.show(
+            context: context,
+            matchedProfile: newMatch.matchedProfile,
+            currentUserPhotoUrl: currentUserPhotoUrl,
+            onKeepSwiping: () {
+              // Clear the match after showing
+              context.read<DiscoveryBloc>().add(DiscoveryMatchCelebrationShown());
+            },
+            onSendMessage: () {
+              // Clear the match and navigate to chat
+              context.read<DiscoveryBloc>().add(DiscoveryMatchCelebrationShown());
+              context.push(
+                CrushRoutes.chat,
+                extra: {'matchId': newMatch.matchId},
+              );
+            },
+          );
         }
       },
       builder: (context, state) {

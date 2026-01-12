@@ -29,6 +29,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<DiscoverySwipedRight>(_onSwipedRight);
     on<DiscoverySwipedLeft>(_onSwipedLeft);
     on<DiscoveryLoadMoreRequested>(_onLoadMoreRequested);
+    on<DiscoveryMatchCelebrationShown>(_onMatchCelebrationShown);
+  }
+
+  void _onMatchCelebrationShown(
+    DiscoveryMatchCelebrationShown event,
+    Emitter<DiscoveryState> emit,
+  ) {
+    emit(state.copyWith(newMatch: null));
   }
 
   Future<void> _onDeckRequested(
@@ -141,6 +149,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final currentIndex = state.currentIndex;
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
+    // Get the profile being swiped on for match celebration
+    final swipedProfile = currentIndex < state.deck.length
+        ? state.deck[currentIndex]
+        : null;
+
     final planResult = await Result.guard(
       () => subscriptionRepository.getCurrentPlan(),
       logLabel: 'SubscriptionRepository.getCurrentPlan',
@@ -190,10 +203,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         withMessage: event.attachedMessage != null,
       );
 
-      // Track match if one was created
+      // Track match if one was created and emit for celebration
       final match = swipeResult.data;
-      if (match != null) {
+      if (match != null && swipedProfile != null) {
         AnalyticsService.instance.logMatch(matchId: match.id);
+        // Emit the match result for celebration modal
+        emit(state.copyWith(
+          newMatch: MatchResult(
+            matchId: match.id,
+            matchedProfile: swipedProfile,
+          ),
+        ));
       }
 
       if (plan.isFree && remainingSwipes != null) {

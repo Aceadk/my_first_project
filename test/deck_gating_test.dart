@@ -489,4 +489,19 @@ class _NoopChatRepository implements ChatRepository {
     required String matchId,
     required String userId,
   }) async {}
+
+  @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async =>
+      const PaginatedResult(items: [], total: 0, hasMore: false);
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) =>
+      const Stream.empty();
 }

@@ -44,6 +44,87 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async {
+    final userId = _currentUserId;
+
+    // Build query - newest messages first
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('matches')
+        .doc(matchId)
+        .collection('messages')
+        .orderBy('sentAt', descending: true);
+
+    // Apply cursor for pagination (fetch older messages)
+    if (beforeTimestamp != null) {
+      query = query.where('sentAt', isLessThan: Timestamp.fromDate(beforeTimestamp));
+    }
+
+    // Limit results
+    query = query.limit(limit + 1); // Fetch one extra to check if there's more
+
+    final snapshot = await query.get();
+
+    // Check if there are more messages
+    final hasMore = snapshot.docs.length > limit;
+    final docs = hasMore ? snapshot.docs.take(limit).toList() : snapshot.docs;
+
+    // Parse messages and filter deleted ones
+    final messages = docs
+        .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+        .where((msg) {
+          // Filter out messages deleted for the current user
+          if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
+            return false;
+          }
+          final docData = docs.firstWhere((d) => d.id == msg.id).data();
+          final deletedFor = (docData['deletedFor'] as List<dynamic>?) ?? [];
+          return !deletedFor.contains(userId);
+        })
+        .toList();
+
+    // Reverse to get chronological order (oldest first) for UI
+    return PaginatedResult(
+      items: messages.reversed.toList(),
+      total: -1, // Total count is expensive for large collections
+      hasMore: hasMore,
+    );
+  }
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) {
+    final userId = _currentUserId;
+
+    return _firestore
+        .collection('matches')
+        .doc(matchId)
+        .collection('messages')
+        .where('sentAt', isGreaterThan: Timestamp.fromDate(afterTimestamp))
+        .orderBy('sentAt', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+          .where((msg) {
+            // Filter out messages deleted for the current user
+            if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
+              return false;
+            }
+            final docData = snapshot.docs.firstWhere((d) => d.id == msg.id).data();
+            final deletedFor = (docData['deletedFor'] as List<dynamic>?) ?? [];
+            return !deletedFor.contains(userId);
+          })
+          .toList();
+    });
+  }
+
+  @override
   Future<void> sendMessage({
     required String matchId,
     required String fromUserId,

@@ -184,6 +184,23 @@ class _ThrowingChatRepository implements ChatRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) {
+    throw UnimplementedError();
+  }
 }
 
 // Helper extension for the tests

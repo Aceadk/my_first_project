@@ -47,3 +47,6 @@ class DiscoveryLoadMoreRequested extends DiscoveryEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+/// Clear the new match after showing celebration modal.
+class DiscoveryMatchCelebrationShown extends DiscoveryEvent {}

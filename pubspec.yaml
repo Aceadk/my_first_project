@@ -47,6 +47,8 @@ dependencies:
   mailer: ^6.2.0
   # Real-time
   web_socket_channel: ^3.0.1
+  # Animations
+  confetti: ^0.7.0
 
 flutter:
   uses-material-design: true

@@ -2,7 +2,25 @@ import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/match.dart';
 
 abstract class ChatRepository {
+  /// Watch all messages in a match (legacy - loads all at once).
+  /// @deprecated Use watchNewMessages + fetchMessagesPaginated instead.
   Stream<List<Message>> watchMessages(String matchId);
+
+  /// Fetch paginated messages for a match.
+  /// Messages are ordered by sentAt descending (newest first).
+  /// Use [beforeTimestamp] for cursor-based pagination (fetch older messages).
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  });
+
+  /// Watch only NEW messages (messages sent after [afterTimestamp]).
+  /// Use this for real-time updates after initial load.
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  });
 
   Future<void> sendMessage({
     required String matchId,

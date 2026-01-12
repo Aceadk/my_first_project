@@ -162,6 +162,21 @@ class _FakeChatRepository implements ChatRepository {
     uploads += 1;
     return 'https://example.com/media/$uploads';
   }
+
+  @override
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
+
+  @override
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  }) async* {
+    yield const [];
+  }
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {
