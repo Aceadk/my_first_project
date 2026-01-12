@@ -260,6 +260,35 @@ class PushNotificationService {
     }
   }
 
+  /// Update notification preferences in Firestore (backend uses these to filter notifications)
+  Future<void> updateNotificationPreferences({
+    bool? push,
+    bool? messages,
+    bool? matches,
+    bool? subscriptions,
+  }) async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    try {
+      final prefs = <String, dynamic>{};
+      if (push != null) prefs['push'] = push;
+      if (messages != null) prefs['messages'] = messages;
+      if (matches != null) prefs['matches'] = matches;
+      if (subscriptions != null) prefs['subscriptions'] = subscriptions;
+
+      if (prefs.isNotEmpty) {
+        await _firestore.collection('users').doc(userId).set(
+          {'notificationPrefs': prefs},
+          SetOptions(merge: true),
+        );
+        debugPrint('Notification preferences updated for user: $userId');
+      }
+    } catch (e) {
+      debugPrint('Error updating notification preferences: $e');
+    }
+  }
+
   /// Subscribe to a topic
   Future<void> subscribeToTopic(String topic) async {
     await _messaging.subscribeToTopic(topic);

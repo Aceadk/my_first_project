@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/core/services/push_notification_service.dart';
 
 class NotificationsSettingsScreen extends StatelessWidget {
   const NotificationsSettingsScreen({super.key});
@@ -82,8 +83,10 @@ class NotificationsSettingsScreen extends StatelessWidget {
                   value: notifState.push,
                   onChanged: (value) async {
                     await notifier.togglePush(value);
+                    // Sync with Firestore so backend respects the setting
+                    await PushNotificationService.instance
+                        .updateNotificationPreferences(push: value);
                     if (!context.mounted) return;
-                    // TODO: Connect to your push notification service
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(value
