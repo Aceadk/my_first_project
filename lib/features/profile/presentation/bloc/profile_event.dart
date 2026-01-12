@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../data/models/profile.dart';
+import 'package:crushhour/data/models/profile.dart';
 
 abstract class ProfileEvent extends Equatable {
   @override

@@ -10,14 +10,14 @@ import '../../core/ui/snackbar_utils.dart';
 import '../../data/models/profile.dart';
 import '../../data/models/subscription.dart';
 import '../../data/services/prematch_service.dart';
-import '../../data/services/profile_validation_service.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';
-import '../../logic/profile/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import '../../logic/safety/safety_cubit.dart';
 import '../../logic/subscription/subscription_bloc.dart';
 import '../../logic/subscription/subscription_event.dart';
@@ -27,9 +27,9 @@ import '../widgets/deck_skeleton.dart';
 import '../widgets/deck_ui_helpers.dart';
 import '../widgets/swipeable_card.dart';
 import '../widgets/upsell_widgets.dart';
-import 'profile_edit_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'settings_screen.dart';
-import 'other_user_profile_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});

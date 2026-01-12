@@ -15,16 +15,16 @@ import '../../logic/chat/chat_state.dart';
 import '../../data/models/message.dart';
 import '../../data/models/profile.dart';
 import '../../logic/safety/safety_cubit.dart';
-import '../../logic/profile/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import '../../core/router.dart';
-import '../../data/services/profile_validation_service.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
 import '../widgets/plus_feature_gate.dart';
 import '../widgets/async_state_scaffold.dart';
 import '../../core/ui/snackbar_utils.dart';
 import '../../shared/widgets/cached_image.dart';
 import 'video_call_screen.dart';
-import 'profile_edit_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 
 class ChatScreenArgs {
   final String matchId;

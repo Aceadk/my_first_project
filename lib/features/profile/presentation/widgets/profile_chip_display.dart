@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 
 /// Displays a list of items as chips.
 class ProfileChipDisplay extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
-import '../../data/models/profile.dart';
+import 'package:crushhour/data/models/profile.dart';
 
 class ProfileCompletenessMeter extends StatelessWidget {
   const ProfileCompletenessMeter({

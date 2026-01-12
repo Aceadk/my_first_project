@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 
 /// A tappable row for profile fields that displays label, current value, and arrow.
 class ProfileFieldTile extends StatelessWidget {

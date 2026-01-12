@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../logic/profile/profile_bloc.dart';
-import '../../logic/profile/profile_event.dart';
-import '../../logic/profile/profile_state.dart';
-import '../../data/models/profile.dart';
-import '../../data/models/preferences.dart';
-import '../../core/ui/snackbar_utils.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
-import '../../data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
-import '../../design_system/tokens/colors.dart';
-import '../../design_system/tokens/spacing.dart';
-import '../../design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import '../widgets/profile_media_picker.dart';
-import '../widgets/profile/profile_widgets.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_widgets.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});

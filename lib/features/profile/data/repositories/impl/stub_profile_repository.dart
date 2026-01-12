@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../models/user.dart';
-import '../../models/profile.dart';
-import '../../models/preferences.dart';
-import '../../models/subscription.dart';
-import '../../models/privacy_settings.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
 import '../profile_repository.dart';
-import '../../../core/security/input_sanitizer.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
 
 /// Mock implementation of ProfileRepository with local storage.
 /// This allows the app to function for development/demo without a backend.

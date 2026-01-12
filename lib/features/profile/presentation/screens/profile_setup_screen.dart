@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../logic/profile/profile_bloc.dart';
-import '../../logic/profile/profile_event.dart';
-import '../../logic/profile/profile_state.dart';
-import '../../core/router.dart';
-import '../../core/ui/snackbar_utils.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
-import '../../data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
 import '../widgets/profile_media_picker.dart';
-import '../widgets/onboarding_progress.dart';
-import '../widgets/onboarding_nav_buttons.dart';
+import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
+import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});

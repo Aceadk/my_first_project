@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../logic/profile/profile_bloc.dart';
-import '../../logic/profile/profile_event.dart';
-import '../../logic/profile/profile_state.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import '../../core/router.dart';
 import '../widgets/primary_button.dart';
 import '../../core/ui/snackbar_utils.dart';

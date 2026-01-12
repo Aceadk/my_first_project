@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../data/models/profile.dart';
-import '../../shared/widgets/cached_image.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 
 class ProfileMediaScreen extends StatefulWidget {
   const ProfileMediaScreen({super.key, required this.profile});
@@ -88,7 +88,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                       itemBuilder: (context, index) {
                         final url = photos[index];
                         return InteractiveViewer(
-                          child: CachedImage(
+                          child: CachedNetworkImage(
                             imageUrl: url,
                             fit: BoxFit.contain,
                             errorWidget: const Center(

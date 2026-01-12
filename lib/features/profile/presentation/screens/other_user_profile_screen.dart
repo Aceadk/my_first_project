@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/profile.dart';
-import '../../data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
-import '../../design_system/tokens/colors.dart';
-import '../../design_system/tokens/spacing.dart';
-import '../../design_system/tokens/spacing_widgets.dart';
-import '../../shared/widgets/cached_image.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 
 /// Arguments for viewing another user's profile
 class OtherUserProfileArgs {
@@ -568,7 +568,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
         fit: StackFit.expand,
         children: [
           if (hasPhotos)
-            CachedImage(
+            CachedNetworkImage(
               imageUrl: widget.profile.photoUrls[_currentPhotoIndex],
               fit: BoxFit.cover,
               errorWidget: _buildPlaceholder(),

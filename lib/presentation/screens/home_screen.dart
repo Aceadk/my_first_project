@@ -4,7 +4,7 @@ import '../../design_system/tokens/spacing_widgets.dart';
 import 'deck_screen.dart';
 import 'matches_screen.dart';
 import 'chat_list_screen.dart';
-import 'profile_view_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

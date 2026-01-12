@@ -11,7 +11,7 @@ import '../models/match.dart';
 import '../models/message.dart';
 import '../models/subscription.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'profile_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'discovery_repository.dart';
 import 'chat_repository.dart';
 import 'subscription_repository.dart';

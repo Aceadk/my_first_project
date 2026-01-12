@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 
 /// A modal bottom sheet for picking height with cm/ft toggle.

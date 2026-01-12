@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
-import '../../shared/widgets/cached_image.dart';
+import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 
 class ProfileMediaSelection {
   final List<String> photos;
@@ -261,7 +261,7 @@ class _MediaTile extends StatelessWidget {
                 child: isVideo
                     ? const Center(child: Icon(Icons.videocam, size: 32))
                     : _isRemote
-                        ? CachedImage(imageUrl: path, fit: BoxFit.cover)
+                        ? CachedNetworkImage(imageUrl: path, fit: BoxFit.cover)
                         : Image.file(File(path), fit: BoxFit.cover),
               ),
             ),

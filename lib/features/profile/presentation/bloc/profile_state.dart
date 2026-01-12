@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../data/models/profile.dart';
-import '../../data/models/user.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/user.dart';
 
 class ProfileState extends Equatable {
   final CrushUser? user;

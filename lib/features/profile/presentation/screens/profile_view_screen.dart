@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/router.dart';
-import '../../logic/profile/profile_bloc.dart';
-import '../../logic/profile/profile_event.dart';
-import '../../logic/profile/profile_state.dart';
-import '../../data/models/profile.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
-import '../../design_system/tokens/colors.dart';
-import '../../design_system/tokens/spacing.dart';
-import '../../design_system/tokens/spacing_widgets.dart';
-import '../../shared/widgets/cached_image.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -357,7 +357,7 @@ class _ProfileHeader extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (displayPhoto != null)
-          CachedImage(
+          CachedNetworkImage(
             imageUrl: displayPhoto,
             fit: BoxFit.cover,
             errorWidget: _buildPlaceholder(),

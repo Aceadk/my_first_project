@@ -1,5 +1,5 @@
-import '../models/user.dart';
-import '../models/profile.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/profile.dart';
 
 abstract class ProfileRepository {
   Future<CrushUser?> getCurrentUser();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/profile.dart';
-import '../screens/profile_media_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'cached_network_image.dart';
 
 class SwipeCard extends StatelessWidget {

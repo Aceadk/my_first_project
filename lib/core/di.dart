@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import '../data/repositories/profile_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import '../data/repositories/discovery_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/subscription_repository.dart';
@@ -14,7 +14,7 @@ import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_rep
 
 // Stub implementations (for development/demo without backend)
 import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
-import '../data/repositories/stub/stub_profile_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/impl/stub_profile_repository.dart';
 import '../data/repositories/stub/stub_discovery_repository.dart';
 import '../data/repositories/stub/stub_chat_repository.dart';
 import '../data/repositories/stub/stub_subscription_repository.dart';
@@ -26,7 +26,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/phone_auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/email_auth_bloc.dart';
-import '../logic/profile/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import '../logic/discovery/discovery_bloc.dart';
 import '../logic/chat/chat_bloc.dart';
 import '../logic/subscription/subscription_bloc.dart';
