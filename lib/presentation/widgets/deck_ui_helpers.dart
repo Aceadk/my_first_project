@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/profile_completeness.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
 
 class DeckActionButton extends StatefulWidget {
   const DeckActionButton({

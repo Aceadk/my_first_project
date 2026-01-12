@@ -1,4 +1,4 @@
-import '../data/models/profile.dart';
+import 'package:crushhour/data/models/profile.dart';
 
 const double kSwipeMinimumCompleteness = 0.70;
 const double kMessagingMinimumCompleteness = 0.70;

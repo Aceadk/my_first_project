@@ -6,7 +6,7 @@ import '../../logic/profile/profile_event.dart';
 import '../../logic/profile/profile_state.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../core/profile_media_limits.dart';
+import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import '../../data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
 import '../widgets/profile_media_picker.dart';

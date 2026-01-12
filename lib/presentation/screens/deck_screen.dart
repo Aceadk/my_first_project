@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/profanity_filter.dart';
-import '../../core/profile_completeness.dart';
+import 'package:crushhour/shared/utils/profanity_filter.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/core/utils/result.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';

@@ -16,7 +16,7 @@ import '../../data/models/message.dart';
 import '../../data/models/profile.dart';
 import '../../logic/safety/safety_cubit.dart';
 import '../../logic/profile/profile_bloc.dart';
-import '../../core/profile_completeness.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
 import '../../core/router.dart';
 import '../../data/services/profile_validation_service.dart';
 import '../widgets/plus_feature_gate.dart';

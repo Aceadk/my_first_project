@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../core/profile_media_limits.dart';
+import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import '../../shared/widgets/cached_image.dart';
 
 class ProfileMediaSelection {

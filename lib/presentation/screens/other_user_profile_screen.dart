@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/profile.dart';
 import '../../data/models/privacy_settings.dart';
-import '../../core/profile_field_options.dart';
+import 'package:crushhour/shared/utils/profile_field_options.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/spacing_widgets.dart';

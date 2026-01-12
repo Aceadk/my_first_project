@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:crushhour/core/profile_completeness.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 
