@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/security/session_manager.dart';
 import 'package:crushhour/core/services/push_notification_service.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 
 // Events
 abstract class SessionEvent extends Equatable {
@@ -145,10 +146,24 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     Emitter<SessionState> emit,
   ) async {
     final user = event.user;
+    final analytics = AnalyticsService.instance;
 
-    // Register/unregister FCM token based on auth state
+    // Register/unregister FCM token and analytics based on auth state
     if (user != null) {
       await PushNotificationService.instance.registerForUser(user.id);
+
+      // Set analytics user ID and properties
+      await analytics.setUserId(user.id);
+      await analytics.setUserProperties(
+        subscriptionPlan: user.plan.name,
+        gender: user.profile?.gender,
+        age: user.profile?.age,
+        country: user.profile?.country,
+        isVerified: user.isIdVerified,
+      );
+      await analytics.logLogin(method: 'session_restore');
+    } else {
+      await analytics.setUserId(null);
     }
 
     emit(state.copyWith(
@@ -169,6 +184,10 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
 
     final result = await Result.guard(
       () async {
+        // Track logout
+        await AnalyticsService.instance.logLogout();
+        await AnalyticsService.instance.setUserId(null);
+
         // Unregister FCM token before signing out
         await PushNotificationService.instance.unregisterForUser();
         await authRepository.signOut();

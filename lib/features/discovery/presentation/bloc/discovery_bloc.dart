@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
@@ -64,6 +65,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     _remainingFreeSwipesToday =
         plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
     _retryDelayMs = 1000;
+
+    // Track deck loaded or empty
+    if (deck.isEmpty) {
+      AnalyticsService.instance.logDeckEmpty();
+    } else {
+      AnalyticsService.instance.logDeckLoaded(cardCount: deck.length);
+    }
+
     emit(state.copyWith(
       isLoading: false,
       deck: deck,
@@ -123,11 +132,23 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       fallbackError: 'Could not like this profile. Please try again.',
     );
 
-    if (swipeResult.isSuccess &&
-        plan.isFree &&
-        remainingSwipes != null) {
-      _remainingFreeSwipesToday = remainingSwipes - 1;
-    } else if (!swipeResult.isSuccess) {
+    if (swipeResult.isSuccess) {
+      // Track swipe right
+      AnalyticsService.instance.logSwipeRight(
+        targetUserId: event.targetUserId,
+        withMessage: event.attachedMessage != null,
+      );
+
+      // Track match if one was created
+      final match = swipeResult.data;
+      if (match != null) {
+        AnalyticsService.instance.logMatch(matchId: match.id);
+      }
+
+      if (plan.isFree && remainingSwipes != null) {
+        _remainingFreeSwipesToday = remainingSwipes - 1;
+      }
+    } else {
       emit(state.copyWith(
         currentIndex: currentIndex,
         status: DeckStatus.ready,
@@ -160,6 +181,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       logLabel: 'DiscoveryRepository.swipeLeft',
       fallbackError: 'Could not pass on this profile.',
     );
+
+    if (result.isSuccess) {
+      // Track swipe left
+      AnalyticsService.instance.logSwipeLeft(targetUserId: event.targetUserId);
+    }
+
     if (!result.isSuccess) {
       emit(state.copyWith(
         currentIndex: currentIndex,

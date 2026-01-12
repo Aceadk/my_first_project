@@ -25,6 +25,8 @@ class CachedNetworkImage extends StatefulWidget {
     this.errorWidget,
     this.fadeInDuration = const Duration(milliseconds: 200),
     this.borderRadius,
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
   });
 
   final String imageUrl;
@@ -35,6 +37,8 @@ class CachedNetworkImage extends StatefulWidget {
   final Widget? errorWidget;
   final Duration fadeInDuration;
   final BorderRadius? borderRadius;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
 
   @override
   State<CachedNetworkImage> createState() => _CachedNetworkImageState();
@@ -123,8 +127,10 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
       content = widget.errorWidget ?? _buildErrorWidget();
     }
 
+    // Wrap with semantics for accessibility
+    Widget result;
     if (widget.borderRadius != null) {
-      return ClipRRect(
+      result = ClipRRect(
         borderRadius: widget.borderRadius!,
         child: SizedBox(
           width: widget.width,
@@ -132,13 +138,30 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
           child: content,
         ),
       );
+    } else {
+      result = SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: content,
+      );
     }
 
-    return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: content,
-    );
+    // Apply accessibility semantics
+    if (widget.excludeFromSemantics) {
+      return ExcludeSemantics(child: result);
+    }
+    if (widget.semanticLabel != null) {
+      return Semantics(
+        image: true,
+        label: _isLoading
+            ? 'Loading image'
+            : _hasError
+                ? 'Image failed to load'
+                : widget.semanticLabel,
+        child: result,
+      );
+    }
+    return result;
   }
 
   Widget _buildPlaceholder() {

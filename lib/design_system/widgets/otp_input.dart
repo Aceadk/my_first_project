@@ -27,34 +27,49 @@ class OtpInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.done,
+    // Build semantic label
+    final List<String> semanticParts = [
+      label ?? 'Verification code',
+      '$length digit code',
+    ];
+    if (errorText != null) {
+      semanticParts.add('Error: $errorText');
+    }
+
+    return Semantics(
+      textField: true,
+      label: semanticParts.join(', '),
+      hint: 'Enter $length digit verification code',
       enabled: enabled,
-      autofocus: autofocus,
-      maxLength: length,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(length),
-      ],
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        letterSpacing: 12,
-        fontWeight: FontWeight.w600,
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.done,
+        enabled: enabled,
+        autofocus: autofocus,
+        maxLength: length,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(length),
+        ],
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          letterSpacing: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          helperText: helperText,
+          errorText: errorText,
+          counterText: '',
+        ),
+        onChanged: (value) {
+          onChanged?.call(value);
+          if (value.length == length) {
+            onCompleted?.call(value);
+          }
+        },
       ),
-      decoration: InputDecoration(
-        labelText: label,
-        helperText: helperText,
-        errorText: errorText,
-        counterText: '',
-      ),
-      onChanged: (value) {
-        onChanged?.call(value);
-        if (value.length == length) {
-          onCompleted?.call(value);
-        }
-      },
     );
   }
 }

@@ -1,0 +1,486 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'package:crushhour/core/network/api_client.dart';
+import 'package:crushhour/core/network/api_version.dart';
+import 'package:crushhour/core/network/dto/auth_dto.dart';
+import 'package:crushhour/core/network/mappers/auth_mapper.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import '../auth_repository.dart';
+
+/// HTTP-based implementation of AuthRepository.
+///
+/// Uses REST API for authentication operations with secure token storage.
+class HttpAuthRepository implements AuthRepository {
+  HttpAuthRepository({
+    ApiClient? apiClient,
+    FlutterSecureStorage? secureStorage,
+  })  : _apiClient = apiClient ?? ApiClient(
+          config: ApiConfig.production,
+          authTokenProvider: null, // Set after initialization
+        ),
+        _secureStorage = secureStorage ?? const FlutterSecureStorage();
+
+  final ApiClient _apiClient;
+  final FlutterSecureStorage _secureStorage;
+
+  // Storage keys
+  static const String _accessTokenKey = 'auth_access_token';
+  static const String _refreshTokenKey = 'auth_refresh_token';
+  static const String _userIdKey = 'auth_user_id';
+
+  // State
+  CrushUser? _currentUser;
+  String? _pendingVerificationId;
+  final _authStateController = StreamController<CrushUser?>.broadcast();
+
+  @override
+  bool get isVerificationBypassEnabled => kDebugMode;
+
+  @override
+  Stream<CrushUser?> authStateChanges() => _authStateController.stream;
+
+  @override
+  Future<void> bootstrapSession() async {
+    try {
+      final accessToken = await _secureStorage.read(key: _accessTokenKey);
+      if (accessToken == null) {
+        _emitAuthState(null);
+        return;
+      }
+
+      // Validate token by fetching current user
+      final result = await _apiClient.get<Map<String, dynamic>>(
+        ApiEndpoints.profileMe,
+        parser: (data) => data as Map<String, dynamic>,
+      );
+
+      if (result.isSuccess && result.data != null) {
+        final userDto = UserDto.fromJson(result.data!);
+        _currentUser = AuthMapper.userFromDto(userDto);
+        _emitAuthState(_currentUser);
+      } else {
+        // Token invalid, clear storage
+        await _clearTokens();
+        _emitAuthState(null);
+      }
+    } catch (e) {
+      debugPrint('HttpAuthRepository: Bootstrap failed - $e');
+      _emitAuthState(null);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHONE AUTHENTICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> sendOtp(String phoneNumber) async {
+    final request = SendOtpRequestDto(phoneNumber: phoneNumber);
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.authSendOtp,
+      dto: request,
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to send OTP');
+    }
+
+    final response = SendOtpResponseDto.fromJson(result.data!);
+    _pendingVerificationId = response.verificationId;
+  }
+
+  @override
+  Future<CrushUser> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async {
+    final request = VerifyOtpRequestDto(
+      phoneNumber: phoneNumber,
+      otp: otp,
+      verificationId: _pendingVerificationId,
+    );
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.authVerifyOtp,
+      dto: request,
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to verify OTP');
+    }
+
+    final response = VerifyOtpResponseDto.fromJson(result.data!);
+
+    if (!response.success || response.user == null || response.tokens == null) {
+      throw Exception(response.message ?? 'Verification failed');
+    }
+
+    // Store tokens
+    await _storeTokens(response.tokens!);
+
+    // Create user
+    _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+    _emitAuthState(_currentUser);
+    _pendingVerificationId = null;
+
+    return _currentUser!;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL AUTHENTICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> sendEmailSignInLink(String email) async {
+    final result = await _apiClient.post<void>(
+      '/auth/email/send-link',
+      body: {'email': email},
+      requiresAuth: false,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to send sign-in link');
+    }
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/email/verify-link',
+      body: {'email': email, 'link': emailLink},
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to sign in with email link');
+    }
+
+    final response = VerifyOtpResponseDto.fromJson(result.data!);
+
+    if (!response.success || response.user == null || response.tokens == null) {
+      throw Exception(response.message ?? 'Sign in failed');
+    }
+
+    await _storeTokens(response.tokens!);
+    _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+    _emitAuthState(_currentUser);
+
+    return _currentUser!;
+  }
+
+  @override
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    return loginWithPassword(identifier: email, password: password);
+  }
+
+  @override
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/login',
+      body: {'identifier': identifier, 'password': password},
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Login failed');
+    }
+
+    final response = VerifyOtpResponseDto.fromJson(result.data!);
+
+    if (!response.success || response.user == null || response.tokens == null) {
+      throw Exception(response.message ?? 'Login failed');
+    }
+
+    await _storeTokens(response.tokens!);
+    _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+    _emitAuthState(_currentUser);
+
+    return _currentUser!;
+  }
+
+  @override
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/signup',
+      body: {
+        'username': username,
+        'email': email,
+        'password': password,
+      },
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Sign up failed');
+    }
+
+    final response = VerifyOtpResponseDto.fromJson(result.data!);
+
+    if (!response.success || response.user == null || response.tokens == null) {
+      throw Exception(response.message ?? 'Sign up failed');
+    }
+
+    await _storeTokens(response.tokens!);
+    _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+    _emitAuthState(_currentUser);
+
+    return _currentUser!;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL OTP
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {
+    final result = await _apiClient.post<void>(
+      '/auth/email-otp/send',
+      body: {
+        'identifier': identifier,
+        'purpose': purpose.value,
+        if (email != null) 'email': email,
+      },
+      requiresAuth: purpose != EmailOtpPurpose.login,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to send email OTP');
+    }
+  }
+
+  @override
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/email-otp/verify',
+      body: {
+        'identifier': identifier,
+        'otp': otp,
+        'purpose': purpose.value,
+        if (newEmail != null) 'new_email': newEmail,
+        if (newPassword != null) 'new_password': newPassword,
+      },
+      requiresAuth: purpose != EmailOtpPurpose.login,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to verify email OTP');
+    }
+
+    // For login purpose, we get tokens back
+    if (purpose == EmailOtpPurpose.login) {
+      final response = VerifyOtpResponseDto.fromJson(result.data!);
+
+      if (response.user != null && response.tokens != null) {
+        await _storeTokens(response.tokens!);
+        _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+        _emitAuthState(_currentUser);
+        return _currentUser;
+      }
+    }
+
+    // For other purposes, update current user if needed
+    if (result.data?['user'] != null) {
+      final userDto = UserDto.fromJson(result.data!['user'] as Map<String, dynamic>);
+      _currentUser = AuthMapper.userFromDto(userDto, plan: _currentUser?.plan);
+      _emitAuthState(_currentUser);
+      return _currentUser;
+    }
+
+    return _currentUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PASSWORD RESET
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async {
+    final result = await _apiClient.post<void>(
+      '/auth/password-reset/request',
+      body: {'email': email},
+      requiresAuth: false,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to request password reset');
+    }
+  }
+
+  @override
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/password-reset/verify',
+      body: {'email': email, 'otp': otp},
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to verify password reset OTP');
+    }
+
+    final resetToken = result.data?['reset_token'] as String?;
+    if (resetToken == null) {
+      throw Exception('Reset token not received');
+    }
+
+    return resetToken;
+  }
+
+  @override
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    final result = await _apiClient.post<void>(
+      '/auth/password-reset/confirm',
+      body: {
+        'email': email,
+        'reset_token': resetToken,
+        'new_password': newPassword,
+      },
+      requiresAuth: false,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to reset password');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SIGN OUT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> signOut() async {
+    try {
+      await _apiClient.post<void>(ApiEndpoints.authLogout);
+    } catch (e) {
+      debugPrint('HttpAuthRepository: Logout API call failed - $e');
+    }
+
+    await _clearTokens();
+    _currentUser = null;
+    _emitAuthState(null);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DEV BYPASS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  }) async {
+    if (!isVerificationBypassEnabled) return null;
+    if (identifier != 'admin123' || password != 'admin123') return null;
+
+    // Create a mock user for development
+    _currentUser = const CrushUser(
+      id: 'dev_user_001',
+      phoneNumber: '+1234567890',
+      email: 'admin@crushhour.dev',
+      username: 'Admin',
+      isEmailVerified: true,
+      isPhoneVerified: true,
+      isIdVerified: true,
+      plan: SubscriptionPlan.plus,
+    );
+
+    _emitAuthState(_currentUser);
+    return _currentUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TOKEN MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _storeTokens(AuthTokensDto tokens) async {
+    await _secureStorage.write(key: _accessTokenKey, value: tokens.accessToken);
+    await _secureStorage.write(key: _refreshTokenKey, value: tokens.refreshToken);
+  }
+
+  Future<void> _clearTokens() async {
+    await _secureStorage.delete(key: _accessTokenKey);
+    await _secureStorage.delete(key: _refreshTokenKey);
+    await _secureStorage.delete(key: _userIdKey);
+  }
+
+  /// Get current access token (for API client).
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: _accessTokenKey);
+  }
+
+  /// Refresh the access token.
+  Future<bool> refreshToken() async {
+    final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
+    if (refreshToken == null) return false;
+
+    final request = RefreshTokenRequestDto(refreshToken: refreshToken);
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.authRefreshToken,
+      dto: request,
+      requiresAuth: false,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isSuccess && result.data != null) {
+      final tokens = AuthTokensDto.fromJson(result.data!);
+      await _storeTokens(tokens);
+      return true;
+    }
+
+    return false;
+  }
+
+  void _emitAuthState(CrushUser? user) {
+    _authStateController.add(user);
+  }
+
+  /// Dispose resources.
+  void dispose() {
+    _authStateController.close();
+  }
+}

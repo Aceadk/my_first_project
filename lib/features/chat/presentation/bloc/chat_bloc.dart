@@ -5,6 +5,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
@@ -90,6 +91,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       add(ChatMediaStatusUpdated(enabled));
     });
     emit(state.copyWith(canUnsend: plan.isPlus, errorMessage: null));
+
+    // Track conversation opened
+    AnalyticsService.instance.logConversationOpened(matchId: event.matchId);
+
     final readResult = await Result.guard(
       () => chatRepository.markMessagesRead(event.matchId, event.currentUserId),
       logLabel: 'ChatRepository.markMessagesRead',
@@ -153,6 +158,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       logLabel: 'ChatRepository.setTyping',
       fallbackError: 'Could not update typing status.',
     );
+
+    // Track message sent
+    if (result.isSuccess) {
+      AnalyticsService.instance.logMessageSent(
+        matchId: event.matchId,
+        messageType: event.type.name,
+      );
+    }
+
     emit(state.copyWith(
       sendStatus: SendStatus.idle,
       errorMessage: result.errorMessage,
@@ -230,6 +244,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       fallbackError:
           'Media message failed to send. Check your connection and try again.',
     );
+
+    // Track media sent
+    if (sendResult.isSuccess) {
+      AnalyticsService.instance.logMediaSent(
+        matchId: event.matchId,
+        mediaType: event.type.name,
+      );
+    }
+
     emit(state.copyWith(
       sendStatus: SendStatus.idle,
       uploadingAttachmentName: null,
@@ -304,7 +327,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       logLabel: 'ChatRepository.addReaction',
       fallbackError: 'Could not add reaction.',
     );
-    if (!result.isSuccess) {
+    if (result.isSuccess) {
+      AnalyticsService.instance.logReactionAdded(emoji: event.emoji);
+    } else {
       emit(state.copyWith(errorMessage: result.errorMessage));
     }
   }
@@ -379,6 +404,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       logLabel: 'ChatRepository.unmatch',
       fallbackError: 'Could not unmatch right now.',
     );
+
+    // Track unmatch
+    if (result.isSuccess) {
+      AnalyticsService.instance.logUnmatch(matchId: event.matchId);
+    }
+
     emit(state.copyWith(
       isUnmatching: false,
       isUnmatched: result.isSuccess ? true : state.isUnmatched,

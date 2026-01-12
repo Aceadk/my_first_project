@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -38,6 +39,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
 
     final user = result.data;
+
+    // Track profile viewed
+    if (user != null) {
+      AnalyticsService.instance.logProfileViewed();
+    }
+
     emit(state.copyWith(
       user: user,
       profile: user?.profile,
@@ -60,6 +67,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       logLabel: 'ProfileRepository.saveBasicInfo',
       fallbackError: 'Could not save basic info. Please try again.',
     );
+
+    // Track profile update
+    if (result.isSuccess) {
+      AnalyticsService.instance.logProfileUpdated(
+        fieldsUpdated: ['name', 'age', 'gender', 'sexualOrientation'],
+      );
+    }
+
     final user = result.data;
     emit(state.copyWith(
       user: user ?? state.user,
@@ -72,6 +87,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onDetailsSubmitted(
       ProfileDetailsSubmitted event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
+
+    final oldPhotoCount = state.profile?.photoUrls.length ?? 0;
+
     final result = await Result.guard(
       () => profileRepository.saveProfileDetails(
         bio: event.bio,
@@ -85,6 +103,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       logLabel: 'ProfileRepository.saveProfileDetails',
       fallbackError: 'Could not save profile. Please try again.',
     );
+
+    // Track profile updates
+    if (result.isSuccess) {
+      final fieldsUpdated = <String>['bio', 'interests'];
+      if (event.jobTitle != null) fieldsUpdated.add('jobTitle');
+      if (event.company != null) fieldsUpdated.add('company');
+      if (event.school != null) fieldsUpdated.add('school');
+
+      AnalyticsService.instance.logProfileUpdated(fieldsUpdated: fieldsUpdated);
+      AnalyticsService.instance.logBioUpdated(charCount: event.bio.length);
+
+      // Track photo changes
+      if (event.photoUrls.length > oldPhotoCount) {
+        AnalyticsService.instance.logPhotoAdded(
+          totalPhotos: event.photoUrls.length,
+        );
+      } else if (event.photoUrls.length < oldPhotoCount) {
+        AnalyticsService.instance.logPhotoRemoved(
+          totalPhotos: event.photoUrls.length,
+        );
+      }
+    }
+
     final user = result.data;
     emit(state.copyWith(
       user: user ?? state.user,

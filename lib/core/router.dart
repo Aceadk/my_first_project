@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
 import 'router_refresh_stream.dart';
+import 'performance/performance_observer.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import '../presentation/screens/splash_screen.dart';
@@ -69,12 +72,18 @@ class CrushRoutes {
   static const storageSettings = '/settings/storage';
   static const securitySettings = '/settings/security';
   static const accountSettings = '/settings/account';
+  static const widgetCatalog = '/dev/widget-catalog';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
   return GoRouter(
     initialLocation: CrushRoutes.splash,
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
+    observers: [
+      PerformanceNavigatorObserver(
+        nameExtractor: (route) => route?.settings.name ?? 'unknown',
+      ),
+    ],
     redirect: (context, state) {
       final status = authBloc.state.status;
       final isLoggedIn = status == AuthStatus.authenticated;
@@ -306,6 +315,13 @@ GoRouter createRouter(AuthBloc authBloc) {
           return _buildPage(state, const HomeScreen());
         },
       ),
+      // Widget catalog - debug builds only
+      if (kDebugMode)
+        GoRoute(
+          path: CrushRoutes.widgetCatalog,
+          pageBuilder: (context, state) =>
+              _buildPage(state, const WidgetCatalogScreen()),
+        ),
     ],
   );
 }

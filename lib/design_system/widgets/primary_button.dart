@@ -5,6 +5,8 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool loading;
   final bool expand;
+  final String? semanticLabel;
+  final String? semanticHint;
 
   const PrimaryButton({
     super.key,
@@ -12,19 +14,30 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.loading = false,
     this.expand = true,
+    this.semanticLabel,
+    this.semanticHint,
   });
 
   @override
   Widget build(BuildContext context) {
-    final button = ElevatedButton(
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text(label),
+    final button = Semantics(
+      button: true,
+      enabled: !loading && onPressed != null,
+      label: loading
+          ? 'Loading, ${semanticLabel ?? label}'
+          : semanticLabel ?? label,
+      hint: semanticHint,
+      excludeSemantics: true,
+      child: ElevatedButton(
+        onPressed: loading ? null : onPressed,
+        child: loading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(label),
+      ),
     );
 
     if (!expand) return button;

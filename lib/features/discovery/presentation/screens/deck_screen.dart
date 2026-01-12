@@ -272,6 +272,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         DeckActionButton(
                           icon: Icons.clear,
                           color: DsColors.actionPass,
+                          semanticLabel: 'Pass on this profile',
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
@@ -310,6 +311,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         DeckActionButton(
                           icon: Icons.message,
                           color: DsColors.actionMessage,
+                          semanticLabel: 'Send message',
                           onTap: () async {
                             if (userId == null) return;
                             if (!_canMessage(
@@ -350,6 +352,7 @@ class _DeckScreenState extends State<DeckScreen> {
                         DeckActionButton(
                           icon: Icons.favorite,
                           color: DsColors.actionLike,
+                          semanticLabel: 'Like this profile',
                           onTap: () async {
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();

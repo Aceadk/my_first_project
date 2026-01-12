@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import { BigQuery } from "@google-cloud/bigquery";
 import Stripe from "stripe";
 import { RtcTokenBuilder, RtcRole } from "agora-access-token";
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+import multer from "multer";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -1180,6 +1183,7 @@ async function signUpWithPasswordCore(params: {
       emailVerified: false,
     });
     createdUid = created.uid;
+    const uid = createdUid; // Capture for closure
 
     await db.runTransaction(async (tx) => {
       const nameSnap = await tx.get(usernameRef);
@@ -1190,10 +1194,10 @@ async function signUpWithPasswordCore(params: {
         );
       }
       tx.set(usernameRef, {
-        uid: createdUid,
+        uid: uid,
         createdAt: serverTimestamp(),
       });
-      tx.set(db.collection("users").doc(createdUid), {
+      tx.set(db.collection("users").doc(uid), {
         username,
         usernameLower,
         email: emailLower,
@@ -3425,3 +3429,1060 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
     };
   }
 );
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REST API
+// ═══════════════════════════════════════════════════════════════════════════
+
+const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Middleware
+app.use(cors({ origin: true }));
+app.use(express.json());
+
+// Auth middleware
+interface AuthRequest extends Request {
+  uid?: string;
+  user?: admin.auth.DecodedIdToken;
+}
+
+async function authMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Missing authorization header" });
+    return;
+  }
+
+  const token = authHeader.split("Bearer ")[1];
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.uid = decoded.uid;
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.error("Auth error:", err);
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
+}
+
+// Optional auth middleware (doesn't fail if no token)
+async function optionalAuth(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.split("Bearer ")[1];
+    try {
+      const decoded = await admin.auth().verifyIdToken(token);
+      req.uid = decoded.uid;
+      req.user = decoded;
+    } catch (err) {
+      // Ignore auth errors for optional auth
+    }
+  }
+  next();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Send OTP
+app.post("/v1/auth/otp/send", async (req: Request, res: Response) => {
+  try {
+    const { phone_number } = req.body;
+    if (!phone_number) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    // Generate and store OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const verificationId = crypto.randomUUID();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    await db.collection("phone_verifications").doc(verificationId).set({
+      phoneNumber: phone_number,
+      otp: await bcrypt.hash(otp, 10),
+      expiresAt,
+      verified: false,
+      createdAt: serverTimestamp(),
+    });
+
+    // In production, send SMS. For now, log it.
+    console.log(`OTP for ${phone_number}: ${otp}`);
+
+    res.json({
+      success: true,
+      verification_id: verificationId,
+      message: "OTP sent successfully",
+    });
+  } catch (err) {
+    console.error("Send OTP error:", err);
+    return res.status(500).json({ error: "Failed to send OTP" });
+  }
+});
+
+// Verify OTP
+app.post("/v1/auth/otp/verify", async (req: Request, res: Response) => {
+  try {
+    const { phone_number, otp, verification_id } = req.body;
+    if (!phone_number || !otp) {
+      return res.status(400).json({ error: "Phone number and OTP required" });
+    }
+
+    // Find verification
+    let verificationDoc;
+    if (verification_id) {
+      verificationDoc = await db.collection("phone_verifications").doc(verification_id).get();
+    } else {
+      const query = await db.collection("phone_verifications")
+        .where("phoneNumber", "==", phone_number)
+        .where("verified", "==", false)
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+      verificationDoc = query.docs[0];
+    }
+
+    if (!verificationDoc?.exists) {
+      return res.status(400).json({ error: "Invalid verification" });
+    }
+
+    const verification = verificationDoc.data();
+    if (!verification || verification.expiresAt < Date.now()) {
+      return res.status(400).json({ error: "OTP expired" });
+    }
+
+    const otpValid = await bcrypt.compare(otp, verification.otp);
+    if (!otpValid) {
+      return res.status(400).json({ error: "Invalid OTP" });
+    }
+
+    // Mark as verified
+    await verificationDoc.ref.update({ verified: true });
+
+    // Find or create user
+    let user;
+    try {
+      user = await admin.auth().getUserByPhoneNumber(phone_number);
+    } catch {
+      user = await admin.auth().createUser({
+        phoneNumber: phone_number,
+      });
+      // Create user document
+      await db.collection("users").doc(user.uid).set({
+        phoneNumber: phone_number,
+        createdAt: serverTimestamp(),
+        plan: "free",
+      });
+    }
+
+    // Generate custom token
+    const customToken = await admin.auth().createCustomToken(user.uid);
+
+    // Get user data
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    const userData = userDoc.data() || {};
+
+    res.json({
+      success: true,
+      message: "Phone verified successfully",
+      user: {
+        id: user.uid,
+        phone_number: user.phoneNumber,
+        email: user.email,
+        username: userData.username,
+        is_email_verified: user.emailVerified,
+        is_phone_verified: true,
+        is_id_verified: userData.idVerified || false,
+        is_premium: userData.plan === "plus",
+      },
+      tokens: {
+        access_token: customToken,
+        refresh_token: customToken, // Use same token for simplicity
+        expires_in: 3600,
+      },
+    });
+  } catch (err) {
+    console.error("Verify OTP error:", err);
+    return res.status(500).json({ error: "Failed to verify OTP" });
+  }
+});
+
+// Refresh token
+app.post("/v1/auth/token/refresh", async (req: Request, res: Response) => {
+  try {
+    const { refresh_token } = req.body;
+    if (!refresh_token) {
+      return res.status(400).json({ error: "Refresh token required" });
+    }
+
+    // Verify the token
+    const decoded = await admin.auth().verifyIdToken(refresh_token);
+    const newToken = await admin.auth().createCustomToken(decoded.uid);
+
+    res.json({
+      access_token: newToken,
+      refresh_token: newToken,
+      expires_in: 3600,
+    });
+  } catch (err) {
+    console.error("Refresh token error:", err);
+    return res.status(401).json({ error: "Invalid refresh token" });
+  }
+});
+
+// Logout
+app.post("/v1/auth/logout", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    // Revoke refresh tokens
+    await admin.auth().revokeRefreshTokens(req.uid!);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({ error: "Failed to logout" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFILE ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get current user profile
+app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const userDoc = await db.collection("users").doc(req.uid!).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const data = userDoc.data() || {};
+    const profile = data.profile || {};
+
+    res.json({
+      id: req.uid,
+      phone_number: data.phoneNumber,
+      email: data.email,
+      email_verified: data.emailVerified || false,
+      phone_verified: true,
+      is_premium: data.plan === "plus",
+      display_name: profile.name || profile.displayName,
+      bio: profile.bio,
+      birth_date: profile.birthDate,
+      gender: profile.gender,
+      job_title: profile.jobTitle,
+      company: profile.company,
+      education: profile.education || profile.school,
+      city: profile.city,
+      country: profile.country,
+      photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+        id: `photo_${i}`,
+        url,
+        is_primary: i === 0,
+        order: i,
+      })),
+      interests: profile.interests || [],
+      prompts: profile.prompts || [],
+      preferences: data.preferences || {},
+    });
+  } catch (err) {
+    console.error("Get profile error:", err);
+    return res.status(500).json({ error: "Failed to get profile" });
+  }
+});
+
+// Update profile
+app.patch("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const updates: Record<string, unknown> = {};
+    const profileUpdates: Record<string, unknown> = {};
+
+    // Map request fields to profile fields
+    const fieldMap: Record<string, string> = {
+      display_name: "profile.name",
+      bio: "profile.bio",
+      birth_date: "profile.birthDate",
+      gender: "profile.gender",
+      job_title: "profile.jobTitle",
+      company: "profile.company",
+      education: "profile.education",
+      city: "profile.city",
+      country: "profile.country",
+      interests: "profile.interests",
+    };
+
+    for (const [reqField, dbField] of Object.entries(fieldMap)) {
+      if (req.body[reqField] !== undefined) {
+        updates[dbField] = req.body[reqField];
+      }
+    }
+
+    updates["profile.updatedAt"] = serverTimestamp();
+
+    await db.collection("users").doc(req.uid!).update(updates);
+
+    res.json({ success: true, message: "Profile updated" });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    return res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// Upload photo
+app.post(
+  "/v1/profile/photos",
+  authMiddleware,
+  upload.single("photo"),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const isPrimary = req.body.is_primary === "true";
+      const bucket = admin.storage().bucket();
+      const fileName = `photos/${req.uid}/${Date.now()}_${req.file.originalname}`;
+      const file = bucket.file(fileName);
+
+      await file.save(req.file.buffer, {
+        metadata: { contentType: req.file.mimetype },
+      });
+
+      await file.makePublic();
+      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+      // Update user's photo array
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data() || {};
+      const profile = userData.profile || {};
+      const photos = profile.photoUrls || [];
+
+      if (isPrimary) {
+        photos.unshift(url);
+      } else {
+        photos.push(url);
+      }
+
+      await db.collection("users").doc(req.uid!).update({
+        "profile.photoUrls": photos,
+        "profile.updatedAt": serverTimestamp(),
+      });
+
+      res.json({
+        id: `photo_${Date.now()}`,
+        url,
+        is_primary: isPrimary,
+      });
+    } catch (err) {
+      console.error("Upload photo error:", err);
+      return res.status(500).json({ error: "Failed to upload photo" });
+    }
+  }
+);
+
+// Delete photo
+app.delete(
+  "/v1/profile/photos/:photoId",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { photoId } = req.params;
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data() || {};
+      const profile = userData.profile || {};
+      const photos: string[] = profile.photoUrls || [];
+
+      // Find and remove the photo (photoId format: photo_INDEX or contains URL)
+      const index = parseInt(photoId.replace("photo_", ""));
+      if (!isNaN(index) && index < photos.length) {
+        photos.splice(index, 1);
+      }
+
+      await db.collection("users").doc(req.uid!).update({
+        "profile.photoUrls": photos,
+        "profile.updatedAt": serverTimestamp(),
+      });
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Delete photo error:", err);
+      return res.status(500).json({ error: "Failed to delete photo" });
+    }
+  }
+);
+
+// Update preferences
+app.patch(
+  "/v1/profile/preferences",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      await db.collection("users").doc(req.uid!).update({
+        preferences: req.body,
+        updatedAt: serverTimestamp(),
+      });
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Update preferences error:", err);
+      return res.status(500).json({ error: "Failed to update preferences" });
+    }
+  }
+);
+
+// Get profile by ID
+app.get(
+  "/v1/profile/:userId",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const userDoc = await db.collection("users").doc(userId).get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const data = userDoc.data() || {};
+      const profile = data.profile || {};
+
+      res.json({
+        id: userId,
+        display_name: profile.name || profile.displayName,
+        bio: profile.bio,
+        age: profile.age,
+        gender: profile.gender,
+        city: profile.city,
+        photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+          id: `photo_${i}`,
+          url,
+          is_primary: i === 0,
+        })),
+        interests: profile.interests || [],
+        prompts: profile.prompts || [],
+        is_verified: data.idVerified || false,
+      });
+    } catch (err) {
+      console.error("Get profile error:", err);
+      return res.status(500).json({ error: "Failed to get profile" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DISCOVERY ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get discovery deck
+app.get("/v1/discovery/deck", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const userDoc = await db.collection("users").doc(req.uid!).get();
+    const userData = userDoc.data() || {};
+    const preferences = userData.preferences || {};
+
+    // Get users the current user has already swiped on
+    const swipesSnap = await db.collection("swipes")
+      .where("swiperId", "==", req.uid)
+      .get();
+    const swipedUserIds = new Set(swipesSnap.docs.map(doc => doc.data().targetId));
+    swipedUserIds.add(req.uid!); // Exclude self
+
+    // Query potential matches
+    let query = db.collection("users")
+      .where("profile.isComplete", "==", true)
+      .limit(DISCOVERY_PAGE_SIZE);
+
+    // Apply gender filter if set
+    if (preferences.genderPreference && preferences.genderPreference !== "all") {
+      query = query.where("profile.gender", "==", preferences.genderPreference);
+    }
+
+    const usersSnap = await query.get();
+
+    const profiles = usersSnap.docs
+      .filter(doc => !swipedUserIds.has(doc.id))
+      .slice(0, 20) // Limit to 20 for the deck
+      .map(doc => {
+        const data = doc.data();
+        const profile = data.profile || {};
+        return {
+          id: doc.id,
+          display_name: profile.name || profile.displayName,
+          age: profile.age,
+          bio: profile.bio,
+          city: profile.city,
+          photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+            url,
+            is_primary: i === 0,
+          })),
+          interests: profile.interests || [],
+          prompts: profile.prompts || [],
+          is_verified: data.idVerified || false,
+          distance_km: null, // Would calculate based on location
+        };
+      });
+
+    res.json({
+      profiles,
+      total_count: profiles.length,
+      has_more: profiles.length >= 20,
+    });
+  } catch (err) {
+    console.error("Get deck error:", err);
+    return res.status(500).json({ error: "Failed to get discovery deck" });
+  }
+});
+
+// Swipe
+app.post("/v1/discovery/swipe", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { target_user_id, action, message } = req.body;
+    if (!target_user_id || !action) {
+      return res.status(400).json({ error: "target_user_id and action required" });
+    }
+
+    const isLike = action === "like" || action === "super_like";
+
+    // Record the swipe
+    await db.collection("swipes").add({
+      swiperId: req.uid,
+      targetId: target_user_id,
+      action,
+      message: message || null,
+      createdAt: serverTimestamp(),
+    });
+
+    let isMatch = false;
+    let matchId = null;
+
+    // Check for mutual like (match)
+    if (isLike) {
+      const mutualSwipe = await db.collection("swipes")
+        .where("swiperId", "==", target_user_id)
+        .where("targetId", "==", req.uid)
+        .where("action", "in", ["like", "super_like"])
+        .limit(1)
+        .get();
+
+      if (!mutualSwipe.empty) {
+        isMatch = true;
+        // Create match document
+        const matchRef = await db.collection("matches").add({
+          users: [req.uid, target_user_id],
+          createdAt: serverTimestamp(),
+          lastMessageAt: null,
+        });
+        matchId = matchRef.id;
+      }
+    }
+
+    res.json({
+      success: true,
+      is_match: isMatch,
+      match_id: matchId,
+    });
+  } catch (err) {
+    console.error("Swipe error:", err);
+    return res.status(500).json({ error: "Failed to record swipe" });
+  }
+});
+
+// Activate boost
+app.post("/v1/discovery/boost", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const boostDuration = 30 * 60 * 1000; // 30 minutes
+    const boostExpiresAt = Date.now() + boostDuration;
+
+    await db.collection("users").doc(req.uid!).update({
+      "boost.expiresAt": boostExpiresAt,
+      "boost.activatedAt": serverTimestamp(),
+    });
+
+    res.json({
+      success: true,
+      expires_at: new Date(boostExpiresAt).toISOString(),
+    });
+  } catch (err) {
+    console.error("Boost error:", err);
+    return res.status(500).json({ error: "Failed to activate boost" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MATCHES ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get matches
+app.get("/v1/matches", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    const matchesSnap = await db.collection("matches")
+      .where("users", "array-contains", req.uid)
+      .orderBy("lastMessageAt", "desc")
+      .offset(offset)
+      .limit(limit)
+      .get();
+
+    const matches = await Promise.all(
+      matchesSnap.docs.map(async (doc) => {
+        const data = doc.data();
+        const otherUserId = data.users.find((id: string) => id !== req.uid);
+        const otherUserDoc = await db.collection("users").doc(otherUserId).get();
+        const otherUserData = otherUserDoc.data() || {};
+        const profile = otherUserData.profile || {};
+
+        return {
+          id: doc.id,
+          matched_user_id: otherUserId,
+          matched_user_name: profile.name || profile.displayName,
+          matched_user_photo: (profile.photoUrls || [])[0],
+          created_at: data.createdAt?.toDate?.()?.toISOString(),
+          last_message_at: data.lastMessageAt?.toDate?.()?.toISOString(),
+        };
+      })
+    );
+
+    res.json({
+      matches,
+      total_count: matches.length,
+      has_more: matches.length >= limit,
+    });
+  } catch (err) {
+    console.error("Get matches error:", err);
+    return res.status(500).json({ error: "Failed to get matches" });
+  }
+});
+
+// Unmatch
+app.post(
+  "/v1/matches/:matchId/unmatch",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { matchId } = req.params;
+      const matchDoc = await db.collection("matches").doc(matchId).get();
+
+      if (!matchDoc.exists) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const matchData = matchDoc.data();
+      if (!matchData?.users?.includes(req.uid)) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      await db.collection("matches").doc(matchId).delete();
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Unmatch error:", err);
+      return res.status(500).json({ error: "Failed to unmatch" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHAT ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get conversations
+app.get("/v1/chat/conversations", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const matchesSnap = await db.collection("matches")
+      .where("users", "array-contains", req.uid)
+      .orderBy("lastMessageAt", "desc")
+      .limit(50)
+      .get();
+
+    const conversations = await Promise.all(
+      matchesSnap.docs.map(async (doc) => {
+        const data = doc.data();
+        const otherUserId = data.users.find((id: string) => id !== req.uid);
+        const otherUserDoc = await db.collection("users").doc(otherUserId).get();
+        const otherUserData = otherUserDoc.data() || {};
+        const profile = otherUserData.profile || {};
+
+        // Get last message
+        const lastMsgSnap = await db.collection("matches").doc(doc.id)
+          .collection("messages")
+          .orderBy("createdAt", "desc")
+          .limit(1)
+          .get();
+        const lastMsg = lastMsgSnap.docs[0]?.data();
+
+        return {
+          id: doc.id,
+          participant: {
+            id: otherUserId,
+            name: profile.name || profile.displayName,
+            photo_url: (profile.photoUrls || [])[0],
+          },
+          last_message: lastMsg ? {
+            content: lastMsg.content,
+            type: lastMsg.type || "text",
+            sent_at: lastMsg.createdAt?.toDate?.()?.toISOString(),
+          } : null,
+          updated_at: data.lastMessageAt?.toDate?.()?.toISOString(),
+        };
+      })
+    );
+
+    res.json({ conversations });
+  } catch (err) {
+    console.error("Get conversations error:", err);
+    return res.status(500).json({ error: "Failed to get conversations" });
+  }
+});
+
+// Get messages
+app.get(
+  "/v1/chat/:conversationId/messages",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { conversationId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const before = req.query.before as string;
+
+      let query = db.collection("matches").doc(conversationId)
+        .collection("messages")
+        .orderBy("createdAt", "desc")
+        .limit(limit);
+
+      if (before) {
+        const beforeDoc = await db.collection("matches").doc(conversationId)
+          .collection("messages").doc(before).get();
+        if (beforeDoc.exists) {
+          query = query.startAfter(beforeDoc);
+        }
+      }
+
+      const messagesSnap = await query.get();
+
+      const messages = messagesSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          sender_id: data.senderId,
+          content: data.content,
+          type: data.type || "text",
+          media_url: data.mediaUrl,
+          created_at: data.createdAt?.toDate?.()?.toISOString(),
+          reactions: data.reactions || [],
+        };
+      }).reverse();
+
+      res.json({ messages });
+    } catch (err) {
+      console.error("Get messages error:", err);
+      return res.status(500).json({ error: "Failed to get messages" });
+    }
+  }
+);
+
+// Send message
+app.post(
+  "/v1/chat/:conversationId/send",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { conversationId } = req.params;
+      const { type, content, media_url } = req.body;
+
+      const messageRef = await db.collection("matches").doc(conversationId)
+        .collection("messages")
+        .add({
+          senderId: req.uid,
+          content: content || null,
+          type: type || "text",
+          mediaUrl: media_url || null,
+          createdAt: serverTimestamp(),
+          reactions: [],
+        });
+
+      // Update last message timestamp
+      await db.collection("matches").doc(conversationId).update({
+        lastMessageAt: serverTimestamp(),
+      });
+
+      res.json({
+        id: messageRef.id,
+        success: true,
+      });
+    } catch (err) {
+      console.error("Send message error:", err);
+      return res.status(500).json({ error: "Failed to send message" });
+    }
+  }
+);
+
+// Upload media for chat
+app.post(
+  "/v1/chat/:conversationId/media",
+  authMiddleware,
+  upload.single("media"),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { conversationId } = req.params;
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const bucket = admin.storage().bucket();
+      const fileName = `chat/${conversationId}/${Date.now()}_${req.file.originalname}`;
+      const file = bucket.file(fileName);
+
+      await file.save(req.file.buffer, {
+        metadata: { contentType: req.file.mimetype },
+      });
+
+      await file.makePublic();
+      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+      res.json({ url });
+    } catch (err) {
+      console.error("Upload media error:", err);
+      return res.status(500).json({ error: "Failed to upload media" });
+    }
+  }
+);
+
+// Mark messages as read
+app.post(
+  "/v1/chat/:conversationId/read",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { conversationId } = req.params;
+
+      // Update read status
+      await db.collection("matches").doc(conversationId).update({
+        [`readBy.${req.uid}`]: serverTimestamp(),
+      });
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Mark read error:", err);
+      return res.status(500).json({ error: "Failed to mark as read" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBSCRIPTION ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get subscription plans
+app.get("/v1/subscription/plans", async (req: Request, res: Response) => {
+  try {
+    const plansSnap = await db.collection("subscription_plans").get();
+
+    const plans = plansSnap.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        price_monthly: data.priceMonthly,
+        price_yearly: data.priceYearly,
+        features: data.features || [],
+        stripe_price_id_monthly: data.stripePriceIdMonthly,
+        stripe_price_id_yearly: data.stripePriceIdYearly,
+      };
+    });
+
+    // If no plans in DB, return defaults
+    if (plans.length === 0) {
+      res.json({
+        plans: [
+          {
+            id: "free",
+            name: "Free",
+            price_monthly: 0,
+            features: ["30 likes per day", "Basic filters"],
+          },
+          {
+            id: "plus",
+            name: "CrushHour+",
+            price_monthly: 9.99,
+            price_yearly: 59.99,
+            features: [
+              "Unlimited likes",
+              "See who likes you",
+              "Rewind last swipe",
+              "5 Super Likes per day",
+              "1 Boost per month",
+              "Advanced filters",
+            ],
+          },
+        ],
+      });
+    } else {
+      res.json({ plans });
+    }
+  } catch (err) {
+    console.error("Get plans error:", err);
+    return res.status(500).json({ error: "Failed to get plans" });
+  }
+});
+
+// Create checkout session
+app.post(
+  "/v1/subscription/checkout",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { price_id, success_url, cancel_url } = req.body;
+      if (!price_id) {
+        return res.status(400).json({ error: "price_id required" });
+      }
+
+      // Get or create Stripe customer
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data() || {};
+      let customerId = userData.stripeCustomerId;
+
+      if (!customerId && stripeSecret) {
+        const customer = await stripe.customers.create({
+          metadata: { firebaseUid: req.uid! },
+          email: userData.email,
+          phone: userData.phoneNumber,
+        });
+        customerId = customer.id;
+        await db.collection("users").doc(req.uid!).update({
+          stripeCustomerId: customerId,
+        });
+      }
+
+      // Create checkout session
+      if (stripeSecret) {
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          payment_method_types: ["card"],
+          line_items: [{ price: price_id, quantity: 1 }],
+          mode: "subscription",
+          success_url: success_url || "https://crushhour.app/success",
+          cancel_url: cancel_url || "https://crushhour.app/cancel",
+        });
+
+        res.json({
+          session_id: session.id,
+          url: session.url,
+        });
+      } else {
+        return res.status(500).json({ error: "Stripe not configured" });
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      return res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  }
+);
+
+// Get current subscription
+app.get(
+  "/v1/subscription/current",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data() || {};
+
+      res.json({
+        plan: userData.plan || "free",
+        expires_at: userData.subscriptionExpiresAt?.toDate?.()?.toISOString(),
+        is_active: userData.plan === "plus",
+      });
+    } catch (err) {
+      console.error("Get subscription error:", err);
+      return res.status(500).json({ error: "Failed to get subscription" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAFETY ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Block user
+app.post("/v1/users/block", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { blocked_id } = req.body;
+    if (!blocked_id) {
+      return res.status(400).json({ error: "blocked_id required" });
+    }
+
+    await db.collection("blocks").add({
+      blockerId: req.uid,
+      blockedId: blocked_id,
+      createdAt: serverTimestamp(),
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Block error:", err);
+    return res.status(500).json({ error: "Failed to block user" });
+  }
+});
+
+// Unblock user
+app.post("/v1/users/unblock", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { blocked_id } = req.body;
+    if (!blocked_id) {
+      return res.status(400).json({ error: "blocked_id required" });
+    }
+
+    const blockSnap = await db.collection("blocks")
+      .where("blockerId", "==", req.uid)
+      .where("blockedId", "==", blocked_id)
+      .limit(1)
+      .get();
+
+    if (!blockSnap.empty) {
+      await blockSnap.docs[0].ref.delete();
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Unblock error:", err);
+    return res.status(500).json({ error: "Failed to unblock user" });
+  }
+});
+
+// Report user
+app.post("/v1/users/report", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { reported_id, reason, description, match_id, message_id } = req.body;
+    if (!reported_id || !reason) {
+      return res.status(400).json({ error: "reported_id and reason required" });
+    }
+
+    await db.collection("reports").add({
+      reporterId: req.uid,
+      reportedId: reported_id,
+      reason,
+      description: description || null,
+      matchId: match_id || null,
+      messageId: message_id || null,
+      status: "pending",
+      createdAt: serverTimestamp(),
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Report error:", err);
+    return res.status(500).json({ error: "Failed to report user" });
+  }
+});
+
+// Export the Express app as a Cloud Function
+export const api = functions.https.onRequest(app);

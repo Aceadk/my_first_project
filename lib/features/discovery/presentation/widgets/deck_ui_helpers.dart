@@ -8,11 +8,15 @@ class DeckActionButton extends StatefulWidget {
     required this.icon,
     required this.color,
     required this.onTap,
+    required this.semanticLabel,
+    this.semanticHint,
   });
 
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final String semanticLabel;
+  final String? semanticHint;
 
   @override
   State<DeckActionButton> createState() => _DeckActionButtonState();
@@ -24,37 +28,43 @@ class _DeckActionButtonState extends State<DeckActionButton>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _setPressed(true),
-      onTapCancel: () => _setPressed(false),
-      onTapUp: (_) => _setPressed(false),
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        widget.onTap();
-      },
-      child: AnimatedScale(
-        scale: _pressed ? 0.92 : 1.0,
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
+    return Semantics(
+      button: true,
+      label: widget.semanticLabel,
+      hint: widget.semanticHint,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTapDown: (_) => _setPressed(true),
+        onTapCancel: () => _setPressed(false),
+        onTapUp: (_) => _setPressed(false),
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          widget.onTap();
+        },
+        child: AnimatedScale(
+          scale: _pressed ? 0.92 : 1.0,
+          duration: const Duration(milliseconds: 90),
           curve: Curves.easeOut,
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: widget.color,
-            boxShadow: _pressed
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withAlpha((0.08 * 255).round()),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.color,
+              boxShadow: _pressed
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((0.08 * 255).round()),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+            ),
+            child: Icon(widget.icon, color: Colors.black),
           ),
-          child: Icon(widget.icon, color: Colors.black),
         ),
       ),
     );

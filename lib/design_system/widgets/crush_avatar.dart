@@ -29,55 +29,76 @@ class CrushAvatar extends StatelessWidget {
     final initials = _getInitials(name);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDark ? DsColors.surfaceDark : DsColors.inputFillLight,
-                border: Border.all(
-                  color: isDark ? DsColors.borderDark : DsColors.borderLight,
-                  width: 2,
+    // Build semantic label
+    final List<String> semanticParts = [];
+    if (name != null && name!.isNotEmpty) {
+      semanticParts.add('Avatar of $name');
+    } else {
+      semanticParts.add('User avatar');
+    }
+    if (showOnlineIndicator) {
+      semanticParts.add(isOnline ? 'Online' : 'Offline');
+    }
+    if (showVerifiedBadge && isVerified) {
+      semanticParts.add('Verified');
+    }
+
+    return Semantics(
+      image: true,
+      label: semanticParts.join(', '),
+      button: onTap != null,
+      hint: onTap != null ? 'Double tap to view profile' : null,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark ? DsColors.surfaceDark : DsColors.inputFillLight,
+                  border: Border.all(
+                    color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: imageUrl != null && imageUrl!.isNotEmpty
+                      ? Image.network(
+                          imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(initials, isDark),
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return _buildLoadingPlaceholder(isDark);
+                          },
+                        )
+                      : _buildPlaceholder(initials, isDark),
                 ),
               ),
-              child: ClipOval(
-                child: imageUrl != null && imageUrl!.isNotEmpty
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholder(initials, isDark),
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return _buildLoadingPlaceholder(isDark);
-                        },
-                      )
-                    : _buildPlaceholder(initials, isDark),
-              ),
-            ),
-            if (showOnlineIndicator)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: _OnlineIndicator(
-                  isOnline: isOnline,
-                  size: size * 0.28,
+              if (showOnlineIndicator)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: _OnlineIndicator(
+                    isOnline: isOnline,
+                    size: size * 0.28,
+                  ),
                 ),
-              ),
-            if (showVerifiedBadge && isVerified)
-              Positioned(
-                right: -2,
-                top: -2,
-                child: _VerifiedBadge(size: size * 0.35),
-              ),
-          ],
+              if (showVerifiedBadge && isVerified)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: _VerifiedBadge(size: size * 0.35),
+                ),
+            ],
+          ),
         ),
       ),
     );

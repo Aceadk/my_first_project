@@ -1,0 +1,109 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+
+import 'package:crushhour/core/network/api_client.dart';
+import '../call_repository.dart';
+
+/// HTTP-based implementation of CallRepository.
+///
+/// Uses HTTP to get call credentials and manage call state.
+/// The actual WebRTC/Agora connection is handled by the client.
+class HttpCallRepository implements CallRepository {
+  HttpCallRepository({
+    required ApiClient apiClient,
+  }) : _apiClient = apiClient;
+
+  final ApiClient _apiClient;
+
+  final _eventController = StreamController<CallEngineEvent>.broadcast();
+  CallSession? _currentSession;
+
+  @override
+  Future<CallSession> startCall({
+    required String matchId,
+    required bool isVideoCall,
+  }) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/calls/start',
+      body: {
+        'match_id': matchId,
+        'is_video': isVideoCall,
+      },
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      _eventController.add(CallEngineEvent(
+        type: CallEngineEventType.error,
+        error: result.error?.message ?? 'Failed to start call',
+      ));
+      throw Exception(result.error?.message ?? 'Failed to start call');
+    }
+
+    final data = result.data!;
+    _currentSession = CallSession(
+      matchId: matchId,
+      localUid: data['local_uid'] as int? ?? 0,
+      channelName: data['channel_name'] as String? ?? matchId,
+      isVideoCall: isVideoCall,
+    );
+
+    // Emit joined event
+    _eventController.add(CallEngineEvent(
+      type: CallEngineEventType.joinedChannel,
+    ));
+
+    return _currentSession!;
+  }
+
+  @override
+  Future<void> endCall() async {
+    if (_currentSession == null) return;
+
+    final result = await _apiClient.post<void>(
+      '/calls/end',
+      body: {'match_id': _currentSession!.matchId},
+    );
+
+    if (result.isFailure) {
+      debugPrint('HttpCallRepository: Failed to end call - ${result.error}');
+    }
+
+    _currentSession = null;
+  }
+
+  @override
+  Stream<CallEngineEvent> engineEvents() {
+    return _eventController.stream;
+  }
+
+  /// Notify that the remote user joined.
+  void notifyRemoteUserJoined(int remoteUid) {
+    _eventController.add(CallEngineEvent(
+      type: CallEngineEventType.userJoined,
+      remoteUid: remoteUid,
+    ));
+  }
+
+  /// Notify that the remote user left.
+  void notifyRemoteUserOffline(int remoteUid) {
+    _eventController.add(CallEngineEvent(
+      type: CallEngineEventType.userOffline,
+      remoteUid: remoteUid,
+    ));
+  }
+
+  /// Notify of an error.
+  void notifyError(String error) {
+    _eventController.add(CallEngineEvent(
+      type: CallEngineEventType.error,
+      error: error,
+    ));
+  }
+
+  /// Dispose resources.
+  void dispose() {
+    _eventController.close();
+  }
+}

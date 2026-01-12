@@ -7,6 +7,8 @@ export 'tokens/typography.dart';
 export 'theme/app_theme.dart';
 export 'widgets/app_text_field.dart';
 export 'widgets/auth_scaffold.dart';
+export 'widgets/crush_avatar.dart';
+export 'widgets/crush_icon_button.dart';
 export 'widgets/error_banner.dart';
 export 'widgets/loading_overlay.dart';
 export 'widgets/otp_input.dart';

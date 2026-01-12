@@ -18,6 +18,8 @@ class AppTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final bool isRequired;
+  final String? semanticLabel;
 
   const AppTextField({
     super.key,
@@ -38,29 +40,53 @@ class AppTextField extends StatelessWidget {
     this.autofillHints,
     this.prefixIcon,
     this.suffixIcon,
+    this.isRequired = false,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      obscureText: obscureText,
+    // Build semantic description
+    final List<String> semanticParts = [];
+    if (semanticLabel != null) {
+      semanticParts.add(semanticLabel!);
+    } else if (label != null) {
+      semanticParts.add(label!);
+    }
+    if (isRequired) {
+      semanticParts.add('required');
+    }
+    if (obscureText) {
+      semanticParts.add('password field');
+    }
+    if (errorText != null) {
+      semanticParts.add('Error: $errorText');
+    }
+
+    return Semantics(
+      textField: true,
+      label: semanticParts.isNotEmpty ? semanticParts.join(', ') : null,
       enabled: enabled,
-      maxLines: maxLines,
-      minLines: minLines,
-      maxLength: maxLength,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      autofillHints: autofillHints,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        helperText: helperText,
-        errorText: errorText,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        obscureText: obscureText,
+        enabled: enabled,
+        maxLines: maxLines,
+        minLines: minLines,
+        maxLength: maxLength,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        autofillHints: autofillHints,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hintText,
+          helperText: helperText,
+          errorText: errorText,
+          prefixIcon: prefixIcon,
+          suffixIcon: suffixIcon,
+        ),
       ),
     );
   }
