@@ -1,4 +1,4 @@
-import '../models/user.dart';
+import 'package:crushhour/data/models/user.dart';
 
 enum EmailOtpPurpose {
   login,

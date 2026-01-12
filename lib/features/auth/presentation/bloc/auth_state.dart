@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../data/models/user.dart';
+import 'package:crushhour/data/models/user.dart';
 
 enum AuthStatus {
   unknown,

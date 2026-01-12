@@ -6,8 +6,8 @@ import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
 import '../../data/models/user.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../design_system/widgets/auth_scaffold.dart';
 import '../widgets/primary_button.dart';
 

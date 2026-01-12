@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/user.dart';
-import '../../models/profile.dart';
-import '../../models/preferences.dart';
-import '../../models/subscription.dart';
-import '../../models/privacy_settings.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
 import '../auth_repository.dart';
 
 /// Mock implementation of AuthRepository with local storage.

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../logic/auth/auth_bloc.dart';
-import '../../logic/auth/auth_event.dart';
-import '../../logic/auth/auth_state.dart';
-import '../../core/router.dart';
-import '../../core/ui/snackbar_utils.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
-import '../widgets/onboarding_progress.dart';
-import '../widgets/onboarding_nav_buttons.dart';
+import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
+import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
 
 class EmailAuthScreen extends StatefulWidget {
   const EmailAuthScreen({super.key});

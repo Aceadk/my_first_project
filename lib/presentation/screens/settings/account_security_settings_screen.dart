@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router.dart';
-import '../../../logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing_widgets.dart';
 

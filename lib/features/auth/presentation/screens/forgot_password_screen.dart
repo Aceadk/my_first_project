@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/result.dart';
-import '../../core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../design_system/widgets/auth_scaffold.dart';
-import '../widgets/primary_button.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
+import 'package:crushhour/presentation/widgets/primary_button.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});

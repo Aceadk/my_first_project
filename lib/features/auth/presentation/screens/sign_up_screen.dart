@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/utils/result.dart';
-import '../../core/router.dart';
-import '../../core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../design_system/tokens/colors.dart';
-import '../../design_system/tokens/spacing_widgets.dart';
-import '../../logic/auth/auth_bloc.dart';
-import '../../logic/auth/auth_event.dart';
-import '../../logic/auth/auth_state.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});

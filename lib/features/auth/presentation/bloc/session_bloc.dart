@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/core/utils/result.dart';
-import '../../core/security/session_manager.dart';
+import 'package:crushhour/core/security/session_manager.dart';
 
 // Events
 abstract class SessionEvent extends Equatable {

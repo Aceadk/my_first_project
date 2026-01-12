@@ -7,7 +7,7 @@ import '../../core/router.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/models/match.dart';
 import '../../data/models/message.dart';
-import '../../logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../logic/matches/matches_bloc.dart';
 import '../../logic/matches/matches_event.dart';
 import '../../logic/matches/matches_state.dart';

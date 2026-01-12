@@ -13,7 +13,7 @@ import '../../data/services/prematch_service.dart';
 import '../../data/services/profile_validation_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing_widgets.dart';
-import '../../logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../logic/discovery/discovery_bloc.dart';
 import '../../logic/discovery/discovery_event.dart';
 import '../../logic/discovery/discovery_state.dart';

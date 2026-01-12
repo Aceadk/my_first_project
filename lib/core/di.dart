@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/discovery_repository.dart';
 import '../data/repositories/chat_repository.dart';
@@ -10,10 +10,10 @@ import '../data/repositories/subscription_repository.dart';
 import '../data/repositories/call_repository.dart';
 
 // Firebase implementations
-import '../data/repositories/firebase/firebase_auth_repository.dart';
+import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_repository.dart';
 
 // Stub implementations (for development/demo without backend)
-import '../data/repositories/stub/stub_auth_repository.dart';
+import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
 import '../data/repositories/stub/stub_profile_repository.dart';
 import '../data/repositories/stub/stub_discovery_repository.dart';
 import '../data/repositories/stub/stub_chat_repository.dart';
@@ -21,11 +21,11 @@ import '../data/repositories/stub/stub_subscription_repository.dart';
 import '../data/repositories/stub/stub_call_repository.dart';
 
 // BLoCs
-import '../logic/auth/auth_bloc.dart';
-import '../logic/auth/auth_event.dart';
-import '../logic/auth/session_bloc.dart';
-import '../logic/auth/phone_auth_bloc.dart';
-import '../logic/auth/email_auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/phone_auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/email_auth_bloc.dart';
 import '../logic/profile/profile_bloc.dart';
 import '../logic/discovery/discovery_bloc.dart';
 import '../logic/chat/chat_bloc.dart';

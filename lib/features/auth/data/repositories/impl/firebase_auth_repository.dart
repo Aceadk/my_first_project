@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../models/user.dart';
-import '../../models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
-import '../../../core/services/email_service.dart';
-import '../../../core/security/secure_logger.dart';
+import 'package:crushhour/core/services/email_service.dart';
+import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository implements AuthRepository {

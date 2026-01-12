@@ -7,7 +7,7 @@ import 'core/router.dart';
 import 'core/di.dart';
 import 'core/deep_link_bootstrap.dart';
 import 'logic/theme/theme_cubit.dart';
-import 'logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 
 class CrushApp extends StatelessWidget {
   const CrushApp({super.key, required this.preferences});

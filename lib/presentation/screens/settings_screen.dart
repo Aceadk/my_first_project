@@ -13,7 +13,7 @@ import '../../logic/subscription/subscription_event.dart';
 import '../../logic/subscription/subscription_state.dart';
 import '../../data/models/subscription.dart';
 import '../../core/ui/snackbar_utils.dart';
-import '../../logic/auth/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import '../../logic/locale/locale_cubit.dart';
 import '../../logic/storage/storage_settings_cubit.dart';
 import '../../design_system/tokens/colors.dart';
