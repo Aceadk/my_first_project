@@ -16,6 +16,7 @@ import 'package:crushhour/features/discovery/data/repositories/discovery_reposit
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:crushhour/design_system/widgets/skeleton_loader.dart';
 
 /// Screen showing profiles that have liked the current user.
 /// Free users see blurred profiles; Premium users see full profiles.
@@ -93,7 +94,11 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
 
   Widget _buildBody(BuildContext context, bool isDark, bool isPremium) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SkeletonGrid(
+        itemCount: 6,
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+      );
     }
 
     if (_errorMessage != null) {

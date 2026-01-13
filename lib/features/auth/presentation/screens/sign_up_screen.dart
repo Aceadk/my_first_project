@@ -9,7 +9,7 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
@@ -653,12 +653,12 @@ class _UsernameStep extends StatelessWidget {
           ),
         ),
         DsGap.xxl,
-        _StyledTextField(
+        GlassTextField(
           controller: controller,
           label: 'Username',
-          hint: 'e.g., john_doe123',
+          hintText: 'e.g., john_doe123',
           prefixIcon: Icons.person_outline,
-          error: error,
+          errorText: error,
           enabled: !isLoading,
           onChanged: (_) => onChanged(),
           textInputAction: TextInputAction.next,
@@ -672,10 +672,11 @@ class _UsernameStep extends StatelessWidget {
           ),
         ),
         DsGap.xxl,
-        _NextButton(
-          label: hasContent ? 'Continue' : 'Skip for now',
+        GlassPrimaryButton(
+          onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
-          onPressed: onNext,
+          isExpanded: true,
+          child: Text(hasContent ? 'Continue' : 'Skip for now'),
         ),
         DsGap.lg,
         _LoginLink(),
@@ -738,12 +739,12 @@ class _EmailStep extends StatelessWidget {
           ),
         ),
         DsGap.xxl,
-        _StyledTextField(
+        GlassTextField(
           controller: controller,
           label: 'Email address',
-          hint: 'you@example.com',
+          hintText: 'you@example.com',
           prefixIcon: Icons.email_outlined,
-          error: error,
+          errorText: error,
           enabled: !isLoading,
           keyboardType: TextInputType.emailAddress,
           onChanged: (_) => onChanged(),
@@ -751,10 +752,11 @@ class _EmailStep extends StatelessWidget {
           onSubmitted: (_) => onNext(),
         ),
         DsGap.xxl,
-        _NextButton(
-          label: hasContent ? 'Continue' : 'Skip for now',
+        GlassPrimaryButton(
+          onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
-          onPressed: onNext,
+          isExpanded: true,
+          child: Text(hasContent ? 'Continue' : 'Skip for now'),
         ),
       ],
     );
@@ -842,20 +844,16 @@ class _PasswordStep extends StatelessWidget {
           ),
         ],
         DsGap.xxl,
-        _StyledTextField(
+        GlassTextField(
           controller: controller,
           label: 'Password',
-          hint: '••••••••',
+          hintText: '••••••••',
           prefixIcon: Icons.lock_outline,
-          error: error,
+          errorText: error,
           enabled: !isLoading,
           obscureText: obscurePassword,
-          suffixIcon: IconButton(
-            icon: Icon(
-              obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            ),
-            onPressed: onToggleObscure,
-          ),
+          suffixIcon: obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          onSuffixTap: onToggleObscure,
           onChanged: (_) => onChanged(),
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => onNext(),
@@ -863,10 +861,11 @@ class _PasswordStep extends StatelessWidget {
         DsGap.md,
         _PasswordStrength(password: controller.text),
         DsGap.xxl,
-        _NextButton(
-          label: 'Create Account',
+        GlassPrimaryButton(
+          onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
-          onPressed: onNext,
+          isExpanded: true,
+          child: const Text('Create Account'),
         ),
       ],
     );
@@ -1125,38 +1124,22 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
             ),
           ),
         // Open email app button
-        _NextButton(
-          label: 'Open Email App',
+        GlassPrimaryButton(
+          onPressed: widget.isLoading ? null : widget.onOpenEmail,
           isLoading: widget.isLoading,
-          onPressed: widget.onOpenEmail,
+          isExpanded: true,
+          child: const Text('Open Email App'),
         ),
         DsGap.md,
         // Check verification button
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: OutlinedButton(
-            onPressed: widget.isLoading ? null : widget.onManualCheck,
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: DsColors.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: widget.isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text(
-                    'I\'ve clicked the link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: DsColors.primary,
-                    ),
-                  ),
+        GlassOutlinedButton(
+          onPressed: widget.isLoading ? null : widget.onManualCheck,
+          isLoading: widget.isLoading,
+          isExpanded: true,
+          borderColor: DsColors.primary,
+          child: const Text(
+            'I\'ve clicked the link',
+            style: TextStyle(color: DsColors.primary),
           ),
         ),
         DsGap.lg,
@@ -1225,141 +1208,6 @@ class _InstructionRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// Reusable styled text field
-class _StyledTextField extends StatelessWidget {
-  const _StyledTextField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.prefixIcon,
-    this.error,
-    this.enabled = true,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.keyboardType,
-    this.maxLength,
-    this.onChanged,
-    this.textInputAction,
-    this.onSubmitted,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData prefixIcon;
-  final String? error;
-  final bool enabled;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final TextInputType? keyboardType;
-  final int? maxLength;
-  final ValueChanged<String>? onChanged;
-  final TextInputAction? textInputAction;
-  final ValueChanged<String>? onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      maxLength: maxLength,
-      textInputAction: textInputAction,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      style: TextStyle(
-        fontSize: 16,
-        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        errorText: error,
-        counterText: '',
-        prefixIcon: Icon(prefixIcon),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
-        labelStyle: TextStyle(
-          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-        ),
-        hintStyle: TextStyle(
-          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.error, width: 2),
-        ),
-      ),
-    );
-  }
-}
-
-// Next button
-class _NextButton extends StatelessWidget {
-  const _NextButton({
-    required this.label,
-    required this.isLoading,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: FilledButton(
-        onPressed: isLoading ? null : onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: DsColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-      ),
     );
   }
 }
@@ -1558,10 +1406,10 @@ class _PhoneStep extends StatelessWidget {
           children: [
             SizedBox(
               width: 100,
-              child: _StyledTextField(
+              child: GlassTextField(
                 controller: dialCodeController,
                 label: 'Code',
-                hint: '+1',
+                hintText: '+1',
                 prefixIcon: Icons.dialpad,
                 enabled: !isLoading,
                 keyboardType: TextInputType.phone,
@@ -1569,12 +1417,12 @@ class _PhoneStep extends StatelessWidget {
             ),
             DsGap.mdH,
             Expanded(
-              child: _StyledTextField(
+              child: GlassTextField(
                 controller: phoneController,
                 label: 'Phone number',
-                hint: '(555) 123-4567',
+                hintText: '(555) 123-4567',
                 prefixIcon: Icons.phone_outlined,
-                error: error,
+                errorText: error,
                 enabled: !isLoading,
                 keyboardType: TextInputType.phone,
                 onChanged: (_) => onChanged(),
@@ -1592,10 +1440,11 @@ class _PhoneStep extends StatelessWidget {
           ),
         ),
         DsGap.xxl,
-        _NextButton(
-          label: 'Send Code',
+        GlassPrimaryButton(
+          onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
-          onPressed: onNext,
+          isExpanded: true,
+          child: const Text('Send Code'),
         ),
         DsGap.lg,
         _LoginLink(),
@@ -1676,12 +1525,12 @@ class _PhoneOtpStep extends StatelessWidget {
           ),
         ),
         DsGap.xxl,
-        _StyledTextField(
+        GlassTextField(
           controller: controller,
           label: 'Verification code',
-          hint: '000000',
+          hintText: '000000',
           prefixIcon: Icons.pin_outlined,
-          error: error,
+          errorText: error,
           enabled: !isLoading,
           keyboardType: TextInputType.number,
           maxLength: 6,
@@ -1690,10 +1539,11 @@ class _PhoneOtpStep extends StatelessWidget {
           onSubmitted: (_) => onVerify(),
         ),
         DsGap.xxl,
-        _NextButton(
-          label: 'Verify',
+        GlassPrimaryButton(
+          onPressed: isLoading ? null : onVerify,
           isLoading: isLoading,
-          onPressed: onVerify,
+          isExpanded: true,
+          child: const Text('Verify'),
         ),
         DsGap.md,
         Center(

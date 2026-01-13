@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
@@ -203,7 +202,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: profile.interests.map((interest) {
-                          return _InfoChip(label: interest);
+                          return GlassChip(label: interest);
                         }).toList(),
                       ),
                     ),
@@ -258,7 +257,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: profile.languages.map((lang) {
-                          return _InfoChip(label: lang);
+                          return GlassChip(label: lang);
                         }).toList(),
                       ),
                     ),
@@ -315,7 +314,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                         runSpacing: 8,
                         children: [
                           if (privacy.showWorkout && profile.workout != null)
-                            _InfoChip(
+                            GlassChip.icon(
                               label: ProfileFieldOptions.getWorkoutLabel(
                                       profile.workout) ??
                                   '',
@@ -323,28 +322,28 @@ class OtherUserProfileScreen extends StatelessWidget {
                             ),
                           if (privacy.showSleepingHabits &&
                               profile.sleepingHabits != null)
-                            _InfoChip(
+                            GlassChip.icon(
                               label: ProfileFieldOptions.getSleepingLabel(
                                       profile.sleepingHabits) ??
                                   '',
                               icon: Icons.bedtime_outlined,
                             ),
                           if (privacy.showSmoking && profile.smoking != null)
-                            _InfoChip(
+                            GlassChip.icon(
                               label: ProfileFieldOptions.getSmokingLabel(
                                       profile.smoking) ??
                                   '',
                               icon: Icons.smoking_rooms,
                             ),
                           if (privacy.showDrinking && profile.drinking != null)
-                            _InfoChip(
+                            GlassChip.icon(
                               label: ProfileFieldOptions.getDrinkingLabel(
                                       profile.drinking) ??
                                   '',
                               icon: Icons.local_bar,
                             ),
                           if (privacy.showPets && profile.pets != null)
-                            _InfoChip(
+                            GlassChip.icon(
                               label: ProfileFieldOptions.getPetLabel(
                                       profile.pets) ??
                                   '',
@@ -378,7 +377,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                               spacing: 8,
                               runSpacing: 8,
                               children: profile.favoriteSongs.map((song) {
-                                return _InfoChip(
+                                return GlassChip.icon(
                                     label: song, icon: Icons.music_note);
                               }).toList(),
                             ),
@@ -864,41 +863,3 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-
-  const _InfoChip({required this.label, this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DsSpacing.md,
-        vertical: DsSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16, color: DsColors.primary),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

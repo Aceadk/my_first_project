@@ -7,7 +7,7 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
@@ -88,12 +88,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               DsGap.xxxl,
               // Email/Username field
-              _StyledTextField(
+              GlassTextField(
                 controller: _identifierController,
                 label: 'Email or username',
-                hint: 'you@example.com',
+                hintText: 'you@example.com',
                 prefixIcon: Icons.person_outline,
-                error: _identifierError,
+                errorText: _identifierError,
                 enabled: !_isLoading,
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (_) => setState(() => _identifierError = null),
@@ -101,22 +101,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               DsGap.lg,
               // Password field
-              _StyledTextField(
+              GlassTextField(
                 controller: _passwordController,
                 label: 'Password',
-                hint: '••••••••',
+                hintText: '••••••••',
                 prefixIcon: Icons.lock_outline,
-                error: _passwordError,
+                errorText: _passwordError,
                 enabled: !_isLoading,
                 obscureText: _obscurePassword,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                  ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                ),
+                suffixIcon: _obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
                 onChanged: (_) => setState(() => _passwordError = null),
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _submit(),
@@ -139,15 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login button
               SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: FilledButton(
+                child: GlassPrimaryButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: DsColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           width: 24,
@@ -187,24 +176,13 @@ class _LoginScreenState extends State<LoginScreen> {
               // Create account button
               SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: OutlinedButton(
+                child: GlassOutlinedButton(
                   onPressed: _isLoading ? null : () => context.push(CrushRoutes.signUp),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
+                  child: const Text(
                     'Create Account',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
                     ),
                   ),
                 ),
@@ -356,90 +334,5 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     context.go(CrushRoutes.home);
-  }
-}
-
-// Reusable styled text field
-class _StyledTextField extends StatelessWidget {
-  const _StyledTextField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.prefixIcon,
-    this.error,
-    this.enabled = true,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.keyboardType,
-    this.onChanged,
-    this.textInputAction,
-    this.onSubmitted,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData prefixIcon;
-  final String? error;
-  final bool enabled;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final TextInputType? keyboardType;
-  final ValueChanged<String>? onChanged;
-  final TextInputAction? textInputAction;
-  final ValueChanged<String>? onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      style: TextStyle(
-        fontSize: 16,
-        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        errorText: error,
-        prefixIcon: Icon(prefixIcon),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
-        labelStyle: TextStyle(
-          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-        ),
-        hintStyle: TextStyle(
-          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: DsColors.error, width: 2),
-        ),
-      ),
-    );
   }
 }

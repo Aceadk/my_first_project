@@ -18,6 +18,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   final _service = ProfileInsightsService.instance;
   ProfileInsights? _insights;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -26,7 +27,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   }
 
   Future<void> _loadInsights() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final insights = await _service.loadInsights(widget.userId);
       setState(() {
@@ -34,7 +38,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Unable to load insights. Please try again.';
+      });
     }
   }
 
@@ -76,12 +83,150 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           // Content
           SafeArea(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _insights == null
-                    ? _buildEmptyState(textColor)
-                    : _buildInsightsContent(context, textColor),
+                ? _buildSkeletonLoading()
+                : _errorMessage != null
+                    ? _buildErrorState(textColor)
+                    : _insights == null
+                        ? _buildEmptyState(textColor)
+                        : _buildInsightsContent(context, textColor),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoading() {
+    return DsShimmer(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(DsSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title skeleton
+            const SkeletonBox(width: 120, height: 24),
+            DsGap.md,
+            // Stats cards row 1
+            Row(
+              children: [
+                Expanded(child: _buildSkeletonStatCard()),
+                DsGap.mdH,
+                Expanded(child: _buildSkeletonStatCard()),
+              ],
+            ),
+            DsGap.md,
+            // Stats cards row 2
+            Row(
+              children: [
+                Expanded(child: _buildSkeletonStatCard()),
+                DsGap.mdH,
+                Expanded(child: _buildSkeletonStatCard()),
+              ],
+            ),
+            DsGap.xl,
+            // Activity section skeleton
+            _buildSkeletonSection(height: 160),
+            DsGap.xl,
+            // Best time section skeleton
+            _buildSkeletonSection(height: 80),
+            DsGap.xl,
+            // Photo performance skeleton
+            const SkeletonBox(width: 150, height: 20),
+            DsGap.md,
+            _buildSkeletonSection(height: 140),
+            DsGap.xl,
+            // Weekly trend skeleton
+            const SkeletonBox(width: 120, height: 20),
+            DsGap.md,
+            _buildSkeletonSection(height: 150),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonStatCard() {
+    return Container(
+      padding: const EdgeInsets.all(DsSpacing.lg),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? DsColors.surfaceDark
+            : DsColors.surfaceLight,
+        borderRadius: BorderRadius.circular(DsRadius.lg),
+      ),
+      child: const Column(
+        children: [
+          SkeletonBox(width: 40, height: 40, borderRadius: DsRadius.sm),
+          SizedBox(height: DsSpacing.md),
+          SkeletonBox(width: 60, height: 28),
+          SizedBox(height: DsSpacing.xs),
+          SkeletonBox(width: 80, height: 14),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonSection({required double height}) {
+    return Container(
+      width: double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? DsColors.surfaceDark
+            : DsColors.surfaceLight,
+        borderRadius: BorderRadius.circular(DsRadius.lg),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Color textColor) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DsSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              decoration: BoxDecoration(
+                color: DsColors.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 48,
+                color: DsColors.error.withValues(alpha: 0.8),
+              ),
+            ),
+            DsGap.lg,
+            Text(
+              'Something went wrong',
+              style: TextStyle(
+                color: textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            DsGap.sm,
+            Text(
+              _errorMessage ?? 'Unable to load insights',
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+              textAlign: TextAlign.center,
+            ),
+            DsGap.xl,
+            GlassPrimaryButton(
+              onPressed: _loadInsights,
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh, size: 18),
+                  SizedBox(width: 8),
+                  Text('Try Again'),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

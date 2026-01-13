@@ -20,6 +20,7 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   final _service = WeeklyPicksService.instance;
   WeeklyPicks? _picks;
   bool _isLoading = true;
+  String? _errorMessage;
   int _currentIndex = 0;
 
   @override
@@ -29,7 +30,10 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   }
 
   Future<void> _loadPicks() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final picks = await _service.loadPicks(widget.userId);
       setState(() {
@@ -37,7 +41,10 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Unable to load weekly picks. Please try again.';
+      });
     }
   }
 
@@ -83,12 +90,193 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
           // Content
           SafeArea(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _picks == null || _picks!.picks.isEmpty
-                    ? _buildEmptyState(textColor)
-                    : _buildPicksContent(context, textColor),
+                ? _buildSkeletonLoading()
+                : _errorMessage != null
+                    ? _buildErrorState(textColor)
+                    : _picks == null || _picks!.picks.isEmpty
+                        ? _buildEmptyState(textColor)
+                        : _buildPicksContent(context, textColor),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoading() {
+    return DsShimmer(
+      child: Column(
+        children: [
+          // Timer skeleton
+          Padding(
+            padding: const EdgeInsets.all(DsSpacing.lg),
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? DsColors.surfaceDark
+                    : DsColors.surfaceLight,
+                borderRadius: BorderRadius.circular(DsRadius.lg),
+              ),
+            ),
+          ),
+          // Card skeleton
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? DsColors.skeletonDark
+                      : DsColors.skeletonLight,
+                  borderRadius: BorderRadius.circular(DsRadius.xl),
+                ),
+                child: Stack(
+                  children: [
+                    // Top badge skeleton
+                    Positioned(
+                      top: DsSpacing.lg,
+                      left: DsSpacing.lg,
+                      child: Container(
+                        width: 120,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DsColors.surfaceDark
+                              : DsColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(DsRadius.round),
+                        ),
+                      ),
+                    ),
+                    // Bottom info skeleton
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DsColors.surfaceDark
+                              : DsColors.surfaceLight,
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(DsRadius.xl),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Dots skeleton
+          Padding(
+            padding: const EdgeInsets.all(DsSpacing.lg),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: index == 0 ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? DsColors.skeletonDark
+                        : DsColors.skeletonLight,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
+            ),
+          ),
+          // Buttons skeleton
+          Padding(
+            padding: const EdgeInsets.only(
+              left: DsSpacing.xl,
+              right: DsSpacing.xl,
+              bottom: DsSpacing.xl,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DsColors.surfaceDark
+                          : DsColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(DsRadius.round),
+                    ),
+                  ),
+                ),
+                DsGap.lgH,
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DsColors.skeletonDark
+                          : DsColors.skeletonLight,
+                      borderRadius: BorderRadius.circular(DsRadius.round),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Color textColor) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DsSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              decoration: BoxDecoration(
+                color: DsColors.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 48,
+                color: DsColors.error.withValues(alpha: 0.8),
+              ),
+            ),
+            DsGap.lg,
+            Text(
+              'Something went wrong',
+              style: TextStyle(
+                color: textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            DsGap.sm,
+            Text(
+              _errorMessage ?? 'Unable to load weekly picks',
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+              textAlign: TextAlign.center,
+            ),
+            DsGap.xl,
+            GlassPrimaryButton(
+              onPressed: _loadPicks,
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh, size: 18),
+                  SizedBox(width: 8),
+                  Text('Try Again'),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
