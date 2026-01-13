@@ -304,6 +304,22 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> sendEmailVerification() async {
+    // Fake: do nothing
+  }
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async {
+    // Fake: always return verified user
+    if (_current != null) {
+      _current = _current!.copyWith(isEmailVerified: true);
+      _controller.add(_current);
+      return _current;
+    }
+    return null;
+  }
+
+  @override
   Future<CrushUser?> devLoginBypass({
     required String identifier,
     required String password,
@@ -378,6 +394,70 @@ class FakeAuthRepository implements AuthRepository {
       _passwordsByUserId[user.id] = newPassword;
       _passwordsByEmail[normalized] = newPassword;
     }
+  }
+
+  @override
+  Future<void> schedulePhoneDeletion() async {
+    // Fake: just clear the phone number after a delay simulation
+    if (_current != null && _current!.phoneNumber.isNotEmpty) {
+      // In real app, this would schedule deletion after ~3 days
+      // For fake, we just mark it as pending deletion
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (_current == null) {
+      throw Exception('No user logged in');
+    }
+    final stored = _passwordsByUserId[_current!.id];
+    if (stored != currentPassword) {
+      throw Exception('Current password is incorrect');
+    }
+    _passwordsByUserId[_current!.id] = newPassword;
+    if (_current!.email != null) {
+      _passwordsByEmail[_current!.email!.toLowerCase()] = newPassword;
+    }
+  }
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async {
+    if (_current == null) {
+      throw Exception('No user logged in');
+    }
+    // Fake: just sign out (real app would hide profile)
+    await signOut();
+  }
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {
+    if (_current == null) {
+      throw Exception('No user logged in');
+    }
+    final stored = _passwordsByUserId[_current!.id];
+    if (stored != null && stored != password) {
+      throw Exception('Password is incorrect');
+    }
+    // Remove user data
+    final userId = _current!.id;
+    final email = _current!.email?.toLowerCase();
+    final username = _current!.username?.toLowerCase();
+
+    _passwordsByUserId.remove(userId);
+    if (email != null) {
+      _usersByEmail.remove(email);
+      _passwordsByEmail.remove(email);
+    }
+    if (username != null) {
+      _usersByUsername.remove(username);
+    }
+    await signOut();
   }
 
   /// Clean up resources
@@ -606,16 +686,16 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
   final Map<String, Map<String, Profile>> _incomingRightSwipes = {};
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async {
-    final cached = _fakeDecks[userId];
-    if (cached != null) return cached;
-
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async {
     final user = await profileRepo.getCurrentUser();
     final prefs = user?.profile?.preferences ??
         const DiscoveryPreferences(
           minAge: CrushConstants.minAge,
           maxAge: 45,
-          maxDistanceKm: 50,
+          maxDistanceKm: CrushConstants.defaultMaxDistanceKm,
           showMeGenders: ['female', 'male'],
           showMyDistance: true,
           showMyAge: true,
@@ -659,10 +739,27 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
       'hiking',
       'cooking',
     ];
+    const cityPool = [
+      'New York',
+      'Los Angeles',
+      'Chicago',
+      'Houston',
+      'Phoenix',
+      'Philadelphia',
+      'San Antonio',
+      'San Diego',
+      'Dallas',
+      'Austin',
+    ];
 
     final ageSpan = prefs.maxAge - prefs.minAge;
     final safeSpan = ageSpan < 0 ? 0 : ageSpan;
 
+    // Determine effective distance limit
+    final maxDistanceKm = filter.maxDistanceKm ?? CrushConstants.defaultMaxDistanceKm;
+    final isPassportMode = filter.passportModeEnabled;
+
+    // Generate profiles with varying distances
     final generated = List<Profile>.generate(20, (index) {
       final gender = genders[index % genders.length];
       final age = prefs.minAge + (safeSpan == 0 ? 0 : index % (safeSpan + 1));
@@ -670,6 +767,22 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
         3,
         (i) => interestsPool[(index + i) % interestsPool.length],
       );
+
+      // Generate fake distance - first 10 within 220km, next 10 beyond
+      double fakeDistance;
+      if (isPassportMode) {
+        // Passport mode: random global distances
+        fakeDistance = 50.0 + (index * 500.0);
+      } else if (index < 10) {
+        // First 10 profiles: within default limit (10-200 km)
+        fakeDistance = 10.0 + (index * 20.0);
+      } else {
+        // Next 10 profiles: beyond default limit (250-500 km)
+        fakeDistance = 250.0 + ((index - 10) * 25.0);
+      }
+
+      final city = cityPool[index % cityPool.length];
+
       return Profile(
         id: _uuid.v4(),
         name: '${names[index % names.length]} ${index + 1}',
@@ -688,15 +801,23 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
         school: null,
         interests: interests,
         country: prefs.country,
-        city: prefs.city,
+        city: city,
         latitude: null,
         longitude: null,
+        distance: fakeDistance,
+        distanceUnit: 'km',
         preferences: prefs,
       );
     });
 
-    _fakeDecks[userId] = generated;
-    return generated;
+    // Filter by distance unless passport mode is enabled
+    final filtered = isPassportMode
+        ? generated
+        : generated.where((p) => (p.distance ?? 0) <= maxDistanceKm).toList();
+
+    // Cache the filtered deck
+    _fakeDecks[userId] = filtered;
+    return filtered;
   }
 
   @override
@@ -832,6 +953,33 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
   @override
   Future<List<CrushMatch>> fetchMatches(String userId) async {
     return _matchesByUser[userId] ?? [];
+  }
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    // Search through cached decks
+    for (final deck in _fakeDecks.values) {
+      for (final profile in deck) {
+        if (profile.id == profileId) return profile;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    // Simulate super like - higher match probability
+    await Future.delayed(const Duration(milliseconds: 100));
+    return null; // No match for fake repo
+  }
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async {
+    // Not implemented in fake repo
+    return null;
   }
 }
 

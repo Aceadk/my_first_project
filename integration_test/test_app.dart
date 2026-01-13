@@ -147,6 +147,7 @@ class TestApp extends StatelessWidget {
         create: (context) => SafetyCubit(
           preferences: preferences,
           chatRepository: context.read<ChatRepository>(),
+          discoveryRepository: context.read<DiscoveryRepository>(),
         ),
       ),
       BlocProvider<LocaleCubit>(

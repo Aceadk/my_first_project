@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'preferences.dart';
 import 'privacy_settings.dart';
+import 'profile_prompt.dart';
 
 class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
@@ -62,7 +63,12 @@ class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
   final String bio;
   final List<String> interests;
+  @Deprecated('Use profilePrompts instead for structured prompts')
   final List<String> prompts;
+
+  /// Structured profile prompts with question-answer pairs.
+  /// Used for conversation starters on the profile.
+  final List<ProfilePrompt> profilePrompts;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BASIC INFO
@@ -116,6 +122,22 @@ class Profile extends Equatable {
   final double? longitude;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // DISTANCE (for discovery)
+  // ═══════════════════════════════════════════════════════════════════════════
+  final double? distance; // Distance from current user in km or miles
+  final String? distanceUnit; // 'km' or 'mi'
+
+  /// Returns a human-readable distance string (e.g., "5 km away")
+  String? get distanceDisplay {
+    if (distance == null) return null;
+    final unit = distanceUnit ?? 'km';
+    if (distance! < 1) {
+      return 'Less than 1 $unit away';
+    }
+    return '${distance!.round()} $unit away';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // MUSIC PREFERENCES
   // ═══════════════════════════════════════════════════════════════════════════
   final List<String> favoriteSongs; // Up to 5 songs
@@ -152,6 +174,7 @@ class Profile extends Equatable {
     required this.bio,
     required this.interests,
     this.prompts = const [],
+    this.profilePrompts = const [],
     this.heightCm,
     this.relationshipGoals,
     this.languages = const [],
@@ -175,6 +198,8 @@ class Profile extends Equatable {
     this.livingIn,
     this.latitude,
     this.longitude,
+    this.distance,
+    this.distanceUnit,
     this.favoriteSongs = const [],
     this.favoriteSinger,
     required this.isVerified,
@@ -201,6 +226,7 @@ class Profile extends Equatable {
     String? bio,
     List<String>? interests,
     List<String>? prompts,
+    List<ProfilePrompt>? profilePrompts,
     Object? heightCm = _unset,
     Object? relationshipGoals = _unset,
     List<String>? languages,
@@ -224,6 +250,8 @@ class Profile extends Equatable {
     Object? livingIn = _unset,
     Object? latitude = _unset,
     Object? longitude = _unset,
+    Object? distance = _unset,
+    Object? distanceUnit = _unset,
     List<String>? favoriteSongs,
     Object? favoriteSinger = _unset,
     bool? isVerified,
@@ -254,6 +282,7 @@ class Profile extends Equatable {
       bio: bio ?? this.bio,
       interests: interests ?? this.interests,
       prompts: prompts ?? this.prompts,
+      profilePrompts: profilePrompts ?? this.profilePrompts,
       heightCm:
           identical(heightCm, _unset) ? this.heightCm : heightCm as int?,
       relationshipGoals: identical(relationshipGoals, _unset)
@@ -302,6 +331,11 @@ class Profile extends Equatable {
       longitude: identical(longitude, _unset)
           ? this.longitude
           : longitude as double?,
+      distance:
+          identical(distance, _unset) ? this.distance : distance as double?,
+      distanceUnit: identical(distanceUnit, _unset)
+          ? this.distanceUnit
+          : distanceUnit as String?,
       favoriteSongs: favoriteSongs ?? this.favoriteSongs,
       favoriteSinger: identical(favoriteSinger, _unset)
           ? this.favoriteSinger
@@ -331,6 +365,7 @@ class Profile extends Equatable {
         bio,
         interests,
         prompts,
+        profilePrompts,
         heightCm,
         relationshipGoals,
         languages,
@@ -354,6 +389,8 @@ class Profile extends Equatable {
         livingIn,
         latitude,
         longitude,
+        distance,
+        distanceUnit,
         favoriteSongs,
         favoriteSinger,
         isVerified,

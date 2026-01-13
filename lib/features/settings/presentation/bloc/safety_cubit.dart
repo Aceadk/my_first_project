@@ -1,31 +1,70 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+
+/// Minimal profile info for safety displays (blocked users, etc.)
+class SafetyProfileInfo {
+  const SafetyProfileInfo({
+    required this.id,
+    required this.name,
+    this.photoUrl,
+  });
+
+  final String id;
+  final String name;
+  final String? photoUrl;
+
+  factory SafetyProfileInfo.fromProfile(Profile profile) {
+    return SafetyProfileInfo(
+      id: profile.id,
+      name: profile.name,
+      photoUrl: profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null,
+    );
+  }
+
+  factory SafetyProfileInfo.placeholder(String id) {
+    return SafetyProfileInfo(
+      id: id,
+      name: 'User $id',
+      photoUrl: null,
+    );
+  }
+}
 
 class SafetyState {
   const SafetyState({
     required this.blockedUsers,
     required this.mutedMessages,
     required this.mutedCalls,
+    this.profileCache = const {},
+    this.isLoadingProfiles = false,
     this.errorMessage,
   });
 
   final Set<String> blockedUsers;
   final Set<String> mutedMessages;
   final Set<String> mutedCalls;
+  final Map<String, SafetyProfileInfo> profileCache;
+  final bool isLoadingProfiles;
   final String? errorMessage;
 
   SafetyState copyWith({
     Set<String>? blockedUsers,
     Set<String>? mutedMessages,
     Set<String>? mutedCalls,
+    Map<String, SafetyProfileInfo>? profileCache,
+    bool? isLoadingProfiles,
     Object? errorMessage = _unset,
   }) {
     return SafetyState(
       blockedUsers: blockedUsers ?? this.blockedUsers,
       mutedMessages: mutedMessages ?? this.mutedMessages,
       mutedCalls: mutedCalls ?? this.mutedCalls,
+      profileCache: profileCache ?? this.profileCache,
+      isLoadingProfiles: isLoadingProfiles ?? this.isLoadingProfiles,
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
           : errorMessage as String?,
@@ -39,13 +78,16 @@ class SafetyCubit extends Cubit<SafetyState> {
   SafetyCubit({
     required SharedPreferences preferences,
     required ChatRepository chatRepository,
+    required DiscoveryRepository discoveryRepository,
   })
       : _preferences = preferences,
         _chatRepository = chatRepository,
+        _discoveryRepository = discoveryRepository,
         super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
   final ChatRepository _chatRepository;
+  final DiscoveryRepository _discoveryRepository;
 
   static const _blockedKey = 'safety_blocked';
   static const _mutedMessagesKey = 'safety_muted_messages';
@@ -190,6 +232,51 @@ class SafetyCubit extends Cubit<SafetyState> {
     } else {
       emit(state.copyWith(errorMessage: null));
     }
+  }
+
+  /// Fetch profile data for all blocked/muted users.
+  /// Call this when entering the safety screen.
+  Future<void> loadProfilesForSafetyUsers() async {
+    // Collect all user IDs that need profile info
+    final allIds = <String>{
+      ...state.blockedUsers,
+      ...state.mutedMessages,
+      ...state.mutedCalls,
+    };
+
+    // Filter out already cached profiles
+    final idsToFetch = allIds.where((id) => !state.profileCache.containsKey(id)).toList();
+
+    if (idsToFetch.isEmpty) return;
+
+    emit(state.copyWith(isLoadingProfiles: true));
+
+    final newCache = Map<String, SafetyProfileInfo>.from(state.profileCache);
+
+    for (final userId in idsToFetch) {
+      try {
+        final profile = await _discoveryRepository.fetchProfileById(userId);
+        if (profile != null) {
+          newCache[userId] = SafetyProfileInfo.fromProfile(profile);
+        } else {
+          // Use placeholder if profile not found
+          newCache[userId] = SafetyProfileInfo.placeholder(userId);
+        }
+      } catch (_) {
+        // Use placeholder on error
+        newCache[userId] = SafetyProfileInfo.placeholder(userId);
+      }
+    }
+
+    emit(state.copyWith(
+      profileCache: newCache,
+      isLoadingProfiles: false,
+    ));
+  }
+
+  /// Get profile info for a user, with fallback to ID
+  SafetyProfileInfo? getProfileInfo(String userId) {
+    return state.profileCache[userId];
   }
 
   Future<void> _persist(SafetyState next) async {

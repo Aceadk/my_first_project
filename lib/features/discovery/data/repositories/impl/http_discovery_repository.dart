@@ -17,9 +17,27 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async {
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async {
+    final queryParams = <String, String>{};
+    if (filter.maxDistanceKm != null) {
+      queryParams['maxDistanceKm'] = filter.maxDistanceKm.toString();
+    }
+    if (filter.passportModeEnabled) {
+      queryParams['passportMode'] = 'true';
+    }
+    if (filter.effectiveLatitude != null) {
+      queryParams['latitude'] = filter.effectiveLatitude.toString();
+    }
+    if (filter.effectiveLongitude != null) {
+      queryParams['longitude'] = filter.effectiveLongitude.toString();
+    }
+
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.discoveryDeck,
+      queryParams: queryParams.isNotEmpty ? queryParams : null,
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -142,5 +160,72 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     return response.matches
         .map((dto) => DiscoveryMapper.matchFromDto(dto, currentUserId: userId))
         .toList();
+  }
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    final result = await _apiClient.get<Map<String, dynamic>>(
+      '/profiles/$profileId',
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      debugPrint('HttpDiscoveryRepository: Failed to fetch profile - ${result.error}');
+      return null;
+    }
+
+    final data = result.data!['profile'] as Map<String, dynamic>?;
+    if (data == null) return null;
+    return DiscoveryMapper.profileFromDiscoveryDto(
+      DiscoveryProfileDto.fromJson(data),
+    );
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    final request = SwipeRequestDto(
+      targetUserId: targetUserId,
+      action: SwipeAction.superLike,
+    );
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/discovery/super-like',
+      body: request.toJson(),
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      debugPrint('HttpDiscoveryRepository: Super like failed - ${result.error}');
+      return null;
+    }
+
+    final response = SwipeResponseDto.fromJson(result.data!);
+    if (response.isMatch == true && response.match != null) {
+      return DiscoveryMapper.matchFromDto(response.match!, currentUserId: userId);
+    }
+
+    return null;
+  }
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/discovery/rewind',
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      debugPrint('HttpDiscoveryRepository: Rewind failed - ${result.error}');
+      return null;
+    }
+
+    final profileData = result.data!['profile'] as Map<String, dynamic>?;
+    if (profileData == null) return null;
+    return DiscoveryMapper.profileFromDiscoveryDto(
+      DiscoveryProfileDto.fromJson(profileData),
+    );
   }
 }

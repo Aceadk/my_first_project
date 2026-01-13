@@ -405,6 +405,29 @@ class HttpAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> sendEmailVerification() async {
+    await _apiClient.post<void>('/auth/send-email-verification');
+  }
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async {
+    final result = await _apiClient.get<Map<String, dynamic>>('/auth/check-email-verification');
+    if (result.isSuccess && result.data != null) {
+      final verified = result.data!['email_verified'] as bool? ?? false;
+      if (verified && _currentUser != null) {
+        _currentUser = _currentUser!.copyWith(isEmailVerified: true);
+        _emitAuthState(_currentUser);
+        return _currentUser;
+      }
+    }
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // DEV BYPASS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -473,6 +496,75 @@ class HttpAuthRepository implements AuthRepository {
     }
 
     return false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCOUNT MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> schedulePhoneDeletion() async {
+    final result = await _apiClient.post<void>('/auth/phone/schedule-deletion');
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to schedule phone deletion');
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final result = await _apiClient.post<void>(
+      '/auth/password/change',
+      body: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      },
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to change password');
+    }
+  }
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async {
+    final result = await _apiClient.post<void>(
+      '/auth/account/deactivate',
+      body: {'reason': reason},
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to deactivate account');
+    }
+
+    await _clearTokens();
+    _currentUser = null;
+    _emitAuthState(null);
+  }
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {
+    final result = await _apiClient.post<void>(
+      '/auth/account/delete',
+      body: {
+        'password': password,
+        'reason': reason,
+      },
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to schedule account deletion');
+    }
+
+    await _clearTokens();
+    _currentUser = null;
+    _emitAuthState(null);
   }
 
   void _emitAuthState(CrushUser? user) {

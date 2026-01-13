@@ -7,6 +7,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Firebase implementation of ProfileRepository.
 class FirebaseProfileRepository implements ProfileRepository {
@@ -17,13 +18,85 @@ class FirebaseProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser?> getCurrentUser() async {
+    AppLogger.logInfo('[FirebaseProfileRepo] getCurrentUser() called');
+
     final userId = _currentUserId;
-    if (userId == null) return null;
+    AppLogger.logInfo('[FirebaseProfileRepo] Current Firebase Auth userId: $userId');
 
+    if (userId == null) {
+      AppLogger.logInfo('[FirebaseProfileRepo] No authenticated user - returning null');
+      return null;
+    }
+
+    AppLogger.logInfo('[FirebaseProfileRepo] Fetching Firestore doc: users/$userId');
     final doc = await _firestore.collection('users').doc(userId).get();
-    if (!doc.exists) return null;
 
-    return _userFromFirestore(userId, doc.data()!);
+    AppLogger.logInfo('[FirebaseProfileRepo] Doc exists: ${doc.exists}');
+
+    if (!doc.exists) {
+      AppLogger.logInfo('[FirebaseProfileRepo] User document does not exist in Firestore - creating minimal profile from auth data');
+      // User is authenticated but has no Firestore document yet
+      // Return a CrushUser with a minimal profile from auth data so they can see their profile screen
+      final firebaseUser = _auth.currentUser!;
+      final displayName = firebaseUser.displayName ?? firebaseUser.email?.split('@').first ?? 'User';
+
+      return CrushUser(
+        id: userId,
+        phoneNumber: firebaseUser.phoneNumber ?? '',
+        email: firebaseUser.email,
+        username: firebaseUser.displayName,
+        isEmailVerified: firebaseUser.emailVerified,
+        isPhoneVerified: firebaseUser.phoneNumber != null,
+        isIdVerified: false,
+        plan: SubscriptionPlan.free,
+        profile: Profile(
+          id: userId,
+          name: displayName,
+          age: 0, // Will prompt user to complete
+          gender: '',
+          bio: '',
+          photoUrls: const [],
+          videoUrls: const [],
+          primaryPhotoIndex: 0,
+          interests: const [],
+          country: '',
+          city: '',
+          isVerified: false,
+          languages: const [],
+          preferences: const DiscoveryPreferences(
+            minAge: 18,
+            maxAge: 50,
+            maxDistanceKm: 100,
+            showMeGenders: ['All'],
+            showMyDistance: true,
+            showMyAge: true,
+            hideFromDiscovery: false,
+            incognitoMode: false,
+            country: '',
+            city: '',
+          ),
+          privacySettings: const ProfilePrivacySettings(),
+        ),
+      );
+    }
+
+    final data = doc.data()!;
+    AppLogger.logInfo('[FirebaseProfileRepo] Doc data keys: ${data.keys.toList()}');
+    AppLogger.logInfo('[FirebaseProfileRepo] Has profile field: ${data.containsKey('profile')}');
+
+    if (data.containsKey('profile')) {
+      final profileData = data['profile'];
+      AppLogger.logInfo('[FirebaseProfileRepo] Profile data type: ${profileData.runtimeType}');
+      if (profileData is Map) {
+        AppLogger.logInfo('[FirebaseProfileRepo] Profile keys: ${profileData.keys.toList()}');
+        AppLogger.logInfo('[FirebaseProfileRepo] Profile name: ${profileData['name']}, age: ${profileData['age']}');
+      }
+    }
+
+    final user = _userFromFirestore(userId, data);
+    AppLogger.logInfo('[FirebaseProfileRepo] Parsed user: id=${user.id}, hasProfile=${user.profile != null}');
+
+    return user;
   }
 
   @override

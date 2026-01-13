@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,13 +14,19 @@ void main() {
   group('SafetyCubit', () {
     late SharedPreferences prefs;
     late _StubChatRepository chatRepo;
+    late _StubDiscoveryRepository discoveryRepo;
     late SafetyCubit cubit;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
       chatRepo = _StubChatRepository();
-      cubit = SafetyCubit(preferences: prefs, chatRepository: chatRepo);
+      discoveryRepo = _StubDiscoveryRepository();
+      cubit = SafetyCubit(
+        preferences: prefs,
+        chatRepository: chatRepo,
+        discoveryRepository: discoveryRepo,
+      );
     });
 
     tearDown(() async {
@@ -269,4 +277,46 @@ class _StubChatRepository implements ChatRepository {
     required DateTime afterTimestamp,
   }) =>
       const Stream.empty();
+}
+
+class _StubDiscoveryRepository implements DiscoveryRepository {
+  @override
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async => [];
+
+  @override
+  Future<CrushMatch?> swipeRight({
+    required String userId,
+    required String targetUserId,
+    String? attachedMessage,
+  }) async => null;
+
+  @override
+  Future<void> swipeLeft({
+    required String userId,
+    required String targetUserId,
+  }) async {}
+
+  @override
+  Future<List<Profile>> fetchTopPicks(String userId) async => [];
+
+  @override
+  Future<List<Profile>> fetchLikesYou(String userId) async => [];
+
+  @override
+  Future<List<CrushMatch>> fetchMatches(String userId) async => [];
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async => null;
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async => null;
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async => null;
 }

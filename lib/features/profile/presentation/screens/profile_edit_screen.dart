@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
@@ -14,7 +15,9 @@ import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
 import '../widgets/profile_media_picker.dart';
+import '../widgets/prompt_editor.dart';
 import 'package:crushhour/features/profile/presentation/widgets/profile_widgets.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -61,10 +64,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   DateTime? _dateOfBirth;
   String? _gender;
   String? _sexualOrientation;
+  List<ProfilePrompt> _profilePrompts = [];
 
   Profile _fallbackProfile(ProfileState state) {
+    // Use AuthBloc as fallback for user ID when ProfileBloc state doesn't have it
+    final authUserId = context.read<AuthBloc>().state.user?.id;
     return Profile(
-      id: state.user?.id ?? 'TEMP',
+      id: state.user?.id ?? authUserId ?? 'TEMP',
       name: '',
       age: state.user?.profile?.age ?? 18,
       gender: _gender ?? state.user?.profile?.gender ?? '',
@@ -79,6 +85,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       company: _companyController.text.isNotEmpty ? _companyController.text : state.user?.profile?.company,
       school: _schoolController.text.isNotEmpty ? _schoolController.text : state.user?.profile?.school,
       interests: _interests.isNotEmpty ? _interests : (state.user?.profile?.interests ?? const []),
+      profilePrompts: _profilePrompts.isNotEmpty ? _profilePrompts : (state.user?.profile?.profilePrompts ?? const []),
       prompts: state.user?.profile?.prompts ?? const [],
       heightCm: _heightCm ?? state.user?.profile?.heightCm,
       relationshipGoals: _relationshipGoals ?? state.user?.profile?.relationshipGoals,
@@ -127,7 +134,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     final base = state.profile ?? _fallbackProfile(state);
-    final userId = state.user?.id ?? state.profile?.id;
+    // Try ProfileBloc state first, then fall back to AuthBloc for user ID
+    final userId = state.user?.id ?? state.profile?.id ?? context.read<AuthBloc>().state.user?.id;
     if (userId == null) {
       showErrorSnackBar(context, 'You need to be signed in to save changes.');
       return;
@@ -182,6 +190,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       drinking: _drinking,
       pets: _pets,
       interests: _interests,
+      profilePrompts: _profilePrompts,
       jobTitle: _jobTitleController.text.trim().isNotEmpty ? _jobTitleController.text.trim() : null,
       company: _companyController.text.trim().isNotEmpty ? _companyController.text.trim() : null,
       school: _schoolController.text.trim().isNotEmpty ? _schoolController.text.trim() : null,
@@ -339,7 +348,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final now = DateTime.now();
     const minAge = 18;
-    const maxAge = 100;
+    const maxAge = 75;
     final result = await showDatePicker(
       // ignore: use_build_context_synchronously
       context: context,
@@ -352,6 +361,59 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
 
     if (result == null) return;
+    if (!mounted) return;
+
+    // Calculate age from selected date
+    final age = now.year - result.year -
+        ((now.month < result.month || (now.month == result.month && now.day < result.day)) ? 1 : 0);
+
+    // Reject if under 18
+    if (age < 18) {
+      showErrorSnackBar(
+        // ignore: use_build_context_synchronously
+        context,
+        'You must be at least 18 years old to use this app.',
+      );
+      return;
+    }
+
+    // Reject if over 75
+    if (age > 75) {
+      showErrorSnackBar(
+        // ignore: use_build_context_synchronously
+        context,
+        'Sorry, the maximum age allowed is 75 years old.',
+      );
+      return;
+    }
+
+    // Show warning for users aged 70-75
+    if (age >= 70) {
+      final proceedAnyway = await showDialog<bool>(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.elderly, color: Colors.orange, size: 48),
+          title: const Text('Age Notice'),
+          content: const Text(
+            'You\'re a bit too old to be using a dating app, don\'t you think?\n\n'
+            'Just kidding! Love has no age limit. Are you sure you want to continue?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Go Back'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Continue Anyway'),
+            ),
+          ],
+        ),
+      );
+      if (proceedAnyway != true) return;
+    }
+
     if (!mounted) return;
 
     // Show final confirmation with warning
@@ -776,6 +838,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _dateOfBirth = profile.dateOfBirth;
           _gender = profile.gender.isNotEmpty ? profile.gender : null;
           _sexualOrientation = profile.sexualOrientation;
+          _profilePrompts = List.of(profile.profilePrompts);
         }
 
         final saving = state.isSaving || _uploading;
@@ -858,6 +921,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       minLines: 3,
                     ),
                     DsGap.xl,
+
+                    // Conversation Starters Section
+                    _buildSectionCard(
+                      context: context,
+                      title: 'Conversation Starters',
+                      icon: Icons.chat_bubble_outline,
+                      children: [
+                        PromptEditor(
+                          prompts: _profilePrompts,
+                          maxPrompts: PromptQuestions.maxPromptsPerProfile,
+                          onPromptsChanged: (prompts) {
+                            setState(() => _profilePrompts = prompts);
+                          },
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
 
                     // Physical & Dating Section
                     _buildSectionCard(

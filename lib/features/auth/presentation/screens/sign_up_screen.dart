@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
@@ -26,6 +29,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _otpController = TextEditingController();
   final _phoneController = TextEditingController();
   final _dialCodeController = TextEditingController();
+  final _secureStorage = const FlutterSecureStorage();
+  static const _pendingEmailKey = 'pending_email_link_email';
 
   // Auth method: 'email' or 'phone'
   String _authMethod = 'email';
@@ -241,16 +246,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
           hasEmail: _emailController.text.trim().isNotEmpty,
         );
       case 3:
-        return _OtpStep(
-          key: const ValueKey('otp'),
-          controller: _otpController,
-          error: _otpError,
+        return _EmailLinkStep(
+          key: const ValueKey('email-link'),
           isLoading: _isLoading,
           isDark: isDark,
           email: _registeredEmail ?? _emailController.text,
-          onVerify: _verifyOtp,
-          onResend: _sendOtp,
-          onChanged: () => setState(() => _otpError = null),
+          onResend: _sendEmailLink,
+          onOpenEmail: _openEmailApp,
+          onCheckVerification: () => _checkEmailVerification(silent: true),
+          onManualCheck: () => _checkEmailVerification(silent: false),
         );
       default:
         return const SizedBox.shrink();
@@ -438,11 +442,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     _registeredEmail = email;
+
+    // Send email verification link
+    await _sendEmailLink();
+
+    if (!mounted) return;
+
     setState(() => _currentStep = 3);
-    showSuccessSnackBar(context, 'Check your email for a verification code.');
+    showSuccessSnackBar(context, 'Check your email for a verification link.');
   }
 
-  Future<void> _sendOtp() async {
+  Future<void> _sendEmailLink() async {
     final email = normalizeEmail(_registeredEmail ?? _emailController.text);
     if (email.isEmpty) {
       showErrorSnackBar(context, 'Email address is required.');
@@ -451,14 +461,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _isLoading = true);
 
+    // Store pending email for deep link handler
+    await _secureStorage.write(key: _pendingEmailKey, value: email);
+
     final result = await Result.guard(
-      () => context.read<AuthRepository>().requestEmailOtp(
-            identifier: email,
-            purpose: EmailOtpPurpose.login,
-            email: email,
-          ),
-      logLabel: 'AuthRepository.requestEmailOtp',
-      fallbackError: 'Could not send code. Please try again.',
+      () => context.read<AuthRepository>().sendEmailSignInLink(email),
+      logLabel: 'AuthRepository.sendEmailSignInLink',
+      fallbackError: 'Could not send verification link. Please try again.',
     );
 
     if (!mounted) return;
@@ -470,49 +479,65 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    showSuccessSnackBar(context, 'A new code has been sent to your email.');
+    showSuccessSnackBar(context, 'A verification link has been sent to your email.');
   }
 
-  Future<void> _verifyOtp() async {
-    final otp = _otpController.text.trim();
-    if (otp.isEmpty) {
-      setState(() => _otpError = 'Please enter the verification code');
-      return;
+  Future<void> _openEmailApp() async {
+    // Try to open the default email app
+    final emailUri = Uri(scheme: 'mailto');
+    try {
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
+      } else {
+        // Fallback: try to open Gmail app on Android
+        final gmailUri = Uri.parse('googlegmail://');
+        if (await canLaunchUrl(gmailUri)) {
+          await launchUrl(gmailUri);
+        } else {
+          if (mounted) {
+            showErrorSnackBar(context, 'Could not open email app. Please check your email manually.');
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorSnackBar(context, 'Could not open email app. Please check your email manually.');
+      }
     }
-    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      setState(() => _otpError = 'Please enter a valid 6-digit code');
-      return;
+  }
+
+  Future<bool> _checkEmailVerification({bool silent = false}) async {
+    if (!silent) {
+      setState(() => _isLoading = true);
     }
-
-    final email = normalizeEmail(_registeredEmail ?? _emailController.text);
-
-    setState(() {
-      _otpError = null;
-      _isLoading = true;
-    });
 
     final result = await Result.guard(
-      () => context.read<AuthRepository>().verifyEmailOtp(
-            identifier: email,
-            otp: otp,
-            purpose: EmailOtpPurpose.login,
-            newEmail: email,
-          ),
-      logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+      () => context.read<AuthRepository>().checkEmailVerification(),
+      logLabel: 'AuthRepository.checkEmailVerification',
+      fallbackError: 'Could not verify email status.',
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
-    setState(() => _isLoading = false);
-
-    if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
-      return;
+    if (!silent) {
+      setState(() => _isLoading = false);
     }
 
-    showSuccessSnackBar(context, 'Email verified! Welcome to CrushHour.');
-    context.go(CrushRoutes.home);
+    if (result.isSuccess && result.data != null && result.data!.isEmailVerified) {
+      // Clear pending email from secure storage
+      await _secureStorage.delete(key: _pendingEmailKey);
+      if (mounted) {
+        showSuccessSnackBar(context, 'Email verified! Welcome to CrushHour.');
+        context.go(CrushRoutes.home);
+      }
+      return true;
+    } else if (!silent) {
+      showErrorSnackBar(
+        context,
+        'Email not verified yet. Please click the link in your email, then try again.',
+      );
+    }
+    return false;
   }
 }
 
@@ -848,94 +873,355 @@ class _PasswordStep extends StatelessWidget {
   }
 }
 
-// Step 4: OTP Verification
-class _OtpStep extends StatelessWidget {
-  const _OtpStep({
+// Step 4: Email Link Verification (Magic Link)
+class _EmailLinkStep extends StatefulWidget {
+  const _EmailLinkStep({
     super.key,
-    required this.controller,
-    required this.error,
     required this.isLoading,
     required this.isDark,
     required this.email,
-    required this.onVerify,
     required this.onResend,
-    required this.onChanged,
+    required this.onOpenEmail,
+    required this.onCheckVerification,
+    required this.onManualCheck,
   });
 
-  final TextEditingController controller;
-  final String? error;
   final bool isLoading;
   final bool isDark;
   final String email;
-  final VoidCallback onVerify;
   final VoidCallback onResend;
-  final VoidCallback onChanged;
+  final VoidCallback onOpenEmail;
+  final Future<bool> Function() onCheckVerification;
+  final Future<bool> Function() onManualCheck;
+
+  @override
+  State<_EmailLinkStep> createState() => _EmailLinkStepState();
+}
+
+class _EmailLinkStepState extends State<_EmailLinkStep>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
+  Timer? _pollingTimer;
+  bool _isPolling = false;
+  int _pollCount = 0;
+  static const _pollInterval = Duration(seconds: 3);
+  static const _maxPollCount = 60; // Stop polling after 3 minutes
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    // Start auto-polling after a short delay
+    Future.delayed(const Duration(seconds: 2), _startPolling);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pollingTimer?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause polling when app is backgrounded, resume when foregrounded
+    if (state == AppLifecycleState.paused) {
+      _stopPolling();
+    } else if (state == AppLifecycleState.resumed) {
+      _startPolling();
+    }
+  }
+
+  void _startPolling() {
+    if (_isPolling || _pollCount >= _maxPollCount) return;
+    _isPolling = true;
+    _pollingTimer = Timer.periodic(_pollInterval, (_) => _pollVerification());
+  }
+
+  void _stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _isPolling = false;
+  }
+
+  Future<void> _pollVerification() async {
+    if (!mounted || widget.isLoading) return;
+    _pollCount++;
+
+    if (_pollCount >= _maxPollCount) {
+      _stopPolling();
+      return;
+    }
+
+    final verified = await widget.onCheckVerification();
+    if (verified) {
+      _stopPolling();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: DsColors.success.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.mark_email_read_outlined,
-            size: 32,
-            color: DsColors.success,
+        // Animated email icon
+        Center(
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        DsColors.primary.withValues(alpha: 0.2),
+                        DsColors.secondary.withValues(alpha: 0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Icon(
+                    Icons.mark_email_unread_outlined,
+                    size: 48,
+                    color: DsColors.primary,
+                  ),
+                ),
+              );
+            },
           ),
         ),
-        DsGap.xl,
-        Text(
-          'Verify your email',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        DsGap.sm,
-        RichText(
-          text: TextSpan(
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+        DsGap.xxl,
+        Center(
+          child: Text(
+            'Check your email',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
+          ),
+        ),
+        DsGap.md,
+        Center(
+          child: Text(
+            'We sent a verification link to',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: widget.isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        DsGap.xs,
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: DsColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.email,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: DsColors.primary,
+              ),
+            ),
+          ),
+        ),
+        DsGap.xxl,
+        // Instructions
+        Container(
+          padding: DsEdgeInsets.allMd,
+          decoration: BoxDecoration(
+            color: widget.isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: widget.isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TextSpan(text: 'We sent a 6-digit code to '),
-              TextSpan(
-                text: email,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              _InstructionRow(
+                number: '1',
+                text: 'Open your email inbox',
+                isDark: widget.isDark,
+              ),
+              DsGap.sm,
+              _InstructionRow(
+                number: '2',
+                text: 'Find the email from CrushHour',
+                isDark: widget.isDark,
+              ),
+              DsGap.sm,
+              _InstructionRow(
+                number: '3',
+                text: 'Click the verification link',
+                isDark: widget.isDark,
+              ),
+              DsGap.md,
+              Container(
+                padding: DsEdgeInsets.allSm,
+                decoration: BoxDecoration(
+                  color: DsColors.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.security,
+                      size: 16,
+                      color: DsColors.warning,
+                    ),
+                    DsGap.smH,
+                    Expanded(
+                      child: Text(
+                        'If you didn\'t request this, please ignore the email.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: DsColors.warning,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         DsGap.xxl,
-        _StyledTextField(
-          controller: controller,
-          label: 'Verification code',
-          hint: '000000',
-          prefixIcon: Icons.pin_outlined,
-          error: error,
-          enabled: !isLoading,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          onChanged: (_) => onChanged(),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => onVerify(),
-        ),
-        DsGap.xxl,
+        // Auto-checking status indicator
+        if (_isPolling)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: DsColors.success.withValues(alpha: 0.7),
+                  ),
+                ),
+                DsGap.smH,
+                Text(
+                  'Auto-checking verification status...',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: DsColors.success,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // Open email app button
         _NextButton(
-          label: 'Verify Email',
-          isLoading: isLoading,
-          onPressed: onVerify,
+          label: 'Open Email App',
+          isLoading: widget.isLoading,
+          onPressed: widget.onOpenEmail,
         ),
         DsGap.md,
+        // Check verification button
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: OutlinedButton(
+            onPressed: widget.isLoading ? null : widget.onManualCheck,
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: DsColors.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'I\'ve clicked the link',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: DsColors.primary,
+                    ),
+                  ),
+          ),
+        ),
+        DsGap.lg,
+        // Resend link
         Center(
           child: TextButton(
-            onPressed: isLoading ? null : onResend,
-            child: const Text('Didn\'t receive code? Resend'),
+            onPressed: widget.isLoading ? null : widget.onResend,
+            child: const Text('Didn\'t receive email? Resend'),
+          ),
+        ),
+        DsGap.md,
+        // Check spam notice
+        Center(
+          child: Text(
+            'Check your spam folder if you don\'t see it',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: widget.isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InstructionRow extends StatelessWidget {
+  const _InstructionRow({
+    required this.number,
+    required this.text,
+    required this.isDark,
+  });
+
+  final String number;
+  final String text;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: DsColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: DsColors.primary,
+              ),
+            ),
+          ),
+        ),
+        DsGap.smH,
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+            ),
           ),
         ),
       ],

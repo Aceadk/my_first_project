@@ -5,6 +5,7 @@ import 'package:crushhour/features/profile/data/repositories/profile_repository.
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -28,13 +29,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileDetailsSubmitted>(_onDetailsSubmitted);
     on<ProfileIdDocumentUploaded>(_onIdDocumentUploaded);
     on<ProfileIdVerifiedMarked>(_onIdVerifiedMarked);
+    on<ProfileLocationUpdateRequested>(_onLocationUpdateRequested);
   }
 
   Future<void> _onLoadRequested(
       ProfileLoadRequested event, Emitter<ProfileState> emit) async {
+    AppLogger.logInfo('[ProfileBloc] _onLoadRequested called');
+
     // Track if this is a manual refresh (user-triggered) vs auto-retry
     final isManualRefresh =
         _isManualRefresh || state.status != ProfileStatus.error;
+
+    AppLogger.logInfo('[ProfileBloc] isManualRefresh: $isManualRefresh, retryCount: $_retryCount');
 
     if (isManualRefresh) {
       _retryCount = 0;
@@ -50,21 +56,30 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       nextRetrySeconds: null,
     ));
 
+    AppLogger.logInfo('[ProfileBloc] Calling profileRepository.getCurrentUser()...');
+
     final result = await Result.guard(
       () => profileRepository.getCurrentUser(),
       logLabel: 'ProfileRepository.getCurrentUser',
       fallbackError: 'Could not load profile. Please try again.',
     );
 
+    AppLogger.logInfo('[ProfileBloc] Result: isSuccess=${result.isSuccess}, data=${result.data}, error=${result.errorMessage}');
+
     if (!result.isSuccess) {
       _retryCount++;
       final errorMsg = result.errorMessage;
 
+      AppLogger.logInfo('[ProfileBloc] Load failed: $errorMsg (retryCount: $_retryCount)');
+
       // Check if error indicates "no profile" rather than actual failure
       final isNoProfileError = _isNoProfileError(errorMsg);
 
+      AppLogger.logInfo('[ProfileBloc] isNoProfileError: $isNoProfileError');
+
       // If we've retried enough times or error indicates no profile, show empty state
       if (_retryCount > _maxAutoRetries || isNoProfileError) {
+        AppLogger.logInfo('[ProfileBloc] Emitting ProfileStatus.empty');
         emit(state.copyWith(
           isLoading: false,
           status: ProfileStatus.empty,
@@ -75,6 +90,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
 
       // Otherwise show error and schedule retry
+      AppLogger.logInfo('[ProfileBloc] Emitting ProfileStatus.error, scheduling retry');
       emit(state.copyWith(
         isLoading: false,
         status: ProfileStatus.error,
@@ -91,6 +107,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     final user = result.data;
 
+    AppLogger.logInfo('[ProfileBloc] User loaded: id=${user?.id}, hasProfile=${user?.profile != null}');
+    if (user?.profile != null) {
+      AppLogger.logInfo('[ProfileBloc] Profile: name=${user!.profile!.name}, age=${user.profile!.age}');
+    }
+
     // Track profile viewed
     if (user != null) {
       AnalyticsService.instance.logProfileViewed();
@@ -98,6 +119,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     // If user is null or has no profile, they need to create one
     final hasProfile = user?.profile != null;
+
+    AppLogger.logInfo('[ProfileBloc] Emitting status: ${hasProfile ? 'loaded' : 'empty'}');
 
     emit(state.copyWith(
       user: user,
@@ -278,6 +301,43 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       status: ProfileStatus.loaded,
       errorMessage: result.errorMessage,
     ));
+  }
+
+  Future<void> _onLocationUpdateRequested(
+      ProfileLocationUpdateRequested event, Emitter<ProfileState> emit) async {
+    // Only update if we have a profile
+    final currentProfile = state.profile;
+    if (currentProfile == null) return;
+
+    AppLogger.logInfo(
+        '[ProfileBloc] Updating location: ${event.latitude}, ${event.longitude}');
+
+    // Update profile with new location
+    final updatedProfile = currentProfile.copyWith(
+      latitude: event.latitude,
+      longitude: event.longitude,
+      city: event.city ?? currentProfile.city,
+      country: event.country ?? currentProfile.country,
+    );
+
+    // Save to backend
+    final result = await Result.guard(
+      () => profileRepository.updateProfile(updatedProfile),
+      logLabel: 'ProfileRepository.updateProfile (location)',
+      fallbackError: 'Could not update location.',
+    );
+
+    if (result.isSuccess) {
+      final updatedUser = result.data;
+      emit(state.copyWith(
+        user: updatedUser ?? state.user,
+        profile: updatedUser?.profile ?? updatedProfile,
+      ));
+
+      AnalyticsService.instance.logProfileUpdated(
+        fieldsUpdated: ['latitude', 'longitude', 'city', 'country'],
+      );
+    }
   }
 
   @override

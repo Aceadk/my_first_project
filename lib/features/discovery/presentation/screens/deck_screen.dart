@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,8 +13,12 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/services/prematch_service.dart';
 import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
+import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/gradients.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
@@ -28,9 +34,11 @@ import 'package:crushhour/features/discovery/presentation/widgets/deck_ui_helper
 import 'package:crushhour/features/discovery/presentation/widgets/swipeable_card.dart';
 import 'package:crushhour/presentation/widgets/upsell_widgets.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
-import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/match_celebration_modal.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/boost_button.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});
@@ -48,6 +56,7 @@ class _DeckScreenState extends State<DeckScreen> {
   String? _completenessError;
   String? _lastProfileSignature;
   bool _backendBlocked = false;
+  String? _lastBoostUserId;
 
   ProfileValidationService get _validationService =>
       widget.validationService ?? ProfileValidationService();
@@ -60,6 +69,12 @@ class _DeckScreenState extends State<DeckScreen> {
     );
     final userId = user?.id as String?;
     final isAccountVerified = user?.isAccountVerified ?? false;
+
+    // Initialize boost cubit when user ID is available
+    if (userId != null && userId != _lastBoostUserId) {
+      _lastBoostUserId = userId;
+      context.read<BoostCubit>().initialize(userId);
+    }
 
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listenWhen: (previous, current) =>
@@ -163,6 +178,12 @@ class _DeckScreenState extends State<DeckScreen> {
                       isLoading: isLoading,
                       retryInSeconds: retryInSeconds,
                       completeness: completeness,
+                    ),
+                    DeckSearchModeIndicator(
+                      localDeckExhausted: state.localDeckExhausted,
+                      passportModeActive: state.passportModeActive,
+                      currentDistanceKm: state.currentDistanceLimitKm,
+                      onTapPassport: () => context.push(CrushRoutes.discoverySettings),
                     ),
                     if (_checkingCompleteness)
                       Padding(
@@ -299,6 +320,19 @@ class _DeckScreenState extends State<DeckScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        // Rewind button (premium only)
+                        DeckActionButton(
+                          icon: Icons.replay,
+                          color: DsColors.actionRewind,
+                          semanticLabel: 'Undo last swipe',
+                          size: 48,
+                          enabled: state.canRewind,
+                          onTap: () async {
+                            if (userId == null) return;
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            discoveryBloc.add(DiscoveryRewindRequested(userId));
+                          },
+                        ),
                         DeckActionButton(
                           icon: Icons.clear,
                           color: DsColors.actionPass,
@@ -338,46 +372,73 @@ class _DeckScreenState extends State<DeckScreen> {
                             );
                           },
                         ),
-                        DeckActionButton(
-                          icon: Icons.message,
-                          color: DsColors.actionMessage,
-                          semanticLabel: 'Send message',
-                          onTap: () async {
-                            if (userId == null) return;
-                            if (!_canMessage(
-                              completeness,
-                              backendMessageReady,
-                            )) {
-                              _showProfileIncompleteDialog(
-                                context,
-                                completeness,
-                                remote: _backendCompleteness,
-                                minimum: 'message',
-                                isAccountVerified: isAccountVerified,
-                              );
-                              return;
-                            }
-                            final outcome = await _evaluateBackendAllowance(
-                              minimum: 'message',
-                              local: completeness,
-                              isAccountVerified: isAccountVerified,
-                            );
-                            if (!context.mounted) return;
-                            final allowed = _handleBackendOutcome(
-                              context,
-                              outcome,
-                              minimum: 'message',
-                              completeness: completeness,
-                              isAccountVerified: isAccountVerified,
-                            );
-                            if (!allowed) return;
-                            await _showPreMatchDialog(
-                              context: context,
-                              preMatchService:
-                                  preMatchService ?? PreMatchService(),
-                              targetUserId: currentProfile.id,
-                            );
-                          },
+                        // Super Like button (with remaining count badge)
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            DeckActionButton(
+                              icon: Icons.star,
+                              color: DsColors.actionSuperLike,
+                              semanticLabel: 'Super like this profile',
+                              enabled: state.superLikesRemaining > 0,
+                              onTap: () async {
+                                if (userId == null) return;
+                                final discoveryBloc = context.read<DiscoveryBloc>();
+                                if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                  _showProfileIncompleteDialog(
+                                    context,
+                                    completeness,
+                                    remote: _backendCompleteness,
+                                    minimum: 'swipe',
+                                    isAccountVerified: isAccountVerified,
+                                  );
+                                  return;
+                                }
+                                final outcome = await _evaluateBackendAllowance(
+                                  minimum: 'swipe',
+                                  local: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!context.mounted) return;
+                                final allowed = _handleBackendOutcome(
+                                  context,
+                                  outcome,
+                                  minimum: 'swipe',
+                                  completeness: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!allowed) return;
+                                discoveryBloc.add(
+                                  DiscoverySuperLiked(
+                                    userId: userId,
+                                    targetUserId: currentProfile.id,
+                                  ),
+                                );
+                              },
+                            ),
+                            // Badge showing remaining super likes
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: state.superLikesRemaining > 0
+                                      ? DsColors.actionSuperLike
+                                      : Colors.grey,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${state.superLikesRemaining}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         DeckActionButton(
                           icon: Icons.favorite,
@@ -415,6 +476,49 @@ class _DeckScreenState extends State<DeckScreen> {
                                 userId: userId,
                                 targetUserId: currentProfile.id,
                               ),
+                            );
+                          },
+                        ),
+                        // Message button
+                        DeckActionButton(
+                          icon: Icons.message,
+                          color: DsColors.actionMessage,
+                          semanticLabel: 'Send message',
+                          size: 48,
+                          onTap: () async {
+                            if (userId == null) return;
+                            if (!_canMessage(
+                              completeness,
+                              backendMessageReady,
+                            )) {
+                              _showProfileIncompleteDialog(
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'message',
+                                isAccountVerified: isAccountVerified,
+                              );
+                              return;
+                            }
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'message',
+                              local: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'message',
+                              completeness: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!allowed) return;
+                            await _showPreMatchDialog(
+                              context: context,
+                              preMatchService:
+                                  preMatchService ?? PreMatchService(),
+                              targetUserId: currentProfile.id,
                             );
                           },
                         ),
@@ -714,7 +818,37 @@ class _DeckScreenState extends State<DeckScreen> {
     String? locationLabel,
     double? radiusKm,
   }) {
-    final radiusLabel = radiusKm?.toStringAsFixed(0);
+    final discoveryState = context.watch<DiscoveryBloc>().state;
+    final localDeckExhausted = discoveryState.localDeckExhausted;
+    final passportModeActive = discoveryState.passportModeActive;
+    final currentDistanceKm = discoveryState.currentDistanceLimitKm;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Context-aware messaging
+    String title;
+    String subtitle;
+    IconData icon;
+    Color? iconColor;
+
+    if (passportModeActive) {
+      title = 'No one in this city yet';
+      subtitle = 'Try exploring a different destination or check back later.';
+      icon = Icons.flight_takeoff;
+      iconColor = Colors.cyan;
+    } else if (localDeckExhausted) {
+      title = 'Explored far and wide';
+      subtitle = 'You\'ve seen everyone up to ${currentDistanceKm.round()} km away.\n'
+          'Try Passport mode to explore globally!';
+      icon = Icons.explore;
+      iconColor = DsColors.secondary;
+    } else {
+      title = 'You\'re all caught up!';
+      subtitle = 'No more people within 220 km right now.\n'
+          'Check back soon or try expanding your search.';
+      icon = Icons.people_outline;
+      iconColor = null;
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -727,40 +861,93 @@ class _DeckScreenState extends State<DeckScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.people_outline, size: 72),
-                  DsGap.lg,
-                  const Text(
-                    'You’re all caught up!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: iconColor != null
+                          ? LinearGradient(
+                              colors: [
+                                iconColor.withValues(alpha: 0.2),
+                                iconColor.withValues(alpha: 0.1),
+                              ],
+                            )
+                          : null,
+                      color: iconColor == null
+                          ? (isDark ? DsColors.surfaceDark : DsColors.surfaceLight)
+                          : null,
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 56,
+                      color: iconColor ?? (isDark ? Colors.white70 : Colors.black54),
+                    ),
                   ),
-                  DsGap.sm,
-                  const Text(
-                    'There are no more people nearby right now.\n'
-                    'You can adjust your filters or explore with Passport.',
+                  DsGap.lg,
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  if (locationLabel != null || radiusKm != null) ...[
-                    DsGap.sm,
-                    Text(
-                      'Current filters: ${locationLabel ?? 'your area'}'
-                      '${radiusLabel != null ? ' • ~$radiusLabel km radius' : ''}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                  DsGap.sm,
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    ),
+                  ),
+                  if (locationLabel != null) ...[
+                    DsGap.md,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            passportModeActive
+                                ? locationLabel
+                                : '$locationLabel • ${currentDistanceKm.round()} km',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                   DsGap.xxl,
-                  FilledButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
+                  BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
+                    builder: (context, filterState) {
+                      final activeCount = filterState.activeAdvancedFilterCount;
+                      return FilledButton.icon(
+                        icon: activeCount > 0
+                            ? Badge(
+                                label: Text('$activeCount'),
+                                backgroundColor: DsColors.secondary,
+                                child: const Icon(Icons.tune, size: 18),
+                              )
+                            : const Icon(Icons.tune, size: 18),
+                        onPressed: () => context.push(CrushRoutes.discoverySettings),
+                        label: Text(activeCount > 0 ? 'Filters active' : 'Adjust filters'),
                       );
                     },
-                    child: const Text('Change filters'),
                   ),
                   DsGap.md,
                   OutlinedButton.icon(
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Icons.refresh, size: 18),
                     label: const Text('Refresh deck'),
                     onPressed: userId == null
                         ? null
@@ -768,21 +955,30 @@ class _DeckScreenState extends State<DeckScreen> {
                             .read<DiscoveryBloc>()
                             .add(DiscoveryDeckRequested(userId)),
                   ),
-                  DsGap.md,
-                  OutlinedButton(
-                    onPressed: () => _showPassportUpsell(context),
-                    child: const Text('Try Passport with Plus'),
-                  ),
-                  if (!isPlus) ...[
+                  if (!passportModeActive) ...[
                     DsGap.md,
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.flight_takeoff, size: 18),
+                      onPressed: isPlus
+                          ? () => context.push(CrushRoutes.discoverySettings)
+                          : () => _showPassportUpsell(context),
+                      label: Text(isPlus ? 'Enable Passport mode' : 'Try Passport with Plus'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.cyan,
+                        side: BorderSide(color: Colors.cyan.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                  ],
+                  if (!isPlus) ...[
+                    DsGap.lg,
                     const UpgradeNudgeCard(
-                      title: 'Intro offer: 50% off Plus',
+                      title: 'Unlock Passport Mode',
                       subtitle:
-                          'Go global with Passport, see who likes you, and undo swipes.',
+                          'Go global with Passport and explore people from anywhere.',
                       bullets: [
                         'Passport to any city',
                         'Unlimited likes & rewinds',
-                        'Priority in the deck',
+                        'See who likes you first',
                       ],
                     ),
                   ],
@@ -861,25 +1057,101 @@ class _DeckScreenState extends State<DeckScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
-    return AppBar(
-      title: const Text('Crush'),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.shield_outlined),
-          tooltip: 'Safety Center',
-          onPressed: () => context.push(CrushRoutes.safety),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: DsBlur.heavy,
+            sigmaY: DsBlur.heavy,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.8),
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.6),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Centered title
+                    Center(
+                      child: ShaderMask(
+                        shaderCallback: (bounds) =>
+                            DsGradients.primaryHorizontal.createShader(bounds),
+                        child: Text(
+                          'Crush',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                        ),
+                      ),
+                    ),
+                    // Boost indicator on the left
+                    Positioned(
+                      left: DsSpacing.sm,
+                      child: const BoostButton(),
+                    ),
+                    // Actions on the right
+                    Positioned(
+                      right: DsSpacing.sm,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GlassIconButton(
+                            icon: Icons.shield_outlined,
+                            onPressed: () => context.push(CrushRoutes.safety),
+                            size: 40,
+                          ),
+                          const SizedBox(width: DsSpacing.xs),
+                          GlassIconButton(
+                            icon: Icons.refresh,
+                            onPressed: userId == null
+                                ? () {}
+                                : () => context
+                                    .read<DiscoveryBloc>()
+                                    .add(DiscoveryDeckRequested(userId)),
+                            size: 40,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Refresh',
-          onPressed: userId == null
-              ? null
-              : () => context
-                  .read<DiscoveryBloc>()
-                  .add(DiscoveryDeckRequested(userId)),
-        ),
-      ],
+      ),
     );
   }
 

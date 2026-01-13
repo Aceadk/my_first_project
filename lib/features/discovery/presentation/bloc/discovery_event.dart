@@ -50,3 +50,25 @@ class DiscoveryLoadMoreRequested extends DiscoveryEvent {
 
 /// Clear the new match after showing celebration modal.
 class DiscoveryMatchCelebrationShown extends DiscoveryEvent {}
+
+/// Super Like a profile (higher priority, limited daily uses).
+class DiscoverySuperLiked extends DiscoveryEvent {
+  final String userId;
+  final String targetUserId;
+  DiscoverySuperLiked({
+    required this.userId,
+    required this.targetUserId,
+  });
+
+  @override
+  List<Object?> get props => [userId, targetUserId];
+}
+
+/// Request to undo/rewind the last swipe (premium only).
+class DiscoveryRewindRequested extends DiscoveryEvent {
+  final String userId;
+  DiscoveryRewindRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}

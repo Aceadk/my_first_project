@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:confetti/confetti.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
@@ -65,26 +66,81 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
     with TickerProviderStateMixin {
   late ConfettiController _confettiController;
   late AnimationController _pulseController;
+  late AnimationController _heartBeatController;
+  late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
+  late Animation<double> _heartBeatAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // Trigger strong haptic feedback immediately
+    HapticFeedback.heavyImpact();
+
     _confettiController = ConfettiController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
     );
+
+    // Pulse animation for "It's a Match!" text
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     _pulseController.repeat(reverse: true);
 
-    // Start confetti after a brief delay
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) _confettiController.play();
+    // Heart beat animation for center heart
+    _heartBeatController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _heartBeatAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.2), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 25),
+    ]).animate(CurvedAnimation(parent: _heartBeatController, curve: Curves.easeInOut));
+
+    // Slide animation for profile photos
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
+
+    // Start animations with proper sequencing
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _confettiController.play();
+        _slideController.forward();
+      }
+    });
+
+    // Start heart beat after slide completes
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _heartBeatController.repeat();
+        // Additional haptic pulses synced with heart beat
+        _triggerHeartBeatHaptics();
+      }
+    });
+  }
+
+  void _triggerHeartBeatHaptics() {
+    if (!mounted) return;
+    HapticFeedback.mediumImpact();
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        HapticFeedback.lightImpact();
+        Future.delayed(const Duration(milliseconds: 800), _triggerHeartBeatHaptics);
+      }
     });
   }
 
@@ -92,6 +148,8 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
   void dispose() {
     _confettiController.dispose();
     _pulseController.dispose();
+    _heartBeatController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -147,49 +205,55 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                   ),
                   DsGap.xxl,
                   // Profile photos with heart overlay
-                  SizedBox(
-                    height: 160,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Current user photo (left)
-                        Positioned(
-                          left: MediaQuery.of(context).size.width / 2 - 140,
-                          child: _buildProfileCircle(
-                            photoUrl: widget.currentUserPhotoUrl,
-                            isCurrentUser: true,
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: SizedBox(
+                      height: 160,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Current user photo (left)
+                          Positioned(
+                            left: MediaQuery.of(context).size.width / 2 - 140,
+                            child: _buildProfileCircle(
+                              photoUrl: widget.currentUserPhotoUrl,
+                              isCurrentUser: true,
+                            ),
                           ),
-                        ),
-                        // Matched user photo (right)
-                        Positioned(
-                          right: MediaQuery.of(context).size.width / 2 - 140,
-                          child: _buildProfileCircle(
-                            photoUrl: matchedPhotoUrl,
-                            isCurrentUser: false,
+                          // Matched user photo (right)
+                          Positioned(
+                            right: MediaQuery.of(context).size.width / 2 - 140,
+                            child: _buildProfileCircle(
+                              photoUrl: matchedPhotoUrl,
+                              isCurrentUser: false,
+                            ),
                           ),
-                        ),
-                        // Heart icon in center
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: DsColors.actionLike,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: DsColors.actionLike.withValues(alpha: 0.4),
-                                blurRadius: 20,
-                                spreadRadius: 5,
+                          // Heart icon in center with beat animation
+                          ScaleTransition(
+                            scale: _heartBeatAnimation,
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: DsColors.actionLike,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: DsColors.actionLike.withValues(alpha: 0.4),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
                               ),
-                            ],
+                              child: const Icon(
+                                Icons.favorite,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.favorite,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -289,6 +353,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
   }
 
   void _handleSendMessage() {
+    HapticFeedback.mediumImpact();
     Navigator.of(context).pop();
     if (widget.onSendMessage != null) {
       widget.onSendMessage!();
@@ -302,6 +367,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
   }
 
   void _handleKeepSwiping() {
+    HapticFeedback.lightImpact();
     Navigator.of(context).pop();
     widget.onKeepSwiping?.call();
   }

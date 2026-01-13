@@ -15,7 +15,9 @@ import 'package:crushhour/features/auth/presentation/screens/otp_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/phone_auth_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/email_auth_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/email_verification_screen.dart';
 import '../presentation/screens/email_protection_screen.dart';
+import '../presentation/screens/phone_protection_screen.dart';
 import '../presentation/screens/change_email_screen.dart';
 import '../presentation/screens/new_device_screen.dart';
 import '../presentation/screens/basic_info_screen.dart';
@@ -37,6 +39,7 @@ import 'package:crushhour/features/settings/presentation/screens/discovery_filte
 import 'package:crushhour/features/settings/presentation/screens/data_storage_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_security_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_actions_settings_screen.dart';
+import 'package:crushhour/features/discovery/presentation/screens/likes_you_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -49,7 +52,9 @@ class CrushRoutes {
   static const resetPassword = '/auth/reset';
   static const phoneAuth = '/auth/phone';
   static const emailAuth = '/auth/email';
+  static const emailVerification = '/email-verification';
   static const emailProtection = '/email-protection';
+  static const phoneProtection = '/phone-protection';
   static const changeEmail = '/change-email';
   static const newDevice = '/new-device';
   static const basicInfo = '/basic-info';
@@ -73,6 +78,7 @@ class CrushRoutes {
   static const securitySettings = '/settings/security';
   static const accountSettings = '/settings/account';
   static const widgetCatalog = '/dev/widget-catalog';
+  static const likesYou = '/likes-you';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
@@ -86,11 +92,21 @@ GoRouter createRouter(AuthBloc authBloc) {
     ],
     redirect: (context, state) {
       final status = authBloc.state.status;
+      final user = authBloc.state.user;
       final isLoggedIn = status == AuthStatus.authenticated;
       final isUnknown = status == AuthStatus.unknown;
       final path = state.uri.path;
       final isAuthRoute = path.startsWith(CrushRoutes.authGateway);
       final isSplash = path == CrushRoutes.splash;
+      final isEmailVerificationRoute = path == CrushRoutes.emailVerification;
+
+      // Check if user needs email verification
+      // Only require verification for users who signed up with email/password
+      final needsEmailVerification = isLoggedIn &&
+          user != null &&
+          user.email != null &&
+          user.email!.isNotEmpty &&
+          !user.isEmailVerified;
 
       // While auth status is unknown, stay on splash screen
       // Don't redirect - let the splash screen handle navigation via BlocListener
@@ -103,7 +119,14 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Auth status is known - redirect away from splash
       if (isSplash) {
-        return isLoggedIn ? CrushRoutes.home : CrushRoutes.authGateway;
+        if (isLoggedIn) {
+          // Check if email verification is needed
+          if (needsEmailVerification) {
+            return CrushRoutes.emailVerification;
+          }
+          return CrushRoutes.home;
+        }
+        return CrushRoutes.authGateway;
       }
 
       // Not logged in and trying to access protected route
@@ -111,14 +134,33 @@ GoRouter createRouter(AuthBloc authBloc) {
         return CrushRoutes.authGateway;
       }
 
-      // Logged in and trying to access auth route
-      if (isLoggedIn && isAuthRoute) {
-        return CrushRoutes.home;
+      // Logged in but needs email verification
+      if (needsEmailVerification) {
+        // Allow staying on verification screen
+        if (isEmailVerificationRoute) {
+          return null;
+        }
+        // Redirect to verification screen from any other protected route
+        if (!isAuthRoute) {
+          return CrushRoutes.emailVerification;
+        }
+      }
+
+      // Logged in with verified email and trying to access auth route or verification
+      if (isLoggedIn && !needsEmailVerification) {
+        if (isAuthRoute || isEmailVerificationRoute) {
+          return CrushRoutes.home;
+        }
       }
 
       // Root path redirect
       if (path == CrushRoutes.root) {
-        return isLoggedIn ? CrushRoutes.home : CrushRoutes.authGateway;
+        if (isLoggedIn) {
+          return needsEmailVerification
+              ? CrushRoutes.emailVerification
+              : CrushRoutes.home;
+        }
+        return CrushRoutes.authGateway;
       }
 
       return null;
@@ -184,6 +226,11 @@ GoRouter createRouter(AuthBloc authBloc) {
         ],
       ),
       GoRoute(
+        path: CrushRoutes.emailVerification,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const EmailVerificationScreen()),
+      ),
+      GoRoute(
         path: CrushRoutes.emailProtection,
         pageBuilder: (context, state) {
           final redirect = state.uri.queryParameters['redirect'];
@@ -193,6 +240,11 @@ GoRouter createRouter(AuthBloc authBloc) {
             EmailProtectionScreen(redirectOnSuccess: redirectOnSuccess),
           );
         },
+      ),
+      GoRoute(
+        path: CrushRoutes.phoneProtection,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const PhoneProtectionScreen()),
       ),
       GoRoute(
         path: CrushRoutes.changeEmail,
@@ -244,6 +296,11 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.safety,
         pageBuilder: (context, state) =>
             _buildPage(state, const SafetyScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.likesYou,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const LikesYouScreen()),
       ),
       GoRoute(
         path: CrushRoutes.safetyGuidelines,

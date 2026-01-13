@@ -47,6 +47,8 @@ class DiscoveryMapper {
       livingIn: dto.location,
       latitude: null,
       longitude: null,
+      distance: dto.distance,
+      distanceUnit: dto.distanceUnit,
       favoriteSongs: const [],
       favoriteSinger: null,
       isVerified: dto.isVerified ?? false,

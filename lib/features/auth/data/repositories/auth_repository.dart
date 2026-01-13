@@ -94,6 +94,39 @@ abstract class AuthRepository {
 
   Future<void> signOut();
 
+  /// Send email verification to the current user.
+  Future<void> sendEmailVerification();
+
+  /// Check if the current user's email is verified.
+  /// Returns the updated user if verified, null otherwise.
+  Future<CrushUser?> checkEmailVerification();
+
+  /// Schedule phone number for deletion.
+  /// The phone will be unlinked from the account after ~3 days (2 days 23 hours)
+  /// and added to a cooldown list preventing reuse until then.
+  Future<void> schedulePhoneDeletion();
+
+  /// Change the user's password.
+  /// Requires current password for verification.
+  /// Sends notification to email/phone after successful change.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  /// Deactivate the user's account.
+  /// Profile will be hidden but data preserved.
+  /// Account will be permanently deleted after 6 months of inactivity.
+  Future<void> deactivateAccount({required String reason});
+
+  /// Schedule account for deletion.
+  /// User has 14 days to recover by signing back in.
+  /// Requires password confirmation.
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  });
+
   /// Dev-only: bypass authentication with admin123/admin123 credentials.
   /// Returns null if bypass is disabled or credentials don't match.
   Future<CrushUser?> devLoginBypass({

@@ -63,3 +63,21 @@ class ProfileDetailsSubmitted extends ProfileEvent {
 class ProfileIdDocumentUploaded extends ProfileEvent {}
 
 class ProfileIdVerifiedMarked extends ProfileEvent {}
+
+/// Event to update the user's location in their profile.
+class ProfileLocationUpdateRequested extends ProfileEvent {
+  final double latitude;
+  final double longitude;
+  final String? city;
+  final String? country;
+
+  ProfileLocationUpdateRequested({
+    required this.latitude,
+    required this.longitude,
+    this.city,
+    this.country,
+  });
+
+  @override
+  List<Object?> get props => [latitude, longitude, city, country];
+}

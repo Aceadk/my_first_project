@@ -100,7 +100,7 @@ class StubChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 30));
 
     final message = Message(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
@@ -166,7 +166,7 @@ class StubChatRepository implements ChatRepository {
     required String filePath,
     required MessageType type,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Return the local file path as the URL for demo purposes
     // In a real app, this would upload to cloud storage

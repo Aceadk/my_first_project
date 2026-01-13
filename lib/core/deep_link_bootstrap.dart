@@ -47,6 +47,22 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     if (uri == null || !mounted) return;
     final link = uri.toString();
 
+    // Check if this is an email verification link (magic link from sign up)
+    if (_isEmailVerificationLink(uri)) {
+      final email = uri.queryParameters['email'];
+      if (email != null && mounted) {
+        // Use the email link authentication
+        context.read<AuthBloc>().add(AuthEmailLinkSubmitted(email, link));
+      } else {
+        // Try to get pending email from secure storage
+        final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
+        if (pendingEmail != null && mounted) {
+          context.read<AuthBloc>().add(AuthEmailLinkSubmitted(pendingEmail, link));
+        }
+      }
+      return;
+    }
+
     // Check if this is a Firebase email sign-in link
     if (_isEmailSignInLink(link)) {
       // Get the pending email from secure storage
@@ -67,6 +83,12 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     if (isBillingCallback || status != null) {
       context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested());
     }
+  }
+
+  /// Check if the link is an email verification magic link.
+  bool _isEmailVerificationLink(Uri uri) {
+    final path = uri.path.toLowerCase();
+    return path.contains('verify-email') || path.contains('verify_email');
   }
 
   /// Check if the link is a Firebase email sign-in link.

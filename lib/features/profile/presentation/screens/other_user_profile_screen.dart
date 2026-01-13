@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
@@ -7,6 +8,10 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 
 /// Arguments for viewing another user's profile
 class OtherUserProfileArgs {
@@ -172,6 +177,18 @@ class OtherUserProfileScreen extends StatelessWidget {
                       child: Text(
                         profile.bio,
                         style: const TextStyle(fontSize: 15, height: 1.5),
+                      ),
+                    ),
+                    DsGap.lg,
+                  ],
+
+                  // Profile Prompts
+                  if (profile.profilePrompts.isNotEmpty) ...[
+                    _InfoSection(
+                      title: 'Conversation Starters',
+                      icon: Icons.chat_bubble_outline,
+                      child: PromptCardColumn(
+                        prompts: profile.profilePrompts,
                       ),
                     ),
                     DsGap.lg,
@@ -487,9 +504,13 @@ class OtherUserProfileScreen extends StatelessWidget {
   }
 
   void _showOptionsMenu(BuildContext context, Profile profile) {
+    final currentUserId = context.read<AuthBloc>().state.user?.id;
+    final safetyCubit = context.read<SafetyCubit>();
+    final isBlocked = safetyCubit.isBlocked(profile.id);
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -497,31 +518,156 @@ class OtherUserProfileScreen extends StatelessWidget {
               leading: const Icon(Icons.flag_outlined),
               title: const Text('Report'),
               onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Report submitted')),
-                );
+                Navigator.pop(sheetContext);
+                _showReportDialog(context, profile, safetyCubit, currentUserId);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.block),
-              title: const Text('Block'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('User blocked')),
+              leading: Icon(isBlocked ? Icons.check_circle : Icons.block),
+              title: Text(isBlocked ? 'Unblock' : 'Block'),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                if (currentUserId == null) {
+                  showErrorSnackBar(
+                      context, 'Sign in again to manage safety actions.');
+                  return;
+                }
+                await safetyCubit.toggleBlock(
+                  profile.id,
+                  block: !isBlocked,
+                  currentUserId: currentUserId,
                 );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          isBlocked ? 'User unblocked' : 'User blocked'),
+                    ),
+                  );
+                  if (!isBlocked) {
+                    // Go back after blocking
+                    context.pop();
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                safetyCubit.isMessagesMuted(profile.id)
+                    ? Icons.volume_up
+                    : Icons.volume_off,
+              ),
+              title: Text(
+                safetyCubit.isMessagesMuted(profile.id)
+                    ? 'Unmute Messages'
+                    : 'Mute Messages',
+              ),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                final isMuted = safetyCubit.isMessagesMuted(profile.id);
+                await safetyCubit.toggleMuteMessages(profile.id, mute: !isMuted);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          isMuted ? 'Messages unmuted' : 'Messages muted'),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                safetyCubit.isCallsMuted(profile.id)
+                    ? Icons.call
+                    : Icons.call_end,
+              ),
+              title: Text(
+                safetyCubit.isCallsMuted(profile.id)
+                    ? 'Unmute Calls'
+                    : 'Mute Calls',
+              ),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                final isMuted = safetyCubit.isCallsMuted(profile.id);
+                await safetyCubit.toggleMuteCalls(profile.id, mute: !isMuted);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isMuted ? 'Calls unmuted' : 'Calls muted'),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(
               leading: const Icon(Icons.share_outlined),
               title: const Text('Share Profile'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Share feature coming soon')),
                 );
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showReportDialog(
+    BuildContext context,
+    Profile profile,
+    SafetyCubit safetyCubit,
+    String? currentUserId,
+  ) {
+    final reasons = [
+      'Inappropriate photos',
+      'Fake profile',
+      'Harassment',
+      'Scam or spam',
+      'Underage user',
+      'Other',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Why are you reporting this profile?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ...reasons.map(
+              (reason) => ListTile(
+                title: Text(reason),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await safetyCubit.reportWithContext(
+                    reporterId: currentUserId ?? 'anonymous',
+                    reportedId: profile.id,
+                    reason: reason,
+                    source: 'profile_view',
+                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Report submitted. Thanks for keeping CrushHour safe!'),
+                      ),
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),

@@ -225,6 +225,35 @@ class AnalyticsService {
     _log('deck_empty');
   }
 
+  /// Track super like
+  Future<void> logSuperLike({required String targetUserId}) async {
+    await _analytics.logEvent(name: 'super_like');
+    _log('super_like');
+  }
+
+  /// Track rewind (undo swipe)
+  Future<void> logRewind() async {
+    await _analytics.logEvent(name: 'rewind');
+    _log('rewind');
+  }
+
+  /// Track boost activation
+  Future<void> logBoostActivated() async {
+    await _analytics.logEvent(name: 'boost_activated');
+    _log('boost_activated');
+  }
+
+  /// Track boost expiration
+  Future<void> logBoostExpired({int? profileViewsGained}) async {
+    await _analytics.logEvent(
+      name: 'boost_expired',
+      parameters: {
+        if (profileViewsGained != null) 'profile_views': profileViewsGained,
+      },
+    );
+    _log('boost_expired', {'profile_views': profileViewsGained});
+  }
+
   /// Track top picks viewed
   Future<void> logTopPicksViewed({required int count}) async {
     await _analytics.logEvent(

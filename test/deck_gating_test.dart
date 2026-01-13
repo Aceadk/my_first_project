@@ -106,6 +106,7 @@ void main() {
               create: (_) => SafetyCubit(
                 preferences: prefsInstance,
                 chatRepository: _NoopChatRepository(),
+                discoveryRepository: _StubDiscoveryRepository([]),
               ),
             ),
             BlocProvider<SubscriptionBloc>(
@@ -205,6 +206,12 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> signOut() async {}
 
   @override
+  Future<void> sendEmailVerification() async {}
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async => user;
+
+  @override
   Future<void> requestPasswordReset({required String email}) async {}
 
   @override
@@ -227,6 +234,24 @@ class _StubAuthRepository implements AuthRepository {
     required String password,
   }) async =>
       null;
+
+  @override
+  Future<void> schedulePhoneDeletion() async {}
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async {}
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {}
 }
 
 class _StubProfileRepository implements ProfileRepository {
@@ -276,7 +301,10 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   final List<Profile> deck;
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async => deck;
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async => deck;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -301,6 +329,24 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<CrushMatch>> fetchMatches(String userId) async => const [];
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    try {
+      return deck.firstWhere((p) => p.id == profileId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async => null;
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async => null;
 }
 
 class _StubSubscriptionRepository implements SubscriptionRepository {

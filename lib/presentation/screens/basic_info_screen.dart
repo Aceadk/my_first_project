@@ -24,6 +24,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   String _gender = 'female';
   String? _orientation;
   bool _usernameTouched = false;
+  bool _ageTouched = false;
+  bool _hasShownAgeWarning = false;
 
   @override
   void dispose() {
@@ -82,8 +84,14 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       ),
                       TextField(
                         controller: _ageController,
-                        decoration: const InputDecoration(labelText: 'Age'),
+                        decoration: InputDecoration(
+                          labelText: 'Age',
+                          helperText: 'Must be between 18 and 75',
+                          errorText: _ageErrorText(),
+                        ),
                         keyboardType: TextInputType.number,
+                        onTap: () => _markAgeTouched(),
+                        onChanged: (_) => _markAgeTouched(),
                       ),
                       const SizedBox(height: 12),
                       DropdownButton<String>(
@@ -112,18 +120,29 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                         onBack: isBusy ? null : _goBack,
                         onNext: isBusy
                             ? null
-                            : () {
+                            : () async {
                                 setState(() {
                                   _usernameTouched = true;
+                                  _ageTouched = true;
                                 });
                                 final usernameError = _usernameErrorText();
                                 if (usernameError != null) {
                                   showErrorSnackBar(context, usernameError);
                                   return;
                                 }
+                                final ageError = _ageErrorText();
+                                if (ageError != null) {
+                                  showErrorSnackBar(context, ageError);
+                                  return;
+                                }
                                 final age =
                                     int.tryParse(_ageController.text) ?? 0;
-                                context.read<ProfileBloc>().add(
+                                final profileBloc = context.read<ProfileBloc>();
+                                // Show warning for users aged 70-75
+                                final proceed = await _showAgeWarningIfNeeded(age);
+                                if (!proceed) return;
+                                if (!mounted) return;
+                                profileBloc.add(
                                       ProfileBasicInfoSubmitted(
                                         username:
                                             _usernameController.text.trim(),
@@ -187,5 +206,64 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       return 'Use 3-20 letters, numbers, or underscore';
     }
     return null;
+  }
+
+  void _markAgeTouched() {
+    if (!_ageTouched) {
+      setState(() {
+        _ageTouched = true;
+      });
+    }
+  }
+
+  String? _ageErrorText() {
+    if (!_ageTouched) return null;
+    final ageText = _ageController.text.trim();
+    if (ageText.isEmpty) {
+      return 'Enter your age';
+    }
+    final age = int.tryParse(ageText);
+    if (age == null) {
+      return 'Enter a valid number';
+    }
+    if (age < 18) {
+      return 'You must be at least 18 years old';
+    }
+    if (age > 75) {
+      return 'Maximum age allowed is 75';
+    }
+    return null;
+  }
+
+  Future<bool> _showAgeWarningIfNeeded(int age) async {
+    if (age >= 70 && age <= 75 && !_hasShownAgeWarning) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.elderly, color: Colors.orange, size: 48),
+          title: const Text('Age Notice'),
+          content: const Text(
+            'You\'re a bit too old to be using a dating app, don\'t you think?\n\n'
+            'Just kidding! Love has no age limit. Are you sure you want to continue?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Go Back'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Continue Anyway'),
+            ),
+          ],
+        ),
+      );
+      if (proceed == true) {
+        _hasShownAgeWarning = true;
+        return true;
+      }
+      return false;
+    }
+    return true;
   }
 }

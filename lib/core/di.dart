@@ -17,6 +17,7 @@ import 'package:crushhour/features/discovery/data/repositories/impl/firebase_dis
 import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/firebase_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
 
 // Stub implementations (for development/demo without backend)
 import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
@@ -26,6 +27,7 @@ import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_reposit
 import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/stub_feature_flag_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/stub_boost_repository.dart';
 
 // HTTP implementations (for REST API backend)
 import 'package:crushhour/features/auth/data/repositories/impl/http_auth_repository.dart';
@@ -59,6 +61,7 @@ import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart'
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 import 'package:crushhour/features/feature_flags/presentation/bloc/feature_flag_cubit.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 
 /// Backend configuration for the app.
 /// Switch between stub (development/demo), Firebase (production), or HTTP (REST API).
@@ -80,7 +83,10 @@ class CrushDI {
   /// Current backend mode. Change this to switch between implementations.
   /// In production builds, this should be [BackendMode.firebase] or [BackendMode.http].
   /// For development/demo, use [BackendMode.stub].
-  static const BackendMode backendMode = BackendMode.firebase;
+  ///
+  /// NOTE: Set to [BackendMode.stub] for testing without Firebase premium features.
+  /// All data is stored locally and testers can fully use the app.
+  static const BackendMode backendMode = BackendMode.stub;
 
   /// Singleton API client for HTTP mode.
   static ApiClient? _apiClient;
@@ -117,6 +123,7 @@ class CrushDI {
     final ChatRepository chatRepo;
     final CallRepository callRepo;
     final FeatureFlagRepository featureFlagRepo;
+    final BoostRepository boostRepo;
 
     switch (backendMode) {
       case BackendMode.stub:
@@ -128,6 +135,7 @@ class CrushDI {
         chatRepo = StubChatRepository();
         callRepo = StubCallRepository();
         featureFlagRepo = StubFeatureFlagRepository();
+        boostRepo = StubBoostRepository(subscriptionRepository: subRepo);
 
       case BackendMode.firebase:
         // Firebase implementations for production
@@ -138,6 +146,8 @@ class CrushDI {
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
         featureFlagRepo = FirebaseFeatureFlagRepository();
+        // Use stub boost repo until Firebase implementation is added
+        boostRepo = StubBoostRepository(subscriptionRepository: subRepo);
 
       case BackendMode.http:
         // HTTP implementations for REST API backend
@@ -156,6 +166,8 @@ class CrushDI {
 
         // Use stub for feature flags until HTTP implementation is added
         featureFlagRepo = StubFeatureFlagRepository();
+        // Use stub boost repo until HTTP implementation is added
+        boostRepo = StubBoostRepository(subscriptionRepository: subRepo);
     }
 
     return [
@@ -166,6 +178,7 @@ class CrushDI {
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
       RepositoryProvider<FeatureFlagRepository>.value(value: featureFlagRepo),
+      RepositoryProvider<BoostRepository>.value(value: boostRepo),
     ];
   }
 
@@ -234,6 +247,7 @@ class CrushDI {
         create: (context) => SafetyCubit(
           preferences: preferences,
           chatRepository: context.read<ChatRepository>(),
+          discoveryRepository: context.read<DiscoveryRepository>(),
         ),
       ),
       BlocProvider<LocaleCubit>(
@@ -248,6 +262,11 @@ class CrushDI {
       BlocProvider<FeatureFlagCubit>(
         create: (context) => FeatureFlagCubit(
           repository: context.read<FeatureFlagRepository>(),
+        ),
+      ),
+      BlocProvider<BoostCubit>(
+        create: (context) => BoostCubit(
+          boostRepository: context.read<BoostRepository>(),
         ),
       ),
     ];

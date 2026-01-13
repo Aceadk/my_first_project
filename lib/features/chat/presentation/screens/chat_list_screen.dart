@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,8 +12,13 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
+import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/gradients.dart';
+import 'package:crushhour/design_system/tokens/radius.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
@@ -48,70 +54,179 @@ class _ChatListView extends StatelessWidget {
 
   const _ChatListView({required this.currentUserId});
 
+  Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: Padding(
+        padding: DsEdgeInsets.allXxl,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Glass icon container
+            ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: DsBlur.medium,
+                  sigmaY: DsBlur.medium,
+                ),
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        DsColors.secondary.withValues(alpha: 0.2),
+                        DsColors.primary.withValues(alpha: 0.15),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark
+                          ? DsGlassColors.borderDark
+                          : DsGlassColors.borderLight,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.secondary.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) =>
+                        DsGradients.chats.createShader(bounds),
+                    child: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 52,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            DsGap.xxl,
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  DsGradients.primaryHorizontal.createShader(bounds),
+              child: Text(
+                'No conversations yet',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
+            ),
+            DsGap.sm,
+            Text(
+              'When you match with someone and start chatting,\nyour conversations will appear here.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildGlassAppBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: DsBlur.heavy,
+            sigmaY: DsBlur.heavy,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.8),
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.6),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Centered title
+                    Center(
+                      child: ShaderMask(
+                        shaderCallback: (bounds) =>
+                            DsGradients.chats.createShader(bounds),
+                        child: Text(
+                          'Chats',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                        ),
+                      ),
+                    ),
+                    // Settings button on the right
+                    Positioned(
+                      right: DsSpacing.sm,
+                      child: GlassIconButton(
+                        icon: Icons.settings_outlined,
+                        onPressed: () => context.push(CrushRoutes.settings),
+                        size: 40,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MatchesBloc, MatchesState>(
       builder: (context, state) {
         return AsyncStateScaffold(
-          appBar: AppBar(
-            title: const Text('Chats'),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () => context.push(CrushRoutes.settings),
-              ),
-            ],
-          ),
+          appBar: _buildGlassAppBar(context),
           isLoading: state.isLoading && state.matches.isEmpty,
           errorMessage: state.errorMessage,
           showErrorSnackBar: true,
           empty: state.matches.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: DsEdgeInsets.allXxl,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                DsColors.secondary.withValues(alpha: 0.1),
-                                DsColors.primary.withValues(alpha: 0.1),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 48,
-                            color: DsColors.secondary,
-                          ),
-                        ),
-                        DsGap.xxl,
-                        Text(
-                          'No conversations yet',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        DsGap.sm,
-                        Text(
-                          'When you match with someone and start chatting,\nyour conversations will appear here.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: DsColors.textMutedLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
+              ? _buildEmptyState(context)
               : null,
           body: RefreshIndicator(
             onRefresh: () async {
@@ -254,112 +369,201 @@ class _ChatTileState extends State<_ChatTile>
         : 'Tap to start chatting';
     final lastMessageTime = _lastMessage?.sentAt;
 
-    return Material(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: DsEdgeInsets.listItemPadding,
-          child: Row(
-            children: [
-              Stack(
-                children: [
-                  CachedCircleAvatar(
-                    imageUrl: widget.match.otherUserPhotoUrl,
-                    radius: 28,
-                  ),
-                  // Online indicator - only show when user is online
-                  if (_isOnline)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: DsColors.onlineIndicator,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Theme.of(context).cardColor,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              DsGap.lgH,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            name,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (lastMessageTime != null)
-                          Text(
-                            _formatTime(lastMessageTime),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: hasUnread
-                                  ? DsColors.primary
-                                  : DsColors.textMutedLight,
-                              fontWeight: hasUnread ? FontWeight.bold : null,
-                            ),
-                          ),
-                      ],
-                    ),
-                    DsGap.xs,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            lastMessageText,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: hasUnread
-                                  ? Theme.of(context).textTheme.bodyMedium?.color
-                                  : DsColors.textMutedLight,
-                              fontWeight: hasUnread ? FontWeight.w600 : null,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (hasUnread)
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: DsColors.primary,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              _unreadCount > 99 ? '99+' : '$_unreadCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.lg),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            child: Container(
+              padding: const EdgeInsets.all(DsSpacing.md),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: hasUnread ? 0.7 : 0.5),
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: hasUnread ? 0.5 : 0.3),
                   ],
                 ),
+                borderRadius: BorderRadius.circular(DsRadius.lg),
+                border: Border.all(
+                  color: hasUnread
+                      ? DsColors.primary.withValues(alpha: 0.5)
+                      : (isDark
+                          ? DsGlassColors.borderDark
+                          : DsGlassColors.borderLight),
+                  width: hasUnread ? 1.5 : 1,
+                ),
+                boxShadow: hasUnread
+                    ? [
+                        BoxShadow(
+                          color: DsColors.primary.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
               ),
-            ],
+              child: Row(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? DsGlassColors.borderLight
+                                : DsGlassColors.borderDark.withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: CachedCircleAvatar(
+                          imageUrl: widget.match.otherUserPhotoUrl,
+                          radius: 28,
+                        ),
+                      ),
+                      // Online indicator with glow effect
+                      if (_isOnline)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: DsColors.onlineIndicator,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? Colors.black : Colors.white,
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      DsColors.onlineIndicator.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  DsGap.lgH,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                name,
+                                style:
+                                    Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: hasUnread
+                                              ? FontWeight.bold
+                                              : FontWeight.w600,
+                                        ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (lastMessageTime != null)
+                              Text(
+                                _formatTime(lastMessageTime),
+                                style:
+                                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: hasUnread
+                                              ? DsColors.primary
+                                              : DsColors.textMutedLight,
+                                          fontWeight:
+                                              hasUnread ? FontWeight.bold : null,
+                                        ),
+                              ),
+                          ],
+                        ),
+                        DsGap.xs,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                lastMessageText,
+                                style:
+                                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: hasUnread
+                                              ? Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.color
+                                              : DsColors.textMutedLight,
+                                          fontWeight:
+                                              hasUnread ? FontWeight.w600 : null,
+                                        ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (hasUnread)
+                              Container(
+                                margin: const EdgeInsets.only(left: DsSpacing.sm),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DsSpacing.sm,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: DsGradients.primaryHorizontal,
+                                  borderRadius:
+                                      BorderRadius.circular(DsRadius.round),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          DsColors.primary.withValues(alpha: 0.3),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  _unreadCount > 99 ? '99+' : '$_unreadCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

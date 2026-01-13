@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
@@ -7,8 +8,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
@@ -25,6 +29,9 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
+import 'package:crushhour/features/chat/presentation/widgets/voice_note_player.dart';
+import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
+import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -52,6 +59,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final _picker = ImagePicker();
   Timer? _typingTimer;
   bool _isTyping = false;
+  bool _isRecordingVoice = false;
+  List<IceBreakerSuggestion> _iceBreakerSuggestions = [];
   RemoteProfileCompleteness? _backendCompleteness;
   bool _checkingCompleteness = false;
   String? _completenessError;
@@ -66,6 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _refreshIceBreakers();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _chatBloc = context.read<ChatBloc>();
@@ -76,6 +86,16 @@ class _ChatScreenState extends State<ChatScreen> {
             ));
       }
     });
+  }
+
+  void _refreshIceBreakers() {
+    setState(() {
+      _iceBreakerSuggestions = IceBreakerService.getSuggestions(maxCount: 4);
+    });
+  }
+
+  void _onIceBreakerTap(String text) {
+    _controller.text = text;
   }
 
   @override
@@ -123,99 +143,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 state.typingUserIds.contains(widget.args.otherUserId);
 
             return AsyncStateScaffold(
-              appBar: AppBar(
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.args.otherName),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.circle,
-                          size: 9,
-                          color: state.otherUserOnline
-                              ? DsColors.onlineIndicator
-                              : DsColors.surfaceLight,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          state.otherUserOnline ? 'Online' : 'Offline',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                actions: [
-                  IconButton(
-                    tooltip: isBlocked || state.isUnmatched
-                        ? 'Unavailable for this match'
-                        : 'Audio call',
-                    icon: const Icon(Icons.call),
-                    onPressed: (isBlocked || state.isUnmatched)
-                        ? null
-                        : _startAudioCall,
-                  ),
-                  DsGap.smH,
-                  IconButton(
-                    tooltip: isBlocked || state.isUnmatched
-                        ? 'Unavailable for this match'
-                        : 'Video call',
-                    icon: const Icon(Icons.videocam),
-                    onPressed: (isBlocked || state.isUnmatched)
-                        ? null
-                        : () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => VideoCallScreen(
-                                  currentUserId: widget.args.currentUserId,
-                                  otherUserId: widget.args.otherUserId,
-                                  otherName: widget.args.otherName,
-                                ),
-                              ),
-                            );
-                          },
-                  ),
-                  PopupMenuButton<_ChatSafetyAction>(
-                    onSelected: (action) => _handleSafetyAction(
-                      context,
-                      safety,
-                      isBlocked: isBlocked,
-                      messagesMuted: messagesMuted,
-                      callsMuted: callsMuted,
-                      action: action,
-                    ),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: _ChatSafetyAction.report,
-                        child: Text('Report user'),
-                      ),
-                      PopupMenuItem(
-                        value: _ChatSafetyAction.block,
-                        child: Text(isBlocked ? 'Unblock user' : 'Block user'),
-                      ),
-                      const PopupMenuItem(
-                        value: _ChatSafetyAction.unmatch,
-                        child: Text('Unmatch'),
-                      ),
-                      PopupMenuItem(
-                        value: _ChatSafetyAction.muteMessages,
-                        child: Text(messagesMuted
-                            ? 'Unmute messages'
-                            : 'Mute messages'),
-                      ),
-                      PopupMenuItem(
-                        value: _ChatSafetyAction.muteCalls,
-                        child: Text(callsMuted ? 'Unmute calls' : 'Mute calls'),
-                      ),
-                      const PopupMenuItem(
-                        value: _ChatSafetyAction.safetyCenter,
-                        child: Text('Open Safety Center'),
-                      ),
-                    ],
-                  ),
-                  DsGap.smH,
-                ],
+              appBar: _buildGlassAppBar(
+                context,
+                state: state,
+                isBlocked: isBlocked,
+                messagesMuted: messagesMuted,
+                callsMuted: callsMuted,
+                safety: safety,
               ),
               errorMessage: state.errorMessage,
               showErrorSnackBar: true,
@@ -463,7 +397,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   Expanded(
                     child: messages.isEmpty
-                        ? _EmptyChatState(onRefresh: () => _refreshChat(context))
+                        ? _EmptyChatState(
+                            onRefresh: _refreshIceBreakers,
+                            suggestions: _iceBreakerSuggestions,
+                            onSuggestionTap: _onIceBreakerTap,
+                            otherName: widget.args.otherName,
+                          )
                         : ListView.builder(
                             reverse: true,
                             padding: const EdgeInsets.all(12),
@@ -499,21 +438,63 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ? CrossAxisAlignment.end
                                         : CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        margin: const EdgeInsets.symmetric(
-                                            vertical: 4, horizontal: 8),
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: isMe
-                                              ? DsColors.messageOutgoing
-                                              : DsColors.messageIncoming,
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: _buildMessageContent(
-                                          msg,
-                                          text,
-                                          isHeld: isHeld,
-                                          pendingScan: pendingScan,
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(18),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                            sigmaX: DsBlur.subtle,
+                                            sigmaY: DsBlur.subtle,
+                                          ),
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(
+                                                vertical: DsSpacing.xs,
+                                                horizontal: DsSpacing.sm),
+                                            padding: const EdgeInsets.all(DsSpacing.sm + 2),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: isMe
+                                                    ? [
+                                                        DsColors.primary
+                                                            .withValues(alpha: 0.85),
+                                                        DsColors.secondary
+                                                            .withValues(alpha: 0.7),
+                                                      ]
+                                                    : [
+                                                        DsGlassColors.surfaceDark
+                                                            .withValues(alpha: 0.6),
+                                                        DsGlassColors.surfaceDark
+                                                            .withValues(alpha: 0.4),
+                                                      ],
+                                              ),
+                                              borderRadius: BorderRadius.circular(18),
+                                              border: Border.all(
+                                                color: isMe
+                                                    ? DsColors.primary
+                                                        .withValues(alpha: 0.3)
+                                                    : DsGlassColors.borderLight,
+                                                width: 1,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: (isMe
+                                                          ? DsColors.primary
+                                                          : Colors.black)
+                                                      .withValues(alpha: 0.15),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: _buildMessageContent(
+                                              msg,
+                                              text,
+                                              isHeld: isHeld,
+                                              pendingScan: pendingScan,
+                                              isMe: isMe,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       if (isFlagged || pendingScan)
@@ -622,6 +603,190 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  PreferredSizeWidget _buildGlassAppBar(
+    BuildContext context, {
+    required ChatState state,
+    required bool isBlocked,
+    required bool messagesMuted,
+    required bool callsMuted,
+    required SafetyCubit safety,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight + 8),
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: DsBlur.heavy,
+            sigmaY: DsBlur.heavy,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.85),
+                  (isDark
+                          ? DsGlassColors.surfaceDark
+                          : DsGlassColors.surfaceLight)
+                      .withValues(alpha: 0.7),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: kToolbarHeight + 8,
+                child: Row(
+                  children: [
+                    // Back button
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    // User info
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.args.otherName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: state.otherUserOnline
+                                      ? DsColors.onlineIndicator
+                                      : DsColors.surfaceLight,
+                                  boxShadow: state.otherUserOnline
+                                      ? [
+                                          BoxShadow(
+                                            color: DsColors.onlineIndicator
+                                                .withValues(alpha: 0.5),
+                                            blurRadius: 4,
+                                            spreadRadius: 1,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: DsSpacing.xs),
+                              Text(
+                                state.otherUserOnline ? 'Online' : 'Offline',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: state.otherUserOnline
+                                          ? DsColors.onlineIndicator
+                                          : DsColors.textMutedLight,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Action buttons
+                    GlassIconButton(
+                      icon: Icons.call,
+                      onPressed: (isBlocked || state.isUnmatched)
+                          ? () {}
+                          : _startAudioCall,
+                      size: 38,
+                    ),
+                    const SizedBox(width: DsSpacing.xs),
+                    GlassIconButton(
+                      icon: Icons.videocam,
+                      onPressed: (isBlocked || state.isUnmatched)
+                          ? () {}
+                          : () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => VideoCallScreen(
+                                    currentUserId: widget.args.currentUserId,
+                                    otherUserId: widget.args.otherUserId,
+                                    otherName: widget.args.otherName,
+                                  ),
+                                ),
+                              );
+                            },
+                      size: 38,
+                    ),
+                    PopupMenuButton<_ChatSafetyAction>(
+                      onSelected: (action) => _handleSafetyAction(
+                        context,
+                        safety,
+                        isBlocked: isBlocked,
+                        messagesMuted: messagesMuted,
+                        callsMuted: callsMuted,
+                        action: action,
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: _ChatSafetyAction.report,
+                          child: Text('Report user'),
+                        ),
+                        PopupMenuItem(
+                          value: _ChatSafetyAction.block,
+                          child:
+                              Text(isBlocked ? 'Unblock user' : 'Block user'),
+                        ),
+                        const PopupMenuItem(
+                          value: _ChatSafetyAction.unmatch,
+                          child: Text('Unmatch'),
+                        ),
+                        PopupMenuItem(
+                          value: _ChatSafetyAction.muteMessages,
+                          child: Text(messagesMuted
+                              ? 'Unmute messages'
+                              : 'Mute messages'),
+                        ),
+                        PopupMenuItem(
+                          value: _ChatSafetyAction.muteCalls,
+                          child:
+                              Text(callsMuted ? 'Unmute calls' : 'Mute calls'),
+                        ),
+                        const PopupMenuItem(
+                          value: _ChatSafetyAction.safetyCenter,
+                          child: Text('Open Safety Center'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: DsSpacing.xs),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showMessageActions({
     required BuildContext context,
     required ChatState state,
@@ -630,90 +795,140 @@ class _ChatScreenState extends State<ChatScreen> {
   }) {
     const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
     final myReaction = message.reactions[widget.args.currentUserId];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet<void>(
       context: context,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: reactions
-                    .map(
-                      (emoji) => IconButton(
+      backgroundColor: Colors.transparent,
+      builder: (_) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DsGlassColors.surfaceDark.withValues(alpha: 0.9)
+                  : DsGlassColors.surfaceLight.withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(
+                color: isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+                width: 0.5,
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Reaction picker with animation
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: reactions.map((emoji) {
+                        final isSelected = myReaction == emoji;
+                        return _ReactionButton(
+                          emoji: emoji,
+                          isSelected: isSelected,
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.pop(context);
+                            _toggleReaction(message, emoji);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  if (myReaction != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextButton.icon(
                         onPressed: () {
+                          HapticFeedback.lightImpact();
                           Navigator.pop(context);
-                          _toggleReaction(message, emoji);
+                          _toggleReaction(message, myReaction);
                         },
-                        icon: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 22),
+                        icon: const Icon(Icons.remove_circle_outline, size: 18),
+                        label: const Text('Remove my reaction'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: DsColors.textMutedLight,
                         ),
                       ),
-                    )
-                    .toList(),
-              ),
-            ),
-            if (myReaction != null)
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _toggleReaction(message, myReaction);
-                },
-                icon: const Icon(Icons.remove_circle_outline),
-                label: const Text('Remove my reaction'),
-              ),
-            if (isMe) ...[
-              PlusFeatureGate(
-                onAllowed: () {
-                  Navigator.pop(context);
-                  context.read<ChatBloc>().add(
-                        ChatMessageUnsendRequested(
-                          widget.args.matchId,
-                          message.id,
+                    ),
+                  const Divider(height: 1),
+                  if (isMe) ...[
+                    PlusFeatureGate(
+                      onAllowed: () {
+                        HapticFeedback.mediumImpact();
+                        Navigator.pop(context);
+                        context.read<ChatBloc>().add(
+                              ChatMessageUnsendRequested(
+                                widget.args.matchId,
+                                message.id,
+                              ),
+                            );
+                      },
+                      child: ListTile(
+                        leading: const Icon(Icons.undo),
+                        title: const Text('Unsend (Plus)'),
+                        enabled: !state.isUnsendInProgress,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.delete_outline),
+                      title: const Text('Delete for me'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                        context.read<ChatBloc>().add(
+                              ChatMessageDeleteForMeRequested(
+                                widget.args.matchId,
+                                message.id,
+                                widget.args.currentUserId,
+                              ),
+                            );
+                      },
+                    ),
+                  ],
+                  ListTile(
+                    leading: const Icon(Icons.copy),
+                    title: const Text('Copy text'),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                      Clipboard.setData(
+                        ClipboardData(text: message.content),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Message copied'),
                         ),
                       );
-                },
-                child: ListTile(
-                  leading: const Icon(Icons.undo),
-                  title: const Text('Unsend (Plus)'),
-                  enabled: !state.isUnsendInProgress,
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Delete for me'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.read<ChatBloc>().add(
-                        ChatMessageDeleteForMeRequested(
-                          widget.args.matchId,
-                          message.id,
-                          widget.args.currentUserId,
-                        ),
-                      );
-                },
-              ),
-            ],
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy text'),
-              onTap: () {
-                Navigator.pop(context);
-                Clipboard.setData(
-                  ClipboardData(text: message.content),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Message copied'),
+                    },
                   ),
-                );
-              },
+                  DsGap.sm,
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -804,6 +1019,27 @@ class _ChatScreenState extends State<ChatScreen> {
         canMessage &&
         !isUploading;
 
+    // Show voice recorder when in recording mode
+    if (_isRecordingVoice) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.sm,
+            vertical: DsSpacing.xs,
+          ),
+          child: VoiceNoteRecorder(
+            onRecordingComplete: (filePath) {
+              setState(() => _isRecordingVoice = false);
+              _sendVoiceNote(filePath);
+            },
+            onCancel: () {
+              setState(() => _isRecordingVoice = false);
+            },
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       child: Row(
         children: [
@@ -833,7 +1069,7 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.mic),
             onPressed: canSendMedia
-                ? () => _pickAndSendAudio(canMessage, completeness)
+                ? () => _startVoiceRecording(canMessage, completeness)
                 : null,
           ),
           Expanded(
@@ -902,6 +1138,7 @@ class _ChatScreenState extends State<ChatScreen> {
     String textFallback, {
     required bool isHeld,
     required bool pendingScan,
+    required bool isMe,
   }) {
     if (isHeld) {
       return const Row(
@@ -960,11 +1197,19 @@ class _ChatScreenState extends State<ChatScreen> {
       case MessageType.voice:
         final isLocalAudio = msg.content.startsWith('/') ||
             msg.content.startsWith('file://');
-        return _AttachmentTile(
-          label: pendingScan ? 'Voice (scan pending)' : 'Voice message',
-          url: msg.content,
-          icon: Icons.mic,
+        if (pendingScan) {
+          return _AttachmentTile(
+            label: 'Voice (scan pending)',
+            url: msg.content,
+            icon: Icons.mic,
+            isLocal: isLocalAudio,
+          );
+        }
+        return VoiceNotePlayer(
+          audioUrl: msg.content,
+          isFromCurrentUser: isMe,
           isLocal: isLocalAudio,
+          compact: true,
         );
       case MessageType.text:
         return Text(textFallback);
@@ -1196,6 +1441,33 @@ class _ChatScreenState extends State<ChatScreen> {
             toUserId: widget.args.otherUserId,
             filePath: result.path,
             type: MessageType.video,
+          ),
+        );
+  }
+
+  Future<void> _startVoiceRecording(
+    bool canMessage,
+    ProfileCompletenessSummary completeness,
+  ) async {
+    if (!canMessage) {
+      _showMessagingIncomplete(completeness);
+      return;
+    }
+    final allowed = await _ensureBackendAllowsMessaging(completeness);
+    if (!allowed || !mounted) return;
+
+    // Enter voice recording mode
+    setState(() => _isRecordingVoice = true);
+  }
+
+  void _sendVoiceNote(String filePath) {
+    context.read<ChatBloc>().add(
+          ChatMediaSendRequested(
+            matchId: widget.args.matchId,
+            fromUserId: widget.args.currentUserId,
+            toUserId: widget.args.otherUserId,
+            filePath: filePath,
+            type: MessageType.voice,
           ),
         );
   }
@@ -1588,24 +1860,115 @@ class _SendStatusBar extends StatelessWidget {
   }
 }
 
-class _TypingIndicator extends StatelessWidget {
+class _TypingIndicator extends StatefulWidget {
   const _TypingIndicator({required this.name});
 
   final String name;
 
   @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with TickerProviderStateMixin {
+  late final List<AnimationController> _controllers;
+  late final List<Animation<double>> _animations;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(3, (index) {
+      return AnimationController(
+        duration: const Duration(milliseconds: 600),
+        vsync: this,
+      );
+    });
+
+    _animations = _controllers.map((controller) {
+      return Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: Curves.easeInOut,
+        ),
+      );
+    }).toList();
+
+    // Start animations with staggered delays
+    for (var i = 0; i < _controllers.length; i++) {
+      Future.delayed(Duration(milliseconds: i * 150), () {
+        if (mounted) {
+          _controllers[i].repeat(reverse: true);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
+          // Animated dots container
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DsGlassColors.surfaceDark.withValues(alpha: 0.6)
+                  : DsGlassColors.surfaceLight.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? DsGlassColors.borderDark
+                    : DsGlassColors.borderLight,
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < 3; i++) ...[
+                  AnimatedBuilder(
+                    animation: _animations[i],
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, -4 * _animations[i].value),
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: DsColors.primary.withValues(
+                              alpha: 0.5 + (_animations[i].value * 0.5),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (i < 2) const SizedBox(width: 4),
+                ],
+              ],
+            ),
           ),
           DsGap.smH,
-          Text('$name is typing...'),
+          Text(
+            '${widget.name} is typing',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );
@@ -1613,25 +1976,234 @@ class _TypingIndicator extends StatelessWidget {
 }
 
 class _EmptyChatState extends StatelessWidget {
-  const _EmptyChatState({required this.onRefresh});
+  const _EmptyChatState({
+    required this.onRefresh,
+    required this.suggestions,
+    required this.onSuggestionTap,
+    required this.otherName,
+  });
+
   final VoidCallback onRefresh;
+  final List<IceBreakerSuggestion> suggestions;
+  final ValueChanged<String> onSuggestionTap;
+  final String otherName;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(DsSpacing.lg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.chat_bubble_outline, size: 48, color: DsColors.surfaceLight),
+          DsGap.xxl,
+          // Match icon
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  DsColors.primary.withValues(alpha: 0.2),
+                  DsColors.secondary.withValues(alpha: 0.1),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.favorite_rounded,
+              size: 48,
+              color: DsColors.primary,
+            ),
+          ),
+          DsGap.lg,
+          Text(
+            'You matched with $otherName!',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
           DsGap.sm,
-          const Text('No messages yet. Say hello!'),
-          DsGap.md,
-          OutlinedButton.icon(
+          Text(
+            'Break the ice with a great opener',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          DsGap.xl,
+          // Ice breaker suggestions
+          if (suggestions.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(Icons.lightbulb_outline, size: 18, color: DsColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Suggested openers',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
+                ),
+              ],
+            ),
+            DsGap.md,
+            ...suggestions.map((suggestion) => Padding(
+              padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+              child: _IceBreakerTile(
+                suggestion: suggestion,
+                onTap: () => onSuggestionTap(suggestion.text),
+              ),
+            )),
+          ],
+          DsGap.lg,
+          // Refresh button
+          TextButton.icon(
             onPressed: onRefresh,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Show different suggestions'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A single ice breaker suggestion tile.
+class _IceBreakerTile extends StatelessWidget {
+  const _IceBreakerTile({
+    required this.suggestion,
+    required this.onTap,
+  });
+
+  final IceBreakerSuggestion suggestion;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(DsSpacing.md),
+          decoration: BoxDecoration(
+            color: isDark
+                ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                : DsColors.surfaceLight.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(
+                suggestion.icon,
+                style: const TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: DsSpacing.sm),
+              Expanded(
+                child: Text(
+                  suggestion.text,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.send_rounded,
+                size: 18,
+                color: DsColors.primary.withValues(alpha: 0.6),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Animated reaction button with scale effect on tap
+class _ReactionButton extends StatefulWidget {
+  const _ReactionButton({
+    required this.emoji,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  State<_ReactionButton> createState() => _ReactionButtonState();
+}
+
+class _ReactionButtonState extends State<_ReactionButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _controller.forward().then((_) {
+      _controller.reverse();
+    });
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: widget.isSelected
+                  ? BoxDecoration(
+                      color: DsColors.primary.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    )
+                  : null,
+              child: Text(
+                widget.emoji,
+                style: TextStyle(
+                  fontSize: widget.isSelected ? 28 : 24,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

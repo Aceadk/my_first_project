@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
 import '../discovery_repository.dart';
 
 /// Mock implementation of DiscoveryRepository with sample profiles.
@@ -15,7 +16,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
 
   final _random = Random();
 
-  // Sample mock profiles for discovery
+  // Sample mock profiles for discovery with location data for distance calculations
   final List<Profile> _mockProfiles = [
     const Profile(
       id: 'mock_1',
@@ -26,8 +27,16 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       photoUrls: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'],
       videoUrls: [],
       interests: ['Travel', 'Photography', 'Coffee', 'Hiking', 'Dogs'],
+      profilePrompts: [
+        ProfilePrompt(questionId: 'perfect_date', answer: 'A spontaneous road trip to a coastal town, followed by sunset drinks on the beach'),
+        ProfilePrompt(questionId: 'never_shut_up', answer: 'My travel adventures - I have way too many photos from my backpacking trips!'),
+      ],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.7849,  // San Francisco downtown
+      longitude: -122.4094,
+      distance: 5,        // 5 km away
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 165,
       relationshipGoals: 'Long-term relationship',
@@ -47,8 +56,17 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       photoUrls: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'],
       videoUrls: [],
       interests: ['Music', 'Coding', 'Tacos', 'Gaming', 'Fitness'],
+      profilePrompts: [
+        ProfilePrompt(questionId: 'go_to_karaoke', answer: 'Bohemian Rhapsody - yes, I do all the parts'),
+        ProfilePrompt(questionId: 'hot_take', answer: 'Pineapple belongs on pizza and I will die on this hill'),
+        ProfilePrompt(questionId: 'typical_sunday', answer: 'Coffee, coding side projects, and catching up on Formula 1'),
+      ],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.7599,  // Mission District
+      longitude: -122.4148,
+      distance: 8,
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 183,
       relationshipGoals: 'Long-term relationship',
@@ -70,6 +88,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Medicine', 'Cooking', 'Netflix', 'Yoga', 'Books'],
       country: 'United States',
       city: 'Los Angeles',
+      latitude: 34.0522,  // Los Angeles
+      longitude: -118.2437,
+      distance: 560,      // Far away (LA to SF)
+      distanceUnit: 'km',
       isVerified: false,
       heightCm: 160,
       relationshipGoals: 'Something casual',
@@ -91,6 +113,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Architecture', 'Hiking', 'Craft Beer', 'Photography', 'Design'],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.7955,  // Marina District
+      longitude: -122.4362,
+      distance: 12,
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 180,
       relationshipGoals: 'Long-term relationship',
@@ -112,6 +138,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Marketing', 'Yoga', 'Plants', 'Sustainability', 'Wine'],
       country: 'United States',
       city: 'New York',
+      latitude: 40.7128,  // New York
+      longitude: -74.0060,
+      distance: 4100,     // Cross-country
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 168,
       relationshipGoals: 'Long-term relationship',
@@ -133,6 +163,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Cooking', 'Food', 'Travel', 'Wine', 'Restaurants'],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.8044,  // North Beach
+      longitude: -122.4079,
+      distance: 3,
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 178,
       relationshipGoals: 'Long-term relationship',
@@ -154,6 +188,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Art', 'Painting', 'Museums', 'Cats', 'Music'],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.7694,  // Castro
+      longitude: -122.4362,
+      distance: 6,
+      distanceUnit: 'km',
       isVerified: false,
       heightCm: 163,
       relationshipGoals: 'Still figuring it out',
@@ -174,6 +212,10 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       interests: ['Startups', 'Fitness', 'Dogs', 'Investing', 'Podcasts'],
       country: 'United States',
       city: 'San Francisco',
+      latitude: 37.7864,  // SOMA
+      longitude: -122.3892,
+      distance: 2,
+      distanceUnit: 'km',
       isVerified: true,
       heightCm: 185,
       relationshipGoals: 'Long-term relationship',
@@ -187,20 +229,72 @@ class StubDiscoveryRepository implements DiscoveryRepository {
   ];
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Get already swiped profiles
     final swiped = await _getSwipedProfiles(userId);
 
-    // Filter out swiped profiles and shuffle
-    final available = _mockProfiles
-        .where((p) => !swiped.contains(p.id))
-        .toList()
-      ..shuffle(_random);
+    // Filter out swiped profiles
+    var available = _mockProfiles.where((p) => !swiped.contains(p.id)).toList();
 
+    // Apply distance filtering if not in passport mode and distance limit is set
+    if (!filter.passportModeEnabled && filter.maxDistanceKm != null) {
+      final userLat = filter.effectiveLatitude;
+      final userLng = filter.effectiveLongitude;
+
+      if (userLat != null && userLng != null) {
+        available = available.where((profile) {
+          final profileLat = profile.latitude;
+          final profileLng = profile.longitude;
+
+          if (profileLat == null || profileLng == null) {
+            // Include profiles without location data
+            return true;
+          }
+
+          final distance = _calculateDistance(
+            userLat,
+            userLng,
+            profileLat,
+            profileLng,
+          );
+
+          return distance <= filter.maxDistanceKm!;
+        }).toList();
+      }
+    }
+
+    // Shuffle and return
+    available.shuffle(_random);
     return available;
   }
+
+  /// Calculate distance between two coordinates using Haversine formula.
+  double _calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const earthRadiusKm = 6371.0;
+    final dLat = _toRadians(lat2 - lat1);
+    final dLon = _toRadians(lon2 - lon1);
+
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  double _toRadians(double degrees) => degrees * pi / 180;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -208,7 +302,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     required String targetUserId,
     String? attachedMessage,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     // Record the swipe
     await _recordSwipe(userId, targetUserId, true);
@@ -264,13 +358,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     required String userId,
     required String targetUserId,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 50));
     await _recordSwipe(userId, targetUserId, false);
   }
 
   @override
   Future<List<Profile>> fetchTopPicks(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Return top 3 verified profiles as "top picks"
     return _mockProfiles
@@ -281,7 +375,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<Profile>> fetchLikesYou(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Return profiles that have liked the current user but haven't been matched yet
     final likesYou = <Profile>[];
@@ -314,7 +408,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<CrushMatch>> fetchMatches(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
     return _getMatches(userId);
   }
 
@@ -405,4 +499,110 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     );
   }
 
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+    try {
+      return _mockProfiles.firstWhere((p) => p.id == profileId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Record as a like and swipe
+    await _recordSwipe(userId, targetUserId, true);
+    await _recordLike(userId, targetUserId);
+
+    // Check if target has already liked the user (mutual match)
+    final targetLikedUser = await _hasLiked(targetUserId, userId);
+
+    if (targetLikedUser) {
+      // It's a match!
+      final matchedProfile = _mockProfiles.firstWhere(
+        (p) => p.id == targetUserId,
+        orElse: () => _mockProfiles.first,
+      );
+
+      final match = CrushMatch(
+        id: 'match_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        otherUserId: targetUserId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+        otherUserName: matchedProfile.name,
+        otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
+            ? matchedProfile.photoUrls.first
+            : null,
+      );
+
+      await _saveMatch(userId, match);
+      await _saveMatch(targetUserId, CrushMatch(
+        id: match.id,
+        userId: targetUserId,
+        otherUserId: userId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+      ));
+
+      return match;
+    }
+
+    // Super like increases match probability - simulate 50% match rate for demo
+    if (_random.nextDouble() < 0.5) {
+      final matchedProfile = _mockProfiles.firstWhere(
+        (p) => p.id == targetUserId,
+        orElse: () => _mockProfiles.first,
+      );
+
+      final match = CrushMatch(
+        id: 'match_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        otherUserId: targetUserId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+        otherUserName: matchedProfile.name,
+        otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
+            ? matchedProfile.photoUrls.first
+            : null,
+      );
+
+      await _saveMatch(userId, match);
+      return match;
+    }
+
+    return null;
+  }
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    final prefs = await SharedPreferences.getInstance();
+    final swipedJson = prefs.getString('${_swipedKey}_$userId');
+    if (swipedJson == null) return null;
+
+    final swiped = List<String>.from(jsonDecode(swipedJson));
+    if (swiped.isEmpty) return null;
+
+    // Remove the last swiped profile
+    final lastSwipedId = swiped.removeLast();
+    await prefs.setString('${_swipedKey}_$userId', jsonEncode(swiped));
+
+    // Find and return the profile
+    try {
+      return _mockProfiles.firstWhere((p) => p.id == lastSwipedId);
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -56,7 +56,7 @@ class StubAuthRepository implements AuthRepository {
   @override
   Future<void> sendOtp(String phoneNumber) async {
     // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Store pending OTP
     _pendingOtps[phoneNumber] = _PendingOtp(
@@ -75,7 +75,7 @@ class StubAuthRepository implements AuthRepository {
     required String phoneNumber,
     required String otp,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final pending = _pendingOtps[phoneNumber];
     if (pending == null) {
@@ -111,7 +111,7 @@ class StubAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendEmailSignInLink(String email) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Store pending email verification
     _pendingOtps[email] = _PendingOtp(
@@ -129,7 +129,7 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String emailLink,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     // For mock, accept any link with the email
     var user = await _getUserByEmail(email);
@@ -151,7 +151,7 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final user = await _getUserByEmail(email);
     if (user == null) {
@@ -173,7 +173,7 @@ class StubAuthRepository implements AuthRepository {
     required String identifier,
     required String password,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     // Try to find user by email, username, or phone
     CrushUser? user = await _getUserByEmail(identifier);
@@ -200,7 +200,7 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Check if email already exists
     final existingEmail = await _getUserByEmail(email);
@@ -238,7 +238,7 @@ class StubAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? email,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     final key = '${identifier}_${purpose.value}';
     _pendingOtps[key] = _PendingOtp(
@@ -260,7 +260,7 @@ class StubAuthRepository implements AuthRepository {
     String? newEmail,
     String? newPassword,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final key = '${identifier}_${purpose.value}';
     final pending = _pendingOtps[key];
@@ -322,7 +322,7 @@ class StubAuthRepository implements AuthRepository {
 
   @override
   Future<void> requestPasswordReset({required String email}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     final user = await _getUserByEmail(email);
     if (user == null) {
@@ -343,7 +343,7 @@ class StubAuthRepository implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final pending = _pendingOtps['reset_$email'];
     if (pending == null) {
@@ -369,7 +369,7 @@ class StubAuthRepository implements AuthRepository {
     required String resetToken,
     required String newPassword,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final storedToken = await _secureStorage.read(key: 'reset_token_$email');
     if (storedToken != resetToken) {
@@ -398,6 +398,27 @@ class StubAuthRepository implements AuthRepository {
     _currentUser = null;
     await _secureStorage.delete(key: _currentUserKey);
     _authStateController.add(null);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> sendEmailVerification() async {
+    // Stub: simulate sending email verification
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async {
+    // Stub: always return verified user for testing
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(isEmailVerified: true);
+      _authStateController.add(_currentUser);
+      return _currentUser;
+    }
+    return null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -714,6 +735,83 @@ class StubAuthRepository implements AuthRepository {
       'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
       'profile': profileJson,
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCOUNT MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> schedulePhoneDeletion() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (_currentUser != null && _currentUser!.phoneNumber.isNotEmpty) {
+      // In stub, we just clear the phone immediately for testing
+      _currentUser = _currentUser!.copyWith(phoneNumber: '');
+      await _updateUser(_currentUser!);
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (_currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    // Verify current password
+    final storedPassword = await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    if (storedPassword != currentPassword) {
+      throw Exception('Current password is incorrect');
+    }
+
+    // Update password
+    await _secureStorage.write(key: 'pwd_${_currentUser!.id}', value: newPassword);
+  }
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (_currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    // In stub, just sign out (real app would hide profile but preserve data)
+    await signOut();
+  }
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (_currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    // Verify password
+    final storedPassword = await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    if (storedPassword != null && storedPassword != password) {
+      throw Exception('Password is incorrect');
+    }
+
+    // Remove user data
+    final userId = _currentUser!.id;
+    final users = await _getAllUsers();
+    users.remove(userId);
+    await _saveAllUsers(users);
+
+    // Clean up password
+    await _secureStorage.delete(key: 'pwd_$userId');
+
+    await signOut();
   }
 
   void dispose() {

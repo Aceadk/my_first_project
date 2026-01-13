@@ -12,6 +12,24 @@ class DiscoveryPreferences extends Equatable {
   final String country;
   final String city;
 
+  /// Passport mode allows Plus subscribers to see people from anywhere
+  /// regardless of distance. When enabled, distance filters are ignored.
+  final bool passportModeEnabled;
+
+  /// Location override for Passport mode (e.g., "Paris, France").
+  /// When set, user appears in that location for discovery.
+  final String? passportLocation;
+
+  /// Latitude for passport location.
+  final double? passportLatitude;
+
+  /// Longitude for passport location.
+  final double? passportLongitude;
+
+  /// Whether the local deck (within 220km) has been exhausted.
+  /// When true, users can see people beyond 220km even without Plus.
+  final bool localDeckExhausted;
+
   const DiscoveryPreferences({
     required this.minAge,
     required this.maxAge,
@@ -23,6 +41,11 @@ class DiscoveryPreferences extends Equatable {
     required this.incognitoMode,
     required this.country,
     required this.city,
+    this.passportModeEnabled = false,
+    this.passportLocation,
+    this.passportLatitude,
+    this.passportLongitude,
+    this.localDeckExhausted = false,
   });
 
   DiscoveryPreferences copyWith({
@@ -36,6 +59,11 @@ class DiscoveryPreferences extends Equatable {
     bool? incognitoMode,
     String? country,
     String? city,
+    bool? passportModeEnabled,
+    String? passportLocation,
+    double? passportLatitude,
+    double? passportLongitude,
+    bool? localDeckExhausted,
   }) {
     return DiscoveryPreferences(
       minAge: minAge ?? this.minAge,
@@ -48,6 +76,11 @@ class DiscoveryPreferences extends Equatable {
       incognitoMode: incognitoMode ?? this.incognitoMode,
       country: country ?? this.country,
       city: city ?? this.city,
+      passportModeEnabled: passportModeEnabled ?? this.passportModeEnabled,
+      passportLocation: passportLocation ?? this.passportLocation,
+      passportLatitude: passportLatitude ?? this.passportLatitude,
+      passportLongitude: passportLongitude ?? this.passportLongitude,
+      localDeckExhausted: localDeckExhausted ?? this.localDeckExhausted,
     );
   }
 
@@ -63,5 +96,10 @@ class DiscoveryPreferences extends Equatable {
         incognitoMode,
         country,
         city,
+        passportModeEnabled,
+        passportLocation,
+        passportLatitude,
+        passportLongitude,
+        localDeckExhausted,
       ];
 }

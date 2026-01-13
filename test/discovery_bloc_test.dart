@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/profile.dart';
@@ -7,8 +8,10 @@ import 'package:crushhour/features/subscription/data/repositories/subscription_r
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
+import 'mock/firebase_mock.dart';
 
 void main() {
+  setupFirebaseAnalyticsMocks();
   group('DiscoveryBloc', () {
     test('emits empty status when deck is empty', () async {
       final bloc = DiscoveryBloc(
@@ -43,7 +46,10 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   final List<Profile> deck;
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async => deck;
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async => deck;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -68,6 +74,24 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<List<CrushMatch>> fetchMatches(String userId) async => const [];
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    try {
+      return deck.firstWhere((p) => p.id == profileId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async => null;
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async => null;
 }
 
 class _StubSubscriptionRepository implements SubscriptionRepository {

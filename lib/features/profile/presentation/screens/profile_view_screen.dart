@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -12,6 +13,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -24,6 +26,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   @override
   void initState() {
     super.initState();
+    AppLogger.logInfo('[ProfileViewScreen] initState - requesting profile load');
     context.read<ProfileBloc>().add(ProfileLoadRequested());
   }
 
@@ -31,28 +34,72 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
+        AppLogger.logInfo('[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
+
         if (state.isLoading && state.profile == null) {
+          AppLogger.logInfo('[ProfileViewScreen] Showing loading indicator');
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         final profile = state.profile;
-        if (profile == null) {
+
+        // Handle empty state - user exists but hasn't created profile yet
+        if (state.status == ProfileStatus.empty || profile == null) {
+          final isEmpty = state.status == ProfileStatus.empty;
+          AppLogger.logInfo('[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile');
           return Scaffold(
             body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.person_off, size: 64, color: DsColors.textMutedLight),
-                  DsGap.lg,
-                  const Text('Profile not found'),
-                  DsGap.lg,
-                  FilledButton(
-                    onPressed: () => context.read<ProfileBloc>().add(ProfileLoadRequested()),
-                    child: const Text('Retry'),
-                  ),
-                ],
+              child: Padding(
+                padding: DsEdgeInsets.allXxl,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: DsColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isEmpty ? Icons.person_add_outlined : Icons.person_off,
+                        size: 64,
+                        color: DsColors.primary,
+                      ),
+                    ),
+                    DsGap.xl,
+                    Text(
+                      isEmpty ? 'Complete Your Profile' : 'Profile not found',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    DsGap.sm,
+                    Text(
+                      isEmpty
+                          ? 'Add your details to start connecting with others'
+                          : 'There was a problem loading your profile',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: DsColors.textMutedLight),
+                    ),
+                    DsGap.xl,
+                    FilledButton.icon(
+                      onPressed: () => isEmpty
+                          ? context.push(CrushRoutes.profileEdit)
+                          : context.read<ProfileBloc>().add(ProfileLoadRequested()),
+                      icon: Icon(isEmpty ? Icons.edit : Icons.refresh),
+                      label: Text(isEmpty ? 'Create Profile' : 'Retry'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: DsColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -61,6 +108,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         final summary = evaluateProfileCompleteness(profile);
         final percent = (summary.score * 100).round();
         final isComplete = summary.missing.isEmpty;
+        // Check if profile has basic info (age > 0 means they've filled basic info)
+        final hasBasicInfo = profile.age > 0;
 
         return Scaffold(
           body: CustomScrollView(
@@ -96,7 +145,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${profile.name}, ${profile.age}',
+                                  hasBasicInfo ? '${profile.name}, ${profile.age}' : profile.name,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -154,9 +203,13 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       ),
                       DsGap.lg,
 
-                      // Profile completion card (if not complete)
-                      if (!isComplete) ...[
-                        _CompletionCard(percent: percent, missing: summary.missing),
+                      // Profile completion card (always show if incomplete or missing basic info)
+                      if (!isComplete || !hasBasicInfo) ...[
+                        _CompletionCard(
+                          percent: hasBasicInfo ? percent : 0,
+                          missing: hasBasicInfo ? summary.missing : ['age', 'gender', 'bio', 'photos'],
+                          isNewProfile: !hasBasicInfo,
+                        ),
                         DsGap.lg,
                       ],
 
@@ -168,6 +221,18 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           child: Text(
                             profile.bio,
                             style: const TextStyle(fontSize: 15, height: 1.5),
+                          ),
+                        ),
+                        DsGap.lg,
+                      ],
+
+                      // Profile Prompts
+                      if (profile.profilePrompts.isNotEmpty) ...[
+                        _InfoSection(
+                          title: 'Conversation Starters',
+                          icon: Icons.chat_bubble_outline,
+                          child: PromptCardColumn(
+                            prompts: profile.profilePrompts,
                           ),
                         ),
                         DsGap.lg,
@@ -426,8 +491,13 @@ class _ProfileHeader extends StatelessWidget {
 class _CompletionCard extends StatelessWidget {
   final int percent;
   final List<String> missing;
+  final bool isNewProfile;
 
-  const _CompletionCard({required this.percent, required this.missing});
+  const _CompletionCard({
+    required this.percent,
+    required this.missing,
+    this.isNewProfile = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -454,19 +524,25 @@ class _CompletionCard extends StatelessWidget {
                   color: DsColors.primary.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.trending_up, color: DsColors.primary, size: 20),
+                child: Icon(
+                  isNewProfile ? Icons.person_add : Icons.trending_up,
+                  color: DsColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Complete your profile',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Text(
+                      isNewProfile ? 'Set up your profile' : 'Complete your profile',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
-                      '$percent% complete',
+                      isNewProfile
+                          ? 'Add your details to start connecting'
+                          : '$percent% complete',
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -481,24 +557,28 @@ class _CompletionCard extends StatelessWidget {
                   backgroundColor: DsColors.primary,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
-                child: const Text('Complete'),
+                child: Text(isNewProfile ? 'Get Started' : 'Complete'),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: percent / 100,
-              minHeight: 6,
-              backgroundColor: DsColors.primary.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation(DsColors.primary),
+          if (!isNewProfile) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: percent / 100,
+                minHeight: 6,
+                backgroundColor: DsColors.primary.withValues(alpha: 0.2),
+                valueColor: const AlwaysStoppedAnimation(DsColors.primary),
+              ),
             ),
-          ),
+          ],
           if (missing.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Add: ${missing.take(3).join(', ')}',
+              isNewProfile
+                  ? 'Add your age, photos, and more to get started'
+                  : 'Add: ${missing.take(3).join(', ')}',
               style: TextStyle(
                 fontSize: 13,
                 color: Theme.of(context).textTheme.bodySmall?.color,

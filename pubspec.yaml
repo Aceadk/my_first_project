@@ -49,6 +49,11 @@ dependencies:
   web_socket_channel: ^3.0.1
   # Animations
   confetti: ^0.7.0
+  # Audio
+  record: ^5.2.0
+  just_audio: ^0.9.42
+  audio_waveforms: ^1.2.0
+  path_provider: ^2.1.4
 
 flutter:
   uses-material-design: true

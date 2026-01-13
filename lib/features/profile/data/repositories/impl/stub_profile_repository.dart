@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 
@@ -40,7 +41,7 @@ class StubProfileRepository implements ProfileRepository {
     required String gender,
     String? sexualOrientation,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final currentUser = await getCurrentUser();
     if (currentUser == null) {
@@ -74,6 +75,7 @@ class StubProfileRepository implements ProfileRepository {
       photoUrls: existingProfile?.photoUrls ?? [],
       videoUrls: existingProfile?.videoUrls ?? [],
       interests: existingProfile?.interests ?? [],
+      profilePrompts: existingProfile?.profilePrompts ?? [],
       country: existingProfile?.country ?? '',
       city: existingProfile?.city ?? '',
       isVerified: existingProfile?.isVerified ?? false,
@@ -125,7 +127,7 @@ class StubProfileRepository implements ProfileRepository {
     required List<String> interests,
     List<String>? prompts,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final currentUser = await getCurrentUser();
     if (currentUser == null) {
@@ -169,14 +171,14 @@ class StubProfileRepository implements ProfileRepository {
 
   @override
   Future<void> uploadIdDocument(/* e.g. File or bytes type */) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 100));
     // In mock mode, we just simulate the upload
     // The actual verification happens in markIdVerified
   }
 
   @override
   Future<CrushUser> markIdVerified() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final currentUser = await getCurrentUser();
     if (currentUser == null) {
@@ -200,7 +202,7 @@ class StubProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> updateProfile(Profile profile) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     final currentUser = await getCurrentUser();
     if (currentUser == null) {
@@ -251,6 +253,9 @@ class StubProfileRepository implements ProfileRepository {
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
         primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(p['interests'] ?? []),
+        profilePrompts: (p['profilePrompts'] as List<dynamic>?)
+            ?.map((e) => ProfilePrompt.fromJson(e as Map<String, dynamic>))
+            .toList() ?? [],
         country: p['country'] ?? '',
         city: p['city'] ?? '',
         isVerified: p['isVerified'] ?? false,
@@ -317,6 +322,7 @@ class StubProfileRepository implements ProfileRepository {
         'videoUrls': p.videoUrls,
         'primaryPhotoIndex': p.primaryPhotoIndex,
         'interests': p.interests,
+        'profilePrompts': p.profilePrompts.map((e) => e.toJson()).toList(),
         'country': p.country,
         'city': p.city,
         'isVerified': p.isVerified,

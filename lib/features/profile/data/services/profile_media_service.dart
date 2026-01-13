@@ -8,8 +8,8 @@ class ProfileMediaService {
     required String userId,
     required String filePath,
   }) async {
-    // Simulate upload delay
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Minimal delay for responsiveness (production would have real upload time)
+    await Future.delayed(const Duration(milliseconds: 50));
 
     // For demo: return local path as-is (works for displaying local images)
     return filePath;
@@ -21,8 +21,8 @@ class ProfileMediaService {
     required String userId,
     required String filePath,
   }) async {
-    // Simulate upload delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Minimal delay for responsiveness (production would have real upload time)
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // For demo: return local path as-is (works for displaying local videos)
     return filePath;

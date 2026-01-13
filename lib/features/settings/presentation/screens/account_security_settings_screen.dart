@@ -19,6 +19,13 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
     );
     final hasEmail = currentEmail != null && currentEmail.isNotEmpty;
 
+    final currentPhone =
+        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.phoneNumber);
+    final phoneVerified = context.select<AuthBloc, bool>(
+      (bloc) => bloc.state.user?.isPhoneVerified ?? false,
+    );
+    final hasPhone = currentPhone != null && currentPhone.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account Security'),
@@ -144,33 +151,94 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
               ),
             ),
           ),
+          DsGap.md,
+          // Phone status card
+          Padding(
+            padding: DsEdgeInsets.horizontalLg,
+            child: Container(
+              padding: DsEdgeInsets.allMd,
+              decoration: BoxDecoration(
+                color: hasPhone
+                    ? (phoneVerified
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1))
+                    : Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: hasPhone
+                      ? (phoneVerified
+                          ? Colors.green.withValues(alpha: 0.3)
+                          : Colors.orange.withValues(alpha: 0.3))
+                      : Colors.red.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    hasPhone
+                        ? (phoneVerified
+                            ? Icons.check_circle_outline
+                            : Icons.warning_amber_outlined)
+                        : Icons.error_outline,
+                    color: hasPhone
+                        ? (phoneVerified ? Colors.green : Colors.orange)
+                        : Colors.red,
+                  ),
+                  DsGap.mdH,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          hasPhone
+                              ? (phoneVerified
+                                  ? 'Phone verified'
+                                  : 'Phone not verified')
+                              : 'No phone added',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: hasPhone
+                                ? (phoneVerified ? Colors.green : Colors.orange)
+                                : Colors.red,
+                          ),
+                        ),
+                        if (hasPhone) ...[
+                          DsGap.xs,
+                          Text(
+                            _maskPhoneNumber(currentPhone),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           DsGap.lg,
           // Security options
           _SecurityTile(
-            icon: Icons.email_outlined,
-            iconColor: Colors.blue,
-            title: 'Email protection',
+            icon: emailVerified ? Icons.verified_outlined : Icons.email_outlined,
+            iconColor: emailVerified ? Colors.green : Colors.blue,
+            title: emailVerified ? 'Email protection (Locked)' : 'Email protection',
             subtitle: hasEmail
-                ? (emailVerified ? 'Verified and active' : 'Verify your email')
+                ? (emailVerified ? 'Verified and locked' : 'Verify your email')
                 : 'Add an email for recovery and OTP',
+            locked: emailVerified,
             onTap: () => context.push(CrushRoutes.emailProtection),
           ),
-          const Divider(indent: 72),
           _SecurityTile(
-            icon: Icons.swap_horiz,
-            iconColor: Colors.purple,
-            title: 'Change email',
-            subtitle: hasEmail ? 'Use a different email address' : 'Add an email first',
-            enabled: hasEmail,
-            onTap: hasEmail ? () => context.push(CrushRoutes.changeEmail) : null,
-          ),
-          const Divider(indent: 72),
-          _SecurityTile(
-            icon: Icons.devices_outlined,
-            iconColor: Colors.teal,
-            title: 'New device verification',
-            subtitle: 'Verify new devices with email OTP',
-            onTap: () => context.push(CrushRoutes.newDevice),
+            icon: phoneVerified ? Icons.verified_outlined : Icons.phone_outlined,
+            iconColor: phoneVerified ? Colors.green : Colors.blue,
+            title: phoneVerified ? 'Phone protection (Locked)' : 'Phone protection',
+            subtitle: hasPhone
+                ? (phoneVerified ? 'Verified and locked' : 'Verify your phone')
+                : 'Add a phone number for security',
+            locked: phoneVerified,
+            onTap: () => context.push(CrushRoutes.phoneProtection),
           ),
           DsGap.xxl,
           // Security tips
@@ -236,7 +304,7 @@ class _SecurityTile extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.subtitle,
-    this.enabled = true,
+    this.locked = false,
     this.onTap,
   });
 
@@ -244,7 +312,7 @@ class _SecurityTile extends StatelessWidget {
   final Color iconColor;
   final String title;
   final String subtitle;
-  final bool enabled;
+  final bool locked;
   final VoidCallback? onTap;
 
   @override
@@ -258,23 +326,11 @@ class _SecurityTile extends StatelessWidget {
         ),
         child: Icon(icon, color: iconColor, size: 22),
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: enabled ? null : Theme.of(context).disabledColor,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: enabled ? null : Theme.of(context).disabledColor,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: enabled ? null : Theme.of(context).disabledColor,
-      ),
-      enabled: enabled,
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: locked
+          ? const Icon(Icons.lock_outline, color: Colors.green)
+          : const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }
@@ -311,4 +367,12 @@ class _TipItem extends StatelessWidget {
       ],
     );
   }
+}
+
+String _maskPhoneNumber(String phone) {
+  if (phone.length <= 4) return phone;
+  final visibleStart = phone.substring(0, phone.length > 6 ? 4 : 2);
+  final visibleEnd = phone.substring(phone.length - 2);
+  final maskedLength = phone.length - visibleStart.length - visibleEnd.length;
+  return '$visibleStart${'*' * maskedLength}$visibleEnd';
 }

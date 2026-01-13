@@ -3,11 +3,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 
-class SafetyScreen extends StatelessWidget {
+class SafetyScreen extends StatefulWidget {
   const SafetyScreen({super.key});
+
+  @override
+  State<SafetyScreen> createState() => _SafetyScreenState();
+}
+
+class _SafetyScreenState extends State<SafetyScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load profile data for blocked/muted users
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SafetyCubit>().loadProfilesForSafetyUsers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +50,10 @@ class SafetyScreen extends StatelessWidget {
               _Section(
                 title: 'Blocked users',
                 emptyText:
-                    'People you block can’t see your profile, message, or call you.',
+                    "People you block can't see your profile, message, or call you.",
                 items: state.blockedUsers.toList(),
+                profileCache: state.profileCache,
+                isLoading: state.isLoadingProfiles,
                 onRemove: (userId) => _unblock(
                   context,
                   cubit,
@@ -50,6 +68,8 @@ class SafetyScreen extends StatelessWidget {
                 emptyText:
                     'Mute message alerts for someone without blocking them.',
                 items: state.mutedMessages.toList(),
+                profileCache: state.profileCache,
+                isLoading: state.isLoadingProfiles,
                 onRemove: (userId) =>
                     cubit.toggleMuteMessages(userId, mute: false),
                 removeLabel: 'Unmute messages',
@@ -59,6 +79,8 @@ class SafetyScreen extends StatelessWidget {
                 title: 'Muted calls',
                 emptyText: 'Silence call alerts from selected people.',
                 items: state.mutedCalls.toList(),
+                profileCache: state.profileCache,
+                isLoading: state.isLoadingProfiles,
                 onRemove: (userId) => cubit.toggleMuteCalls(userId, mute: false),
                 removeLabel: 'Unmute calls',
               ),
@@ -261,15 +283,19 @@ class _Section extends StatelessWidget {
     required this.title,
     required this.emptyText,
     required this.items,
+    required this.profileCache,
     required this.onRemove,
     required this.removeLabel,
+    this.isLoading = false,
   });
 
   final String title;
   final String emptyText;
   final List<String> items;
+  final Map<String, SafetyProfileInfo> profileCache;
   final ValueChanged<String> onRemove;
   final String removeLabel;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -279,12 +305,24 @@ class _Section extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (isLoading) ...[
+                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 8),
             if (items.isEmpty)
@@ -293,18 +331,55 @@ class _Section extends StatelessWidget {
                 style: const TextStyle(color: Colors.grey),
               )
             else
-              ...items.map(
-                (id) => ListTile(
+              ...items.map((id) {
+                final profile = profileCache[id];
+                return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(id),
+                  leading: _buildAvatar(profile),
+                  title: Text(
+                    profile?.name ?? 'User',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    id,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   trailing: TextButton(
                     onPressed: () => onRemove(id),
                     child: Text(removeLabel),
                   ),
-                ),
-              ),
+                );
+              }),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(SafetyProfileInfo? profile) {
+    if (profile?.photoUrl != null) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: DsColors.surfaceLight,
+        child: ClipOval(
+          child: CachedImage(
+            imageUrl: profile!.photoUrl!,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: DsColors.surfaceLight,
+      child: Icon(
+        Icons.person,
+        color: Colors.grey.shade600,
       ),
     );
   }

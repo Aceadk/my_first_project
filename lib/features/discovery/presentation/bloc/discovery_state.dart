@@ -23,8 +23,35 @@ class DiscoveryState extends Equatable {
   final DeckStatus status;
   final String? errorMessage;
   final int? nextRetrySeconds;
+
   /// Set when a match occurs, should be cleared after showing celebration.
   final MatchResult? newMatch;
+
+  /// Whether local deck (within 220km) has been exhausted.
+  /// When true, users can see people beyond 220km.
+  final bool localDeckExhausted;
+
+  /// Whether Passport mode is active (Plus feature).
+  /// When true, shows global profiles regardless of distance.
+  final bool passportModeActive;
+
+  /// Current effective distance limit in km.
+  final double currentDistanceLimitKm;
+
+  /// Super Likes remaining today (1 free, 7 premium).
+  final int superLikesRemaining;
+
+  /// Date when super likes count was last reset.
+  final DateTime? superLikesResetDate;
+
+  /// Last swiped profile for rewind feature (premium only).
+  final Profile? lastSwipedProfile;
+
+  /// Direction of last swipe ('left' or 'right') for rewind.
+  final String? lastSwipeDirection;
+
+  /// Whether rewind is available (premium only, within time limit).
+  final bool canRewind;
 
   const DiscoveryState({
     this.deck = const [],
@@ -36,6 +63,14 @@ class DiscoveryState extends Equatable {
     this.errorMessage,
     this.nextRetrySeconds,
     this.newMatch,
+    this.localDeckExhausted = false,
+    this.passportModeActive = false,
+    this.currentDistanceLimitKm = 220.0,
+    this.superLikesRemaining = 1,
+    this.superLikesResetDate,
+    this.lastSwipedProfile,
+    this.lastSwipeDirection,
+    this.canRewind = false,
   });
 
   /// Number of profiles remaining in the deck
@@ -56,6 +91,14 @@ class DiscoveryState extends Equatable {
     String? errorMessage, // pass null explicitly to clear
     int? nextRetrySeconds,
     Object? newMatch = _unset,
+    bool? localDeckExhausted,
+    bool? passportModeActive,
+    double? currentDistanceLimitKm,
+    int? superLikesRemaining,
+    Object? superLikesResetDate = _unset,
+    Object? lastSwipedProfile = _unset,
+    Object? lastSwipeDirection = _unset,
+    bool? canRewind,
   }) {
     return DiscoveryState(
       deck: deck ?? this.deck,
@@ -67,10 +110,41 @@ class DiscoveryState extends Equatable {
       errorMessage: errorMessage,
       nextRetrySeconds: nextRetrySeconds,
       newMatch: identical(newMatch, _unset) ? this.newMatch : newMatch as MatchResult?,
+      localDeckExhausted: localDeckExhausted ?? this.localDeckExhausted,
+      passportModeActive: passportModeActive ?? this.passportModeActive,
+      currentDistanceLimitKm: currentDistanceLimitKm ?? this.currentDistanceLimitKm,
+      superLikesRemaining: superLikesRemaining ?? this.superLikesRemaining,
+      superLikesResetDate: identical(superLikesResetDate, _unset)
+          ? this.superLikesResetDate
+          : superLikesResetDate as DateTime?,
+      lastSwipedProfile: identical(lastSwipedProfile, _unset)
+          ? this.lastSwipedProfile
+          : lastSwipedProfile as Profile?,
+      lastSwipeDirection: identical(lastSwipeDirection, _unset)
+          ? this.lastSwipeDirection
+          : lastSwipeDirection as String?,
+      canRewind: canRewind ?? this.canRewind,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [deck, currentIndex, isLoading, isLoadingMore, hasMoreProfiles, status, errorMessage, nextRetrySeconds, newMatch];
+  List<Object?> get props => [
+        deck,
+        currentIndex,
+        isLoading,
+        isLoadingMore,
+        hasMoreProfiles,
+        status,
+        errorMessage,
+        nextRetrySeconds,
+        newMatch,
+        localDeckExhausted,
+        passportModeActive,
+        currentDistanceLimitKm,
+        superLikesRemaining,
+        superLikesResetDate,
+        lastSwipedProfile,
+        lastSwipeDirection,
+        canRewind,
+      ];
 }

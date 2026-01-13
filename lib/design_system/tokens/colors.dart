@@ -45,6 +45,7 @@ class DsColors {
   static const Color actionLike = primary;
   static const Color actionSuperLike = Color(0xFF2196F3);
   static const Color actionMessage = secondary;
+  static const Color actionRewind = Color(0xFFFFB300); // Amber/gold for rewind
 
   // Safety/verification colors
   static const Color verified = success;
@@ -63,4 +64,43 @@ class DsColors {
   // Divider colors
   static const Color dividerLight = Color(0xFFE0E0E0);
   static const Color dividerDark = Color(0xFF2A2A2E);
+}
+
+/// Glassmorphism color tokens for frosted glass effects
+class DsGlassColors {
+  DsGlassColors._();
+
+  // Glass surfaces (light theme)
+  static const Color surfaceLight = Color(0x40FFFFFF); // 25% white
+  static const Color surfaceMediumLight = Color(0x66FFFFFF); // 40% white
+  static const Color surfaceHeavyLight = Color(0x99FFFFFF); // 60% white
+
+  // Glass surfaces (dark theme)
+  static const Color surfaceDark = Color(0x30FFFFFF); // 19% white
+  static const Color surfaceMediumDark = Color(0x4D1C1C20); // 30% dark
+  static const Color surfaceHeavyDark = Color(0x80121214); // 50% dark
+
+  // Glass borders
+  static const Color borderLight = Color(0x40FFFFFF); // 25% white border
+  static const Color borderDark = Color(0x30FFFFFF); // 19% white border
+
+  // Gradient overlays for glass
+  static const Color gradientPinkOverlay = Color(0x30FF4081); // 19% pink
+  static const Color gradientPurpleOverlay = Color(0x307C4DFF); // 19% purple
+
+  // Shimmer highlights for glass edges
+  static const Color highlight = Color(0x40FFFFFF);
+  static const Color highlightStrong = Color(0x66FFFFFF);
+
+  // Frosted backdrop
+  static const Color frostLight = Color(0xB3FFFFFF); // 70% white
+  static const Color frostDark = Color(0x99000000); // 60% black
+
+  /// Get glass surface color based on theme brightness
+  static Color surface(Brightness brightness) =>
+      brightness == Brightness.dark ? surfaceDark : surfaceLight;
+
+  /// Get glass border color based on theme brightness
+  static Color border(Brightness brightness) =>
+      brightness == Brightness.dark ? borderDark : borderLight;
 }

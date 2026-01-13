@@ -12,9 +12,17 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   @override
-  Future<List<Profile>> fetchDeck(String userId) async {
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async {
     final callable = _functions.httpsCallable('fetchDiscoveryCandidates');
-    final result = await callable.call<Map<String, dynamic>>({});
+    final result = await callable.call<Map<String, dynamic>>({
+      if (filter.maxDistanceKm != null) 'maxDistanceKm': filter.maxDistanceKm,
+      'passportModeEnabled': filter.passportModeEnabled,
+      if (filter.effectiveLatitude != null) 'latitude': filter.effectiveLatitude,
+      if (filter.effectiveLongitude != null) 'longitude': filter.effectiveLongitude,
+    });
 
     final candidates = result.data['candidates'] as List<dynamic>? ?? [];
     return candidates
@@ -145,6 +153,44 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    // Call cloud function for super like
+    final result = await _functions.httpsCallable('superLike').call({
+      'targetUserId': targetUserId,
+    });
+
+    final data = result.data as Map<String, dynamic>?;
+    if (data != null && data['isMatch'] == true) {
+      return CrushMatch(
+        id: data['matchId'] ?? 'match_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        otherUserId: targetUserId,
+        status: MatchStatus.mutual,
+        preMatchMessageRequestsCount: 0,
+        pinnedForUser: false,
+      );
+    }
+
+    return null;
+  }
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async {
+    // Call cloud function for rewind
+    final result = await _functions.httpsCallable('rewindSwipe').call({});
+
+    final data = result.data as Map<String, dynamic>?;
+    if (data != null && data['profile'] != null) {
+      return _profileFromFirestore(data['profile'] as Map<String, dynamic>);
+    }
+
+    return null;
+  }
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -212,5 +258,19 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       country: data['country'] ?? '',
       city: data['city'] ?? '',
     );
+  }
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    final userDoc = await _firestore.collection('users').doc(profileId).get();
+    if (!userDoc.exists) return null;
+
+    final profileData = userDoc.data()?['profile'] as Map<String, dynamic>?;
+    if (profileData == null) return null;
+
+    return _profileFromFirestore({
+      'id': profileId,
+      ...profileData,
+    });
   }
 }

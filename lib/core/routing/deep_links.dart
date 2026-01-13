@@ -100,6 +100,18 @@ class DeepLinkConfig {
         }
         return null;
 
+      case 'verify-email':
+        // Email verification magic link for sign up
+        final email = uri.queryParameters['email'];
+        final token = uri.queryParameters['token'];
+        return DeepLinkResult(
+          route: '/auth/verify-email',
+          queryParams: {
+            if (email != null) 'email': email,
+            if (token != null) 'token': token,
+          },
+        );
+
       case 'reset-password':
         final token = uri.queryParameters['token'];
         if (token != null) {

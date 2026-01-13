@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crushhour/data/models/user.dart';
@@ -7,10 +8,12 @@ import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
 import 'package:crushhour/core/services/email_service.dart';
 import 'package:crushhour/core/security/secure_logger.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository implements AuthRepository {
   final fb.FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _authStateController = StreamController<CrushUser?>.broadcast();
   final _secureStorage = const FlutterSecureStorage();
 
@@ -69,6 +72,57 @@ class FirebaseAuthRepository implements AuthRepository {
       plan: SubscriptionPlan.free,
       profile: null,
     );
+  }
+
+  /// Ensures a Firestore user document exists for the authenticated user.
+  /// Creates the document with minimal data if it doesn't exist.
+  Future<void> _ensureUserDocumentExists(fb.User firebaseUser) async {
+    final userId = firebaseUser.uid;
+    AppLogger.logInfo('[FirebaseAuthRepo] Ensuring user document exists for: $userId');
+
+    try {
+      final docRef = _firestore.collection('users').doc(userId);
+      final doc = await docRef.get();
+
+      if (!doc.exists) {
+        AppLogger.logInfo('[FirebaseAuthRepo] Creating new user document');
+        final displayName = firebaseUser.displayName ??
+            firebaseUser.email?.split('@').first ??
+            'User';
+
+        await docRef.set({
+          'phoneNumber': firebaseUser.phoneNumber ?? '',
+          'email': firebaseUser.email,
+          'username': firebaseUser.displayName,
+          'isEmailVerified': firebaseUser.emailVerified,
+          'isPhoneVerified': firebaseUser.phoneNumber != null,
+          'isIdVerified': false,
+          'plan': 'free',
+          'profile': {
+            'name': displayName,
+            'age': 0,
+            'gender': '',
+            'bio': '',
+            'photoUrls': <String>[],
+            'videoUrls': <String>[],
+            'primaryPhotoIndex': 0,
+            'interests': <String>[],
+            'country': '',
+            'city': '',
+            'isVerified': false,
+            'languages': <String>[],
+          },
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        AppLogger.logInfo('[FirebaseAuthRepo] User document created successfully');
+      } else {
+        AppLogger.logInfo('[FirebaseAuthRepo] User document already exists');
+      }
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error ensuring user document', e);
+      // Don't throw - auth succeeded, document creation is secondary
+    }
   }
 
   @override
@@ -139,6 +193,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('Sign-in failed');
     }
 
+    await _ensureUserDocumentExists(firebaseUser);
     return _mapFirebaseUser(firebaseUser);
   }
 
@@ -236,6 +291,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('Verification failed');
     }
 
+    await _ensureUserDocumentExists(firebaseUser);
     return _mapFirebaseUser(firebaseUser);
   }
 
@@ -258,6 +314,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('Sign-in failed');
     }
 
+    await _ensureUserDocumentExists(firebaseUser);
     return _mapFirebaseUser(firebaseUser);
   }
 
@@ -293,6 +350,8 @@ class FirebaseAuthRepository implements AuthRepository {
     // Send email verification
     await firebaseUser.sendEmailVerification();
 
+    // Create Firestore document for the new user
+    await _ensureUserDocumentExists(firebaseUser);
     return _mapFirebaseUser(firebaseUser);
   }
 
@@ -427,6 +486,7 @@ class FirebaseAuthRepository implements AuthRepository {
         if (firebaseUser != null) {
           // Update display name with identifier
           await firebaseUser.updateDisplayName(identifier);
+          await _ensureUserDocumentExists(firebaseUser);
           return _mapFirebaseUser(firebaseUser);
         }
         break;
@@ -512,6 +572,335 @@ class FirebaseAuthRepository implements AuthRepository {
     await _secureStorage.delete(key: _pendingEmailKey);
     _currentUser = null;
     _authStateController.add(null);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> sendEmailVerification() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    if (firebaseUser.emailVerified) {
+      AppLogger.logInfo('[FirebaseAuthRepo] Email already verified');
+      return;
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Sending email verification');
+    await firebaseUser.sendEmailVerification();
+    AppLogger.logInfo('[FirebaseAuthRepo] Email verification sent');
+  }
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      return null;
+    }
+
+    // Reload user to get latest email verification status
+    await firebaseUser.reload();
+    final updatedUser = _firebaseAuth.currentUser;
+
+    if (updatedUser == null) {
+      return null;
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Email verified: ${updatedUser.emailVerified}');
+
+    if (updatedUser.emailVerified) {
+      // Update Firestore document with verified status
+      try {
+        await _firestore.collection('users').doc(updatedUser.uid).update({
+          'isEmailVerified': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        AppLogger.logInfo('[FirebaseAuthRepo] Updated Firestore isEmailVerified to true');
+      } catch (e) {
+        AppLogger.logError('[FirebaseAuthRepo] Error updating Firestore verification status', e);
+      }
+
+      // Update the stored user and emit new state
+      _currentUser = _mapFirebaseUser(updatedUser);
+      _authStateController.add(_currentUser);
+      return _currentUser;
+    }
+
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHONE DELETION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> schedulePhoneDeletion() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    // Get current user's phone number from Firestore
+    final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+    final userData = userDoc.data();
+    final phoneNumber = userData?['phoneNumber'] as String?;
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      throw Exception('No phone number to delete');
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}');
+
+    // Calculate deletion time: 2 days 23 hours from now (just under 3 days)
+    final deletionTime = DateTime.now().add(const Duration(hours: 71));
+
+    // Create phone deletion record for background cleanup
+    await _firestore.collection('phone_deletions').add({
+      'userId': firebaseUser.uid,
+      'phoneNumber': phoneNumber,
+      'scheduledDeletionAt': Timestamp.fromDate(deletionTime),
+      'createdAt': FieldValue.serverTimestamp(),
+      'status': 'pending',
+    });
+
+    // Add phone to cooldown list (prevents reuse until deletion completes)
+    await _firestore.collection('phone_cooldowns').doc(phoneNumber).set({
+      'phoneNumber': phoneNumber,
+      'previousUserId': firebaseUser.uid,
+      'availableAt': Timestamp.fromDate(deletionTime),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // Clear phone from user document immediately
+    await _firestore.collection('users').doc(firebaseUser.uid).update({
+      'phoneNumber': FieldValue.delete(),
+      'isPhoneVerified': false,
+      'phoneDeletedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime');
+
+    // Update local state
+    _currentUser = _currentUser?.copyWith(
+      phoneNumber: null,
+      isPhoneVerified: false,
+    );
+    _authStateController.add(_currentUser);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PASSWORD MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final email = firebaseUser.email;
+    if (email == null) {
+      throw Exception('No email associated with account');
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}');
+
+    // Re-authenticate with current password
+    final credential = fb.EmailAuthProvider.credential(
+      email: email,
+      password: currentPassword,
+    );
+
+    try {
+      await firebaseUser.reauthenticateWithCredential(credential);
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Re-authentication failed', e);
+      throw Exception('Current password is incorrect');
+    }
+
+    // Update password
+    await firebaseUser.updatePassword(newPassword);
+
+    // Log password change event
+    await _firestore.collection('account_events').add({
+      'userId': firebaseUser.uid,
+      'eventType': 'password_changed',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // Send notification
+    await _sendAccountNotification(
+      userId: firebaseUser.uid,
+      title: 'Password Changed',
+      message: 'Your password was successfully changed. If you did not make this change, please contact support immediately.',
+    );
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Password changed successfully');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCOUNT DEACTIVATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}');
+
+    // Calculate auto-deletion date: 6 months from now
+    final autoDeletionDate = DateTime.now().add(const Duration(days: 180));
+
+    // Update user document with deactivation status
+    await _firestore.collection('users').doc(firebaseUser.uid).update({
+      'isDeactivated': true,
+      'deactivatedAt': FieldValue.serverTimestamp(),
+      'deactivationReason': reason,
+      'scheduledDeletionAt': Timestamp.fromDate(autoDeletionDate),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    // Create deactivation record for tracking
+    await _firestore.collection('account_deactivations').add({
+      'userId': firebaseUser.uid,
+      'reason': reason,
+      'deactivatedAt': FieldValue.serverTimestamp(),
+      'scheduledDeletionAt': Timestamp.fromDate(autoDeletionDate),
+      'status': 'deactivated',
+    });
+
+    // Send notification
+    await _sendAccountNotification(
+      userId: firebaseUser.uid,
+      title: 'Account Deactivated',
+      message: 'Your account has been deactivated. Sign in anytime to reactivate. '
+          'If you don\'t sign in within 6 months, your account will be permanently deleted.',
+    );
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate');
+
+    // Sign out the user
+    await signOut();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCOUNT DELETION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final email = firebaseUser.email;
+    if (email == null) {
+      throw Exception('No email associated with account');
+    }
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}');
+
+    // Re-authenticate with password
+    final credential = fb.EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
+    try {
+      await firebaseUser.reauthenticateWithCredential(credential);
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Re-authentication failed for deletion', e);
+      throw Exception('Password is incorrect');
+    }
+
+    // Calculate permanent deletion date: 14 days from now
+    final permanentDeletionDate = DateTime.now().add(const Duration(days: 14));
+
+    // Update user document with pending deletion status
+    await _firestore.collection('users').doc(firebaseUser.uid).update({
+      'isPendingDeletion': true,
+      'deletionRequestedAt': FieldValue.serverTimestamp(),
+      'deletionReason': reason,
+      'scheduledPermanentDeletionAt': Timestamp.fromDate(permanentDeletionDate),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    // Create deletion record for tracking
+    await _firestore.collection('account_deletions').add({
+      'userId': firebaseUser.uid,
+      'email': email,
+      'reason': reason,
+      'requestedAt': FieldValue.serverTimestamp(),
+      'scheduledDeletionAt': Timestamp.fromDate(permanentDeletionDate),
+      'status': 'pending',
+    });
+
+    // Send notification
+    await _sendAccountNotification(
+      userId: firebaseUser.uid,
+      title: 'Account Scheduled for Deletion',
+      message: 'Your account is scheduled for permanent deletion on '
+          '${permanentDeletionDate.day}/${permanentDeletionDate.month}/${permanentDeletionDate.year}. '
+          'Sign in within 14 days to cancel the deletion and recover your account.',
+    );
+
+    AppLogger.logInfo('[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate');
+
+    // Sign out the user
+    await signOut();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NOTIFICATIONS HELPER
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _sendAccountNotification({
+    required String userId,
+    required String title,
+    required String message,
+  }) async {
+    try {
+      // Get user's notification preferences
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+      final email = userData?['email'] as String?;
+      final phoneNumber = userData?['phoneNumber'] as String?;
+
+      // Create notification record
+      await _firestore.collection('notifications').add({
+        'userId': userId,
+        'title': title,
+        'message': message,
+        'type': 'account_action',
+        'channels': {
+          'email': email,
+          'phone': phoneNumber,
+        },
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      AppLogger.logInfo('[FirebaseAuthRepo] Account notification queued for user: $userId');
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error sending notification', e);
+      // Don't throw - notification failure shouldn't block the action
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
