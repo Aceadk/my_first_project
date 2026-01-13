@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +13,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_e
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
@@ -127,15 +129,15 @@ class _MatchesView extends StatelessWidget {
             : null;
 
         return AsyncStateScaffold(
-          appBar: AppBar(
-            title: const Text('Matches'),
+          appBar: GlassAppBar(
+            title: 'Matches',
             actions: [
-              IconButton(
-                icon: const Icon(Icons.shield_outlined),
-                tooltip: 'Safety Center',
-                onPressed: () =>
-                    context.push(CrushRoutes.safety),
+              GlassIconButton(
+                icon: Icons.shield_outlined,
+                onPressed: () => context.push(CrushRoutes.safety),
+                size: 40,
               ),
+              DsGap.smH,
             ],
           ),
           isLoading: state.isLoading && state.matches.isEmpty,
@@ -215,47 +217,108 @@ class _MatchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: DsEdgeInsets.listItemPadding,
-          child: Row(
-            children: [
-              // Simple avatar without online indicator - presence not tracked in matches list
-              CachedCircleAvatar(
-                imageUrl: photoUrl,
-                radius: 28,
-              ),
-              DsGap.lgH,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    DsGap.xs,
-                    Text(
-                      'Tap to open chat',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.textMutedLight,
-                          ),
-                    ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.lg),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            child: Container(
+              padding: const EdgeInsets.all(DsSpacing.md),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: 0.5),
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: 0.3),
                   ],
                 ),
+                borderRadius: BorderRadius.circular(DsRadius.lg),
+                border: Border.all(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 1,
+                ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: DsColors.textMutedLight,
+              child: Row(
+                children: [
+                  // Avatar with gradient border
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? DsGlassColors.borderLight
+                            : DsGlassColors.borderDark.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: DsColors.primary.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CachedCircleAvatar(
+                      imageUrl: photoUrl,
+                      radius: 28,
+                    ),
+                  ),
+                  DsGap.lgH,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        DsGap.xs,
+                        Text(
+                          'Tap to open chat',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(DsSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: DsColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(DsRadius.round),
+                    ),
+                    child: const Icon(
+                      Icons.chevron_right,
+                      color: DsColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -289,7 +289,8 @@ class ProfileDto {
       primaryPhotoIndex: profile.primaryPhotoIndex,
       bio: profile.bio,
       interests: profile.interests,
-      prompts: profile.prompts,
+      // ignore: deprecated_member_use_from_same_package
+      prompts: profile.prompts, // Keep for backwards compatibility
       heightCm: profile.heightCm,
       relationshipGoals: profile.relationshipGoals,
       languages: profile.languages,

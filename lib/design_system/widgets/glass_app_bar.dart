@@ -113,40 +113,42 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleContent = const SizedBox.shrink();
     }
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: systemStyle,
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            decoration: BoxDecoration(
-              color: bgColor,
-              border: showBottomBorder
-                  ? Border(bottom: BorderSide(color: borderColor, width: 0.5))
-                  : null,
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: toolbarHeight,
-                child: NavigationToolbar(
-                  leading: leading ??
-                      (automaticallyImplyLeading && Navigator.canPop(context)
-                          ? IconButton(
-                              icon: Icon(Icons.arrow_back_ios_new,
-                                  color: textColor),
-                              onPressed: () => Navigator.pop(context),
-                            )
-                          : null),
-                  middle: titleContent,
-                  trailing: actions != null
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: actions!,
-                        )
-                      : null,
-                  centerMiddle: centerTitle,
-                  middleSpacing: NavigationToolbar.kMiddleSpacing,
+    return RepaintBoundary(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: systemStyle,
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: Container(
+              decoration: BoxDecoration(
+                color: bgColor,
+                border: showBottomBorder
+                    ? Border(bottom: BorderSide(color: borderColor, width: 0.5))
+                    : null,
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: toolbarHeight,
+                  child: NavigationToolbar(
+                    leading: leading ??
+                        (automaticallyImplyLeading && Navigator.canPop(context)
+                            ? IconButton(
+                                icon: Icon(Icons.arrow_back_ios_new,
+                                    color: textColor),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            : null),
+                    middle: titleContent,
+                    trailing: actions != null
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: actions!,
+                          )
+                        : null,
+                    centerMiddle: centerTitle,
+                    middleSpacing: NavigationToolbar.kMiddleSpacing,
+                  ),
                 ),
               ),
             ),

@@ -249,7 +249,7 @@ class AddPromptsEmptyState extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.add_circle_outline,
                       size: 18,
                       color: DsColors.primary,

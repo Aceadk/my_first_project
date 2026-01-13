@@ -40,6 +40,10 @@ import 'package:crushhour/features/settings/presentation/screens/data_storage_se
 import 'package:crushhour/features/settings/presentation/screens/account_security_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_actions_settings_screen.dart';
 import 'package:crushhour/features/discovery/presentation/screens/likes_you_screen.dart';
+import 'package:crushhour/features/discovery/presentation/screens/weekly_picks_screen.dart';
+import 'package:crushhour/features/social/presentation/screens/date_ideas_screen.dart';
+import 'package:crushhour/features/social/presentation/screens/compatibility_quiz_screen.dart';
+import 'package:crushhour/features/analytics/presentation/screens/profile_insights_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -79,6 +83,10 @@ class CrushRoutes {
   static const accountSettings = '/settings/account';
   static const widgetCatalog = '/dev/widget-catalog';
   static const likesYou = '/likes-you';
+  static const weeklyPicks = '/weekly-picks';
+  static const dateIdeas = '/date-ideas';
+  static const compatibilityQuiz = '/compatibility-quiz';
+  static const profileInsights = '/profile-insights';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
@@ -301,6 +309,34 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.likesYou,
         pageBuilder: (context, state) =>
             _buildPage(state, const LikesYouScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.weeklyPicks,
+        pageBuilder: (context, state) {
+          final userId = authBloc.state.user?.id ?? '';
+          return _buildPage(state, WeeklyPicksScreen(userId: userId));
+        },
+      ),
+      GoRoute(
+        path: CrushRoutes.dateIdeas,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const DateIdeasScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.compatibilityQuiz,
+        pageBuilder: (context, state) {
+          final args = state.extra as Map<String, String>?;
+          final matchId = args?['matchId'] ?? '';
+          final userId = authBloc.state.user?.id ?? '';
+          return _buildPage(state, CompatibilityQuizScreen(matchId: matchId, userId: userId));
+        },
+      ),
+      GoRoute(
+        path: CrushRoutes.profileInsights,
+        pageBuilder: (context, state) {
+          final userId = authBloc.state.user?.id ?? '';
+          return _buildPage(state, ProfileInsightsScreen(userId: userId));
+        },
       ),
       GoRoute(
         path: CrushRoutes.safetyGuidelines,

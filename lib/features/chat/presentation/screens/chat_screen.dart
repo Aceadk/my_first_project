@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
@@ -736,6 +735,24 @@ class _ChatScreenState extends State<ChatScreen> {
                             },
                       size: 38,
                     ),
+                    const SizedBox(width: DsSpacing.xs),
+                    GlassIconButton(
+                      icon: Icons.lightbulb_outline,
+                      onPressed: () => context.push(
+                        CrushRoutes.dateIdeas,
+                        extra: {'matchId': widget.args.matchId},
+                      ),
+                      size: 38,
+                    ),
+                    const SizedBox(width: DsSpacing.xs),
+                    GlassIconButton(
+                      icon: Icons.quiz_outlined,
+                      onPressed: () => context.push(
+                        CrushRoutes.compatibilityQuiz,
+                        extra: {'matchId': widget.args.matchId},
+                      ),
+                      size: 38,
+                    ),
                     PopupMenuButton<_ChatSafetyAction>(
                       onSelected: (action) => _handleSafetyAction(
                         context,
@@ -1382,7 +1399,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return [
       profile.id,
       profile.photoUrls.length,
-      profile.prompts.length,
+      profile.profilePrompts.length,
       profile.bio.hashCode,
       profile.interests.length,
       profile.isVerified,
@@ -1472,30 +1489,6 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  Future<void> _pickAndSendAudio(
-    bool canMessage,
-    ProfileCompletenessSummary completeness,
-  ) async {
-    if (!canMessage) {
-      _showMessagingIncomplete(completeness);
-      return;
-    }
-    final allowed = await _ensureBackendAllowsMessaging(completeness);
-    if (!allowed || !mounted) return;
-    final result = await FilePicker.platform.pickFiles(type: FileType.audio);
-    if (!mounted || result == null || result.files.isEmpty) return;
-    final path = result.files.single.path;
-    if (path == null) return;
-    context.read<ChatBloc>().add(
-          ChatMediaSendRequested(
-            matchId: widget.args.matchId,
-            fromUserId: widget.args.currentUserId,
-            toUserId: widget.args.otherUserId,
-            filePath: path,
-            type: MessageType.voice,
-          ),
-        );
-  }
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);

@@ -94,35 +94,37 @@ class GlassBottomNavBar extends StatelessWidget {
     final borderColor =
         isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: bgColor,
-            border: Border(
-              top: BorderSide(color: borderColor, width: 0.5),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DsSpacing.sm,
-                vertical: DsSpacing.sm,
+    return RepaintBoundary(
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: bgColor,
+              border: Border(
+                top: BorderSide(color: borderColor, width: 0.5),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(items.length, (index) {
-                  final item = items[index];
-                  final isSelected = index == currentIndex;
-                  return _GlassNavItemWidget(
-                    item: item,
-                    isSelected: isSelected,
-                    onTap: () => onTap(index),
-                  );
-                }),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DsSpacing.sm,
+                  vertical: DsSpacing.sm,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(items.length, (index) {
+                    final item = items[index];
+                    final isSelected = index == currentIndex;
+                    return _GlassNavItemWidget(
+                      item: item,
+                      isSelected: isSelected,
+                      onTap: () => onTap(index),
+                    );
+                  }),
+                ),
               ),
             ),
           ),

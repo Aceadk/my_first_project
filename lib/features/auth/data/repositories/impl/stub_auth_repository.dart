@@ -680,7 +680,8 @@ class StubAuthRepository implements AuthRepository {
         'videoUrls': p.videoUrls,
         'primaryPhotoIndex': p.primaryPhotoIndex,
         'interests': p.interests,
-        'prompts': p.prompts,
+        // ignore: deprecated_member_use_from_same_package
+        'prompts': p.prompts, // Keep for backwards compatibility
         'country': p.country,
         'city': p.city,
         'livingIn': p.livingIn,

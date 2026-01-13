@@ -321,7 +321,7 @@ class _RecordingWaveform extends StatelessWidget {
               width: barWidth,
               height: barHeight,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [

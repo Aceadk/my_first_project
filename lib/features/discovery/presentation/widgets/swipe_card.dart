@@ -1,23 +1,230 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/profile_reaction.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/content_reaction_button.dart';
 import 'package:crushhour/presentation/widgets/cached_network_image.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 
-class SwipeCard extends StatelessWidget {
+/// A swipeable card showing a profile with photos and videos.
+class SwipeCard extends StatefulWidget {
   final Profile profile;
 
-  const SwipeCard({super.key, required this.profile});
+  /// Callback when user reacts to content.
+  final void Function(String reactionType, ReactionContentType contentType, int index, String? comment)? onReaction;
+
+  const SwipeCard({
+    super.key,
+    required this.profile,
+    this.onReaction,
+  });
+
+  @override
+  State<SwipeCard> createState() => _SwipeCardState();
+}
+
+class _SwipeCardState extends State<SwipeCard> {
+  int _currentMediaIndex = 0;
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  bool _isVideoPlaying = false;
+  String? _sentReactionEmoji;
+  bool _showSentReaction = false;
+
+  /// Combined list of all media (photos first, then videos).
+  List<_MediaItem> get _allMedia {
+    final items = <_MediaItem>[];
+    for (final url in widget.profile.photoUrls) {
+      items.add(_MediaItem(url: url, isVideo: false));
+    }
+    for (final url in widget.profile.videoUrls) {
+      items.add(_MediaItem(url: url, isVideo: true));
+    }
+    return items;
+  }
+
+  _MediaItem? get _currentMedia {
+    final media = _allMedia;
+    if (media.isEmpty || _currentMediaIndex >= media.length) return null;
+    return media[_currentMediaIndex];
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _goToMedia(int index) {
+    final media = _allMedia;
+    if (index < 0 || index >= media.length) return;
+
+    // Dispose previous video controller if switching away from video
+    if (_currentMedia?.isVideo == true) {
+      _videoController?.pause();
+      _videoController?.dispose();
+      _videoController = null;
+      _isVideoInitialized = false;
+      _isVideoPlaying = false;
+    }
+
+    setState(() {
+      _currentMediaIndex = index;
+    });
+
+    // Initialize video if new media is video
+    if (media[index].isVideo) {
+      _initializeVideo(media[index].url);
+    }
+  }
+
+  void _goNext() {
+    if (_currentMediaIndex < _allMedia.length - 1) {
+      _goToMedia(_currentMediaIndex + 1);
+    }
+  }
+
+  void _goPrevious() {
+    if (_currentMediaIndex > 0) {
+      _goToMedia(_currentMediaIndex - 1);
+    }
+  }
+
+  Future<void> _initializeVideo(String url) async {
+    try {
+      final uri = Uri.tryParse(url);
+      if (uri != null && (uri.isScheme('http') || uri.isScheme('https'))) {
+        _videoController = VideoPlayerController.networkUrl(uri);
+      } else {
+        _videoController = VideoPlayerController.networkUrl(Uri.file(url));
+      }
+
+      await _videoController!.initialize();
+      _videoController!.setLooping(true);
+      _videoController!.addListener(_onVideoStateChanged);
+
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = true;
+        });
+        // Auto-play video
+        _videoController!.play();
+      }
+    } catch (e) {
+      // Video failed to load
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = false;
+        });
+      }
+    }
+  }
+
+  void _onVideoStateChanged() {
+    if (!mounted) return;
+    final playing = _videoController?.value.isPlaying ?? false;
+    if (playing != _isVideoPlaying) {
+      setState(() {
+        _isVideoPlaying = playing;
+      });
+    }
+  }
+
+  void _toggleVideoPlayPause() {
+    if (_videoController == null) return;
+    if (_isVideoPlaying) {
+      _videoController!.pause();
+    } else {
+      _videoController!.play();
+    }
+  }
+
+  void _handleReaction(String reactionType) {
+    final currentMedia = _currentMedia;
+    if (currentMedia == null) return;
+
+    HapticFeedback.mediumImpact();
+
+    // Show sent reaction animation
+    setState(() {
+      _sentReactionEmoji = getReactionEmoji(reactionType);
+      _showSentReaction = true;
+    });
+
+    // Determine content type
+    final contentType = currentMedia.isVideo
+        ? ReactionContentType.video
+        : ReactionContentType.photo;
+
+    // Call callback
+    widget.onReaction?.call(
+      reactionType,
+      contentType,
+      _currentMediaIndex,
+      null,
+    );
+  }
+
+  void _handleCommentReaction() async {
+    final currentMedia = _currentMedia;
+    if (currentMedia == null) return;
+
+    final contentType = currentMedia.isVideo
+        ? ReactionContentType.video
+        : ReactionContentType.photo;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => ReactionCommentDialog(
+        contentPreview: currentMedia.isVideo
+            ? 'Video ${_currentMediaIndex + 1}'
+            : 'Photo ${_currentMediaIndex + 1}',
+        contentType: contentType,
+      ),
+    );
+
+    if (result != null && mounted) {
+      final reaction = result['reaction'] ?? 'like';
+      final comment = result['comment'];
+
+      HapticFeedback.mediumImpact();
+
+      setState(() {
+        _sentReactionEmoji = getReactionEmoji(reaction);
+        _showSentReaction = true;
+      });
+
+      widget.onReaction?.call(
+        reaction,
+        contentType,
+        _currentMediaIndex,
+        comment,
+      );
+    }
+  }
+
+  void _onSentReactionComplete() {
+    if (mounted) {
+      setState(() {
+        _showSentReaction = false;
+        _sentReactionEmoji = null;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = profile.displayPhotoUrl;
+    final profile = widget.profile;
+    final media = _allMedia;
+    final currentMedia = _currentMedia;
     final displayName =
         profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
     final ageText = profile.age > 0 ? '${profile.age}' : 'N/A';
@@ -31,54 +238,89 @@ class SwipeCard extends StatelessWidget {
       if (country.isNotEmpty) country,
     ].join(city.isNotEmpty && country.isNotEmpty ? ', ' : '');
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ProfileMediaScreen(profile: profile),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.all(DsSpacing.md),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(DsRadius.xl),
-          border: Border.all(
-            color: DsGlassColors.borderLight,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: DsColors.primary.withValues(alpha: 0.15),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.all(DsSpacing.md),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(DsRadius.xl),
+        border: Border.all(
+          color: DsGlassColors.borderLight,
+          width: 1.5,
         ),
-        clipBehavior: Clip.antiAlias,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(DsRadius.xl),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Profile image
-              if (imageUrl != null)
-                CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: _placeholder(),
-                  errorWidget: _placeholder(),
-                )
-              else
-                _placeholder(),
+        boxShadow: [
+          BoxShadow(
+            color: DsColors.primary.withValues(alpha: 0.15),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DsRadius.xl),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Media (photo or video)
+            if (currentMedia != null)
+              currentMedia.isVideo
+                  ? _buildVideoPlayer(currentMedia.url)
+                  : CachedNetworkImage(
+                      imageUrl: currentMedia.url,
+                      fit: BoxFit.cover,
+                      placeholder: _placeholder(),
+                      errorWidget: _placeholder(),
+                    )
+            else
+              _placeholder(),
 
-              // Gradient overlay for readability
-              Container(
+            // Tap zones for navigation
+            Row(
+              children: [
+                // Left tap zone (previous)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _goPrevious,
+                    behavior: HitTestBehavior.opaque,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                // Center tap zone (open full screen / toggle video)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (currentMedia?.isVideo == true) {
+                        _toggleVideoPlayPause();
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProfileMediaScreen(profile: profile),
+                          ),
+                        );
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                // Right tap zone (next)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _goNext,
+                    behavior: HitTestBehavior.opaque,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ],
+            ),
+
+            // Gradient overlay for readability
+            IgnorePointer(
+              child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
@@ -92,19 +334,115 @@ class SwipeCard extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
 
-              // Verification badge (top right)
+            // Top gradient for indicators
+            IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.center,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.4),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.3],
+                  ),
+                ),
+              ),
+            ),
+
+            // Media progress indicators (top)
+            if (media.length > 1)
               Positioned(
                 top: DsSpacing.md,
+                left: DsSpacing.md,
                 right: DsSpacing.md,
-                child: _GlassVerificationPill(isVerified: profile.isVerified),
+                child: _MediaProgressIndicators(
+                  count: media.length,
+                  currentIndex: _currentMediaIndex,
+                  videoProgress: _videoController != null && _isVideoInitialized
+                      ? _videoController!.value.position.inMilliseconds /
+                          (_videoController!.value.duration.inMilliseconds.clamp(1, double.maxFinite.toInt()))
+                      : null,
+                ),
               ),
 
-              // Frosted glass info panel (bottom)
+            // Badges row (under indicators)
+            Positioned(
+              top: media.length > 1 ? DsSpacing.md + 12 : DsSpacing.md,
+              left: DsSpacing.md,
+              right: DsSpacing.md,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Video count badge (left)
+                  if (profile.videoUrls.isNotEmpty)
+                    _GlassMediaBadge(
+                      icon: Icons.videocam_rounded,
+                      label: '${profile.videoUrls.length}',
+                    )
+                  else
+                    const SizedBox.shrink(),
+                  // Verification badge (right)
+                  _GlassVerificationPill(isVerified: profile.isVerified),
+                ],
+              ),
+            ),
+
+            // Video play/pause indicator (center)
+            if (currentMedia?.isVideo == true && _isVideoInitialized)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: _isVideoPlaying ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Center(
+                      child: _GlassPlayButton(isPlaying: _isVideoPlaying),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Reaction button (right side, above info panel)
+            if (widget.onReaction != null)
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
+                right: DsSpacing.md,
+                bottom: 180, // Above the info panel
+                child: ContentReactionButton(
+                  onReaction: _handleReaction,
+                  onComment: _handleCommentReaction,
+                  reactions: currentMedia?.isVideo == true
+                      ? QuickReaction.photoReactions
+                      : QuickReaction.photoReactions,
+                ),
+              ),
+
+            // Sent reaction animation (center)
+            if (_showSentReaction && _sentReactionEmoji != null)
+              Positioned.fill(
+                child: Center(
+                  child: SentReactionIndicator(
+                    emoji: _sentReactionEmoji!,
+                    onAnimationComplete: _onSentReactionComplete,
+                  ),
+                ),
+              ),
+
+            // Frosted glass info panel (bottom)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProfileMediaScreen(profile: profile),
+                    ),
+                  );
+                },
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(DsRadius.xl - 2),
@@ -244,9 +582,35 @@ class SwipeCard extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVideoPlayer(String url) {
+    if (!_isVideoInitialized || _videoController == null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          _placeholder(),
+          const Center(
+            child: CircularProgressIndicator(
+              color: DsColors.primary,
+              strokeWidth: 2,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: _videoController!.value.size.width,
+        height: _videoController!.value.size.height,
+        child: VideoPlayer(_videoController!),
       ),
     );
   }
@@ -268,6 +632,166 @@ class SwipeCard extends StatelessWidget {
           Icons.person,
           color: Colors.white.withValues(alpha: 0.3),
           size: 80,
+        ),
+      ),
+    );
+  }
+}
+
+/// Represents a media item (photo or video).
+class _MediaItem {
+  final String url;
+  final bool isVideo;
+
+  const _MediaItem({required this.url, required this.isVideo});
+}
+
+/// Progress indicators for multiple media items.
+class _MediaProgressIndicators extends StatelessWidget {
+  const _MediaProgressIndicators({
+    required this.count,
+    required this.currentIndex,
+    this.videoProgress,
+  });
+
+  final int count;
+  final int currentIndex;
+  final double? videoProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(count, (index) {
+        final isActive = index == currentIndex;
+        final isPast = index < currentIndex;
+
+        return Expanded(
+          child: Container(
+            height: 3,
+            margin: EdgeInsets.only(right: index < count - 1 ? 4 : 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              color: isPast
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : Colors.white.withValues(alpha: 0.3),
+            ),
+            child: isActive
+                ? LayoutBuilder(
+                    builder: (context, constraints) {
+                      final progress = videoProgress ?? 1.0;
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          width: constraints.maxWidth * progress,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            gradient: const LinearGradient(
+                              colors: [DsColors.primary, DsColors.secondary],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : null,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// Glass-styled media badge (video count, etc.).
+class _GlassMediaBadge extends StatelessWidget {
+  const _GlassMediaBadge({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.round),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.sm,
+            vertical: DsSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                DsColors.secondary.withValues(alpha: 0.5),
+                DsColors.primary.withValues(alpha: 0.3),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: Colors.white),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Glass play button for video overlay.
+class _GlassPlayButton extends StatelessWidget {
+  const _GlassPlayButton({required this.isPlaying});
+
+  final bool isPlaying;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(40),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.4),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 40,
+          ),
         ),
       ),
     );

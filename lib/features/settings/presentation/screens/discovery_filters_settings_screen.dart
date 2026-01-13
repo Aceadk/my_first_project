@@ -1581,27 +1581,29 @@ class _AdvancedFiltersSection extends StatelessWidget {
               const Divider(),
               // Options list
               Expanded(
-                child: ListView.builder(
-                  padding: DsEdgeInsets.allMd,
-                  itemCount: options.length,
-                  itemBuilder: (context, index) {
-                    final option = options[index];
-                    final isSelected = selectedId == option.id;
-                    return RadioListTile<String>(
-                      value: option.id,
-                      groupValue: selectedId,
-                      title: Text(option.label),
-                      onChanged: (value) {
-                        onSelected(value);
-                        Navigator.pop(context);
-                      },
-                      activeColor: DsColors.secondary,
-                      selected: isSelected,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DsRadius.sm),
-                      ),
-                    );
+                child: RadioGroup<String>(
+                  groupValue: selectedId,
+                  onChanged: (value) {
+                    onSelected(value);
+                    Navigator.pop(context);
                   },
+                  child: ListView.builder(
+                    padding: DsEdgeInsets.allMd,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options[index];
+                      final isSelected = selectedId == option.id;
+                      return RadioListTile<String>(
+                        value: option.id,
+                        title: Text(option.label),
+                        activeColor: DsColors.secondary,
+                        selected: isSelected,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(DsRadius.sm),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

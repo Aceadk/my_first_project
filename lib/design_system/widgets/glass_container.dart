@@ -71,24 +71,26 @@ class GlassContainer extends StatelessWidget {
     final borderClr = borderColor ??
         (isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight);
 
-    return Container(
-      margin: margin,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        clipBehavior: clipBehavior,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: borderClr,
-                width: borderWidth,
+    return RepaintBoundary(
+      child: Container(
+        margin: margin,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          clipBehavior: clipBehavior,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: Border.all(
+                  color: borderClr,
+                  width: borderWidth,
+                ),
               ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -126,28 +128,30 @@ class GlassContainerShimmer extends StatelessWidget {
     final borderClr =
         isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
 
-    return Container(
-      margin: margin,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(color: borderClr, width: 1),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: isDark ? 0.1 : 0.2),
-                  Colors.white.withValues(alpha: isDark ? 0.02 : 0.05),
-                ],
+    return RepaintBoundary(
+      child: Container(
+        margin: margin,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: Border.all(color: borderClr, width: 1),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: isDark ? 0.1 : 0.2),
+                    Colors.white.withValues(alpha: isDark ? 0.02 : 0.05),
+                  ],
+                ),
               ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),

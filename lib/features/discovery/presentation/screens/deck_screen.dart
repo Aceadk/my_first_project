@@ -569,7 +569,7 @@ class _DeckScreenState extends State<DeckScreen> {
     return [
       profile.id,
       profile.photoUrls.length,
-      profile.prompts.length,
+      profile.profilePrompts.length,
       profile.bio.hashCode,
       profile.interests.length,
       profile.isVerified,
@@ -1116,10 +1116,21 @@ class _DeckScreenState extends State<DeckScreen> {
                         ),
                       ),
                     ),
-                    // Boost indicator on the left
+                    // Boost indicator and weekly picks on the left
                     Positioned(
                       left: DsSpacing.sm,
-                      child: const BoostButton(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const BoostButton(),
+                          const SizedBox(width: DsSpacing.xs),
+                          GlassIconButton(
+                            icon: Icons.auto_awesome,
+                            onPressed: () => context.push(CrushRoutes.weeklyPicks),
+                            size: 40,
+                          ),
+                        ],
+                      ),
                     ),
                     // Actions on the right
                     Positioned(

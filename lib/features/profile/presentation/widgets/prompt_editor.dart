@@ -243,7 +243,7 @@ class _AddPromptButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.add_circle_outline,
               color: DsColors.primary,
               size: 24,

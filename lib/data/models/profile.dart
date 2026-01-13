@@ -281,7 +281,8 @@ class Profile extends Equatable {
       primaryPhotoIndex: primaryPhotoIndex ?? this.primaryPhotoIndex,
       bio: bio ?? this.bio,
       interests: interests ?? this.interests,
-      prompts: prompts ?? this.prompts,
+      // ignore: deprecated_member_use_from_same_package
+      prompts: prompts ?? this.prompts, // Keep for backwards compatibility
       profilePrompts: profilePrompts ?? this.profilePrompts,
       heightCm:
           identical(heightCm, _unset) ? this.heightCm : heightCm as int?,
@@ -364,7 +365,8 @@ class Profile extends Equatable {
         primaryPhotoIndex,
         bio,
         interests,
-        prompts,
+        // ignore: deprecated_member_use_from_same_package
+        prompts, // Keep for backwards compatibility in Equatable comparison
         profilePrompts,
         heightCm,
         relationshipGoals,

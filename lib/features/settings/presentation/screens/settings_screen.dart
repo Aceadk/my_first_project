@@ -18,6 +18,8 @@ import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart'
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/discovery/data/services/incognito_service.dart';
+import 'package:crushhour/features/discovery/data/models/incognito_settings.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -135,6 +137,27 @@ class SettingsScreen extends StatelessWidget {
                 title: 'Privacy',
                 subtitle: 'Control what others can see',
                 onTap: () => context.push(CrushRoutes.privacySettings),
+              ),
+              const Divider(height: 1),
+              // Incognito Mode
+              StreamBuilder<IncognitoSettings>(
+                stream: IncognitoService.instance.settingsStream,
+                initialData: IncognitoService.instance.currentSettings,
+                builder: (context, snapshot) {
+                  final settings = snapshot.data ?? const IncognitoSettings();
+                  final isActive = settings.isActive;
+                  return _SettingsTile(
+                    icon: isActive ? Icons.visibility_off : Icons.visibility_off_outlined,
+                    iconColor: isActive ? DsColors.primary : Colors.grey,
+                    title: 'Incognito Mode',
+                    subtitle: isActive
+                        ? settings.expiresAt != null
+                            ? settings.remainingTimeDisplay
+                            : 'Active (Premium)'
+                        : 'Browse profiles privately',
+                    onTap: () => _showIncognitoSheet(context, settings),
+                  );
+                },
               ),
               const Divider(height: 1),
               // Account Actions
@@ -464,6 +487,199 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showIncognitoSheet(BuildContext context, IncognitoSettings settings) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isActive = settings.isActive;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: DsEdgeInsets.allLg,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.visibility_off,
+                      color: isActive ? DsColors.primary : Colors.grey,
+                    ),
+                    DsGap.mdH,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Incognito Mode',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          DsGap.xs,
+                          Text(
+                            'Browse profiles without being seen',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              if (isActive) ...[
+                // Show current status
+                Padding(
+                  padding: DsEdgeInsets.allLg,
+                  child: Container(
+                    padding: DsEdgeInsets.allMd,
+                    decoration: BoxDecoration(
+                      color: DsColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: DsColors.primary),
+                        DsGap.mdH,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Incognito is active',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              if (settings.expiresAt != null)
+                                Text(
+                                  settings.remainingTimeDisplay,
+                                  style: TextStyle(
+                                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Feature toggles
+                _IncognitoOptionTile(
+                  title: 'Hide from "Liked You"',
+                  subtitle: 'Your likes won\'t appear in their list',
+                  value: settings.hideFromLikedYou,
+                  onChanged: (value) {
+                    IncognitoService.instance.updateSettings(hideFromLikedYou: value);
+                  },
+                ),
+                _IncognitoOptionTile(
+                  title: 'Hide last active',
+                  subtitle: 'Others won\'t see when you were online',
+                  value: settings.hideLastActive,
+                  onChanged: (value) {
+                    IncognitoService.instance.updateSettings(hideLastActive: value);
+                  },
+                ),
+                _IncognitoOptionTile(
+                  title: 'Hide read receipts',
+                  subtitle: 'Messages won\'t show as read',
+                  value: settings.hideReadReceipts,
+                  onChanged: (value) {
+                    IncognitoService.instance.updateSettings(hideReadReceipts: value);
+                  },
+                ),
+                DsGap.md,
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        IncognitoService.instance.disableIncognito();
+                        Navigator.of(sheetContext).pop();
+                      },
+                      child: const Text('Turn off Incognito'),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                // Features preview
+                const Padding(
+                  padding: DsEdgeInsets.allLg,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _IncognitoFeatureRow(
+                        icon: Icons.favorite_outline,
+                        text: 'Your likes won\'t appear in "Liked You"',
+                      ),
+                      DsGap.sm,
+                      _IncognitoFeatureRow(
+                        icon: Icons.access_time,
+                        text: 'Hide your last active status',
+                      ),
+                      DsGap.sm,
+                      _IncognitoFeatureRow(
+                        icon: Icons.mark_chat_read,
+                        text: 'Hide read receipts in chats',
+                      ),
+                    ],
+                  ),
+                ),
+                DsGap.sm,
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Container(
+                    padding: DsEdgeInsets.allSm,
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, size: 18, color: Colors.amber),
+                        DsGap.smH,
+                        Expanded(
+                          child: Text(
+                            'Free users get 1 hour. Upgrade for unlimited.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                DsGap.lg,
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        IncognitoService.instance.enableIncognito();
+                        Navigator.of(sheetContext).pop();
+                      },
+                      child: const Text('Enable Incognito'),
+                    ),
+                  ),
+                ),
+              ],
+              DsGap.lg,
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showLegalDialog(
     BuildContext context,
     String title,
@@ -562,6 +778,57 @@ class _ThemeOptionTile extends StatelessWidget {
           ? const Icon(Icons.check_circle, color: DsColors.primary)
           : null,
       onTap: () => onSelected(mode),
+    );
+  }
+}
+
+class _IncognitoOptionTile extends StatelessWidget {
+  const _IncognitoOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      value: value,
+      onChanged: onChanged,
+      activeColor: DsColors.primary,
+    );
+  }
+}
+
+class _IncognitoFeatureRow extends StatelessWidget {
+  const _IncognitoFeatureRow({
+    required this.icon,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: DsColors.primary),
+        DsGap.mdH,
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+      ],
     );
   }
 }

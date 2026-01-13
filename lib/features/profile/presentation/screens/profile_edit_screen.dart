@@ -86,7 +86,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       school: _schoolController.text.isNotEmpty ? _schoolController.text : state.user?.profile?.school,
       interests: _interests.isNotEmpty ? _interests : (state.user?.profile?.interests ?? const []),
       profilePrompts: _profilePrompts.isNotEmpty ? _profilePrompts : (state.user?.profile?.profilePrompts ?? const []),
-      prompts: state.user?.profile?.prompts ?? const [],
+      // ignore: deprecated_member_use_from_same_package
+      prompts: state.user?.profile?.prompts ?? const [], // Keep for backwards compatibility
       heightCm: _heightCm ?? state.user?.profile?.heightCm,
       relationshipGoals: _relationshipGoals ?? state.user?.profile?.relationshipGoals,
       languages: _languages.isNotEmpty ? _languages : (state.user?.profile?.languages ?? const []),

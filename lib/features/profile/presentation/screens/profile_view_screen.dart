@@ -121,6 +121,11 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                 stretch: true,
                 actions: [
                   IconButton(
+                    icon: const Icon(Icons.insights_outlined),
+                    tooltip: 'Profile Insights',
+                    onPressed: () => context.push(CrushRoutes.profileInsights),
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.settings_outlined),
                     onPressed: () => context.push(CrushRoutes.settings),
                   ),
