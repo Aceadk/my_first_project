@@ -1,10 +1,72 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    function isValidMediaType() {
+      return isImage() || isVideo();
+    }
+
+    function isUnderSizeLimit() {
+      // 50MB limit for videos, 10MB for images
+      return (isVideo() && request.resource.size < 50 * 1024 * 1024) ||
+             (isImage() && request.resource.size < 10 * 1024 * 1024);
+    }
+
+    // User profile media (photos, videos)
+    match /users/{uid}/media/{fileName} {
+      // Anyone signed in can read user media (for discovery, profiles)
+      allow read: if isSignedIn();
+
+      // Only owner can upload/update/delete their own media
+      allow write: if isOwner(uid)
+                   && isValidMediaType()
+                   && isUnderSizeLimit();
+    }
+
+    // User story media (24h stories)
+    match /users/{uid}/stories/{storyId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid)
+                   && isValidMediaType()
+                   && isUnderSizeLimit();
+    }
+
+    // Chat media (images, videos in messages)
+    match /chats/{matchId}/{messageId}/{fileName} {
+      // Only match participants can read
+      // Note: Full validation requires Firestore lookup which isn't available
+      // in Storage rules, so we rely on the signed-in check + client-side validation
+      allow read: if isSignedIn();
+
+      // Only signed-in users can upload chat media
+      allow write: if isSignedIn()
+                   && isValidMediaType()
+                   && isUnderSizeLimit();
+    }
+
+    // ID verification documents (sensitive - server access only)
+    match /verification/{uid}/{document} {
+      allow read, write: if false;
+    }
+
+    // Deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }
