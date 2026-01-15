@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
-import 'package:crushhour/core/services/email_service.dart';
-import 'package:crushhour/core/security/secure_logger.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository implements AuthRepository {
@@ -18,14 +17,8 @@ class FirebaseAuthRepository implements AuthRepository {
   final _secureStorage = const FlutterSecureStorage();
 
   static const _pendingEmailKey = 'pending_email_link_email';
-  static const _emailOtpKey = 'email_otp_code';
   static const _emailOtpIdentifierKey = 'email_otp_identifier';
-  static const _emailOtpTimestampKey = 'email_otp_timestamp';
   static const _emailOtpPurposeKey = 'email_otp_purpose';
-  static const _generatedPasswordKey = 'otp_generated_password';
-
-  // Pending OTP data stored in memory for quick access
-  final Map<String, _PendingEmailOtp> _pendingEmailOtps = {};
 
   CrushUser? _currentUser;
   StreamSubscription<fb.User?>? _firebaseAuthSubscription;
@@ -399,27 +392,8 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // EMAIL OTP (Custom implementation - Firebase doesn't have native email OTP)
+  // EMAIL OTP (Via Cloud Functions)
   // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Generate a random 6-digit OTP
-  String _generateOtp() {
-    final random = Random.secure();
-    return List.generate(6, (_) => random.nextInt(10)).join();
-  }
-
-  /// Generate a secure random password for OTP-based account creation
-  String _generateSecurePassword() {
-    final random = Random.secure();
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*';
-    return List.generate(24, (_) => chars[random.nextInt(chars.length)]).join();
-  }
-
-  /// Check if string is a valid email format
-  bool _isValidEmail(String value) {
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(value);
-  }
 
   @override
   Future<void> requestEmailOtp({
@@ -427,48 +401,27 @@ class FirebaseAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? email,
   }) async {
-    // Generate OTP
-    final otp = _generateOtp();
-    final now = DateTime.now();
-
     // Normalize identifier for consistent storage/lookup
     final normalizedIdentifier = identifier.trim().toLowerCase();
 
-    // Store OTP in memory and secure storage
-    final key = '${normalizedIdentifier}_${purpose.value}';
-    _pendingEmailOtps[key] = _PendingEmailOtp(
-      identifier: normalizedIdentifier,
-      code: otp,
-      purpose: purpose,
-      createdAt: now,
-    );
-
-    // Also persist to secure storage for app restart scenarios
-    await _secureStorage.write(key: _emailOtpKey, value: otp);
+    // Store identifier in secure storage for later verification
     await _secureStorage.write(key: _emailOtpIdentifierKey, value: normalizedIdentifier);
-    await _secureStorage.write(key: _emailOtpTimestampKey, value: now.toIso8601String());
     await _secureStorage.write(key: _emailOtpPurposeKey, value: purpose.value);
 
-    // Determine recipient email
-    final recipientEmail = email ?? identifier;
+    // Call Cloud Function to send OTP
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('requestEmailOtp');
+      await callable.call<Map<String, dynamic>>({
+        'identifier': normalizedIdentifier,
+        'purpose': purpose.value,
+        if (email != null) 'email': email,
+      });
 
-    // Log OTP securely - only in debug mode with proper security warnings
-    SecureLogger.logOtp(
-      type: 'EMAIL',
-      recipient: recipientEmail,
-      code: otp,
-    );
-
-    // Send OTP via email if email service is configured
-    final isEmailConfigured = await EmailService.isConfigured;
-    if (isEmailConfigured) {
-      final sent = await EmailService.sendOtpEmail(
-        recipientEmail: recipientEmail,
-        otpCode: otp,
-      );
-      if (!sent) {
-        SecureLogger.warning('Email sending failed, but OTP is logged above.');
-      }
+      AppLogger.logInfo('Email OTP requested for $normalizedIdentifier');
+    } on FirebaseFunctionsException catch (e) {
+      AppLogger.logError('requestEmailOtp', e);
+      // Rethrow with user-friendly message
+      throw Exception(e.message ?? 'Failed to send verification code. Please try again.');
     }
   }
 
@@ -481,165 +434,37 @@ class FirebaseAuthRepository implements AuthRepository {
     String? newPassword,
   }) async {
     final normalizedIdentifier = identifier.trim().toLowerCase();
-    final key = '${normalizedIdentifier}_${purpose.value}';
-    var pending = _pendingEmailOtps[key];
 
-    // Also try with original identifier key (for backwards compatibility)
-    if (pending == null) {
-      final altKey = '${identifier}_${purpose.value}';
-      pending = _pendingEmailOtps[altKey];
-    }
+    try {
+      // Call Cloud Function to verify OTP
+      final callable = FirebaseFunctions.instance.httpsCallable('verifyEmailOtp');
+      final result = await callable.call<Map<String, dynamic>>({
+        'identifier': normalizedIdentifier,
+        'otp': otp.trim(),
+        'purpose': purpose.value,
+        if (newEmail != null) 'newEmail': newEmail,
+        if (newPassword != null) 'newPassword': newPassword,
+      });
 
-    // Try to restore from secure storage if not in memory
-    if (pending == null) {
-      final storedOtp = await _secureStorage.read(key: _emailOtpKey);
-      final storedIdentifier = await _secureStorage.read(key: _emailOtpIdentifierKey);
-      final storedTimestamp = await _secureStorage.read(key: _emailOtpTimestampKey);
-      final storedPurpose = await _secureStorage.read(key: _emailOtpPurposeKey);
+      final data = result.data;
 
-      SecureLogger.debug('OTP Verify: checking stored values for ${purpose.value}');
-
-      // Compare identifiers case-insensitively and trimmed
-      final storedNormalized = storedIdentifier?.trim().toLowerCase();
-      if (storedOtp != null && storedNormalized == normalizedIdentifier && storedPurpose == purpose.value) {
-        pending = _PendingEmailOtp(
-          identifier: storedIdentifier!,
-          code: storedOtp,
-          purpose: purpose,
-          createdAt: DateTime.tryParse(storedTimestamp ?? '') ?? DateTime.now(),
-        );
+      // If Cloud Function returns a custom token, sign in with it
+      final customToken = data['customToken'] as String?;
+      if (customToken != null) {
+        final credential = await _firebaseAuth.signInWithCustomToken(customToken);
+        final firebaseUser = credential.user;
+        if (firebaseUser != null) {
+          await _ensureUserDocumentExists(firebaseUser);
+          return _mapFirebaseUser(firebaseUser);
+        }
       }
+
+      // For non-login purposes, return current user
+      return _currentUser;
+    } on FirebaseFunctionsException catch (e) {
+      AppLogger.logError('verifyEmailOtp', e);
+      throw Exception(e.message ?? 'Failed to verify code. Please try again.');
     }
-
-    if (pending == null) {
-      throw Exception('No OTP requested for this identifier');
-    }
-
-    // Check if OTP matches
-    if (otp.trim() != pending.code) {
-      throw Exception('Invalid OTP code');
-    }
-
-    // Check if OTP is expired (10 minutes)
-    if (DateTime.now().difference(pending.createdAt).inMinutes > 10) {
-      _pendingEmailOtps.remove(key);
-      await _clearEmailOtpStorage();
-      throw Exception('OTP expired. Please request a new code.');
-    }
-
-    // Clear OTP data
-    _pendingEmailOtps.remove(key);
-    await _clearEmailOtpStorage();
-
-    // Handle different purposes
-    switch (purpose) {
-      case EmailOtpPurpose.login:
-        // For login via OTP, we create/sign-in with email and generated password
-        // since Firebase doesn't support native email OTP authentication
-        final email = _isValidEmail(identifier) ? identifier : null;
-        if (email == null) {
-          throw Exception('Please use a valid email address for OTP login');
-        }
-
-        // Check if we have a stored password for this email
-        var storedPassword = await _secureStorage.read(
-          key: '${_generatedPasswordKey}_$normalizedIdentifier',
-        );
-
-        if (storedPassword != null) {
-          // Try to sign in with existing account
-          try {
-            final credential = await _firebaseAuth.signInWithEmailAndPassword(
-              email: email,
-              password: storedPassword,
-            );
-            final firebaseUser = credential.user;
-            if (firebaseUser != null) {
-              await _ensureUserDocumentExists(firebaseUser);
-              return _mapFirebaseUser(firebaseUser);
-            }
-          } on fb.FirebaseAuthException catch (e) {
-            // If sign-in fails (wrong password, account deleted, etc.), try creating new account
-            SecureLogger.debug('OTP login sign-in failed: ${e.code}, trying create');
-            storedPassword = null; // Reset to trigger account creation
-          }
-        }
-
-        // Generate a secure password for new account
-        if (storedPassword == null) {
-          final newPassword = _generateSecurePassword();
-
-          try {
-            // Try to create new account
-            final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-              email: email,
-              password: newPassword,
-            );
-            final firebaseUser = credential.user;
-            if (firebaseUser != null) {
-              // Store the generated password securely
-              await _secureStorage.write(
-                key: '${_generatedPasswordKey}_$normalizedIdentifier',
-                value: newPassword,
-              );
-              // Mark email as verified since they verified via OTP
-              // Note: Firebase doesn't allow direct email verification, but we track it
-              await _ensureUserDocumentExists(firebaseUser);
-              // Update Firestore to mark email as verified via OTP
-              await _firestore.collection('users').doc(firebaseUser.uid).update({
-                'isEmailVerified': true,
-                'emailVerifiedViaOtp': true,
-              });
-              return _mapFirebaseUser(firebaseUser);
-            }
-          } on fb.FirebaseAuthException catch (e) {
-            if (e.code == 'email-already-in-use') {
-              // Account exists but we don't have the password
-              // User should use password login or reset password
-              throw Exception('Account exists. Please sign in with your password or reset it.');
-            }
-            rethrow;
-          }
-        }
-        break;
-
-      case EmailOtpPurpose.addEmail:
-      case EmailOtpPurpose.changeEmail:
-        // Update email in Firebase if user is logged in
-        final firebaseUser = _firebaseAuth.currentUser;
-        if (firebaseUser != null && newEmail != null) {
-          try {
-            await firebaseUser.verifyBeforeUpdateEmail(newEmail);
-          } catch (e) {
-            SecureLogger.warning('Could not update email in Firebase: $e');
-          }
-        }
-        // Return current user or create a placeholder to indicate success
-        return _currentUser ?? CrushUser(
-          id: firebaseUser?.uid ?? 'verified',
-          phoneNumber: '',
-          email: newEmail,
-          isEmailVerified: true,
-          isPhoneVerified: false,
-          isIdVerified: false,
-          plan: SubscriptionPlan.free,
-        );
-
-      case EmailOtpPurpose.resetPassword:
-      case EmailOtpPurpose.newDevice:
-      case EmailOtpPurpose.sensitiveAction:
-        // Just verify, return current user
-        return _currentUser;
-    }
-
-    return _currentUser;
-  }
-
-  Future<void> _clearEmailOtpStorage() async {
-    await _secureStorage.delete(key: _emailOtpKey);
-    await _secureStorage.delete(key: _emailOtpIdentifierKey);
-    await _secureStorage.delete(key: _emailOtpTimestampKey);
-    await _secureStorage.delete(key: _emailOtpPurposeKey);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1064,22 +889,4 @@ class FirebaseAuthRepository implements AuthRepository {
     _firebaseAuthSubscription?.cancel();
     _authStateController.close();
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPER CLASSES
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _PendingEmailOtp {
-  final String identifier;
-  final String code;
-  final EmailOtpPurpose purpose;
-  final DateTime createdAt;
-
-  _PendingEmailOtp({
-    required this.identifier,
-    required this.code,
-    required this.purpose,
-    required this.createdAt,
-  });
 }
