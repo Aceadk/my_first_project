@@ -873,7 +873,7 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // DEV BYPASS (disabled for Firebase)
+  // DEV BYPASS (creates test account for development)
   // ═══════════════════════════════════════════════════════════════════════════
 
   @override
@@ -881,7 +881,48 @@ class FirebaseAuthRepository implements AuthRepository {
     required String identifier,
     required String password,
   }) async {
-    // Dev bypass is disabled for Firebase implementation
+    // Only allow in debug mode with specific credentials
+    if (identifier != 'admin123' || password != 'admin123') {
+      return null;
+    }
+
+    const testEmail = 'dev@crushhour.test';
+    const testPassword = 'DevTest123!@#';
+
+    try {
+      // Try to sign in with existing test account
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: testEmail,
+        password: testPassword,
+      );
+      final firebaseUser = credential.user;
+      if (firebaseUser != null) {
+        await _ensureUserDocumentExists(firebaseUser);
+        return _mapFirebaseUser(firebaseUser);
+      }
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        // Create the test account
+        try {
+          final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+            email: testEmail,
+            password: testPassword,
+          );
+          final firebaseUser = credential.user;
+          if (firebaseUser != null) {
+            await _ensureUserDocumentExists(firebaseUser);
+            // Mark as verified for dev purposes
+            await _firestore.collection('users').doc(firebaseUser.uid).update({
+              'isEmailVerified': true,
+              'isDeveloper': true,
+            });
+            return _mapFirebaseUser(firebaseUser);
+          }
+        } catch (createError) {
+          AppLogger.logError('Dev bypass create account', createError);
+        }
+      }
+    }
     return null;
   }
 
