@@ -40,8 +40,8 @@ class FirebaseAuthRepository implements AuthRepository {
     androidPackageName: 'com.example.crushhour',
     androidInstallApp: true,
     androidMinimumVersion: '21',
-    // iOS settings (update when adding iOS support)
-    iOSBundleId: 'com.example.crushhour',
+    // iOS settings
+    iOSBundleId: 'com.crushhour.app',
   );
 
   FirebaseAuthRepository({fb.FirebaseAuth? firebaseAuth})
