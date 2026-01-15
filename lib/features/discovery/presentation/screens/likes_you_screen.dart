@@ -263,7 +263,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                 ),
                 const SizedBox(height: DsSpacing.md),
                 Text(
-                  'Upgrade to CrushHour Plus to see who likes you and match instantly!',
+                  'Upgrade to Crush Plus to see who likes you and match instantly!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: isDark
                             ? DsColors.textMutedDark
@@ -499,24 +499,30 @@ class _LikeCard extends StatelessWidget {
     final photoUrl =
         profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DsSpacing.md),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Photo
-            if (photoUrl != null)
-              CachedNetworkImage(
-                imageUrl: photoUrl,
-                fit: BoxFit.cover,
-              )
-            else
-              Container(
-                color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                child: const Icon(Icons.person, size: 64),
-              ),
+    return Semantics(
+      label: isBlurred
+          ? 'Someone likes you. Upgrade to see who.'
+          : '${profile.name}, ${profile.age} years old',
+      hint: isBlurred ? 'Double tap to upgrade' : 'Double tap to view profile',
+      image: !isBlurred && photoUrl != null,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(DsSpacing.md),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Photo
+              if (photoUrl != null)
+                CachedNetworkImage(
+                  imageUrl: photoUrl,
+                  fit: BoxFit.cover,
+                )
+              else
+                Container(
+                  color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                  child: const Icon(Icons.person, size: 64),
+                ),
 
             // Blur overlay for free users
             if (isBlurred)
@@ -598,6 +604,7 @@ class _LikeCard extends StatelessWidget {
               ),
           ],
         ),
+      ),
       ),
     );
   }

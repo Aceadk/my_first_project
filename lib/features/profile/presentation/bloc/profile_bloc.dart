@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/app_logger.dart';
 import 'profile_event.dart';
@@ -61,7 +62,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final result = await Result.guard(
       () => profileRepository.getCurrentUser(),
       logLabel: 'ProfileRepository.getCurrentUser',
-      fallbackError: 'Could not load profile. Please try again.',
+      fallbackError: ErrorMessages.loadProfileFailed,
     );
 
     AppLogger.logInfo('[ProfileBloc] Result: isSuccess=${result.isSuccess}, data=${result.data}, error=${result.errorMessage}');
@@ -108,8 +109,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final user = result.data;
 
     AppLogger.logInfo('[ProfileBloc] User loaded: id=${user?.id}, hasProfile=${user?.profile != null}');
-    if (user?.profile != null) {
-      AppLogger.logInfo('[ProfileBloc] Profile: name=${user!.profile!.name}, age=${user.profile!.age}');
+    final profile = user?.profile;
+    if (profile != null) {
+      AppLogger.logInfo('[ProfileBloc] Profile: name=${profile.name}, age=${profile.age}');
     }
 
     // Track profile viewed
@@ -206,7 +208,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         interests: event.interests,
       ),
       logLabel: 'ProfileRepository.saveProfileDetails',
-      fallbackError: 'Could not save profile. Please try again.',
+      fallbackError: ErrorMessages.saveProfileFailed,
     );
 
     // Track profile updates
@@ -246,7 +248,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final uploadResult = await Result.guard(
       () => profileRepository.uploadIdDocument(),
       logLabel: 'ProfileRepository.uploadIdDocument',
-      fallbackError: 'Could not upload ID. Please try again.',
+      fallbackError: ErrorMessages.uploadIdFailed,
     );
     if (!uploadResult.isSuccess) {
       emit(state.copyWith(
@@ -259,7 +261,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final userResult = await Result.guard(
       () => profileRepository.markIdVerified(),
       logLabel: 'ProfileRepository.markIdVerified',
-      fallbackError: 'Could not upload ID. Please try again.',
+      fallbackError: ErrorMessages.uploadIdFailed,
     );
     final user = userResult.data;
     emit(state.copyWith(
@@ -291,7 +293,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final result = await Result.guard(
       () => profileRepository.updateProfile(event.profile),
       logLabel: 'ProfileRepository.updateProfile',
-      fallbackError: 'Could not save profile. Please try again.',
+      fallbackError: ErrorMessages.saveProfileFailed,
     );
     final updatedUser = result.data;
     emit(state.copyWith(

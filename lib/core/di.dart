@@ -62,6 +62,7 @@ import 'package:crushhour/features/settings/presentation/bloc/storage_settings_c
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 import 'package:crushhour/features/feature_flags/presentation/bloc/feature_flag_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
+import 'package:crushhour/core/services/badge_counter_service.dart';
 
 /// Backend configuration for the app.
 /// Switch between stub (development/demo), Firebase (production), or HTTP (REST API).
@@ -268,6 +269,9 @@ class CrushDI {
         create: (context) => BoostCubit(
           boostRepository: context.read<BoostRepository>(),
         ),
+      ),
+      BlocProvider<BadgeCounterCubit>(
+        create: (_) => BadgeCounterCubit(),
       ),
     ];
   }

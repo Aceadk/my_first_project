@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
@@ -41,7 +42,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final startResult = await Result.guard(
       () => subscriptionRepository.startPlusCheckout(),
       logLabel: 'SubscriptionRepository.startPlusCheckout',
-      fallbackError: 'Could not start checkout. Please try again.',
+      fallbackError: ErrorMessages.checkoutFailed,
     );
     final url = startResult.data;
     if (!startResult.isSuccess || url == null) {
@@ -55,7 +56,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final launchResult = await Result.guard(
       () => subscriptionRepository.launchCheckoutUrl(url),
       logLabel: 'SubscriptionRepository.launchCheckoutUrl',
-      fallbackError: 'Could not start checkout. Please try again.',
+      fallbackError: ErrorMessages.checkoutFailed,
     );
     emit(state.copyWith(
       isCheckoutInProgress: false,
@@ -88,7 +89,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final result = await Result.guard(
       () => subscriptionRepository.refreshStatus(),
       logLabel: 'SubscriptionRepository.refreshStatus',
-      fallbackError: 'Could not refresh subscription. Please try again.',
+      fallbackError: ErrorMessages.loadSubscriptionFailed,
     );
     if (!result.isSuccess || result.data == null) {
       emit(state.copyWith(

@@ -178,103 +178,105 @@ class BoostButton extends StatelessWidget {
               ),
               child: SafeArea(
                 top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Drag handle
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white24 : Colors.black26,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Icon
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _boostColor.withValues(alpha: 0.2),
-                            _boostColor.withValues(alpha: 0.1),
-                          ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Drag handle
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white24 : Colors.black26,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.flash_on,
-                        size: 40,
-                        color: _boostColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Activate Boost',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 24),
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              _boostColor.withValues(alpha: 0.2),
+                              _boostColor.withValues(alpha: 0.1),
+                            ],
                           ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Get seen by more people! Your profile will be shown to more users for the next 30-60 minutes.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Benefits list
-                    _buildBenefit(
-                      context,
-                      Icons.visibility,
-                      'Up to 10x more profile views',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildBenefit(
-                      context,
-                      Icons.favorite,
-                      'More potential matches',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildBenefit(
-                      context,
-                      Icons.priority_high,
-                      'Skip to the front of the line',
-                    ),
-                    const SizedBox(height: 24),
-                    // Buttons
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.pop(sheetContext);
-                          HapticFeedback.mediumImpact();
-                          context.read<BoostCubit>().activateBoost();
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _boostColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: BoxShape.circle,
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.flash_on, size: 20),
-                            SizedBox(width: 8),
-                            Text('Boost Now'),
-                          ],
+                        child: const Icon(
+                          Icons.flash_on,
+                          size: 40,
+                          color: _boostColor,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () => Navigator.pop(sheetContext),
-                      child: const Text('Maybe Later'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        'Activate Boost',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Get seen by more people! Your profile will be shown to more users for the next 30-60 minutes.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                            ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Benefits list
+                      _buildBenefit(
+                        context,
+                        Icons.visibility,
+                        'Up to 10x more profile views',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildBenefit(
+                        context,
+                        Icons.favorite,
+                        'More potential matches',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildBenefit(
+                        context,
+                        Icons.priority_high,
+                        'Skip to the front of the line',
+                      ),
+                      const SizedBox(height: 24),
+                      // Buttons
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () {
+                            Navigator.pop(sheetContext);
+                            HapticFeedback.mediumImpact();
+                            context.read<BoostCubit>().activateBoost();
+                          },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _boostColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.flash_on, size: 20),
+                              SizedBox(width: 8),
+                              Text('Boost Now'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () => Navigator.pop(sheetContext),
+                        child: const Text('Maybe Later'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

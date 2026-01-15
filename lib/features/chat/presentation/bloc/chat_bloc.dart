@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
@@ -29,6 +30,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatMessageSent>(_onMessageSent);
     on<ChatMediaSendRequested>(_onMediaSendRequested);
     on<ChatMessageUnsendRequested>(_onUnsendRequested);
+    on<ChatMessageEditRequested>(_onEditRequested);
     on<ChatMessageDeleteForMeRequested>(_onDeleteForMeRequested);
     on<ChatMessagesUpdated>(_onMessagesUpdated);
     on<ChatTypingStatusChanged>(_onTypingChanged);
@@ -41,6 +43,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatUnmatchRequested>(_onUnmatchRequested);
     on<ChatLoadMoreMessagesRequested>(_onLoadMoreMessages);
     on<ChatNewMessagesReceived>(_onNewMessagesReceived);
+    on<ChatMessageRetryRequested>(_onMessageRetryRequested);
   }
 
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
@@ -95,7 +98,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         .listen((enabled) {
       add(ChatMediaStatusUpdated(enabled));
     });
-    emit(state.copyWith(canUnsend: plan.isPlus, errorMessage: null));
+    emit(state.copyWith(canUnsend: plan.isPlus, canEdit: plan.isPlus, errorMessage: null));
 
     // Track conversation opened
     AnalyticsService.instance.logConversationOpened(matchId: event.matchId);
@@ -139,10 +142,31 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final content = event.content.trim();
     if (content.isEmpty) return;
 
+    // Create a temp ID for tracking this message
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Optimistic update: show message immediately with "sending" status
+    final optimisticMessage = Message(
+      id: tempId,
+      matchId: event.matchId,
+      fromUserId: event.fromUserId,
+      toUserId: event.toUserId,
+      content: content,
+      type: event.type,
+      sentAt: DateTime.now(),
+      isRead: false,
+      isDeletedForSender: false,
+      sendStatus: MessageSendStatus.sending,
+    );
+    final pendingMessages = Map<String, Message>.from(state.failedMessages);
+    pendingMessages[tempId] = optimisticMessage;
+
     emit(state.copyWith(
       sendStatus: SendStatus.sendingText,
       errorMessage: null,
+      failedMessages: pendingMessages,
     ));
+
     final result = await Result.guard(
       () => chatRepository.sendMessage(
         matchId: event.matchId,
@@ -170,12 +194,25 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         matchId: event.matchId,
         messageType: event.type.name,
       );
+      // Remove optimistic message (real message will come through stream)
+      final newPending = Map<String, Message>.from(state.failedMessages);
+      newPending.remove(tempId);
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        failedMessages: newPending,
+      ));
+    } else {
+      // Update to failed status for retry
+      final newFailed = Map<String, Message>.from(state.failedMessages);
+      newFailed[tempId] = optimisticMessage.copyWith(
+        sendStatus: MessageSendStatus.failed,
+      );
+      emit(state.copyWith(
+        sendStatus: SendStatus.idle,
+        errorMessage: result.errorMessage,
+        failedMessages: newFailed,
+      ));
     }
-
-    emit(state.copyWith(
-      sendStatus: SendStatus.idle,
-      errorMessage: result.errorMessage,
-    ));
   }
 
   Future<void> _onMediaSendRequested(
@@ -304,6 +341,51 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ));
   }
 
+  Future<void> _onEditRequested(
+      ChatMessageEditRequested event, Emitter<ChatState> emit) async {
+    emit(state.copyWith(isEditInProgress: true, errorMessage: null));
+
+    final planResult = await Result.guard(
+      () => subscriptionRepository.getCurrentPlan(),
+      logLabel: 'SubscriptionRepository.getCurrentPlan',
+      fallbackError: 'Could not edit message.',
+    );
+    final plan = planResult.data ?? SubscriptionPlan.free;
+    if (!planResult.isSuccess) {
+      emit(state.copyWith(
+        isEditInProgress: false,
+        errorMessage: planResult.errorMessage,
+      ));
+      return;
+    }
+    if (!plan.isPlus) {
+      emit(state.copyWith(
+        isEditInProgress: false,
+        errorMessage: 'Upgrade to Plus to edit messages.',
+      ));
+      return;
+    }
+
+    final result = await Result.guard(
+      () => chatRepository.editMessage(
+        matchId: event.matchId,
+        messageId: event.messageId,
+        newContent: event.newContent,
+      ),
+      logLabel: 'ChatRepository.editMessage',
+      fallbackError: 'Could not edit message.',
+    );
+
+    if (result.isSuccess) {
+      debugPrint('ChatBloc: Message edited in match ${event.matchId}');
+    }
+
+    emit(state.copyWith(
+      isEditInProgress: false,
+      errorMessage: result.errorMessage,
+    ));
+  }
+
   Future<void> _onDeleteForMeRequested(
       ChatMessageDeleteForMeRequested event, Emitter<ChatState> emit) async {
     final result = await Result.guard(
@@ -426,6 +508,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(
       messages: event.messages,
       canUnsend: event.plan.isPlus,
+      canEdit: event.plan.isPlus,
     ));
   }
 
@@ -488,6 +571,71 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final allMessages = [...state.messages, ...uniqueNewMessages];
 
     emit(state.copyWith(messages: allMessages));
+  }
+
+  /// Retry sending a failed message.
+  Future<void> _onMessageRetryRequested(
+    ChatMessageRetryRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    final failedMessage = state.failedMessages[event.messageId];
+    if (failedMessage == null) {
+      emit(state.copyWith(
+        errorMessage: 'Message not found. It may have already been sent.',
+      ));
+      return;
+    }
+
+    // Update the failed message to "sending" status
+    final updatedFailed = Map<String, Message>.from(state.failedMessages);
+    updatedFailed[event.messageId] = failedMessage.copyWith(
+      sendStatus: MessageSendStatus.sending,
+    );
+    emit(state.copyWith(
+      failedMessages: updatedFailed,
+      sendStatus: SendStatus.sendingText,
+      errorMessage: null,
+    ));
+
+    // Attempt to resend
+    final result = await Result.guard(
+      () => chatRepository.sendMessage(
+        matchId: failedMessage.matchId,
+        fromUserId: failedMessage.fromUserId,
+        toUserId: failedMessage.toUserId,
+        content: failedMessage.content,
+        type: failedMessage.type,
+      ),
+      logLabel: 'ChatRepository.sendMessage (retry)',
+      fallbackError: 'Message failed to send. Please try again.',
+    );
+
+    if (result.isSuccess) {
+      // Remove from failed messages on success
+      final newFailed = Map<String, Message>.from(state.failedMessages);
+      newFailed.remove(event.messageId);
+      emit(state.copyWith(
+        failedMessages: newFailed,
+        sendStatus: SendStatus.idle,
+      ));
+
+      // Track retry success
+      AnalyticsService.instance.logMessageSent(
+        matchId: failedMessage.matchId,
+        messageType: failedMessage.type.name,
+      );
+    } else {
+      // Mark as failed again
+      final newFailed = Map<String, Message>.from(state.failedMessages);
+      newFailed[event.messageId] = failedMessage.copyWith(
+        sendStatus: MessageSendStatus.failed,
+      );
+      emit(state.copyWith(
+        failedMessages: newFailed,
+        sendStatus: SendStatus.idle,
+        errorMessage: result.errorMessage,
+      ));
+    }
   }
 
   int _mediaCountForUser(String userId) {

@@ -20,7 +20,8 @@ import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
-import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
+import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -287,6 +288,9 @@ class _ChatTile extends StatefulWidget {
 
 class _ChatTileState extends State<_ChatTile>
     with AutomaticKeepAliveClientMixin {
+  // Static map to track unread counts across all tiles for badge aggregation
+  static final Map<String, int> _unreadCounts = {};
+
   Message? _lastMessage;
   int _unreadCount = 0;
   bool _isOnline = false;
@@ -307,10 +311,19 @@ class _ChatTileState extends State<_ChatTile>
 
   @override
   void dispose() {
+    // Remove this match's count and update badge
+    _unreadCounts.remove(widget.match.id);
+    _updateBadgeCounter();
     // Cancel subscriptions to prevent memory leaks
     _messagesSubscription?.cancel();
     _presenceSubscription?.cancel();
     super.dispose();
+  }
+
+  void _updateBadgeCounter() {
+    if (!mounted) return;
+    final totalUnread = _unreadCounts.values.fold(0, (sum, count) => sum + count);
+    context.read<BadgeCounterCubit>().updateUnreadChats(totalUnread);
   }
 
   void _subscribeToMessages() {
@@ -329,6 +342,9 @@ class _ChatTileState extends State<_ChatTile>
                 .where((m) =>
                     m.toUserId == widget.currentUserId && !m.isRead)
                 .length;
+            // Update static map and badge counter
+            _unreadCounts[widget.match.id] = _unreadCount;
+            _updateBadgeCounter();
           }
         });
       },

@@ -13,6 +13,7 @@ class GlassNavItem {
     required this.activeIcon,
     required this.label,
     required this.gradient,
+    this.badgeCount = 0,
   });
 
   /// Icon when not selected.
@@ -26,6 +27,9 @@ class GlassNavItem {
 
   /// Gradient to use when selected.
   final LinearGradient gradient;
+
+  /// Badge count to display. Shows badge if > 0.
+  final int badgeCount;
 }
 
 /// A frosted glass bottom navigation bar with animated tab indicators.
@@ -153,10 +157,24 @@ class _GlassNavItemWidget extends StatelessWidget {
     final inactiveColor =
         isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
+    // Build accessibility label
+    final semanticLabel = StringBuffer(item.label);
+    if (item.badgeCount > 0) {
+      semanticLabel.write(', ${item.badgeCount} new');
+    }
+    if (isSelected) {
+      semanticLabel.write(', selected');
+    }
+
+    return Semantics(
+      label: semanticLabel.toString(),
+      button: true,
+      selected: isSelected,
+      hint: 'Double tap to navigate to ${item.label}',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(
@@ -179,14 +197,27 @@ class _GlassNavItemWidget extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? item.activeIcon : item.icon,
-                key: ValueKey(isSelected),
-                size: 24,
-                color: isSelected ? Colors.white : inactiveColor,
-              ),
+            // Icon with badge
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    isSelected ? item.activeIcon : item.icon,
+                    key: ValueKey(isSelected),
+                    size: 24,
+                    color: isSelected ? Colors.white : inactiveColor,
+                  ),
+                ),
+                // Badge
+                if (item.badgeCount > 0)
+                  Positioned(
+                    right: -8,
+                    top: -6,
+                    child: _NavBadge(count: item.badgeCount),
+                  ),
+              ],
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 250),
@@ -206,6 +237,57 @@ class _GlassNavItemWidget extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ],
+        ),
+      ),
+    ),
+    );
+  }
+}
+
+/// Badge widget for nav items.
+class _NavBadge extends StatelessWidget {
+  const _NavBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayText = count > 99 ? '99+' : count.toString();
+    final isSmall = count < 10;
+
+    return Container(
+      constraints: BoxConstraints(
+        minWidth: isSmall ? 18 : 22,
+        minHeight: 18,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 0 : 5,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [DsColors.primary, Color(0xFFFF6B9D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: [
+          BoxShadow(
+            color: DsColors.primary.withValues(alpha: 0.5),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          displayText,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            height: 1,
+          ),
         ),
       ),
     );

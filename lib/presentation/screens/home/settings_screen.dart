@@ -61,12 +61,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     AlwaysStoppedAnimation(Colors.white),
                               ),
                             )
-                          : const Text('Upgrade to CrushHour Plus'),
+                          : const Text('Upgrade to Crush Plus'),
                     ),
                   )
                 else
                   const Text(
-                    'You have CrushHour Plus. Enjoy unlimited likes and unsend.',
+                    'You have Crush Plus. Enjoy unlimited likes and unsend.',
                     style: TextStyle(color: Colors.green),
                   ),
               ],

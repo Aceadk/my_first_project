@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
 class ProfileMediaScreen extends StatefulWidget {
   const ProfileMediaScreen({super.key, required this.profile});

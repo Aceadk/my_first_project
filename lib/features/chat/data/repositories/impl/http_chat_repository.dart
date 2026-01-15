@@ -214,6 +214,24 @@ class HttpChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    final result = await _apiClient.patch<void>(
+      '/chat/$matchId/messages/$messageId',
+      body: {'content': newContent},
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to edit message');
+    }
+
+    await _fetchMessages(matchId);
+  }
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

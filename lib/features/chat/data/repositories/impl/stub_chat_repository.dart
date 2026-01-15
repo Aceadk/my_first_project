@@ -199,6 +199,38 @@ class StubChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    final messages = await _loadMessages(matchId);
+    final updatedMessages = messages.map((m) {
+      if (m.id == messageId) {
+        return Message(
+          id: m.id,
+          matchId: m.matchId,
+          fromUserId: m.fromUserId,
+          toUserId: m.toUserId,
+          content: newContent,
+          type: m.type,
+          sentAt: m.sentAt,
+          isRead: m.isRead,
+          isDeletedForSender: m.isDeletedForSender,
+          reactions: m.reactions,
+          moderationStatus: m.moderationStatus,
+          moderationReason: m.moderationReason,
+          moderationAction: m.moderationAction,
+          isFlagged: m.isFlagged,
+        );
+      }
+      return m;
+    }).toList();
+    await _saveAllMessages(matchId, updatedMessages);
+    await _notifyMessageUpdate(matchId);
+  }
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

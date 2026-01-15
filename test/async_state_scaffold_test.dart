@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 
 void main() {
   testWidgets('shows loader when loading with error/empty present', (tester) async {

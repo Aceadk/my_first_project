@@ -144,12 +144,11 @@ class LocaleCubit extends Cubit<LocaleState> {
         developer.log('LocaleCubit: Placemark: ${place?.locality}, ${place?.administrativeArea}, ${place?.country}');
 
         final components = <String>[
-          if (place?.locality != null && place!.locality!.isNotEmpty)
+          if (place != null && place.locality?.isNotEmpty == true)
             place.locality!,
-          if (place?.administrativeArea != null &&
-              place!.administrativeArea!.isNotEmpty)
+          if (place != null && place.administrativeArea?.isNotEmpty == true)
             place.administrativeArea!,
-          if (place?.country != null && place!.country!.isNotEmpty)
+          if (place != null && place.country?.isNotEmpty == true)
             place.country!,
         ];
         resolvedRegion = components.isNotEmpty

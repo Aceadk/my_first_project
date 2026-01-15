@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               DsGap.sm,
               Text(
-                'Sign in to continue to CrushHour',
+                'Sign in to continue to Crush',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),

@@ -1164,6 +1164,37 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    final list = _messagesByMatch[matchId];
+    if (list == null) return;
+    final index = list.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      final m = list[index];
+      list[index] = Message(
+        id: m.id,
+        matchId: m.matchId,
+        fromUserId: m.fromUserId,
+        toUserId: m.toUserId,
+        content: newContent,
+        type: m.type,
+        sentAt: m.sentAt,
+        isRead: m.isRead,
+        isDeletedForSender: m.isDeletedForSender,
+        reactions: m.reactions,
+        moderationStatus: m.moderationStatus,
+        moderationReason: m.moderationReason,
+        moderationAction: m.moderationAction,
+        isFlagged: m.isFlagged,
+      );
+      _streams[matchId]?.add(List.unmodifiable(list));
+    }
+  }
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

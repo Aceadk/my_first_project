@@ -3,8 +3,8 @@
 library shared;
 
 // Shared Widgets
-export '../presentation/widgets/async_state_scaffold.dart';
-export '../presentation/widgets/cached_network_image.dart';
+export 'widgets/async_state_scaffold.dart';
+export 'widgets/cached_network_image.dart';
 export '../presentation/widgets/plus_feature_gate.dart';
 
 // Shared Models

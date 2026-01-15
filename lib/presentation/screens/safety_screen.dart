@@ -394,7 +394,7 @@ class _SafetyEducationCard extends StatelessWidget {
             ),
             const _SafetyTip(
               icon: Icons.lock_outline,
-              text: 'Keep chats in CrushHour until you trust someone. Never send money or codes.',
+              text: 'Keep chats in Crush until you trust someone. Never send money or codes.',
             ),
             const _SafetyTip(
               icon: Icons.verified_user_outlined,
@@ -942,7 +942,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
   final _matchNameController = TextEditingController();
   final _locationController = TextEditingController();
   final _contactNameController = TextEditingController();
-  final _contactPhoneController = TextEditingController();
+  final _contactEmailController = TextEditingController();
   final _notesController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 2));
@@ -955,7 +955,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
     _matchNameController.dispose();
     _locationController.dispose();
     _contactNameController.dispose();
-    _contactPhoneController.dispose();
+    _contactEmailController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -1065,11 +1065,11 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             ),
             DsGap.md,
             GlassTextField(
-              controller: _contactPhoneController,
-              label: 'Contact phone',
-              hintText: '+1 555 123 4567',
-              prefixIcon: Icons.phone,
-              keyboardType: TextInputType.phone,
+              controller: _contactEmailController,
+              label: 'Contact email',
+              hintText: 'example@email.com',
+              prefixIcon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
             ),
             DsGap.lg,
             // Notes (optional)
@@ -1135,8 +1135,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
       return;
     }
     if (_contactNameController.text.trim().isEmpty ||
-        _contactPhoneController.text.trim().isEmpty) {
-      setState(() => _error = 'Please add an emergency contact');
+        _contactEmailController.text.trim().isEmpty) {
+      setState(() => _error = 'Please add an emergency contact with email');
       return;
     }
 
@@ -1166,7 +1166,10 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
         sharedWith: [
           EmergencyContact(
             name: _contactNameController.text.trim(),
-            phone: _contactPhoneController.text.trim(),
+            phone: '', // Phone is optional, using email instead
+            email: _contactEmailController.text.trim(),
+            notifyBySms: false,
+            notifyByEmail: true,
           ),
         ],
       );

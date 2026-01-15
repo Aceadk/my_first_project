@@ -22,6 +22,7 @@ class FirebaseAuthRepository implements AuthRepository {
   static const _emailOtpIdentifierKey = 'email_otp_identifier';
   static const _emailOtpTimestampKey = 'email_otp_timestamp';
   static const _emailOtpPurposeKey = 'email_otp_purpose';
+  static const _generatedPasswordKey = 'otp_generated_password';
 
   // Pending OTP data stored in memory for quick access
   final Map<String, _PendingEmailOtp> _pendingEmailOtps = {};
@@ -55,8 +56,47 @@ class FirebaseAuthRepository implements AuthRepository {
       _currentUser = null;
       _authStateController.add(null);
     } else {
+      // First emit with Firebase SDK data
       _currentUser = _mapFirebaseUser(firebaseUser);
       _authStateController.add(_currentUser);
+
+      // Then check Firestore for OTP-verified users and update if needed
+      _checkAndUpdateFirestoreVerification(firebaseUser);
+    }
+  }
+
+  /// Checks Firestore for OTP-based email verification and updates user state if verified.
+  Future<void> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
+    // Skip if already verified via Firebase SDK
+    if (firebaseUser.emailVerified) return;
+
+    try {
+      final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+      final userData = userDoc.data();
+      if (userData == null) return;
+
+      final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
+      final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
+
+      if (firestoreEmailVerified || emailVerifiedViaOtp) {
+        // User verified via OTP - update current user with verified status
+        _currentUser = CrushUser(
+          id: firebaseUser.uid,
+          phoneNumber: firebaseUser.phoneNumber ?? '',
+          email: firebaseUser.email,
+          username: firebaseUser.displayName,
+          isEmailVerified: true, // Override with Firestore value
+          isPhoneVerified: firebaseUser.phoneNumber != null,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+          profile: null,
+        );
+        _authStateController.add(_currentUser);
+        AppLogger.logInfo('[FirebaseAuthRepo] Updated user with OTP-verified email status');
+      }
+    } catch (e) {
+      // Don't log error for expected document-not-found cases
+      AppLogger.logInfo('[FirebaseAuthRepo] Could not check Firestore verification: $e');
     }
   }
 
@@ -139,11 +179,14 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     // Emit current state after a microtask to ensure stream subscription is ready
-    Future.microtask(() {
+    Future.microtask(() async {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser != null) {
         _currentUser = _mapFirebaseUser(firebaseUser);
         _authStateController.add(_currentUser);
+
+        // Check Firestore for OTP-verified users
+        await _checkAndUpdateFirestoreVerification(firebaseUser);
       } else {
         _authStateController.add(null);
       }
@@ -365,6 +408,19 @@ class FirebaseAuthRepository implements AuthRepository {
     return List.generate(6, (_) => random.nextInt(10)).join();
   }
 
+  /// Generate a secure random password for OTP-based account creation
+  String _generateSecurePassword() {
+    final random = Random.secure();
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*';
+    return List.generate(24, (_) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  /// Check if string is a valid email format
+  bool _isValidEmail(String value) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(value);
+  }
+
   @override
   Future<void> requestEmailOtp({
     required String identifier,
@@ -478,16 +534,72 @@ class FirebaseAuthRepository implements AuthRepository {
     // Handle different purposes
     switch (purpose) {
       case EmailOtpPurpose.login:
-        // For login, sign in with email link as fallback or create anonymous user
-        // Since Firebase doesn't support email OTP natively, we sign in anonymously
-        // and link the email later, OR use a custom token from your backend
-        final credential = await _firebaseAuth.signInAnonymously();
-        final firebaseUser = credential.user;
-        if (firebaseUser != null) {
-          // Update display name with identifier
-          await firebaseUser.updateDisplayName(identifier);
-          await _ensureUserDocumentExists(firebaseUser);
-          return _mapFirebaseUser(firebaseUser);
+        // For login via OTP, we create/sign-in with email and generated password
+        // since Firebase doesn't support native email OTP authentication
+        final email = _isValidEmail(identifier) ? identifier : null;
+        if (email == null) {
+          throw Exception('Please use a valid email address for OTP login');
+        }
+
+        // Check if we have a stored password for this email
+        var storedPassword = await _secureStorage.read(
+          key: '${_generatedPasswordKey}_$normalizedIdentifier',
+        );
+
+        if (storedPassword != null) {
+          // Try to sign in with existing account
+          try {
+            final credential = await _firebaseAuth.signInWithEmailAndPassword(
+              email: email,
+              password: storedPassword,
+            );
+            final firebaseUser = credential.user;
+            if (firebaseUser != null) {
+              await _ensureUserDocumentExists(firebaseUser);
+              return _mapFirebaseUser(firebaseUser);
+            }
+          } on fb.FirebaseAuthException catch (e) {
+            // If sign-in fails (wrong password, account deleted, etc.), try creating new account
+            SecureLogger.debug('OTP login sign-in failed: ${e.code}, trying create');
+            storedPassword = null; // Reset to trigger account creation
+          }
+        }
+
+        // Generate a secure password for new account
+        if (storedPassword == null) {
+          final newPassword = _generateSecurePassword();
+
+          try {
+            // Try to create new account
+            final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+              email: email,
+              password: newPassword,
+            );
+            final firebaseUser = credential.user;
+            if (firebaseUser != null) {
+              // Store the generated password securely
+              await _secureStorage.write(
+                key: '${_generatedPasswordKey}_$normalizedIdentifier',
+                value: newPassword,
+              );
+              // Mark email as verified since they verified via OTP
+              // Note: Firebase doesn't allow direct email verification, but we track it
+              await _ensureUserDocumentExists(firebaseUser);
+              // Update Firestore to mark email as verified via OTP
+              await _firestore.collection('users').doc(firebaseUser.uid).update({
+                'isEmailVerified': true,
+                'emailVerifiedViaOtp': true,
+              });
+              return _mapFirebaseUser(firebaseUser);
+            }
+          } on fb.FirebaseAuthException catch (e) {
+            if (e.code == 'email-already-in-use') {
+              // Account exists but we don't have the password
+              // User should use password login or reset password
+              throw Exception('Account exists. Please sign in with your password or reset it.');
+            }
+            rethrow;
+          }
         }
         break;
 
@@ -610,8 +722,9 @@ class FirebaseAuthRepository implements AuthRepository {
       return null;
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Email verified: ${updatedUser.emailVerified}');
+    AppLogger.logInfo('[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}');
 
+    // Check Firebase SDK verification first
     if (updatedUser.emailVerified) {
       // Update Firestore document with verified status
       try {
@@ -628,6 +741,37 @@ class FirebaseAuthRepository implements AuthRepository {
       _currentUser = _mapFirebaseUser(updatedUser);
       _authStateController.add(_currentUser);
       return _currentUser;
+    }
+
+    // Also check Firestore for OTP-verified users
+    // Users who verified via email OTP have isEmailVerified in Firestore but not in Firebase SDK
+    try {
+      final userDoc = await _firestore.collection('users').doc(updatedUser.uid).get();
+      final userData = userDoc.data();
+      final firestoreEmailVerified = userData?['isEmailVerified'] as bool? ?? false;
+      final emailVerifiedViaOtp = userData?['emailVerifiedViaOtp'] as bool? ?? false;
+
+      AppLogger.logInfo('[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
+
+      if (firestoreEmailVerified || emailVerifiedViaOtp) {
+        // User verified via OTP - create user with verified status
+        _currentUser = CrushUser(
+          id: updatedUser.uid,
+          phoneNumber: updatedUser.phoneNumber ?? '',
+          email: updatedUser.email,
+          username: updatedUser.displayName,
+          isEmailVerified: true, // Override with Firestore value
+          isPhoneVerified: updatedUser.phoneNumber != null,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+          profile: null,
+        );
+        _authStateController.add(_currentUser);
+        AppLogger.logInfo('[FirebaseAuthRepo] User verified via OTP, returning verified status');
+        return _currentUser;
+      }
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error checking Firestore verification status', e);
     }
 
     return null;

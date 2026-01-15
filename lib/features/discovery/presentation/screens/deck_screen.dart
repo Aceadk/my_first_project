@@ -28,7 +28,7 @@ import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart'
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
-import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_skeleton.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_ui_helpers.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/swipeable_card.dart';
@@ -39,6 +39,7 @@ import 'package:crushhour/features/discovery/presentation/widgets/match_celebrat
 import 'package:crushhour/features/discovery/presentation/widgets/boost_button.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.preMatchService, this.validationService});
@@ -57,9 +58,33 @@ class _DeckScreenState extends State<DeckScreen> {
   String? _lastProfileSignature;
   bool _backendBlocked = false;
   String? _lastBoostUserId;
+  int _lastPreloadedIndex = -1; // Track last preloaded index to avoid redundant preloads
 
   ProfileValidationService get _validationService =>
       widget.validationService ?? ProfileValidationService();
+
+  /// Preload images for the next 2 profiles in the deck for smoother transitions.
+  void _preloadUpcomingProfiles(List<Profile> deck, int currentIndex) {
+    if (currentIndex == _lastPreloadedIndex) return;
+    _lastPreloadedIndex = currentIndex;
+
+    final urlsToPreload = <String>[];
+
+    // Preload next 2 profiles' first photos
+    for (int i = 1; i <= 2; i++) {
+      final nextIndex = currentIndex + i;
+      if (nextIndex < deck.length) {
+        final profile = deck[nextIndex];
+        if (profile.photoUrls.isNotEmpty) {
+          urlsToPreload.add(profile.photoUrls.first);
+        }
+      }
+    }
+
+    if (urlsToPreload.isNotEmpty) {
+      NetworkImageCache.instance.preload(urlsToPreload);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,12 +156,24 @@ class _DeckScreenState extends State<DeckScreen> {
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
         final isLoading = status == DeckStatus.loading;
+
+        // Filter out users who should be hidden (blocked or reported within 10 days)
+        final safety = context.read<SafetyCubit>();
+        final filteredDeck = state.deck
+            .where((p) => !safety.shouldHideFromFeed(p.id))
+            .toList();
+
         final isEmptyDeck = status == DeckStatus.empty ||
-            state.deck.isEmpty ||
-            state.currentIndex >= state.deck.length;
+            filteredDeck.isEmpty ||
+            state.currentIndex >= filteredDeck.length;
 
         final currentProfile =
-            isEmptyDeck ? null : state.deck[state.currentIndex];
+            isEmptyDeck ? null : filteredDeck[state.currentIndex.clamp(0, filteredDeck.length - 1)];
+
+        // Preload images for upcoming profiles
+        if (!isEmptyDeck && filteredDeck.isNotEmpty) {
+          _preloadUpcomingProfiles(filteredDeck, state.currentIndex);
+        }
 
         final backendSwipeReady = _backendCompleteness?.allowsSwipe ??
             (_backendBlocked ? false : _completenessError != null);
@@ -230,16 +267,13 @@ class _DeckScreenState extends State<DeckScreen> {
                             value: _DeckSafetyAction.block,
                             child: Text('Block & hide profile'),
                           ),
-                          PopupMenuItem(
-                            value: _DeckSafetyAction.guidelines,
-                            child: Text('Community guidelines'),
-                          ),
                         ],
                       ),
                     ),
                     Expanded(
                       child: SwipeableCard(
                         profile: currentProfile,
+                        superLikeEnabled: state.superLikesRemaining > 0,
                         onTap: () => context.push(
                           CrushRoutes.userProfile,
                           extra: OtherUserProfileArgs(profile: currentProfile),
@@ -309,6 +343,41 @@ class _DeckScreenState extends State<DeckScreen> {
                           if (!allowed) return;
                           discoveryBloc.add(
                             DiscoverySwipedRight(
+                              userId: userId,
+                              targetUserId: currentProfile.id,
+                            ),
+                          );
+                        },
+                        onSwipeUp: () async {
+                          // SuperLike action (swipe up)
+                          if (userId == null) return;
+                          final discoveryBloc = context.read<DiscoveryBloc>();
+                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                            _showProfileIncompleteDialog(
+                              context,
+                              completeness,
+                              remote: _backendCompleteness,
+                              minimum: 'swipe',
+                              isAccountVerified: isAccountVerified,
+                            );
+                            return;
+                          }
+                          final outcome = await _evaluateBackendAllowance(
+                            minimum: 'swipe',
+                            local: completeness,
+                            isAccountVerified: isAccountVerified,
+                          );
+                          if (!context.mounted) return;
+                          final allowed = _handleBackendOutcome(
+                            context,
+                            outcome,
+                            minimum: 'swipe',
+                            completeness: completeness,
+                            isAccountVerified: isAccountVerified,
+                          );
+                          if (!allowed) return;
+                          discoveryBloc.add(
+                            DiscoverySuperLiked(
                               userId: userId,
                               targetUserId: currentProfile.id,
                             ),
@@ -524,7 +593,10 @@ class _DeckScreenState extends State<DeckScreen> {
                         ),
                       ],
                     ),
-                    DsGap.xxl,
+                    // Extra padding for glass bottom nav bar (80px + safe area)
+                    SizedBox(
+                      height: 80 + MediaQuery.of(context).padding.bottom + DsSpacing.lg,
+                    ),
                   ],
                 ),
         );
@@ -860,6 +932,7 @@ class _DeckScreenState extends State<DeckScreen> {
             child: IntrinsicHeight(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(20),

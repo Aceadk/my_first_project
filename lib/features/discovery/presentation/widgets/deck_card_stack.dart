@@ -5,7 +5,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'swipeable_card.dart';
-import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
 /// Optimized card stack widget that only rebuilds when the current profile changes.
 /// Uses BlocSelector to avoid unnecessary rebuilds from unrelated state changes.

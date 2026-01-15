@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../tokens/colors.dart';
 import '../tokens/spacing.dart';
 import '../tokens/gradients.dart';
 import 'glass_button.dart';
 
-/// A polished empty state widget with icon, message, and optional action.
+/// A polished empty state widget with icon/Lottie, message, and optional action.
 class DsEmptyState extends StatelessWidget {
   const DsEmptyState({
     super.key,
-    required this.icon,
+    this.icon,
     required this.title,
     this.message,
     this.actionLabel,
@@ -17,10 +18,15 @@ class DsEmptyState extends StatelessWidget {
     this.iconGradient,
     this.secondaryActionLabel,
     this.onSecondaryAction,
-  });
+    this.lottieAsset,
+    this.lottieWidth,
+    this.lottieHeight,
+    this.customWidget,
+  }) : assert(icon != null || lottieAsset != null || customWidget != null,
+            'Either icon, lottieAsset, or customWidget must be provided');
 
   /// Icon to display (use large icon for visual impact).
-  final IconData icon;
+  final IconData? icon;
 
   /// Main title text.
   final String title;
@@ -46,6 +52,19 @@ class DsEmptyState extends StatelessWidget {
   /// Secondary action callback.
   final VoidCallback? onSecondaryAction;
 
+  /// Lottie animation asset path (e.g., 'assets/animations/empty.json').
+  /// Takes precedence over icon if provided.
+  final String? lottieAsset;
+
+  /// Width for the Lottie animation. Defaults to 150.
+  final double? lottieWidth;
+
+  /// Height for the Lottie animation. Defaults to 150.
+  final double? lottieHeight;
+
+  /// Custom widget to display instead of icon or Lottie.
+  final Widget? customWidget;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -53,13 +72,25 @@ class DsEmptyState extends StatelessWidget {
     final mutedColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final effectiveIconColor = iconColor ?? DsColors.primary;
 
-    return Padding(
+    // Build semantic label for screen readers
+    final semanticLabel = StringBuffer(title);
+    if (message != null) {
+      semanticLabel.write('. $message');
+    }
+    if (actionLabel != null) {
+      semanticLabel.write('. Action available: $actionLabel');
+    }
+
+    return Semantics(
+      label: semanticLabel.toString(),
+      container: true,
+      child: Padding(
       padding: const EdgeInsets.all(DsSpacing.xl),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Animated icon container
+          // Animated visual element (Lottie, custom widget, or icon)
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),
             duration: const Duration(milliseconds: 600),
@@ -70,34 +101,7 @@ class DsEmptyState extends StatelessWidget {
                 child: child,
               );
             },
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: iconGradient ??
-                    LinearGradient(
-                      colors: [
-                        effectiveIconColor.withValues(alpha: 0.2),
-                        effectiveIconColor.withValues(alpha: 0.1),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                boxShadow: [
-                  BoxShadow(
-                    color: effectiveIconColor.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: effectiveIconColor,
-              ),
-            ),
+            child: _buildVisual(effectiveIconColor),
           ),
           const SizedBox(height: DsSpacing.xl),
           // Title with fade-in animation
@@ -171,6 +175,62 @@ class DsEmptyState extends StatelessWidget {
           ],
         ],
       ),
+    ),
+    );
+  }
+
+  /// Builds the visual element - Lottie, custom widget, or icon container.
+  Widget _buildVisual(Color effectiveIconColor) {
+    // Priority: customWidget > lottieAsset > icon
+    if (customWidget != null) {
+      return customWidget!;
+    }
+
+    if (lottieAsset != null) {
+      return Lottie.asset(
+        lottieAsset!,
+        width: lottieWidth ?? 150,
+        height: lottieHeight ?? 150,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to icon if Lottie fails to load
+          return _buildIconContainer(effectiveIconColor);
+        },
+      );
+    }
+
+    return _buildIconContainer(effectiveIconColor);
+  }
+
+  /// Builds the icon container with gradient background and shadow.
+  Widget _buildIconContainer(Color effectiveIconColor) {
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: iconGradient ??
+            LinearGradient(
+              colors: [
+                effectiveIconColor.withValues(alpha: 0.2),
+                effectiveIconColor.withValues(alpha: 0.1),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+        boxShadow: [
+          BoxShadow(
+            color: effectiveIconColor.withValues(alpha: 0.2),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Icon(
+        icon ?? Icons.help_outline,
+        size: 48,
+        color: effectiveIconColor,
+      ),
     );
   }
 }
@@ -185,6 +245,7 @@ class EmptyStateNoMatches extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
+      lottieAsset: 'assets/animations/no_matches.json',
       icon: Icons.favorite_border,
       iconColor: DsColors.primary,
       title: 'No matches yet',
@@ -207,6 +268,7 @@ class EmptyStateNoMessages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
+      lottieAsset: 'assets/animations/no_messages.json',
       icon: Icons.chat_bubble_outline,
       iconColor: DsColors.secondary,
       title: 'Say hello!',
@@ -233,6 +295,7 @@ class EmptyStateDeck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
+      lottieAsset: 'assets/animations/empty_deck.json',
       icon: Icons.explore_outlined,
       iconGradient: DsGradients.discover,
       title: 'All caught up!',
@@ -281,6 +344,7 @@ class EmptyStateError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
+      lottieAsset: 'assets/animations/error.json',
       icon: Icons.error_outline,
       iconColor: DsColors.error,
       title: 'Something went wrong',
@@ -300,6 +364,7 @@ class EmptyStateOffline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
+      lottieAsset: 'assets/animations/offline.json',
       icon: Icons.wifi_off,
       iconColor: DsColors.textMutedLight,
       title: 'No internet connection',

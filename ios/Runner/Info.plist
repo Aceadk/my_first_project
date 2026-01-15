@@ -57,5 +57,21 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>CrushHour needs camera access to take profile photos and video call with your matches.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CrushHour needs microphone access to record voice messages and make voice/video calls.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CrushHour needs photo library access to select photos for your profile.</string>
+	<key>NSPhotoLibraryAddOnlyUsageDescription</key>
+	<string>CrushHour needs permission to save photos to your library.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>CrushHour uses this to provide personalized recommendations and measure ad effectiveness.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>CrushHour can help you find friends who are also using the app.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>CrushHour uses Face ID for secure authentication.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

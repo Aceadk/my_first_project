@@ -8,11 +8,12 @@ import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/content_reaction_button.dart';
-import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/core/accessibility/semantics_helper.dart';
 
 /// A swipeable card showing a profile with photos and videos.
 class SwipeCard extends StatefulWidget {
@@ -58,9 +59,29 @@ class _SwipeCardState extends State<SwipeCard> {
   }
 
   @override
+  void didUpdateWidget(SwipeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Clean up video when profile changes
+    if (oldWidget.profile.id != widget.profile.id) {
+      _disposeVideoController();
+      _currentMediaIndex = 0;
+    }
+  }
+
+  @override
   void dispose() {
-    _videoController?.dispose();
+    _disposeVideoController();
     super.dispose();
+  }
+
+  void _disposeVideoController() {
+    if (_videoController != null) {
+      _videoController!.removeListener(_onVideoStateChanged);
+      _videoController!.dispose();
+      _videoController = null;
+      _isVideoInitialized = false;
+      _isVideoPlaying = false;
+    }
   }
 
   void _goToMedia(int index) {
@@ -69,11 +90,7 @@ class _SwipeCardState extends State<SwipeCard> {
 
     // Dispose previous video controller if switching away from video
     if (_currentMedia?.isVideo == true) {
-      _videoController?.pause();
-      _videoController?.dispose();
-      _videoController = null;
-      _isVideoInitialized = false;
-      _isVideoPlaying = false;
+      _disposeVideoController();
     }
 
     setState(() {
@@ -238,81 +255,120 @@ class _SwipeCardState extends State<SwipeCard> {
       if (country.isNotEmpty) country,
     ].join(city.isNotEmpty && country.isNotEmpty ? ', ' : '');
 
-    return Container(
-      margin: const EdgeInsets.all(DsSpacing.md),
+    // Build semantic label for screen readers
+    final semanticLabel = SemanticsHelper.profileCardLabel(
+      name: displayName,
+      age: profile.age,
+      location: location.isNotEmpty ? location : null,
+      bio: profile.profilePrompts.isNotEmpty
+          ? '${profile.profilePrompts.first.question}: ${profile.profilePrompts.first.answer}'
+          : bio,
+      isVerified: profile.isVerified,
+    );
+
+    return Semantics(
+      label: semanticLabel,
+      hint: 'Swipe right to like, swipe left to pass',
+      container: true,
+      child: Container(
+      // No margin - full-size card like Tinder
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DsRadius.xl),
+        borderRadius: BorderRadius.circular(DsRadius.lg),
         border: Border.all(
           color: DsGlassColors.borderLight,
-          width: 1.5,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: DsColors.primary.withValues(alpha: 0.15),
-            blurRadius: 20,
-            spreadRadius: 2,
+            color: DsColors.primary.withValues(alpha: 0.1),
+            blurRadius: 16,
+            spreadRadius: 1,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(DsRadius.xl),
+        borderRadius: BorderRadius.circular(DsRadius.lg),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Media (photo or video)
-            if (currentMedia != null)
-              currentMedia.isVideo
-                  ? _buildVideoPlayer(currentMedia.url)
-                  : CachedNetworkImage(
-                      imageUrl: currentMedia.url,
-                      fit: BoxFit.cover,
-                      placeholder: _placeholder(),
-                      errorWidget: _placeholder(),
-                    )
-            else
-              _placeholder(),
+            // Media (photo or video) with accessibility
+            Semantics(
+              label: currentMedia != null
+                  ? currentMedia.isVideo
+                      ? 'Video ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
+                      : 'Photo ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
+                  : 'No photo available for $displayName',
+              image: currentMedia != null && !currentMedia.isVideo,
+              child: currentMedia != null
+                  ? currentMedia.isVideo
+                      ? _buildVideoPlayer(currentMedia.url)
+                      : CachedNetworkImage(
+                          imageUrl: currentMedia.url,
+                          fit: BoxFit.cover,
+                          placeholder: _placeholder(),
+                          errorWidget: _placeholder(),
+                        )
+                  : _placeholder(),
+            ),
 
-            // Tap zones for navigation
+            // Tap zones for navigation with accessibility
             Row(
               children: [
                 // Left tap zone (previous)
                 Expanded(
-                  child: GestureDetector(
-                    onTap: _goPrevious,
-                    behavior: HitTestBehavior.opaque,
-                    child: const SizedBox.expand(),
+                  child: Semantics(
+                    button: true,
+                    label: 'Previous photo',
+                    hint: _currentMediaIndex > 0 ? 'Double tap to view previous photo' : 'No previous photo',
+                    child: GestureDetector(
+                      onTap: _goPrevious,
+                      behavior: HitTestBehavior.opaque,
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
                 // Center tap zone (open full screen / toggle video)
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (currentMedia?.isVideo == true) {
-                        _toggleVideoPlayPause();
-                      } else {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProfileMediaScreen(profile: profile),
-                          ),
-                        );
-                      }
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: const SizedBox.expand(),
+                  child: Semantics(
+                    button: true,
+                    label: currentMedia?.isVideo == true
+                        ? 'Play or pause video'
+                        : 'View full profile',
+                    hint: 'Double tap to ${currentMedia?.isVideo == true ? 'toggle video playback' : 'see full profile'}',
+                    child: GestureDetector(
+                      onTap: () {
+                        if (currentMedia?.isVideo == true) {
+                          _toggleVideoPlayPause();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ProfileMediaScreen(profile: profile),
+                            ),
+                          );
+                        }
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
                 // Right tap zone (next)
                 Expanded(
-                  child: GestureDetector(
-                    onTap: _goNext,
-                    behavior: HitTestBehavior.opaque,
-                    child: const SizedBox.expand(),
+                  child: Semantics(
+                    button: true,
+                    label: 'Next photo',
+                    hint: _currentMediaIndex < _allMedia.length - 1 ? 'Double tap to view next photo' : 'No next photo',
+                    child: GestureDetector(
+                      onTap: _goNext,
+                      behavior: HitTestBehavior.opaque,
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
               ],
@@ -445,8 +501,8 @@ class _SwipeCardState extends State<SwipeCard> {
                 },
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(DsRadius.xl - 2),
-                    bottomRight: Radius.circular(DsRadius.xl - 2),
+                    bottomLeft: Radius.circular(DsRadius.lg - 1),
+                    bottomRight: Radius.circular(DsRadius.lg - 1),
                   ),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
@@ -586,6 +642,7 @@ class _SwipeCardState extends State<SwipeCard> {
           ],
         ),
       ),
+    ),
     );
   }
 

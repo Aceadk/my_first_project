@@ -29,7 +29,7 @@ class EnvConfig {
   static const String _smtpPortStr = String.fromEnvironment('SMTP_PORT');
   static const String _smtpEmail = String.fromEnvironment('SMTP_EMAIL');
   static const String _smtpPassword = String.fromEnvironment('SMTP_PASSWORD');
-  static const String _smtpSenderName = String.fromEnvironment('SMTP_SENDER_NAME', defaultValue: 'CrushHour');
+  static const String _smtpSenderName = String.fromEnvironment('SMTP_SENDER_NAME', defaultValue: 'Crush');
 
   // Secure storage keys
   static const String _keySmtpHost = 'smtp_host';
@@ -68,7 +68,7 @@ class EnvConfig {
   /// Get sender name from dart-define or secure storage.
   static Future<String> getSenderName() async {
     if (_smtpSenderName.isNotEmpty) return _smtpSenderName;
-    return await _storage.read(key: _keySenderName) ?? 'CrushHour';
+    return await _storage.read(key: _keySenderName) ?? 'Crush';
   }
 
   /// Check if SMTP is fully configured.
@@ -91,7 +91,7 @@ class EnvConfig {
     required int port,
     required String email,
     required String password,
-    String senderName = 'CrushHour',
+    String senderName = 'Crush',
   }) async {
     await _storage.write(key: _keySmtpHost, value: host);
     await _storage.write(key: _keySmtpPort, value: port.toString());

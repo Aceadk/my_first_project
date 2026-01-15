@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_version.dart';
+import 'certificate_pinning.dart';
 import 'dto/base_dto.dart';
 
 /// HTTP methods supported by the API client.
@@ -19,13 +20,22 @@ enum HttpMethod { get, post, put, patch, delete }
 /// - Request/response interceptors
 /// - Offline detection
 /// - Comprehensive error handling
+/// - Certificate pinning for MITM protection
 class ApiClient {
   ApiClient({
     ApiConfig? config,
     this.authTokenProvider,
     this.onAuthError,
     this.onVersionMismatch,
-  }) : config = config ?? ApiConfig.production;
+    this.enableCertificatePinning = true,
+  }) : config = config ?? ApiConfig.production {
+    // Initialize HTTP client with or without certificate pinning
+    _httpClient = enableCertificatePinning
+        ? CertificatePinning.createPinnedClient(
+            connectionTimeout: this.config.timeout,
+          )
+        : http.Client();
+  }
 
   final ApiConfig config;
 
@@ -38,7 +48,10 @@ class ApiClient {
   /// Callback when API version mismatch is detected.
   final void Function(VersionNegotiationResult)? onVersionMismatch;
 
-  final http.Client _httpClient = http.Client();
+  /// Whether to enable certificate pinning (enabled by default in release mode).
+  final bool enableCertificatePinning;
+
+  late final http.Client _httpClient;
   final List<RequestInterceptor> _requestInterceptors = [];
   final List<ResponseInterceptor> _responseInterceptors = [];
 

@@ -6,7 +6,7 @@ import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
@@ -298,6 +298,15 @@ class OtherUserProfileScreen extends StatelessWidget {
                                       profile.personalityType) ??
                                   '',
                             ),
+                          if (privacy.showReligion &&
+                              profile.religion != null)
+                            _InfoRow(
+                              icon: Icons.self_improvement,
+                              label: 'Religion',
+                              value: ProfileFieldOptions.getReligionLabel(
+                                      profile.religion) ??
+                                  '',
+                            ),
                         ],
                       ),
                     ),
@@ -486,7 +495,8 @@ class OtherUserProfileScreen extends StatelessWidget {
   bool _hasAboutMe(Profile profile, ProfilePrivacySettings privacy) {
     return (privacy.showEducation && profile.educationLevel != null) ||
         (privacy.showFamilyPlans && profile.familyPlans != null) ||
-        (privacy.showPersonality && profile.personalityType != null);
+        (privacy.showPersonality && profile.personalityType != null) ||
+        (privacy.showReligion && profile.religion != null);
   }
 
   bool _hasLifestyle(Profile profile, ProfilePrivacySettings privacy) {
@@ -661,7 +671,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                            'Report submitted. Thanks for keeping CrushHour safe!'),
+                            'Report submitted. Thanks for keeping Crush safe!'),
                       ),
                     );
                   }

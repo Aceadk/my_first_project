@@ -170,6 +170,25 @@ class ProfileFieldOptions {
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // RELIGION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static const List<({String label, String value, String emoji})> religionOptions = [
+    (label: 'Agnostic', value: 'agnostic', emoji: '🤔'),
+    (label: 'Atheist', value: 'atheist', emoji: '🔬'),
+    (label: 'Buddhist', value: 'buddhist', emoji: '☸️'),
+    (label: 'Catholic', value: 'catholic', emoji: '✝️'),
+    (label: 'Christian', value: 'christian', emoji: '✝️'),
+    (label: 'Hindu', value: 'hindu', emoji: '🕉️'),
+    (label: 'Jewish', value: 'jewish', emoji: '✡️'),
+    (label: 'Muslim', value: 'muslim', emoji: '☪️'),
+    (label: 'Sikh', value: 'sikh', emoji: '🪯'),
+    (label: 'Spiritual', value: 'spiritual', emoji: '🙏'),
+    (label: 'Other', value: 'other', emoji: '🌟'),
+    (label: 'Prefer not to say', value: 'prefer_not_say', emoji: '🤐'),
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // ZODIAC SIGNS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -439,6 +458,13 @@ class ProfileFieldOptions {
   static String? getZodiacLabel(String? value) {
     if (value == null) return null;
     final match = zodiacSigns.where((e) => e.value == value).firstOrNull;
+    return match != null ? '${match.emoji} ${match.label}' : null;
+  }
+
+  /// Get display label for a religion value
+  static String? getReligionLabel(String? value) {
+    if (value == null) return null;
+    final match = religionOptions.where((e) => e.value == value).firstOrNull;
     return match != null ? '${match.emoji} ${match.label}' : null;
   }
 

@@ -493,11 +493,13 @@ class SettingsScreen extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               Padding(
                 padding: DsEdgeInsets.allLg,
                 child: Row(
@@ -674,6 +676,7 @@ class SettingsScreen extends StatelessWidget {
               ],
               DsGap.lg,
             ],
+          ),
           ),
         );
       },

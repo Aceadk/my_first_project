@@ -384,7 +384,7 @@ class _VideoDurationBadgeState extends State<_VideoDurationBadge> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.sm),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(

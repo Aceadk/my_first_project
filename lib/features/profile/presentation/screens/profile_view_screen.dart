@@ -11,7 +11,7 @@ import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/presentation/widgets/cached_network_image.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 
 class ProfileViewScreen extends StatefulWidget {
@@ -230,6 +230,16 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                         DsGap.lg,
                       ],
 
+                      // Photos Gallery with blend effect
+                      if (profile.photoUrls.isNotEmpty) ...[
+                        _InfoSection(
+                          title: 'My Photos',
+                          icon: Icons.photo_library_outlined,
+                          child: _PhotosGrid(photos: profile.photoUrls),
+                        ),
+                        DsGap.lg,
+                      ],
+
                       // Profile Prompts
                       if (profile.profilePrompts.isNotEmpty) ...[
                         _InfoSection(
@@ -326,6 +336,12 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                 icon: Icons.emoji_people,
                                 label: 'Personality',
                                 value: ProfileFieldOptions.getPersonalityLabel(profile.personalityType) ?? '',
+                              ),
+                            if (profile.religion != null)
+                              _InfoRow(
+                                icon: Icons.self_improvement,
+                                label: 'Religion',
+                                value: ProfileFieldOptions.getReligionLabel(profile.religion) ?? '',
                               ),
                           ],
                         ),
@@ -678,6 +694,87 @@ class _InfoRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Grid of photos with glass blend effect
+class _PhotosGrid extends StatelessWidget {
+  final List<String> photos;
+
+  const _PhotosGrid({required this.photos});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: photos.length,
+      itemBuilder: (context, index) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(DsRadius.md),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Photo
+              CachedNetworkImage(
+                imageUrl: photos[index],
+                fit: BoxFit.cover,
+                errorWidget: Container(
+                  color: isDark
+                      ? DsGlassColors.surfaceDark
+                      : DsGlassColors.surfaceLight,
+                  child: Icon(
+                    Icons.image_not_supported_outlined,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+                ),
+              ),
+              // Glass blend overlay at bottom
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        DsColors.primary.withValues(alpha: 0.3),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Glass border overlay
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(DsRadius.md),
+                  border: Border.all(
+                    color: isDark
+                        ? DsGlassColors.borderDark
+                        : DsGlassColors.borderLight,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

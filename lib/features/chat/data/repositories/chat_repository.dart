@@ -43,6 +43,14 @@ abstract class ChatRepository {
     required String messageId,
   });
 
+  /// Edit a message's content. Only text messages can be edited.
+  /// Premium feature - must be called within 15 minutes of sending.
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  });
+
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

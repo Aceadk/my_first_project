@@ -108,6 +108,13 @@ class _FakeChatRepository implements ChatRepository {
   }) async {}
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {}
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

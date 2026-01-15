@@ -16,7 +16,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
-import 'package:crushhour/presentation/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'chat_screen.dart';
 
 class MatchesScreen extends StatelessWidget {

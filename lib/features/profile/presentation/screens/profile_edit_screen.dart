@@ -53,6 +53,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   String? _educationLevel;
   String? _familyPlans;
   String? _personalityType;
+  String? _religion;
   String? _workout;
   String? _socialMedia;
   String? _sleepingHabits;
@@ -95,6 +96,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       educationLevel: _educationLevel ?? state.user?.profile?.educationLevel,
       familyPlans: _familyPlans ?? state.user?.profile?.familyPlans,
       personalityType: _personalityType ?? state.user?.profile?.personalityType,
+      religion: _religion ?? state.user?.profile?.religion,
       workout: _workout ?? state.user?.profile?.workout,
       socialMedia: _socialMedia ?? state.user?.profile?.socialMedia,
       sleepingHabits: _sleepingHabits ?? state.user?.profile?.sleepingHabits,
@@ -184,6 +186,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       educationLevel: _educationLevel,
       familyPlans: _familyPlans,
       personalityType: _personalityType,
+      religion: _religion,
       workout: _workout,
       socialMedia: _socialMedia,
       sleepingHabits: _sleepingHabits,
@@ -535,6 +538,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
+  Future<void> _showReligionPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.religionOptions;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'Religion',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _religion,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null || _religion != null) {
+      setState(() => _religion = result);
+    }
+  }
+
   Future<void> _showWorkoutPicker(BuildContext context) async {
     const options = ProfileFieldOptions.workoutHabits;
     final result = await ProfileSingleSelectSheet.show<String>(
@@ -828,6 +846,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _educationLevel = profile.educationLevel;
           _familyPlans = profile.familyPlans;
           _personalityType = profile.personalityType;
+          _religion = profile.religion;
           _workout = profile.workout;
           _socialMedia = profile.socialMedia;
           _sleepingHabits = profile.sleepingHabits;
@@ -1045,6 +1064,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           value: ProfileFieldOptions.getPersonalityLabel(_personalityType),
                           leadingIcon: Icons.emoji_people,
                           onTap: () => _showPersonalityPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'Religion',
+                          value: ProfileFieldOptions.getReligionLabel(_religion),
+                          leadingIcon: Icons.self_improvement,
+                          onTap: () => _showReligionPicker(context),
                           showDivider: false,
                         ),
                       ],

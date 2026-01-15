@@ -188,7 +188,7 @@ class LocationService {
       intervalDuration: intervalDuration,
       foregroundNotificationConfig: const ForegroundNotificationConfig(
         notificationText:
-            'CrushHour is updating your location to show you nearby matches',
+            'Crush is updating your location to show you nearby matches',
         notificationTitle: 'Location Active',
         enableWakeLock: true,
       ),

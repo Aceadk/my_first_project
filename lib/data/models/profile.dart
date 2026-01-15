@@ -88,6 +88,7 @@ class Profile extends Equatable {
   final String? educationLevel;
   final String? familyPlans;
   final String? personalityType; // MBTI
+  final String? religion;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LIFESTYLE
@@ -182,6 +183,7 @@ class Profile extends Equatable {
     this.educationLevel,
     this.familyPlans,
     this.personalityType,
+    this.religion,
     this.workout,
     this.socialMedia,
     this.sleepingHabits,
@@ -234,6 +236,7 @@ class Profile extends Equatable {
     Object? educationLevel = _unset,
     Object? familyPlans = _unset,
     Object? personalityType = _unset,
+    Object? religion = _unset,
     Object? workout = _unset,
     Object? socialMedia = _unset,
     Object? sleepingHabits = _unset,
@@ -302,6 +305,8 @@ class Profile extends Equatable {
       personalityType: identical(personalityType, _unset)
           ? this.personalityType
           : personalityType as String?,
+      religion:
+          identical(religion, _unset) ? this.religion : religion as String?,
       workout:
           identical(workout, _unset) ? this.workout : workout as String?,
       socialMedia: identical(socialMedia, _unset)
@@ -375,6 +380,7 @@ class Profile extends Equatable {
         educationLevel,
         familyPlans,
         personalityType,
+        religion,
         workout,
         socialMedia,
         sleepingHabits,

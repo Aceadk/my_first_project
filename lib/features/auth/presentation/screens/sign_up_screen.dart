@@ -436,7 +436,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     if (context.read<AuthRepository>().isVerificationBypassEnabled) {
-      showSuccessSnackBar(context, 'Account created! Welcome to CrushHour.');
+      showSuccessSnackBar(context, 'Account created! Welcome to Crush.');
       context.go(CrushRoutes.home);
       return;
     }
@@ -527,7 +527,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Clear pending email from secure storage
       await _secureStorage.delete(key: _pendingEmailKey);
       if (mounted) {
-        showSuccessSnackBar(context, 'Email verified! Welcome to CrushHour.');
+        showSuccessSnackBar(context, 'Email verified! Welcome to Crush.');
         context.go(CrushRoutes.home);
       }
       return true;
@@ -623,7 +623,7 @@ class _UsernameStep extends StatelessWidget {
             colors: [DsColors.primary, DsColors.secondary],
           ).createShader(bounds),
           child: Text(
-            'Welcome to CrushHour',
+            'Welcome to Crush',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -647,7 +647,7 @@ class _UsernameStep extends StatelessWidget {
         ),
         DsGap.xs,
         Text(
-          'This is how others will find you on CrushHour.',
+          'This is how others will find you on Crush.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -1059,7 +1059,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
               DsGap.sm,
               _InstructionRow(
                 number: '2',
-                text: 'Find the email from CrushHour',
+                text: 'Find the email from Crush',
                 isDark: widget.isDark,
               ),
               DsGap.sm,

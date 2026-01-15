@@ -51,7 +51,7 @@ class PlusFeatureGate extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'CrushHour Plus',
+                    'Crush Plus',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

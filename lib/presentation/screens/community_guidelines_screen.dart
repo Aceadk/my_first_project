@@ -16,7 +16,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'We want CrushHour to feel respectful, welcoming, and safe. '
+            'We want Crush to feel respectful, welcoming, and safe. '
             'Please follow these guidelines so everyone can connect confidently. '
             'Violations may lead to warnings, temporary restrictions, or removal.',
           ),
@@ -43,7 +43,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
           _Bullet(
               'Meet in public places first, share your plans with a trusted friend, and arrange your own transportation.'),
           _Bullet(
-              'Keep conversations in CrushHour until you feel comfortable—never send money or verification codes.'),
+              'Keep conversations in Crush until you feel comfortable—never send money or verification codes.'),
           _Bullet(
               'Look for verification badges on profiles and report anyone who pressures you or ignores your boundaries.'),
           SizedBox(height: 16),

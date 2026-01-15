@@ -39,6 +39,7 @@ class SafetyState {
     required this.blockedUsers,
     required this.mutedMessages,
     required this.mutedCalls,
+    this.reportedUsers = const {},
     this.profileCache = const {},
     this.isLoadingProfiles = false,
     this.errorMessage,
@@ -47,6 +48,8 @@ class SafetyState {
   final Set<String> blockedUsers;
   final Set<String> mutedMessages;
   final Set<String> mutedCalls;
+  /// Map of reported user IDs to the timestamp when they were reported.
+  final Map<String, DateTime> reportedUsers;
   final Map<String, SafetyProfileInfo> profileCache;
   final bool isLoadingProfiles;
   final String? errorMessage;
@@ -55,6 +58,7 @@ class SafetyState {
     Set<String>? blockedUsers,
     Set<String>? mutedMessages,
     Set<String>? mutedCalls,
+    Map<String, DateTime>? reportedUsers,
     Map<String, SafetyProfileInfo>? profileCache,
     bool? isLoadingProfiles,
     Object? errorMessage = _unset,
@@ -63,6 +67,7 @@ class SafetyState {
       blockedUsers: blockedUsers ?? this.blockedUsers,
       mutedMessages: mutedMessages ?? this.mutedMessages,
       mutedCalls: mutedCalls ?? this.mutedCalls,
+      reportedUsers: reportedUsers ?? this.reportedUsers,
       profileCache: profileCache ?? this.profileCache,
       isLoadingProfiles: isLoadingProfiles ?? this.isLoadingProfiles,
       errorMessage: identical(errorMessage, _unset)
@@ -92,19 +97,49 @@ class SafetyCubit extends Cubit<SafetyState> {
   static const _blockedKey = 'safety_blocked';
   static const _mutedMessagesKey = 'safety_muted_messages';
   static const _mutedCallsKey = 'safety_muted_calls';
+  static const _reportedUsersKey = 'safety_reported_users';
+  static const _reportHideDays = 10;
 
   static SafetyState _readInitial(SharedPreferences prefs) {
+    // Parse reported users from stored string format: "userId:timestamp"
+    final reportedList = prefs.getStringList(_reportedUsersKey) ?? [];
+    final reportedUsers = <String, DateTime>{};
+    for (final entry in reportedList) {
+      final parts = entry.split(':');
+      if (parts.length == 2) {
+        final userId = parts[0];
+        final timestamp = DateTime.tryParse(parts[1]);
+        if (timestamp != null) {
+          reportedUsers[userId] = timestamp;
+        }
+      }
+    }
+
     return SafetyState(
       blockedUsers: prefs.getStringList(_blockedKey)?.toSet() ?? <String>{},
       mutedMessages:
           prefs.getStringList(_mutedMessagesKey)?.toSet() ?? <String>{},
       mutedCalls: prefs.getStringList(_mutedCallsKey)?.toSet() ?? <String>{},
+      reportedUsers: reportedUsers,
     );
   }
 
   bool isBlocked(String userId) => state.blockedUsers.contains(userId);
   bool isMessagesMuted(String userId) => state.mutedMessages.contains(userId);
   bool isCallsMuted(String userId) => state.mutedCalls.contains(userId);
+
+  /// Check if a user was reported within the last 10 days.
+  bool isReportedRecently(String userId) {
+    final reportedAt = state.reportedUsers[userId];
+    if (reportedAt == null) return false;
+    final daysSinceReport = DateTime.now().difference(reportedAt).inDays;
+    return daysSinceReport < _reportHideDays;
+  }
+
+  /// Check if a user should be hidden from the feed (blocked or recently reported).
+  bool shouldHideFromFeed(String userId) {
+    return isBlocked(userId) || isReportedRecently(userId);
+  }
 
   Future<void> toggleBlock(
     String userId, {
@@ -207,7 +242,13 @@ class SafetyCubit extends Cubit<SafetyState> {
     if (!result.isSuccess) {
       emit(state.copyWith(errorMessage: result.errorMessage));
     } else {
-      emit(state.copyWith(errorMessage: null));
+      // Add user to reported list to hide them for 10 days
+      final updatedReported = Map<String, DateTime>.from(state.reportedUsers);
+      updatedReported[reportedId] = DateTime.now();
+      await _persist(state.copyWith(
+        reportedUsers: updatedReported,
+        errorMessage: null,
+      ));
     }
   }
 
@@ -292,6 +333,13 @@ class SafetyCubit extends Cubit<SafetyState> {
     await _preferences.setStringList(
       _mutedCallsKey,
       next.mutedCalls.toList(),
+    );
+    // Store reported users as "userId:timestamp" format
+    await _preferences.setStringList(
+      _reportedUsersKey,
+      next.reportedUsers.entries
+          .map((e) => '${e.key}:${e.value.toIso8601String()}')
+          .toList(),
     );
   }
 }

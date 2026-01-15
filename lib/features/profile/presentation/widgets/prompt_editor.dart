@@ -544,15 +544,26 @@ class _PromptAnswerEditor extends StatefulWidget {
 
 class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
   late TextEditingController _controller;
+  bool _hasText = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.prompt.answer);
+    _hasText = _controller.text.trim().isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    final hasText = _controller.text.trim().isNotEmpty;
+    if (hasText != _hasText) {
+      setState(() => _hasText = hasText);
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -610,7 +621,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _controller.text.trim().isEmpty
+                onPressed: !_hasText
                     ? null
                     : () {
                         widget.onSave!(widget.prompt.copyWith(
@@ -724,7 +735,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
             child: SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _controller.text.trim().isEmpty
+                onPressed: !_hasText
                     ? null
                     : () {
                         Navigator.pop(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/constants.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -493,7 +494,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     if (!state.canRewind || state.lastSwipedProfile == null) {
       emit(state.copyWith(
         status: DeckStatus.ready,
-        errorMessage: 'No swipe to undo.',
+        errorMessage: ErrorMessages.noSwipeToUndo,
       ));
       return;
     }
@@ -502,7 +503,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final planResult = await Result.guard(
       () => subscriptionRepository.getCurrentPlan(),
       logLabel: 'SubscriptionRepository.getCurrentPlan',
-      fallbackError: 'Could not undo swipe. Please try again.',
+      fallbackError: ErrorMessages.rewindFailed,
     );
 
     if (!planResult.isSuccess) {
@@ -514,19 +515,40 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     final plan = planResult.data ?? SubscriptionPlan.free;
+
+    // Check if free user can use their daily undo
     if (plan.isFree) {
+      final now = DateTime.now();
+      final lastUsedDate = state.freeUndoLastUsedDate;
+
+      // Check if it's a new day (reset at midnight)
+      final isNewDay = lastUsedDate == null ||
+          now.year != lastUsedDate.year ||
+          now.month != lastUsedDate.month ||
+          now.day != lastUsedDate.day;
+
+      final hasUsedFreeUndo = !isNewDay && state.freeUndoUsedToday;
+
+      if (hasUsedFreeUndo) {
+        emit(state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: ErrorMessages.freeUndoUsed,
+        ));
+        return;
+      }
+
+      // Mark free undo as used for today
       emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage: 'Rewind is a Plus feature. Upgrade to undo swipes!',
+        freeUndoUsedToday: true,
+        freeUndoLastUsedDate: now,
       ));
-      return;
     }
 
     // Call repository to rewind
     final rewindResult = await Result.guard(
       () => discoveryRepository.rewindLastSwipe(event.userId),
       logLabel: 'DiscoveryRepository.rewindLastSwipe',
-      fallbackError: 'Could not undo swipe. Please try again.',
+      fallbackError: ErrorMessages.rewindFailed,
     );
 
     if (rewindResult.isSuccess) {

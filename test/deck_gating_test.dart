@@ -525,6 +525,13 @@ class _NoopChatRepository implements ChatRepository {
   }) async {}
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {}
+
+  @override
   Future<void> unblockUser({
     required String blockerId,
     required String blockedId,

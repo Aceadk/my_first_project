@@ -50,7 +50,7 @@ class AppUpdateService {
   String get fullVersion => '$currentVersion+$buildNumber';
 
   /// Get the app name.
-  String get appName => _packageInfo?.appName ?? 'CrushHour';
+  String get appName => _packageInfo?.appName ?? 'Crush';
 
   /// Get the package name.
   String get packageName => _packageInfo?.packageName ?? '';

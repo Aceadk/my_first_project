@@ -44,6 +44,8 @@ import 'package:crushhour/features/discovery/presentation/screens/weekly_picks_s
 import 'package:crushhour/features/social/presentation/screens/date_ideas_screen.dart';
 import 'package:crushhour/features/social/presentation/screens/compatibility_quiz_screen.dart';
 import 'package:crushhour/features/analytics/presentation/screens/profile_insights_screen.dart';
+import '../presentation/screens/privacy_policy_screen.dart';
+import '../presentation/screens/terms_of_service_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -87,6 +89,8 @@ class CrushRoutes {
   static const dateIdeas = '/date-ideas';
   static const compatibilityQuiz = '/compatibility-quiz';
   static const profileInsights = '/profile-insights';
+  static const privacyPolicy = '/privacy-policy';
+  static const termsOfService = '/terms-of-service';
 }
 
 GoRouter createRouter(AuthBloc authBloc) {
@@ -407,6 +411,16 @@ GoRouter createRouter(AuthBloc authBloc) {
           }
           return _buildPage(state, const HomeScreen());
         },
+      ),
+      GoRoute(
+        path: CrushRoutes.privacyPolicy,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const PrivacyPolicyScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.termsOfService,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const TermsOfServiceScreen()),
       ),
       // Widget catalog - debug builds only
       if (kDebugMode)

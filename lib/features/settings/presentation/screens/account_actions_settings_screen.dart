@@ -175,6 +175,49 @@ class _AccountActionsSettingsScreenState
 
                 DsGap.xxl,
 
+                // Data & Privacy section
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Text(
+                    'Data & Privacy',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                DsGap.md,
+
+                // Export your data (GDPR)
+                _ActionTile(
+                  icon: Icons.download_outlined,
+                  iconColor: Colors.blue,
+                  title: 'Export your data',
+                  subtitle: 'Download a copy of your personal data',
+                  onTap: () => _showExportDataDialog(context),
+                ),
+                const Divider(indent: 72),
+
+                // Privacy Policy
+                _ActionTile(
+                  icon: Icons.privacy_tip_outlined,
+                  iconColor: Colors.purple,
+                  title: 'Privacy Policy',
+                  subtitle: 'How we handle your data',
+                  onTap: () => context.push(CrushRoutes.privacyPolicy),
+                ),
+                const Divider(indent: 72),
+
+                // Terms of Service
+                _ActionTile(
+                  icon: Icons.description_outlined,
+                  iconColor: Colors.teal,
+                  title: 'Terms of Service',
+                  subtitle: 'Our terms and conditions',
+                  onTap: () => context.push(CrushRoutes.termsOfService),
+                ),
+
+                DsGap.xxl,
+
                 // Danger zone
                 Padding(
                   padding: DsEdgeInsets.horizontalLg,
@@ -260,6 +303,102 @@ class _AccountActionsSettingsScreenState
               ],
             ),
     );
+  }
+
+  Future<void> _showExportDataDialog(BuildContext context) async {
+    final user = context.read<AuthBloc>().state.user;
+    final email = user?.email ?? 'your email';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.download_outlined, color: Colors.blue, size: 48),
+          title: const Text('Export Your Data'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'You can request a copy of all your personal data. This includes:',
+              ),
+              DsGap.md,
+              const _BulletPoint(
+                text: 'Your profile information',
+                icon: Icons.person_outline,
+              ),
+              const _BulletPoint(
+                text: 'Your photos and media',
+                icon: Icons.photo_library_outlined,
+              ),
+              const _BulletPoint(
+                text: 'Your matches and connections',
+                icon: Icons.favorite_outline,
+              ),
+              const _BulletPoint(
+                text: 'Your messages',
+                icon: Icons.chat_bubble_outline,
+              ),
+              const _BulletPoint(
+                text: 'Your preferences and settings',
+                icon: Icons.settings_outlined,
+              ),
+              DsGap.lg,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.email_outlined, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Your data will be prepared and sent to $email within 48 hours.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Request Export'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+
+      // Simulate API call to request data export
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      showSuccessSnackBar(
+        this.context,
+        'Data export requested! You will receive an email at $email within 48 hours.',
+      );
+    }
   }
 
   Future<void> _showChangePasswordDialog(BuildContext context) async {

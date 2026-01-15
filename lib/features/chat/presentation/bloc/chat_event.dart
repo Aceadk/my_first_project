@@ -78,6 +78,22 @@ class ChatMessageUnsendRequested extends ChatEvent {
   List<Object?> get props => [matchId, messageId];
 }
 
+/// Edit a message's content. Premium feature.
+class ChatMessageEditRequested extends ChatEvent {
+  final String matchId;
+  final String messageId;
+  final String newContent;
+
+  ChatMessageEditRequested({
+    required this.matchId,
+    required this.messageId,
+    required this.newContent,
+  });
+
+  @override
+  List<Object?> get props => [matchId, messageId, newContent];
+}
+
 class ChatMessageDeleteForMeRequested extends ChatEvent {
   final String matchId;
   final String messageId;
@@ -218,4 +234,18 @@ class ChatNewMessagesReceived extends ChatEvent {
 
   @override
   List<Object?> get props => [newMessages];
+}
+
+/// Retry sending a failed message.
+class ChatMessageRetryRequested extends ChatEvent {
+  final String matchId;
+  final String messageId;
+
+  ChatMessageRetryRequested({
+    required this.matchId,
+    required this.messageId,
+  });
+
+  @override
+  List<Object?> get props => [matchId, messageId];
 }

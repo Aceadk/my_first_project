@@ -62,7 +62,7 @@ class EmailService {
     final message = Message()
       ..from = Address(senderEmail!, senderName)
       ..recipients.add(recipientEmail)
-      ..subject = 'Your CrushHour verification code: $otpCode'
+      ..subject = 'Your Crush verification code: $otpCode'
       ..html = _buildOtpEmailHtml(otpCode);
 
     try {
@@ -113,7 +113,7 @@ class EmailService {
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">CrushHour</div>
+      <div class="logo">Crush</div>
     </div>
     <p class="message">Your verification code is:</p>
     <div class="otp-box">$otpCode</div>
@@ -125,7 +125,7 @@ class EmailService {
       If you didn't request this code, please ignore this email.
     </p>
     <div class="footer">
-      <p>&copy; ${DateTime.now().year} CrushHour. All rights reserved.</p>
+      <p>&copy; ${DateTime.now().year} Crush. All rights reserved.</p>
     </div>
   </div>
 </body>

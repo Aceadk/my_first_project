@@ -168,6 +168,15 @@ class _ThrowingChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,

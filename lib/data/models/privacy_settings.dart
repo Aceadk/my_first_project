@@ -16,6 +16,7 @@ class ProfilePrivacySettings extends Equatable {
   final bool showEducation;
   final bool showFamilyPlans;
   final bool showPersonality;
+  final bool showReligion;
   final bool showRelationshipGoals;
 
   // Lifestyle - user's choice
@@ -57,6 +58,7 @@ class ProfilePrivacySettings extends Equatable {
     this.showEducation = true,
     this.showFamilyPlans = true,
     this.showPersonality = true,
+    this.showReligion = true,
     this.showRelationshipGoals = true,
 
     // Lifestyle - public by default
@@ -98,6 +100,7 @@ class ProfilePrivacySettings extends Equatable {
       showEducation: true,
       showFamilyPlans: true,
       showPersonality: true,
+      showReligion: true,
       showRelationshipGoals: true,
       showWorkout: true,
       showSmoking: true,
@@ -130,6 +133,7 @@ class ProfilePrivacySettings extends Equatable {
       showEducation: false,
       showFamilyPlans: false,
       showPersonality: false,
+      showReligion: false,
       showRelationshipGoals: false,
       showWorkout: false,
       showSmoking: false,
@@ -160,6 +164,7 @@ class ProfilePrivacySettings extends Equatable {
     bool? showEducation,
     bool? showFamilyPlans,
     bool? showPersonality,
+    bool? showReligion,
     bool? showRelationshipGoals,
     bool? showWorkout,
     bool? showSmoking,
@@ -188,6 +193,7 @@ class ProfilePrivacySettings extends Equatable {
       showEducation: showEducation ?? this.showEducation,
       showFamilyPlans: showFamilyPlans ?? this.showFamilyPlans,
       showPersonality: showPersonality ?? this.showPersonality,
+      showReligion: showReligion ?? this.showReligion,
       showRelationshipGoals: showRelationshipGoals ?? this.showRelationshipGoals,
       showWorkout: showWorkout ?? this.showWorkout,
       showSmoking: showSmoking ?? this.showSmoking,
@@ -219,6 +225,7 @@ class ProfilePrivacySettings extends Equatable {
       'showEducation': showEducation,
       'showFamilyPlans': showFamilyPlans,
       'showPersonality': showPersonality,
+      'showReligion': showReligion,
       'showRelationshipGoals': showRelationshipGoals,
       'showWorkout': showWorkout,
       'showSmoking': showSmoking,
@@ -251,6 +258,7 @@ class ProfilePrivacySettings extends Equatable {
       showEducation: json['showEducation'] ?? true,
       showFamilyPlans: json['showFamilyPlans'] ?? true,
       showPersonality: json['showPersonality'] ?? true,
+      showReligion: json['showReligion'] ?? true,
       showRelationshipGoals: json['showRelationshipGoals'] ?? true,
       showWorkout: json['showWorkout'] ?? true,
       showSmoking: json['showSmoking'] ?? true,
@@ -282,6 +290,7 @@ class ProfilePrivacySettings extends Equatable {
     showEducation,
     showFamilyPlans,
     showPersonality,
+    showReligion,
     showRelationshipGoals,
     showWorkout,
     showSmoking,

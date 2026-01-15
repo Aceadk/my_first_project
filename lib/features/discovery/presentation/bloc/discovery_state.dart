@@ -53,6 +53,12 @@ class DiscoveryState extends Equatable {
   /// Whether rewind is available (premium only, within time limit).
   final bool canRewind;
 
+  /// Whether free user has used their daily undo.
+  final bool freeUndoUsedToday;
+
+  /// Date when free undo was last used (for daily reset).
+  final DateTime? freeUndoLastUsedDate;
+
   const DiscoveryState({
     this.deck = const [],
     this.currentIndex = 0,
@@ -71,6 +77,8 @@ class DiscoveryState extends Equatable {
     this.lastSwipedProfile,
     this.lastSwipeDirection,
     this.canRewind = false,
+    this.freeUndoUsedToday = false,
+    this.freeUndoLastUsedDate,
   });
 
   /// Number of profiles remaining in the deck
@@ -78,6 +86,16 @@ class DiscoveryState extends Equatable {
 
   /// Whether we should preload more profiles (when < 5 remaining)
   bool get shouldLoadMore => remainingProfiles < 5 && hasMoreProfiles && !isLoadingMore;
+
+  /// Whether free undo is available today (resets at midnight).
+  bool get hasFreeUndoAvailable {
+    if (freeUndoLastUsedDate == null) return true;
+    final now = DateTime.now();
+    final isNewDay = now.year != freeUndoLastUsedDate!.year ||
+        now.month != freeUndoLastUsedDate!.month ||
+        now.day != freeUndoLastUsedDate!.day;
+    return isNewDay || !freeUndoUsedToday;
+  }
 
   static const _unset = Object();
 
@@ -99,6 +117,8 @@ class DiscoveryState extends Equatable {
     Object? lastSwipedProfile = _unset,
     Object? lastSwipeDirection = _unset,
     bool? canRewind,
+    bool? freeUndoUsedToday,
+    Object? freeUndoLastUsedDate = _unset,
   }) {
     return DiscoveryState(
       deck: deck ?? this.deck,
@@ -124,6 +144,10 @@ class DiscoveryState extends Equatable {
           ? this.lastSwipeDirection
           : lastSwipeDirection as String?,
       canRewind: canRewind ?? this.canRewind,
+      freeUndoUsedToday: freeUndoUsedToday ?? this.freeUndoUsedToday,
+      freeUndoLastUsedDate: identical(freeUndoLastUsedDate, _unset)
+          ? this.freeUndoLastUsedDate
+          : freeUndoLastUsedDate as DateTime?,
     );
   }
 
@@ -146,5 +170,7 @@ class DiscoveryState extends Equatable {
         lastSwipedProfile,
         lastSwipeDirection,
         canRewind,
+        freeUndoUsedToday,
+        freeUndoLastUsedDate,
       ];
 }

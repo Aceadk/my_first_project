@@ -87,11 +87,11 @@ class UpdateDialog extends StatelessWidget {
   static String _getMessageForStatus(UpdateStatus status) {
     switch (status) {
       case UpdateStatus.forceUpdate:
-        return 'Please update the app to continue using CrushHour. This update includes important improvements and bug fixes.';
+        return 'Please update the app to continue using Crush. This update includes important improvements and bug fixes.';
       case UpdateStatus.updateRequired:
-        return 'A new version of CrushHour is available. Please update for the best experience.';
+        return 'A new version of Crush is available. Please update for the best experience.';
       case UpdateStatus.updateAvailable:
-        return 'A new version of CrushHour is available with new features and improvements.';
+        return 'A new version of Crush is available with new features and improvements.';
       case UpdateStatus.upToDate:
         return 'You have the latest version.';
     }

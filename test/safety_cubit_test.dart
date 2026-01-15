@@ -244,6 +244,15 @@ class _StubChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    _maybeThrow();
+  }
+
+  @override
   Future<void> unmatch({
     required String matchId,
     required String userId,

@@ -179,6 +179,20 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   @override
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) async {
+    final callable = _functions.httpsCallable('editMessage');
+    await callable.call<Map<String, dynamic>>({
+      'matchId': matchId,
+      'messageId': messageId,
+      'content': newContent,
+    });
+  }
+
+  @override
   Future<void> deleteForMe({
     required String matchId,
     required String messageId,

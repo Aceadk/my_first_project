@@ -2,6 +2,16 @@ import 'package:equatable/equatable.dart';
 
 enum MessageType { text, image, video, voice }
 
+/// Status of message delivery.
+enum MessageSendStatus {
+  /// Message sent successfully.
+  sent,
+  /// Message is currently being sent.
+  sending,
+  /// Message failed to send.
+  failed,
+}
+
 class Message extends Equatable {
   final String id;
   final String matchId;
@@ -17,6 +27,7 @@ class Message extends Equatable {
   final String? moderationReason;
   final String? moderationAction;
   final bool isFlagged;
+  final MessageSendStatus sendStatus;
 
   const Message({
     required this.id,
@@ -33,6 +44,7 @@ class Message extends Equatable {
     this.moderationAction,
     this.isFlagged = false,
     this.reactions = const {},
+    this.sendStatus = MessageSendStatus.sent,
   });
 
   Message copyWith({
@@ -43,6 +55,7 @@ class Message extends Equatable {
     String? moderationReason,
     String? moderationAction,
     bool? isFlagged,
+    MessageSendStatus? sendStatus,
   }) {
     return Message(
       id: id,
@@ -59,6 +72,7 @@ class Message extends Equatable {
       moderationAction: moderationAction ?? this.moderationAction,
       isFlagged: isFlagged ?? this.isFlagged,
       reactions: reactions ?? this.reactions,
+      sendStatus: sendStatus ?? this.sendStatus,
     );
   }
 
@@ -79,5 +93,6 @@ class Message extends Equatable {
         moderationReason,
         moderationAction,
         isFlagged,
+        sendStatus,
       ];
 }
