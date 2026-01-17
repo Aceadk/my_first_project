@@ -339,38 +339,7 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(CrushRoutes.logout),
               ),
               DsGap.lg,
-              // Legal section
-              Padding(
-                padding: DsEdgeInsets.horizontalLg,
-                child: Text(
-                  'Legal',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
-                ),
-              ),
-              DsGap.sm,
-              ListTile(
-                leading: const Icon(Icons.article_outlined),
-                title: Text(context.l10n.authTermsOfService),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLegalDialog(
-                  context,
-                  context.l10n.authTermsOfService,
-                  'Full terms will be available soon.',
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.privacy_tip_outlined),
-                title: Text(context.l10n.authPrivacyPolicy),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLegalDialog(
-                  context,
-                  context.l10n.authPrivacyPolicy,
-                  'Privacy details will be available soon.',
-                ),
-              ),
+              // App info
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: Text(context.l10n.settingsVersion),
@@ -679,28 +648,6 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
           ),
-        );
-      },
-    );
-  }
-
-  void _showLegalDialog(
-    BuildContext context,
-    String title,
-    String body,
-  ) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(body),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Close'),
-            ),
-          ],
         );
       },
     );
