@@ -1,29 +1,30 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/match.dart';
-import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
-import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
+import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -248,6 +249,11 @@ class _StubAuthRepository implements AuthRepository {
   }) async {}
 
   @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    return user.copyWith(hasAcceptedTerms: true);
+  }
+
+  @override
   Future<void> deactivateAccount({required String reason}) async {}
 
   @override
@@ -284,6 +290,9 @@ class _StubProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   }) async =>
       user;
 
@@ -307,7 +316,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async => deck;
+  }) async =>
+      deck;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -346,7 +356,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => null;
@@ -433,7 +444,8 @@ class _NoopChatRepository implements ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
-  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async =>
+      const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchMessages(String matchId) => const Stream.empty();

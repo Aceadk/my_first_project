@@ -10,6 +10,7 @@ import '../models/preferences.dart';
 import '../models/match.dart';
 import '../models/message.dart';
 import '../models/subscription.dart';
+import '../models/favourites.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
@@ -335,10 +336,21 @@ class FakeAuthRepository implements AuthRepository {
       isPhoneVerified: false,
       isIdVerified: true,
       plan: SubscriptionPlan.free,
+      hasAcceptedTerms: true,
     );
     _current = user;
     _controller.add(_current);
     return user;
+  }
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    if (_current == null) {
+      throw Exception('No user logged in');
+    }
+    _current = _current!.copyWith(hasAcceptedTerms: true);
+    _controller.add(_current);
+    return _current!;
   }
 
   @override
@@ -625,6 +637,9 @@ class FakeProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   }) async {
     final profile = _user!.profile!;
     final updated = profile.copyWith(
@@ -636,6 +651,8 @@ class FakeProfileRepository implements ProfileRepository {
       company: company,
       school: school,
       interests: interests,
+      city: city,
+      country: country,
     );
     _user = _user!.copyWith(profile: updated);
     return _user!;
@@ -789,6 +806,13 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
 
       final city = cityPool[index % cityPool.length];
 
+      // Simulate some users being active and some being new
+      final isActive = index % 3 == 0; // Every 3rd user is active
+      final isNewUser = index % 5 == 0; // Every 5th user is new
+      final createdAt = isNewUser
+          ? DateTime.now().subtract(Duration(days: index % 7))
+          : DateTime.now().subtract(Duration(days: 30 + index));
+
       return Profile(
         id: _uuid.v4(),
         name: '${names[index % names.length]} ${index + 1}',
@@ -802,6 +826,8 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
         ],
         videoUrls: const [],
         isVerified: false,
+        isActive: isActive,
+        createdAt: createdAt,
         jobTitle: null,
         company: null,
         school: null,

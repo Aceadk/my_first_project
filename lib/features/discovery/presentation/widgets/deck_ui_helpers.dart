@@ -46,10 +46,10 @@ class _DeckActionButtonState extends State<DeckActionButton>
     // When disabled, use grey color
     final effectiveColor = isEnabled ? widget.color : Colors.grey;
 
-    // Glass background color with the action color tint
-    final glassBg = effectiveColor.withValues(alpha: isDark ? 0.25 : 0.2);
-    final glassOverlay =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    // Softer glass background with subtle color tint
+    final bgColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white.withValues(alpha: 0.9);
 
     return Semantics(
       button: true,
@@ -70,60 +70,39 @@ class _DeckActionButtonState extends State<DeckActionButton>
           opacity: isEnabled ? 1.0 : 0.5,
           duration: const Duration(milliseconds: 150),
           child: AnimatedScale(
-            scale: _pressed ? 0.90 : 1.0,
+            scale: _pressed ? 0.92 : 1.0,
             duration: const Duration(milliseconds: 100),
             curve: Curves.easeOut,
-            child: ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: DsBlur.medium,
-                  sigmaY: DsBlur.medium,
-                ),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  curve: Curves.easeOut,
-                  width: widget.size,
-                  height: widget.size,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        glassBg,
-                        glassOverlay,
-                      ],
-                    ),
-                    border: Border.all(
-                      color: _pressed
-                          ? effectiveColor.withValues(alpha: 0.8)
-                          : (isDark
-                              ? DsGlassColors.borderDark
-                              : DsGlassColors.borderLight),
-                      width: _pressed ? 2.5 : 1.5,
-                    ),
-                    boxShadow: _pressed
-                        ? [
-                            BoxShadow(
-                              color: effectiveColor.withValues(alpha: 0.4),
-                              blurRadius: 16,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: bgColor,
+                // Soft, subtle shadows only - no heavy outlines
+                boxShadow: [
+                  // Main soft shadow
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
                   ),
-                  child: Icon(
-                    widget.icon,
-                    color: effectiveColor,
-                    size: widget.size * 0.45,
-                  ),
-                ),
+                  // Inner glow when pressed
+                  if (_pressed)
+                    BoxShadow(
+                      color: effectiveColor.withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    ),
+                ],
+              ),
+              child: Icon(
+                widget.icon,
+                color: effectiveColor,
+                size: widget.size * 0.45,
               ),
             ),
           ),

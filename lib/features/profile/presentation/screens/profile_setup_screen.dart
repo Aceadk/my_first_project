@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -9,9 +11,9 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/features/discovery/data/services/passport_locations_service.dart';
 import '../widgets/profile_media_picker.dart';
-import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
-import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -25,20 +27,59 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _jobController = TextEditingController();
   final _companyController = TextEditingController();
   final _schoolController = TextEditingController();
-  final _interestsController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _countryController = TextEditingController();
   final _mediaService = ProfileMediaService();
+  final _passportService = PassportLocationsService.instance;
 
   List<String> _photoPaths = [];
   List<String> _videoPaths = [];
+  final List<String> _selectedInterests = [];
   bool _uploading = false;
+
+  // Favourites
+  String? _favouriteAthlete;
+  String? _favouriteFood;
+  String? _favouriteSport;
+  String? _favouriteTvShow;
+  String? _favouriteActor;
+  String? _favouriteSinger;
+  String? _favouriteMovie;
+  String? _favouriteHobby;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default athlete (not shown to user that it's default)
+    _favouriteAthlete = 'Cristiano Ronaldo';
+  }
+
+  @override
+  void dispose() {
+    _bioController.dispose();
+    _jobController.dispose();
+    _companyController.dispose();
+    _schoolController.dispose();
+    _cityController.dispose();
+    _countryController.dispose();
+    super.dispose();
+  }
+
+  final List<String> _interestOptions = [
+    'Travel', 'Music', 'Movies', 'Gaming', 'Fitness', 'Food', 'Art',
+    'Photography', 'Reading', 'Dancing', 'Cooking', 'Sports', 'Fashion',
+    'Technology', 'Nature', 'Pets', 'Yoga', 'Coffee', 'Wine', 'Hiking',
+  ];
 
   Future<void> _submit(ProfileState state) async {
     if (_uploading || state.isSaving) return;
     if (_photoPaths.length < ProfileMediaLimits.minPhotos) {
-      showErrorSnackBar(
-        context,
-        'Add at least one photo to finish your profile.',
-      );
+      showErrorSnackBar(context, 'Add at least one photo to finish your profile.');
+      return;
+    }
+
+    if (_cityController.text.trim().isEmpty || _countryController.text.trim().isEmpty) {
+      showErrorSnackBar(context, 'Please enter your city and country.');
       return;
     }
 
@@ -49,6 +90,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
 
     setState(() => _uploading = true);
+
+    // Record location for passport mode tracking
+    await _passportService.recordLocation(
+      _cityController.text.trim(),
+      _countryController.text.trim(),
+    );
+
     final uploadResult = await Result.guard(
       () => _mediaService.ensureRemoteUrls(
         userId: userId,
@@ -58,32 +106,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       logLabel: 'ProfileMediaService.ensureRemoteUrls',
       fallbackError: 'Could not upload media.',
     );
+
     if (!mounted) return;
     if (!uploadResult.isSuccess || uploadResult.data == null) {
-      showErrorSnackBar(
-        context,
-        uploadResult.errorMessage ?? 'Could not upload media.',
-      );
+      showErrorSnackBar(context, uploadResult.errorMessage ?? 'Could not upload media.');
       setState(() => _uploading = false);
       return;
     }
 
-    final interests = _interestsController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
     context.read<ProfileBloc>().add(
-          ProfileDetailsSubmitted(
-            bio: _bioController.text.trim(),
-            photoUrls: uploadResult.data!.photoUrls,
-            videoUrls: uploadResult.data!.videoUrls,
-            jobTitle: _jobController.text.trim(),
-            company: _companyController.text.trim(),
-            school: _schoolController.text.trim(),
-            interests: interests,
-          ),
-        );
+      ProfileDetailsSubmitted(
+        bio: _bioController.text.trim(),
+        photoUrls: uploadResult.data!.photoUrls,
+        videoUrls: uploadResult.data!.videoUrls,
+        jobTitle: _jobController.text.trim(),
+        company: _companyController.text.trim(),
+        school: _schoolController.text.trim(),
+        interests: _selectedInterests,
+        city: _cityController.text.trim(),
+        country: _countryController.text.trim(),
+        favourites: ProfileFavourites(
+          athlete: _favouriteAthlete,
+          food: _favouriteFood,
+          sport: _favouriteSport,
+          tvShow: _favouriteTvShow,
+          actor: _favouriteActor,
+          singer: _favouriteSinger,
+          movie: _favouriteMovie,
+          hobby: _favouriteHobby,
+        ),
+      ),
+    );
+
     if (mounted) {
       setState(() => _uploading = false);
     }
@@ -91,108 +145,481 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Set up your profile')),
-      body: BlocConsumer<ProfileBloc, ProfileState>(
-        listenWhen: (previous, current) =>
-            previous.user != current.user ||
-            previous.errorMessage != current.errorMessage,
-        listener: (context, state) {
-          if (state.user != null) {
-            context.go(CrushRoutes.home);
-          }
-          final error = state.errorMessage;
-          if (error != null && error.isNotEmpty) {
-            showErrorSnackBar(context, error);
-          }
-        },
-        builder: (context, state) {
-          if (state.isLoading && state.user == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [DsColors.backgroundDark, const Color(0xFF1A1A2E), DsColors.backgroundDark]
+                : [DsColors.backgroundLight, const Color(0xFFF8F0FF), DsColors.backgroundLight],
+          ),
+        ),
+        child: SafeArea(
+          child: BlocConsumer<ProfileBloc, ProfileState>(
+            listenWhen: (previous, current) =>
+                previous.user != current.user || previous.errorMessage != current.errorMessage,
+            listener: (context, state) {
+              if (state.user != null) {
+                context.go(CrushRoutes.home);
+              }
+              final error = state.errorMessage;
+              if (error != null && error.isNotEmpty) {
+                showErrorSnackBar(context, error);
+              }
+            },
+            builder: (context, state) {
+              if (state.isLoading && state.user == null) {
+                return const Center(child: CircularProgressIndicator(color: DsColors.primary));
+              }
 
-          final saving = state.isSaving || _uploading;
+              final saving = state.isSaving || _uploading;
 
-          return Stack(
-            children: [
-              AbsorbPointer(
-                absorbing: saving,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: SingleChildScrollView(
+              return Stack(
+                children: [
+                  AbsorbPointer(
+                    absorbing: saving,
                     child: Column(
                       children: [
-                        const OnboardingProgress(
-                          currentStep: 5,
-                          caption: 'Add photos, interests, and a short bio',
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _bioController,
-                          maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Bio',
+                        _buildAppBar(context, isDark),
+                        DsGap.lg,
+                        _buildProgressIndicator(context, isDark),
+                        DsGap.lg,
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: DsEdgeInsets.horizontalXxl,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Photos Section
+                                _buildSectionHeader(context, isDark, 'Your Photos', 'Add at least 1 photo', Icons.photo_library_rounded),
+                                DsGap.md,
+                                ProfileMediaPicker(
+                                  initialPhotos: _photoPaths,
+                                  initialVideos: _videoPaths,
+                                  enabled: !saving,
+                                  onError: (msg) => showErrorSnackBar(context, msg),
+                                  onChanged: (selection) {
+                                    setState(() {
+                                      _photoPaths = selection.photos;
+                                      _videoPaths = selection.videos;
+                                    });
+                                  },
+                                ),
+                                DsGap.xl,
+                                // Bio Section
+                                _buildSectionHeader(context, isDark, 'About You', 'Tell others about yourself', Icons.edit_note_rounded),
+                                DsGap.md,
+                                GlassTextField(
+                                  controller: _bioController,
+                                  hintText: 'Write something interesting about yourself...',
+                                  maxLines: 4,
+                                  maxLength: 500,
+                                ),
+                                DsGap.xl,
+                                // Location Section
+                                _buildSectionHeader(context, isDark, 'Location', 'Where are you based?', Icons.location_on_rounded),
+                                DsGap.md,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: GlassTextField(
+                                        controller: _cityController,
+                                        hintText: 'City',
+                                        prefixIcon: Icons.location_city_rounded,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: GlassTextField(
+                                        controller: _countryController,
+                                        hintText: 'Country',
+                                        prefixIcon: Icons.public_rounded,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                DsGap.xl,
+                                // Work & Education
+                                _buildSectionHeader(context, isDark, 'Work & Education', 'Optional', Icons.work_outline_rounded),
+                                DsGap.md,
+                                GlassTextField(
+                                  controller: _jobController,
+                                  hintText: 'Job Title',
+                                  prefixIcon: Icons.badge_outlined,
+                                ),
+                                DsGap.md,
+                                GlassTextField(
+                                  controller: _companyController,
+                                  hintText: 'Company',
+                                  prefixIcon: Icons.business_rounded,
+                                ),
+                                DsGap.md,
+                                GlassTextField(
+                                  controller: _schoolController,
+                                  hintText: 'School / University',
+                                  prefixIcon: Icons.school_rounded,
+                                ),
+                                DsGap.xl,
+                                // Interests
+                                _buildSectionHeader(context, isDark, 'Interests', 'Select up to 5', Icons.interests_rounded),
+                                DsGap.md,
+                                _buildInterestsGrid(context, isDark),
+                                DsGap.xl,
+                                // Favourites
+                                _buildSectionHeader(context, isDark, 'Favourites', 'Share what you love', Icons.favorite_rounded),
+                                DsGap.md,
+                                _buildFavouritesSection(context, isDark),
+                                DsGap.xxl,
+                              ],
+                            ),
                           ),
                         ),
-                        TextField(
-                          controller: _jobController,
-                          decoration:
-                              const InputDecoration(labelText: 'Job title'),
-                        ),
-                        TextField(
-                          controller: _companyController,
-                          decoration:
-                              const InputDecoration(labelText: 'Company'),
-                        ),
-                        TextField(
-                          controller: _schoolController,
-                          decoration:
-                              const InputDecoration(labelText: 'School'),
-                        ),
-                        TextField(
-                          controller: _interestsController,
-                          decoration: const InputDecoration(
-                              labelText: 'Interests (comma separated)'),
-                        ),
-                        const SizedBox(height: 24),
-                        ProfileMediaPicker(
-                          initialPhotos: _photoPaths,
-                          initialVideos: _videoPaths,
-                          enabled: !saving,
-                          onError: (msg) => showErrorSnackBar(context, msg),
-                          onChanged: (selection) {
-                            setState(() {
-                              _photoPaths = selection.photos;
-                              _videoPaths = selection.videos;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        OnboardingNavButtons(
-                          onBack: saving
-                              ? null
-                              : () => context.go(CrushRoutes.idVerification),
-                          onNext: saving ? null : () => _submit(state),
-                          nextLabel: 'Finish',
-                          nextLoading: saving,
-                        ),
+                        _buildBottomButton(context, isDark, saving, state),
                       ],
                     ),
                   ),
+                  if (saving)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        child: const Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(color: DsColors.primary),
+                              DsGap.md,
+                              Text('Setting up your profile...', style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context, bool isDark) {
+    return Padding(
+      padding: DsEdgeInsets.horizontalXxl.copyWith(top: DsSpacing.md),
+      child: Row(
+        children: [
+          GlassIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onPressed: () => context.go(CrushRoutes.idVerification),
+            size: 40,
+          ),
+          const Spacer(),
+          Text(
+            'Complete Profile',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+            ),
+          ),
+          const Spacer(),
+          const SizedBox(width: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(BuildContext context, bool isDark) {
+    return Padding(
+      padding: DsEdgeInsets.horizontalXxl,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Step 5 of 5',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: DsColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              if (saving)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.black.withAlpha((0.08 * 255).round()),
-                    child: const Center(
-                      child: CircularProgressIndicator(),
+              Text(
+                'Almost done!',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: DsColors.success,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          DsGap.sm,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: 1.0,
+              minHeight: 6,
+              backgroundColor: isDark ? DsColors.surfaceDark : DsColors.skeletonLight,
+              valueColor: const AlwaysStoppedAnimation<Color>(DsColors.success),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, bool isDark, String title, String subtitle, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: DsColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: DsColors.primary, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInterestsGrid(BuildContext context, bool isDark) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _interestOptions.map((interest) {
+        final isSelected = _selectedInterests.contains(interest);
+        final canSelect = _selectedInterests.length < 5 || isSelected;
+
+        return GestureDetector(
+          onTap: canSelect
+              ? () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedInterests.remove(interest);
+                    } else {
+                      _selectedInterests.add(interest);
+                    }
+                  });
+                }
+              : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? DsColors.primary.withValues(alpha: 0.15)
+                  : (isDark ? DsColors.surfaceDark.withValues(alpha: 0.5) : DsColors.inputFillLight),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected ? DsColors.primary : (isDark ? DsColors.borderDark : DsColors.borderLight),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Text(
+              interest,
+              style: TextStyle(
+                color: isSelected
+                    ? DsColors.primary
+                    : (canSelect
+                        ? (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)
+                        : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildFavouritesSection(BuildContext context, bool isDark) {
+    return Column(
+      children: [
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Athlete', icon: Icons.sports_soccer_rounded, value: _favouriteAthlete, options: FavouritesOptions.athletes, onSelected: (val) => setState(() => _favouriteAthlete = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Food', icon: Icons.restaurant_rounded, value: _favouriteFood, options: FavouritesOptions.foods, onSelected: (val) => setState(() => _favouriteFood = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Sport', icon: Icons.sports_rounded, value: _favouriteSport, options: FavouritesOptions.sports, onSelected: (val) => setState(() => _favouriteSport = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite TV Show', icon: Icons.tv_rounded, value: _favouriteTvShow, options: FavouritesOptions.tvShows, onSelected: (val) => setState(() => _favouriteTvShow = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Actor', icon: Icons.movie_rounded, value: _favouriteActor, options: FavouritesOptions.actors, onSelected: (val) => setState(() => _favouriteActor = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Singer', icon: Icons.music_note_rounded, value: _favouriteSinger, options: FavouritesOptions.singers, onSelected: (val) => setState(() => _favouriteSinger = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Movie', icon: Icons.local_movies_rounded, value: _favouriteMovie, options: FavouritesOptions.movies, onSelected: (val) => setState(() => _favouriteMovie = val)),
+        DsGap.md,
+        _buildFavouriteSelector(context, isDark, label: 'Favourite Hobby', icon: Icons.palette_rounded, value: _favouriteHobby, options: FavouritesOptions.hobbies, onSelected: (val) => setState(() => _favouriteHobby = val)),
+      ],
+    );
+  }
+
+  Widget _buildFavouriteSelector(BuildContext context, bool isDark, {required String label, required IconData icon, required String? value, required List<String> options, required ValueChanged<String?> onSelected}) {
+    return GestureDetector(
+      onTap: () => _showFavouriteBottomSheet(context, isDark, label, options, value, onSelected),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: value != null ? DsColors.primary.withValues(alpha: 0.1) : (isDark ? DsColors.surfaceDark.withValues(alpha: 0.5) : DsColors.inputFillLight),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: value != null ? DsColors.primary : (isDark ? DsColors.borderDark : DsColors.borderLight), width: value != null ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: value != null ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight, fontSize: 11)),
+                  Text(value ?? 'Select...', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: value != null ? (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight) : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight), fontWeight: value != null ? FontWeight.w600 : FontWeight.w400)),
+                ],
+              ),
+            ),
+            Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFavouriteBottomSheet(BuildContext context, bool isDark, String title, List<String> options, String? currentValue, ValueChanged<String?> onSelected) {
+    final customController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.7),
+        decoration: BoxDecoration(
+          color: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: isDark ? DsColors.borderDark : DsColors.borderLight, borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(title, style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)),
+                  if (currentValue != null)
+                    GestureDetector(
+                      onTap: () { onSelected(null); Navigator.pop(ctx); },
+                      child: Text('Clear', style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(color: DsColors.primary, fontWeight: FontWeight.w600)),
+                    ),
+                ],
+              ),
+            ),
+            Divider(height: 1, color: isDark ? DsColors.borderDark : DsColors.borderLight),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: customController,
+                      decoration: InputDecoration(
+                        hintText: 'Or type your own...',
+                        hintStyle: TextStyle(color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? DsColors.borderDark : DsColors.borderLight)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  GlassPrimaryButton(
+                    onPressed: () { if (customController.text.trim().isNotEmpty) { onSelected(customController.text.trim()); Navigator.pop(ctx); } },
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, color: isDark ? DsColors.borderDark : DsColors.borderLight),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: options.length,
+                itemBuilder: (ctx2, index) {
+                  final option = options[index];
+                  final isSelected = currentValue == option;
+                  return ListTile(
+                    onTap: () { onSelected(option); Navigator.pop(ctx); },
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                    leading: Container(
+                      width: 24, height: 24,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: isSelected ? DsColors.primary : Colors.transparent, border: Border.all(color: isSelected ? DsColors.primary : (isDark ? DsColors.borderDark : DsColors.borderLight), width: 2)),
+                      child: isSelected ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+                    ),
+                    title: Text(option, style: Theme.of(ctx2).textTheme.bodyMedium?.copyWith(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)),
+                  );
+                },
+              ),
+            ),
+            DsGap.lg,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context, bool isDark, bool saving, ProfileState state) {
+    return Container(
+      padding: DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [(isDark ? DsColors.backgroundDark : DsColors.backgroundLight).withValues(alpha: 0), isDark ? DsColors.backgroundDark : DsColors.backgroundLight],
+        ),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: GlassPrimaryButton(
+          onPressed: saving ? null : () => _submit(state),
+          child: saving
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Text('Finish & Start Swiping', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ],
                 ),
-            ],
-          );
-        },
+        ),
       ),
     );
   }

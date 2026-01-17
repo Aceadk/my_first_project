@@ -87,7 +87,7 @@ class CrushDI {
   ///
   /// NOTE: Set to [BackendMode.stub] for testing without Firebase premium features.
   /// All data is stored locally and testers can fully use the app.
-  static const BackendMode backendMode = BackendMode.firebase;
+  static const BackendMode backendMode = BackendMode.stub;
 
   /// Singleton API client for HTTP mode.
   static ApiClient? _apiClient;

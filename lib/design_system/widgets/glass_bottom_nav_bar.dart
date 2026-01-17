@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import '../tokens/blur.dart';
-import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
 
@@ -14,6 +13,7 @@ class GlassNavItem {
     required this.label,
     required this.gradient,
     this.badgeCount = 0,
+    this.showDotOnly = false,
   });
 
   /// Icon when not selected.
@@ -30,6 +30,10 @@ class GlassNavItem {
 
   /// Badge count to display. Shows badge if > 0.
   final int badgeCount;
+
+  /// If true, shows a small dot instead of a count badge.
+  /// Useful for indicating unseen items without showing exact count.
+  final bool showDotOnly;
 }
 
 /// A frosted glass bottom navigation bar with animated tab indicators.
@@ -62,9 +66,9 @@ class GlassBottomNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.items,
-    this.blur = DsBlur.heavy,
+    this.blur = DsBlur.medium,
     this.backgroundColor,
-    this.height = 80,
+    this.height = 64,
   });
 
   /// Currently selected index.
@@ -82,7 +86,7 @@ class GlassBottomNavBar extends StatelessWidget {
   /// Override background color.
   final Color? backgroundColor;
 
-  /// Height of the nav bar.
+  /// Height of the nav bar (reduced for compact look).
   final double height;
 
   @override
@@ -90,13 +94,15 @@ class GlassBottomNavBar extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
+    // Dark translucent background for both modes
     final bgColor = backgroundColor ??
         (isDark
-            ? DsGlassColors.surfaceHeavyDark
-            : DsGlassColors.surfaceHeavyLight);
+            ? Colors.black.withValues(alpha: 0.75)
+            : Colors.black.withValues(alpha: 0.65));
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white.withValues(alpha: 0.12);
 
     return RepaintBoundary(
       child: ClipRRect(
@@ -114,8 +120,8 @@ class GlassBottomNavBar extends StatelessWidget {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: DsSpacing.sm,
-                  vertical: DsSpacing.sm,
+                  horizontal: DsSpacing.xs,
+                  vertical: DsSpacing.xs,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -151,11 +157,8 @@ class _GlassNavItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
-    final inactiveColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    // Inactive icons use a muted white for dark translucent background
+    final inactiveColor = Colors.white.withValues(alpha: 0.5);
 
     // Build accessibility label
     final semanticLabel = StringBuffer(item.label);
@@ -175,107 +178,131 @@ class _GlassNavItemWidget extends StatelessWidget {
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? DsSpacing.lg : DsSpacing.md,
-          vertical: DsSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          gradient: isSelected ? item.gradient : null,
-          borderRadius: BorderRadius.circular(DsRadius.round),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: item.gradient.colors.first.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: isSelected ? DsSpacing.md : DsSpacing.sm,
+            vertical: DsSpacing.xs + 2,
+          ),
+          decoration: BoxDecoration(
+            gradient: isSelected ? item.gradient : null,
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: item.gradient.colors.first.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon with badge
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    child: Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      key: ValueKey(isSelected),
+                      size: 22,
+                      color: isSelected ? Colors.white : inactiveColor,
+                    ),
                   ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Icon with badge
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    isSelected ? item.activeIcon : item.icon,
-                    key: ValueKey(isSelected),
-                    size: 24,
-                    color: isSelected ? Colors.white : inactiveColor,
-                  ),
-                ),
-                // Badge
-                if (item.badgeCount > 0)
-                  Positioned(
-                    right: -8,
-                    top: -6,
-                    child: _NavBadge(count: item.badgeCount),
-                  ),
-              ],
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              child: isSelected
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: DsSpacing.sm),
-                      child: Text(
-                        item.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
+                  // Badge (dot or count)
+                  if (item.badgeCount > 0)
+                    Positioned(
+                      right: item.showDotOnly ? -2 : -6,
+                      top: item.showDotOnly ? -2 : -4,
+                      child: _NavBadge(
+                        count: item.badgeCount,
+                        dotOnly: item.showDotOnly,
                       ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+                    ),
+                ],
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                child: isSelected
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: DsSpacing.xs + 2),
+                        child: Text(
+                          item.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
 
-/// Badge widget for nav items.
+/// Badge widget for nav items (compact style).
+/// Supports both dot-only mode (for Chats) and count mode (for Matches).
 class _NavBadge extends StatelessWidget {
-  const _NavBadge({required this.count});
+  const _NavBadge({
+    required this.count,
+    this.dotOnly = false,
+  });
 
   final int count;
+  final bool dotOnly;
 
   @override
   Widget build(BuildContext context) {
-    final displayText = count > 99 ? '99+' : count.toString();
+    // Dot-only mode: small red dot without text
+    if (dotOnly) {
+      return Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF3B5C), // Bright red
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF3B5C).withValues(alpha: 0.5),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Count mode: show number (1-9) or "9+" if > 9
+    final displayText = count > 9 ? '9+' : count.toString();
     final isSmall = count < 10;
 
     return Container(
       constraints: BoxConstraints(
-        minWidth: isSmall ? 18 : 22,
-        minHeight: 18,
+        minWidth: isSmall ? 16 : 20,
+        minHeight: 16,
       ),
       padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 0 : 5,
-        vertical: 2,
+        horizontal: isSmall ? 0 : 4,
+        vertical: 1,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [DsColors.primary, Color(0xFFFF6B9D)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(9),
+        color: const Color(0xFFFF3B5C), // Solid red for clean look
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: DsColors.primary.withValues(alpha: 0.5),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: const Color(0xFFFF3B5C).withValues(alpha: 0.4),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -284,7 +311,7 @@ class _NavBadge extends StatelessWidget {
           displayText,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             height: 1,
           ),

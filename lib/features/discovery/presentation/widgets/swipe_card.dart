@@ -244,7 +244,6 @@ class _SwipeCardState extends State<SwipeCard> {
     final currentMedia = _currentMedia;
     final displayName =
         profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
-    final ageText = profile.age > 0 ? '${profile.age}' : 'N/A';
     final bio = profile.bio.trim().isEmpty
         ? 'This member has not added a bio yet.'
         : profile.bio;
@@ -392,7 +391,7 @@ class _SwipeCardState extends State<SwipeCard> {
               ),
             ),
 
-            // Top gradient for indicators
+            // Top gradient - subtle, blends with dark mode
             IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -400,49 +399,58 @@ class _SwipeCardState extends State<SwipeCard> {
                     begin: Alignment.topCenter,
                     end: Alignment.center,
                     colors: [
-                      Colors.black.withValues(alpha: 0.4),
+                      Colors.black.withValues(alpha: 0.35),
+                      Colors.black.withValues(alpha: 0.15),
                       Colors.transparent,
                     ],
-                    stops: const [0.0, 0.3],
+                    stops: const [0.0, 0.15, 0.35],
                   ),
                 ),
               ),
             ),
 
-            // Media progress indicators (top)
-            if (media.length > 1)
-              Positioned(
-                top: DsSpacing.md,
-                left: DsSpacing.md,
-                right: DsSpacing.md,
-                child: _MediaProgressIndicators(
-                  count: media.length,
-                  currentIndex: _currentMediaIndex,
-                  videoProgress: _videoController != null && _isVideoInitialized
-                      ? _videoController!.value.position.inMilliseconds /
-                          (_videoController!.value.duration.inMilliseconds.clamp(1, double.maxFinite.toInt()))
-                      : null,
-                ),
-              ),
-
-            // Badges row (under indicators)
+            // Top navigation area with "For You" badge
             Positioned(
-              top: media.length > 1 ? DsSpacing.md + 12 : DsSpacing.md,
+              top: DsSpacing.md,
               left: DsSpacing.md,
               right: DsSpacing.md,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Video count badge (left)
-                  if (profile.videoUrls.isNotEmpty)
-                    _GlassMediaBadge(
-                      icon: Icons.videocam_rounded,
-                      label: '${profile.videoUrls.length}',
-                    )
-                  else
-                    const SizedBox.shrink(),
-                  // Verification badge (right)
-                  _GlassVerificationPill(isVerified: profile.isVerified),
+                  // Top row: For You badge + Verification
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Left side: For You badge + Video count
+                      Row(
+                        children: [
+                          const _ForYouBadge(),
+                          if (profile.videoUrls.isNotEmpty) ...[
+                            const SizedBox(width: DsSpacing.xs),
+                            _GlassMediaBadge(
+                              icon: Icons.videocam_rounded,
+                              label: '${profile.videoUrls.length}',
+                            ),
+                          ],
+                        ],
+                      ),
+                      // Right side: Verification badge
+                      _GlassVerificationPill(isVerified: profile.isVerified),
+                    ],
+                  ),
+                  // Media progress indicators (below badges)
+                  if (media.length > 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: DsSpacing.sm),
+                      child: _MediaProgressIndicators(
+                        count: media.length,
+                        currentIndex: _currentMediaIndex,
+                        videoProgress: _videoController != null && _isVideoInitialized
+                            ? _videoController!.value.position.inMilliseconds /
+                                (_videoController!.value.duration.inMilliseconds.clamp(1, double.maxFinite.toInt()))
+                            : null,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -485,6 +493,14 @@ class _SwipeCardState extends State<SwipeCard> {
                   ),
                 ),
               ),
+
+            // Profile identity overlay (name, age, status badge, traits) - lower left on photo
+            Positioned(
+              left: 0,
+              right: 0, // Allow chips to wrap properly
+              bottom: 140, // Above the frosted glass info panel
+              child: _ProfileIdentityOverlay(profile: profile),
+            ),
 
             // Frosted glass info panel (bottom)
             Positioned(
@@ -531,31 +547,6 @@ class _SwipeCardState extends State<SwipeCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Name and age
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '$displayName, $ageText',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        shadows: [
-                                          Shadow(
-                                            color:
-                                                Colors.black.withValues(alpha: 0.3),
-                                            blurRadius: 4,
-                                          ),
-                                        ],
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: DsSpacing.xs),
                           // Bio or first prompt
                           if (profile.profilePrompts.isNotEmpty)
                             _CompactPromptDisplay(
@@ -907,7 +898,322 @@ class _CompactPromptDisplay extends StatelessWidget {
   }
 }
 
+/// Profile identity overlay with name, age, status badge, and trait chips.
+/// Displayed on the lower-left of the photo.
+class _ProfileIdentityOverlay extends StatelessWidget {
+  const _ProfileIdentityOverlay({
+    required this.profile,
+  });
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
+    final ageText = profile.age > 0 ? '${profile.age}' : '';
+
+    // Collect trait chips (limit to 3-4 for clean layout)
+    final traits = _buildTraitChips();
+
+    return Padding(
+      padding: const EdgeInsets.all(DsSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Status badge (Active or New here) - above the name
+          if (profile.isActive || profile.isNewUser)
+            Padding(
+              padding: const EdgeInsets.only(bottom: DsSpacing.xs),
+              child: _ProfileStatusBadge(
+                isActive: profile.isActive,
+                isNewUser: profile.isNewUser,
+              ),
+            ),
+          // Name and age
+          Text(
+            ageText.isNotEmpty ? '$displayName, $ageText' : displayName,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                    ),
+                  ],
+                ),
+          ),
+          // Trait chips below name
+          if (traits.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: DsSpacing.sm),
+              child: Wrap(
+                spacing: DsSpacing.xs,
+                runSpacing: DsSpacing.xs,
+                children: traits.take(4).toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Build trait chips from profile data
+  List<Widget> _buildTraitChips() {
+    final chips = <Widget>[];
+
+    // Smoking
+    if (profile.smoking != null && profile.smoking!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.smoking_rooms_outlined,
+        label: _formatSmoking(profile.smoking!),
+      ));
+    }
+
+    // Drinking
+    if (profile.drinking != null && profile.drinking!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.local_bar_outlined,
+        label: _formatDrinking(profile.drinking!),
+      ));
+    }
+
+    // Education
+    if (profile.educationLevel != null && profile.educationLevel!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.school_outlined,
+        label: _formatEducation(profile.educationLevel!),
+      ));
+    }
+
+    // Relationship goals
+    if (profile.relationshipGoals != null && profile.relationshipGoals!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.favorite_outline,
+        label: profile.relationshipGoals!,
+      ));
+    }
+
+    // Workout/Fitness
+    if (profile.workout != null && profile.workout!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.fitness_center_outlined,
+        label: profile.workout!,
+      ));
+    }
+
+    // Pets
+    if (profile.pets != null && profile.pets!.isNotEmpty) {
+      chips.add(_TraitChip(
+        icon: Icons.pets_outlined,
+        label: profile.pets!,
+      ));
+    }
+
+    return chips;
+  }
+
+  String _formatSmoking(String value) {
+    final lower = value.toLowerCase();
+    if (lower.contains('never') || lower.contains('non')) return 'Non-smoker';
+    if (lower.contains('social') || lower.contains('occasion')) return 'Social smoker';
+    return value;
+  }
+
+  String _formatDrinking(String value) {
+    final lower = value.toLowerCase();
+    if (lower.contains('never') || lower.contains('non') || lower.contains('sober')) return 'Sober';
+    if (lower.contains('social') || lower.contains('occasion')) return 'Social drinker';
+    if (lower.contains('regular') || lower.contains('often')) return 'Regular drinker';
+    return value;
+  }
+
+  String _formatEducation(String value) {
+    final lower = value.toLowerCase();
+    if (lower.contains('bachelor')) return "Bachelor's";
+    if (lower.contains('master')) return "Master's";
+    if (lower.contains('phd') || lower.contains('doctor')) return 'Doctorate';
+    if (lower.contains('high school')) return 'High school';
+    if (lower.contains('associate')) return 'Associate';
+    return value;
+  }
+}
+
+/// Compact trait chip with icon for profile overlay.
+class _TraitChip extends StatelessWidget {
+  const _TraitChip({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DsSpacing.sm,
+        vertical: DsSpacing.xs / 2 + 1,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(DsRadius.round),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "For You" badge displayed at the top of the swipe card.
+/// Subtle, polished pill that blends with dark mode.
+class _ForYouBadge extends StatelessWidget {
+  const _ForYouBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.round),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.sm + 2,
+            vertical: DsSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                size: 12,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'For You',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small status badge showing "Active" or "New here".
+/// Prioritizes "Active" if both conditions apply.
+class _ProfileStatusBadge extends StatelessWidget {
+  const _ProfileStatusBadge({
+    required this.isActive,
+    required this.isNewUser,
+  });
+
+  final bool isActive;
+  final bool isNewUser;
+
+  @override
+  Widget build(BuildContext context) {
+    // Prioritize Active badge over New here
+    final showActive = isActive;
+    final showNewHere = !isActive && isNewUser;
+
+    if (!showActive && !showNewHere) {
+      return const SizedBox.shrink();
+    }
+
+    final label = showActive ? 'Active' : 'New here';
+    final color = showActive
+        ? const Color(0xFF7ED687) // Light green for Active
+        : DsColors.secondary.withValues(alpha: 0.9); // Muted accent for New here
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DsSpacing.sm,
+        vertical: DsSpacing.xs / 2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(DsRadius.round),
+        border: Border.all(
+          color: color.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showActive)
+            Container(
+              width: 6,
+              height: 6,
+              margin: const EdgeInsets.only(right: 4),
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A glassmorphism-styled verification badge for profile cards.
+/// Only shows when user is verified - no warning for unverified users.
 class _GlassVerificationPill extends StatelessWidget {
   const _GlassVerificationPill({required this.isVerified});
 
@@ -915,9 +1221,12 @@ class _GlassVerificationPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isVerified ? Colors.lightBlueAccent : Colors.orangeAccent;
-    final text = isVerified ? 'Verified' : 'Not verified';
-    final icon = isVerified ? Icons.verified : Icons.privacy_tip_outlined;
+    // Only show badge for verified users - clean, distraction-free for unverified
+    if (!isVerified) {
+      return const SizedBox.shrink();
+    }
+
+    const color = Colors.lightBlueAccent;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
@@ -946,15 +1255,15 @@ class _GlassVerificationPill extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: Row(
+          child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: DsSpacing.xs),
+              Icon(Icons.verified, size: 16, color: Colors.lightBlueAccent),
+              SizedBox(width: DsSpacing.xs),
               Text(
-                text,
+                'Verified',
                 style: TextStyle(
-                  color: color,
+                  color: Colors.lightBlueAccent,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),

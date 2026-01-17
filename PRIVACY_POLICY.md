@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Welcome to Crush! Your privacy is extremely important to us. This Privacy Policy explains in detail how Crush ("Company," "we," "us," or "our") collects, uses, discloses, stores, and protects your personal information when you use the Crush mobile application and related services (collectively, the "Service").
+Welcome to Crush! Your privacy is extremely important to us. This Privacy Policy explains in detail how Crush collects, uses, discloses, stores, and protects your personal information when you use the Crush mobile application and related services.
 
 Crush is a dating and social networking platform available globally in 21 languages. We are committed to protecting your privacy while helping you find meaningful connections.
 

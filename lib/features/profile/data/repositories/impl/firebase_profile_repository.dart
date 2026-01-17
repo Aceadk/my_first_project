@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/app_logger.dart';
@@ -156,6 +157,9 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   }) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
@@ -179,6 +183,12 @@ class FirebaseProfileRepository implements ProfileRepository {
           )
         : null;
     final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
+    final sanitizedCity = city != null
+        ? InputSanitizer.sanitizeText(city, maxLength: 100)
+        : null;
+    final sanitizedCountry = country != null
+        ? InputSanitizer.sanitizeText(country, maxLength: 100)
+        : null;
 
     final profileData = <String, dynamic>{
       'bio': sanitizedBio,
@@ -189,6 +199,9 @@ class FirebaseProfileRepository implements ProfileRepository {
       if (sanitizedCompany != null) 'company': sanitizedCompany,
       if (sanitizedSchool != null) 'school': sanitizedSchool,
       if (prompts != null) 'prompts': prompts,
+      if (sanitizedCity != null) 'city': sanitizedCity,
+      if (sanitizedCountry != null) 'country': sanitizedCountry,
+      if (favourites != null) 'favourites': favourites.toJson(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
@@ -284,6 +297,10 @@ class FirebaseProfileRepository implements ProfileRepository {
         privacySettings: ProfilePrivacySettings.fromJson(
           profileData['privacySettings'] as Map<String, dynamic>?,
         ),
+        favourites: profileData['favourites'] != null
+            ? ProfileFavourites.fromJson(
+                profileData['favourites'] as Map<String, dynamic>)
+            : const ProfileFavourites(),
       );
     }
 
@@ -383,6 +400,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         'city': p.preferences.city,
       },
       'privacySettings': p.privacySettings.toJson(),
+      'favourites': p.favourites.toJson(),
     };
   }
 

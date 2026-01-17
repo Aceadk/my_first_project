@@ -65,11 +65,9 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  /// Checks Firestore for OTP-based email verification or developer status and updates user state if verified.
+  /// Checks Firestore for OTP-based email verification, developer status, and terms acceptance.
+  /// Always syncs hasAcceptedTerms from Firestore to ensure permanent T&C acceptance.
   Future<void> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
-    // Skip if already verified via Firebase SDK
-    if (firebaseUser.emailVerified) return;
-
     try {
       final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
       final userData = userDoc.data();
@@ -80,23 +78,31 @@ class FirebaseAuthRepository implements AuthRepository {
       final isDeveloper = userData['isDeveloper'] as bool? ?? false;
       // Read phone verification status from Firestore - don't assume from isDeveloper
       final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
+      final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
 
-      if (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper) {
-        // User verified via OTP or is a developer - update current user with verified status
+      // Determine if we need to update email verification status
+      final needsEmailVerificationUpdate = !firebaseUser.emailVerified &&
+          (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper);
+
+      // Always update if hasAcceptedTerms differs or email verification needs update
+      final currentTermsStatus = _currentUser?.hasAcceptedTerms ?? false;
+      if (needsEmailVerificationUpdate || hasAcceptedTerms != currentTermsStatus) {
         _currentUser = CrushUser(
           id: firebaseUser.uid,
           phoneNumber: firebaseUser.phoneNumber ?? '',
           email: firebaseUser.email,
           username: firebaseUser.displayName,
-          isEmailVerified: true, // Override with Firestore value
-          // Phone verification should come from Firestore or Firebase Auth, not isDeveloper
+          // Use Firestore verification if not verified via Firebase SDK
+          isEmailVerified: firebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper,
+          // Phone verification should come from Firestore or Firebase Auth
           isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: SubscriptionPlan.free,
           profile: null,
+          hasAcceptedTerms: hasAcceptedTerms,
         );
         _authStateController.add(_currentUser);
-        AppLogger.logInfo('[FirebaseAuthRepo] Updated user with verified status (OTP/developer)');
+        AppLogger.logInfo('[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms)');
       }
     } catch (e) {
       // Don't log error for expected document-not-found cases
@@ -650,6 +656,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final emailVerifiedViaOtp = userData?['emailVerifiedViaOtp'] as bool? ?? false;
       // Read phone verification status from Firestore
       final firestorePhoneVerified = userData?['isPhoneVerified'] as bool? ?? false;
+      // Read terms acceptance from Firestore (permanent per account)
+      final hasAcceptedTerms = userData?['hasAcceptedTerms'] as bool? ?? false;
 
       AppLogger.logInfo('[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
 
@@ -666,6 +674,7 @@ class FirebaseAuthRepository implements AuthRepository {
           isIdVerified: false,
           plan: SubscriptionPlan.free,
           profile: null,
+          hasAcceptedTerms: hasAcceptedTerms,
         );
         _authStateController.add(_currentUser);
         AppLogger.logInfo('[FirebaseAuthRepo] User verified via OTP, returning verified status');
@@ -1010,6 +1019,10 @@ class FirebaseAuthRepository implements AuthRepository {
       'isDeveloper': true,
     }, SetOptions(merge: true));
 
+    // Read existing terms acceptance (if dev user has previously accepted)
+    final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+    final hasAcceptedTerms = userDoc.data()?['hasAcceptedTerms'] as bool? ?? false;
+
     // Return a dev user with email verified = true (bypass Firebase Auth check)
     final devUser = CrushUser(
       id: firebaseUser.uid,
@@ -1021,6 +1034,7 @@ class FirebaseAuthRepository implements AuthRepository {
       isIdVerified: false,
       plan: SubscriptionPlan.free,
       profile: null,
+      hasAcceptedTerms: hasAcceptedTerms,
     );
 
     _currentUser = devUser;
@@ -1064,6 +1078,43 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       AppLogger.logError('[FirebaseAuthRepo] Error checking email existence', e);
       return false;
+    }
+  }
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    try {
+      // Update Firestore with terms acceptance
+      await _firestore.collection('users').doc(firebaseUser.uid).set({
+        'hasAcceptedTerms': true,
+        'termsAcceptedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // Update current user state
+      _currentUser = _currentUser?.copyWith(hasAcceptedTerms: true) ??
+          CrushUser(
+            id: firebaseUser.uid,
+            phoneNumber: firebaseUser.phoneNumber ?? '',
+            email: firebaseUser.email,
+            username: firebaseUser.displayName,
+            isEmailVerified: firebaseUser.emailVerified,
+            isPhoneVerified: firebaseUser.phoneNumber != null,
+            isIdVerified: false,
+            plan: SubscriptionPlan.free,
+            hasAcceptedTerms: true,
+          );
+
+      _authStateController.add(_currentUser);
+      AppLogger.logInfo('[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}');
+      return _currentUser!;
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error accepting terms', e);
+      throw Exception('Failed to accept terms. Please try again.');
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/favourites.dart';
 
 abstract class ProfileEvent extends Equatable {
   @override
@@ -44,6 +45,9 @@ class ProfileDetailsSubmitted extends ProfileEvent {
   final String? company;
   final String? school;
   final List<String> interests;
+  final String? city;
+  final String? country;
+  final ProfileFavourites? favourites;
 
   ProfileDetailsSubmitted({
     required this.bio,
@@ -53,11 +57,14 @@ class ProfileDetailsSubmitted extends ProfileEvent {
     this.company,
     this.school,
     required this.interests,
+    this.city,
+    this.country,
+    this.favourites,
   });
 
   @override
   List<Object?> get props =>
-      [bio, photoUrls, videoUrls, jobTitle, company, school, interests];
+      [bio, photoUrls, videoUrls, jobTitle, company, school, interests, city, country, favourites];
 }
 
 class ProfileIdDocumentUploaded extends ProfileEvent {}

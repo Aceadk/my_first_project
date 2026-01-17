@@ -214,11 +214,11 @@ class StubAuthRepository implements AuthRepository {
       throw Exception('This username is already taken');
     }
 
-    // Create new user
+    // Create new user (auto-verified in stub mode for development testing)
     final user = await _createUser(
       email: email,
       username: username,
-      isEmailVerified: false,
+      isEmailVerified: true,
     );
 
     // Store password securely
@@ -447,6 +447,7 @@ class StubAuthRepository implements AuthRepository {
         isPhoneVerified: true,
         isIdVerified: true,
         plan: SubscriptionPlan.plus,
+        hasAcceptedTerms: true,
         profile: Profile(
           id: 'dev-admin-profile',
           name: 'Dev Admin',
@@ -670,6 +671,7 @@ class StubAuthRepository implements AuthRepository {
       isIdVerified: json['isIdVerified'] ?? false,
       plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
       profile: profile,
+      hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
     );
   }
 
@@ -745,6 +747,7 @@ class StubAuthRepository implements AuthRepository {
       'isIdVerified': user.isIdVerified,
       'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
       'profile': profileJson,
+      'hasAcceptedTerms': user.hasAcceptedTerms,
     };
   }
 
@@ -823,6 +826,20 @@ class StubAuthRepository implements AuthRepository {
     await _secureStorage.delete(key: 'pwd_$userId');
 
     await signOut();
+  }
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (_currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    _currentUser = _currentUser!.copyWith(hasAcceptedTerms: true);
+    await _updateUser(_currentUser!);
+    _authStateController.add(_currentUser);
+    return _currentUser!;
   }
 
   void dispose() {

@@ -137,4 +137,8 @@ abstract class AuthRepository {
   /// Check if an email is already registered.
   /// Returns true if the email is already in use.
   Future<bool> isEmailRegistered(String email);
+
+  /// Accept terms and conditions and privacy policy.
+  /// Updates the user's hasAcceptedTerms field to true.
+  Future<CrushUser> acceptTermsAndConditions();
 }

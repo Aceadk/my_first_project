@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'preferences.dart';
 import 'privacy_settings.dart';
 import 'profile_prompt.dart';
+import 'favourites.dart';
 
 class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
@@ -151,6 +152,19 @@ class Profile extends Equatable {
   final String? verificationBadge;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // ACTIVITY & ACCOUNT STATUS
+  // ═══════════════════════════════════════════════════════════════════════════
+  final bool isActive; // Whether the user is currently active/online
+  final DateTime? createdAt; // Account creation date
+
+  /// Returns true if the user's account was created within the last 7 days
+  bool get isNewUser {
+    if (createdAt == null) return false;
+    final daysSinceCreation = DateTime.now().difference(createdAt!).inDays;
+    return daysSinceCreation <= 7;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // DISCOVERY PREFERENCES
   // ═══════════════════════════════════════════════════════════════════════════
   final DiscoveryPreferences preferences;
@@ -159,6 +173,11 @@ class Profile extends Equatable {
   // PRIVACY SETTINGS
   // ═══════════════════════════════════════════════════════════════════════════
   final ProfilePrivacySettings privacySettings;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FAVOURITES
+  // ═══════════════════════════════════════════════════════════════════════════
+  final ProfileFavourites favourites;
 
   const Profile({
     required this.id,
@@ -206,8 +225,11 @@ class Profile extends Equatable {
     this.favoriteSinger,
     required this.isVerified,
     this.verificationBadge,
+    this.isActive = false,
+    this.createdAt,
     required this.preferences,
     this.privacySettings = const ProfilePrivacySettings(),
+    this.favourites = const ProfileFavourites(),
   });
 
   /// Sentinel object for copyWith null handling
@@ -259,8 +281,11 @@ class Profile extends Equatable {
     Object? favoriteSinger = _unset,
     bool? isVerified,
     Object? verificationBadge = _unset,
+    bool? isActive,
+    Object? createdAt = _unset,
     DiscoveryPreferences? preferences,
     ProfilePrivacySettings? privacySettings,
+    ProfileFavourites? favourites,
   }) {
     return Profile(
       id: id ?? this.id,
@@ -350,8 +375,13 @@ class Profile extends Equatable {
       verificationBadge: identical(verificationBadge, _unset)
           ? this.verificationBadge
           : verificationBadge as String?,
+      isActive: isActive ?? this.isActive,
+      createdAt: identical(createdAt, _unset)
+          ? this.createdAt
+          : createdAt as DateTime?,
       preferences: preferences ?? this.preferences,
       privacySettings: privacySettings ?? this.privacySettings,
+      favourites: favourites ?? this.favourites,
     );
   }
 
@@ -403,7 +433,10 @@ class Profile extends Equatable {
         favoriteSinger,
         isVerified,
         verificationBadge,
+        isActive,
+        createdAt,
         preferences,
         privacySettings,
+        favourites,
       ];
 }

@@ -38,11 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
         badgeCount: badgeState.newMatches,
       ),
       GlassNavItem(
-        icon: Icons.chat_bubble_outline,
-        activeIcon: Icons.chat_bubble,
+        icon: Icons.send_outlined,
+        activeIcon: Icons.send,
         label: 'Chats',
         gradient: DsGradients.chats,
         badgeCount: badgeState.unreadChats,
+        showDotOnly: true, // Dot-only indicator for unseen messages
       ),
       const GlassNavItem(
         icon: Icons.person_outline,

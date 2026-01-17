@@ -9,6 +9,7 @@ import 'package:crushhour/core/network/mappers/profile_mapper.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import '../profile_repository.dart';
 
 /// HTTP-based implementation of ProfileRepository.
@@ -97,6 +98,9 @@ class HttpProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   }) async {
     final request = UpdateProfileRequestDto(
       bio: bio,

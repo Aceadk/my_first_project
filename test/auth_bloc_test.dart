@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:crushhour/data/models/user.dart';
+
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import 'mock/firebase_mock.dart';
 
 void main() {
@@ -184,8 +186,7 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          isA<AuthState>()
-              .having((s) => s.isLoading, 'isLoading', true),
+          isA<AuthState>().having((s) => s.isLoading, 'isLoading', true),
           isA<AuthState>()
               .having((s) => s.status, 'status', AuthStatus.unknown)
               .having((s) => s.isLoading, 'isLoading', false),
@@ -203,8 +204,7 @@ void main() {
       await expectLater(
         bloc.stream,
         emits(
-          isA<AuthState>()
-              .having((s) => s.errorMessage, 'error', isNotNull),
+          isA<AuthState>().having((s) => s.errorMessage, 'error', isNotNull),
         ),
       );
 
@@ -384,4 +384,9 @@ class _StubAuthRepository implements AuthRepository {
 
   @override
   Future<bool> isEmailRegistered(String email) async => false;
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    return _testUser.copyWith(hasAcceptedTerms: true);
+  }
 }

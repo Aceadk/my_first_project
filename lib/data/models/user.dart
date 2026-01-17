@@ -12,6 +12,7 @@ class CrushUser extends Equatable {
   final bool isPhoneVerified;
   final bool isIdVerified;
   final SubscriptionPlan plan;
+  final bool hasAcceptedTerms;
 
   const CrushUser({
     required this.id,
@@ -23,6 +24,7 @@ class CrushUser extends Equatable {
     required this.isPhoneVerified,
     required this.isIdVerified,
     required this.plan,
+    this.hasAcceptedTerms = false,
   });
 
   /// User can swipe if EITHER email OR phone is verified (not both required)
@@ -40,6 +42,7 @@ class CrushUser extends Equatable {
     bool? isPhoneVerified,
     bool? isIdVerified,
     SubscriptionPlan? plan,
+    bool? hasAcceptedTerms,
   }) {
     return CrushUser(
       id: id ?? this.id,
@@ -51,6 +54,7 @@ class CrushUser extends Equatable {
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       isIdVerified: isIdVerified ?? this.isIdVerified,
       plan: plan ?? this.plan,
+      hasAcceptedTerms: hasAcceptedTerms ?? this.hasAcceptedTerms,
     );
   }
 
@@ -65,5 +69,6 @@ class CrushUser extends Equatable {
         isPhoneVerified,
         isIdVerified,
         plan,
+        hasAcceptedTerms,
       ];
 }

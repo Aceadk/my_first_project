@@ -131,6 +131,26 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               const Divider(height: 1),
+              // ID Verification
+              Builder(
+                builder: (context) {
+                  final isIdVerified = context.select<AuthBloc, bool>(
+                    (bloc) => bloc.state.user?.isIdVerified ?? false,
+                  );
+                  return _SettingsTile(
+                    icon: isIdVerified ? Icons.verified_rounded : Icons.verified_outlined,
+                    iconColor: isIdVerified ? DsColors.success : Colors.blue,
+                    title: 'ID Verification',
+                    subtitle: isIdVerified
+                        ? 'Verified - Badge active'
+                        : 'Verify to unlock 50% more swipes',
+                    onTap: isIdVerified
+                        ? null
+                        : () => context.push(CrushRoutes.idVerificationSettings),
+                  );
+                },
+              ),
+              const Divider(height: 1),
               // Privacy Settings
               _SettingsTile(
                 icon: Icons.visibility_outlined,
@@ -687,14 +707,14 @@ class _SettingsTile extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.subtitle,
-    required this.onTap,
+    this.onTap,
   });
 
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

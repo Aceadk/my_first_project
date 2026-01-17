@@ -1,5 +1,6 @@
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/favourites.dart';
 
 abstract class ProfileRepository {
   Future<CrushUser?> getCurrentUser();
@@ -21,6 +22,9 @@ abstract class ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   });
 
   Future<void> uploadIdDocument(/* e.g. File or bytes type */);

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 
 class TermsConditionsScreen extends StatefulWidget {
   const TermsConditionsScreen({super.key});
-
-  static const String acceptedKey = 'terms_conditions_accepted';
 
   @override
   State<TermsConditionsScreen> createState() => _TermsConditionsScreenState();
@@ -46,17 +46,15 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(TermsConditionsScreen.acceptedKey, true);
+      final authRepo = context.read<AuthRepository>();
+      await authRepo.acceptTermsAndConditions();
 
       if (mounted) {
         context.go(CrushRoutes.basicInfo);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save. Please try again.')),
-        );
+        showErrorSnackBar(context, 'Failed to save. Please try again.');
       }
     } finally {
       if (mounted) {

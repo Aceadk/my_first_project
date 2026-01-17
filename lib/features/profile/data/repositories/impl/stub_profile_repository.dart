@@ -7,6 +7,7 @@ import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 
@@ -128,6 +129,9 @@ class StubProfileRepository implements ProfileRepository {
     String? school,
     required List<String> interests,
     List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
   }) async {
     await Future.delayed(const Duration(milliseconds: 50));
 

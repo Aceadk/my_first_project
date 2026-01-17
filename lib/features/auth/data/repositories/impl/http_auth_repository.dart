@@ -449,6 +449,7 @@ class HttpAuthRepository implements AuthRepository {
       isPhoneVerified: true,
       isIdVerified: true,
       plan: SubscriptionPlan.plus,
+      hasAcceptedTerms: true,
     );
 
     _emitAuthState(_currentUser);
@@ -581,6 +582,25 @@ class HttpAuthRepository implements AuthRepository {
 
   void _emitAuthState(CrushUser? user) {
     _authStateController.add(user);
+  }
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/auth/accept-terms',
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to accept terms');
+    }
+
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(hasAcceptedTerms: true);
+      _emitAuthState(_currentUser);
+      return _currentUser!;
+    }
+
+    throw Exception('No user logged in');
   }
 
   /// Dispose resources.

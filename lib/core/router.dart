@@ -66,6 +66,7 @@ class CrushRoutes {
   static const newDevice = '/new-device';
   static const basicInfo = '/basic-info';
   static const idVerification = '/id-verification';
+  static const idVerificationSettings = '/settings/id-verification';
   static const profileSetup = '/profile-setup';
   static const termsConditions = '/terms-conditions';
   static const home = '/home';
@@ -113,6 +114,7 @@ GoRouter createRouter(AuthBloc authBloc) {
       final isAuthRoute = path.startsWith(CrushRoutes.authGateway);
       final isSplash = path == CrushRoutes.splash;
       final isEmailVerificationRoute = path == CrushRoutes.emailVerification;
+      final isTermsRoute = path == CrushRoutes.termsConditions;
       final isOnboardingRoute = path == CrushRoutes.basicInfo ||
           path == CrushRoutes.profileSetup ||
           path == CrushRoutes.idVerification ||
@@ -127,6 +129,11 @@ GoRouter createRouter(AuthBloc authBloc) {
           user.email!.isNotEmpty &&
           !user.isEmailVerified;
 
+      // Check if user needs to accept terms and conditions
+      final needsTermsAcceptance = isLoggedIn &&
+          user != null &&
+          !user.hasAcceptedTerms;
+
       // While auth status is unknown, stay on splash screen
       // Don't redirect - let the splash screen handle navigation via BlocListener
       if (isUnknown) {
@@ -139,6 +146,10 @@ GoRouter createRouter(AuthBloc authBloc) {
       // Auth status is known - redirect away from splash
       if (isSplash) {
         if (isLoggedIn) {
+          // Check if terms acceptance is needed first (before email verification)
+          if (needsTermsAcceptance) {
+            return CrushRoutes.termsConditions;
+          }
           // Check if email verification is needed
           if (needsEmailVerification) {
             return CrushRoutes.emailVerification;
@@ -153,8 +164,20 @@ GoRouter createRouter(AuthBloc authBloc) {
         return CrushRoutes.authGateway;
       }
 
-      // Logged in but needs email verification
-      if (needsEmailVerification) {
+      // Logged in but needs to accept terms
+      if (needsTermsAcceptance) {
+        // Allow staying on terms screen
+        if (isTermsRoute) {
+          return null;
+        }
+        // Redirect to terms screen from any other protected route
+        if (!isAuthRoute) {
+          return CrushRoutes.termsConditions;
+        }
+      }
+
+      // Logged in but needs email verification (after accepting terms)
+      if (needsEmailVerification && !needsTermsAcceptance) {
         // Allow staying on verification screen or onboarding routes
         if (isEmailVerificationRoute || isOnboardingRoute) {
           return null;
@@ -165,8 +188,8 @@ GoRouter createRouter(AuthBloc authBloc) {
         }
       }
 
-      // Logged in with verified email and trying to access auth route or verification
-      if (isLoggedIn && !needsEmailVerification) {
+      // Logged in with verified email and accepted terms and trying to access auth route or verification
+      if (isLoggedIn && !needsEmailVerification && !needsTermsAcceptance) {
         if (isAuthRoute || isEmailVerificationRoute) {
           return CrushRoutes.home;
         }
@@ -175,6 +198,9 @@ GoRouter createRouter(AuthBloc authBloc) {
       // Root path redirect
       if (path == CrushRoutes.root) {
         if (isLoggedIn) {
+          if (needsTermsAcceptance) {
+            return CrushRoutes.termsConditions;
+          }
           return needsEmailVerification
               ? CrushRoutes.emailVerification
               : CrushRoutes.home;
@@ -289,6 +315,11 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.idVerification,
         pageBuilder: (context, state) =>
             _buildPage(state, const IdVerificationScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.idVerificationSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const IdVerificationScreen(fromSettings: true)),
       ),
       GoRoute(
         path: CrushRoutes.profileSetup,
