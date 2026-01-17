@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crush - Email Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .success {
+            color: #22c55e;
+        }
+        .error {
+            color: #ef4444;
+        }
+        #status {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </div>
+        <h1>Email Verification</h1>
+        <div id="status">
+            <div class="spinner"></div>
+            <p>Verifying your email...</p>
+        </div>
+        <div id="result" style="display: none;">
+            <p id="message"></p>
+            <a href="#" id="openApp" class="btn" style="display: none;">Open Crush App</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFXkqAFLzZm8TZe0wNmvxXPWlK2a0n_XM",
+            authDomain: "crush-265f7.firebaseapp.com",
+            projectId: "crush-265f7",
+            storageBucket: "crush-265f7.firebasestorage.app",
+            messagingSenderId: "72015170328",
+            appId: "1:72015170328:web:843883af66c2defe17ec6d"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        const messageEl = document.getElementById('message');
+        const openAppBtn = document.getElementById('openApp');
+
+        function showResult(message, isSuccess) {
+            statusDiv.style.display = 'none';
+            resultDiv.style.display = 'block';
+            messageEl.textContent = message;
+            messageEl.className = isSuccess ? 'success' : 'error';
+
+            if (isSuccess) {
+                openAppBtn.style.display = 'inline-block';
+                // Try to open the app
+                tryOpenApp();
+            }
+        }
+
+        function tryOpenApp() {
+            // Try deep link for Android
+            const androidLink = 'intent://crush-265f7.firebaseapp.com/finishSignIn' + window.location.search +
+                '#Intent;scheme=https;package=com.example.crushhour;end';
+
+            // Try iOS universal link
+            const iosLink = 'https://crush-265f7.firebaseapp.com/finishSignIn' + window.location.search;
+
+            // Detect platform and redirect
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (/android/i.test(userAgent)) {
+                window.location.href = androidLink;
+            } else if (/iphone|ipad|ipod/i.test(userAgent)) {
+                window.location.href = iosLink;
+            }
+
+            openAppBtn.href = iosLink;
+            openAppBtn.onclick = function(e) {
+                e.preventDefault();
+                if (/android/i.test(userAgent)) {
+                    window.location.href = androidLink;
+                } else {
+                    window.location.href = iosLink;
+                }
+            };
+        }
+
+        // Check if this is an email sign-in link
+        if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+            // Get the email from local storage or prompt user
+            let email = window.localStorage.getItem('emailForSignIn');
+
+            if (!email) {
+                // If no email stored, show a message
+                showResult('Please open this link from the same device where you requested it, or open the Crush app to complete verification.', false);
+            } else {
+                // Complete sign-in
+                firebase.auth().signInWithEmailLink(email, window.location.href)
+                    .then((result) => {
+                        // Clear email from storage
+                        window.localStorage.removeItem('emailForSignIn');
+                        showResult('Email verified successfully! You can now return to the app.', true);
+                    })
+                    .catch((error) => {
+                        console.error('Sign-in error:', error);
+                        showResult('Verification failed: ' + error.message, false);
+                    });
+            }
+        } else {
+            // Not an email link, just show success and redirect
+            showResult('Please return to the Crush app to complete sign-in.', true);
+        }
+    </script>
+</body>
+</html>

@@ -889,17 +889,15 @@ class FirebaseAuthRepository implements AuthRepository {
     const testEmail = 'dev@crushhour.test';
     const testPassword = 'DevTest123!@#';
 
+    fb.User? firebaseUser;
+
     try {
       // Try to sign in with existing test account
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: testEmail,
         password: testPassword,
       );
-      final firebaseUser = credential.user;
-      if (firebaseUser != null) {
-        await _ensureUserDocumentExists(firebaseUser);
-        return _mapFirebaseUser(firebaseUser);
-      }
+      firebaseUser = credential.user;
     } on fb.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
         // Create the test account
@@ -908,22 +906,43 @@ class FirebaseAuthRepository implements AuthRepository {
             email: testEmail,
             password: testPassword,
           );
-          final firebaseUser = credential.user;
-          if (firebaseUser != null) {
-            await _ensureUserDocumentExists(firebaseUser);
-            // Mark as verified for dev purposes
-            await _firestore.collection('users').doc(firebaseUser.uid).update({
-              'isEmailVerified': true,
-              'isDeveloper': true,
-            });
-            return _mapFirebaseUser(firebaseUser);
-          }
+          firebaseUser = credential.user;
         } catch (createError) {
           AppLogger.logError('Dev bypass create account', createError);
+          return null;
         }
+      } else {
+        return null;
       }
     }
-    return null;
+
+    if (firebaseUser == null) return null;
+
+    await _ensureUserDocumentExists(firebaseUser);
+
+    // Mark as verified in Firestore for dev purposes
+    await _firestore.collection('users').doc(firebaseUser.uid).set({
+      'isEmailVerified': true,
+      'isDeveloper': true,
+    }, SetOptions(merge: true));
+
+    // Return a dev user with email verified = true (bypass Firebase Auth check)
+    final devUser = CrushUser(
+      id: firebaseUser.uid,
+      phoneNumber: firebaseUser.phoneNumber ?? '',
+      email: firebaseUser.email,
+      username: 'DevUser',
+      isEmailVerified: true, // Force verified for dev bypass
+      isPhoneVerified: true, // Force verified for dev bypass
+      isIdVerified: false,
+      plan: SubscriptionPlan.free,
+      profile: null,
+    );
+
+    _currentUser = devUser;
+    _authStateController.add(devUser);
+
+    return devUser;
   }
 
   void dispose() {
