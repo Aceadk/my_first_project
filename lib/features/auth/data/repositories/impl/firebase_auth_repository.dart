@@ -78,6 +78,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
       final isDeveloper = userData['isDeveloper'] as bool? ?? false;
+      // Read phone verification status from Firestore - don't assume from isDeveloper
+      final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
 
       if (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper) {
         // User verified via OTP or is a developer - update current user with verified status
@@ -87,7 +89,8 @@ class FirebaseAuthRepository implements AuthRepository {
           email: firebaseUser.email,
           username: firebaseUser.displayName,
           isEmailVerified: true, // Override with Firestore value
-          isPhoneVerified: isDeveloper || firebaseUser.phoneNumber != null,
+          // Phone verification should come from Firestore or Firebase Auth, not isDeveloper
+          isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: SubscriptionPlan.free,
           profile: null,
@@ -645,6 +648,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final userData = userDoc.data();
       final firestoreEmailVerified = userData?['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp = userData?['emailVerifiedViaOtp'] as bool? ?? false;
+      // Read phone verification status from Firestore
+      final firestorePhoneVerified = userData?['isPhoneVerified'] as bool? ?? false;
 
       AppLogger.logInfo('[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
 
@@ -656,7 +661,8 @@ class FirebaseAuthRepository implements AuthRepository {
           email: updatedUser.email,
           username: updatedUser.displayName,
           isEmailVerified: true, // Override with Firestore value
-          isPhoneVerified: updatedUser.phoneNumber != null,
+          // Phone verification should come from Firestore or Firebase Auth
+          isPhoneVerified: firestorePhoneVerified || updatedUser.phoneNumber != null,
           isIdVerified: false,
           plan: SubscriptionPlan.free,
           profile: null,
