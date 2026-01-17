@@ -476,6 +476,9 @@ class _AccountActionsSettingsScreenState
                           if (value.length < 8) {
                             return 'Password must be at least 8 characters';
                           }
+                          if (value == currentPasswordController.text) {
+                            return 'New password must be different from current password';
+                          }
                           return null;
                         },
                       ),
@@ -531,31 +534,42 @@ class _AccountActionsSettingsScreenState
     if (confirmed == true && mounted) {
       setState(() => _isLoading = true);
 
-      final result = await Result.guard(
-        () => authRepository.changePassword(
-              currentPassword: currentPasswordController.text,
-              newPassword: newPasswordController.text,
-            ),
-        logLabel: 'AuthRepository.changePassword',
-        fallbackError: 'Could not change password. Please try again.',
-      );
-
-      if (!mounted) {
-        currentPasswordController.dispose();
-        newPasswordController.dispose();
-        confirmPasswordController.dispose();
-        return;
-      }
-      setState(() => _isLoading = false);
-
-      if (result.isSuccess) {
-        showSuccessSnackBar(
-          this.context,
-          'Password changed successfully. A notification has been sent to your email.',
+      try {
+        final result = await Result.guard(
+          () => authRepository.changePassword(
+                currentPassword: currentPasswordController.text,
+                newPassword: newPasswordController.text,
+              ),
+          logLabel: 'AuthRepository.changePassword',
+          fallbackError: 'Could not change password. Please try again.',
         );
-      } else {
-        showErrorSnackBar(
-            this.context, result.errorMessage ?? 'Password change failed.');
+
+        if (!mounted) {
+          currentPasswordController.dispose();
+          newPasswordController.dispose();
+          confirmPasswordController.dispose();
+          return;
+        }
+        setState(() => _isLoading = false);
+
+        if (result.isSuccess) {
+          showSuccessSnackBar(
+            this.context,
+            'Password changed successfully!',
+          );
+          // Navigate to deck after successful password change
+          if (mounted) {
+            this.context.go(CrushRoutes.home);
+          }
+        } else {
+          showErrorSnackBar(
+              this.context, result.errorMessage ?? 'Password change failed.');
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          showErrorSnackBar(this.context, 'An error occurred. Please try again.');
+        }
       }
     }
 

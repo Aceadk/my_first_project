@@ -133,4 +133,8 @@ abstract class AuthRepository {
     required String identifier,
     required String password,
   });
+
+  /// Check if an email is already registered.
+  /// Returns true if the email is already in use.
+  Future<bool> isEmailRegistered(String email);
 }

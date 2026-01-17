@@ -96,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             showSuccessSnackBar(context, 'Code sent. Check your messages.');
           } else if (state.status == AuthStatus.authenticated) {
             setState(() => _isLoading = false);
-            context.go(CrushRoutes.home);
+            context.go(CrushRoutes.termsConditions);
           }
           final error = state.errorMessage;
           if (error != null && error.isNotEmpty) {
@@ -218,6 +218,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _authMethod = 'phone';
               _currentStep = 0;
             });
+          },
+          onSwitchToEmailOtp: () {
+            context.push(CrushRoutes.emailAuth);
           },
         );
       case 1:
@@ -416,8 +419,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _isLoading = true;
     });
 
+    // Check if email is already registered
+    final authRepo = context.read<AuthRepository>();
+    final emailExists = await authRepo.isEmailRegistered(email);
+    if (emailExists) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorSnackBar(
+        context,
+        'An account with this email already exists. Please sign in instead, or use a different email address.',
+      );
+      return;
+    }
+
     final result = await Result.guard(
-      () => context.read<AuthRepository>().signUpWithPassword(
+      () => authRepo.signUpWithPassword(
             username: username,
             email: email,
             password: password,
@@ -437,7 +453,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (context.read<AuthRepository>().isVerificationBypassEnabled) {
       showSuccessSnackBar(context, 'Account created! Welcome to Crush.');
-      context.go(CrushRoutes.home);
+      context.go(CrushRoutes.termsConditions);
       return;
     }
 
@@ -528,7 +544,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       await _secureStorage.delete(key: _pendingEmailKey);
       if (mounted) {
         showSuccessSnackBar(context, 'Email verified! Welcome to Crush.');
-        context.go(CrushRoutes.home);
+        context.go(CrushRoutes.termsConditions);
       }
       return true;
     } else if (!silent) {
@@ -600,6 +616,7 @@ class _UsernameStep extends StatelessWidget {
     required this.onNext,
     required this.onChanged,
     this.onSwitchToPhone,
+    this.onSwitchToEmailOtp,
   });
 
   final TextEditingController controller;
@@ -609,6 +626,7 @@ class _UsernameStep extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onChanged;
   final VoidCallback? onSwitchToPhone;
+  final VoidCallback? onSwitchToEmailOtp;
 
   @override
   Widget build(BuildContext context) {
@@ -680,17 +698,107 @@ class _UsernameStep extends StatelessWidget {
         ),
         DsGap.lg,
         _LoginLink(),
-        if (onSwitchToPhone != null) ...[
-          DsGap.md,
-          Center(
-            child: TextButton.icon(
-              onPressed: isLoading ? null : onSwitchToPhone,
-              icon: const Icon(Icons.phone_outlined, size: 18),
-              label: const Text('Sign up with phone instead'),
-            ),
+        // Alternative sign up methods
+        if (onSwitchToPhone != null || onSwitchToEmailOtp != null) ...[
+          DsGap.xl,
+          // Divider with "or sign up with"
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'or sign up with',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
+                ),
+              ),
+              const Expanded(child: Divider()),
+            ],
+          ),
+          DsGap.lg,
+          // Phone and Email OTP buttons
+          Row(
+            children: [
+              if (onSwitchToPhone != null)
+                Expanded(
+                  child: _AltSignUpOption(
+                    icon: Icons.phone_outlined,
+                    label: 'Phone',
+                    onTap: isLoading ? null : onSwitchToPhone,
+                    isDark: isDark,
+                  ),
+                ),
+              if (onSwitchToPhone != null && onSwitchToEmailOtp != null)
+                const SizedBox(width: 12),
+              if (onSwitchToEmailOtp != null)
+                Expanded(
+                  child: _AltSignUpOption(
+                    icon: Icons.email_outlined,
+                    label: 'Email OTP',
+                    onTap: isLoading ? null : onSwitchToEmailOtp,
+                    isDark: isDark,
+                  ),
+                ),
+            ],
           ),
         ],
       ],
+    );
+  }
+}
+
+// Alternative sign up option button
+class _AltSignUpOption extends StatelessWidget {
+  const _AltSignUpOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: DsColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -936,6 +1044,9 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
     if (state == AppLifecycleState.paused) {
       _stopPolling();
     } else if (state == AppLifecycleState.resumed) {
+      // Immediately check verification when app comes back to foreground
+      // User may have just clicked the verification link
+      _pollVerification();
       _startPolling();
     }
   }

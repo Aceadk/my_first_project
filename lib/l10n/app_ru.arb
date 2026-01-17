@@ -1,0 +1,568 @@
+{
+  "@@locale": "ru",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "Отмена",
+  "commonSave": "Сохранить",
+  "commonRetry": "Повторить",
+  "commonDone": "Готово",
+  "commonLoading": "Загрузка",
+  "commonError": "Ошибка",
+  "commonSuccess": "Успешно",
+  "commonOk": "ОК",
+  "commonNext": "Далее",
+  "commonBack": "Назад",
+  "commonClose": "Закрыть",
+  "commonDelete": "Удалить",
+  "commonEdit": "Редактировать",
+  "commonSearch": "Поиск",
+  "commonSettings": "Настройки",
+  "commonContinue": "Продолжить",
+  "commonSkip": "Пропустить",
+  "commonConfirm": "Подтвердить",
+  "commonYes": "Да",
+  "commonNo": "Нет",
+  "commonOn": "Вкл",
+  "commonOff": "Выкл",
+  "commonMore": "Ещё",
+  "commonLess": "Меньше",
+  "commonAll": "Все",
+  "commonNone": "Нет",
+  "commonRefresh": "Обновить",
+  "commonSubmit": "Отправить",
+  "commonSend": "Отправить",
+  "commonApply": "Применить",
+  "commonClear": "Очистить",
+  "commonReset": "Сбросить",
+  "commonUpdate": "Обновить",
+  "commonRemove": "Удалить",
+  "commonAdd": "Добавить",
+  "commonView": "Просмотр",
+  "commonShare": "Поделиться",
+  "commonReport": "Пожаловаться",
+  "commonBlock": "Заблокировать",
+  "commonUnblock": "Разблокировать",
+  "commonMute": "Без звука",
+  "commonUnmute": "Со звуком",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "Что-то пошло не так. Пожалуйста, попробуйте снова.",
+  "errorNetwork": "Ошибка подключения. Проверьте интернет и попробуйте снова.",
+  "errorTimeout": "Время ожидания истекло. Пожалуйста, попробуйте снова.",
+  "errorServer": "Ошибка сервера. Пожалуйста, попробуйте позже.",
+  "errorUnauthorized": "Сессия истекла. Пожалуйста, войдите снова.",
+  "errorNotFound": "Запрошенный элемент не найден.",
+  "errorOffline": "Нет подключения к интернету. Проверьте соединение и попробуйте снова.",
+  "errorLoginFailed": "Не удалось войти. Пожалуйста, проверьте данные.",
+  "errorSignUpFailed": "Не удалось создать аккаунт. Пожалуйста, попробуйте снова.",
+  "errorLogoutFailed": "Не удалось выйти. Пожалуйста, попробуйте снова.",
+  "errorInvalidCredentials": "Неверный email или пароль.",
+  "errorEmailInUse": "Этот email уже зарегистрирован.",
+  "errorWeakPassword": "Слишком слабый пароль. Используйте минимум 8 символов.",
+  "errorInvalidEmail": "Пожалуйста, введите действительный email.",
+  "errorSendCodeFailed": "Не удалось отправить код. Пожалуйста, попробуйте снова.",
+  "errorInvalidCode": "Неверный или просроченный код. Пожалуйста, попробуйте снова.",
+  "errorVerificationFailed": "Проверка не удалась. Пожалуйста, попробуйте снова.",
+  "errorLoadProfileFailed": "Не удалось загрузить профиль. Пожалуйста, попробуйте снова.",
+  "errorSaveProfileFailed": "Не удалось сохранить профиль. Пожалуйста, попробуйте снова.",
+  "errorUploadPhotoFailed": "Не удалось загрузить фото. Пожалуйста, попробуйте снова.",
+  "errorDeletePhotoFailed": "Не удалось удалить фото. Пожалуйста, попробуйте снова.",
+  "errorUpdateLocationFailed": "Не удалось обновить местоположение. Пожалуйста, попробуйте снова.",
+  "errorUploadIdFailed": "Не удалось загрузить ID. Пожалуйста, попробуйте снова.",
+  "errorLoadDeckFailed": "Не удалось загрузить профили. Пожалуйста, попробуйте снова.",
+  "errorSwipeFailed": "Не удалось обработать свайп. Пожалуйста, попробуйте снова.",
+  "errorLikeFailed": "Не удалось поставить лайк. Пожалуйста, попробуйте снова.",
+  "errorPassFailed": "Не удалось пропустить профиль. Пожалуйста, попробуйте снова.",
+  "errorSuperLikeFailed": "Не удалось поставить суперлайк. Пожалуйста, попробуйте снова.",
+  "errorRewindFailed": "Не удалось отменить действие. Пожалуйста, попробуйте снова.",
+  "errorNoSwipeToUndo": "Нет свайпов для отмены.",
+  "errorFreeUndoUsed": "Вы использовали бесплатную отмену сегодня. Перейдите на Plus для безлимитных отмен!",
+  "errorRewindPremiumOnly": "Отмена - это функция Plus. Перейдите на Plus для отмены свайпов!",
+  "errorLoadChatsFailed": "Не удалось загрузить чаты. Пожалуйста, попробуйте снова.",
+  "errorLoadMessagesFailed": "Не удалось загрузить сообщения. Пожалуйста, попробуйте снова.",
+  "errorSendMessageFailed": "Не удалось отправить сообщение. Пожалуйста, попробуйте снова.",
+  "errorDeleteMessageFailed": "Не удалось удалить сообщение. Пожалуйста, попробуйте снова.",
+  "errorLoadMatchesFailed": "Не удалось загрузить совпадения. Пожалуйста, попробуйте снова.",
+  "errorUnmatchFailed": "Не удалось отменить совпадение. Пожалуйста, попробуйте снова.",
+  "errorCheckoutFailed": "Не удалось начать оплату. Пожалуйста, попробуйте снова.",
+  "errorLoadSubscriptionFailed": "Не удалось загрузить подписку. Пожалуйста, попробуйте снова.",
+  "errorRestorePurchasesFailed": "Не удалось восстановить покупки. Пожалуйста, попробуйте снова.",
+  "errorReportFailed": "Не удалось отправить жалобу. Пожалуйста, попробуйте снова.",
+  "errorBlockFailed": "Не удалось заблокировать пользователя. Пожалуйста, попробуйте снова.",
+  "errorUnblockFailed": "Не удалось разблокировать пользователя. Пожалуйста, попробуйте снова.",
+  "errorLoadInsightsFailed": "Не удалось загрузить аналитику. Пожалуйста, попробуйте снова.",
+  "errorLocationDisabled": "Службы геолокации отключены. Пожалуйста, включите их в Настройках.",
+  "errorLocationPermissionDenied": "Доступ к геолокации запрещён. Пожалуйста, разрешите доступ в Настройках.",
+  "errorLocationTimeout": "Время ожидания геолокации истекло. Убедитесь, что есть сигнал GPS, и попробуйте снова.",
+  "errorMediaLoadFailed": "Не удалось загрузить медиа. Пожалуйста, попробуйте снова.",
+  "errorMediaUploadFailed": "Не удалось загрузить медиа. Пожалуйста, попробуйте снова.",
+  "errorCouldNot": "Не удалось {action}. Пожалуйста, попробуйте снова.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} - это функция Plus. Перейдите на Plus, чтобы разблокировать!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "Назад",
+  "a11yCloseButton": "Закрыть",
+  "a11yMenuButton": "Открыть меню",
+  "a11ySettingsButton": "Открыть настройки",
+  "a11ySearchButton": "Поиск",
+  "a11yFilterButton": "Открыть фильтры",
+  "a11yPassButton": "Пропустить этот профиль",
+  "a11yLikeButton": "Лайкнуть этот профиль",
+  "a11ySuperLikeButton": "Суперлайк этому профилю",
+  "a11yRewindButton": "Отменить последнее действие",
+  "a11yBoostButton": "Продвинуть ваш профиль",
+  "a11yProfilePhoto": "Фото профиля",
+  "a11yProfilePhotoOf": "Фото профиля {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Аватар пользователя",
+  "a11yAvatarOf": "Аватар {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Редактировать профиль",
+  "a11yViewProfile": "Просмотреть профиль",
+  "a11yVerifiedBadge": "Подтверждённый профиль",
+  "a11yOnlineNow": "Сейчас онлайн",
+  "a11yOffline": "Офлайн",
+  "a11ySendMessage": "Отправить сообщение",
+  "a11yAttachPhoto": "Прикрепить фото",
+  "a11yAttachFile": "Прикрепить файл",
+  "a11yVoiceMessage": "Записать голосовое сообщение",
+  "a11yVideoCall": "Начать видеозвонок",
+  "a11yVoiceCall": "Начать голосовой звонок",
+  "a11yMessageFrom": "Сообщение от {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 непрочитанное сообщение} few{{count} непрочитанных сообщения} other{{count} непрочитанных сообщений}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Показать пароль",
+  "a11yHidePassword": "Скрыть пароль",
+  "a11yLoginButton": "Войти",
+  "a11ySignUpButton": "Создать аккаунт",
+  "a11yForgotPassword": "Сбросить пароль",
+  "a11yResendCode": "Отправить код повторно",
+  "a11yToggleSetting": "Переключить настройку",
+  "a11yLoading": "Загрузка",
+  "a11yRefreshing": "Обновление",
+  "a11yErrorOccurred": "Произошла ошибка",
+  "a11yRetry": "Попробовать снова",
+  "a11yDismiss": "Закрыть",
+  "a11yMoreOptions": "Ещё опции",
+  "a11yDelete": "Удалить",
+  "a11yCancel": "Отмена",
+  "a11yConfirm": "Подтвердить",
+  "a11ySaveChanges": "Сохранить изменения",
+  "a11yTapToView": "Двойное нажатие для просмотра",
+  "a11yTapToSelect": "Двойное нажатие для выбора",
+  "a11yTapToToggle": "Двойное нажатие для переключения",
+  "a11yTapToEdit": "Двойное нажатие для редактирования",
+  "a11yTapToExpand": "Двойное нажатие для разворота",
+  "a11yTapToCollapse": "Двойное нажатие для сворачивания",
+  "a11ySwipeToDelete": "Свайп влево для удаления",
+  "a11ySwipeForActions": "Свайп влево для действий",
+  "a11yDragToReorder": "Удерживайте и перетащите для изменения порядка",
+  "a11yPinchToZoom": "Сведите пальцы для масштабирования",
+  "a11yLoadingPleaseWait": "Загрузка, пожалуйста подождите",
+  "a11yLoadingComplete": "Загрузка завершена",
+  "a11yMatchFound": "Это совпадение! Вы совпали с {name}",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "Новое сообщение от {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Профиль лайкнут",
+  "a11yProfilePassed": "Профиль пропущен",
+  "a11yProfileSuperLiked": "Профиль суперлайкнут",
+  "a11yMessageSent": "Сообщение отправлено",
+  "a11ySettingSaved": "Настройка сохранена",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "С возвращением",
+  "authSignInToContinue": "Войдите, чтобы продолжить в Crush",
+  "authEmailOrUsername": "Email или имя пользователя",
+  "authEmail": "Email",
+  "authPassword": "Пароль",
+  "authCurrentPassword": "Текущий пароль",
+  "authNewPassword": "Новый пароль",
+  "authConfirmPassword": "Подтвердите пароль",
+  "authForgotPassword": "Забыли пароль?",
+  "authSignIn": "Войти",
+  "authSignUp": "Регистрация",
+  "authSignOut": "Выйти",
+  "authCreateAccount": "Создать аккаунт",
+  "authNoAccount": "Нет аккаунта?",
+  "authAlreadyHaveAccount": "Уже есть аккаунт?",
+  "authOrContinueWith": "или продолжить через",
+  "authPhone": "Телефон",
+  "authPhoneNumber": "Номер телефона",
+  "authEnterCode": "Введите код",
+  "authVerificationCode": "Код подтверждения",
+  "authSendCode": "Отправить код",
+  "authResendCode": "Отправить код повторно",
+  "authVerify": "Подтвердить",
+  "authVerifyEmail": "Подтвердить email",
+  "authVerifyPhone": "Подтвердить телефон",
+  "authCheckEmail": "Проверьте вашу почту",
+  "authCheckPhone": "Проверьте ваш телефон",
+  "authCodeSent": "Код отправлен",
+  "authCodeSentTo": "Мы отправили код на {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "Введите 6-значный код",
+  "authPasswordHint": "Минимум 8 символов",
+  "authResetPassword": "Сбросить пароль",
+  "authChangePassword": "Изменить пароль",
+  "authPasswordChanged": "Пароль успешно изменён!",
+  "authAgreeToTerms": "Продолжая, вы соглашаетесь с Условиями использования и Политикой конфиденциальности",
+  "authTermsOfService": "Условия использования",
+  "authPrivacyPolicy": "Политика конфиденциальности",
+  "authDevLogin": "Вход для разработчиков",
+  "authUsePhoneInstead": "Использовать телефон",
+  "authUseEmailInstead": "Использовать email",
+  "authEmailLink": "Ссылка на email",
+  "authEmailOtp": "Код на email",
+  "authEmailPassword": "Email + пароль",
+  "authChooseSignInMethod": "Выберите способ входа",
+  "authSendLink": "Отправить ссылку",
+  "authAutoCheckingStatus": "Автоматическая проверка статуса...",
+  "authIveVerified": "Я подтвердил",
+  "authCheckYourEmail": "Проверьте вашу почту",
+  "authClickLinkToVerify": "Нажмите на ссылку, которую мы отправили, чтобы подтвердить email",
+  "authEmailVerified": "Email успешно подтверждён!",
+  "authSkipForNow": "Пропустить пока",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "Настройки",
+  "settingsAppearance": "Внешний вид",
+  "settingsAppearanceSubtitle": "Тема и настройки отображения",
+  "settingsTheme": "Тема",
+  "settingsThemeLight": "Светлая",
+  "settingsThemeDark": "Тёмная",
+  "settingsThemeSystem": "Системная",
+  "settingsNotifications": "Уведомления",
+  "settingsNotificationsSubtitle": "Управление оповещениями",
+  "settingsPushNotifications": "Push-уведомления",
+  "settingsEmailNotifications": "Email-уведомления",
+  "settingsSound": "Звук",
+  "settingsVibration": "Вибрация",
+  "settingsLanguageRegion": "Язык и регион",
+  "settingsLanguageRegionSubtitle": "Язык приложения и местоположение",
+  "settingsLanguage": "Язык",
+  "settingsRegion": "Регион",
+  "settingsDetectRegion": "Определить мой регион",
+  "settingsDiscoveryFilters": "Поиск и фильтры",
+  "settingsDiscoveryFiltersSubtitle": "Кого вы хотите видеть",
+  "settingsAgeRange": "Возрастной диапазон",
+  "settingsDistance": "Максимальное расстояние",
+  "settingsDistanceKm": "{distance} км",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Показывать мне",
+  "settingsShowMyDistance": "Показывать моё расстояние",
+  "settingsShowMyAge": "Показывать мой возраст",
+  "settingsDataStorage": "Данные и хранилище",
+  "settingsDataStorageSubtitle": "Кэш и загрузки",
+  "settingsCacheSize": "Размер кэша",
+  "settingsClearCache": "Очистить кэш",
+  "settingsMediaDownloads": "Загрузка медиа",
+  "settingsWifiOnly": "Только Wi-Fi",
+  "settingsAccountSecurity": "Безопасность аккаунта",
+  "settingsAccountSecuritySubtitle": "Подтверждение email и телефона",
+  "settingsAccountActions": "Действия с аккаунтом",
+  "settingsAccountActionsSubtitle": "Управление аккаунтом",
+  "settingsChangePassword": "Изменить пароль",
+  "settingsDeactivateAccount": "Деактивировать аккаунт",
+  "settingsDeleteAccount": "Удалить аккаунт",
+  "settingsPrivacy": "Конфиденциальность",
+  "settingsPrivacySubtitle": "Управление видимостью",
+  "settingsHideFromDiscovery": "Скрыть из поиска",
+  "settingsIncognitoMode": "Режим инкогнито",
+  "settingsAbout": "О приложении",
+  "settingsAboutSubtitle": "Информация и правовые документы",
+  "settingsVersion": "Версия",
+  "settingsRateUs": "Оценить нас",
+  "settingsHelp": "Помощь и поддержка",
+  "settingsContactUs": "Связаться с нами",
+  "settingsFeedback": "Отправить отзыв",
+  "settingsSubscription": "Подписка",
+  "settingsSubscriptionSubtitle": "Управление планом",
+  "settingsGetPlus": "Получить Crush Plus",
+  "settingsRestorePurchases": "Восстановить покупки",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "Поиск",
+  "discoveryNoMatchesTitle": "Пока нет совпадений",
+  "discoveryNoMatchesMessage": "Продолжайте свайпать, чтобы найти идеальную пару!",
+  "discoveryStartSwiping": "Начать свайпать",
+  "discoveryAdjustFilters": "Настроить фильтры",
+  "discoveryAllCaughtUp": "Все просмотрено!",
+  "discoveryNoMorePeople": "Сейчас больше нет людей рядом.\nЗагляните позже или расширьте поиск.",
+  "discoveryViewFullProfile": "Посмотреть полный профиль",
+  "discoveryReportProfile": "Пожаловаться на профиль",
+  "discoveryBlockProfile": "Заблокировать и скрыть",
+  "discoveryUnmatch": "Отменить совпадение",
+  "discoveryLike": "Лайк",
+  "discoveryPass": "Пропустить",
+  "discoverySuperLike": "Суперлайк",
+  "discoveryRewind": "Отменить",
+  "discoveryBoost": "Продвижение",
+  "discoveryItsAMatch": "Это совпадение!",
+  "discoveryMatchMessage": "Вы и {name} понравились друг другу",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Отправить сообщение",
+  "discoveryKeepSwiping": "Продолжить свайпать",
+  "discoveryWeeklyPicks": "Выбор недели",
+  "discoveryLikesYou": "Вы им нравитесь",
+  "discoveryTopPicks": "Лучшие профили",
+  "discoveryNewArrivals": "Новички",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "Чаты",
+  "chatMatches": "Совпадения",
+  "chatMessages": "Сообщения",
+  "chatNoMatches": "Пока нет совпадений",
+  "chatNoMatchesMessage": "Когда вы совпадёте с кем-то, они появятся здесь",
+  "chatNoMessages": "Пока нет сообщений",
+  "chatNoMessagesMessage": "Начните разговор с одним из совпадений",
+  "chatSayHello": "Скажите привет!",
+  "chatStartConversation": "Начать разговор с {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Введите сообщение...",
+  "chatSend": "Отправить",
+  "chatToday": "Сегодня",
+  "chatYesterday": "Вчера",
+  "chatOnline": "Онлайн",
+  "chatLastSeen": "Был(а) {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "печатает...",
+  "chatDelivered": "Доставлено",
+  "chatRead": "Прочитано",
+  "chatDeleteMessage": "Удалить сообщение",
+  "chatDeleteForMe": "Удалить для меня",
+  "chatDeleteForEveryone": "Удалить для всех",
+  "chatCopyMessage": "Копировать",
+  "chatReply": "Ответить",
+  "chatNewMatch": "Новое совпадение!",
+  "chatMatchedWith": "Вы совпали с {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "Профиль",
+  "profileEdit": "Редактировать профиль",
+  "profileComplete": "Заполните профиль",
+  "profileBasicInfo": "Основная информация",
+  "profileName": "Имя",
+  "profileAge": "Возраст",
+  "profileBirthday": "День рождения",
+  "profileGender": "Пол",
+  "profileSexualOrientation": "Сексуальная ориентация",
+  "profileBio": "О себе",
+  "profileBioHint": "Расскажите о себе...",
+  "profilePhotos": "Фотографии",
+  "profileAddPhoto": "Добавить фото",
+  "profileAddVideo": "Добавить видео",
+  "profileMakeMain": "Сделать главным",
+  "profileInterests": "Интересы",
+  "profileAddInterests": "Добавить интересы",
+  "profileLocation": "Местоположение",
+  "profileCity": "Город",
+  "profileCountry": "Страна",
+  "profileLivingIn": "Живёт в",
+  "profileJobTitle": "Должность",
+  "profileCompany": "Компания",
+  "profileSchool": "Учебное заведение",
+  "profileHeight": "Рост",
+  "profileHeightCm": "{height} см",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Языки",
+  "profileZodiacSign": "Знак зодиака",
+  "profileEducation": "Образование",
+  "profileReligion": "Религия",
+  "profileRelationshipGoals": "Цели отношений",
+  "profileFamilyPlans": "Планы на семью",
+  "profilePersonalityType": "Тип личности",
+  "profileWorkout": "Тренировки",
+  "profileSmoking": "Курение",
+  "profileDrinking": "Алкоголь",
+  "profilePets": "Питомцы",
+  "profileVerified": "Подтверждён",
+  "profileGetVerified": "Пройти верификацию",
+  "profileVerificationPending": "Верификация на проверке",
+  "profilePreview": "Предпросмотр профиля",
+  "profileSaved": "Профиль успешно сохранён!",
+  "profilePrompts": "Вопросы",
+  "profileAddPrompt": "Добавить вопрос",
+  "profileAboutMe": "Обо мне",
+  "profileMyDetails": "Мои данные",
+  "profileLifestyle": "Образ жизни",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Добро пожаловать в Crush",
+  "onboardingTagline": "Найдите идеальную пару",
+  "onboardingGetStarted": "Начать",
+  "onboardingStep": "Шаг {current} из {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "Как вас зовут?",
+  "onboardingWhenBirthday": "Когда ваш день рождения?",
+  "onboardingSelectGender": "Выберите ваш пол",
+  "onboardingAddPhotos": "Добавьте лучшие фото",
+  "onboardingPhotosHint": "Добавьте минимум 2 фото для продолжения",
+  "onboardingWriteBio": "Расскажите о себе",
+  "onboardingSelectInterests": "Выберите интересы",
+  "onboardingInterestsHint": "Выберите минимум 3 интереса",
+  "onboardingAllSet": "Всё готово!",
+  "onboardingStartSwiping": "Начать свайпать",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "Бесплатно",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Получить Crush Plus",
+  "subscriptionUpgrade": "Улучшить",
+  "subscriptionRestore": "Восстановить покупки",
+  "subscriptionUnlimitedLikes": "Безлимитные лайки",
+  "subscriptionUnlimitedRewinds": "Безлимитные отмены",
+  "subscriptionSeeWhoLikesYou": "Смотрите, кому вы нравитесь",
+  "subscriptionBoostsPerMonth": "{count} продвижений в месяц",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} суперлайков в день",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Без рекламы",
+  "subscriptionPrioritySupport": "Приоритетная поддержка",
+  "subscriptionPerMonth": "{price}/мес",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/год",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "Лучшая цена",
+  "subscriptionMostPopular": "Самый популярный",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "Пожаловаться на пользователя",
+  "safetyBlockUser": "Заблокировать пользователя",
+  "safetyUnblockUser": "Разблокировать пользователя",
+  "safetyReportReason": "Почему вы жалуетесь?",
+  "safetyBlockConfirm": "Заблокировать {name}?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Они не смогут видеть ваш профиль или писать вам",
+  "safetyReported": "Жалоба отправлена",
+  "safetyBlocked": "Пользователь заблокирован",
+  "safetyUnblocked": "Пользователь разблокирован",
+  "safetyFakeProfile": "Фейковый профиль",
+  "safetyInappropriateContent": "Неприемлемый контент",
+  "safetyHarassment": "Домогательство",
+  "safetySpam": "Спам",
+  "safetyScam": "Мошенничество",
+  "safetyOther": "Другое",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "Только что",
+  "timeMinutesAgo": "{count, plural, =1{1 минуту назад} few{{count} минуты назад} other{{count} минут назад}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 час назад} few{{count} часа назад} other{{count} часов назад}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 день назад} few{{count} дня назад} other{{count} дней назад}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 неделю назад} few{{count} недели назад} other{{count} недель назад}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "Результаты не найдены",
+  "emptyTryAgain": "Попробуйте изменить поиск или фильтры",
+  "emptyNoData": "Нет данных",
+  "emptyCheckBackLater": "Загляните позже"
+}

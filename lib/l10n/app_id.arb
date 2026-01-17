@@ -1,0 +1,568 @@
+{
+  "@@locale": "id",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "Batal",
+  "commonSave": "Simpan",
+  "commonRetry": "Coba Lagi",
+  "commonDone": "Selesai",
+  "commonLoading": "Memuat",
+  "commonError": "Error",
+  "commonSuccess": "Berhasil",
+  "commonOk": "OK",
+  "commonNext": "Berikutnya",
+  "commonBack": "Kembali",
+  "commonClose": "Tutup",
+  "commonDelete": "Hapus",
+  "commonEdit": "Edit",
+  "commonSearch": "Cari",
+  "commonSettings": "Pengaturan",
+  "commonContinue": "Lanjutkan",
+  "commonSkip": "Lewati",
+  "commonConfirm": "Konfirmasi",
+  "commonYes": "Ya",
+  "commonNo": "Tidak",
+  "commonOn": "Aktif",
+  "commonOff": "Nonaktif",
+  "commonMore": "Lebih Banyak",
+  "commonLess": "Lebih Sedikit",
+  "commonAll": "Semua",
+  "commonNone": "Tidak Ada",
+  "commonRefresh": "Segarkan",
+  "commonSubmit": "Kirim",
+  "commonSend": "Kirim",
+  "commonApply": "Terapkan",
+  "commonClear": "Hapus",
+  "commonReset": "Reset",
+  "commonUpdate": "Perbarui",
+  "commonRemove": "Hapus",
+  "commonAdd": "Tambah",
+  "commonView": "Lihat",
+  "commonShare": "Bagikan",
+  "commonReport": "Laporkan",
+  "commonBlock": "Blokir",
+  "commonUnblock": "Buka Blokir",
+  "commonMute": "Bisukan",
+  "commonUnmute": "Suarakan",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "Terjadi kesalahan. Silakan coba lagi.",
+  "errorNetwork": "Kesalahan koneksi. Periksa internet Anda dan coba lagi.",
+  "errorTimeout": "Waktu permintaan habis. Silakan coba lagi.",
+  "errorServer": "Kesalahan server. Silakan coba lagi nanti.",
+  "errorUnauthorized": "Sesi berakhir. Silakan masuk lagi.",
+  "errorNotFound": "Item yang diminta tidak ditemukan.",
+  "errorOffline": "Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.",
+  "errorLoginFailed": "Tidak bisa masuk. Silakan periksa kredensial Anda.",
+  "errorSignUpFailed": "Tidak bisa membuat akun. Silakan coba lagi.",
+  "errorLogoutFailed": "Tidak bisa keluar. Silakan coba lagi.",
+  "errorInvalidCredentials": "Email atau kata sandi tidak valid.",
+  "errorEmailInUse": "Email ini sudah terdaftar.",
+  "errorWeakPassword": "Kata sandi terlalu lemah. Gunakan minimal 8 karakter.",
+  "errorInvalidEmail": "Silakan masukkan alamat email yang valid.",
+  "errorSendCodeFailed": "Tidak bisa mengirim kode. Silakan coba lagi.",
+  "errorInvalidCode": "Kode tidak valid atau kedaluwarsa. Silakan coba lagi.",
+  "errorVerificationFailed": "Verifikasi gagal. Silakan coba lagi.",
+  "errorLoadProfileFailed": "Tidak bisa memuat profil. Silakan coba lagi.",
+  "errorSaveProfileFailed": "Tidak bisa menyimpan profil. Silakan coba lagi.",
+  "errorUploadPhotoFailed": "Tidak bisa mengunggah foto. Silakan coba lagi.",
+  "errorDeletePhotoFailed": "Tidak bisa menghapus foto. Silakan coba lagi.",
+  "errorUpdateLocationFailed": "Tidak bisa memperbarui lokasi. Silakan coba lagi.",
+  "errorUploadIdFailed": "Tidak bisa mengunggah ID. Silakan coba lagi.",
+  "errorLoadDeckFailed": "Tidak bisa memuat profil. Silakan coba lagi.",
+  "errorSwipeFailed": "Tidak bisa memproses swipe. Silakan coba lagi.",
+  "errorLikeFailed": "Tidak bisa menyukai profil. Silakan coba lagi.",
+  "errorPassFailed": "Tidak bisa melewati profil. Silakan coba lagi.",
+  "errorSuperLikeFailed": "Tidak bisa super like. Silakan coba lagi.",
+  "errorRewindFailed": "Tidak bisa mundur. Silakan coba lagi.",
+  "errorNoSwipeToUndo": "Tidak ada swipe untuk dibatalkan.",
+  "errorFreeUndoUsed": "Anda sudah menggunakan undo gratis hari ini. Upgrade ke Plus untuk undo tanpa batas!",
+  "errorRewindPremiumOnly": "Mundur adalah fitur Plus. Upgrade untuk membatalkan swipe!",
+  "errorLoadChatsFailed": "Tidak bisa memuat obrolan. Silakan coba lagi.",
+  "errorLoadMessagesFailed": "Tidak bisa memuat pesan. Silakan coba lagi.",
+  "errorSendMessageFailed": "Tidak bisa mengirim pesan. Silakan coba lagi.",
+  "errorDeleteMessageFailed": "Tidak bisa menghapus pesan. Silakan coba lagi.",
+  "errorLoadMatchesFailed": "Tidak bisa memuat kecocokan. Silakan coba lagi.",
+  "errorUnmatchFailed": "Tidak bisa membatalkan kecocokan. Silakan coba lagi.",
+  "errorCheckoutFailed": "Tidak bisa memulai checkout. Silakan coba lagi.",
+  "errorLoadSubscriptionFailed": "Tidak bisa memuat langganan. Silakan coba lagi.",
+  "errorRestorePurchasesFailed": "Tidak bisa memulihkan pembelian. Silakan coba lagi.",
+  "errorReportFailed": "Tidak bisa mengirim laporan. Silakan coba lagi.",
+  "errorBlockFailed": "Tidak bisa memblokir pengguna. Silakan coba lagi.",
+  "errorUnblockFailed": "Tidak bisa membuka blokir pengguna. Silakan coba lagi.",
+  "errorLoadInsightsFailed": "Tidak bisa memuat insight. Silakan coba lagi.",
+  "errorLocationDisabled": "Layanan lokasi dinonaktifkan. Silakan aktifkan di Pengaturan.",
+  "errorLocationPermissionDenied": "Izin lokasi ditolak. Silakan izinkan akses di Pengaturan.",
+  "errorLocationTimeout": "Waktu permintaan lokasi habis. Pastikan ada sinyal GPS dan coba lagi.",
+  "errorMediaLoadFailed": "Tidak bisa memuat media. Silakan coba lagi.",
+  "errorMediaUploadFailed": "Tidak bisa mengunggah media. Silakan coba lagi.",
+  "errorCouldNot": "Tidak bisa {action}. Silakan coba lagi.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} adalah fitur Plus. Upgrade untuk membuka!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "Kembali",
+  "a11yCloseButton": "Tutup",
+  "a11yMenuButton": "Buka menu",
+  "a11ySettingsButton": "Buka pengaturan",
+  "a11ySearchButton": "Cari",
+  "a11yFilterButton": "Buka filter",
+  "a11yPassButton": "Lewati profil ini",
+  "a11yLikeButton": "Sukai profil ini",
+  "a11ySuperLikeButton": "Super like profil ini",
+  "a11yRewindButton": "Batalkan aksi terakhir",
+  "a11yBoostButton": "Boost profil Anda",
+  "a11yProfilePhoto": "Foto profil",
+  "a11yProfilePhotoOf": "Foto profil {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Avatar pengguna",
+  "a11yAvatarOf": "Avatar {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Edit profil",
+  "a11yViewProfile": "Lihat profil",
+  "a11yVerifiedBadge": "Profil terverifikasi",
+  "a11yOnlineNow": "Online sekarang",
+  "a11yOffline": "Offline",
+  "a11ySendMessage": "Kirim pesan",
+  "a11yAttachPhoto": "Lampirkan foto",
+  "a11yAttachFile": "Lampirkan file",
+  "a11yVoiceMessage": "Rekam pesan suara",
+  "a11yVideoCall": "Mulai panggilan video",
+  "a11yVoiceCall": "Mulai panggilan suara",
+  "a11yMessageFrom": "Pesan dari {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 pesan belum dibaca} other{{count} pesan belum dibaca}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Tampilkan kata sandi",
+  "a11yHidePassword": "Sembunyikan kata sandi",
+  "a11yLoginButton": "Masuk",
+  "a11ySignUpButton": "Buat akun",
+  "a11yForgotPassword": "Reset kata sandi",
+  "a11yResendCode": "Kirim ulang kode verifikasi",
+  "a11yToggleSetting": "Ganti pengaturan",
+  "a11yLoading": "Memuat",
+  "a11yRefreshing": "Menyegarkan",
+  "a11yErrorOccurred": "Terjadi kesalahan",
+  "a11yRetry": "Coba lagi",
+  "a11yDismiss": "Tutup",
+  "a11yMoreOptions": "Opsi lainnya",
+  "a11yDelete": "Hapus",
+  "a11yCancel": "Batal",
+  "a11yConfirm": "Konfirmasi",
+  "a11ySaveChanges": "Simpan perubahan",
+  "a11yTapToView": "Ketuk dua kali untuk melihat",
+  "a11yTapToSelect": "Ketuk dua kali untuk memilih",
+  "a11yTapToToggle": "Ketuk dua kali untuk mengganti",
+  "a11yTapToEdit": "Ketuk dua kali untuk mengedit",
+  "a11yTapToExpand": "Ketuk dua kali untuk memperluas",
+  "a11yTapToCollapse": "Ketuk dua kali untuk menciutkan",
+  "a11ySwipeToDelete": "Geser ke kiri untuk menghapus",
+  "a11ySwipeForActions": "Geser ke kiri untuk aksi lainnya",
+  "a11yDragToReorder": "Tekan lama dan seret untuk mengurutkan ulang",
+  "a11yPinchToZoom": "Cubit untuk memperbesar",
+  "a11yLoadingPleaseWait": "Memuat, mohon tunggu",
+  "a11yLoadingComplete": "Pemuatan selesai",
+  "a11yMatchFound": "Cocok! Anda cocok dengan {name}",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "Pesan baru dari {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Profil disukai",
+  "a11yProfilePassed": "Profil dilewati",
+  "a11yProfileSuperLiked": "Profil di-super like",
+  "a11yMessageSent": "Pesan terkirim",
+  "a11ySettingSaved": "Pengaturan disimpan",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "Selamat datang kembali",
+  "authSignInToContinue": "Masuk untuk melanjutkan ke Crush",
+  "authEmailOrUsername": "Email atau nama pengguna",
+  "authEmail": "Email",
+  "authPassword": "Kata sandi",
+  "authCurrentPassword": "Kata sandi saat ini",
+  "authNewPassword": "Kata sandi baru",
+  "authConfirmPassword": "Konfirmasi kata sandi",
+  "authForgotPassword": "Lupa kata sandi?",
+  "authSignIn": "Masuk",
+  "authSignUp": "Daftar",
+  "authSignOut": "Keluar",
+  "authCreateAccount": "Buat akun",
+  "authNoAccount": "Belum punya akun?",
+  "authAlreadyHaveAccount": "Sudah punya akun?",
+  "authOrContinueWith": "atau lanjutkan dengan",
+  "authPhone": "Telepon",
+  "authPhoneNumber": "Nomor telepon",
+  "authEnterCode": "Masukkan kode",
+  "authVerificationCode": "Kode verifikasi",
+  "authSendCode": "Kirim kode",
+  "authResendCode": "Kirim ulang kode",
+  "authVerify": "Verifikasi",
+  "authVerifyEmail": "Verifikasi email",
+  "authVerifyPhone": "Verifikasi telepon",
+  "authCheckEmail": "Periksa email Anda",
+  "authCheckPhone": "Periksa telepon Anda",
+  "authCodeSent": "Kode terkirim",
+  "authCodeSentTo": "Kami mengirim kode ke {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "Masukkan kode 6 digit",
+  "authPasswordHint": "Minimal 8 karakter",
+  "authResetPassword": "Reset kata sandi",
+  "authChangePassword": "Ubah kata sandi",
+  "authPasswordChanged": "Kata sandi berhasil diubah!",
+  "authAgreeToTerms": "Dengan melanjutkan, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami",
+  "authTermsOfService": "Ketentuan Layanan",
+  "authPrivacyPolicy": "Kebijakan Privasi",
+  "authDevLogin": "Login Dev",
+  "authUsePhoneInstead": "Gunakan telepon",
+  "authUseEmailInstead": "Gunakan email",
+  "authEmailLink": "Link email",
+  "authEmailOtp": "OTP email",
+  "authEmailPassword": "Email + kata sandi",
+  "authChooseSignInMethod": "Pilih metode masuk",
+  "authSendLink": "Kirim link",
+  "authAutoCheckingStatus": "Memeriksa status verifikasi otomatis...",
+  "authIveVerified": "Saya sudah verifikasi",
+  "authCheckYourEmail": "Periksa email Anda",
+  "authClickLinkToVerify": "Klik link yang kami kirim untuk memverifikasi email Anda",
+  "authEmailVerified": "Email berhasil diverifikasi!",
+  "authSkipForNow": "Lewati untuk sekarang",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "Pengaturan",
+  "settingsAppearance": "Tampilan",
+  "settingsAppearanceSubtitle": "Tema dan opsi tampilan",
+  "settingsTheme": "Tema",
+  "settingsThemeLight": "Terang",
+  "settingsThemeDark": "Gelap",
+  "settingsThemeSystem": "Sistem",
+  "settingsNotifications": "Notifikasi",
+  "settingsNotificationsSubtitle": "Kelola notifikasi Anda",
+  "settingsPushNotifications": "Notifikasi push",
+  "settingsEmailNotifications": "Notifikasi email",
+  "settingsSound": "Suara",
+  "settingsVibration": "Getar",
+  "settingsLanguageRegion": "Bahasa & Wilayah",
+  "settingsLanguageRegionSubtitle": "Bahasa aplikasi dan lokasi",
+  "settingsLanguage": "Bahasa",
+  "settingsRegion": "Wilayah",
+  "settingsDetectRegion": "Deteksi wilayah saya",
+  "settingsDiscoveryFilters": "Penemuan & Filter",
+  "settingsDiscoveryFiltersSubtitle": "Siapa yang ingin Anda lihat",
+  "settingsAgeRange": "Rentang usia",
+  "settingsDistance": "Jarak maksimum",
+  "settingsDistanceKm": "{distance} km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Tampilkan kepada saya",
+  "settingsShowMyDistance": "Tampilkan jarak saya",
+  "settingsShowMyAge": "Tampilkan usia saya",
+  "settingsDataStorage": "Data & Penyimpanan",
+  "settingsDataStorageSubtitle": "Cache dan unduhan",
+  "settingsCacheSize": "Ukuran cache",
+  "settingsClearCache": "Hapus cache",
+  "settingsMediaDownloads": "Unduhan media",
+  "settingsWifiOnly": "Hanya Wi-Fi",
+  "settingsAccountSecurity": "Keamanan Akun",
+  "settingsAccountSecuritySubtitle": "Verifikasi email dan telepon",
+  "settingsAccountActions": "Tindakan Akun",
+  "settingsAccountActionsSubtitle": "Kelola akun Anda",
+  "settingsChangePassword": "Ubah kata sandi",
+  "settingsDeactivateAccount": "Nonaktifkan akun",
+  "settingsDeleteAccount": "Hapus akun",
+  "settingsPrivacy": "Privasi",
+  "settingsPrivacySubtitle": "Kontrol apa yang dilihat orang lain",
+  "settingsHideFromDiscovery": "Sembunyikan dari penemuan",
+  "settingsIncognitoMode": "Mode penyamaran",
+  "settingsAbout": "Tentang",
+  "settingsAboutSubtitle": "Info aplikasi dan legal",
+  "settingsVersion": "Versi",
+  "settingsRateUs": "Beri nilai kami",
+  "settingsHelp": "Bantuan & Dukungan",
+  "settingsContactUs": "Hubungi kami",
+  "settingsFeedback": "Kirim masukan",
+  "settingsSubscription": "Langganan",
+  "settingsSubscriptionSubtitle": "Kelola paket Anda",
+  "settingsGetPlus": "Dapatkan Crush Plus",
+  "settingsRestorePurchases": "Pulihkan pembelian",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "Temukan",
+  "discoveryNoMatchesTitle": "Belum ada kecocokan",
+  "discoveryNoMatchesMessage": "Terus swipe untuk menemukan kecocokan sempurna Anda!",
+  "discoveryStartSwiping": "Mulai swipe",
+  "discoveryAdjustFilters": "Sesuaikan filter",
+  "discoveryAllCaughtUp": "Semua sudah dilihat!",
+  "discoveryNoMorePeople": "Tidak ada lagi orang di sekitar saat ini.\nCek lagi nanti atau perluas pencarian Anda.",
+  "discoveryViewFullProfile": "Lihat profil lengkap",
+  "discoveryReportProfile": "Laporkan profil",
+  "discoveryBlockProfile": "Blokir & sembunyikan profil",
+  "discoveryUnmatch": "Batalkan kecocokan",
+  "discoveryLike": "Suka",
+  "discoveryPass": "Lewati",
+  "discoverySuperLike": "Super Like",
+  "discoveryRewind": "Mundur",
+  "discoveryBoost": "Boost",
+  "discoveryItsAMatch": "Cocok!",
+  "discoveryMatchMessage": "Anda dan {name} saling menyukai",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Kirim Pesan",
+  "discoveryKeepSwiping": "Lanjut Swipe",
+  "discoveryWeeklyPicks": "Pilihan Mingguan",
+  "discoveryLikesYou": "Menyukai Anda",
+  "discoveryTopPicks": "Pilihan Teratas",
+  "discoveryNewArrivals": "Pendatang Baru",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "Obrolan",
+  "chatMatches": "Kecocokan",
+  "chatMessages": "Pesan",
+  "chatNoMatches": "Belum ada kecocokan",
+  "chatNoMatchesMessage": "Saat Anda cocok dengan seseorang, mereka akan muncul di sini",
+  "chatNoMessages": "Belum ada pesan",
+  "chatNoMessagesMessage": "Mulai percakapan dengan salah satu kecocokan Anda",
+  "chatSayHello": "Sapa halo!",
+  "chatStartConversation": "Mulai percakapan dengan {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Ketik pesan...",
+  "chatSend": "Kirim",
+  "chatToday": "Hari ini",
+  "chatYesterday": "Kemarin",
+  "chatOnline": "Online",
+  "chatLastSeen": "Terakhir dilihat {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "mengetik...",
+  "chatDelivered": "Terkirim",
+  "chatRead": "Dibaca",
+  "chatDeleteMessage": "Hapus pesan",
+  "chatDeleteForMe": "Hapus untuk saya",
+  "chatDeleteForEveryone": "Hapus untuk semua",
+  "chatCopyMessage": "Salin",
+  "chatReply": "Balas",
+  "chatNewMatch": "Kecocokan baru!",
+  "chatMatchedWith": "Anda cocok dengan {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "Profil",
+  "profileEdit": "Edit Profil",
+  "profileComplete": "Lengkapi Profil Anda",
+  "profileBasicInfo": "Info Dasar",
+  "profileName": "Nama",
+  "profileAge": "Usia",
+  "profileBirthday": "Ulang tahun",
+  "profileGender": "Jenis kelamin",
+  "profileSexualOrientation": "Orientasi seksual",
+  "profileBio": "Bio",
+  "profileBioHint": "Ceritakan tentang diri Anda...",
+  "profilePhotos": "Foto",
+  "profileAddPhoto": "Tambah foto",
+  "profileAddVideo": "Tambah video",
+  "profileMakeMain": "Jadikan foto utama",
+  "profileInterests": "Minat",
+  "profileAddInterests": "Tambah minat",
+  "profileLocation": "Lokasi",
+  "profileCity": "Kota",
+  "profileCountry": "Negara",
+  "profileLivingIn": "Tinggal di",
+  "profileJobTitle": "Jabatan",
+  "profileCompany": "Perusahaan",
+  "profileSchool": "Sekolah",
+  "profileHeight": "Tinggi",
+  "profileHeightCm": "{height} cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Bahasa",
+  "profileZodiacSign": "Zodiak",
+  "profileEducation": "Pendidikan",
+  "profileReligion": "Agama",
+  "profileRelationshipGoals": "Tujuan hubungan",
+  "profileFamilyPlans": "Rencana keluarga",
+  "profilePersonalityType": "Tipe kepribadian",
+  "profileWorkout": "Olahraga",
+  "profileSmoking": "Merokok",
+  "profileDrinking": "Minum alkohol",
+  "profilePets": "Hewan peliharaan",
+  "profileVerified": "Terverifikasi",
+  "profileGetVerified": "Dapatkan verifikasi",
+  "profileVerificationPending": "Verifikasi tertunda",
+  "profilePreview": "Pratinjau profil",
+  "profileSaved": "Profil berhasil disimpan!",
+  "profilePrompts": "Prompt",
+  "profileAddPrompt": "Tambah prompt",
+  "profileAboutMe": "Tentang Saya",
+  "profileMyDetails": "Detail Saya",
+  "profileLifestyle": "Gaya Hidup",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Selamat Datang di Crush",
+  "onboardingTagline": "Temukan kecocokan sempurna Anda",
+  "onboardingGetStarted": "Mulai",
+  "onboardingStep": "Langkah {current} dari {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "Siapa nama Anda?",
+  "onboardingWhenBirthday": "Kapan ulang tahun Anda?",
+  "onboardingSelectGender": "Pilih jenis kelamin Anda",
+  "onboardingAddPhotos": "Tambahkan foto terbaik Anda",
+  "onboardingPhotosHint": "Tambahkan minimal 2 foto untuk melanjutkan",
+  "onboardingWriteBio": "Tulis sesuatu tentang diri Anda",
+  "onboardingSelectInterests": "Pilih minat Anda",
+  "onboardingInterestsHint": "Pilih minimal 3 minat",
+  "onboardingAllSet": "Anda siap!",
+  "onboardingStartSwiping": "Mulai swipe",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "Gratis",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Dapatkan Crush Plus",
+  "subscriptionUpgrade": "Upgrade",
+  "subscriptionRestore": "Pulihkan pembelian",
+  "subscriptionUnlimitedLikes": "Like tanpa batas",
+  "subscriptionUnlimitedRewinds": "Mundur tanpa batas",
+  "subscriptionSeeWhoLikesYou": "Lihat siapa yang menyukai Anda",
+  "subscriptionBoostsPerMonth": "{count} boost per bulan",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} super like per hari",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Tanpa iklan",
+  "subscriptionPrioritySupport": "Dukungan prioritas",
+  "subscriptionPerMonth": "{price}/bulan",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/tahun",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "Nilai terbaik",
+  "subscriptionMostPopular": "Paling populer",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "Laporkan pengguna",
+  "safetyBlockUser": "Blokir pengguna",
+  "safetyUnblockUser": "Buka blokir pengguna",
+  "safetyReportReason": "Mengapa Anda melaporkan?",
+  "safetyBlockConfirm": "Blokir {name}?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Mereka tidak bisa melihat profil Anda atau mengirim pesan",
+  "safetyReported": "Laporan terkirim",
+  "safetyBlocked": "Pengguna diblokir",
+  "safetyUnblocked": "Pengguna dibuka blokirnya",
+  "safetyFakeProfile": "Profil palsu",
+  "safetyInappropriateContent": "Konten tidak pantas",
+  "safetyHarassment": "Pelecehan",
+  "safetySpam": "Spam",
+  "safetyScam": "Penipuan",
+  "safetyOther": "Lainnya",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "Baru saja",
+  "timeMinutesAgo": "{count, plural, =1{1 menit yang lalu} other{{count} menit yang lalu}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 jam yang lalu} other{{count} jam yang lalu}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 hari yang lalu} other{{count} hari yang lalu}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 minggu yang lalu} other{{count} minggu yang lalu}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "Tidak ada hasil ditemukan",
+  "emptyTryAgain": "Coba sesuaikan pencarian atau filter Anda",
+  "emptyNoData": "Tidak ada data tersedia",
+  "emptyCheckBackLater": "Cek lagi nanti"
+}

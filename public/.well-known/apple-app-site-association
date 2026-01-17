@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.crushhour.app",
+        "paths": ["/finishSignIn", "/finishSignIn/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID.com.crushhour.app"]
+  }
+}

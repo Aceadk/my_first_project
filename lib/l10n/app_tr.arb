@@ -1,0 +1,568 @@
+{
+  "@@locale": "tr",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "İptal",
+  "commonSave": "Kaydet",
+  "commonRetry": "Tekrar Dene",
+  "commonDone": "Tamam",
+  "commonLoading": "Yükleniyor",
+  "commonError": "Hata",
+  "commonSuccess": "Başarılı",
+  "commonOk": "Tamam",
+  "commonNext": "İleri",
+  "commonBack": "Geri",
+  "commonClose": "Kapat",
+  "commonDelete": "Sil",
+  "commonEdit": "Düzenle",
+  "commonSearch": "Ara",
+  "commonSettings": "Ayarlar",
+  "commonContinue": "Devam Et",
+  "commonSkip": "Atla",
+  "commonConfirm": "Onayla",
+  "commonYes": "Evet",
+  "commonNo": "Hayır",
+  "commonOn": "Açık",
+  "commonOff": "Kapalı",
+  "commonMore": "Daha Fazla",
+  "commonLess": "Daha Az",
+  "commonAll": "Tümü",
+  "commonNone": "Hiçbiri",
+  "commonRefresh": "Yenile",
+  "commonSubmit": "Gönder",
+  "commonSend": "Gönder",
+  "commonApply": "Uygula",
+  "commonClear": "Temizle",
+  "commonReset": "Sıfırla",
+  "commonUpdate": "Güncelle",
+  "commonRemove": "Kaldır",
+  "commonAdd": "Ekle",
+  "commonView": "Görüntüle",
+  "commonShare": "Paylaş",
+  "commonReport": "Şikayet Et",
+  "commonBlock": "Engelle",
+  "commonUnblock": "Engeli Kaldır",
+  "commonMute": "Sessize Al",
+  "commonUnmute": "Sesi Aç",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+  "errorNetwork": "Bağlantı hatası. İnternetinizi kontrol edip tekrar deneyin.",
+  "errorTimeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.",
+  "errorServer": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+  "errorUnauthorized": "Oturum süresi doldu. Lütfen tekrar giriş yapın.",
+  "errorNotFound": "İstenen öğe bulunamadı.",
+  "errorOffline": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
+  "errorLoginFailed": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.",
+  "errorSignUpFailed": "Hesap oluşturulamadı. Lütfen tekrar deneyin.",
+  "errorLogoutFailed": "Çıkış yapılamadı. Lütfen tekrar deneyin.",
+  "errorInvalidCredentials": "Geçersiz e-posta veya şifre.",
+  "errorEmailInUse": "Bu e-posta zaten kayıtlı.",
+  "errorWeakPassword": "Şifre çok zayıf. En az 8 karakter kullanın.",
+  "errorInvalidEmail": "Lütfen geçerli bir e-posta adresi girin.",
+  "errorSendCodeFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+  "errorInvalidCode": "Geçersiz veya süresi dolmuş kod. Lütfen tekrar deneyin.",
+  "errorVerificationFailed": "Doğrulama başarısız. Lütfen tekrar deneyin.",
+  "errorLoadProfileFailed": "Profil yüklenemedi. Lütfen tekrar deneyin.",
+  "errorSaveProfileFailed": "Profil kaydedilemedi. Lütfen tekrar deneyin.",
+  "errorUploadPhotoFailed": "Fotoğraf yüklenemedi. Lütfen tekrar deneyin.",
+  "errorDeletePhotoFailed": "Fotoğraf silinemedi. Lütfen tekrar deneyin.",
+  "errorUpdateLocationFailed": "Konum güncellenemedi. Lütfen tekrar deneyin.",
+  "errorUploadIdFailed": "Kimlik yüklenemedi. Lütfen tekrar deneyin.",
+  "errorLoadDeckFailed": "Profiller yüklenemedi. Lütfen tekrar deneyin.",
+  "errorSwipeFailed": "Kaydırma işlenemedi. Lütfen tekrar deneyin.",
+  "errorLikeFailed": "Beğenilemedi. Lütfen tekrar deneyin.",
+  "errorPassFailed": "Geçilemedi. Lütfen tekrar deneyin.",
+  "errorSuperLikeFailed": "Süper beğeni yapılamadı. Lütfen tekrar deneyin.",
+  "errorRewindFailed": "Geri alınamadı. Lütfen tekrar deneyin.",
+  "errorNoSwipeToUndo": "Geri alınacak kaydırma yok.",
+  "errorFreeUndoUsed": "Bugünkü ücretsiz geri alma hakkınızı kullandınız. Sınırsız geri alma için Plus'a yükseltin!",
+  "errorRewindPremiumOnly": "Geri alma Plus özelliğidir. Kaydırmaları geri almak için yükseltin!",
+  "errorLoadChatsFailed": "Sohbetler yüklenemedi. Lütfen tekrar deneyin.",
+  "errorLoadMessagesFailed": "Mesajlar yüklenemedi. Lütfen tekrar deneyin.",
+  "errorSendMessageFailed": "Mesaj gönderilemedi. Lütfen tekrar deneyin.",
+  "errorDeleteMessageFailed": "Mesaj silinemedi. Lütfen tekrar deneyin.",
+  "errorLoadMatchesFailed": "Eşleşmeler yüklenemedi. Lütfen tekrar deneyin.",
+  "errorUnmatchFailed": "Eşleşme kaldırılamadı. Lütfen tekrar deneyin.",
+  "errorCheckoutFailed": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
+  "errorLoadSubscriptionFailed": "Abonelik yüklenemedi. Lütfen tekrar deneyin.",
+  "errorRestorePurchasesFailed": "Satın almalar geri yüklenemedi. Lütfen tekrar deneyin.",
+  "errorReportFailed": "Şikayet gönderilemedi. Lütfen tekrar deneyin.",
+  "errorBlockFailed": "Kullanıcı engellenemedi. Lütfen tekrar deneyin.",
+  "errorUnblockFailed": "Kullanıcı engeli kaldırılamadı. Lütfen tekrar deneyin.",
+  "errorLoadInsightsFailed": "İçgörüler yüklenemedi. Lütfen tekrar deneyin.",
+  "errorLocationDisabled": "Konum hizmetleri devre dışı. Lütfen Ayarlar'da etkinleştirin.",
+  "errorLocationPermissionDenied": "Konum izni reddedildi. Lütfen Ayarlar'da erişime izin verin.",
+  "errorLocationTimeout": "Konum isteği zaman aşımına uğradı. GPS sinyali olduğundan emin olun ve tekrar deneyin.",
+  "errorMediaLoadFailed": "Medya yüklenemedi. Lütfen tekrar deneyin.",
+  "errorMediaUploadFailed": "Medya yüklenemedi. Lütfen tekrar deneyin.",
+  "errorCouldNot": "{action} yapılamadı. Lütfen tekrar deneyin.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} Plus özelliğidir. Kilidi açmak için yükseltin!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "Geri git",
+  "a11yCloseButton": "Kapat",
+  "a11yMenuButton": "Menüyü aç",
+  "a11ySettingsButton": "Ayarları aç",
+  "a11ySearchButton": "Ara",
+  "a11yFilterButton": "Filtreleri aç",
+  "a11yPassButton": "Bu profili geç",
+  "a11yLikeButton": "Bu profili beğen",
+  "a11ySuperLikeButton": "Bu profile süper beğeni ver",
+  "a11yRewindButton": "Son işlemi geri al",
+  "a11yBoostButton": "Profilini öne çıkar",
+  "a11yProfilePhoto": "Profil fotoğrafı",
+  "a11yProfilePhotoOf": "{name} profil fotoğrafı",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Kullanıcı avatarı",
+  "a11yAvatarOf": "{name} avatarı",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Profili düzenle",
+  "a11yViewProfile": "Profili görüntüle",
+  "a11yVerifiedBadge": "Doğrulanmış profil",
+  "a11yOnlineNow": "Şu anda çevrimiçi",
+  "a11yOffline": "Çevrimdışı",
+  "a11ySendMessage": "Mesaj gönder",
+  "a11yAttachPhoto": "Fotoğraf ekle",
+  "a11yAttachFile": "Dosya ekle",
+  "a11yVoiceMessage": "Sesli mesaj kaydet",
+  "a11yVideoCall": "Görüntülü arama başlat",
+  "a11yVoiceCall": "Sesli arama başlat",
+  "a11yMessageFrom": "{sender} mesajı",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 okunmamış mesaj} other{{count} okunmamış mesaj}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Şifreyi göster",
+  "a11yHidePassword": "Şifreyi gizle",
+  "a11yLoginButton": "Giriş yap",
+  "a11ySignUpButton": "Hesap oluştur",
+  "a11yForgotPassword": "Şifreyi sıfırla",
+  "a11yResendCode": "Doğrulama kodunu tekrar gönder",
+  "a11yToggleSetting": "Ayarı değiştir",
+  "a11yLoading": "Yükleniyor",
+  "a11yRefreshing": "Yenileniyor",
+  "a11yErrorOccurred": "Bir hata oluştu",
+  "a11yRetry": "Tekrar dene",
+  "a11yDismiss": "Kapat",
+  "a11yMoreOptions": "Daha fazla seçenek",
+  "a11yDelete": "Sil",
+  "a11yCancel": "İptal",
+  "a11yConfirm": "Onayla",
+  "a11ySaveChanges": "Değişiklikleri kaydet",
+  "a11yTapToView": "Görüntülemek için iki kez dokun",
+  "a11yTapToSelect": "Seçmek için iki kez dokun",
+  "a11yTapToToggle": "Değiştirmek için iki kez dokun",
+  "a11yTapToEdit": "Düzenlemek için iki kez dokun",
+  "a11yTapToExpand": "Genişletmek için iki kez dokun",
+  "a11yTapToCollapse": "Daraltmak için iki kez dokun",
+  "a11ySwipeToDelete": "Silmek için sola kaydır",
+  "a11ySwipeForActions": "Daha fazla işlem için sola kaydır",
+  "a11yDragToReorder": "Yeniden sıralamak için basılı tut ve sürükle",
+  "a11yPinchToZoom": "Yakınlaştırmak için sıkıştır",
+  "a11yLoadingPleaseWait": "Yükleniyor, lütfen bekleyin",
+  "a11yLoadingComplete": "Yükleme tamamlandı",
+  "a11yMatchFound": "Eşleşme! {name} ile eşleştin",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender} yeni mesaj",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Profil beğenildi",
+  "a11yProfilePassed": "Profil geçildi",
+  "a11yProfileSuperLiked": "Profile süper beğeni verildi",
+  "a11yMessageSent": "Mesaj gönderildi",
+  "a11ySettingSaved": "Ayar kaydedildi",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "Tekrar hoş geldin",
+  "authSignInToContinue": "Crush'a devam etmek için giriş yap",
+  "authEmailOrUsername": "E-posta veya kullanıcı adı",
+  "authEmail": "E-posta",
+  "authPassword": "Şifre",
+  "authCurrentPassword": "Mevcut şifre",
+  "authNewPassword": "Yeni şifre",
+  "authConfirmPassword": "Şifreyi onayla",
+  "authForgotPassword": "Şifreni mi unuttun?",
+  "authSignIn": "Giriş Yap",
+  "authSignUp": "Kayıt Ol",
+  "authSignOut": "Çıkış Yap",
+  "authCreateAccount": "Hesap Oluştur",
+  "authNoAccount": "Hesabın yok mu?",
+  "authAlreadyHaveAccount": "Zaten hesabın var mı?",
+  "authOrContinueWith": "veya şununla devam et",
+  "authPhone": "Telefon",
+  "authPhoneNumber": "Telefon numarası",
+  "authEnterCode": "Kodu gir",
+  "authVerificationCode": "Doğrulama kodu",
+  "authSendCode": "Kod Gönder",
+  "authResendCode": "Kodu Tekrar Gönder",
+  "authVerify": "Doğrula",
+  "authVerifyEmail": "E-postayı doğrula",
+  "authVerifyPhone": "Telefonu doğrula",
+  "authCheckEmail": "E-postanı kontrol et",
+  "authCheckPhone": "Telefonunu kontrol et",
+  "authCodeSent": "Kod gönderildi",
+  "authCodeSentTo": "{destination} adresine kod gönderdik",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6 haneli kodu gir",
+  "authPasswordHint": "En az 8 karakter",
+  "authResetPassword": "Şifreyi sıfırla",
+  "authChangePassword": "Şifreyi değiştir",
+  "authPasswordChanged": "Şifre başarıyla değiştirildi!",
+  "authAgreeToTerms": "Devam ederek Hizmet Şartları ve Gizlilik Politikamızı kabul etmiş olursun",
+  "authTermsOfService": "Hizmet Şartları",
+  "authPrivacyPolicy": "Gizlilik Politikası",
+  "authDevLogin": "Geliştirici Girişi",
+  "authUsePhoneInstead": "Bunun yerine telefon kullan",
+  "authUseEmailInstead": "Bunun yerine e-posta kullan",
+  "authEmailLink": "E-posta bağlantısı",
+  "authEmailOtp": "E-posta OTP",
+  "authEmailPassword": "E-posta + şifre",
+  "authChooseSignInMethod": "Giriş yöntemi seç",
+  "authSendLink": "Bağlantı Gönder",
+  "authAutoCheckingStatus": "Doğrulama durumu otomatik kontrol ediliyor...",
+  "authIveVerified": "Doğruladım",
+  "authCheckYourEmail": "E-postanı kontrol et",
+  "authClickLinkToVerify": "E-postanı doğrulamak için gönderdiğimiz bağlantıya tıkla",
+  "authEmailVerified": "E-posta başarıyla doğrulandı!",
+  "authSkipForNow": "Şimdilik atla",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "Ayarlar",
+  "settingsAppearance": "Görünüm",
+  "settingsAppearanceSubtitle": "Tema ve görüntü seçenekleri",
+  "settingsTheme": "Tema",
+  "settingsThemeLight": "Açık",
+  "settingsThemeDark": "Koyu",
+  "settingsThemeSystem": "Sistem",
+  "settingsNotifications": "Bildirimler",
+  "settingsNotificationsSubtitle": "Uyarılarını yönet",
+  "settingsPushNotifications": "Anlık bildirimler",
+  "settingsEmailNotifications": "E-posta bildirimleri",
+  "settingsSound": "Ses",
+  "settingsVibration": "Titreşim",
+  "settingsLanguageRegion": "Dil ve Bölge",
+  "settingsLanguageRegionSubtitle": "Uygulama dili ve konum",
+  "settingsLanguage": "Dil",
+  "settingsRegion": "Bölge",
+  "settingsDetectRegion": "Bölgemi algıla",
+  "settingsDiscoveryFilters": "Keşif ve Filtreler",
+  "settingsDiscoveryFiltersSubtitle": "Kimleri görmek istiyorsun",
+  "settingsAgeRange": "Yaş aralığı",
+  "settingsDistance": "Maksimum mesafe",
+  "settingsDistanceKm": "{distance} km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Bana göster",
+  "settingsShowMyDistance": "Mesafemi göster",
+  "settingsShowMyAge": "Yaşımı göster",
+  "settingsDataStorage": "Veri ve Depolama",
+  "settingsDataStorageSubtitle": "Önbellek ve indirmeler",
+  "settingsCacheSize": "Önbellek boyutu",
+  "settingsClearCache": "Önbelleği temizle",
+  "settingsMediaDownloads": "Medya indirmeleri",
+  "settingsWifiOnly": "Yalnızca Wi-Fi",
+  "settingsAccountSecurity": "Hesap Güvenliği",
+  "settingsAccountSecuritySubtitle": "E-posta ve telefon doğrulama",
+  "settingsAccountActions": "Hesap İşlemleri",
+  "settingsAccountActionsSubtitle": "Hesabını yönet",
+  "settingsChangePassword": "Şifreyi değiştir",
+  "settingsDeactivateAccount": "Hesabı devre dışı bırak",
+  "settingsDeleteAccount": "Hesabı sil",
+  "settingsPrivacy": "Gizlilik",
+  "settingsPrivacySubtitle": "Başkalarının ne görebileceğini kontrol et",
+  "settingsHideFromDiscovery": "Keşiften gizle",
+  "settingsIncognitoMode": "Gizli mod",
+  "settingsAbout": "Hakkında",
+  "settingsAboutSubtitle": "Uygulama bilgisi ve yasal",
+  "settingsVersion": "Sürüm",
+  "settingsRateUs": "Bizi değerlendir",
+  "settingsHelp": "Yardım ve Destek",
+  "settingsContactUs": "Bize ulaş",
+  "settingsFeedback": "Geri bildirim gönder",
+  "settingsSubscription": "Abonelik",
+  "settingsSubscriptionSubtitle": "Planını yönet",
+  "settingsGetPlus": "Crush Plus'ı Edin",
+  "settingsRestorePurchases": "Satın almaları geri yükle",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "Keşfet",
+  "discoveryNoMatchesTitle": "Henüz eşleşme yok",
+  "discoveryNoMatchesMessage": "Mükemmel eşleşmeni bulmak için kaydırmaya devam et!",
+  "discoveryStartSwiping": "Kaydırmaya başla",
+  "discoveryAdjustFilters": "Filtreleri ayarla",
+  "discoveryAllCaughtUp": "Hepsini gördün!",
+  "discoveryNoMorePeople": "Şu anda yakınlarda daha fazla kişi yok.\nYakında tekrar kontrol et veya aramanı genişlet.",
+  "discoveryViewFullProfile": "Tam profili görüntüle",
+  "discoveryReportProfile": "Profili şikayet et",
+  "discoveryBlockProfile": "Profili engelle ve gizle",
+  "discoveryUnmatch": "Eşleşmeyi Kaldır",
+  "discoveryLike": "Beğen",
+  "discoveryPass": "Geç",
+  "discoverySuperLike": "Süper Beğen",
+  "discoveryRewind": "Geri Al",
+  "discoveryBoost": "Öne Çıkar",
+  "discoveryItsAMatch": "Eşleşme!",
+  "discoveryMatchMessage": "Sen ve {name} birbirinizi beğendiniz",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Mesaj Gönder",
+  "discoveryKeepSwiping": "Kaydırmaya Devam Et",
+  "discoveryWeeklyPicks": "Haftalık Seçmeler",
+  "discoveryLikesYou": "Seni Beğenenler",
+  "discoveryTopPicks": "En İyi Seçmeler",
+  "discoveryNewArrivals": "Yeni Gelenler",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "Sohbetler",
+  "chatMatches": "Eşleşmeler",
+  "chatMessages": "Mesajlar",
+  "chatNoMatches": "Henüz eşleşme yok",
+  "chatNoMatchesMessage": "Biriyle eşleştiğinde burada görünecekler",
+  "chatNoMessages": "Henüz mesaj yok",
+  "chatNoMessagesMessage": "Eşleşmelerinden biriyle sohbet başlat",
+  "chatSayHello": "Merhaba de!",
+  "chatStartConversation": "{name} ile sohbet başlat",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Bir mesaj yaz...",
+  "chatSend": "Gönder",
+  "chatToday": "Bugün",
+  "chatYesterday": "Dün",
+  "chatOnline": "Çevrimiçi",
+  "chatLastSeen": "Son görülme {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "yazıyor...",
+  "chatDelivered": "Teslim edildi",
+  "chatRead": "Okundu",
+  "chatDeleteMessage": "Mesajı sil",
+  "chatDeleteForMe": "Benim için sil",
+  "chatDeleteForEveryone": "Herkes için sil",
+  "chatCopyMessage": "Kopyala",
+  "chatReply": "Yanıtla",
+  "chatNewMatch": "Yeni eşleşme!",
+  "chatMatchedWith": "{name} ile eşleştin",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "Profil",
+  "profileEdit": "Profili Düzenle",
+  "profileComplete": "Profilini Tamamla",
+  "profileBasicInfo": "Temel Bilgiler",
+  "profileName": "İsim",
+  "profileAge": "Yaş",
+  "profileBirthday": "Doğum günü",
+  "profileGender": "Cinsiyet",
+  "profileSexualOrientation": "Cinsel yönelim",
+  "profileBio": "Biyografi",
+  "profileBioHint": "Kendinden bahset...",
+  "profilePhotos": "Fotoğraflar",
+  "profileAddPhoto": "Fotoğraf ekle",
+  "profileAddVideo": "Video ekle",
+  "profileMakeMain": "Ana fotoğraf yap",
+  "profileInterests": "İlgi Alanları",
+  "profileAddInterests": "İlgi alanları ekle",
+  "profileLocation": "Konum",
+  "profileCity": "Şehir",
+  "profileCountry": "Ülke",
+  "profileLivingIn": "Yaşadığı yer",
+  "profileJobTitle": "İş unvanı",
+  "profileCompany": "Şirket",
+  "profileSchool": "Okul",
+  "profileHeight": "Boy",
+  "profileHeightCm": "{height} cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Diller",
+  "profileZodiacSign": "Burç",
+  "profileEducation": "Eğitim",
+  "profileReligion": "Din",
+  "profileRelationshipGoals": "İlişki hedefleri",
+  "profileFamilyPlans": "Aile planları",
+  "profilePersonalityType": "Kişilik tipi",
+  "profileWorkout": "Egzersiz",
+  "profileSmoking": "Sigara",
+  "profileDrinking": "Alkol",
+  "profilePets": "Evcil hayvanlar",
+  "profileVerified": "Doğrulanmış",
+  "profileGetVerified": "Doğrulanma al",
+  "profileVerificationPending": "Doğrulama bekliyor",
+  "profilePreview": "Profil önizleme",
+  "profileSaved": "Profil başarıyla kaydedildi!",
+  "profilePrompts": "İpuçları",
+  "profileAddPrompt": "İpucu ekle",
+  "profileAboutMe": "Hakkımda",
+  "profileMyDetails": "Bilgilerim",
+  "profileLifestyle": "Yaşam Tarzı",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Crush'a Hoş Geldin",
+  "onboardingTagline": "Mükemmel eşleşmeni bul",
+  "onboardingGetStarted": "Başla",
+  "onboardingStep": "Adım {current}/{total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "İsmin ne?",
+  "onboardingWhenBirthday": "Doğum günün ne zaman?",
+  "onboardingSelectGender": "Cinsiyetini seç",
+  "onboardingAddPhotos": "En iyi fotoğraflarını ekle",
+  "onboardingPhotosHint": "Devam etmek için en az 2 fotoğraf ekle",
+  "onboardingWriteBio": "Kendinden bahset",
+  "onboardingSelectInterests": "İlgi alanlarını seç",
+  "onboardingInterestsHint": "En az 3 ilgi alanı seç",
+  "onboardingAllSet": "Hazırsın!",
+  "onboardingStartSwiping": "Kaydırmaya başla",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "Ücretsiz",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus'ı Edin",
+  "subscriptionUpgrade": "Yükselt",
+  "subscriptionRestore": "Satın almaları geri yükle",
+  "subscriptionUnlimitedLikes": "Sınırsız beğeni",
+  "subscriptionUnlimitedRewinds": "Sınırsız geri alma",
+  "subscriptionSeeWhoLikesYou": "Seni beğenenleri gör",
+  "subscriptionBoostsPerMonth": "Ayda {count} öne çıkarma",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "Günde {count} süper beğeni",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Reklamsız",
+  "subscriptionPrioritySupport": "Öncelikli destek",
+  "subscriptionPerMonth": "{price}/ay",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/yıl",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "En iyi değer",
+  "subscriptionMostPopular": "En popüler",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "Kullanıcıyı şikayet et",
+  "safetyBlockUser": "Kullanıcıyı engelle",
+  "safetyUnblockUser": "Kullanıcının engelini kaldır",
+  "safetyReportReason": "Neden şikayet ediyorsun?",
+  "safetyBlockConfirm": "{name} engellensin mi?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Profilini göremeyecek ve sana mesaj atamayacak",
+  "safetyReported": "Şikayet gönderildi",
+  "safetyBlocked": "Kullanıcı engellendi",
+  "safetyUnblocked": "Kullanıcı engeli kaldırıldı",
+  "safetyFakeProfile": "Sahte profil",
+  "safetyInappropriateContent": "Uygunsuz içerik",
+  "safetyHarassment": "Taciz",
+  "safetySpam": "Spam",
+  "safetyScam": "Dolandırıcılık",
+  "safetyOther": "Diğer",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "Az önce",
+  "timeMinutesAgo": "{count, plural, =1{1 dakika önce} other{{count} dakika önce}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 saat önce} other{{count} saat önce}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 gün önce} other{{count} gün önce}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 hafta önce} other{{count} hafta önce}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "Sonuç bulunamadı",
+  "emptyTryAgain": "Aramanı veya filtrelerini ayarlamayı dene",
+  "emptyNoData": "Veri mevcut değil",
+  "emptyCheckBackLater": "Daha sonra tekrar kontrol et"
+}

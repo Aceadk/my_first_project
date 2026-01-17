@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -14,7 +15,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(context.l10n.settingsNotifications),
       ),
       body: BlocBuilder<NotificationSettingsCubit, NotificationSettingsState>(
         builder: (context, notifState) {

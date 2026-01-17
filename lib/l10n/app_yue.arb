@@ -1,0 +1,568 @@
+{
+  "@@locale": "yue",
+
+  "@@_COMMON": "成個app都會用到嘅通用UI元素",
+  "commonCancel": "取消",
+  "commonSave": "儲存",
+  "commonRetry": "再試",
+  "commonDone": "完成",
+  "commonLoading": "載入緊",
+  "commonError": "錯誤",
+  "commonSuccess": "成功",
+  "commonOk": "好",
+  "commonNext": "下一步",
+  "commonBack": "返回",
+  "commonClose": "關閉",
+  "commonDelete": "刪除",
+  "commonEdit": "編輯",
+  "commonSearch": "搜尋",
+  "commonSettings": "設定",
+  "commonContinue": "繼續",
+  "commonSkip": "跳過",
+  "commonConfirm": "確認",
+  "commonYes": "係",
+  "commonNo": "唔係",
+  "commonOn": "開",
+  "commonOff": "關",
+  "commonMore": "更多",
+  "commonLess": "更少",
+  "commonAll": "全部",
+  "commonNone": "冇",
+  "commonRefresh": "重新整理",
+  "commonSubmit": "提交",
+  "commonSend": "傳送",
+  "commonApply": "套用",
+  "commonClear": "清除",
+  "commonReset": "重設",
+  "commonUpdate": "更新",
+  "commonRemove": "移除",
+  "commonAdd": "新增",
+  "commonView": "睇",
+  "commonShare": "分享",
+  "commonReport": "舉報",
+  "commonBlock": "封鎖",
+  "commonUnblock": "解除封鎖",
+  "commonMute": "靜音",
+  "commonUnmute": "取消靜音",
+
+  "@@_ERRORS": "錯誤訊息",
+  "errorGeneric": "出咗啲問題。請再試吓。",
+  "errorNetwork": "連線錯誤。檢查吓你嘅網絡再試吓。",
+  "errorTimeout": "請求逾時。請再試吓。",
+  "errorServer": "伺服器錯誤。請遲啲再試。",
+  "errorUnauthorized": "登入階段已過期。請重新登入。",
+  "errorNotFound": "搵唔到你要嘅嘢。",
+  "errorOffline": "冇網絡連線。檢查吓你嘅連線再試吓。",
+  "errorLoginFailed": "登入唔到。請檢查吓你嘅登入資料。",
+  "errorSignUpFailed": "建立帳戶唔到。請再試吓。",
+  "errorLogoutFailed": "登出唔到。請再試吓。",
+  "errorInvalidCredentials": "電郵或密碼錯誤。",
+  "errorEmailInUse": "呢個電郵已經註冊咗。",
+  "errorWeakPassword": "密碼太弱啦。用最少8個字元。",
+  "errorInvalidEmail": "請輸入有效嘅電郵地址。",
+  "errorSendCodeFailed": "傳送唔到驗證碼。請再試吓。",
+  "errorInvalidCode": "驗證碼無效或已過期。請再試吓。",
+  "errorVerificationFailed": "驗證失敗。請再試吓。",
+  "errorLoadProfileFailed": "載入唔到個人檔案。請再試吓。",
+  "errorSaveProfileFailed": "儲存唔到個人檔案。請再試吓。",
+  "errorUploadPhotoFailed": "上載唔到相片。請再試吓。",
+  "errorDeletePhotoFailed": "刪除唔到相片。請再試吓。",
+  "errorUpdateLocationFailed": "更新唔到位置。請再試吓。",
+  "errorUploadIdFailed": "上載唔到身份證明。請再試吓。",
+  "errorLoadDeckFailed": "載入唔到個人檔案。請再試吓。",
+  "errorSwipeFailed": "處理唔到滑動。請再試吓。",
+  "errorLikeFailed": "讚好唔到個人檔案。請再試吓。",
+  "errorPassFailed": "跳過唔到個人檔案。請再試吓。",
+  "errorSuperLikeFailed": "超級讚好唔到。請再試吓。",
+  "errorRewindFailed": "回帶唔到滑動。請再試吓。",
+  "errorNoSwipeToUndo": "冇滑動可以回帶。",
+  "errorFreeUndoUsed": "你今日已經用咗免費回帶。升級至Plus享無限回帶！",
+  "errorRewindPremiumOnly": "回帶係Plus功能。升級嚟回帶滑動！",
+  "errorLoadChatsFailed": "載入唔到對話。請再試吓。",
+  "errorLoadMessagesFailed": "載入唔到訊息。請再試吓。",
+  "errorSendMessageFailed": "傳送唔到訊息。請再試吓。",
+  "errorDeleteMessageFailed": "刪除唔到訊息。請再試吓。",
+  "errorLoadMatchesFailed": "載入唔到配對。請再試吓。",
+  "errorUnmatchFailed": "取消配對唔到。請再試吓。",
+  "errorCheckoutFailed": "開始唔到結帳。請再試吓。",
+  "errorLoadSubscriptionFailed": "載入唔到訂閱。請再試吓。",
+  "errorRestorePurchasesFailed": "還原唔到購買項目。請再試吓。",
+  "errorReportFailed": "提交唔到舉報。請再試吓。",
+  "errorBlockFailed": "封鎖唔到用戶。請再試吓。",
+  "errorUnblockFailed": "解除封鎖唔到用戶。請再試吓。",
+  "errorLoadInsightsFailed": "載入唔到分析資料。請再試吓。",
+  "errorLocationDisabled": "定位服務已停用。請喺設定入面啟用佢。",
+  "errorLocationPermissionDenied": "定位權限被拒絕。請喺設定入面允許存取。",
+  "errorLocationTimeout": "定位請求逾時。確保有GPS訊號再試吓。",
+  "errorMediaLoadFailed": "載入唔到媒體。請再試吓。",
+  "errorMediaUploadFailed": "上載唔到媒體。請再試吓。",
+  "errorCouldNot": "{action}唔到。請再試吓。",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature}係Plus功能。升級嚟解鎖！",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "無障礙標籤同提示",
+  "a11yBackButton": "返回",
+  "a11yCloseButton": "關閉",
+  "a11yMenuButton": "開啟選單",
+  "a11ySettingsButton": "開啟設定",
+  "a11ySearchButton": "搜尋",
+  "a11yFilterButton": "開啟篩選",
+  "a11yPassButton": "跳過呢個個人檔案",
+  "a11yLikeButton": "讚好呢個個人檔案",
+  "a11ySuperLikeButton": "超級讚好呢個個人檔案",
+  "a11yRewindButton": "回帶上一個動作",
+  "a11yBoostButton": "加強你嘅個人檔案",
+  "a11yProfilePhoto": "個人檔案相片",
+  "a11yProfilePhotoOf": "{name}嘅個人檔案相片",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "用戶頭像",
+  "a11yAvatarOf": "{name}嘅頭像",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "編輯個人檔案",
+  "a11yViewProfile": "睇個人檔案",
+  "a11yVerifiedBadge": "已驗證個人檔案",
+  "a11yOnlineNow": "而家上線緊",
+  "a11yOffline": "離線",
+  "a11ySendMessage": "傳送訊息",
+  "a11yAttachPhoto": "附加相片",
+  "a11yAttachFile": "附加檔案",
+  "a11yVoiceMessage": "錄製語音訊息",
+  "a11yVideoCall": "開始視像通話",
+  "a11yVoiceCall": "開始語音通話",
+  "a11yMessageFrom": "{sender}嘅訊息",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1則未讀訊息} other{{count}則未讀訊息}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "顯示密碼",
+  "a11yHidePassword": "隱藏密碼",
+  "a11yLoginButton": "登入",
+  "a11ySignUpButton": "建立帳戶",
+  "a11yForgotPassword": "重設密碼",
+  "a11yResendCode": "重新傳送驗證碼",
+  "a11yToggleSetting": "切換設定",
+  "a11yLoading": "載入緊",
+  "a11yRefreshing": "重新整理緊",
+  "a11yErrorOccurred": "出現錯誤",
+  "a11yRetry": "再試",
+  "a11yDismiss": "關閉",
+  "a11yMoreOptions": "更多選項",
+  "a11yDelete": "刪除",
+  "a11yCancel": "取消",
+  "a11yConfirm": "確認",
+  "a11ySaveChanges": "儲存變更",
+  "a11yTapToView": "輕按兩下睇吓",
+  "a11yTapToSelect": "輕按兩下揀選",
+  "a11yTapToToggle": "輕按兩下切換",
+  "a11yTapToEdit": "輕按兩下編輯",
+  "a11yTapToExpand": "輕按兩下展開",
+  "a11yTapToCollapse": "輕按兩下收合",
+  "a11ySwipeToDelete": "向左滑刪除",
+  "a11ySwipeForActions": "向左滑睇更多動作",
+  "a11yDragToReorder": "長按並拖曳嚟重新排序",
+  "a11yPinchToZoom": "兩指縮放",
+  "a11yLoadingPleaseWait": "載入緊，請等等",
+  "a11yLoadingComplete": "載入完成",
+  "a11yMatchFound": "配對成功！你同{name}配對咗",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender}嘅新訊息",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "已讚好個人檔案",
+  "a11yProfilePassed": "已跳過個人檔案",
+  "a11yProfileSuperLiked": "已超級讚好個人檔案",
+  "a11yMessageSent": "訊息已傳送",
+  "a11ySettingSaved": "設定已儲存",
+
+  "@@_AUTH": "驗證畫面",
+  "authWelcomeBack": "歡迎返嚟",
+  "authSignInToContinue": "登入嚟繼續使用Crush",
+  "authEmailOrUsername": "電郵或用戶名稱",
+  "authEmail": "電郵",
+  "authPassword": "密碼",
+  "authCurrentPassword": "目前密碼",
+  "authNewPassword": "新密碼",
+  "authConfirmPassword": "確認密碼",
+  "authForgotPassword": "忘記密碼？",
+  "authSignIn": "登入",
+  "authSignUp": "註冊",
+  "authSignOut": "登出",
+  "authCreateAccount": "建立帳戶",
+  "authNoAccount": "未有帳戶？",
+  "authAlreadyHaveAccount": "已經有帳戶？",
+  "authOrContinueWith": "或者透過以下方式繼續",
+  "authPhone": "電話",
+  "authPhoneNumber": "電話號碼",
+  "authEnterCode": "輸入驗證碼",
+  "authVerificationCode": "驗證碼",
+  "authSendCode": "傳送驗證碼",
+  "authResendCode": "重新傳送驗證碼",
+  "authVerify": "驗證",
+  "authVerifyEmail": "驗證電郵",
+  "authVerifyPhone": "驗證電話",
+  "authCheckEmail": "檢查你嘅電郵",
+  "authCheckPhone": "檢查你嘅電話",
+  "authCodeSent": "驗證碼已傳送",
+  "authCodeSentTo": "我哋已經傳送驗證碼去{destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "輸入6位數驗證碼",
+  "authPasswordHint": "最少8個字元",
+  "authResetPassword": "重設密碼",
+  "authChangePassword": "更改密碼",
+  "authPasswordChanged": "密碼已成功更改！",
+  "authAgreeToTerms": "繼續即表示你同意我哋嘅服務條款同私隱政策",
+  "authTermsOfService": "服務條款",
+  "authPrivacyPolicy": "私隱政策",
+  "authDevLogin": "開發者登入",
+  "authUsePhoneInstead": "改用電話",
+  "authUseEmailInstead": "改用電郵",
+  "authEmailLink": "電郵連結",
+  "authEmailOtp": "電郵OTP",
+  "authEmailPassword": "電郵 + 密碼",
+  "authChooseSignInMethod": "揀選登入方式",
+  "authSendLink": "傳送連結",
+  "authAutoCheckingStatus": "自動檢查驗證狀態緊...",
+  "authIveVerified": "我已經驗證咗",
+  "authCheckYourEmail": "檢查你嘅電郵",
+  "authClickLinkToVerify": "撳我哋傳送嘅連結嚟驗證你嘅電郵",
+  "authEmailVerified": "電郵驗證成功！",
+  "authSkipForNow": "暫時跳過",
+
+  "@@_SETTINGS": "設定畫面",
+  "settingsTitle": "設定",
+  "settingsAppearance": "外觀",
+  "settingsAppearanceSubtitle": "主題同顯示選項",
+  "settingsTheme": "主題",
+  "settingsThemeLight": "淺色",
+  "settingsThemeDark": "深色",
+  "settingsThemeSystem": "系統",
+  "settingsNotifications": "通知",
+  "settingsNotificationsSubtitle": "管理你嘅提醒",
+  "settingsPushNotifications": "推送通知",
+  "settingsEmailNotifications": "電郵通知",
+  "settingsSound": "聲音",
+  "settingsVibration": "震動",
+  "settingsLanguageRegion": "語言同地區",
+  "settingsLanguageRegionSubtitle": "App語言同位置",
+  "settingsLanguage": "語言",
+  "settingsRegion": "地區",
+  "settingsDetectRegion": "偵測我嘅地區",
+  "settingsDiscoveryFilters": "探索同篩選",
+  "settingsDiscoveryFiltersSubtitle": "你想睇邊啲人",
+  "settingsAgeRange": "年齡範圍",
+  "settingsDistance": "最遠距離",
+  "settingsDistanceKm": "{distance}公里",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "顯示畀我睇",
+  "settingsShowMyDistance": "顯示我嘅距離",
+  "settingsShowMyAge": "顯示我嘅年齡",
+  "settingsDataStorage": "數據同儲存空間",
+  "settingsDataStorageSubtitle": "快取同下載",
+  "settingsCacheSize": "快取大小",
+  "settingsClearCache": "清除快取",
+  "settingsMediaDownloads": "媒體下載",
+  "settingsWifiOnly": "只限Wi-Fi",
+  "settingsAccountSecurity": "帳戶安全",
+  "settingsAccountSecuritySubtitle": "電郵同電話驗證",
+  "settingsAccountActions": "帳戶操作",
+  "settingsAccountActionsSubtitle": "管理你嘅帳戶",
+  "settingsChangePassword": "更改密碼",
+  "settingsDeactivateAccount": "停用帳戶",
+  "settingsDeleteAccount": "刪除帳戶",
+  "settingsPrivacy": "私隱",
+  "settingsPrivacySubtitle": "控制其他人可以睇到咩",
+  "settingsHideFromDiscovery": "喺探索中隱藏",
+  "settingsIncognitoMode": "無痕模式",
+  "settingsAbout": "關於",
+  "settingsAboutSubtitle": "App資訊同法律條款",
+  "settingsVersion": "版本",
+  "settingsRateUs": "畀我哋評分",
+  "settingsHelp": "幫助同支援",
+  "settingsContactUs": "聯絡我哋",
+  "settingsFeedback": "傳送意見",
+  "settingsSubscription": "訂閱",
+  "settingsSubscriptionSubtitle": "管理你嘅計劃",
+  "settingsGetPlus": "取得Crush Plus",
+  "settingsRestorePurchases": "還原購買項目",
+
+  "@@_DISCOVERY": "探索/牌組畫面",
+  "discoveryTitle": "探索",
+  "discoveryNoMatchesTitle": "仲未有配對",
+  "discoveryNoMatchesMessage": "繼續滑動嚟搵你嘅完美對象！",
+  "discoveryStartSwiping": "開始滑動",
+  "discoveryAdjustFilters": "調整篩選",
+  "discoveryAllCaughtUp": "全部睇晒喇！",
+  "discoveryNoMorePeople": "而家附近冇更多人啦。\n遲啲再嚟睇吓或者擴大搜尋範圍。",
+  "discoveryViewFullProfile": "睇完整個人檔案",
+  "discoveryReportProfile": "舉報個人檔案",
+  "discoveryBlockProfile": "封鎖同隱藏個人檔案",
+  "discoveryUnmatch": "取消配對",
+  "discoveryLike": "讚好",
+  "discoveryPass": "跳過",
+  "discoverySuperLike": "超級讚好",
+  "discoveryRewind": "回帶",
+  "discoveryBoost": "加強",
+  "discoveryItsAMatch": "配對成功！",
+  "discoveryMatchMessage": "你同{name}互相讚好咗",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "傳送訊息",
+  "discoveryKeepSwiping": "繼續滑動",
+  "discoveryWeeklyPicks": "每週精選",
+  "discoveryLikesYou": "讚好你",
+  "discoveryTopPicks": "精選推薦",
+  "discoveryNewArrivals": "新加入嘅人",
+
+  "@@_CHAT": "對話/訊息畫面",
+  "chatTitle": "對話",
+  "chatMatches": "配對",
+  "chatMessages": "訊息",
+  "chatNoMatches": "仲未有配對",
+  "chatNoMatchesMessage": "當你同人配對咗，佢哋就會喺呢度出現",
+  "chatNoMessages": "仲未有訊息",
+  "chatNoMessagesMessage": "同你其中一個配對開始對話啦",
+  "chatSayHello": "打聲招呼！",
+  "chatStartConversation": "同{name}開始對話",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "輸入訊息...",
+  "chatSend": "傳送",
+  "chatToday": "今日",
+  "chatYesterday": "尋日",
+  "chatOnline": "上線中",
+  "chatLastSeen": "最後上線於{time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "正在輸入...",
+  "chatDelivered": "已送達",
+  "chatRead": "已讀",
+  "chatDeleteMessage": "刪除訊息",
+  "chatDeleteForMe": "幫我刪除",
+  "chatDeleteForEveryone": "幫所有人刪除",
+  "chatCopyMessage": "複製",
+  "chatReply": "回覆",
+  "chatNewMatch": "新配對！",
+  "chatMatchedWith": "你同{name}配對咗",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "個人檔案畫面",
+  "profileTitle": "個人檔案",
+  "profileEdit": "編輯個人檔案",
+  "profileComplete": "完成你嘅個人檔案",
+  "profileBasicInfo": "基本資料",
+  "profileName": "名字",
+  "profileAge": "年齡",
+  "profileBirthday": "生日",
+  "profileGender": "性別",
+  "profileSexualOrientation": "性取向",
+  "profileBio": "自我介紹",
+  "profileBioHint": "同其他人講吓你自己...",
+  "profilePhotos": "相片",
+  "profileAddPhoto": "新增相片",
+  "profileAddVideo": "新增影片",
+  "profileMakeMain": "設為主要相片",
+  "profileInterests": "興趣",
+  "profileAddInterests": "新增興趣",
+  "profileLocation": "位置",
+  "profileCity": "城市",
+  "profileCountry": "國家",
+  "profileLivingIn": "住喺",
+  "profileJobTitle": "職位",
+  "profileCompany": "公司",
+  "profileSchool": "學校",
+  "profileHeight": "身高",
+  "profileHeightCm": "{height}厘米",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "語言",
+  "profileZodiacSign": "星座",
+  "profileEducation": "學歷",
+  "profileReligion": "宗教",
+  "profileRelationshipGoals": "交往目標",
+  "profileFamilyPlans": "家庭計劃",
+  "profilePersonalityType": "性格類型",
+  "profileWorkout": "健身",
+  "profileSmoking": "吸煙",
+  "profileDrinking": "飲酒",
+  "profilePets": "寵物",
+  "profileVerified": "已驗證",
+  "profileGetVerified": "取得驗證",
+  "profileVerificationPending": "驗證處理中",
+  "profilePreview": "預覽個人檔案",
+  "profileSaved": "個人檔案已成功儲存！",
+  "profilePrompts": "提示問題",
+  "profileAddPrompt": "新增提示問題",
+  "profileAboutMe": "關於我",
+  "profileMyDetails": "我嘅詳細資料",
+  "profileLifestyle": "生活方式",
+
+  "@@_ONBOARDING": "入門畫面",
+  "onboardingWelcome": "歡迎嚟到Crush",
+  "onboardingTagline": "搵到你嘅完美對象",
+  "onboardingGetStarted": "開始",
+  "onboardingStep": "第{current}步，共{total}步",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "你叫咩名？",
+  "onboardingWhenBirthday": "你幾時生日？",
+  "onboardingSelectGender": "揀選你嘅性別",
+  "onboardingAddPhotos": "新增你最靚嘅相片",
+  "onboardingPhotosHint": "新增最少2張相片先可以繼續",
+  "onboardingWriteBio": "寫啲關於你自己嘅嘢",
+  "onboardingSelectInterests": "揀選你嘅興趣",
+  "onboardingInterestsHint": "揀最少3個興趣",
+  "onboardingAllSet": "準備好晒喇！",
+  "onboardingStartSwiping": "開始滑動",
+
+  "@@_SUBSCRIPTION": "訂閱畫面",
+  "subscriptionFree": "免費",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "取得Crush Plus",
+  "subscriptionUpgrade": "升級",
+  "subscriptionRestore": "還原購買項目",
+  "subscriptionUnlimitedLikes": "無限讚好",
+  "subscriptionUnlimitedRewinds": "無限回帶",
+  "subscriptionSeeWhoLikesYou": "睇邊個讚好你",
+  "subscriptionBoostsPerMonth": "每月{count}次加強",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "每日{count}次超級讚好",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "冇廣告",
+  "subscriptionPrioritySupport": "優先支援",
+  "subscriptionPerMonth": "{price}/月",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/年",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "最抵",
+  "subscriptionMostPopular": "最受歡迎",
+
+  "@@_SAFETY": "安全同舉報",
+  "safetyReportUser": "舉報用戶",
+  "safetyBlockUser": "封鎖用戶",
+  "safetyUnblockUser": "解除封鎖用戶",
+  "safetyReportReason": "你點解要舉報？",
+  "safetyBlockConfirm": "封鎖{name}？",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "佢哋將睇唔到你嘅個人檔案或者傳訊息畀你",
+  "safetyReported": "舉報已提交",
+  "safetyBlocked": "用戶已封鎖",
+  "safetyUnblocked": "用戶已解除封鎖",
+  "safetyFakeProfile": "假個人檔案",
+  "safetyInappropriateContent": "不當內容",
+  "safetyHarassment": "騷擾",
+  "safetySpam": "垃圾訊息",
+  "safetyScam": "詐騙",
+  "safetyOther": "其他",
+
+  "@@_TIME": "時間相關字串",
+  "timeJustNow": "啱啱",
+  "timeMinutesAgo": "{count, plural, =1{1分鐘前} other{{count}分鐘前}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1小時前} other{{count}小時前}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1日前} other{{count}日前}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1個禮拜前} other{{count}個禮拜前}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "空白狀態訊息",
+  "emptyNoResults": "搵唔到結果",
+  "emptyTryAgain": "試吓調整你嘅搜尋或篩選",
+  "emptyNoData": "冇數據",
+  "emptyCheckBackLater": "遲啲再嚟睇吓"
+}

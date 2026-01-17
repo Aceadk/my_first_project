@@ -22,6 +22,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
   CrushUser? _currentUser;
   StreamSubscription<fb.User?>? _firebaseAuthSubscription;
+  bool _devBypassInProgress = false;
 
   // ActionCodeSettings for Email Link Authentication
   static final _actionCodeSettings = fb.ActionCodeSettings(
@@ -45,6 +46,12 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   void _onFirebaseAuthStateChanged(fb.User? firebaseUser) {
+    // Skip processing during dev bypass to prevent overwriting verified status
+    if (_devBypassInProgress) {
+      AppLogger.logInfo('[FirebaseAuthRepo] Skipping auth state change during dev bypass');
+      return;
+    }
+
     if (firebaseUser == null) {
       _currentUser = null;
       _authStateController.add(null);
@@ -58,7 +65,7 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  /// Checks Firestore for OTP-based email verification and updates user state if verified.
+  /// Checks Firestore for OTP-based email verification or developer status and updates user state if verified.
   Future<void> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
     // Skip if already verified via Firebase SDK
     if (firebaseUser.emailVerified) return;
@@ -70,22 +77,23 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
+      final isDeveloper = userData['isDeveloper'] as bool? ?? false;
 
-      if (firestoreEmailVerified || emailVerifiedViaOtp) {
-        // User verified via OTP - update current user with verified status
+      if (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper) {
+        // User verified via OTP or is a developer - update current user with verified status
         _currentUser = CrushUser(
           id: firebaseUser.uid,
           phoneNumber: firebaseUser.phoneNumber ?? '',
           email: firebaseUser.email,
           username: firebaseUser.displayName,
           isEmailVerified: true, // Override with Firestore value
-          isPhoneVerified: firebaseUser.phoneNumber != null,
+          isPhoneVerified: isDeveloper || firebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: SubscriptionPlan.free,
           profile: null,
         );
         _authStateController.add(_currentUser);
-        AppLogger.logInfo('[FirebaseAuthRepo] Updated user with OTP-verified email status');
+        AppLogger.logInfo('[FirebaseAuthRepo] Updated user with verified status (OTP/developer)');
       }
     } catch (e) {
       // Don't log error for expected document-not-found cases
@@ -270,18 +278,41 @@ class FirebaseAuthRepository implements AuthRepository {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (fb.FirebaseAuthException e) {
-          SecureLogger.error('Phone OTP Error: ${e.code}', e.message);
+          SecureLogger.error('Phone OTP Error: code=${e.code}, message=${e.message}', e);
           if (!completer.isCompleted) {
             String errorMessage = e.message ?? 'Verification failed';
-            // Provide more helpful error messages
-            if (e.code == 'invalid-phone-number') {
-              errorMessage = 'Invalid phone number format. Use format: +1234567890';
-            } else if (e.code == 'too-many-requests') {
-              errorMessage = 'Too many requests. Please try again later.';
-            } else if (e.code == 'app-not-authorized') {
-              errorMessage = 'Phone auth not configured. Please enable it in Firebase Console.';
-            } else if (e.code == 'missing-client-identifier') {
-              errorMessage = 'Missing SHA fingerprint. Add SHA-1 to Firebase Console.';
+            // Provide more helpful error messages based on Firebase error codes
+            switch (e.code) {
+              case 'invalid-phone-number':
+                errorMessage = 'Invalid phone number format. Use format: +1234567890';
+                break;
+              case 'too-many-requests':
+                errorMessage = 'Too many requests. Please try again later.';
+                break;
+              case 'app-not-authorized':
+                errorMessage = 'Phone auth not configured. Please enable it in Firebase Console.';
+                break;
+              case 'missing-client-identifier':
+                errorMessage = 'Missing SHA fingerprint. Add SHA-1 and SHA-256 to Firebase Console for this app.';
+                break;
+              case 'quota-exceeded':
+                errorMessage = 'SMS quota exceeded. Please try again tomorrow.';
+                break;
+              case 'network-request-failed':
+                errorMessage = 'Network error. Please check your internet connection.';
+                break;
+              case 'captcha-check-failed':
+                errorMessage = 'reCAPTCHA verification failed. Please try again.';
+                break;
+              case 'invalid-app-credential':
+                errorMessage = 'App credentials invalid. Check Firebase configuration.';
+                break;
+              case 'web-context-cancelled':
+                errorMessage = 'Verification was cancelled.';
+                break;
+              default:
+                // Include the error code for debugging unknown errors
+                errorMessage = 'Phone verification failed (${e.code}): ${e.message ?? "Unknown error"}';
             }
             completer.completeError(Exception(errorMessage));
           }
@@ -340,12 +371,42 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final credential = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    fb.User? firebaseUser;
 
-    final firebaseUser = credential.user;
+    try {
+      // Try to sign in with existing account
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      firebaseUser = credential.user;
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        // User doesn't exist - create account automatically
+        AppLogger.logInfo('[FirebaseAuthRepo] User not found, creating account for: $email');
+        try {
+          final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          firebaseUser = credential.user;
+
+          // Send email verification for new accounts
+          if (firebaseUser != null && !firebaseUser.emailVerified) {
+            await firebaseUser.sendEmailVerification();
+            AppLogger.logInfo('[FirebaseAuthRepo] Verification email sent to: $email');
+          }
+        } catch (createError) {
+          AppLogger.logError('[FirebaseAuthRepo] Failed to create account', createError);
+          rethrow;
+        }
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        throw Exception('Invalid email or password. Please try again.');
+      } else {
+        rethrow;
+      }
+    }
+
     if (firebaseUser == null) {
       throw Exception('Sign-in failed');
     }
@@ -370,25 +431,34 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    final firebaseUser = credential.user;
-    if (firebaseUser == null) {
-      throw Exception('Sign-up failed');
+      final firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        throw Exception('Sign-up failed');
+      }
+
+      // Update display name
+      await firebaseUser.updateDisplayName(username);
+
+      // Send email verification
+      await firebaseUser.sendEmailVerification();
+
+      // Create Firestore document for the new user
+      await _ensureUserDocumentExists(firebaseUser);
+      return _mapFirebaseUser(firebaseUser);
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        throw Exception(
+          'An account with this email already exists. Please sign in instead, or use a different email address.',
+        );
+      }
+      rethrow;
     }
-
-    // Update display name
-    await firebaseUser.updateDisplayName(username);
-
-    // Send email verification
-    await firebaseUser.sendEmailVerification();
-
-    // Create Firestore document for the new user
-    await _ensureUserDocumentExists(firebaseUser);
-    return _mapFirebaseUser(firebaseUser);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -886,6 +956,9 @@ class FirebaseAuthRepository implements AuthRepository {
       return null;
     }
 
+    // Set flag to prevent Firebase auth listener from overwriting our state
+    _devBypassInProgress = true;
+
     const testEmail = 'dev@crushhour.test';
     const testPassword = 'DevTest123!@#';
 
@@ -909,14 +982,19 @@ class FirebaseAuthRepository implements AuthRepository {
           firebaseUser = credential.user;
         } catch (createError) {
           AppLogger.logError('Dev bypass create account', createError);
+          _devBypassInProgress = false;
           return null;
         }
       } else {
+        _devBypassInProgress = false;
         return null;
       }
     }
 
-    if (firebaseUser == null) return null;
+    if (firebaseUser == null) {
+      _devBypassInProgress = false;
+      return null;
+    }
 
     await _ensureUserDocumentExists(firebaseUser);
 
@@ -942,7 +1020,45 @@ class FirebaseAuthRepository implements AuthRepository {
     _currentUser = devUser;
     _authStateController.add(devUser);
 
+    // Clear flag after a short delay to allow any pending auth state changes to be skipped
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _devBypassInProgress = false;
+    });
+
     return devUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL EXISTENCE CHECK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<bool> isEmailRegistered(String email) async {
+    try {
+      // Check Firestore for existing user with this email
+      final normalizedEmail = email.trim().toLowerCase();
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: normalizedEmail)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return true;
+      }
+
+      // Also check with original casing in case email was stored differently
+      final querySnapshot2 = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email.trim())
+          .limit(1)
+          .get();
+
+      return querySnapshot2.docs.isNotEmpty;
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error checking email existence', e);
+      return false;
+    }
   }
 
   void dispose() {

@@ -381,4 +381,7 @@ class _StubAuthRepository implements AuthRepository {
   }) async {
     return null;
   }
+
+  @override
+  Future<bool> isEmailRegistered(String email) async => false;
 }

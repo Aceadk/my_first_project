@@ -1,0 +1,568 @@
+{
+  "@@locale": "ur",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "منسوخ کریں",
+  "commonSave": "محفوظ کریں",
+  "commonRetry": "دوبارہ کوشش کریں",
+  "commonDone": "ہو گیا",
+  "commonLoading": "لوڈ ہو رہا ہے",
+  "commonError": "خرابی",
+  "commonSuccess": "کامیاب",
+  "commonOk": "ٹھیک ہے",
+  "commonNext": "اگلا",
+  "commonBack": "واپس",
+  "commonClose": "بند کریں",
+  "commonDelete": "حذف کریں",
+  "commonEdit": "ترمیم کریں",
+  "commonSearch": "تلاش کریں",
+  "commonSettings": "ترتیبات",
+  "commonContinue": "جاری رکھیں",
+  "commonSkip": "چھوڑیں",
+  "commonConfirm": "تصدیق کریں",
+  "commonYes": "ہاں",
+  "commonNo": "نہیں",
+  "commonOn": "آن",
+  "commonOff": "آف",
+  "commonMore": "مزید",
+  "commonLess": "کم",
+  "commonAll": "سب",
+  "commonNone": "کوئی نہیں",
+  "commonRefresh": "ریفریش کریں",
+  "commonSubmit": "جمع کروائیں",
+  "commonSend": "بھیجیں",
+  "commonApply": "لاگو کریں",
+  "commonClear": "صاف کریں",
+  "commonReset": "ری سیٹ کریں",
+  "commonUpdate": "اپڈیٹ کریں",
+  "commonRemove": "ہٹائیں",
+  "commonAdd": "شامل کریں",
+  "commonView": "دیکھیں",
+  "commonShare": "شیئر کریں",
+  "commonReport": "رپورٹ کریں",
+  "commonBlock": "بلاک کریں",
+  "commonUnblock": "ان بلاک کریں",
+  "commonMute": "خاموش کریں",
+  "commonUnmute": "آواز چالو کریں",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorNetwork": "کنکشن کی خرابی۔ اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔",
+  "errorTimeout": "درخواست کا وقت ختم۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorServer": "سرور کی خرابی۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+  "errorUnauthorized": "سیشن ختم ہو گیا۔ براہ کرم دوبارہ سائن ان کریں۔",
+  "errorNotFound": "درخواست کردہ آئٹم نہیں ملا۔",
+  "errorOffline": "انٹرنیٹ کنکشن نہیں ہے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+  "errorLoginFailed": "سائن ان نہیں ہو سکا۔ براہ کرم اپنی تفصیلات چیک کریں۔",
+  "errorSignUpFailed": "اکاؤنٹ نہیں بن سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLogoutFailed": "سائن آؤٹ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorInvalidCredentials": "غلط ای میل یا پاس ورڈ۔",
+  "errorEmailInUse": "یہ ای میل پہلے سے رجسٹرڈ ہے۔",
+  "errorWeakPassword": "پاس ورڈ بہت کمزور ہے۔ کم از کم 8 حروف استعمال کریں۔",
+  "errorInvalidEmail": "براہ کرم درست ای میل ایڈریس درج کریں۔",
+  "errorSendCodeFailed": "کوڈ نہیں بھیجا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorInvalidCode": "غلط یا ختم شدہ کوڈ۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorVerificationFailed": "تصدیق ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadProfileFailed": "پروفائل لوڈ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorSaveProfileFailed": "پروفائل محفوظ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorUploadPhotoFailed": "تصویر اپلوڈ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorDeletePhotoFailed": "تصویر حذف نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorUpdateLocationFailed": "مقام اپڈیٹ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorUploadIdFailed": "ID اپلوڈ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadDeckFailed": "پروفائلز لوڈ نہیں ہو سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorSwipeFailed": "سوائپ پروسیس نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLikeFailed": "پروفائل لائک نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorPassFailed": "پروفائل پاس نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorSuperLikeFailed": "سپر لائک نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorRewindFailed": "ریوائنڈ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorNoSwipeToUndo": "کوئی سوائپ واپس کرنے کے لیے نہیں ہے۔",
+  "errorFreeUndoUsed": "آپ نے آج کا مفت انڈو استعمال کر لیا ہے۔ لامحدود انڈو کے لیے Plus میں اپگریڈ کریں!",
+  "errorRewindPremiumOnly": "ریوائنڈ Plus فیچر ہے۔ سوائپ واپس کرنے کے لیے اپگریڈ کریں!",
+  "errorLoadChatsFailed": "چیٹس لوڈ نہیں ہو سکیں۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadMessagesFailed": "پیغامات لوڈ نہیں ہو سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorSendMessageFailed": "پیغام نہیں بھیجا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorDeleteMessageFailed": "پیغام حذف نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadMatchesFailed": "میچز لوڈ نہیں ہو سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorUnmatchFailed": "ان میچ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorCheckoutFailed": "چیک آؤٹ شروع نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadSubscriptionFailed": "سبسکرپشن لوڈ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorRestorePurchasesFailed": "خریداری بحال نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorReportFailed": "رپورٹ جمع نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorBlockFailed": "صارف بلاک نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorUnblockFailed": "صارف ان بلاک نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLoadInsightsFailed": "انسائٹس لوڈ نہیں ہو سکیں۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorLocationDisabled": "لوکیشن سروسز بند ہیں۔ براہ کرم ترتیبات میں فعال کریں۔",
+  "errorLocationPermissionDenied": "لوکیشن کی اجازت سے انکار۔ براہ کرم ترتیبات میں رسائی کی اجازت دیں۔",
+  "errorLocationTimeout": "لوکیشن درخواست کا وقت ختم۔ یقینی بنائیں کہ GPS سگنل ہے اور دوبارہ کوشش کریں۔",
+  "errorMediaLoadFailed": "میڈیا لوڈ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorMediaUploadFailed": "میڈیا اپلوڈ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "errorCouldNot": "{action} نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} Plus فیچر ہے۔ ان لاک کرنے کے لیے اپگریڈ کریں!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "واپس جائیں",
+  "a11yCloseButton": "بند کریں",
+  "a11yMenuButton": "مینو کھولیں",
+  "a11ySettingsButton": "ترتیبات کھولیں",
+  "a11ySearchButton": "تلاش کریں",
+  "a11yFilterButton": "فلٹرز کھولیں",
+  "a11yPassButton": "یہ پروفائل پاس کریں",
+  "a11yLikeButton": "یہ پروفائل لائک کریں",
+  "a11ySuperLikeButton": "یہ پروفائل سپر لائک کریں",
+  "a11yRewindButton": "آخری عمل واپس کریں",
+  "a11yBoostButton": "اپنا پروفائل بوسٹ کریں",
+  "a11yProfilePhoto": "پروفائل تصویر",
+  "a11yProfilePhotoOf": "{name} کی پروفائل تصویر",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "صارف اوتار",
+  "a11yAvatarOf": "{name} کا اوتار",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "پروفائل میں ترمیم کریں",
+  "a11yViewProfile": "پروفائل دیکھیں",
+  "a11yVerifiedBadge": "تصدیق شدہ پروفائل",
+  "a11yOnlineNow": "ابھی آن لائن",
+  "a11yOffline": "آف لائن",
+  "a11ySendMessage": "پیغام بھیجیں",
+  "a11yAttachPhoto": "تصویر منسلک کریں",
+  "a11yAttachFile": "فائل منسلک کریں",
+  "a11yVoiceMessage": "وائس پیغام ریکارڈ کریں",
+  "a11yVideoCall": "ویڈیو کال شروع کریں",
+  "a11yVoiceCall": "وائس کال شروع کریں",
+  "a11yMessageFrom": "{sender} کا پیغام",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 غیر پڑھا پیغام} other{{count} غیر پڑھے پیغامات}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "پاس ورڈ دکھائیں",
+  "a11yHidePassword": "پاس ورڈ چھپائیں",
+  "a11yLoginButton": "سائن ان کریں",
+  "a11ySignUpButton": "اکاؤنٹ بنائیں",
+  "a11yForgotPassword": "پاس ورڈ ری سیٹ کریں",
+  "a11yResendCode": "تصدیقی کوڈ دوبارہ بھیجیں",
+  "a11yToggleSetting": "ترتیب ٹوگل کریں",
+  "a11yLoading": "لوڈ ہو رہا ہے",
+  "a11yRefreshing": "ریفریش ہو رہا ہے",
+  "a11yErrorOccurred": "ایک خرابی ہوئی",
+  "a11yRetry": "دوبارہ کوشش کریں",
+  "a11yDismiss": "خارج کریں",
+  "a11yMoreOptions": "مزید اختیارات",
+  "a11yDelete": "حذف کریں",
+  "a11yCancel": "منسوخ کریں",
+  "a11yConfirm": "تصدیق کریں",
+  "a11ySaveChanges": "تبدیلیاں محفوظ کریں",
+  "a11yTapToView": "دیکھنے کے لیے ڈبل ٹیپ کریں",
+  "a11yTapToSelect": "منتخب کرنے کے لیے ڈبل ٹیپ کریں",
+  "a11yTapToToggle": "ٹوگل کرنے کے لیے ڈبل ٹیپ کریں",
+  "a11yTapToEdit": "ترمیم کے لیے ڈبل ٹیپ کریں",
+  "a11yTapToExpand": "پھیلانے کے لیے ڈبل ٹیپ کریں",
+  "a11yTapToCollapse": "سکیڑنے کے لیے ڈبل ٹیپ کریں",
+  "a11ySwipeToDelete": "حذف کرنے کے لیے بائیں سوائپ کریں",
+  "a11ySwipeForActions": "مزید عمل کے لیے بائیں سوائپ کریں",
+  "a11yDragToReorder": "ترتیب بدلنے کے لیے دبائیں اور گھسیٹیں",
+  "a11yPinchToZoom": "زوم کرنے کے لیے پنچ کریں",
+  "a11yLoadingPleaseWait": "لوڈ ہو رہا ہے، براہ کرم انتظار کریں",
+  "a11yLoadingComplete": "لوڈنگ مکمل",
+  "a11yMatchFound": "میچ ہو گیا! آپ {name} سے میچ ہوئے",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender} کا نیا پیغام",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "پروفائل لائک کیا گیا",
+  "a11yProfilePassed": "پروفائل پاس کیا گیا",
+  "a11yProfileSuperLiked": "پروفائل سپر لائک کیا گیا",
+  "a11yMessageSent": "پیغام بھیجا گیا",
+  "a11ySettingSaved": "ترتیب محفوظ ہو گئی",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "واپسی پر خوش آمدید",
+  "authSignInToContinue": "Crush جاری رکھنے کے لیے سائن ان کریں",
+  "authEmailOrUsername": "ای میل یا صارف نام",
+  "authEmail": "ای میل",
+  "authPassword": "پاس ورڈ",
+  "authCurrentPassword": "موجودہ پاس ورڈ",
+  "authNewPassword": "نیا پاس ورڈ",
+  "authConfirmPassword": "پاس ورڈ کی تصدیق کریں",
+  "authForgotPassword": "پاس ورڈ بھول گئے؟",
+  "authSignIn": "سائن ان کریں",
+  "authSignUp": "سائن اپ کریں",
+  "authSignOut": "سائن آؤٹ کریں",
+  "authCreateAccount": "اکاؤنٹ بنائیں",
+  "authNoAccount": "اکاؤنٹ نہیں ہے؟",
+  "authAlreadyHaveAccount": "پہلے سے اکاؤنٹ ہے؟",
+  "authOrContinueWith": "یا اس کے ساتھ جاری رکھیں",
+  "authPhone": "فون",
+  "authPhoneNumber": "فون نمبر",
+  "authEnterCode": "کوڈ درج کریں",
+  "authVerificationCode": "تصدیقی کوڈ",
+  "authSendCode": "کوڈ بھیجیں",
+  "authResendCode": "کوڈ دوبارہ بھیجیں",
+  "authVerify": "تصدیق کریں",
+  "authVerifyEmail": "ای میل کی تصدیق کریں",
+  "authVerifyPhone": "فون کی تصدیق کریں",
+  "authCheckEmail": "اپنا ای میل چیک کریں",
+  "authCheckPhone": "اپنا فون چیک کریں",
+  "authCodeSent": "کوڈ بھیجا گیا",
+  "authCodeSentTo": "ہم نے {destination} پر کوڈ بھیجا",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6 ہندسوں کا کوڈ درج کریں",
+  "authPasswordHint": "کم از کم 8 حروف",
+  "authResetPassword": "پاس ورڈ ری سیٹ کریں",
+  "authChangePassword": "پاس ورڈ تبدیل کریں",
+  "authPasswordChanged": "پاس ورڈ کامیابی سے تبدیل ہو گیا!",
+  "authAgreeToTerms": "جاری رکھ کر، آپ ہماری سروس کی شرائط اور رازداری کی پالیسی سے متفق ہیں",
+  "authTermsOfService": "سروس کی شرائط",
+  "authPrivacyPolicy": "رازداری کی پالیسی",
+  "authDevLogin": "ڈیو لاگ ان",
+  "authUsePhoneInstead": "اس کے بجائے فون استعمال کریں",
+  "authUseEmailInstead": "اس کے بجائے ای میل استعمال کریں",
+  "authEmailLink": "ای میل لنک",
+  "authEmailOtp": "ای میل OTP",
+  "authEmailPassword": "ای میل + پاس ورڈ",
+  "authChooseSignInMethod": "سائن ان کا طریقہ منتخب کریں",
+  "authSendLink": "لنک بھیجیں",
+  "authAutoCheckingStatus": "خود بخود تصدیق کی حیثیت چیک ہو رہی ہے...",
+  "authIveVerified": "میں نے تصدیق کر لی",
+  "authCheckYourEmail": "اپنا ای میل چیک کریں",
+  "authClickLinkToVerify": "اپنا ای میل تصدیق کرنے کے لیے ہمارے بھیجے گئے لنک پر کلک کریں",
+  "authEmailVerified": "ای میل کامیابی سے تصدیق ہو گئی!",
+  "authSkipForNow": "ابھی کے لیے چھوڑیں",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "ترتیبات",
+  "settingsAppearance": "ظاہری شکل",
+  "settingsAppearanceSubtitle": "تھیم اور ڈسپلے آپشنز",
+  "settingsTheme": "تھیم",
+  "settingsThemeLight": "روشن",
+  "settingsThemeDark": "تاریک",
+  "settingsThemeSystem": "سسٹم",
+  "settingsNotifications": "اطلاعات",
+  "settingsNotificationsSubtitle": "اپنے الرٹس کا انتظام کریں",
+  "settingsPushNotifications": "پش اطلاعات",
+  "settingsEmailNotifications": "ای میل اطلاعات",
+  "settingsSound": "آواز",
+  "settingsVibration": "کمپن",
+  "settingsLanguageRegion": "زبان اور علاقہ",
+  "settingsLanguageRegionSubtitle": "ایپ کی زبان اور مقام",
+  "settingsLanguage": "زبان",
+  "settingsRegion": "علاقہ",
+  "settingsDetectRegion": "میرا علاقہ پتہ کریں",
+  "settingsDiscoveryFilters": "دریافت اور فلٹرز",
+  "settingsDiscoveryFiltersSubtitle": "آپ کسے دیکھنا چاہتے ہیں",
+  "settingsAgeRange": "عمر کی حد",
+  "settingsDistance": "زیادہ سے زیادہ فاصلہ",
+  "settingsDistanceKm": "{distance} کلومیٹر",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "مجھے دکھائیں",
+  "settingsShowMyDistance": "میرا فاصلہ دکھائیں",
+  "settingsShowMyAge": "میری عمر دکھائیں",
+  "settingsDataStorage": "ڈیٹا اور اسٹوریج",
+  "settingsDataStorageSubtitle": "کیش اور ڈاؤن لوڈز",
+  "settingsCacheSize": "کیش سائز",
+  "settingsClearCache": "کیش صاف کریں",
+  "settingsMediaDownloads": "میڈیا ڈاؤن لوڈز",
+  "settingsWifiOnly": "صرف Wi-Fi",
+  "settingsAccountSecurity": "اکاؤنٹ سیکیورٹی",
+  "settingsAccountSecuritySubtitle": "ای میل اور فون کی تصدیق",
+  "settingsAccountActions": "اکاؤنٹ کے عمل",
+  "settingsAccountActionsSubtitle": "اپنے اکاؤنٹ کا انتظام کریں",
+  "settingsChangePassword": "پاس ورڈ تبدیل کریں",
+  "settingsDeactivateAccount": "اکاؤنٹ غیر فعال کریں",
+  "settingsDeleteAccount": "اکاؤنٹ حذف کریں",
+  "settingsPrivacy": "رازداری",
+  "settingsPrivacySubtitle": "دوسرے کیا دیکھ سکتے ہیں اس پر قابو رکھیں",
+  "settingsHideFromDiscovery": "دریافت سے چھپائیں",
+  "settingsIncognitoMode": "انکگنیٹو موڈ",
+  "settingsAbout": "کے بارے میں",
+  "settingsAboutSubtitle": "ایپ کی معلومات اور قانونی",
+  "settingsVersion": "ورژن",
+  "settingsRateUs": "ہمیں ریٹ کریں",
+  "settingsHelp": "مدد اور معاونت",
+  "settingsContactUs": "ہم سے رابطہ کریں",
+  "settingsFeedback": "رائے بھیجیں",
+  "settingsSubscription": "سبسکرپشن",
+  "settingsSubscriptionSubtitle": "اپنے پلان کا انتظام کریں",
+  "settingsGetPlus": "Crush Plus حاصل کریں",
+  "settingsRestorePurchases": "خریداری بحال کریں",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "دریافت کریں",
+  "discoveryNoMatchesTitle": "ابھی تک کوئی میچ نہیں",
+  "discoveryNoMatchesMessage": "اپنا بہترین میچ تلاش کرنے کے لیے سوائپ کرتے رہیں!",
+  "discoveryStartSwiping": "سوائپ کرنا شروع کریں",
+  "discoveryAdjustFilters": "فلٹرز ایڈجسٹ کریں",
+  "discoveryAllCaughtUp": "سب دیکھ لیا!",
+  "discoveryNoMorePeople": "ابھی آس پاس مزید لوگ نہیں ہیں۔\nجلد ہی واپس آئیں یا اپنی تلاش بڑھائیں۔",
+  "discoveryViewFullProfile": "مکمل پروفائل دیکھیں",
+  "discoveryReportProfile": "پروفائل رپورٹ کریں",
+  "discoveryBlockProfile": "پروفائل بلاک کریں اور چھپائیں",
+  "discoveryUnmatch": "ان میچ کریں",
+  "discoveryLike": "لائک",
+  "discoveryPass": "پاس",
+  "discoverySuperLike": "سپر لائک",
+  "discoveryRewind": "ریوائنڈ",
+  "discoveryBoost": "بوسٹ",
+  "discoveryItsAMatch": "میچ ہو گیا!",
+  "discoveryMatchMessage": "آپ اور {name} نے ایک دوسرے کو پسند کیا",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "پیغام بھیجیں",
+  "discoveryKeepSwiping": "سوائپ کرتے رہیں",
+  "discoveryWeeklyPicks": "ہفتہ وار انتخاب",
+  "discoveryLikesYou": "آپ کو پسند کرتے ہیں",
+  "discoveryTopPicks": "ٹاپ پکس",
+  "discoveryNewArrivals": "نئے آنے والے",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "چیٹس",
+  "chatMatches": "میچز",
+  "chatMessages": "پیغامات",
+  "chatNoMatches": "ابھی تک کوئی میچ نہیں",
+  "chatNoMatchesMessage": "جب آپ کسی سے میچ کریں گے، وہ یہاں دکھائی دیں گے",
+  "chatNoMessages": "ابھی تک کوئی پیغام نہیں",
+  "chatNoMessagesMessage": "اپنے کسی میچ کے ساتھ گفتگو شروع کریں",
+  "chatSayHello": "ہیلو کہیں!",
+  "chatStartConversation": "{name} کے ساتھ گفتگو شروع کریں",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "پیغام ٹائپ کریں...",
+  "chatSend": "بھیجیں",
+  "chatToday": "آج",
+  "chatYesterday": "کل",
+  "chatOnline": "آن لائن",
+  "chatLastSeen": "آخری بار دیکھا {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "ٹائپ کر رہا ہے...",
+  "chatDelivered": "ڈیلیور ہو گیا",
+  "chatRead": "پڑھ لیا",
+  "chatDeleteMessage": "پیغام حذف کریں",
+  "chatDeleteForMe": "میرے لیے حذف کریں",
+  "chatDeleteForEveryone": "سب کے لیے حذف کریں",
+  "chatCopyMessage": "کاپی کریں",
+  "chatReply": "جواب دیں",
+  "chatNewMatch": "نیا میچ!",
+  "chatMatchedWith": "آپ {name} سے میچ ہوئے",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "پروفائل",
+  "profileEdit": "پروفائل میں ترمیم کریں",
+  "profileComplete": "اپنا پروفائل مکمل کریں",
+  "profileBasicInfo": "بنیادی معلومات",
+  "profileName": "نام",
+  "profileAge": "عمر",
+  "profileBirthday": "سالگرہ",
+  "profileGender": "جنس",
+  "profileSexualOrientation": "جنسی رجحان",
+  "profileBio": "بایو",
+  "profileBioHint": "دوسروں کو اپنے بارے میں بتائیں...",
+  "profilePhotos": "تصاویر",
+  "profileAddPhoto": "تصویر شامل کریں",
+  "profileAddVideo": "ویڈیو شامل کریں",
+  "profileMakeMain": "مرکزی تصویر بنائیں",
+  "profileInterests": "دلچسپیاں",
+  "profileAddInterests": "دلچسپیاں شامل کریں",
+  "profileLocation": "مقام",
+  "profileCity": "شہر",
+  "profileCountry": "ملک",
+  "profileLivingIn": "رہائش",
+  "profileJobTitle": "ملازمت کا عنوان",
+  "profileCompany": "کمپنی",
+  "profileSchool": "سکول",
+  "profileHeight": "قد",
+  "profileHeightCm": "{height} سینٹی میٹر",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "زبانیں",
+  "profileZodiacSign": "برج",
+  "profileEducation": "تعلیم",
+  "profileReligion": "مذہب",
+  "profileRelationshipGoals": "رشتے کے اہداف",
+  "profileFamilyPlans": "خاندانی منصوبے",
+  "profilePersonalityType": "شخصیت کی قسم",
+  "profileWorkout": "ورزش",
+  "profileSmoking": "تمباکو نوشی",
+  "profileDrinking": "شراب نوشی",
+  "profilePets": "پالتو جانور",
+  "profileVerified": "تصدیق شدہ",
+  "profileGetVerified": "تصدیق حاصل کریں",
+  "profileVerificationPending": "تصدیق زیر التوا",
+  "profilePreview": "پروفائل پیش نظارہ",
+  "profileSaved": "پروفائل کامیابی سے محفوظ ہو گیا!",
+  "profilePrompts": "پرامپٹس",
+  "profileAddPrompt": "پرامپٹ شامل کریں",
+  "profileAboutMe": "میرے بارے میں",
+  "profileMyDetails": "میری تفصیلات",
+  "profileLifestyle": "طرز زندگی",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Crush میں خوش آمدید",
+  "onboardingTagline": "اپنا بہترین میچ تلاش کریں",
+  "onboardingGetStarted": "شروع کریں",
+  "onboardingStep": "مرحلہ {current} از {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "آپ کا نام کیا ہے؟",
+  "onboardingWhenBirthday": "آپ کی سالگرہ کب ہے؟",
+  "onboardingSelectGender": "اپنی جنس منتخب کریں",
+  "onboardingAddPhotos": "اپنی بہترین تصاویر شامل کریں",
+  "onboardingPhotosHint": "جاری رکھنے کے لیے کم از کم 2 تصاویر شامل کریں",
+  "onboardingWriteBio": "اپنے بارے میں کچھ لکھیں",
+  "onboardingSelectInterests": "اپنی دلچسپیاں منتخب کریں",
+  "onboardingInterestsHint": "کم از کم 3 دلچسپیاں منتخب کریں",
+  "onboardingAllSet": "آپ تیار ہیں!",
+  "onboardingStartSwiping": "سوائپ کرنا شروع کریں",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "مفت",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus حاصل کریں",
+  "subscriptionUpgrade": "اپگریڈ کریں",
+  "subscriptionRestore": "خریداری بحال کریں",
+  "subscriptionUnlimitedLikes": "لامحدود لائکس",
+  "subscriptionUnlimitedRewinds": "لامحدود ریوائنڈز",
+  "subscriptionSeeWhoLikesYou": "دیکھیں کون آپ کو پسند کرتا ہے",
+  "subscriptionBoostsPerMonth": "ماہانہ {count} بوسٹس",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "روزانہ {count} سپر لائکس",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "کوئی اشتہارات نہیں",
+  "subscriptionPrioritySupport": "ترجیحی معاونت",
+  "subscriptionPerMonth": "{price}/ماہ",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/سال",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "بہترین قیمت",
+  "subscriptionMostPopular": "سب سے زیادہ مقبول",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "صارف کی رپورٹ کریں",
+  "safetyBlockUser": "صارف کو بلاک کریں",
+  "safetyUnblockUser": "صارف کو ان بلاک کریں",
+  "safetyReportReason": "آپ رپورٹ کیوں کر رہے ہیں؟",
+  "safetyBlockConfirm": "{name} کو بلاک کریں؟",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "وہ آپ کا پروفائل نہیں دیکھ سکیں گے یا آپ کو پیغام نہیں بھیج سکیں گے",
+  "safetyReported": "رپورٹ جمع ہو گئی",
+  "safetyBlocked": "صارف بلاک ہو گیا",
+  "safetyUnblocked": "صارف ان بلاک ہو گیا",
+  "safetyFakeProfile": "جعلی پروفائل",
+  "safetyInappropriateContent": "نامناسب مواد",
+  "safetyHarassment": "ہراساں کرنا",
+  "safetySpam": "سپیم",
+  "safetyScam": "دھوکہ دہی",
+  "safetyOther": "دیگر",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "ابھی ابھی",
+  "timeMinutesAgo": "{count, plural, =1{1 منٹ پہلے} other{{count} منٹ پہلے}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 گھنٹہ پہلے} other{{count} گھنٹے پہلے}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 دن پہلے} other{{count} دن پہلے}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 ہفتہ پہلے} other{{count} ہفتے پہلے}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "کوئی نتائج نہیں ملے",
+  "emptyTryAgain": "اپنی تلاش یا فلٹرز ایڈجسٹ کرنے کی کوشش کریں",
+  "emptyNoData": "کوئی ڈیٹا دستیاب نہیں",
+  "emptyCheckBackLater": "بعد میں واپس آئیں"
+}

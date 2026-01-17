@@ -1,0 +1,568 @@
+{
+  "@@locale": "te",
+
+  "@@_COMMON": "సాధారణ UI అంశాలు యాప్ అంతటా ఉపయోగించబడతాయి",
+  "commonCancel": "రద్దు చేయి",
+  "commonSave": "సేవ్ చేయి",
+  "commonRetry": "మళ్ళీ ప్రయత్నించు",
+  "commonDone": "పూర్తయింది",
+  "commonLoading": "లోడ్ అవుతోంది",
+  "commonError": "దోషం",
+  "commonSuccess": "విజయం",
+  "commonOk": "సరే",
+  "commonNext": "తదుపరి",
+  "commonBack": "వెనుకకు",
+  "commonClose": "మూసివేయి",
+  "commonDelete": "తొలగించు",
+  "commonEdit": "సవరించు",
+  "commonSearch": "శోధించు",
+  "commonSettings": "సెట్టింగ్‌లు",
+  "commonContinue": "కొనసాగించు",
+  "commonSkip": "దాటవేయి",
+  "commonConfirm": "నిర్ధారించు",
+  "commonYes": "అవును",
+  "commonNo": "కాదు",
+  "commonOn": "ఆన్",
+  "commonOff": "ఆఫ్",
+  "commonMore": "మరింత",
+  "commonLess": "తక్కువ",
+  "commonAll": "అన్నీ",
+  "commonNone": "ఏమీ లేదు",
+  "commonRefresh": "రిఫ్రెష్ చేయి",
+  "commonSubmit": "సమర్పించు",
+  "commonSend": "పంపు",
+  "commonApply": "వర్తింపజేయి",
+  "commonClear": "క్లియర్ చేయి",
+  "commonReset": "రీసెట్ చేయి",
+  "commonUpdate": "అప్‌డేట్ చేయి",
+  "commonRemove": "తీసివేయి",
+  "commonAdd": "జోడించు",
+  "commonView": "చూడు",
+  "commonShare": "షేర్ చేయి",
+  "commonReport": "రిపోర్ట్ చేయి",
+  "commonBlock": "బ్లాక్ చేయి",
+  "commonUnblock": "అన్‌బ్లాక్ చేయి",
+  "commonMute": "మ్యూట్ చేయి",
+  "commonUnmute": "అన్‌మ్యూట్ చేయి",
+
+  "@@_ERRORS": "దోష సందేశాలు",
+  "errorGeneric": "ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorNetwork": "కనెక్షన్ లోపం. మీ ఇంటర్నెట్ తనిఖీ చేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorTimeout": "అభ్యర్థన సమయం ముగిసింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorServer": "సర్వర్ లోపం. దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి.",
+  "errorUnauthorized": "సెషన్ ముగిసింది. దయచేసి మళ్ళీ సైన్ ఇన్ చేయండి.",
+  "errorNotFound": "అభ్యర్థించిన అంశం కనుగొనబడలేదు.",
+  "errorOffline": "ఇంటర్నెట్ కనెక్షన్ లేదు. మీ కనెక్షన్ తనిఖీ చేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoginFailed": "సైన్ ఇన్ చేయలేకపోయాము. దయచేసి మీ క్రెడెన్షియల్స్ తనిఖీ చేయండి.",
+  "errorSignUpFailed": "ఖాతా సృష్టించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLogoutFailed": "సైన్ అవుట్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorInvalidCredentials": "చెల్లని ఇమెయిల్ లేదా పాస్‌వర్డ్.",
+  "errorEmailInUse": "ఈ ఇమెయిల్ ఇప్పటికే నమోదు చేయబడింది.",
+  "errorWeakPassword": "పాస్‌వర్డ్ చాలా బలహీనంగా ఉంది. కనీసం 8 అక్షరాలు ఉపయోగించండి.",
+  "errorInvalidEmail": "దయచేసి చెల్లుబాటు అయ్యే ఇమెయిల్ చిరునామా నమోదు చేయండి.",
+  "errorSendCodeFailed": "కోడ్ పంపలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorInvalidCode": "చెల్లని లేదా గడువు ముగిసిన కోడ్. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorVerificationFailed": "ధృవీకరణ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadProfileFailed": "ప్రొఫైల్ లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorSaveProfileFailed": "ప్రొఫైల్ సేవ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorUploadPhotoFailed": "ఫోటో అప్‌లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorDeletePhotoFailed": "ఫోటో తొలగించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorUpdateLocationFailed": "లొకేషన్ అప్‌డేట్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorUploadIdFailed": "ID అప్‌లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadDeckFailed": "ప్రొఫైల్‌లు లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorSwipeFailed": "స్వైప్ ప్రాసెస్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLikeFailed": "ప్రొఫైల్ లైక్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorPassFailed": "ప్రొఫైల్ పాస్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorSuperLikeFailed": "సూపర్ లైక్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorRewindFailed": "స్వైప్ అన్‌డు చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorNoSwipeToUndo": "అన్‌డు చేయడానికి స్వైప్ లేదు.",
+  "errorFreeUndoUsed": "మీరు ఈ రోజు మీ ఉచిత అన్‌డు ఉపయోగించారు. అన్‌లిమిటెడ్ అన్‌డోల కోసం Plus కి అప్‌గ్రేడ్ చేయండి!",
+  "errorRewindPremiumOnly": "రీవైండ్ Plus ఫీచర్. స్వైప్‌లు అన్‌డు చేయడానికి అప్‌గ్రేడ్ చేయండి!",
+  "errorLoadChatsFailed": "చాట్‌లు లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadMessagesFailed": "సందేశాలు లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorSendMessageFailed": "సందేశం పంపలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorDeleteMessageFailed": "సందేశం తొలగించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadMatchesFailed": "మ్యాచ్‌లు లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorUnmatchFailed": "అన్‌మ్యాచ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorCheckoutFailed": "చెకవుట్ ప్రారంభించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadSubscriptionFailed": "సబ్‌స్క్రిప్షన్ లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorRestorePurchasesFailed": "కొనుగోళ్లు పునరుద్ధరించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorReportFailed": "రిపోర్ట్ సమర్పించలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorBlockFailed": "వినియోగదారుని బ్లాక్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorUnblockFailed": "వినియోగదారుని అన్‌బ్లాక్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLoadInsightsFailed": "ఇన్‌సైట్స్ లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorLocationDisabled": "లొకేషన్ సేవలు నిలిపివేయబడ్డాయి. దయచేసి సెట్టింగ్‌లలో వాటిని ఎనేబుల్ చేయండి.",
+  "errorLocationPermissionDenied": "లొకేషన్ అనుమతి నిరాకరించబడింది. దయచేసి సెట్టింగ్‌లలో యాక్సెస్ అనుమతించండి.",
+  "errorLocationTimeout": "లొకేషన్ అభ్యర్థన సమయం ముగిసింది. మీకు GPS సిగ్నల్ ఉందని నిర్ధారించుకుని మళ్ళీ ప్రయత్నించండి.",
+  "errorMediaLoadFailed": "మీడియా లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorMediaUploadFailed": "మీడియా అప్‌లోడ్ చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "errorCouldNot": "{action} చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} Plus ఫీచర్. అన్‌లాక్ చేయడానికి అప్‌గ్రేడ్ చేయండి!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "అందుబాటు లేబుల్స్ మరియు సూచనలు",
+  "a11yBackButton": "వెనుకకు వెళ్ళు",
+  "a11yCloseButton": "మూసివేయి",
+  "a11yMenuButton": "మెనూ తెరువు",
+  "a11ySettingsButton": "సెట్టింగ్‌లు తెరువు",
+  "a11ySearchButton": "శోధించు",
+  "a11yFilterButton": "ఫిల్టర్లు తెరువు",
+  "a11yPassButton": "ఈ ప్రొఫైల్‌ను పాస్ చేయి",
+  "a11yLikeButton": "ఈ ప్రొఫైల్‌ను లైక్ చేయి",
+  "a11ySuperLikeButton": "ఈ ప్రొఫైల్‌ను సూపర్ లైక్ చేయి",
+  "a11yRewindButton": "చివరి చర్యను అన్‌డు చేయి",
+  "a11yBoostButton": "మీ ప్రొఫైల్‌ను బూస్ట్ చేయి",
+  "a11yProfilePhoto": "ప్రొఫైల్ ఫోటో",
+  "a11yProfilePhotoOf": "{name} యొక్క ప్రొఫైల్ ఫోటో",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "వినియోగదారు అవతార్",
+  "a11yAvatarOf": "{name} యొక్క అవతార్",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "ప్రొఫైల్ సవరించు",
+  "a11yViewProfile": "ప్రొఫైల్ చూడు",
+  "a11yVerifiedBadge": "ధృవీకరించబడిన ప్రొఫైల్",
+  "a11yOnlineNow": "ఇప్పుడు ఆన్‌లైన్‌లో ఉన్నారు",
+  "a11yOffline": "ఆఫ్‌లైన్",
+  "a11ySendMessage": "సందేశం పంపు",
+  "a11yAttachPhoto": "ఫోటో జోడించు",
+  "a11yAttachFile": "ఫైల్ జోడించు",
+  "a11yVoiceMessage": "వాయిస్ మెసేజ్ రికార్డ్ చేయి",
+  "a11yVideoCall": "వీడియో కాల్ ప్రారంభించు",
+  "a11yVoiceCall": "వాయిస్ కాల్ ప్రారంభించు",
+  "a11yMessageFrom": "{sender} నుండి సందేశం",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 చదవని సందేశం} other{{count} చదవని సందేశాలు}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "పాస్‌వర్డ్ చూపించు",
+  "a11yHidePassword": "పాస్‌వర్డ్ దాచు",
+  "a11yLoginButton": "సైన్ ఇన్ చేయి",
+  "a11ySignUpButton": "ఖాతా సృష్టించు",
+  "a11yForgotPassword": "పాస్‌వర్డ్ రీసెట్ చేయి",
+  "a11yResendCode": "ధృవీకరణ కోడ్ మళ్ళీ పంపు",
+  "a11yToggleSetting": "సెట్టింగ్ టాగుల్ చేయి",
+  "a11yLoading": "లోడ్ అవుతోంది",
+  "a11yRefreshing": "రిఫ్రెష్ అవుతోంది",
+  "a11yErrorOccurred": "దోషం సంభవించింది",
+  "a11yRetry": "మళ్ళీ ప్రయత్నించు",
+  "a11yDismiss": "తీసివేయి",
+  "a11yMoreOptions": "మరిన్ని ఎంపికలు",
+  "a11yDelete": "తొలగించు",
+  "a11yCancel": "రద్దు చేయి",
+  "a11yConfirm": "నిర్ధారించు",
+  "a11ySaveChanges": "మార్పులు సేవ్ చేయి",
+  "a11yTapToView": "చూడటానికి రెండుసార్లు టాప్ చేయండి",
+  "a11yTapToSelect": "ఎంచుకోవడానికి రెండుసార్లు టాప్ చేయండి",
+  "a11yTapToToggle": "టాగుల్ చేయడానికి రెండుసార్లు టాప్ చేయండి",
+  "a11yTapToEdit": "సవరించడానికి రెండుసార్లు టాప్ చేయండి",
+  "a11yTapToExpand": "విస్తరించడానికి రెండుసార్లు టాప్ చేయండి",
+  "a11yTapToCollapse": "కుదించడానికి రెండుసార్లు టాప్ చేయండి",
+  "a11ySwipeToDelete": "తొలగించడానికి ఎడమకు స్వైప్ చేయండి",
+  "a11ySwipeForActions": "మరిన్ని చర్యల కోసం ఎడమకు స్వైప్ చేయండి",
+  "a11yDragToReorder": "క్రమాన్ని మార్చడానికి నొక్కి పట్టుకుని లాగండి",
+  "a11yPinchToZoom": "జూమ్ చేయడానికి పించ్ చేయండి",
+  "a11yLoadingPleaseWait": "లోడ్ అవుతోంది, దయచేసి వేచి ఉండండి",
+  "a11yLoadingComplete": "లోడ్ పూర్తయింది",
+  "a11yMatchFound": "మ్యాచ్ అయింది! మీరు {name}తో మ్యాచ్ అయ్యారు",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender} నుండి కొత్త సందేశం",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "ప్రొఫైల్ లైక్ చేయబడింది",
+  "a11yProfilePassed": "ప్రొఫైల్ పాస్ చేయబడింది",
+  "a11yProfileSuperLiked": "ప్రొఫైల్ సూపర్ లైక్ చేయబడింది",
+  "a11yMessageSent": "సందేశం పంపబడింది",
+  "a11ySettingSaved": "సెట్టింగ్ సేవ్ చేయబడింది",
+
+  "@@_AUTH": "ప్రమాణీకరణ స్క్రీన్‌లు",
+  "authWelcomeBack": "తిరిగి స్వాగతం",
+  "authSignInToContinue": "Crush కి కొనసాగించడానికి సైన్ ఇన్ చేయండి",
+  "authEmailOrUsername": "ఇమెయిల్ లేదా వినియోగదారు పేరు",
+  "authEmail": "ఇమెయిల్",
+  "authPassword": "పాస్‌వర్డ్",
+  "authCurrentPassword": "ప్రస్తుత పాస్‌వర్డ్",
+  "authNewPassword": "కొత్త పాస్‌వర్డ్",
+  "authConfirmPassword": "పాస్‌వర్డ్ నిర్ధారించు",
+  "authForgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+  "authSignIn": "సైన్ ఇన్",
+  "authSignUp": "సైన్ అప్",
+  "authSignOut": "సైన్ అవుట్",
+  "authCreateAccount": "ఖాతా సృష్టించు",
+  "authNoAccount": "ఖాతా లేదా?",
+  "authAlreadyHaveAccount": "ఇప్పటికే ఖాతా ఉందా?",
+  "authOrContinueWith": "లేదా దీనితో కొనసాగించండి",
+  "authPhone": "ఫోన్",
+  "authPhoneNumber": "ఫోన్ నంబర్",
+  "authEnterCode": "కోడ్ నమోదు చేయండి",
+  "authVerificationCode": "ధృవీకరణ కోడ్",
+  "authSendCode": "కోడ్ పంపు",
+  "authResendCode": "కోడ్ మళ్ళీ పంపు",
+  "authVerify": "ధృవీకరించు",
+  "authVerifyEmail": "ఇమెయిల్ ధృవీకరించు",
+  "authVerifyPhone": "ఫోన్ ధృవీకరించు",
+  "authCheckEmail": "మీ ఇమెయిల్ తనిఖీ చేయండి",
+  "authCheckPhone": "మీ ఫోన్ తనిఖీ చేయండి",
+  "authCodeSent": "కోడ్ పంపబడింది",
+  "authCodeSentTo": "మేము {destination}కి కోడ్ పంపాము",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6-అంకెల కోడ్ నమోదు చేయండి",
+  "authPasswordHint": "కనీసం 8 అక్షరాలు",
+  "authResetPassword": "పాస్‌వర్డ్ రీసెట్ చేయి",
+  "authChangePassword": "పాస్‌వర్డ్ మార్చు",
+  "authPasswordChanged": "పాస్‌వర్డ్ విజయవంతంగా మార్చబడింది!",
+  "authAgreeToTerms": "కొనసాగించడం ద్వారా, మీరు మా సేవా నిబంధనలు మరియు గోప్యతా విధానానికి అంగీకరిస్తున్నారు",
+  "authTermsOfService": "సేవా నిబంధనలు",
+  "authPrivacyPolicy": "గోప్యతా విధానం",
+  "authDevLogin": "డెవ్ లాగిన్",
+  "authUsePhoneInstead": "బదులుగా ఫోన్ ఉపయోగించండి",
+  "authUseEmailInstead": "బదులుగా ఇమెయిల్ ఉపయోగించండి",
+  "authEmailLink": "ఇమెయిల్ లింక్",
+  "authEmailOtp": "ఇమెయిల్ OTP",
+  "authEmailPassword": "ఇమెయిల్ + పాస్‌వర్డ్",
+  "authChooseSignInMethod": "సైన్-ఇన్ పద్ధతిని ఎంచుకోండి",
+  "authSendLink": "లింక్ పంపు",
+  "authAutoCheckingStatus": "ధృవీకరణ స్థితిని ఆటో-చెక్ చేస్తోంది...",
+  "authIveVerified": "నేను ధృవీకరించాను",
+  "authCheckYourEmail": "మీ ఇమెయిల్ తనిఖీ చేయండి",
+  "authClickLinkToVerify": "మీ ఇమెయిల్‌ను ధృవీకరించడానికి మేము పంపిన లింక్‌పై క్లిక్ చేయండి",
+  "authEmailVerified": "ఇమెయిల్ విజయవంతంగా ధృవీకరించబడింది!",
+  "authSkipForNow": "ఇప్పటికి దాటవేయి",
+
+  "@@_SETTINGS": "సెట్టింగ్‌ల స్క్రీన్‌లు",
+  "settingsTitle": "సెట్టింగ్‌లు",
+  "settingsAppearance": "రూపం",
+  "settingsAppearanceSubtitle": "థీమ్ మరియు డిస్ప్లే ఎంపికలు",
+  "settingsTheme": "థీమ్",
+  "settingsThemeLight": "లైట్",
+  "settingsThemeDark": "డార్క్",
+  "settingsThemeSystem": "సిస్టమ్",
+  "settingsNotifications": "నోటిఫికేషన్‌లు",
+  "settingsNotificationsSubtitle": "మీ అలర్ట్‌లను నిర్వహించండి",
+  "settingsPushNotifications": "పుష్ నోటిఫికేషన్‌లు",
+  "settingsEmailNotifications": "ఇమెయిల్ నోటిఫికేషన్‌లు",
+  "settingsSound": "ధ్వని",
+  "settingsVibration": "వైబ్రేషన్",
+  "settingsLanguageRegion": "భాష & ప్రాంతం",
+  "settingsLanguageRegionSubtitle": "యాప్ భాష మరియు లొకేషన్",
+  "settingsLanguage": "భాష",
+  "settingsRegion": "ప్రాంతం",
+  "settingsDetectRegion": "నా ప్రాంతాన్ని గుర్తించు",
+  "settingsDiscoveryFilters": "డిస్కవరీ & ఫిల్టర్లు",
+  "settingsDiscoveryFiltersSubtitle": "మీరు ఎవరిని చూడాలనుకుంటున్నారు",
+  "settingsAgeRange": "వయసు పరిధి",
+  "settingsDistance": "గరిష్ట దూరం",
+  "settingsDistanceKm": "{distance} కి.మీ.",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "నాకు చూపించు",
+  "settingsShowMyDistance": "నా దూరం చూపించు",
+  "settingsShowMyAge": "నా వయసు చూపించు",
+  "settingsDataStorage": "డేటా & స్టోరేజ్",
+  "settingsDataStorageSubtitle": "కాష్ మరియు డౌన్‌లోడ్‌లు",
+  "settingsCacheSize": "కాష్ సైజు",
+  "settingsClearCache": "కాష్ క్లియర్ చేయి",
+  "settingsMediaDownloads": "మీడియా డౌన్‌లోడ్‌లు",
+  "settingsWifiOnly": "Wi-Fi మాత్రమే",
+  "settingsAccountSecurity": "ఖాతా భద్రత",
+  "settingsAccountSecuritySubtitle": "ఇమెయిల్ మరియు ఫోన్ ధృవీకరణ",
+  "settingsAccountActions": "ఖాతా చర్యలు",
+  "settingsAccountActionsSubtitle": "మీ ఖాతాను నిర్వహించండి",
+  "settingsChangePassword": "పాస్‌వర్డ్ మార్చు",
+  "settingsDeactivateAccount": "ఖాతా నిష్క్రియం చేయి",
+  "settingsDeleteAccount": "ఖాతా తొలగించు",
+  "settingsPrivacy": "గోప్యత",
+  "settingsPrivacySubtitle": "ఇతరులు ఏమి చూడగలరో నియంత్రించండి",
+  "settingsHideFromDiscovery": "డిస్కవరీ నుండి దాచు",
+  "settingsIncognitoMode": "ఇన్‌కాగ్నిటో మోడ్",
+  "settingsAbout": "గురించి",
+  "settingsAboutSubtitle": "యాప్ సమాచారం మరియు చట్టపరమైనవి",
+  "settingsVersion": "వెర్షన్",
+  "settingsRateUs": "మమ్మల్ని రేట్ చేయండి",
+  "settingsHelp": "సహాయం & మద్దతు",
+  "settingsContactUs": "మమ్మల్ని సంప్రదించండి",
+  "settingsFeedback": "అభిప్రాయం పంపండి",
+  "settingsSubscription": "సబ్‌స్క్రిప్షన్",
+  "settingsSubscriptionSubtitle": "మీ ప్లాన్‌ను నిర్వహించండి",
+  "settingsGetPlus": "Crush Plus పొందండి",
+  "settingsRestorePurchases": "కొనుగోళ్లు పునరుద్ధరించు",
+
+  "@@_DISCOVERY": "డిస్కవరీ/డెక్ స్క్రీన్‌లు",
+  "discoveryTitle": "డిస్కవర్",
+  "discoveryNoMatchesTitle": "ఇంకా మ్యాచ్‌లు లేవు",
+  "discoveryNoMatchesMessage": "మీ పరిపూర్ణ జోడీని కనుగొనడానికి స్వైప్ చేస్తూ ఉండండి!",
+  "discoveryStartSwiping": "స్వైప్ చేయడం ప్రారంభించు",
+  "discoveryAdjustFilters": "ఫిల్టర్లు సర్దుబాటు చేయి",
+  "discoveryAllCaughtUp": "అన్నీ చూసేశారు!",
+  "discoveryNoMorePeople": "ప్రస్తుతం సమీపంలో మరెవరూ లేరు.\nత్వరలో మళ్ళీ తనిఖీ చేయండి లేదా మీ శోధనను విస్తరించండి.",
+  "discoveryViewFullProfile": "పూర్తి ప్రొఫైల్ చూడు",
+  "discoveryReportProfile": "ప్రొఫైల్ రిపోర్ట్ చేయి",
+  "discoveryBlockProfile": "బ్లాక్ చేసి ప్రొఫైల్ దాచు",
+  "discoveryUnmatch": "అన్‌మ్యాచ్",
+  "discoveryLike": "లైక్",
+  "discoveryPass": "పాస్",
+  "discoverySuperLike": "సూపర్ లైక్",
+  "discoveryRewind": "రీవైండ్",
+  "discoveryBoost": "బూస్ట్",
+  "discoveryItsAMatch": "మ్యాచ్ అయింది!",
+  "discoveryMatchMessage": "మీరు మరియు {name} ఒకరినొకరు ఇష్టపడ్డారు",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "సందేశం పంపు",
+  "discoveryKeepSwiping": "స్వైప్ చేస్తూ ఉండు",
+  "discoveryWeeklyPicks": "వారపు ఎంపికలు",
+  "discoveryLikesYou": "మిమ్మల్ని ఇష్టపడతారు",
+  "discoveryTopPicks": "టాప్ పిక్స్",
+  "discoveryNewArrivals": "కొత్త వచ్చినవారు",
+
+  "@@_CHAT": "చాట్/మెసేజింగ్ స్క్రీన్‌లు",
+  "chatTitle": "చాట్‌లు",
+  "chatMatches": "మ్యాచ్‌లు",
+  "chatMessages": "సందేశాలు",
+  "chatNoMatches": "ఇంకా మ్యాచ్‌లు లేవు",
+  "chatNoMatchesMessage": "మీరు ఎవరినైనా మ్యాచ్ అయినప్పుడు, వారు ఇక్కడ కనిపిస్తారు",
+  "chatNoMessages": "ఇంకా సందేశాలు లేవు",
+  "chatNoMessagesMessage": "మీ మ్యాచ్‌లలో ఒకరితో సంభాషణ ప్రారంభించండి",
+  "chatSayHello": "హలో చెప్పండి!",
+  "chatStartConversation": "{name}తో సంభాషణ ప్రారంభించండి",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "సందేశం టైప్ చేయండి...",
+  "chatSend": "పంపు",
+  "chatToday": "ఈ రోజు",
+  "chatYesterday": "నిన్న",
+  "chatOnline": "ఆన్‌లైన్",
+  "chatLastSeen": "చివరిగా చూసింది {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "టైప్ చేస్తోంది...",
+  "chatDelivered": "డెలివరీ అయింది",
+  "chatRead": "చదివింది",
+  "chatDeleteMessage": "సందేశం తొలగించు",
+  "chatDeleteForMe": "నా కోసం తొలగించు",
+  "chatDeleteForEveryone": "అందరి కోసం తొలగించు",
+  "chatCopyMessage": "కాపీ చేయి",
+  "chatReply": "రిప్లై",
+  "chatNewMatch": "కొత్త మ్యాచ్!",
+  "chatMatchedWith": "మీరు {name}తో మ్యాచ్ అయ్యారు",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "ప్రొఫైల్ స్క్రీన్‌లు",
+  "profileTitle": "ప్రొఫైల్",
+  "profileEdit": "ప్రొఫైల్ సవరించు",
+  "profileComplete": "మీ ప్రొఫైల్ పూర్తి చేయండి",
+  "profileBasicInfo": "ప్రాథమిక సమాచారం",
+  "profileName": "పేరు",
+  "profileAge": "వయసు",
+  "profileBirthday": "పుట్టినరోజు",
+  "profileGender": "లింగం",
+  "profileSexualOrientation": "లైంగిక ధోరణి",
+  "profileBio": "బయో",
+  "profileBioHint": "మీ గురించి ఇతరులకు చెప్పండి...",
+  "profilePhotos": "ఫోటోలు",
+  "profileAddPhoto": "ఫోటో జోడించు",
+  "profileAddVideo": "వీడియో జోడించు",
+  "profileMakeMain": "ప్రధాన ఫోటోగా చేయి",
+  "profileInterests": "ఆసక్తులు",
+  "profileAddInterests": "ఆసక్తులు జోడించు",
+  "profileLocation": "లొకేషన్",
+  "profileCity": "నగరం",
+  "profileCountry": "దేశం",
+  "profileLivingIn": "నివసిస్తున్న చోటు",
+  "profileJobTitle": "ఉద్యోగ పేరు",
+  "profileCompany": "కంపెనీ",
+  "profileSchool": "పాఠశాల",
+  "profileHeight": "ఎత్తు",
+  "profileHeightCm": "{height} సెం.మీ.",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "భాషలు",
+  "profileZodiacSign": "రాశి చిహ్నం",
+  "profileEducation": "విద్య",
+  "profileReligion": "మతం",
+  "profileRelationshipGoals": "సంబంధ లక్ష్యాలు",
+  "profileFamilyPlans": "కుటుంబ ప్రణాళికలు",
+  "profilePersonalityType": "వ్యక్తిత్వ రకం",
+  "profileWorkout": "వ్యాయామం",
+  "profileSmoking": "ధూమపానం",
+  "profileDrinking": "మద్యపానం",
+  "profilePets": "పెంపుడు జంతువులు",
+  "profileVerified": "ధృవీకరించబడింది",
+  "profileGetVerified": "ధృవీకరణ పొందు",
+  "profileVerificationPending": "ధృవీకరణ పెండింగ్‌లో ఉంది",
+  "profilePreview": "ప్రొఫైల్ ప్రివ్యూ",
+  "profileSaved": "ప్రొఫైల్ విజయవంతంగా సేవ్ చేయబడింది!",
+  "profilePrompts": "ప్రాంప్ట్‌లు",
+  "profileAddPrompt": "ప్రాంప్ట్ జోడించు",
+  "profileAboutMe": "నా గురించి",
+  "profileMyDetails": "నా వివరాలు",
+  "profileLifestyle": "జీవనశైలి",
+
+  "@@_ONBOARDING": "ఆన్‌బోర్డింగ్ స్క్రీన్‌లు",
+  "onboardingWelcome": "Crush కి స్వాగతం",
+  "onboardingTagline": "మీ పరిపూర్ణ జోడీని కనుగొనండి",
+  "onboardingGetStarted": "ప్రారంభించండి",
+  "onboardingStep": "దశ {current} / {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "మీ పేరు ఏమిటి?",
+  "onboardingWhenBirthday": "మీ పుట్టినరోజు ఎప్పుడు?",
+  "onboardingSelectGender": "మీ లింగాన్ని ఎంచుకోండి",
+  "onboardingAddPhotos": "మీ అత్యుత్తమ ఫోటోలను జోడించండి",
+  "onboardingPhotosHint": "కొనసాగించడానికి కనీసం 2 ఫోటోలు జోడించండి",
+  "onboardingWriteBio": "మీ గురించి ఏదైనా వ్రాయండి",
+  "onboardingSelectInterests": "మీ ఆసక్తులను ఎంచుకోండి",
+  "onboardingInterestsHint": "కనీసం 3 ఆసక్తులను ఎంచుకోండి",
+  "onboardingAllSet": "మీరు సిద్ధంగా ఉన్నారు!",
+  "onboardingStartSwiping": "స్వైప్ చేయడం ప్రారంభించు",
+
+  "@@_SUBSCRIPTION": "సబ్‌స్క్రిప్షన్ స్క్రీన్‌లు",
+  "subscriptionFree": "ఉచితం",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus పొందండి",
+  "subscriptionUpgrade": "అప్‌గ్రేడ్ చేయి",
+  "subscriptionRestore": "కొనుగోళ్లు పునరుద్ధరించు",
+  "subscriptionUnlimitedLikes": "అన్‌లిమిటెడ్ లైక్‌లు",
+  "subscriptionUnlimitedRewinds": "అన్‌లిమిటెడ్ రీవైండ్‌లు",
+  "subscriptionSeeWhoLikesYou": "మిమ్మల్ని ఎవరు ఇష్టపడతారో చూడండి",
+  "subscriptionBoostsPerMonth": "నెలకు {count} బూస్ట్‌లు",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "రోజుకు {count} సూపర్ లైక్‌లు",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "ప్రకటనలు లేవు",
+  "subscriptionPrioritySupport": "ప్రాధాన్యత మద్దతు",
+  "subscriptionPerMonth": "{price}/నెలకు",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/సంవత్సరానికి",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "అత్యుత్తమ విలువ",
+  "subscriptionMostPopular": "అత్యంత ప్రజాదరణ పొందినది",
+
+  "@@_SAFETY": "భద్రత మరియు రిపోర్టింగ్",
+  "safetyReportUser": "వినియోగదారుని రిపోర్ట్ చేయి",
+  "safetyBlockUser": "వినియోగదారుని బ్లాక్ చేయి",
+  "safetyUnblockUser": "వినియోగదారుని అన్‌బ్లాక్ చేయి",
+  "safetyReportReason": "మీరు ఎందుకు రిపోర్ట్ చేస్తున్నారు?",
+  "safetyBlockConfirm": "{name}ని బ్లాక్ చేయాలా?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "వారు మీ ప్రొఫైల్ చూడలేరు లేదా మీకు సందేశం పంపలేరు",
+  "safetyReported": "రిపోర్ట్ సమర్పించబడింది",
+  "safetyBlocked": "వినియోగదారు బ్లాక్ చేయబడ్డారు",
+  "safetyUnblocked": "వినియోగదారు అన్‌బ్లాక్ చేయబడ్డారు",
+  "safetyFakeProfile": "నకిలీ ప్రొఫైల్",
+  "safetyInappropriateContent": "అనుచిత కంటెంట్",
+  "safetyHarassment": "వేధింపు",
+  "safetySpam": "స్పామ్",
+  "safetyScam": "మోసం",
+  "safetyOther": "ఇతరం",
+
+  "@@_TIME": "సమయ సంబంధిత స్ట్రింగ్‌లు",
+  "timeJustNow": "ఇప్పుడే",
+  "timeMinutesAgo": "{count, plural, =1{1 నిమిషం క్రితం} other{{count} నిమిషాల క్రితం}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 గంట క్రితం} other{{count} గంటల క్రితం}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 రోజు క్రితం} other{{count} రోజుల క్రితం}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 వారం క్రితం} other{{count} వారాల క్రితం}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "ఖాళీ స్థితి సందేశాలు",
+  "emptyNoResults": "ఫలితాలు కనుగొనబడలేదు",
+  "emptyTryAgain": "మీ శోధన లేదా ఫిల్టర్లను సర్దుబాటు చేయడానికి ప్రయత్నించండి",
+  "emptyNoData": "డేటా అందుబాటులో లేదు",
+  "emptyCheckBackLater": "తర్వాత మళ్ళీ తనిఖీ చేయండి"
+}

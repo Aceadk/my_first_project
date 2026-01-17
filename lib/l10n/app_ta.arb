@@ -1,0 +1,568 @@
+{
+  "@@locale": "ta",
+
+  "@@_COMMON": "பயன்பாடு முழுவதும் பயன்படுத்தப்படும் பொதுவான UI உறுப்புகள்",
+  "commonCancel": "ரத்து செய்",
+  "commonSave": "சேமி",
+  "commonRetry": "மீண்டும் முயற்சி",
+  "commonDone": "முடிந்தது",
+  "commonLoading": "ஏற்றுகிறது",
+  "commonError": "பிழை",
+  "commonSuccess": "வெற்றி",
+  "commonOk": "சரி",
+  "commonNext": "அடுத்து",
+  "commonBack": "பின்னால்",
+  "commonClose": "மூடு",
+  "commonDelete": "நீக்கு",
+  "commonEdit": "திருத்து",
+  "commonSearch": "தேடு",
+  "commonSettings": "அமைப்புகள்",
+  "commonContinue": "தொடரவும்",
+  "commonSkip": "தவிர்",
+  "commonConfirm": "உறுதிப்படுத்து",
+  "commonYes": "ஆம்",
+  "commonNo": "இல்லை",
+  "commonOn": "இயக்கு",
+  "commonOff": "நிறுத்து",
+  "commonMore": "மேலும்",
+  "commonLess": "குறைவாக",
+  "commonAll": "அனைத்தும்",
+  "commonNone": "எதுவுமில்லை",
+  "commonRefresh": "புதுப்பி",
+  "commonSubmit": "சமர்ப்பி",
+  "commonSend": "அனுப்பு",
+  "commonApply": "பயன்படுத்து",
+  "commonClear": "அழி",
+  "commonReset": "மீட்டமை",
+  "commonUpdate": "புதுப்பிப்பு",
+  "commonRemove": "அகற்று",
+  "commonAdd": "சேர்",
+  "commonView": "பார்",
+  "commonShare": "பகிர்",
+  "commonReport": "புகார் செய்",
+  "commonBlock": "தடு",
+  "commonUnblock": "தடை நீக்கு",
+  "commonMute": "ஒலி நிறுத்து",
+  "commonUnmute": "ஒலி இயக்கு",
+
+  "@@_ERRORS": "பிழை செய்திகள்",
+  "errorGeneric": "ஏதோ தவறாகிவிட்டது. மீண்டும் முயற்சிக்கவும்.",
+  "errorNetwork": "இணைப்பு பிழை. உங்கள் இணையத்தை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+  "errorTimeout": "கோரிக்கை நேரம் முடிந்தது. மீண்டும் முயற்சிக்கவும்.",
+  "errorServer": "சர்வர் பிழை. பின்னர் மீண்டும் முயற்சிக்கவும்.",
+  "errorUnauthorized": "அமர்வு முடிந்தது. மீண்டும் உள்நுழையவும்.",
+  "errorNotFound": "கோரிய உருப்படி கிடைக்கவில்லை.",
+  "errorOffline": "இணைய இணைப்பு இல்லை. உங்கள் இணைப்பை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+  "errorLoginFailed": "உள்நுழைய முடியவில்லை. உங்கள் சான்றுகளை சரிபார்க்கவும்.",
+  "errorSignUpFailed": "கணக்கை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLogoutFailed": "வெளியேற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorInvalidCredentials": "தவறான மின்னஞ்சல் அல்லது கடவுச்சொல்.",
+  "errorEmailInUse": "இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது.",
+  "errorWeakPassword": "கடவுச்சொல் மிகவும் பலவீனமானது. குறைந்தது 8 எழுத்துக்களைப் பயன்படுத்தவும்.",
+  "errorInvalidEmail": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
+  "errorSendCodeFailed": "குறியீட்டை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorInvalidCode": "தவறான அல்லது காலாவதியான குறியீடு. மீண்டும் முயற்சிக்கவும்.",
+  "errorVerificationFailed": "சரிபார்ப்பு தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadProfileFailed": "சுயவிவரத்தை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorSaveProfileFailed": "சுயவிவரத்தை சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorUploadPhotoFailed": "புகைப்படத்தை பதிவேற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorDeletePhotoFailed": "புகைப்படத்தை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorUpdateLocationFailed": "இருப்பிடத்தை புதுப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorUploadIdFailed": "அடையாளத்தை பதிவேற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadDeckFailed": "சுயவிவரங்களை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorSwipeFailed": "ஸ்வைப் செயலாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLikeFailed": "சுயவிவரத்தை லைக் செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorPassFailed": "சுயவிவரத்தை பாஸ் செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorSuperLikeFailed": "சூப்பர் லைக் செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorRewindFailed": "ஸ்வைப் செயல்தவிர்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorNoSwipeToUndo": "செயல்தவிர்க்க ஸ்வைப் இல்லை.",
+  "errorFreeUndoUsed": "இன்று உங்கள் இலவச செயல்தவிர்ப்பை பயன்படுத்திவிட்டீர்கள். வரம்பற்ற செயல்தவிர்ப்புகளுக்கு Plus க்கு மேம்படுத்தவும்!",
+  "errorRewindPremiumOnly": "ரீவைண்ட் Plus அம்சமாகும். ஸ்வைப்களை செயல்தவிர்க்க மேம்படுத்தவும்!",
+  "errorLoadChatsFailed": "அரட்டைகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadMessagesFailed": "செய்திகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorSendMessageFailed": "செய்தியை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorDeleteMessageFailed": "செய்தியை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadMatchesFailed": "பொருத்தங்களை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorUnmatchFailed": "பொருத்தத்தை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorCheckoutFailed": "செக்அவுட் தொடங்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadSubscriptionFailed": "சந்தாவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorRestorePurchasesFailed": "வாங்குதல்களை மீட்டெடுக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorReportFailed": "புகாரை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorBlockFailed": "பயனரை தடுக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorUnblockFailed": "பயனரின் தடையை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLoadInsightsFailed": "நுண்ணறிவுகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorLocationDisabled": "இருப்பிட சேவைகள் முடக்கப்பட்டுள்ளன. அமைப்புகளில் அவற்றை இயக்கவும்.",
+  "errorLocationPermissionDenied": "இருப்பிட அனுமதி மறுக்கப்பட்டது. அமைப்புகளில் அணுகலை அனுமதிக்கவும்.",
+  "errorLocationTimeout": "இருப்பிட கோரிக்கை நேரம் முடிந்தது. GPS சிக்னல் இருப்பதை உறுதிசெய்து மீண்டும் முயற்சிக்கவும்.",
+  "errorMediaLoadFailed": "மீடியாவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorMediaUploadFailed": "மீடியாவை பதிவேற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "errorCouldNot": "{action} செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} Plus அம்சமாகும். திறக்க மேம்படுத்தவும்!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "அணுகல்தன்மை லேபிள்கள் மற்றும் குறிப்புகள்",
+  "a11yBackButton": "பின்னால் செல்",
+  "a11yCloseButton": "மூடு",
+  "a11yMenuButton": "மெனுவை திற",
+  "a11ySettingsButton": "அமைப்புகளை திற",
+  "a11ySearchButton": "தேடு",
+  "a11yFilterButton": "வடிப்பான்களை திற",
+  "a11yPassButton": "இந்த சுயவிவரத்தை பாஸ் செய்",
+  "a11yLikeButton": "இந்த சுயவிவரத்தை லைக் செய்",
+  "a11ySuperLikeButton": "இந்த சுயவிவரத்தை சூப்பர் லைக் செய்",
+  "a11yRewindButton": "கடைசி செயலை செயல்தவிர்",
+  "a11yBoostButton": "உங்கள் சுயவிவரத்தை பூஸ்ட் செய்",
+  "a11yProfilePhoto": "சுயவிவர புகைப்படம்",
+  "a11yProfilePhotoOf": "{name} இன் சுயவிவர புகைப்படம்",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "பயனர் அவதார்",
+  "a11yAvatarOf": "{name} இன் அவதார்",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "சுயவிவரத்தை திருத்து",
+  "a11yViewProfile": "சுயவிவரத்தை பார்",
+  "a11yVerifiedBadge": "சரிபார்க்கப்பட்ட சுயவிவரம்",
+  "a11yOnlineNow": "இப்போது ஆன்லைனில் உள்ளார்",
+  "a11yOffline": "ஆஃப்லைன்",
+  "a11ySendMessage": "செய்தி அனுப்பு",
+  "a11yAttachPhoto": "புகைப்படம் இணை",
+  "a11yAttachFile": "கோப்பு இணை",
+  "a11yVoiceMessage": "குரல் செய்தி பதிவு செய்",
+  "a11yVideoCall": "வீடியோ அழைப்பு தொடங்கு",
+  "a11yVoiceCall": "குரல் அழைப்பு தொடங்கு",
+  "a11yMessageFrom": "{sender} இடமிருந்து செய்தி",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 படிக்காத செய்தி} other{{count} படிக்காத செய்திகள்}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "கடவுச்சொல்லை காட்டு",
+  "a11yHidePassword": "கடவுச்சொல்லை மறை",
+  "a11yLoginButton": "உள்நுழை",
+  "a11ySignUpButton": "கணக்கை உருவாக்கு",
+  "a11yForgotPassword": "கடவுச்சொல்லை மீட்டமை",
+  "a11yResendCode": "சரிபார்ப்பு குறியீட்டை மீண்டும் அனுப்பு",
+  "a11yToggleSetting": "அமைப்பை மாற்று",
+  "a11yLoading": "ஏற்றுகிறது",
+  "a11yRefreshing": "புதுப்பிக்கிறது",
+  "a11yErrorOccurred": "பிழை ஏற்பட்டது",
+  "a11yRetry": "மீண்டும் முயற்சி",
+  "a11yDismiss": "நிராகரி",
+  "a11yMoreOptions": "மேலும் விருப்பங்கள்",
+  "a11yDelete": "நீக்கு",
+  "a11yCancel": "ரத்து செய்",
+  "a11yConfirm": "உறுதிப்படுத்து",
+  "a11ySaveChanges": "மாற்றங்களை சேமி",
+  "a11yTapToView": "பார்க்க இருமுறை தட்டவும்",
+  "a11yTapToSelect": "தேர்ந்தெடுக்க இருமுறை தட்டவும்",
+  "a11yTapToToggle": "மாற்ற இருமுறை தட்டவும்",
+  "a11yTapToEdit": "திருத்த இருமுறை தட்டவும்",
+  "a11yTapToExpand": "விரிவாக்க இருமுறை தட்டவும்",
+  "a11yTapToCollapse": "சுருக்க இருமுறை தட்டவும்",
+  "a11ySwipeToDelete": "நீக்க இடமாக ஸ்வைப் செய்யவும்",
+  "a11ySwipeForActions": "மேலும் செயல்களுக்கு இடமாக ஸ்வைப் செய்யவும்",
+  "a11yDragToReorder": "மறுவரிசைப்படுத்த நீண்ட நேரம் அழுத்தி இழுக்கவும்",
+  "a11yPinchToZoom": "பெரிதாக்க பிஞ்ச் செய்யவும்",
+  "a11yLoadingPleaseWait": "ஏற்றுகிறது, காத்திருக்கவும்",
+  "a11yLoadingComplete": "ஏற்றுதல் முடிந்தது",
+  "a11yMatchFound": "பொருத்தம் கிடைத்தது! நீங்கள் {name} உடன் பொருந்தினீர்கள்",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender} இடமிருந்து புதிய செய்தி",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "சுயவிவரம் லைக் செய்யப்பட்டது",
+  "a11yProfilePassed": "சுயவிவரம் பாஸ் செய்யப்பட்டது",
+  "a11yProfileSuperLiked": "சுயவிவரம் சூப்பர் லைக் செய்யப்பட்டது",
+  "a11yMessageSent": "செய்தி அனுப்பப்பட்டது",
+  "a11ySettingSaved": "அமைப்பு சேமிக்கப்பட்டது",
+
+  "@@_AUTH": "அங்கீகார திரைகள்",
+  "authWelcomeBack": "மீண்டும் வரவேற்கிறோம்",
+  "authSignInToContinue": "Crush தொடர உள்நுழையவும்",
+  "authEmailOrUsername": "மின்னஞ்சல் அல்லது பயனர்பெயர்",
+  "authEmail": "மின்னஞ்சல்",
+  "authPassword": "கடவுச்சொல்",
+  "authCurrentPassword": "தற்போதைய கடவுச்சொல்",
+  "authNewPassword": "புதிய கடவுச்சொல்",
+  "authConfirmPassword": "கடவுச்சொல்லை உறுதிப்படுத்து",
+  "authForgotPassword": "கடவுச்சொல் மறந்துவிட்டதா?",
+  "authSignIn": "உள்நுழை",
+  "authSignUp": "பதிவு செய்",
+  "authSignOut": "வெளியேறு",
+  "authCreateAccount": "கணக்கை உருவாக்கு",
+  "authNoAccount": "கணக்கு இல்லையா?",
+  "authAlreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா?",
+  "authOrContinueWith": "அல்லது இதனுடன் தொடரவும்",
+  "authPhone": "தொலைபேசி",
+  "authPhoneNumber": "தொலைபேசி எண்",
+  "authEnterCode": "குறியீட்டை உள்ளிடவும்",
+  "authVerificationCode": "சரிபார்ப்பு குறியீடு",
+  "authSendCode": "குறியீடு அனுப்பு",
+  "authResendCode": "குறியீடு மீண்டும் அனுப்பு",
+  "authVerify": "சரிபார்",
+  "authVerifyEmail": "மின்னஞ்சலை சரிபார்",
+  "authVerifyPhone": "தொலைபேசியை சரிபார்",
+  "authCheckEmail": "உங்கள் மின்னஞ்சலை சரிபார்க்கவும்",
+  "authCheckPhone": "உங்கள் தொலைபேசியை சரிபார்க்கவும்",
+  "authCodeSent": "குறியீடு அனுப்பப்பட்டது",
+  "authCodeSentTo": "{destination} க்கு குறியீட்டை அனுப்பினோம்",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6-இலக்க குறியீட்டை உள்ளிடவும்",
+  "authPasswordHint": "குறைந்தது 8 எழுத்துக்கள்",
+  "authResetPassword": "கடவுச்சொல்லை மீட்டமை",
+  "authChangePassword": "கடவுச்சொல்லை மாற்று",
+  "authPasswordChanged": "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!",
+  "authAgreeToTerms": "தொடர்வதன் மூலம், எங்கள் சேவை விதிமுறைகள் மற்றும் தனியுரிமைக் கொள்கையை ஏற்கிறீர்கள்",
+  "authTermsOfService": "சேவை விதிமுறைகள்",
+  "authPrivacyPolicy": "தனியுரிமைக் கொள்கை",
+  "authDevLogin": "டெவ் உள்நுழைவு",
+  "authUsePhoneInstead": "பதிலாக தொலைபேசியை பயன்படுத்தவும்",
+  "authUseEmailInstead": "பதிலாக மின்னஞ்சலை பயன்படுத்தவும்",
+  "authEmailLink": "மின்னஞ்சல் இணைப்பு",
+  "authEmailOtp": "மின்னஞ்சல் OTP",
+  "authEmailPassword": "மின்னஞ்சல் + கடவுச்சொல்",
+  "authChooseSignInMethod": "உள்நுழைவு முறையை தேர்ந்தெடுக்கவும்",
+  "authSendLink": "இணைப்பு அனுப்பு",
+  "authAutoCheckingStatus": "சரிபார்ப்பு நிலையை தானியங்கியாக சரிபார்க்கிறது...",
+  "authIveVerified": "நான் சரிபார்த்துவிட்டேன்",
+  "authCheckYourEmail": "உங்கள் மின்னஞ்சலை சரிபார்க்கவும்",
+  "authClickLinkToVerify": "உங்கள் மின்னஞ்சலை சரிபார்க்க நாங்கள் அனுப்பிய இணைப்பை கிளிக் செய்யவும்",
+  "authEmailVerified": "மின்னஞ்சல் வெற்றிகரமாக சரிபார்க்கப்பட்டது!",
+  "authSkipForNow": "இப்போதைக்கு தவிர்",
+
+  "@@_SETTINGS": "அமைப்புகள் திரைகள்",
+  "settingsTitle": "அமைப்புகள்",
+  "settingsAppearance": "தோற்றம்",
+  "settingsAppearanceSubtitle": "தீம் மற்றும் காட்சி விருப்பங்கள்",
+  "settingsTheme": "தீம்",
+  "settingsThemeLight": "லைட்",
+  "settingsThemeDark": "டார்க்",
+  "settingsThemeSystem": "சிஸ்டம்",
+  "settingsNotifications": "அறிவிப்புகள்",
+  "settingsNotificationsSubtitle": "உங்கள் எச்சரிக்கைகளை நிர்வகிக்கவும்",
+  "settingsPushNotifications": "புஷ் அறிவிப்புகள்",
+  "settingsEmailNotifications": "மின்னஞ்சல் அறிவிப்புகள்",
+  "settingsSound": "ஒலி",
+  "settingsVibration": "அதிர்வு",
+  "settingsLanguageRegion": "மொழி & பிராந்தியம்",
+  "settingsLanguageRegionSubtitle": "பயன்பாட்டு மொழி மற்றும் இருப்பிடம்",
+  "settingsLanguage": "மொழி",
+  "settingsRegion": "பிராந்தியம்",
+  "settingsDetectRegion": "எனது பிராந்தியத்தை கண்டறி",
+  "settingsDiscoveryFilters": "கண்டுபிடிப்பு & வடிப்பான்கள்",
+  "settingsDiscoveryFiltersSubtitle": "நீங்கள் யாரை பார்க்க விரும்புகிறீர்கள்",
+  "settingsAgeRange": "வயது வரம்பு",
+  "settingsDistance": "அதிகபட்ச தூரம்",
+  "settingsDistanceKm": "{distance} கி.மீ.",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "எனக்கு காட்டு",
+  "settingsShowMyDistance": "எனது தூரத்தை காட்டு",
+  "settingsShowMyAge": "எனது வயதை காட்டு",
+  "settingsDataStorage": "தரவு & சேமிப்பு",
+  "settingsDataStorageSubtitle": "கேச் மற்றும் பதிவிறக்கங்கள்",
+  "settingsCacheSize": "கேச் அளவு",
+  "settingsClearCache": "கேச் அழி",
+  "settingsMediaDownloads": "மீடியா பதிவிறக்கங்கள்",
+  "settingsWifiOnly": "Wi-Fi மட்டும்",
+  "settingsAccountSecurity": "கணக்கு பாதுகாப்பு",
+  "settingsAccountSecuritySubtitle": "மின்னஞ்சல் மற்றும் தொலைபேசி சரிபார்ப்பு",
+  "settingsAccountActions": "கணக்கு செயல்கள்",
+  "settingsAccountActionsSubtitle": "உங்கள் கணக்கை நிர்வகிக்கவும்",
+  "settingsChangePassword": "கடவுச்சொல்லை மாற்று",
+  "settingsDeactivateAccount": "கணக்கை செயலிழக்கச் செய்",
+  "settingsDeleteAccount": "கணக்கை நீக்கு",
+  "settingsPrivacy": "தனியுரிமை",
+  "settingsPrivacySubtitle": "மற்றவர்கள் என்ன பார்க்க முடியும் என்பதை கட்டுப்படுத்தவும்",
+  "settingsHideFromDiscovery": "கண்டுபிடிப்பிலிருந்து மறை",
+  "settingsIncognitoMode": "இன்காக்னிடோ பயன்முறை",
+  "settingsAbout": "பற்றி",
+  "settingsAboutSubtitle": "பயன்பாட்டு தகவல் மற்றும் சட்டம்",
+  "settingsVersion": "பதிப்பு",
+  "settingsRateUs": "எங்களை மதிப்பிடுங்கள்",
+  "settingsHelp": "உதவி & ஆதரவு",
+  "settingsContactUs": "எங்களை தொடர்பு கொள்ளுங்கள்",
+  "settingsFeedback": "கருத்து அனுப்புங்கள்",
+  "settingsSubscription": "சந்தா",
+  "settingsSubscriptionSubtitle": "உங்கள் திட்டத்தை நிர்வகிக்கவும்",
+  "settingsGetPlus": "Crush Plus பெறுங்கள்",
+  "settingsRestorePurchases": "வாங்குதல்களை மீட்டெடு",
+
+  "@@_DISCOVERY": "கண்டுபிடிப்பு/டெக் திரைகள்",
+  "discoveryTitle": "கண்டறி",
+  "discoveryNoMatchesTitle": "இன்னும் பொருத்தங்கள் இல்லை",
+  "discoveryNoMatchesMessage": "உங்கள் சரியான ஜோடியை கண்டுபிடிக்க ஸ்வைப் செய்து கொண்டே இருங்கள்!",
+  "discoveryStartSwiping": "ஸ்வைப் செய்ய தொடங்கு",
+  "discoveryAdjustFilters": "வடிப்பான்களை சரிசெய்",
+  "discoveryAllCaughtUp": "அனைத்தையும் பார்த்துவிட்டீர்கள்!",
+  "discoveryNoMorePeople": "இப்போது அருகில் வேறு யாரும் இல்லை.\nவிரைவில் மீண்டும் சரிபார்க்கவும் அல்லது உங்கள் தேடலை விரிவாக்கவும்.",
+  "discoveryViewFullProfile": "முழு சுயவிவரத்தை பார்",
+  "discoveryReportProfile": "சுயவிவரத்தை புகார் செய்",
+  "discoveryBlockProfile": "தடுத்து சுயவிவரத்தை மறை",
+  "discoveryUnmatch": "பொருத்தம் நீக்கு",
+  "discoveryLike": "லைக்",
+  "discoveryPass": "பாஸ்",
+  "discoverySuperLike": "சூப்பர் லைக்",
+  "discoveryRewind": "ரீவைண்ட்",
+  "discoveryBoost": "பூஸ்ட்",
+  "discoveryItsAMatch": "பொருத்தம் கிடைத்தது!",
+  "discoveryMatchMessage": "நீங்களும் {name} ஒருவரை ஒருவர் விரும்பினீர்கள்",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "செய்தி அனுப்பு",
+  "discoveryKeepSwiping": "ஸ்வைப் செய்து கொண்டிரு",
+  "discoveryWeeklyPicks": "வாராந்திர தேர்வுகள்",
+  "discoveryLikesYou": "உங்களை விரும்புகிறார்கள்",
+  "discoveryTopPicks": "சிறந்த தேர்வுகள்",
+  "discoveryNewArrivals": "புதிய வருகைகள்",
+
+  "@@_CHAT": "அரட்டை/செய்தியிடல் திரைகள்",
+  "chatTitle": "அரட்டைகள்",
+  "chatMatches": "பொருத்தங்கள்",
+  "chatMessages": "செய்திகள்",
+  "chatNoMatches": "இன்னும் பொருத்தங்கள் இல்லை",
+  "chatNoMatchesMessage": "நீங்கள் யாரையாவது பொருத்தும்போது, அவர்கள் இங்கே தோன்றுவார்கள்",
+  "chatNoMessages": "இன்னும் செய்திகள் இல்லை",
+  "chatNoMessagesMessage": "உங்கள் பொருத்தங்களில் ஒருவருடன் உரையாடலை தொடங்குங்கள்",
+  "chatSayHello": "ஹலோ சொல்லுங்கள்!",
+  "chatStartConversation": "{name} உடன் உரையாடலை தொடங்குங்கள்",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "செய்தி தட்டச்சு செய்யவும்...",
+  "chatSend": "அனுப்பு",
+  "chatToday": "இன்று",
+  "chatYesterday": "நேற்று",
+  "chatOnline": "ஆன்லைன்",
+  "chatLastSeen": "கடைசியாக பார்த்தது {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "தட்டச்சு செய்கிறார்...",
+  "chatDelivered": "வழங்கப்பட்டது",
+  "chatRead": "படிக்கப்பட்டது",
+  "chatDeleteMessage": "செய்தியை நீக்கு",
+  "chatDeleteForMe": "எனக்காக நீக்கு",
+  "chatDeleteForEveryone": "அனைவருக்கும் நீக்கு",
+  "chatCopyMessage": "நகலெடு",
+  "chatReply": "பதில்",
+  "chatNewMatch": "புதிய பொருத்தம்!",
+  "chatMatchedWith": "நீங்கள் {name} உடன் பொருந்தினீர்கள்",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "சுயவிவர திரைகள்",
+  "profileTitle": "சுயவிவரம்",
+  "profileEdit": "சுயவிவரத்தை திருத்து",
+  "profileComplete": "உங்கள் சுயவிவரத்தை முடிக்கவும்",
+  "profileBasicInfo": "அடிப்படை தகவல்",
+  "profileName": "பெயர்",
+  "profileAge": "வயது",
+  "profileBirthday": "பிறந்தநாள்",
+  "profileGender": "பாலினம்",
+  "profileSexualOrientation": "பாலியல் நோக்குநிலை",
+  "profileBio": "சுயவிவரம்",
+  "profileBioHint": "உங்களைப் பற்றி மற்றவர்களுக்கு சொல்லுங்கள்...",
+  "profilePhotos": "புகைப்படங்கள்",
+  "profileAddPhoto": "புகைப்படம் சேர்",
+  "profileAddVideo": "வீடியோ சேர்",
+  "profileMakeMain": "முதன்மை புகைப்படமாக்கு",
+  "profileInterests": "ஆர்வங்கள்",
+  "profileAddInterests": "ஆர்வங்கள் சேர்",
+  "profileLocation": "இருப்பிடம்",
+  "profileCity": "நகரம்",
+  "profileCountry": "நாடு",
+  "profileLivingIn": "வாழும் இடம்",
+  "profileJobTitle": "பணி தலைப்பு",
+  "profileCompany": "நிறுவனம்",
+  "profileSchool": "பள்ளி",
+  "profileHeight": "உயரம்",
+  "profileHeightCm": "{height} செ.மீ.",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "மொழிகள்",
+  "profileZodiacSign": "ராசி",
+  "profileEducation": "கல்வி",
+  "profileReligion": "மதம்",
+  "profileRelationshipGoals": "உறவு இலக்குகள்",
+  "profileFamilyPlans": "குடும்ப திட்டங்கள்",
+  "profilePersonalityType": "ஆளுமை வகை",
+  "profileWorkout": "உடற்பயிற்சி",
+  "profileSmoking": "புகைபிடித்தல்",
+  "profileDrinking": "மது அருந்துதல்",
+  "profilePets": "செல்லப்பிராணிகள்",
+  "profileVerified": "சரிபார்க்கப்பட்டது",
+  "profileGetVerified": "சரிபார்ப்பு பெறு",
+  "profileVerificationPending": "சரிபார்ப்பு நிலுவையில்",
+  "profilePreview": "சுயவிவர முன்னோட்டம்",
+  "profileSaved": "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!",
+  "profilePrompts": "ப்ராம்ப்ட்கள்",
+  "profileAddPrompt": "ப்ராம்ப்ட் சேர்",
+  "profileAboutMe": "என்னைப் பற்றி",
+  "profileMyDetails": "எனது விவரங்கள்",
+  "profileLifestyle": "வாழ்க்கை முறை",
+
+  "@@_ONBOARDING": "ஆன்போர்டிங் திரைகள்",
+  "onboardingWelcome": "Crush க்கு வரவேற்கிறோம்",
+  "onboardingTagline": "உங்கள் சரியான ஜோடியை கண்டறியுங்கள்",
+  "onboardingGetStarted": "தொடங்கு",
+  "onboardingStep": "படி {current} / {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "உங்கள் பெயர் என்ன?",
+  "onboardingWhenBirthday": "உங்கள் பிறந்தநாள் எப்போது?",
+  "onboardingSelectGender": "உங்கள் பாலினத்தை தேர்ந்தெடுக்கவும்",
+  "onboardingAddPhotos": "உங்கள் சிறந்த புகைப்படங்களை சேர்க்கவும்",
+  "onboardingPhotosHint": "தொடர குறைந்தது 2 புகைப்படங்கள் சேர்க்கவும்",
+  "onboardingWriteBio": "உங்களைப் பற்றி ஏதாவது எழுதுங்கள்",
+  "onboardingSelectInterests": "உங்கள் ஆர்வங்களை தேர்ந்தெடுக்கவும்",
+  "onboardingInterestsHint": "குறைந்தது 3 ஆர்வங்களை தேர்ந்தெடுக்கவும்",
+  "onboardingAllSet": "நீங்கள் தயாராகிவிட்டீர்கள்!",
+  "onboardingStartSwiping": "ஸ்வைப் செய்ய தொடங்கு",
+
+  "@@_SUBSCRIPTION": "சந்தா திரைகள்",
+  "subscriptionFree": "இலவசம்",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus பெறுங்கள்",
+  "subscriptionUpgrade": "மேம்படுத்து",
+  "subscriptionRestore": "வாங்குதல்களை மீட்டெடு",
+  "subscriptionUnlimitedLikes": "வரம்பற்ற லைக்குகள்",
+  "subscriptionUnlimitedRewinds": "வரம்பற்ற ரீவைண்டுகள்",
+  "subscriptionSeeWhoLikesYou": "உங்களை யார் விரும்புகிறார்கள் என்று பாருங்கள்",
+  "subscriptionBoostsPerMonth": "மாதத்திற்கு {count} பூஸ்ட்கள்",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "நாளுக்கு {count} சூப்பர் லைக்குகள்",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "விளம்பரங்கள் இல்லை",
+  "subscriptionPrioritySupport": "முன்னுரிமை ஆதரவு",
+  "subscriptionPerMonth": "{price}/மாதம்",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/வருடம்",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "சிறந்த மதிப்பு",
+  "subscriptionMostPopular": "மிகவும் பிரபலமானது",
+
+  "@@_SAFETY": "பாதுகாப்பு மற்றும் புகாரிடுதல்",
+  "safetyReportUser": "பயனரை புகார் செய்",
+  "safetyBlockUser": "பயனரை தடு",
+  "safetyUnblockUser": "பயனரின் தடையை நீக்கு",
+  "safetyReportReason": "நீங்கள் ஏன் புகார் செய்கிறீர்கள்?",
+  "safetyBlockConfirm": "{name} ஐ தடுக்கவா?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "அவர்களால் உங்கள் சுயவிவரத்தை பார்க்கவோ உங்களுக்கு செய்தி அனுப்பவோ முடியாது",
+  "safetyReported": "புகார் சமர்ப்பிக்கப்பட்டது",
+  "safetyBlocked": "பயனர் தடுக்கப்பட்டார்",
+  "safetyUnblocked": "பயனரின் தடை நீக்கப்பட்டது",
+  "safetyFakeProfile": "போலி சுயவிவரம்",
+  "safetyInappropriateContent": "பொருத்தமற்ற உள்ளடக்கம்",
+  "safetyHarassment": "துன்புறுத்தல்",
+  "safetySpam": "ஸ்பேம்",
+  "safetyScam": "மோசடி",
+  "safetyOther": "மற்றவை",
+
+  "@@_TIME": "நேர தொடர்பான சரங்கள்",
+  "timeJustNow": "இப்போதுதான்",
+  "timeMinutesAgo": "{count, plural, =1{1 நிமிடம் முன்பு} other{{count} நிமிடங்கள் முன்பு}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 மணி நேரம் முன்பு} other{{count} மணி நேரங்கள் முன்பு}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 நாள் முன்பு} other{{count} நாட்கள் முன்பு}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 வாரம் முன்பு} other{{count} வாரங்கள் முன்பு}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "காலி நிலை செய்திகள்",
+  "emptyNoResults": "முடிவுகள் இல்லை",
+  "emptyTryAgain": "உங்கள் தேடல் அல்லது வடிப்பான்களை சரிசெய்து முயற்சிக்கவும்",
+  "emptyNoData": "தரவு இல்லை",
+  "emptyCheckBackLater": "பின்னர் மீண்டும் சரிபார்க்கவும்"
+}

@@ -1,0 +1,568 @@
+{
+  "@@locale": "zh",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "取消",
+  "commonSave": "保存",
+  "commonRetry": "重试",
+  "commonDone": "完成",
+  "commonLoading": "加载中",
+  "commonError": "错误",
+  "commonSuccess": "成功",
+  "commonOk": "确定",
+  "commonNext": "下一步",
+  "commonBack": "返回",
+  "commonClose": "关闭",
+  "commonDelete": "删除",
+  "commonEdit": "编辑",
+  "commonSearch": "搜索",
+  "commonSettings": "设置",
+  "commonContinue": "继续",
+  "commonSkip": "跳过",
+  "commonConfirm": "确认",
+  "commonYes": "是",
+  "commonNo": "否",
+  "commonOn": "开启",
+  "commonOff": "关闭",
+  "commonMore": "更多",
+  "commonLess": "收起",
+  "commonAll": "全部",
+  "commonNone": "无",
+  "commonRefresh": "刷新",
+  "commonSubmit": "提交",
+  "commonSend": "发送",
+  "commonApply": "应用",
+  "commonClear": "清除",
+  "commonReset": "重置",
+  "commonUpdate": "更新",
+  "commonRemove": "移除",
+  "commonAdd": "添加",
+  "commonView": "查看",
+  "commonShare": "分享",
+  "commonReport": "举报",
+  "commonBlock": "屏蔽",
+  "commonUnblock": "取消屏蔽",
+  "commonMute": "静音",
+  "commonUnmute": "取消静音",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "出了点问题，请重试。",
+  "errorNetwork": "连接错误，请检查网络后重试。",
+  "errorTimeout": "请求超时，请重试。",
+  "errorServer": "服务器错误，请稍后重试。",
+  "errorUnauthorized": "会话已过期，请重新登录。",
+  "errorNotFound": "未找到请求的内容。",
+  "errorOffline": "无网络连接，请检查网络后重试。",
+  "errorLoginFailed": "无法登录，请检查您的凭据。",
+  "errorSignUpFailed": "无法创建账户，请重试。",
+  "errorLogoutFailed": "无法退出登录，请重试。",
+  "errorInvalidCredentials": "邮箱或密码无效。",
+  "errorEmailInUse": "此邮箱已被注册。",
+  "errorWeakPassword": "密码太弱，请使用至少8个字符。",
+  "errorInvalidEmail": "请输入有效的邮箱地址。",
+  "errorSendCodeFailed": "无法发送验证码，请重试。",
+  "errorInvalidCode": "验证码无效或已过期，请重试。",
+  "errorVerificationFailed": "验证失败，请重试。",
+  "errorLoadProfileFailed": "无法加载个人资料，请重试。",
+  "errorSaveProfileFailed": "无法保存个人资料，请重试。",
+  "errorUploadPhotoFailed": "无法上传照片，请重试。",
+  "errorDeletePhotoFailed": "无法删除照片，请重试。",
+  "errorUpdateLocationFailed": "无法更新位置，请重试。",
+  "errorUploadIdFailed": "无法上传身份证件，请重试。",
+  "errorLoadDeckFailed": "无法加载资料，请重试。",
+  "errorSwipeFailed": "无法处理滑动，请重试。",
+  "errorLikeFailed": "无法喜欢该资料，请重试。",
+  "errorPassFailed": "无法跳过该资料，请重试。",
+  "errorSuperLikeFailed": "无法超级喜欢，请重试。",
+  "errorRewindFailed": "无法撤销滑动，请重试。",
+  "errorNoSwipeToUndo": "没有可撤销的滑动。",
+  "errorFreeUndoUsed": "您今天的免费撤销次数已用完。升级到Plus获取无限撤销！",
+  "errorRewindPremiumOnly": "撤销是Plus功能。升级以撤销滑动！",
+  "errorLoadChatsFailed": "无法加载聊天，请重试。",
+  "errorLoadMessagesFailed": "无法加载消息，请重试。",
+  "errorSendMessageFailed": "无法发送消息，请重试。",
+  "errorDeleteMessageFailed": "无法删除消息，请重试。",
+  "errorLoadMatchesFailed": "无法加载匹配，请重试。",
+  "errorUnmatchFailed": "无法取消匹配，请重试。",
+  "errorCheckoutFailed": "无法开始结账，请重试。",
+  "errorLoadSubscriptionFailed": "无法加载订阅信息，请重试。",
+  "errorRestorePurchasesFailed": "无法恢复购买，请重试。",
+  "errorReportFailed": "无法提交举报，请重试。",
+  "errorBlockFailed": "无法屏蔽用户，请重试。",
+  "errorUnblockFailed": "无法取消屏蔽用户，请重试。",
+  "errorLoadInsightsFailed": "无法加载洞察，请重试。",
+  "errorLocationDisabled": "定位服务已关闭，请在设置中开启。",
+  "errorLocationPermissionDenied": "定位权限被拒绝，请在设置中允许访问。",
+  "errorLocationTimeout": "定位请求超时，请确保有GPS信号后重试。",
+  "errorMediaLoadFailed": "无法加载媒体，请重试。",
+  "errorMediaUploadFailed": "无法上传媒体，请重试。",
+  "errorCouldNot": "无法{action}，请重试。",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature}是Plus功能。升级以解锁！",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "返回",
+  "a11yCloseButton": "关闭",
+  "a11yMenuButton": "打开菜单",
+  "a11ySettingsButton": "打开设置",
+  "a11ySearchButton": "搜索",
+  "a11yFilterButton": "打开筛选",
+  "a11yPassButton": "跳过此资料",
+  "a11yLikeButton": "喜欢此资料",
+  "a11ySuperLikeButton": "超级喜欢此资料",
+  "a11yRewindButton": "撤销上一操作",
+  "a11yBoostButton": "提升您的资料",
+  "a11yProfilePhoto": "个人照片",
+  "a11yProfilePhotoOf": "{name}的个人照片",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "用户头像",
+  "a11yAvatarOf": "{name}的头像",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "编辑资料",
+  "a11yViewProfile": "查看资料",
+  "a11yVerifiedBadge": "已验证资料",
+  "a11yOnlineNow": "在线中",
+  "a11yOffline": "离线",
+  "a11ySendMessage": "发送消息",
+  "a11yAttachPhoto": "附加照片",
+  "a11yAttachFile": "附加文件",
+  "a11yVoiceMessage": "录制语音消息",
+  "a11yVideoCall": "开始视频通话",
+  "a11yVoiceCall": "开始语音通话",
+  "a11yMessageFrom": "来自{sender}的消息",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1条未读消息} other{{count}条未读消息}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "显示密码",
+  "a11yHidePassword": "隐藏密码",
+  "a11yLoginButton": "登录",
+  "a11ySignUpButton": "创建账户",
+  "a11yForgotPassword": "重置密码",
+  "a11yResendCode": "重新发送验证码",
+  "a11yToggleSetting": "切换设置",
+  "a11yLoading": "加载中",
+  "a11yRefreshing": "刷新中",
+  "a11yErrorOccurred": "发生错误",
+  "a11yRetry": "重试",
+  "a11yDismiss": "关闭",
+  "a11yMoreOptions": "更多选项",
+  "a11yDelete": "删除",
+  "a11yCancel": "取消",
+  "a11yConfirm": "确认",
+  "a11ySaveChanges": "保存更改",
+  "a11yTapToView": "双击查看",
+  "a11yTapToSelect": "双击选择",
+  "a11yTapToToggle": "双击切换",
+  "a11yTapToEdit": "双击编辑",
+  "a11yTapToExpand": "双击展开",
+  "a11yTapToCollapse": "双击收起",
+  "a11ySwipeToDelete": "向左滑动删除",
+  "a11ySwipeForActions": "向左滑动查看更多操作",
+  "a11yDragToReorder": "长按并拖动以重新排序",
+  "a11yPinchToZoom": "捏合缩放",
+  "a11yLoadingPleaseWait": "加载中，请稍候",
+  "a11yLoadingComplete": "加载完成",
+  "a11yMatchFound": "配对成功！您与{name}配对了",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "来自{sender}的新消息",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "资料已喜欢",
+  "a11yProfilePassed": "资料已跳过",
+  "a11yProfileSuperLiked": "资料已超级喜欢",
+  "a11yMessageSent": "消息已发送",
+  "a11ySettingSaved": "设置已保存",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "欢迎回来",
+  "authSignInToContinue": "登录以继续使用Crush",
+  "authEmailOrUsername": "邮箱或用户名",
+  "authEmail": "邮箱",
+  "authPassword": "密码",
+  "authCurrentPassword": "当前密码",
+  "authNewPassword": "新密码",
+  "authConfirmPassword": "确认密码",
+  "authForgotPassword": "忘记密码？",
+  "authSignIn": "登录",
+  "authSignUp": "注册",
+  "authSignOut": "退出登录",
+  "authCreateAccount": "创建账户",
+  "authNoAccount": "没有账户？",
+  "authAlreadyHaveAccount": "已有账户？",
+  "authOrContinueWith": "或通过以下方式继续",
+  "authPhone": "手机",
+  "authPhoneNumber": "手机号码",
+  "authEnterCode": "输入验证码",
+  "authVerificationCode": "验证码",
+  "authSendCode": "发送验证码",
+  "authResendCode": "重新发送验证码",
+  "authVerify": "验证",
+  "authVerifyEmail": "验证邮箱",
+  "authVerifyPhone": "验证手机",
+  "authCheckEmail": "查看您的邮箱",
+  "authCheckPhone": "查看您的手机",
+  "authCodeSent": "验证码已发送",
+  "authCodeSentTo": "我们已向{destination}发送验证码",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "输入6位数验证码",
+  "authPasswordHint": "至少8个字符",
+  "authResetPassword": "重置密码",
+  "authChangePassword": "修改密码",
+  "authPasswordChanged": "密码修改成功！",
+  "authAgreeToTerms": "继续即表示您同意我们的服务条款和隐私政策",
+  "authTermsOfService": "服务条款",
+  "authPrivacyPolicy": "隐私政策",
+  "authDevLogin": "开发者登录",
+  "authUsePhoneInstead": "改用手机",
+  "authUseEmailInstead": "改用邮箱",
+  "authEmailLink": "邮箱链接",
+  "authEmailOtp": "邮箱验证码",
+  "authEmailPassword": "邮箱+密码",
+  "authChooseSignInMethod": "选择登录方式",
+  "authSendLink": "发送链接",
+  "authAutoCheckingStatus": "自动检查验证状态...",
+  "authIveVerified": "我已验证",
+  "authCheckYourEmail": "查看您的邮箱",
+  "authClickLinkToVerify": "点击我们发送的链接以验证您的邮箱",
+  "authEmailVerified": "邮箱验证成功！",
+  "authSkipForNow": "暂时跳过",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "设置",
+  "settingsAppearance": "外观",
+  "settingsAppearanceSubtitle": "主题和显示选项",
+  "settingsTheme": "主题",
+  "settingsThemeLight": "浅色",
+  "settingsThemeDark": "深色",
+  "settingsThemeSystem": "跟随系统",
+  "settingsNotifications": "通知",
+  "settingsNotificationsSubtitle": "管理您的提醒",
+  "settingsPushNotifications": "推送通知",
+  "settingsEmailNotifications": "邮件通知",
+  "settingsSound": "声音",
+  "settingsVibration": "振动",
+  "settingsLanguageRegion": "语言和地区",
+  "settingsLanguageRegionSubtitle": "应用语言和位置",
+  "settingsLanguage": "语言",
+  "settingsRegion": "地区",
+  "settingsDetectRegion": "检测我的地区",
+  "settingsDiscoveryFilters": "发现和筛选",
+  "settingsDiscoveryFiltersSubtitle": "您想看到的人",
+  "settingsAgeRange": "年龄范围",
+  "settingsDistance": "最大距离",
+  "settingsDistanceKm": "{distance}公里",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "显示给我",
+  "settingsShowMyDistance": "显示我的距离",
+  "settingsShowMyAge": "显示我的年龄",
+  "settingsDataStorage": "数据和存储",
+  "settingsDataStorageSubtitle": "缓存和下载",
+  "settingsCacheSize": "缓存大小",
+  "settingsClearCache": "清除缓存",
+  "settingsMediaDownloads": "媒体下载",
+  "settingsWifiOnly": "仅Wi-Fi",
+  "settingsAccountSecurity": "账户安全",
+  "settingsAccountSecuritySubtitle": "邮箱和手机验证",
+  "settingsAccountActions": "账户操作",
+  "settingsAccountActionsSubtitle": "管理您的账户",
+  "settingsChangePassword": "修改密码",
+  "settingsDeactivateAccount": "停用账户",
+  "settingsDeleteAccount": "删除账户",
+  "settingsPrivacy": "隐私",
+  "settingsPrivacySubtitle": "控制他人可见内容",
+  "settingsHideFromDiscovery": "从发现中隐藏",
+  "settingsIncognitoMode": "隐身模式",
+  "settingsAbout": "关于",
+  "settingsAboutSubtitle": "应用信息和法律条款",
+  "settingsVersion": "版本",
+  "settingsRateUs": "给我们评分",
+  "settingsHelp": "帮助和支持",
+  "settingsContactUs": "联系我们",
+  "settingsFeedback": "发送反馈",
+  "settingsSubscription": "订阅",
+  "settingsSubscriptionSubtitle": "管理您的计划",
+  "settingsGetPlus": "获取Crush Plus",
+  "settingsRestorePurchases": "恢复购买",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "发现",
+  "discoveryNoMatchesTitle": "还没有匹配",
+  "discoveryNoMatchesMessage": "继续滑动找到您的完美匹配！",
+  "discoveryStartSwiping": "开始滑动",
+  "discoveryAdjustFilters": "调整筛选条件",
+  "discoveryAllCaughtUp": "全部看完了！",
+  "discoveryNoMorePeople": "附近暂时没有更多人了。\n稍后再看或扩大搜索范围。",
+  "discoveryViewFullProfile": "查看完整资料",
+  "discoveryReportProfile": "举报资料",
+  "discoveryBlockProfile": "屏蔽并隐藏资料",
+  "discoveryUnmatch": "取消匹配",
+  "discoveryLike": "喜欢",
+  "discoveryPass": "跳过",
+  "discoverySuperLike": "超级喜欢",
+  "discoveryRewind": "撤销",
+  "discoveryBoost": "提升",
+  "discoveryItsAMatch": "配对成功！",
+  "discoveryMatchMessage": "您和{name}互相喜欢",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "发送消息",
+  "discoveryKeepSwiping": "继续滑动",
+  "discoveryWeeklyPicks": "每周精选",
+  "discoveryLikesYou": "喜欢您的人",
+  "discoveryTopPicks": "精选推荐",
+  "discoveryNewArrivals": "新加入",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "聊天",
+  "chatMatches": "匹配",
+  "chatMessages": "消息",
+  "chatNoMatches": "还没有匹配",
+  "chatNoMatchesMessage": "当您与某人匹配时，他们会出现在这里",
+  "chatNoMessages": "还没有消息",
+  "chatNoMessagesMessage": "与您的匹配开始对话",
+  "chatSayHello": "打个招呼！",
+  "chatStartConversation": "与{name}开始对话",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "输入消息...",
+  "chatSend": "发送",
+  "chatToday": "今天",
+  "chatYesterday": "昨天",
+  "chatOnline": "在线",
+  "chatLastSeen": "最后上线 {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "正在输入...",
+  "chatDelivered": "已送达",
+  "chatRead": "已读",
+  "chatDeleteMessage": "删除消息",
+  "chatDeleteForMe": "仅删除自己",
+  "chatDeleteForEveryone": "对所有人删除",
+  "chatCopyMessage": "复制",
+  "chatReply": "回复",
+  "chatNewMatch": "新匹配！",
+  "chatMatchedWith": "您与{name}匹配了",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "个人资料",
+  "profileEdit": "编辑资料",
+  "profileComplete": "完善您的资料",
+  "profileBasicInfo": "基本信息",
+  "profileName": "姓名",
+  "profileAge": "年龄",
+  "profileBirthday": "生日",
+  "profileGender": "性别",
+  "profileSexualOrientation": "性取向",
+  "profileBio": "个人简介",
+  "profileBioHint": "告诉别人关于你的事...",
+  "profilePhotos": "照片",
+  "profileAddPhoto": "添加照片",
+  "profileAddVideo": "添加视频",
+  "profileMakeMain": "设为主照片",
+  "profileInterests": "兴趣爱好",
+  "profileAddInterests": "添加兴趣",
+  "profileLocation": "位置",
+  "profileCity": "城市",
+  "profileCountry": "国家",
+  "profileLivingIn": "居住在",
+  "profileJobTitle": "职位",
+  "profileCompany": "公司",
+  "profileSchool": "学校",
+  "profileHeight": "身高",
+  "profileHeightCm": "{height}厘米",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "语言",
+  "profileZodiacSign": "星座",
+  "profileEducation": "教育",
+  "profileReligion": "宗教",
+  "profileRelationshipGoals": "恋爱目标",
+  "profileFamilyPlans": "家庭计划",
+  "profilePersonalityType": "性格类型",
+  "profileWorkout": "健身",
+  "profileSmoking": "吸烟",
+  "profileDrinking": "饮酒",
+  "profilePets": "宠物",
+  "profileVerified": "已验证",
+  "profileGetVerified": "获取验证",
+  "profileVerificationPending": "验证待处理",
+  "profilePreview": "预览资料",
+  "profileSaved": "资料保存成功！",
+  "profilePrompts": "提示问题",
+  "profileAddPrompt": "添加提示",
+  "profileAboutMe": "关于我",
+  "profileMyDetails": "我的详情",
+  "profileLifestyle": "生活方式",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "欢迎来到Crush",
+  "onboardingTagline": "找到您的完美匹配",
+  "onboardingGetStarted": "开始使用",
+  "onboardingStep": "第{current}步，共{total}步",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "您叫什么名字？",
+  "onboardingWhenBirthday": "您的生日是什么时候？",
+  "onboardingSelectGender": "选择您的性别",
+  "onboardingAddPhotos": "添加您最好的照片",
+  "onboardingPhotosHint": "添加至少2张照片以继续",
+  "onboardingWriteBio": "写一些关于自己的内容",
+  "onboardingSelectInterests": "选择您的兴趣",
+  "onboardingInterestsHint": "选择至少3个兴趣",
+  "onboardingAllSet": "准备就绪！",
+  "onboardingStartSwiping": "开始滑动",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "免费",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "获取Crush Plus",
+  "subscriptionUpgrade": "升级",
+  "subscriptionRestore": "恢复购买",
+  "subscriptionUnlimitedLikes": "无限喜欢",
+  "subscriptionUnlimitedRewinds": "无限撤销",
+  "subscriptionSeeWhoLikesYou": "查看谁喜欢您",
+  "subscriptionBoostsPerMonth": "每月{count}次提升",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "每天{count}次超级喜欢",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "无广告",
+  "subscriptionPrioritySupport": "优先支持",
+  "subscriptionPerMonth": "{price}/月",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/年",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "最超值",
+  "subscriptionMostPopular": "最受欢迎",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "举报用户",
+  "safetyBlockUser": "屏蔽用户",
+  "safetyUnblockUser": "取消屏蔽用户",
+  "safetyReportReason": "您举报的原因是什么？",
+  "safetyBlockConfirm": "屏蔽{name}？",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "他们将无法看到您的资料或给您发消息",
+  "safetyReported": "举报已提交",
+  "safetyBlocked": "用户已屏蔽",
+  "safetyUnblocked": "用户已取消屏蔽",
+  "safetyFakeProfile": "虚假资料",
+  "safetyInappropriateContent": "不当内容",
+  "safetyHarassment": "骚扰",
+  "safetySpam": "垃圾信息",
+  "safetyScam": "诈骗",
+  "safetyOther": "其他",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "刚刚",
+  "timeMinutesAgo": "{count, plural, =1{1分钟前} other{{count}分钟前}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1小时前} other{{count}小时前}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1天前} other{{count}天前}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1周前} other{{count}周前}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "未找到结果",
+  "emptyTryAgain": "尝试调整您的搜索或筛选条件",
+  "emptyNoData": "暂无数据",
+  "emptyCheckBackLater": "稍后再来查看"
+}

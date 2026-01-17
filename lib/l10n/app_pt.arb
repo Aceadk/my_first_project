@@ -1,0 +1,568 @@
+{
+  "@@locale": "pt",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "Cancelar",
+  "commonSave": "Salvar",
+  "commonRetry": "Tentar novamente",
+  "commonDone": "Concluído",
+  "commonLoading": "Carregando",
+  "commonError": "Erro",
+  "commonSuccess": "Sucesso",
+  "commonOk": "OK",
+  "commonNext": "Próximo",
+  "commonBack": "Voltar",
+  "commonClose": "Fechar",
+  "commonDelete": "Excluir",
+  "commonEdit": "Editar",
+  "commonSearch": "Buscar",
+  "commonSettings": "Configurações",
+  "commonContinue": "Continuar",
+  "commonSkip": "Pular",
+  "commonConfirm": "Confirmar",
+  "commonYes": "Sim",
+  "commonNo": "Não",
+  "commonOn": "Ligado",
+  "commonOff": "Desligado",
+  "commonMore": "Mais",
+  "commonLess": "Menos",
+  "commonAll": "Todos",
+  "commonNone": "Nenhum",
+  "commonRefresh": "Atualizar",
+  "commonSubmit": "Enviar",
+  "commonSend": "Enviar",
+  "commonApply": "Aplicar",
+  "commonClear": "Limpar",
+  "commonReset": "Redefinir",
+  "commonUpdate": "Atualizar",
+  "commonRemove": "Remover",
+  "commonAdd": "Adicionar",
+  "commonView": "Ver",
+  "commonShare": "Compartilhar",
+  "commonReport": "Denunciar",
+  "commonBlock": "Bloquear",
+  "commonUnblock": "Desbloquear",
+  "commonMute": "Silenciar",
+  "commonUnmute": "Ativar som",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "Algo deu errado. Por favor, tente novamente.",
+  "errorNetwork": "Erro de conexão. Verifique sua internet e tente novamente.",
+  "errorTimeout": "Tempo de solicitação esgotado. Por favor, tente novamente.",
+  "errorServer": "Erro no servidor. Por favor, tente mais tarde.",
+  "errorUnauthorized": "Sessão expirada. Por favor, faça login novamente.",
+  "errorNotFound": "O item solicitado não foi encontrado.",
+  "errorOffline": "Sem conexão com a internet. Verifique sua conexão e tente novamente.",
+  "errorLoginFailed": "Não foi possível fazer login. Verifique suas credenciais.",
+  "errorSignUpFailed": "Não foi possível criar a conta. Por favor, tente novamente.",
+  "errorLogoutFailed": "Não foi possível sair. Por favor, tente novamente.",
+  "errorInvalidCredentials": "E-mail ou senha inválidos.",
+  "errorEmailInUse": "Este e-mail já está registrado.",
+  "errorWeakPassword": "Senha muito fraca. Use pelo menos 8 caracteres.",
+  "errorInvalidEmail": "Por favor, insira um endereço de e-mail válido.",
+  "errorSendCodeFailed": "Não foi possível enviar o código. Por favor, tente novamente.",
+  "errorInvalidCode": "Código inválido ou expirado. Por favor, tente novamente.",
+  "errorVerificationFailed": "Verificação falhou. Por favor, tente novamente.",
+  "errorLoadProfileFailed": "Não foi possível carregar o perfil. Por favor, tente novamente.",
+  "errorSaveProfileFailed": "Não foi possível salvar o perfil. Por favor, tente novamente.",
+  "errorUploadPhotoFailed": "Não foi possível enviar a foto. Por favor, tente novamente.",
+  "errorDeletePhotoFailed": "Não foi possível excluir a foto. Por favor, tente novamente.",
+  "errorUpdateLocationFailed": "Não foi possível atualizar a localização. Por favor, tente novamente.",
+  "errorUploadIdFailed": "Não foi possível enviar o ID. Por favor, tente novamente.",
+  "errorLoadDeckFailed": "Não foi possível carregar os perfis. Por favor, tente novamente.",
+  "errorSwipeFailed": "Não foi possível processar o swipe. Por favor, tente novamente.",
+  "errorLikeFailed": "Não foi possível curtir o perfil. Por favor, tente novamente.",
+  "errorPassFailed": "Não foi possível passar o perfil. Por favor, tente novamente.",
+  "errorSuperLikeFailed": "Não foi possível dar Super Like. Por favor, tente novamente.",
+  "errorRewindFailed": "Não foi possível voltar. Por favor, tente novamente.",
+  "errorNoSwipeToUndo": "Nenhum swipe para desfazer.",
+  "errorFreeUndoUsed": "Você usou seu desfazer grátis hoje. Faça upgrade para Plus e tenha desfazer ilimitado!",
+  "errorRewindPremiumOnly": "Voltar é um recurso Plus. Faça upgrade para desfazer swipes!",
+  "errorLoadChatsFailed": "Não foi possível carregar as conversas. Por favor, tente novamente.",
+  "errorLoadMessagesFailed": "Não foi possível carregar as mensagens. Por favor, tente novamente.",
+  "errorSendMessageFailed": "Não foi possível enviar a mensagem. Por favor, tente novamente.",
+  "errorDeleteMessageFailed": "Não foi possível excluir a mensagem. Por favor, tente novamente.",
+  "errorLoadMatchesFailed": "Não foi possível carregar os matches. Por favor, tente novamente.",
+  "errorUnmatchFailed": "Não foi possível desfazer o match. Por favor, tente novamente.",
+  "errorCheckoutFailed": "Não foi possível iniciar o pagamento. Por favor, tente novamente.",
+  "errorLoadSubscriptionFailed": "Não foi possível carregar a assinatura. Por favor, tente novamente.",
+  "errorRestorePurchasesFailed": "Não foi possível restaurar as compras. Por favor, tente novamente.",
+  "errorReportFailed": "Não foi possível enviar a denúncia. Por favor, tente novamente.",
+  "errorBlockFailed": "Não foi possível bloquear o usuário. Por favor, tente novamente.",
+  "errorUnblockFailed": "Não foi possível desbloquear o usuário. Por favor, tente novamente.",
+  "errorLoadInsightsFailed": "Não foi possível carregar os insights. Por favor, tente novamente.",
+  "errorLocationDisabled": "Serviços de localização desativados. Por favor, ative nas Configurações.",
+  "errorLocationPermissionDenied": "Permissão de localização negada. Por favor, permita o acesso nas Configurações.",
+  "errorLocationTimeout": "Tempo de solicitação de localização esgotado. Verifique o sinal GPS e tente novamente.",
+  "errorMediaLoadFailed": "Não foi possível carregar a mídia. Por favor, tente novamente.",
+  "errorMediaUploadFailed": "Não foi possível enviar a mídia. Por favor, tente novamente.",
+  "errorCouldNot": "Não foi possível {action}. Por favor, tente novamente.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} é um recurso Plus. Faça upgrade para desbloquear!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "Voltar",
+  "a11yCloseButton": "Fechar",
+  "a11yMenuButton": "Abrir menu",
+  "a11ySettingsButton": "Abrir configurações",
+  "a11ySearchButton": "Buscar",
+  "a11yFilterButton": "Abrir filtros",
+  "a11yPassButton": "Passar este perfil",
+  "a11yLikeButton": "Curtir este perfil",
+  "a11ySuperLikeButton": "Super curtir este perfil",
+  "a11yRewindButton": "Desfazer última ação",
+  "a11yBoostButton": "Impulsionar seu perfil",
+  "a11yProfilePhoto": "Foto do perfil",
+  "a11yProfilePhotoOf": "Foto do perfil de {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Avatar do usuário",
+  "a11yAvatarOf": "Avatar de {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Editar perfil",
+  "a11yViewProfile": "Ver perfil",
+  "a11yVerifiedBadge": "Perfil verificado",
+  "a11yOnlineNow": "Online agora",
+  "a11yOffline": "Offline",
+  "a11ySendMessage": "Enviar mensagem",
+  "a11yAttachPhoto": "Anexar foto",
+  "a11yAttachFile": "Anexar arquivo",
+  "a11yVoiceMessage": "Gravar mensagem de voz",
+  "a11yVideoCall": "Iniciar chamada de vídeo",
+  "a11yVoiceCall": "Iniciar chamada de voz",
+  "a11yMessageFrom": "Mensagem de {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 mensagem não lida} other{{count} mensagens não lidas}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Mostrar senha",
+  "a11yHidePassword": "Ocultar senha",
+  "a11yLoginButton": "Entrar",
+  "a11ySignUpButton": "Criar conta",
+  "a11yForgotPassword": "Redefinir senha",
+  "a11yResendCode": "Reenviar código de verificação",
+  "a11yToggleSetting": "Alternar configuração",
+  "a11yLoading": "Carregando",
+  "a11yRefreshing": "Atualizando",
+  "a11yErrorOccurred": "Ocorreu um erro",
+  "a11yRetry": "Tentar novamente",
+  "a11yDismiss": "Dispensar",
+  "a11yMoreOptions": "Mais opções",
+  "a11yDelete": "Excluir",
+  "a11yCancel": "Cancelar",
+  "a11yConfirm": "Confirmar",
+  "a11ySaveChanges": "Salvar alterações",
+  "a11yTapToView": "Toque duas vezes para ver",
+  "a11yTapToSelect": "Toque duas vezes para selecionar",
+  "a11yTapToToggle": "Toque duas vezes para alternar",
+  "a11yTapToEdit": "Toque duas vezes para editar",
+  "a11yTapToExpand": "Toque duas vezes para expandir",
+  "a11yTapToCollapse": "Toque duas vezes para recolher",
+  "a11ySwipeToDelete": "Deslize para a esquerda para excluir",
+  "a11ySwipeForActions": "Deslize para a esquerda para mais ações",
+  "a11yDragToReorder": "Pressione e arraste para reordenar",
+  "a11yPinchToZoom": "Faça pinça para dar zoom",
+  "a11yLoadingPleaseWait": "Carregando, por favor aguarde",
+  "a11yLoadingComplete": "Carregamento concluído",
+  "a11yMatchFound": "É um match! Você combinou com {name}",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "Nova mensagem de {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Perfil curtido",
+  "a11yProfilePassed": "Perfil passado",
+  "a11yProfileSuperLiked": "Perfil super curtido",
+  "a11yMessageSent": "Mensagem enviada",
+  "a11ySettingSaved": "Configuração salva",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "Bem-vindo de volta",
+  "authSignInToContinue": "Entre para continuar no Crush",
+  "authEmailOrUsername": "E-mail ou nome de usuário",
+  "authEmail": "E-mail",
+  "authPassword": "Senha",
+  "authCurrentPassword": "Senha atual",
+  "authNewPassword": "Nova senha",
+  "authConfirmPassword": "Confirmar senha",
+  "authForgotPassword": "Esqueceu a senha?",
+  "authSignIn": "Entrar",
+  "authSignUp": "Criar conta",
+  "authSignOut": "Sair",
+  "authCreateAccount": "Criar conta",
+  "authNoAccount": "Não tem conta?",
+  "authAlreadyHaveAccount": "Já tem uma conta?",
+  "authOrContinueWith": "ou continue com",
+  "authPhone": "Telefone",
+  "authPhoneNumber": "Número de telefone",
+  "authEnterCode": "Digite o código",
+  "authVerificationCode": "Código de verificação",
+  "authSendCode": "Enviar código",
+  "authResendCode": "Reenviar código",
+  "authVerify": "Verificar",
+  "authVerifyEmail": "Verificar e-mail",
+  "authVerifyPhone": "Verificar telefone",
+  "authCheckEmail": "Verifique seu e-mail",
+  "authCheckPhone": "Verifique seu telefone",
+  "authCodeSent": "Código enviado",
+  "authCodeSentTo": "Enviamos um código para {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "Digite o código de 6 dígitos",
+  "authPasswordHint": "Pelo menos 8 caracteres",
+  "authResetPassword": "Redefinir senha",
+  "authChangePassword": "Alterar senha",
+  "authPasswordChanged": "Senha alterada com sucesso!",
+  "authAgreeToTerms": "Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade",
+  "authTermsOfService": "Termos de Serviço",
+  "authPrivacyPolicy": "Política de Privacidade",
+  "authDevLogin": "Login Dev",
+  "authUsePhoneInstead": "Usar telefone",
+  "authUseEmailInstead": "Usar e-mail",
+  "authEmailLink": "Link por e-mail",
+  "authEmailOtp": "Código por e-mail",
+  "authEmailPassword": "E-mail + senha",
+  "authChooseSignInMethod": "Escolha um método de login",
+  "authSendLink": "Enviar link",
+  "authAutoCheckingStatus": "Verificando status automaticamente...",
+  "authIveVerified": "Já verifiquei",
+  "authCheckYourEmail": "Verifique seu e-mail",
+  "authClickLinkToVerify": "Clique no link que enviamos para verificar seu e-mail",
+  "authEmailVerified": "E-mail verificado com sucesso!",
+  "authSkipForNow": "Pular por agora",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "Configurações",
+  "settingsAppearance": "Aparência",
+  "settingsAppearanceSubtitle": "Tema e opções de exibição",
+  "settingsTheme": "Tema",
+  "settingsThemeLight": "Claro",
+  "settingsThemeDark": "Escuro",
+  "settingsThemeSystem": "Sistema",
+  "settingsNotifications": "Notificações",
+  "settingsNotificationsSubtitle": "Gerencie seus alertas",
+  "settingsPushNotifications": "Notificações push",
+  "settingsEmailNotifications": "Notificações por e-mail",
+  "settingsSound": "Som",
+  "settingsVibration": "Vibração",
+  "settingsLanguageRegion": "Idioma e Região",
+  "settingsLanguageRegionSubtitle": "Idioma do app e localização",
+  "settingsLanguage": "Idioma",
+  "settingsRegion": "Região",
+  "settingsDetectRegion": "Detectar minha região",
+  "settingsDiscoveryFilters": "Descoberta e Filtros",
+  "settingsDiscoveryFiltersSubtitle": "Quem você quer ver",
+  "settingsAgeRange": "Faixa etária",
+  "settingsDistance": "Distância máxima",
+  "settingsDistanceKm": "{distance} km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Mostrar-me",
+  "settingsShowMyDistance": "Mostrar minha distância",
+  "settingsShowMyAge": "Mostrar minha idade",
+  "settingsDataStorage": "Dados e Armazenamento",
+  "settingsDataStorageSubtitle": "Cache e downloads",
+  "settingsCacheSize": "Tamanho do cache",
+  "settingsClearCache": "Limpar cache",
+  "settingsMediaDownloads": "Downloads de mídia",
+  "settingsWifiOnly": "Apenas Wi-Fi",
+  "settingsAccountSecurity": "Segurança da Conta",
+  "settingsAccountSecuritySubtitle": "Verificação de e-mail e telefone",
+  "settingsAccountActions": "Ações da Conta",
+  "settingsAccountActionsSubtitle": "Gerencie sua conta",
+  "settingsChangePassword": "Alterar senha",
+  "settingsDeactivateAccount": "Desativar conta",
+  "settingsDeleteAccount": "Excluir conta",
+  "settingsPrivacy": "Privacidade",
+  "settingsPrivacySubtitle": "Controle o que outros podem ver",
+  "settingsHideFromDiscovery": "Ocultar da descoberta",
+  "settingsIncognitoMode": "Modo anônimo",
+  "settingsAbout": "Sobre",
+  "settingsAboutSubtitle": "Informações do app e termos legais",
+  "settingsVersion": "Versão",
+  "settingsRateUs": "Avalie-nos",
+  "settingsHelp": "Ajuda e Suporte",
+  "settingsContactUs": "Fale conosco",
+  "settingsFeedback": "Enviar feedback",
+  "settingsSubscription": "Assinatura",
+  "settingsSubscriptionSubtitle": "Gerencie seu plano",
+  "settingsGetPlus": "Obter Crush Plus",
+  "settingsRestorePurchases": "Restaurar compras",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "Descobrir",
+  "discoveryNoMatchesTitle": "Nenhum match ainda",
+  "discoveryNoMatchesMessage": "Continue deslizando para encontrar seu match perfeito!",
+  "discoveryStartSwiping": "Começar a deslizar",
+  "discoveryAdjustFilters": "Ajustar filtros",
+  "discoveryAllCaughtUp": "Tudo em dia!",
+  "discoveryNoMorePeople": "Não há mais pessoas por perto agora.\nVolte em breve ou expanda sua busca.",
+  "discoveryViewFullProfile": "Ver perfil completo",
+  "discoveryReportProfile": "Denunciar perfil",
+  "discoveryBlockProfile": "Bloquear e ocultar perfil",
+  "discoveryUnmatch": "Desfazer match",
+  "discoveryLike": "Curtir",
+  "discoveryPass": "Passar",
+  "discoverySuperLike": "Super Curtir",
+  "discoveryRewind": "Voltar",
+  "discoveryBoost": "Impulsionar",
+  "discoveryItsAMatch": "É um Match!",
+  "discoveryMatchMessage": "Você e {name} se curtiram",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Enviar Mensagem",
+  "discoveryKeepSwiping": "Continuar Deslizando",
+  "discoveryWeeklyPicks": "Escolhas da Semana",
+  "discoveryLikesYou": "Curtiram Você",
+  "discoveryTopPicks": "Melhores Escolhas",
+  "discoveryNewArrivals": "Recém-chegados",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "Conversas",
+  "chatMatches": "Matches",
+  "chatMessages": "Mensagens",
+  "chatNoMatches": "Nenhum match ainda",
+  "chatNoMatchesMessage": "Quando você der match com alguém, aparecerá aqui",
+  "chatNoMessages": "Nenhuma mensagem ainda",
+  "chatNoMessagesMessage": "Inicie uma conversa com um dos seus matches",
+  "chatSayHello": "Diga olá!",
+  "chatStartConversation": "Iniciar conversa com {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Digite uma mensagem...",
+  "chatSend": "Enviar",
+  "chatToday": "Hoje",
+  "chatYesterday": "Ontem",
+  "chatOnline": "Online",
+  "chatLastSeen": "Visto por último {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "digitando...",
+  "chatDelivered": "Entregue",
+  "chatRead": "Lida",
+  "chatDeleteMessage": "Excluir mensagem",
+  "chatDeleteForMe": "Excluir para mim",
+  "chatDeleteForEveryone": "Excluir para todos",
+  "chatCopyMessage": "Copiar",
+  "chatReply": "Responder",
+  "chatNewMatch": "Novo match!",
+  "chatMatchedWith": "Você deu match com {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "Perfil",
+  "profileEdit": "Editar Perfil",
+  "profileComplete": "Complete Seu Perfil",
+  "profileBasicInfo": "Informações Básicas",
+  "profileName": "Nome",
+  "profileAge": "Idade",
+  "profileBirthday": "Aniversário",
+  "profileGender": "Gênero",
+  "profileSexualOrientation": "Orientação sexual",
+  "profileBio": "Bio",
+  "profileBioHint": "Conte sobre você...",
+  "profilePhotos": "Fotos",
+  "profileAddPhoto": "Adicionar foto",
+  "profileAddVideo": "Adicionar vídeo",
+  "profileMakeMain": "Tornar foto principal",
+  "profileInterests": "Interesses",
+  "profileAddInterests": "Adicionar interesses",
+  "profileLocation": "Localização",
+  "profileCity": "Cidade",
+  "profileCountry": "País",
+  "profileLivingIn": "Morando em",
+  "profileJobTitle": "Cargo",
+  "profileCompany": "Empresa",
+  "profileSchool": "Escola",
+  "profileHeight": "Altura",
+  "profileHeightCm": "{height} cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Idiomas",
+  "profileZodiacSign": "Signo",
+  "profileEducation": "Educação",
+  "profileReligion": "Religião",
+  "profileRelationshipGoals": "Objetivos de relacionamento",
+  "profileFamilyPlans": "Planos familiares",
+  "profilePersonalityType": "Tipo de personalidade",
+  "profileWorkout": "Exercício",
+  "profileSmoking": "Fumante",
+  "profileDrinking": "Bebida",
+  "profilePets": "Pets",
+  "profileVerified": "Verificado",
+  "profileGetVerified": "Obter verificação",
+  "profileVerificationPending": "Verificação pendente",
+  "profilePreview": "Visualizar perfil",
+  "profileSaved": "Perfil salvo com sucesso!",
+  "profilePrompts": "Prompts",
+  "profileAddPrompt": "Adicionar um prompt",
+  "profileAboutMe": "Sobre Mim",
+  "profileMyDetails": "Meus Detalhes",
+  "profileLifestyle": "Estilo de Vida",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Bem-vindo ao Crush",
+  "onboardingTagline": "Encontre seu match perfeito",
+  "onboardingGetStarted": "Começar",
+  "onboardingStep": "Passo {current} de {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "Qual é o seu nome?",
+  "onboardingWhenBirthday": "Quando é seu aniversário?",
+  "onboardingSelectGender": "Selecione seu gênero",
+  "onboardingAddPhotos": "Adicione suas melhores fotos",
+  "onboardingPhotosHint": "Adicione pelo menos 2 fotos para continuar",
+  "onboardingWriteBio": "Escreva algo sobre você",
+  "onboardingSelectInterests": "Selecione seus interesses",
+  "onboardingInterestsHint": "Escolha pelo menos 3 interesses",
+  "onboardingAllSet": "Tudo pronto!",
+  "onboardingStartSwiping": "Começar a deslizar",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "Grátis",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Obter Crush Plus",
+  "subscriptionUpgrade": "Fazer upgrade",
+  "subscriptionRestore": "Restaurar compras",
+  "subscriptionUnlimitedLikes": "Curtidas ilimitadas",
+  "subscriptionUnlimitedRewinds": "Voltas ilimitadas",
+  "subscriptionSeeWhoLikesYou": "Veja quem curtiu você",
+  "subscriptionBoostsPerMonth": "{count} impulsos por mês",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} super curtidas por dia",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Sem anúncios",
+  "subscriptionPrioritySupport": "Suporte prioritário",
+  "subscriptionPerMonth": "{price}/mês",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/ano",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "Melhor valor",
+  "subscriptionMostPopular": "Mais popular",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "Denunciar usuário",
+  "safetyBlockUser": "Bloquear usuário",
+  "safetyUnblockUser": "Desbloquear usuário",
+  "safetyReportReason": "Por que você está denunciando?",
+  "safetyBlockConfirm": "Bloquear {name}?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Essa pessoa não poderá ver seu perfil ou enviar mensagens",
+  "safetyReported": "Denúncia enviada",
+  "safetyBlocked": "Usuário bloqueado",
+  "safetyUnblocked": "Usuário desbloqueado",
+  "safetyFakeProfile": "Perfil falso",
+  "safetyInappropriateContent": "Conteúdo inapropriado",
+  "safetyHarassment": "Assédio",
+  "safetySpam": "Spam",
+  "safetyScam": "Golpe",
+  "safetyOther": "Outro",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "Agora mesmo",
+  "timeMinutesAgo": "{count, plural, =1{1 minuto atrás} other{{count} minutos atrás}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 hora atrás} other{{count} horas atrás}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 dia atrás} other{{count} dias atrás}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 semana atrás} other{{count} semanas atrás}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "Nenhum resultado encontrado",
+  "emptyTryAgain": "Tente ajustar sua busca ou filtros",
+  "emptyNoData": "Sem dados disponíveis",
+  "emptyCheckBackLater": "Volte mais tarde"
+}

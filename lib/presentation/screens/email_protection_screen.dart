@@ -311,8 +311,24 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     setState(() {
       _isLoading = true;
     });
+
+    // Check if email is already registered to another account
+    final authRepo = context.read<AuthRepository>();
+    final emailExists = await authRepo.isEmailRegistered(email);
+    if (emailExists) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      showErrorSnackBar(
+        context,
+        'This email is already registered to another account. Please use a different email address.',
+      );
+      return;
+    }
+
     final result = await Result.guard(
-      () => context.read<AuthRepository>().requestEmailOtp(
+      () => authRepo.requestEmailOtp(
             identifier: email,
             purpose: EmailOtpPurpose.addEmail,
             email: email,

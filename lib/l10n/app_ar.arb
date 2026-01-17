@@ -1,0 +1,568 @@
+{
+  "@@locale": "ar",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "إلغاء",
+  "commonSave": "حفظ",
+  "commonRetry": "إعادة المحاولة",
+  "commonDone": "تم",
+  "commonLoading": "جارٍ التحميل",
+  "commonError": "خطأ",
+  "commonSuccess": "نجاح",
+  "commonOk": "موافق",
+  "commonNext": "التالي",
+  "commonBack": "رجوع",
+  "commonClose": "إغلاق",
+  "commonDelete": "حذف",
+  "commonEdit": "تعديل",
+  "commonSearch": "بحث",
+  "commonSettings": "الإعدادات",
+  "commonContinue": "متابعة",
+  "commonSkip": "تخطي",
+  "commonConfirm": "تأكيد",
+  "commonYes": "نعم",
+  "commonNo": "لا",
+  "commonOn": "تشغيل",
+  "commonOff": "إيقاف",
+  "commonMore": "المزيد",
+  "commonLess": "أقل",
+  "commonAll": "الكل",
+  "commonNone": "لا شيء",
+  "commonRefresh": "تحديث",
+  "commonSubmit": "إرسال",
+  "commonSend": "إرسال",
+  "commonApply": "تطبيق",
+  "commonClear": "مسح",
+  "commonReset": "إعادة تعيين",
+  "commonUpdate": "تحديث",
+  "commonRemove": "إزالة",
+  "commonAdd": "إضافة",
+  "commonView": "عرض",
+  "commonShare": "مشاركة",
+  "commonReport": "إبلاغ",
+  "commonBlock": "حظر",
+  "commonUnblock": "إلغاء الحظر",
+  "commonMute": "كتم",
+  "commonUnmute": "إلغاء الكتم",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+  "errorNetwork": "خطأ في الاتصال. تحقق من الإنترنت وحاول مرة أخرى.",
+  "errorTimeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.",
+  "errorServer": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+  "errorUnauthorized": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+  "errorNotFound": "العنصر المطلوب غير موجود.",
+  "errorOffline": "لا يوجد اتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.",
+  "errorLoginFailed": "تعذر تسجيل الدخول. يرجى التحقق من بياناتك.",
+  "errorSignUpFailed": "تعذر إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+  "errorLogoutFailed": "تعذر تسجيل الخروج. يرجى المحاولة مرة أخرى.",
+  "errorInvalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "errorEmailInUse": "هذا البريد الإلكتروني مسجل بالفعل.",
+  "errorWeakPassword": "كلمة المرور ضعيفة جداً. استخدم 8 أحرف على الأقل.",
+  "errorInvalidEmail": "يرجى إدخال بريد إلكتروني صحيح.",
+  "errorSendCodeFailed": "تعذر إرسال الرمز. يرجى المحاولة مرة أخرى.",
+  "errorInvalidCode": "رمز غير صالح أو منتهي الصلاحية. يرجى المحاولة مرة أخرى.",
+  "errorVerificationFailed": "فشل التحقق. يرجى المحاولة مرة أخرى.",
+  "errorLoadProfileFailed": "تعذر تحميل الملف الشخصي. يرجى المحاولة مرة أخرى.",
+  "errorSaveProfileFailed": "تعذر حفظ الملف الشخصي. يرجى المحاولة مرة أخرى.",
+  "errorUploadPhotoFailed": "تعذر رفع الصورة. يرجى المحاولة مرة أخرى.",
+  "errorDeletePhotoFailed": "تعذر حذف الصورة. يرجى المحاولة مرة أخرى.",
+  "errorUpdateLocationFailed": "تعذر تحديث الموقع. يرجى المحاولة مرة أخرى.",
+  "errorUploadIdFailed": "تعذر رفع الهوية. يرجى المحاولة مرة أخرى.",
+  "errorLoadDeckFailed": "تعذر تحميل الملفات الشخصية. يرجى المحاولة مرة أخرى.",
+  "errorSwipeFailed": "تعذرت معالجة السحب. يرجى المحاولة مرة أخرى.",
+  "errorLikeFailed": "تعذر الإعجاب بالملف الشخصي. يرجى المحاولة مرة أخرى.",
+  "errorPassFailed": "تعذر التمرير. يرجى المحاولة مرة أخرى.",
+  "errorSuperLikeFailed": "تعذر السوبر لايك. يرجى المحاولة مرة أخرى.",
+  "errorRewindFailed": "تعذر التراجع. يرجى المحاولة مرة أخرى.",
+  "errorNoSwipeToUndo": "لا يوجد سحب للتراجع عنه.",
+  "errorFreeUndoUsed": "لقد استخدمت التراجع المجاني اليوم. قم بالترقية إلى Plus للتراجع غير المحدود!",
+  "errorRewindPremiumOnly": "التراجع ميزة Plus. قم بالترقية للتراجع عن السحب!",
+  "errorLoadChatsFailed": "تعذر تحميل المحادثات. يرجى المحاولة مرة أخرى.",
+  "errorLoadMessagesFailed": "تعذر تحميل الرسائل. يرجى المحاولة مرة أخرى.",
+  "errorSendMessageFailed": "تعذر إرسال الرسالة. يرجى المحاولة مرة أخرى.",
+  "errorDeleteMessageFailed": "تعذر حذف الرسالة. يرجى المحاولة مرة أخرى.",
+  "errorLoadMatchesFailed": "تعذر تحميل التطابقات. يرجى المحاولة مرة أخرى.",
+  "errorUnmatchFailed": "تعذر إلغاء التطابق. يرجى المحاولة مرة أخرى.",
+  "errorCheckoutFailed": "تعذر بدء الدفع. يرجى المحاولة مرة أخرى.",
+  "errorLoadSubscriptionFailed": "تعذر تحميل الاشتراك. يرجى المحاولة مرة أخرى.",
+  "errorRestorePurchasesFailed": "تعذرت استعادة المشتريات. يرجى المحاولة مرة أخرى.",
+  "errorReportFailed": "تعذر إرسال البلاغ. يرجى المحاولة مرة أخرى.",
+  "errorBlockFailed": "تعذر حظر المستخدم. يرجى المحاولة مرة أخرى.",
+  "errorUnblockFailed": "تعذر إلغاء حظر المستخدم. يرجى المحاولة مرة أخرى.",
+  "errorLoadInsightsFailed": "تعذر تحميل الإحصاءات. يرجى المحاولة مرة أخرى.",
+  "errorLocationDisabled": "خدمات الموقع معطلة. يرجى تفعيلها في الإعدادات.",
+  "errorLocationPermissionDenied": "تم رفض إذن الموقع. يرجى السماح بالوصول في الإعدادات.",
+  "errorLocationTimeout": "انتهت مهلة طلب الموقع. تأكد من وجود إشارة GPS وحاول مرة أخرى.",
+  "errorMediaLoadFailed": "تعذر تحميل الوسائط. يرجى المحاولة مرة أخرى.",
+  "errorMediaUploadFailed": "تعذر رفع الوسائط. يرجى المحاولة مرة أخرى.",
+  "errorCouldNot": "تعذر {action}. يرجى المحاولة مرة أخرى.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} ميزة Plus. قم بالترقية لإلغاء القفل!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "رجوع",
+  "a11yCloseButton": "إغلاق",
+  "a11yMenuButton": "فتح القائمة",
+  "a11ySettingsButton": "فتح الإعدادات",
+  "a11ySearchButton": "بحث",
+  "a11yFilterButton": "فتح الفلاتر",
+  "a11yPassButton": "تمرير هذا الملف الشخصي",
+  "a11yLikeButton": "إعجاب بهذا الملف الشخصي",
+  "a11ySuperLikeButton": "سوبر لايك لهذا الملف الشخصي",
+  "a11yRewindButton": "التراجع عن الإجراء الأخير",
+  "a11yBoostButton": "تعزيز ملفك الشخصي",
+  "a11yProfilePhoto": "صورة الملف الشخصي",
+  "a11yProfilePhotoOf": "صورة الملف الشخصي لـ {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "صورة المستخدم",
+  "a11yAvatarOf": "صورة {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "تعديل الملف الشخصي",
+  "a11yViewProfile": "عرض الملف الشخصي",
+  "a11yVerifiedBadge": "ملف شخصي موثق",
+  "a11yOnlineNow": "متصل الآن",
+  "a11yOffline": "غير متصل",
+  "a11ySendMessage": "إرسال رسالة",
+  "a11yAttachPhoto": "إرفاق صورة",
+  "a11yAttachFile": "إرفاق ملف",
+  "a11yVoiceMessage": "تسجيل رسالة صوتية",
+  "a11yVideoCall": "بدء مكالمة فيديو",
+  "a11yVoiceCall": "بدء مكالمة صوتية",
+  "a11yMessageFrom": "رسالة من {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{رسالة واحدة غير مقروءة} other{{count} رسائل غير مقروءة}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "إظهار كلمة المرور",
+  "a11yHidePassword": "إخفاء كلمة المرور",
+  "a11yLoginButton": "تسجيل الدخول",
+  "a11ySignUpButton": "إنشاء حساب",
+  "a11yForgotPassword": "إعادة تعيين كلمة المرور",
+  "a11yResendCode": "إعادة إرسال رمز التحقق",
+  "a11yToggleSetting": "تبديل الإعداد",
+  "a11yLoading": "جارٍ التحميل",
+  "a11yRefreshing": "جارٍ التحديث",
+  "a11yErrorOccurred": "حدث خطأ",
+  "a11yRetry": "إعادة المحاولة",
+  "a11yDismiss": "تجاهل",
+  "a11yMoreOptions": "المزيد من الخيارات",
+  "a11yDelete": "حذف",
+  "a11yCancel": "إلغاء",
+  "a11yConfirm": "تأكيد",
+  "a11ySaveChanges": "حفظ التغييرات",
+  "a11yTapToView": "انقر مرتين للعرض",
+  "a11yTapToSelect": "انقر مرتين للتحديد",
+  "a11yTapToToggle": "انقر مرتين للتبديل",
+  "a11yTapToEdit": "انقر مرتين للتعديل",
+  "a11yTapToExpand": "انقر مرتين للتوسيع",
+  "a11yTapToCollapse": "انقر مرتين للطي",
+  "a11ySwipeToDelete": "اسحب يساراً للحذف",
+  "a11ySwipeForActions": "اسحب يساراً لمزيد من الإجراءات",
+  "a11yDragToReorder": "اضغط مطولاً واسحب لإعادة الترتيب",
+  "a11yPinchToZoom": "اقرص للتكبير",
+  "a11yLoadingPleaseWait": "جارٍ التحميل، يرجى الانتظار",
+  "a11yLoadingComplete": "اكتمل التحميل",
+  "a11yMatchFound": "تم التطابق! تطابقت مع {name}",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "رسالة جديدة من {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "تم الإعجاب بالملف الشخصي",
+  "a11yProfilePassed": "تم تمرير الملف الشخصي",
+  "a11yProfileSuperLiked": "تم السوبر لايك للملف الشخصي",
+  "a11yMessageSent": "تم إرسال الرسالة",
+  "a11ySettingSaved": "تم حفظ الإعداد",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "مرحباً بعودتك",
+  "authSignInToContinue": "سجل دخولك للمتابعة إلى Crush",
+  "authEmailOrUsername": "البريد الإلكتروني أو اسم المستخدم",
+  "authEmail": "البريد الإلكتروني",
+  "authPassword": "كلمة المرور",
+  "authCurrentPassword": "كلمة المرور الحالية",
+  "authNewPassword": "كلمة المرور الجديدة",
+  "authConfirmPassword": "تأكيد كلمة المرور",
+  "authForgotPassword": "نسيت كلمة المرور؟",
+  "authSignIn": "تسجيل الدخول",
+  "authSignUp": "إنشاء حساب",
+  "authSignOut": "تسجيل الخروج",
+  "authCreateAccount": "إنشاء حساب",
+  "authNoAccount": "ليس لديك حساب؟",
+  "authAlreadyHaveAccount": "لديك حساب بالفعل؟",
+  "authOrContinueWith": "أو تابع باستخدام",
+  "authPhone": "الهاتف",
+  "authPhoneNumber": "رقم الهاتف",
+  "authEnterCode": "أدخل الرمز",
+  "authVerificationCode": "رمز التحقق",
+  "authSendCode": "إرسال الرمز",
+  "authResendCode": "إعادة إرسال الرمز",
+  "authVerify": "تحقق",
+  "authVerifyEmail": "تحقق من البريد الإلكتروني",
+  "authVerifyPhone": "تحقق من الهاتف",
+  "authCheckEmail": "تحقق من بريدك الإلكتروني",
+  "authCheckPhone": "تحقق من هاتفك",
+  "authCodeSent": "تم إرسال الرمز",
+  "authCodeSentTo": "أرسلنا رمزاً إلى {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "أدخل الرمز المكون من 6 أرقام",
+  "authPasswordHint": "8 أحرف على الأقل",
+  "authResetPassword": "إعادة تعيين كلمة المرور",
+  "authChangePassword": "تغيير كلمة المرور",
+  "authPasswordChanged": "تم تغيير كلمة المرور بنجاح!",
+  "authAgreeToTerms": "بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية",
+  "authTermsOfService": "شروط الخدمة",
+  "authPrivacyPolicy": "سياسة الخصوصية",
+  "authDevLogin": "تسجيل دخول المطور",
+  "authUsePhoneInstead": "استخدم الهاتف بدلاً من ذلك",
+  "authUseEmailInstead": "استخدم البريد الإلكتروني بدلاً من ذلك",
+  "authEmailLink": "رابط البريد الإلكتروني",
+  "authEmailOtp": "رمز OTP عبر البريد",
+  "authEmailPassword": "البريد + كلمة المرور",
+  "authChooseSignInMethod": "اختر طريقة تسجيل الدخول",
+  "authSendLink": "إرسال الرابط",
+  "authAutoCheckingStatus": "جارٍ التحقق التلقائي من حالة التحقق...",
+  "authIveVerified": "لقد تحققت",
+  "authCheckYourEmail": "تحقق من بريدك الإلكتروني",
+  "authClickLinkToVerify": "انقر على الرابط الذي أرسلناه للتحقق من بريدك الإلكتروني",
+  "authEmailVerified": "تم التحقق من البريد الإلكتروني بنجاح!",
+  "authSkipForNow": "تخطي الآن",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "الإعدادات",
+  "settingsAppearance": "المظهر",
+  "settingsAppearanceSubtitle": "السمة وخيارات العرض",
+  "settingsTheme": "السمة",
+  "settingsThemeLight": "فاتح",
+  "settingsThemeDark": "داكن",
+  "settingsThemeSystem": "النظام",
+  "settingsNotifications": "الإشعارات",
+  "settingsNotificationsSubtitle": "إدارة التنبيهات",
+  "settingsPushNotifications": "الإشعارات الفورية",
+  "settingsEmailNotifications": "إشعارات البريد الإلكتروني",
+  "settingsSound": "الصوت",
+  "settingsVibration": "الاهتزاز",
+  "settingsLanguageRegion": "اللغة والمنطقة",
+  "settingsLanguageRegionSubtitle": "لغة التطبيق والموقع",
+  "settingsLanguage": "اللغة",
+  "settingsRegion": "المنطقة",
+  "settingsDetectRegion": "اكتشاف منطقتي",
+  "settingsDiscoveryFilters": "الاكتشاف والفلاتر",
+  "settingsDiscoveryFiltersSubtitle": "من تريد أن ترى",
+  "settingsAgeRange": "نطاق العمر",
+  "settingsDistance": "المسافة القصوى",
+  "settingsDistanceKm": "{distance} كم",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "أظهر لي",
+  "settingsShowMyDistance": "إظهار المسافة",
+  "settingsShowMyAge": "إظهار عمري",
+  "settingsDataStorage": "البيانات والتخزين",
+  "settingsDataStorageSubtitle": "ذاكرة التخزين المؤقت والتنزيلات",
+  "settingsCacheSize": "حجم ذاكرة التخزين المؤقت",
+  "settingsClearCache": "مسح ذاكرة التخزين المؤقت",
+  "settingsMediaDownloads": "تنزيلات الوسائط",
+  "settingsWifiOnly": "Wi-Fi فقط",
+  "settingsAccountSecurity": "أمان الحساب",
+  "settingsAccountSecuritySubtitle": "التحقق من البريد والهاتف",
+  "settingsAccountActions": "إجراءات الحساب",
+  "settingsAccountActionsSubtitle": "إدارة حسابك",
+  "settingsChangePassword": "تغيير كلمة المرور",
+  "settingsDeactivateAccount": "إلغاء تنشيط الحساب",
+  "settingsDeleteAccount": "حذف الحساب",
+  "settingsPrivacy": "الخصوصية",
+  "settingsPrivacySubtitle": "التحكم فيما يراه الآخرون",
+  "settingsHideFromDiscovery": "الإخفاء من الاكتشاف",
+  "settingsIncognitoMode": "وضع التصفح المتخفي",
+  "settingsAbout": "حول",
+  "settingsAboutSubtitle": "معلومات التطبيق والقانونية",
+  "settingsVersion": "الإصدار",
+  "settingsRateUs": "قيمنا",
+  "settingsHelp": "المساعدة والدعم",
+  "settingsContactUs": "اتصل بنا",
+  "settingsFeedback": "إرسال ملاحظات",
+  "settingsSubscription": "الاشتراك",
+  "settingsSubscriptionSubtitle": "إدارة خطتك",
+  "settingsGetPlus": "احصل على Crush Plus",
+  "settingsRestorePurchases": "استعادة المشتريات",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "اكتشف",
+  "discoveryNoMatchesTitle": "لا توجد تطابقات بعد",
+  "discoveryNoMatchesMessage": "استمر في السحب لإيجاد تطابقك المثالي!",
+  "discoveryStartSwiping": "ابدأ السحب",
+  "discoveryAdjustFilters": "ضبط الفلاتر",
+  "discoveryAllCaughtUp": "لقد رأيت الجميع!",
+  "discoveryNoMorePeople": "لا يوجد المزيد من الأشخاص القريبين الآن.\nعد قريباً أو وسع نطاق بحثك.",
+  "discoveryViewFullProfile": "عرض الملف الشخصي الكامل",
+  "discoveryReportProfile": "الإبلاغ عن الملف الشخصي",
+  "discoveryBlockProfile": "حظر وإخفاء الملف الشخصي",
+  "discoveryUnmatch": "إلغاء التطابق",
+  "discoveryLike": "إعجاب",
+  "discoveryPass": "تمرير",
+  "discoverySuperLike": "سوبر لايك",
+  "discoveryRewind": "تراجع",
+  "discoveryBoost": "تعزيز",
+  "discoveryItsAMatch": "تم التطابق!",
+  "discoveryMatchMessage": "أنت و{name} أعجبتما ببعضكما",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "إرسال رسالة",
+  "discoveryKeepSwiping": "استمر في السحب",
+  "discoveryWeeklyPicks": "اختيارات الأسبوع",
+  "discoveryLikesYou": "معجب بك",
+  "discoveryTopPicks": "أفضل الاختيارات",
+  "discoveryNewArrivals": "الوافدون الجدد",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "المحادثات",
+  "chatMatches": "التطابقات",
+  "chatMessages": "الرسائل",
+  "chatNoMatches": "لا توجد تطابقات بعد",
+  "chatNoMatchesMessage": "عندما تتطابق مع شخص ما، سيظهر هنا",
+  "chatNoMessages": "لا توجد رسائل بعد",
+  "chatNoMessagesMessage": "ابدأ محادثة مع أحد تطابقاتك",
+  "chatSayHello": "قل مرحباً!",
+  "chatStartConversation": "ابدأ محادثة مع {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "اكتب رسالة...",
+  "chatSend": "إرسال",
+  "chatToday": "اليوم",
+  "chatYesterday": "أمس",
+  "chatOnline": "متصل",
+  "chatLastSeen": "آخر ظهور {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "يكتب...",
+  "chatDelivered": "تم التسليم",
+  "chatRead": "مقروءة",
+  "chatDeleteMessage": "حذف الرسالة",
+  "chatDeleteForMe": "حذف لي",
+  "chatDeleteForEveryone": "حذف للجميع",
+  "chatCopyMessage": "نسخ",
+  "chatReply": "رد",
+  "chatNewMatch": "تطابق جديد!",
+  "chatMatchedWith": "تطابقت مع {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "الملف الشخصي",
+  "profileEdit": "تعديل الملف الشخصي",
+  "profileComplete": "أكمل ملفك الشخصي",
+  "profileBasicInfo": "المعلومات الأساسية",
+  "profileName": "الاسم",
+  "profileAge": "العمر",
+  "profileBirthday": "تاريخ الميلاد",
+  "profileGender": "الجنس",
+  "profileSexualOrientation": "التوجه الجنسي",
+  "profileBio": "نبذة",
+  "profileBioHint": "أخبر الآخرين عن نفسك...",
+  "profilePhotos": "الصور",
+  "profileAddPhoto": "إضافة صورة",
+  "profileAddVideo": "إضافة فيديو",
+  "profileMakeMain": "جعلها الصورة الرئيسية",
+  "profileInterests": "الاهتمامات",
+  "profileAddInterests": "إضافة اهتمامات",
+  "profileLocation": "الموقع",
+  "profileCity": "المدينة",
+  "profileCountry": "البلد",
+  "profileLivingIn": "يعيش في",
+  "profileJobTitle": "المسمى الوظيفي",
+  "profileCompany": "الشركة",
+  "profileSchool": "المدرسة",
+  "profileHeight": "الطول",
+  "profileHeightCm": "{height} سم",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "اللغات",
+  "profileZodiacSign": "البرج",
+  "profileEducation": "التعليم",
+  "profileReligion": "الديانة",
+  "profileRelationshipGoals": "أهداف العلاقة",
+  "profileFamilyPlans": "خطط الأسرة",
+  "profilePersonalityType": "نوع الشخصية",
+  "profileWorkout": "التمارين",
+  "profileSmoking": "التدخين",
+  "profileDrinking": "الشرب",
+  "profilePets": "الحيوانات الأليفة",
+  "profileVerified": "موثق",
+  "profileGetVerified": "احصل على التوثيق",
+  "profileVerificationPending": "التوثيق قيد الانتظار",
+  "profilePreview": "معاينة الملف الشخصي",
+  "profileSaved": "تم حفظ الملف الشخصي بنجاح!",
+  "profilePrompts": "الأسئلة",
+  "profileAddPrompt": "إضافة سؤال",
+  "profileAboutMe": "عني",
+  "profileMyDetails": "تفاصيلي",
+  "profileLifestyle": "نمط الحياة",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "مرحباً بك في Crush",
+  "onboardingTagline": "اعثر على تطابقك المثالي",
+  "onboardingGetStarted": "ابدأ الآن",
+  "onboardingStep": "الخطوة {current} من {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "ما اسمك؟",
+  "onboardingWhenBirthday": "متى عيد ميلادك؟",
+  "onboardingSelectGender": "اختر جنسك",
+  "onboardingAddPhotos": "أضف أفضل صورك",
+  "onboardingPhotosHint": "أضف صورتين على الأقل للمتابعة",
+  "onboardingWriteBio": "اكتب شيئاً عن نفسك",
+  "onboardingSelectInterests": "اختر اهتماماتك",
+  "onboardingInterestsHint": "اختر 3 اهتمامات على الأقل",
+  "onboardingAllSet": "أنت جاهز!",
+  "onboardingStartSwiping": "ابدأ السحب",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "مجاني",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "احصل على Crush Plus",
+  "subscriptionUpgrade": "ترقية",
+  "subscriptionRestore": "استعادة المشتريات",
+  "subscriptionUnlimitedLikes": "إعجابات غير محدودة",
+  "subscriptionUnlimitedRewinds": "تراجعات غير محدودة",
+  "subscriptionSeeWhoLikesYou": "شاهد من أعجب بك",
+  "subscriptionBoostsPerMonth": "{count} تعزيزات شهرياً",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} سوبر لايك يومياً",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "بدون إعلانات",
+  "subscriptionPrioritySupport": "دعم ذو أولوية",
+  "subscriptionPerMonth": "{price}/شهرياً",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/سنوياً",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "أفضل قيمة",
+  "subscriptionMostPopular": "الأكثر شعبية",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "الإبلاغ عن المستخدم",
+  "safetyBlockUser": "حظر المستخدم",
+  "safetyUnblockUser": "إلغاء حظر المستخدم",
+  "safetyReportReason": "لماذا تبلغ؟",
+  "safetyBlockConfirm": "حظر {name}؟",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "لن يتمكنوا من رؤية ملفك الشخصي أو مراسلتك",
+  "safetyReported": "تم إرسال البلاغ",
+  "safetyBlocked": "تم حظر المستخدم",
+  "safetyUnblocked": "تم إلغاء حظر المستخدم",
+  "safetyFakeProfile": "ملف شخصي مزيف",
+  "safetyInappropriateContent": "محتوى غير لائق",
+  "safetyHarassment": "تحرش",
+  "safetySpam": "رسائل مزعجة",
+  "safetyScam": "احتيال",
+  "safetyOther": "أخرى",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "الآن",
+  "timeMinutesAgo": "{count, plural, =1{منذ دقيقة} other{منذ {count} دقائق}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{منذ ساعة} other{منذ {count} ساعات}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{منذ يوم} other{منذ {count} أيام}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{منذ أسبوع} other{منذ {count} أسابيع}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "لم يتم العثور على نتائج",
+  "emptyTryAgain": "حاول تعديل البحث أو الفلاتر",
+  "emptyNoData": "لا توجد بيانات متاحة",
+  "emptyCheckBackLater": "عد لاحقاً"
+}

@@ -480,6 +480,16 @@ class StubAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL EXISTENCE CHECK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<bool> isEmailRegistered(String email) async {
+    final existingUser = await _getUserByEmail(email);
+    return existingUser != null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 

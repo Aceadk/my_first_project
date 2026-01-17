@@ -456,6 +456,18 @@ class HttpAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // EMAIL EXISTENCE CHECK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<bool> isEmailRegistered(String email) async {
+    // HTTP API doesn't have a dedicated check endpoint.
+    // The signup endpoint will return an error if email already exists.
+    // Return false to allow the signup flow to proceed and handle the error.
+    return false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // TOKEN MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
 

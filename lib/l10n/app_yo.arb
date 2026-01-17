@@ -1,0 +1,568 @@
+{
+  "@@locale": "yo",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "Fagilee",
+  "commonSave": "Fipamọ",
+  "commonRetry": "Tun gbiyanju",
+  "commonDone": "Ti pari",
+  "commonLoading": "N gbero",
+  "commonError": "Aṣiṣe",
+  "commonSuccess": "Aṣeyọri",
+  "commonOk": "O dara",
+  "commonNext": "Tẹle",
+  "commonBack": "Pada",
+  "commonClose": "Pa",
+  "commonDelete": "Pa rẹ",
+  "commonEdit": "Ṣatunkọ",
+  "commonSearch": "Ṣawari",
+  "commonSettings": "Eto",
+  "commonContinue": "Tẹsiwaju",
+  "commonSkip": "Fo",
+  "commonConfirm": "Jẹrisi",
+  "commonYes": "Bẹẹni",
+  "commonNo": "Rara",
+  "commonOn": "Ṣiṣẹ",
+  "commonOff": "Pa",
+  "commonMore": "Diẹ sii",
+  "commonLess": "Diẹ",
+  "commonAll": "Gbogbo",
+  "commonNone": "Ko si",
+  "commonRefresh": "Tun ṣe",
+  "commonSubmit": "Fi silẹ",
+  "commonSend": "Firanṣẹ",
+  "commonApply": "Lo",
+  "commonClear": "Pa aaye",
+  "commonReset": "Tun bẹrẹ",
+  "commonUpdate": "Ṣe imudojuiwọn",
+  "commonRemove": "Yọ kuro",
+  "commonAdd": "Fi kun",
+  "commonView": "Wo",
+  "commonShare": "Pin",
+  "commonReport": "Jabo",
+  "commonBlock": "Di lọwọ",
+  "commonUnblock": "Tu silẹ",
+  "commonMute": "Pa ohun",
+  "commonUnmute": "Mu ohun ṣiṣẹ",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "Nkan kan ṣe aṣiṣe. Jọwọ tun gbiyanju.",
+  "errorNetwork": "Aṣiṣe asopọ. Ṣayẹwo intanẹẹti rẹ ki o tun gbiyanju.",
+  "errorTimeout": "Akoko ibeere pari. Jọwọ tun gbiyanju.",
+  "errorServer": "Aṣiṣe olupin. Jọwọ tun gbiyanju nigbamii.",
+  "errorUnauthorized": "Igba ti pari. Jọwọ wọle lẹẹkansi.",
+  "errorNotFound": "Ohun ti o beere ko ri.",
+  "errorOffline": "Ko si asopọ intanẹẹti. Ṣayẹwo asopọ rẹ ki o tun gbiyanju.",
+  "errorLoginFailed": "Ko le wọle. Jọwọ ṣayẹwo awọn alaye rẹ.",
+  "errorSignUpFailed": "Ko le ṣẹda akọọlẹ. Jọwọ tun gbiyanju.",
+  "errorLogoutFailed": "Ko le jade. Jọwọ tun gbiyanju.",
+  "errorInvalidCredentials": "Imeeli tabi ọrọ igbaniwọle ti ko tọ.",
+  "errorEmailInUse": "Imeeli yii ti forukọsilẹ tẹlẹ.",
+  "errorWeakPassword": "Ọrọ igbaniwọle ko lagbara to. Lo o kere ju awọn ohun kikọ 8.",
+  "errorInvalidEmail": "Jọwọ tẹ adirẹsi imeeli to tọ.",
+  "errorSendCodeFailed": "Ko le fi koodu ranṣẹ. Jọwọ tun gbiyanju.",
+  "errorInvalidCode": "Koodu ti ko tọ tabi ti pari. Jọwọ tun gbiyanju.",
+  "errorVerificationFailed": "Ijẹrisi kuna. Jọwọ tun gbiyanju.",
+  "errorLoadProfileFailed": "Ko le gbe profaili. Jọwọ tun gbiyanju.",
+  "errorSaveProfileFailed": "Ko le fi profaili pamọ. Jọwọ tun gbiyanju.",
+  "errorUploadPhotoFailed": "Ko le gbe aworan soke. Jọwọ tun gbiyanju.",
+  "errorDeletePhotoFailed": "Ko le pa aworan. Jọwọ tun gbiyanju.",
+  "errorUpdateLocationFailed": "Ko le ṣe imudojuiwọn ipo. Jọwọ tun gbiyanju.",
+  "errorUploadIdFailed": "Ko le gbe ID soke. Jọwọ tun gbiyanju.",
+  "errorLoadDeckFailed": "Ko le gbe awọn profaili. Jọwọ tun gbiyanju.",
+  "errorSwipeFailed": "Ko le ṣe iṣẹ swipe. Jọwọ tun gbiyanju.",
+  "errorLikeFailed": "Ko le fẹran profaili. Jọwọ tun gbiyanju.",
+  "errorPassFailed": "Ko le kọja profaili. Jọwọ tun gbiyanju.",
+  "errorSuperLikeFailed": "Ko le super like. Jọwọ tun gbiyanju.",
+  "errorRewindFailed": "Ko le pada sẹyin. Jọwọ tun gbiyanju.",
+  "errorNoSwipeToUndo": "Ko si swipe lati fagilee.",
+  "errorFreeUndoUsed": "O ti lo undo ọfẹ rẹ loni. Gbe soke si Plus fun undo ailopin!",
+  "errorRewindPremiumOnly": "Rewind jẹ ẹya Plus. Gbe soke lati fagilee awọn swipe!",
+  "errorLoadChatsFailed": "Ko le gbe awọn ifọrọwanilẹnuwo. Jọwọ tun gbiyanju.",
+  "errorLoadMessagesFailed": "Ko le gbe awọn ifiranṣẹ. Jọwọ tun gbiyanju.",
+  "errorSendMessageFailed": "Ko le fi ifiranṣẹ ranṣẹ. Jọwọ tun gbiyanju.",
+  "errorDeleteMessageFailed": "Ko le pa ifiranṣẹ. Jọwọ tun gbiyanju.",
+  "errorLoadMatchesFailed": "Ko le gbe awọn ibamu. Jọwọ tun gbiyanju.",
+  "errorUnmatchFailed": "Ko le yọ ibamu kuro. Jọwọ tun gbiyanju.",
+  "errorCheckoutFailed": "Ko le bẹrẹ isanwo. Jọwọ tun gbiyanju.",
+  "errorLoadSubscriptionFailed": "Ko le gbe alabapin. Jọwọ tun gbiyanju.",
+  "errorRestorePurchasesFailed": "Ko le mu awọn rira pada. Jọwọ tun gbiyanju.",
+  "errorReportFailed": "Ko le fi ijabọ silẹ. Jọwọ tun gbiyanju.",
+  "errorBlockFailed": "Ko le di olumulo lọwọ. Jọwọ tun gbiyanju.",
+  "errorUnblockFailed": "Ko le tu olumulo silẹ. Jọwọ tun gbiyanju.",
+  "errorLoadInsightsFailed": "Ko le gbe awọn oye. Jọwọ tun gbiyanju.",
+  "errorLocationDisabled": "Awọn iṣẹ ipo ti pa. Jọwọ mu ṣiṣẹ ni Awọn eto.",
+  "errorLocationPermissionDenied": "Igbanilaaye ipo ti kọ. Jọwọ gba laaye ni Awọn eto.",
+  "errorLocationTimeout": "Akoko ibeere ipo pari. Rii daju pe o ni ifihan GPS ki o tun gbiyanju.",
+  "errorMediaLoadFailed": "Ko le gbe media. Jọwọ tun gbiyanju.",
+  "errorMediaUploadFailed": "Ko le gbe media soke. Jọwọ tun gbiyanju.",
+  "errorCouldNot": "Ko le {action}. Jọwọ tun gbiyanju.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} jẹ ẹya Plus. Gbe soke lati ṣii!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "Pada sẹyin",
+  "a11yCloseButton": "Pa",
+  "a11yMenuButton": "Ṣii akojọ aṣayan",
+  "a11ySettingsButton": "Ṣii awọn eto",
+  "a11ySearchButton": "Ṣawari",
+  "a11yFilterButton": "Ṣii awọn asẹ",
+  "a11yPassButton": "Kọja profaili yii",
+  "a11yLikeButton": "Fẹran profaili yii",
+  "a11ySuperLikeButton": "Super like profaili yii",
+  "a11yRewindButton": "Fagilee iṣẹ ikẹhin",
+  "a11yBoostButton": "Gbe profaili rẹ ga",
+  "a11yProfilePhoto": "Aworan profaili",
+  "a11yProfilePhotoOf": "Aworan profaili ti {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Avatar olumulo",
+  "a11yAvatarOf": "Avatar ti {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Ṣatunkọ profaili",
+  "a11yViewProfile": "Wo profaili",
+  "a11yVerifiedBadge": "Profaili ti jẹrisi",
+  "a11yOnlineNow": "Lori ayelujara bayi",
+  "a11yOffline": "Ko si lori ayelujara",
+  "a11ySendMessage": "Fi ifiranṣẹ ranṣẹ",
+  "a11yAttachPhoto": "So aworan mọ",
+  "a11yAttachFile": "So faili mọ",
+  "a11yVoiceMessage": "Gba ifiranṣẹ ohun silẹ",
+  "a11yVideoCall": "Bẹrẹ ipe fidio",
+  "a11yVoiceCall": "Bẹrẹ ipe ohun",
+  "a11yMessageFrom": "Ifiranṣẹ lati ọdọ {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 ifiranṣẹ ti ko ka} other{{count} awọn ifiranṣẹ ti ko ka}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Fi ọrọ igbaniwọle han",
+  "a11yHidePassword": "Tọju ọrọ igbaniwọle",
+  "a11yLoginButton": "Wọle",
+  "a11ySignUpButton": "Ṣẹda akọọlẹ",
+  "a11yForgotPassword": "Tun ọrọ igbaniwọle ṣeto",
+  "a11yResendCode": "Tun fi koodu ijẹrisi ranṣẹ",
+  "a11yToggleSetting": "Yi eto pada",
+  "a11yLoading": "N gbero",
+  "a11yRefreshing": "N tun ṣe",
+  "a11yErrorOccurred": "Aṣiṣe ti ṣẹlẹ",
+  "a11yRetry": "Tun gbiyanju",
+  "a11yDismiss": "Kọ silẹ",
+  "a11yMoreOptions": "Awọn aṣayan diẹ sii",
+  "a11yDelete": "Pa rẹ",
+  "a11yCancel": "Fagilee",
+  "a11yConfirm": "Jẹrisi",
+  "a11ySaveChanges": "Fi awọn ayipada pamọ",
+  "a11yTapToView": "Tẹ lẹẹmeji lati wo",
+  "a11yTapToSelect": "Tẹ lẹẹmeji lati yan",
+  "a11yTapToToggle": "Tẹ lẹẹmeji lati yi pada",
+  "a11yTapToEdit": "Tẹ lẹẹmeji lati ṣatunkọ",
+  "a11yTapToExpand": "Tẹ lẹẹmeji lati tan",
+  "a11yTapToCollapse": "Tẹ lẹẹmeji lati kuru",
+  "a11ySwipeToDelete": "Swipe si osi lati pa",
+  "a11ySwipeForActions": "Swipe si osi fun awọn iṣẹ diẹ sii",
+  "a11yDragToReorder": "Tẹ pẹ ki o fa lati tun to",
+  "a11yPinchToZoom": "Pinch lati zoom",
+  "a11yLoadingPleaseWait": "N gbero, jọwọ duro",
+  "a11yLoadingComplete": "Gbigbe ti pari",
+  "a11yMatchFound": "Ibamu! O ba {name} mu",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "Ifiranṣẹ tuntun lati ọdọ {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Profaili ti fẹran",
+  "a11yProfilePassed": "Profaili ti kọja",
+  "a11yProfileSuperLiked": "Profaili ti super like",
+  "a11yMessageSent": "Ifiranṣẹ ti ranṣẹ",
+  "a11ySettingSaved": "Eto ti fipamọ",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "Ẹ kaabo pada",
+  "authSignInToContinue": "Wọle lati tẹsiwaju si Crush",
+  "authEmailOrUsername": "Imeeli tabi orukọ olumulo",
+  "authEmail": "Imeeli",
+  "authPassword": "Ọrọ igbaniwọle",
+  "authCurrentPassword": "Ọrọ igbaniwọle lọwọlọwọ",
+  "authNewPassword": "Ọrọ igbaniwọle tuntun",
+  "authConfirmPassword": "Jẹrisi ọrọ igbaniwọle",
+  "authForgotPassword": "Gbagbe ọrọ igbaniwọle?",
+  "authSignIn": "Wọle",
+  "authSignUp": "Forukọsilẹ",
+  "authSignOut": "Jade",
+  "authCreateAccount": "Ṣẹda akọọlẹ",
+  "authNoAccount": "Ko ni akọọlẹ?",
+  "authAlreadyHaveAccount": "Ni akọọlẹ tẹlẹ?",
+  "authOrContinueWith": "tabi tẹsiwaju pẹlu",
+  "authPhone": "Foonu",
+  "authPhoneNumber": "Nọmba foonu",
+  "authEnterCode": "Tẹ koodu sii",
+  "authVerificationCode": "Koodu ijẹrisi",
+  "authSendCode": "Fi koodu ranṣẹ",
+  "authResendCode": "Tun fi koodu ranṣẹ",
+  "authVerify": "Jẹrisi",
+  "authVerifyEmail": "Jẹrisi imeeli",
+  "authVerifyPhone": "Jẹrisi foonu",
+  "authCheckEmail": "Ṣayẹwo imeeli rẹ",
+  "authCheckPhone": "Ṣayẹwo foonu rẹ",
+  "authCodeSent": "Koodu ti ranṣẹ",
+  "authCodeSentTo": "A fi koodu ranṣẹ si {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "Tẹ koodu nọmba 6 sii",
+  "authPasswordHint": "O kere ju awọn ohun kikọ 8",
+  "authResetPassword": "Tun ọrọ igbaniwọle ṣeto",
+  "authChangePassword": "Yi ọrọ igbaniwọle pada",
+  "authPasswordChanged": "Ọrọ igbaniwọle ti yipada ni aṣeyọri!",
+  "authAgreeToTerms": "Nipa titẹsiwaju, o gba Awọn ofin Iṣẹ ati Ilana Aṣiri wa",
+  "authTermsOfService": "Awọn ofin Iṣẹ",
+  "authPrivacyPolicy": "Ilana Aṣiri",
+  "authDevLogin": "Wọle Olupilẹṣẹ",
+  "authUsePhoneInstead": "Lo foonu dipo",
+  "authUseEmailInstead": "Lo imeeli dipo",
+  "authEmailLink": "Ọna asopọ imeeli",
+  "authEmailOtp": "OTP Imeeli",
+  "authEmailPassword": "Imeeli + ọrọ igbaniwọle",
+  "authChooseSignInMethod": "Yan ọna wiwọle",
+  "authSendLink": "Fi ọna asopọ ranṣẹ",
+  "authAutoCheckingStatus": "N ṣayẹwo ipo ijẹrisi laifọwọyi...",
+  "authIveVerified": "Mo ti jẹrisi",
+  "authCheckYourEmail": "Ṣayẹwo imeeli rẹ",
+  "authClickLinkToVerify": "Tẹ ọna asopọ ti a fi ranṣẹ lati jẹrisi imeeli rẹ",
+  "authEmailVerified": "Imeeli ti jẹrisi ni aṣeyọri!",
+  "authSkipForNow": "Fo fun bayi",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "Awọn Eto",
+  "settingsAppearance": "Irisi",
+  "settingsAppearanceSubtitle": "Akọle ati awọn aṣayan ifihan",
+  "settingsTheme": "Akọle",
+  "settingsThemeLight": "Imọlẹ",
+  "settingsThemeDark": "Ṣokunkun",
+  "settingsThemeSystem": "Eto",
+  "settingsNotifications": "Awọn iwifunni",
+  "settingsNotificationsSubtitle": "Ṣakoso awọn ìkìlọ rẹ",
+  "settingsPushNotifications": "Awọn iwifunni push",
+  "settingsEmailNotifications": "Awọn iwifunni imeeli",
+  "settingsSound": "Ohun",
+  "settingsVibration": "Gbigbọn",
+  "settingsLanguageRegion": "Ede & Ekun",
+  "settingsLanguageRegionSubtitle": "Ede app ati ipo",
+  "settingsLanguage": "Ede",
+  "settingsRegion": "Ekun",
+  "settingsDetectRegion": "Wa ekun mi",
+  "settingsDiscoveryFilters": "Iṣawari & Awọn asẹ",
+  "settingsDiscoveryFiltersSubtitle": "Tani o fẹ lati ri",
+  "settingsAgeRange": "Ipin ọjọ ori",
+  "settingsDistance": "Ijinna ti o pọju",
+  "settingsDistanceKm": "{distance} km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Fi mi han",
+  "settingsShowMyDistance": "Fi ijinna mi han",
+  "settingsShowMyAge": "Fi ọjọ ori mi han",
+  "settingsDataStorage": "Data & Ibi ipamọ",
+  "settingsDataStorageSubtitle": "Cache ati awọn igbasilẹ",
+  "settingsCacheSize": "Iwọn cache",
+  "settingsClearCache": "Pa cache",
+  "settingsMediaDownloads": "Awọn igbasilẹ media",
+  "settingsWifiOnly": "Wi-Fi nikan",
+  "settingsAccountSecurity": "Aabo Akọọlẹ",
+  "settingsAccountSecuritySubtitle": "Ijẹrisi imeeli ati foonu",
+  "settingsAccountActions": "Awọn Iṣẹ Akọọlẹ",
+  "settingsAccountActionsSubtitle": "Ṣakoso akọọlẹ rẹ",
+  "settingsChangePassword": "Yi ọrọ igbaniwọle pada",
+  "settingsDeactivateAccount": "Pa akọọlẹ mọ",
+  "settingsDeleteAccount": "Pa akọọlẹ rẹ",
+  "settingsPrivacy": "Aṣiri",
+  "settingsPrivacySubtitle": "Ṣakoso ohun ti awọn miiran le ri",
+  "settingsHideFromDiscovery": "Tọju kuro ni iṣawari",
+  "settingsIncognitoMode": "Ipo aṣiri",
+  "settingsAbout": "Nipa",
+  "settingsAboutSubtitle": "Alaye app ati ofin",
+  "settingsVersion": "Ẹya",
+  "settingsRateUs": "Fun wa ni ipo",
+  "settingsHelp": "Iranlọwọ & Atilẹyin",
+  "settingsContactUs": "Kan si wa",
+  "settingsFeedback": "Fi idahun ranṣẹ",
+  "settingsSubscription": "Alabapin",
+  "settingsSubscriptionSubtitle": "Ṣakoso ero rẹ",
+  "settingsGetPlus": "Gba Crush Plus",
+  "settingsRestorePurchases": "Mu awọn rira pada",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "Ṣawari",
+  "discoveryNoMatchesTitle": "Ko si awọn ibamu sibẹsibẹ",
+  "discoveryNoMatchesMessage": "Tẹsiwaju swipe lati wa ibamu pipe rẹ!",
+  "discoveryStartSwiping": "Bẹrẹ swipe",
+  "discoveryAdjustFilters": "Ṣatunṣe awọn asẹ",
+  "discoveryAllCaughtUp": "O ti wo gbogbo!",
+  "discoveryNoMorePeople": "Ko si eniyan diẹ sii nitosi ni bayi.\nṢayẹwo pada laipẹ tabi tan iṣawari rẹ.",
+  "discoveryViewFullProfile": "Wo profaili kikun",
+  "discoveryReportProfile": "Jabo profaili",
+  "discoveryBlockProfile": "Di & tọju profaili",
+  "discoveryUnmatch": "Yọ ibamu kuro",
+  "discoveryLike": "Fẹran",
+  "discoveryPass": "Kọja",
+  "discoverySuperLike": "Super Like",
+  "discoveryRewind": "Pada sẹyin",
+  "discoveryBoost": "Gbe ga",
+  "discoveryItsAMatch": "O jẹ Ibamu!",
+  "discoveryMatchMessage": "Iwọ ati {name} fẹran ara yin",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Fi Ifiranṣẹ ranṣẹ",
+  "discoveryKeepSwiping": "Tẹsiwaju Swipe",
+  "discoveryWeeklyPicks": "Awọn Yiyan Ọsẹ",
+  "discoveryLikesYou": "Fẹran Ọ",
+  "discoveryTopPicks": "Awọn Yiyan Oke",
+  "discoveryNewArrivals": "Awọn Tuntun",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "Awọn Ifọrọwanilẹnuwo",
+  "chatMatches": "Awọn Ibamu",
+  "chatMessages": "Awọn Ifiranṣẹ",
+  "chatNoMatches": "Ko si awọn ibamu sibẹsibẹ",
+  "chatNoMatchesMessage": "Nigbati o ba ṣe ibamu pẹlu ẹnikan, wọn yoo han nibi",
+  "chatNoMessages": "Ko si awọn ifiranṣẹ sibẹsibẹ",
+  "chatNoMessagesMessage": "Bẹrẹ ifọrọwanilẹnuwo pẹlu ọkan ninu awọn ibamu rẹ",
+  "chatSayHello": "Ki ni!",
+  "chatStartConversation": "Bẹrẹ ifọrọwanilẹnuwo pẹlu {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Tẹ ifiranṣẹ kan...",
+  "chatSend": "Firanṣẹ",
+  "chatToday": "Loni",
+  "chatYesterday": "Lana",
+  "chatOnline": "Lori ayelujara",
+  "chatLastSeen": "Ri kẹhin {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "n tẹ...",
+  "chatDelivered": "Ti fi jiṣẹ",
+  "chatRead": "Ti ka",
+  "chatDeleteMessage": "Pa ifiranṣẹ",
+  "chatDeleteForMe": "Pa fun mi",
+  "chatDeleteForEveryone": "Pa fun gbogbo eniyan",
+  "chatCopyMessage": "Daakọ",
+  "chatReply": "Dahun",
+  "chatNewMatch": "Ibamu tuntun!",
+  "chatMatchedWith": "O ṣe ibamu pẹlu {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "Profaili",
+  "profileEdit": "Ṣatunkọ Profaili",
+  "profileComplete": "Pari Profaili Rẹ",
+  "profileBasicInfo": "Alaye Ipilẹ",
+  "profileName": "Orukọ",
+  "profileAge": "Ọjọ ori",
+  "profileBirthday": "Ọjọ ibi",
+  "profileGender": "Akọ tabi abo",
+  "profileSexualOrientation": "Ipo ibalopo",
+  "profileBio": "Bio",
+  "profileBioHint": "Sọ fun awọn miiran nipa ara rẹ...",
+  "profilePhotos": "Awọn aworan",
+  "profileAddPhoto": "Fi aworan kun",
+  "profileAddVideo": "Fi fidio kun",
+  "profileMakeMain": "Ṣe aworan akọkọ",
+  "profileInterests": "Awọn anfani",
+  "profileAddInterests": "Fi awọn anfani kun",
+  "profileLocation": "Ipo",
+  "profileCity": "Ilu",
+  "profileCountry": "Orile-ede",
+  "profileLivingIn": "Ngbe ni",
+  "profileJobTitle": "Akọle iṣẹ",
+  "profileCompany": "Ile-iṣẹ",
+  "profileSchool": "Ile-iwe",
+  "profileHeight": "Giga",
+  "profileHeightCm": "{height} cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Awọn ede",
+  "profileZodiacSign": "Ami zodiac",
+  "profileEducation": "Ẹkọ",
+  "profileReligion": "Esin",
+  "profileRelationshipGoals": "Awọn ibi-afẹde ibatan",
+  "profileFamilyPlans": "Awọn ero idile",
+  "profilePersonalityType": "Iru eniyan",
+  "profileWorkout": "Idaraya",
+  "profileSmoking": "Mimu siga",
+  "profileDrinking": "Mimu ọti",
+  "profilePets": "Awọn ohun ọsin",
+  "profileVerified": "Ti jẹrisi",
+  "profileGetVerified": "Gba ijẹrisi",
+  "profileVerificationPending": "Ijẹrisi n duro",
+  "profilePreview": "Ṣajọwe profaili",
+  "profileSaved": "Profaili ti fipamọ ni aṣeyọri!",
+  "profilePrompts": "Awọn Ọrọ",
+  "profileAddPrompt": "Fi ọrọ kun",
+  "profileAboutMe": "Nipa Mi",
+  "profileMyDetails": "Awọn Alaye Mi",
+  "profileLifestyle": "Igbesi aye",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Ẹ kaabo si Crush",
+  "onboardingTagline": "Wa ibamu pipe rẹ",
+  "onboardingGetStarted": "Bẹrẹ",
+  "onboardingStep": "Igbesẹ {current} ti {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "Kini orukọ rẹ?",
+  "onboardingWhenBirthday": "Nigbawo ni ọjọ ibi rẹ?",
+  "onboardingSelectGender": "Yan akọ tabi abo rẹ",
+  "onboardingAddPhotos": "Fi awọn aworan rẹ to dara julọ kun",
+  "onboardingPhotosHint": "Fi o kere ju awọn aworan 2 kun lati tẹsiwaju",
+  "onboardingWriteBio": "Kọ nkan nipa ara rẹ",
+  "onboardingSelectInterests": "Yan awọn anfani rẹ",
+  "onboardingInterestsHint": "Yan o kere ju awọn anfani 3",
+  "onboardingAllSet": "O ti ṣetan!",
+  "onboardingStartSwiping": "Bẹrẹ swipe",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "Ọfẹ",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Gba Crush Plus",
+  "subscriptionUpgrade": "Gbe soke",
+  "subscriptionRestore": "Mu awọn rira pada",
+  "subscriptionUnlimitedLikes": "Awọn fẹran ailopin",
+  "subscriptionUnlimitedRewinds": "Awọn pada sẹyin ailopin",
+  "subscriptionSeeWhoLikesYou": "Wo ẹni ti o fẹran ọ",
+  "subscriptionBoostsPerMonth": "{count} awọn boost lọsọọsẹ",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} super likes lojoojumọ",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Ko si ipolowo",
+  "subscriptionPrioritySupport": "Atilẹyin pataki",
+  "subscriptionPerMonth": "{price}/oṣu",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/ọdun",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "Iye ti o dara julọ",
+  "subscriptionMostPopular": "Gbajumọ julọ",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "Jabo olumulo",
+  "safetyBlockUser": "Di olumulo lọwọ",
+  "safetyUnblockUser": "Tu olumulo silẹ",
+  "safetyReportReason": "Kini idi ti o fi n jabo?",
+  "safetyBlockConfirm": "Di {name} lọwọ?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Wọn ko le ri profaili rẹ tabi fi ifiranṣẹ ranṣẹ si ọ",
+  "safetyReported": "Ijabọ ti fi silẹ",
+  "safetyBlocked": "Olumulo ti di lọwọ",
+  "safetyUnblocked": "Olumulo ti tu silẹ",
+  "safetyFakeProfile": "Profaili eke",
+  "safetyInappropriateContent": "Akoonu ti ko yẹ",
+  "safetyHarassment": "Ipọnju",
+  "safetySpam": "Spam",
+  "safetyScam": "Ẹtan",
+  "safetyOther": "Miiran",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "Ṣẹṣẹ",
+  "timeMinutesAgo": "{count, plural, =1{1 iṣẹju sẹyin} other{{count} iṣẹju sẹyin}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 wakati sẹyin} other{{count} wakati sẹyin}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 ọjọ sẹyin} other{{count} ọjọ sẹyin}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 ọsẹ sẹyin} other{{count} ọsẹ sẹyin}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "Ko si awọn abajade ti o ri",
+  "emptyTryAgain": "Gbiyanju lati ṣatunṣe wiwa tabi awọn asẹ rẹ",
+  "emptyNoData": "Ko si data ti o wa",
+  "emptyCheckBackLater": "Ṣayẹwo pada nigbamii"
+}

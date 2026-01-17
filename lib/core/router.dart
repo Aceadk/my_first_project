@@ -46,6 +46,7 @@ import 'package:crushhour/features/social/presentation/screens/compatibility_qui
 import 'package:crushhour/features/analytics/presentation/screens/profile_insights_screen.dart';
 import '../presentation/screens/privacy_policy_screen.dart';
 import '../presentation/screens/terms_of_service_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -66,6 +67,7 @@ class CrushRoutes {
   static const basicInfo = '/basic-info';
   static const idVerification = '/id-verification';
   static const profileSetup = '/profile-setup';
+  static const termsConditions = '/terms-conditions';
   static const home = '/home';
   static const chat = '/chat';
   static const logout = '/logout';
@@ -111,9 +113,14 @@ GoRouter createRouter(AuthBloc authBloc) {
       final isAuthRoute = path.startsWith(CrushRoutes.authGateway);
       final isSplash = path == CrushRoutes.splash;
       final isEmailVerificationRoute = path == CrushRoutes.emailVerification;
+      final isOnboardingRoute = path == CrushRoutes.basicInfo ||
+          path == CrushRoutes.profileSetup ||
+          path == CrushRoutes.idVerification ||
+          path == CrushRoutes.termsConditions;
 
       // Check if user needs email verification
       // Only require verification for users who signed up with email/password
+      // AND have completed basic onboarding
       final needsEmailVerification = isLoggedIn &&
           user != null &&
           user.email != null &&
@@ -148,8 +155,8 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Logged in but needs email verification
       if (needsEmailVerification) {
-        // Allow staying on verification screen
-        if (isEmailVerificationRoute) {
+        // Allow staying on verification screen or onboarding routes
+        if (isEmailVerificationRoute || isOnboardingRoute) {
           return null;
         }
         // Redirect to verification screen from any other protected route
@@ -272,6 +279,11 @@ GoRouter createRouter(AuthBloc authBloc) {
         path: CrushRoutes.basicInfo,
         pageBuilder: (context, state) =>
             _buildPage(state, const BasicInfoScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.termsConditions,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const TermsConditionsScreen()),
       ),
       GoRoute(
         path: CrushRoutes.idVerification,

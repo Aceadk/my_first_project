@@ -236,6 +236,9 @@ class _StubAuthRepository implements AuthRepository {
       null;
 
   @override
+  Future<bool> isEmailRegistered(String email) async => false;
+
+  @override
   Future<void> schedulePhoneDeletion() async {}
 
   @override

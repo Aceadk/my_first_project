@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -14,7 +15,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Language & Region'),
+        title: Text(context.l10n.settingsLanguageRegion),
       ),
       body: BlocConsumer<LocaleCubit, LocaleState>(
         listenWhen: (previous, current) =>
@@ -93,7 +94,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
               // Language
               ListTile(
                 leading: const Icon(Icons.translate),
-                title: const Text('Language'),
+                title: Text(context.l10n.settingsLanguage),
                 subtitle: Text(_languageLabel(localeState.languageCode)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showLanguageSheet(context, localeState.languageCode),
@@ -102,7 +103,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
               // Region
               ListTile(
                 leading: const Icon(Icons.public),
-                title: const Text('Region'),
+                title: Text(context.l10n.settingsRegion),
                 subtitle: Text(localeState.region),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showRegionDialog(context, localeState.region, localeCubit),
@@ -111,7 +112,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
               // Auto-detect
               ListTile(
                 leading: const Icon(Icons.my_location),
-                title: const Text('Use device location'),
+                title: Text(context.l10n.settingsDetectRegion),
                 subtitle: const Text('Detect your region automatically'),
                 trailing: localeState.isDetecting
                     ? const SizedBox(
@@ -172,6 +173,40 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
         return 'French';
       case 'de':
         return 'German';
+      case 'zh':
+        return 'Mandarin Chinese';
+      case 'hi':
+        return 'Hindi';
+      case 'ne':
+        return 'Nepali';
+      case 'ar':
+        return 'Arabic';
+      case 'ja':
+        return 'Japanese';
+      case 'ko':
+        return 'Korean';
+      case 'bn':
+        return 'Bengali';
+      case 'pt':
+        return 'Portuguese';
+      case 'ru':
+        return 'Russian';
+      case 'ur':
+        return 'Urdu';
+      case 'tr':
+        return 'Turkish';
+      case 'id':
+        return 'Indonesian';
+      case 'yo':
+        return 'Yoruba';
+      case 'te':
+        return 'Telugu';
+      case 'ta':
+        return 'Tamil';
+      case 'vi':
+        return 'Vietnamese';
+      case 'yue':
+        return 'Cantonese';
       case 'en':
       default:
         return 'English';
@@ -181,61 +216,97 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
   void _showLanguageSheet(BuildContext context, String current) {
     const options = [
       {'code': 'en', 'label': 'English', 'native': 'English'},
-      {'code': 'es', 'label': 'Spanish', 'native': 'Espanol'},
-      {'code': 'fr', 'label': 'French', 'native': 'Francais'},
+      {'code': 'es', 'label': 'Spanish', 'native': 'Español'},
+      {'code': 'fr', 'label': 'French', 'native': 'Français'},
       {'code': 'de', 'label': 'German', 'native': 'Deutsch'},
+      {'code': 'zh', 'label': 'Mandarin Chinese', 'native': '中文 (简体)'},
+      {'code': 'hi', 'label': 'Hindi', 'native': 'हिन्दी'},
+      {'code': 'ne', 'label': 'Nepali', 'native': 'नेपाली'},
+      {'code': 'ar', 'label': 'Arabic', 'native': 'العربية'},
+      {'code': 'ja', 'label': 'Japanese', 'native': '日本語'},
+      {'code': 'ko', 'label': 'Korean', 'native': '한국어'},
+      {'code': 'bn', 'label': 'Bengali', 'native': 'বাংলা'},
+      {'code': 'pt', 'label': 'Portuguese', 'native': 'Português'},
+      {'code': 'ru', 'label': 'Russian', 'native': 'Русский'},
+      {'code': 'ur', 'label': 'Urdu', 'native': 'اردو'},
+      {'code': 'tr', 'label': 'Turkish', 'native': 'Türkçe'},
+      {'code': 'id', 'label': 'Indonesian', 'native': 'Bahasa Indonesia'},
+      {'code': 'yo', 'label': 'Yoruba', 'native': 'Yorùbá'},
+      {'code': 'te', 'label': 'Telugu', 'native': 'తెలుగు'},
+      {'code': 'ta', 'label': 'Tamil', 'native': 'தமிழ்'},
+      {'code': 'vi', 'label': 'Vietnamese', 'native': 'Tiếng Việt'},
+      {'code': 'yue', 'label': 'Cantonese', 'native': '粵語'},
     ];
 
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       builder: (sheetContext) {
         final cubit = sheetContext.read<LocaleCubit>();
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: DsEdgeInsets.allLg,
-                child: Row(
-                  children: [
-                    const Icon(Icons.translate, color: DsColors.primary),
-                    DsGap.mdH,
-                    Text(
-                      'Choose language',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: DsEdgeInsets.allLg,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.translate, color: DsColors.primary),
+                        DsGap.mdH,
+                        Text(
+                          'Choose language',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${options.length} languages',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final option = options[index];
+                        final isSelected = option['code'] == current;
+                        return ListTile(
+                          leading: Icon(
+                            isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                            color: isSelected ? DsColors.primary : null,
+                          ),
+                          title: Text(
+                            option['label']!,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.w600 : null,
+                              color: isSelected ? DsColors.primary : null,
+                            ),
+                          ),
+                          subtitle: Text(option['native']!),
+                          onTap: () {
+                            cubit.setLanguage(option['code']!);
+                            Navigator.of(sheetContext).pop();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-              const Divider(height: 1),
-              ...options.map(
-                (option) {
-                  final isSelected = option['code'] == current;
-                  return ListTile(
-                    leading: Icon(
-                      isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                      color: isSelected ? DsColors.primary : null,
-                    ),
-                    title: Text(
-                      option['label']!,
-                      style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.w600 : null,
-                        color: isSelected ? DsColors.primary : null,
-                      ),
-                    ),
-                    subtitle: Text(option['native']!),
-                    onTap: () {
-                      cubit.setLanguage(option['code']!);
-                      Navigator.of(sheetContext).pop();
-                    },
-                  );
-                },
-              ),
-              DsGap.md,
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -262,7 +333,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
@@ -272,7 +343,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                 }
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text('Save'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         );

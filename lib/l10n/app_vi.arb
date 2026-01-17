@@ -1,0 +1,568 @@
+{
+  "@@locale": "vi",
+
+  "@@_COMMON": "Các thành phần UI chung được sử dụng xuyên suốt ứng dụng",
+  "commonCancel": "Hủy",
+  "commonSave": "Lưu",
+  "commonRetry": "Thử lại",
+  "commonDone": "Xong",
+  "commonLoading": "Đang tải",
+  "commonError": "Lỗi",
+  "commonSuccess": "Thành công",
+  "commonOk": "OK",
+  "commonNext": "Tiếp",
+  "commonBack": "Quay lại",
+  "commonClose": "Đóng",
+  "commonDelete": "Xóa",
+  "commonEdit": "Chỉnh sửa",
+  "commonSearch": "Tìm kiếm",
+  "commonSettings": "Cài đặt",
+  "commonContinue": "Tiếp tục",
+  "commonSkip": "Bỏ qua",
+  "commonConfirm": "Xác nhận",
+  "commonYes": "Có",
+  "commonNo": "Không",
+  "commonOn": "Bật",
+  "commonOff": "Tắt",
+  "commonMore": "Thêm",
+  "commonLess": "Ít hơn",
+  "commonAll": "Tất cả",
+  "commonNone": "Không có",
+  "commonRefresh": "Làm mới",
+  "commonSubmit": "Gửi",
+  "commonSend": "Gửi",
+  "commonApply": "Áp dụng",
+  "commonClear": "Xóa",
+  "commonReset": "Đặt lại",
+  "commonUpdate": "Cập nhật",
+  "commonRemove": "Xóa bỏ",
+  "commonAdd": "Thêm",
+  "commonView": "Xem",
+  "commonShare": "Chia sẻ",
+  "commonReport": "Báo cáo",
+  "commonBlock": "Chặn",
+  "commonUnblock": "Bỏ chặn",
+  "commonMute": "Tắt tiếng",
+  "commonUnmute": "Bật tiếng",
+
+  "@@_ERRORS": "Thông báo lỗi",
+  "errorGeneric": "Đã xảy ra lỗi. Vui lòng thử lại.",
+  "errorNetwork": "Lỗi kết nối. Kiểm tra internet và thử lại.",
+  "errorTimeout": "Yêu cầu hết thời gian. Vui lòng thử lại.",
+  "errorServer": "Lỗi máy chủ. Vui lòng thử lại sau.",
+  "errorUnauthorized": "Phiên đã hết hạn. Vui lòng đăng nhập lại.",
+  "errorNotFound": "Không tìm thấy mục yêu cầu.",
+  "errorOffline": "Không có kết nối internet. Kiểm tra kết nối và thử lại.",
+  "errorLoginFailed": "Không thể đăng nhập. Vui lòng kiểm tra thông tin đăng nhập.",
+  "errorSignUpFailed": "Không thể tạo tài khoản. Vui lòng thử lại.",
+  "errorLogoutFailed": "Không thể đăng xuất. Vui lòng thử lại.",
+  "errorInvalidCredentials": "Email hoặc mật khẩu không hợp lệ.",
+  "errorEmailInUse": "Email này đã được đăng ký.",
+  "errorWeakPassword": "Mật khẩu quá yếu. Sử dụng ít nhất 8 ký tự.",
+  "errorInvalidEmail": "Vui lòng nhập địa chỉ email hợp lệ.",
+  "errorSendCodeFailed": "Không thể gửi mã. Vui lòng thử lại.",
+  "errorInvalidCode": "Mã không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.",
+  "errorVerificationFailed": "Xác minh thất bại. Vui lòng thử lại.",
+  "errorLoadProfileFailed": "Không thể tải hồ sơ. Vui lòng thử lại.",
+  "errorSaveProfileFailed": "Không thể lưu hồ sơ. Vui lòng thử lại.",
+  "errorUploadPhotoFailed": "Không thể tải ảnh lên. Vui lòng thử lại.",
+  "errorDeletePhotoFailed": "Không thể xóa ảnh. Vui lòng thử lại.",
+  "errorUpdateLocationFailed": "Không thể cập nhật vị trí. Vui lòng thử lại.",
+  "errorUploadIdFailed": "Không thể tải ID lên. Vui lòng thử lại.",
+  "errorLoadDeckFailed": "Không thể tải hồ sơ. Vui lòng thử lại.",
+  "errorSwipeFailed": "Không thể xử lý vuốt. Vui lòng thử lại.",
+  "errorLikeFailed": "Không thể thích hồ sơ. Vui lòng thử lại.",
+  "errorPassFailed": "Không thể bỏ qua hồ sơ. Vui lòng thử lại.",
+  "errorSuperLikeFailed": "Không thể siêu thích. Vui lòng thử lại.",
+  "errorRewindFailed": "Không thể hoàn tác vuốt. Vui lòng thử lại.",
+  "errorNoSwipeToUndo": "Không có vuốt để hoàn tác.",
+  "errorFreeUndoUsed": "Bạn đã sử dụng hoàn tác miễn phí hôm nay. Nâng cấp lên Plus để hoàn tác không giới hạn!",
+  "errorRewindPremiumOnly": "Tua lại là tính năng Plus. Nâng cấp để hoàn tác vuốt!",
+  "errorLoadChatsFailed": "Không thể tải cuộc trò chuyện. Vui lòng thử lại.",
+  "errorLoadMessagesFailed": "Không thể tải tin nhắn. Vui lòng thử lại.",
+  "errorSendMessageFailed": "Không thể gửi tin nhắn. Vui lòng thử lại.",
+  "errorDeleteMessageFailed": "Không thể xóa tin nhắn. Vui lòng thử lại.",
+  "errorLoadMatchesFailed": "Không thể tải các kết đôi. Vui lòng thử lại.",
+  "errorUnmatchFailed": "Không thể hủy kết đôi. Vui lòng thử lại.",
+  "errorCheckoutFailed": "Không thể bắt đầu thanh toán. Vui lòng thử lại.",
+  "errorLoadSubscriptionFailed": "Không thể tải gói đăng ký. Vui lòng thử lại.",
+  "errorRestorePurchasesFailed": "Không thể khôi phục giao dịch. Vui lòng thử lại.",
+  "errorReportFailed": "Không thể gửi báo cáo. Vui lòng thử lại.",
+  "errorBlockFailed": "Không thể chặn người dùng. Vui lòng thử lại.",
+  "errorUnblockFailed": "Không thể bỏ chặn người dùng. Vui lòng thử lại.",
+  "errorLoadInsightsFailed": "Không thể tải thông tin chi tiết. Vui lòng thử lại.",
+  "errorLocationDisabled": "Dịch vụ vị trí đã bị tắt. Vui lòng bật trong Cài đặt.",
+  "errorLocationPermissionDenied": "Quyền truy cập vị trí bị từ chối. Vui lòng cho phép trong Cài đặt.",
+  "errorLocationTimeout": "Yêu cầu vị trí hết thời gian. Đảm bảo có tín hiệu GPS và thử lại.",
+  "errorMediaLoadFailed": "Không thể tải phương tiện. Vui lòng thử lại.",
+  "errorMediaUploadFailed": "Không thể tải phương tiện lên. Vui lòng thử lại.",
+  "errorCouldNot": "Không thể {action}. Vui lòng thử lại.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} là tính năng Plus. Nâng cấp để mở khóa!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Nhãn và gợi ý trợ năng",
+  "a11yBackButton": "Quay lại",
+  "a11yCloseButton": "Đóng",
+  "a11yMenuButton": "Mở menu",
+  "a11ySettingsButton": "Mở cài đặt",
+  "a11ySearchButton": "Tìm kiếm",
+  "a11yFilterButton": "Mở bộ lọc",
+  "a11yPassButton": "Bỏ qua hồ sơ này",
+  "a11yLikeButton": "Thích hồ sơ này",
+  "a11ySuperLikeButton": "Siêu thích hồ sơ này",
+  "a11yRewindButton": "Hoàn tác hành động cuối",
+  "a11yBoostButton": "Tăng cường hồ sơ của bạn",
+  "a11yProfilePhoto": "Ảnh hồ sơ",
+  "a11yProfilePhotoOf": "Ảnh hồ sơ của {name}",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "Ảnh đại diện người dùng",
+  "a11yAvatarOf": "Ảnh đại diện của {name}",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "Chỉnh sửa hồ sơ",
+  "a11yViewProfile": "Xem hồ sơ",
+  "a11yVerifiedBadge": "Hồ sơ đã xác minh",
+  "a11yOnlineNow": "Đang trực tuyến",
+  "a11yOffline": "Ngoại tuyến",
+  "a11ySendMessage": "Gửi tin nhắn",
+  "a11yAttachPhoto": "Đính kèm ảnh",
+  "a11yAttachFile": "Đính kèm tệp",
+  "a11yVoiceMessage": "Ghi tin nhắn thoại",
+  "a11yVideoCall": "Bắt đầu cuộc gọi video",
+  "a11yVoiceCall": "Bắt đầu cuộc gọi thoại",
+  "a11yMessageFrom": "Tin nhắn từ {sender}",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1 tin nhắn chưa đọc} other{{count} tin nhắn chưa đọc}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "Hiện mật khẩu",
+  "a11yHidePassword": "Ẩn mật khẩu",
+  "a11yLoginButton": "Đăng nhập",
+  "a11ySignUpButton": "Tạo tài khoản",
+  "a11yForgotPassword": "Đặt lại mật khẩu",
+  "a11yResendCode": "Gửi lại mã xác minh",
+  "a11yToggleSetting": "Chuyển đổi cài đặt",
+  "a11yLoading": "Đang tải",
+  "a11yRefreshing": "Đang làm mới",
+  "a11yErrorOccurred": "Đã xảy ra lỗi",
+  "a11yRetry": "Thử lại",
+  "a11yDismiss": "Bỏ qua",
+  "a11yMoreOptions": "Thêm tùy chọn",
+  "a11yDelete": "Xóa",
+  "a11yCancel": "Hủy",
+  "a11yConfirm": "Xác nhận",
+  "a11ySaveChanges": "Lưu thay đổi",
+  "a11yTapToView": "Nhấn đúp để xem",
+  "a11yTapToSelect": "Nhấn đúp để chọn",
+  "a11yTapToToggle": "Nhấn đúp để chuyển đổi",
+  "a11yTapToEdit": "Nhấn đúp để chỉnh sửa",
+  "a11yTapToExpand": "Nhấn đúp để mở rộng",
+  "a11yTapToCollapse": "Nhấn đúp để thu gọn",
+  "a11ySwipeToDelete": "Vuốt trái để xóa",
+  "a11ySwipeForActions": "Vuốt trái để xem thêm hành động",
+  "a11yDragToReorder": "Nhấn giữ và kéo để sắp xếp lại",
+  "a11yPinchToZoom": "Chụm để phóng to",
+  "a11yLoadingPleaseWait": "Đang tải, vui lòng chờ",
+  "a11yLoadingComplete": "Tải hoàn tất",
+  "a11yMatchFound": "Đã kết đôi! Bạn đã kết đôi với {name}",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "Tin nhắn mới từ {sender}",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "Đã thích hồ sơ",
+  "a11yProfilePassed": "Đã bỏ qua hồ sơ",
+  "a11yProfileSuperLiked": "Đã siêu thích hồ sơ",
+  "a11yMessageSent": "Đã gửi tin nhắn",
+  "a11ySettingSaved": "Đã lưu cài đặt",
+
+  "@@_AUTH": "Màn hình xác thực",
+  "authWelcomeBack": "Chào mừng trở lại",
+  "authSignInToContinue": "Đăng nhập để tiếp tục với Crush",
+  "authEmailOrUsername": "Email hoặc tên người dùng",
+  "authEmail": "Email",
+  "authPassword": "Mật khẩu",
+  "authCurrentPassword": "Mật khẩu hiện tại",
+  "authNewPassword": "Mật khẩu mới",
+  "authConfirmPassword": "Xác nhận mật khẩu",
+  "authForgotPassword": "Quên mật khẩu?",
+  "authSignIn": "Đăng nhập",
+  "authSignUp": "Đăng ký",
+  "authSignOut": "Đăng xuất",
+  "authCreateAccount": "Tạo tài khoản",
+  "authNoAccount": "Chưa có tài khoản?",
+  "authAlreadyHaveAccount": "Đã có tài khoản?",
+  "authOrContinueWith": "hoặc tiếp tục với",
+  "authPhone": "Điện thoại",
+  "authPhoneNumber": "Số điện thoại",
+  "authEnterCode": "Nhập mã",
+  "authVerificationCode": "Mã xác minh",
+  "authSendCode": "Gửi mã",
+  "authResendCode": "Gửi lại mã",
+  "authVerify": "Xác minh",
+  "authVerifyEmail": "Xác minh email",
+  "authVerifyPhone": "Xác minh điện thoại",
+  "authCheckEmail": "Kiểm tra email của bạn",
+  "authCheckPhone": "Kiểm tra điện thoại của bạn",
+  "authCodeSent": "Đã gửi mã",
+  "authCodeSentTo": "Chúng tôi đã gửi mã đến {destination}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "Nhập mã 6 chữ số",
+  "authPasswordHint": "Ít nhất 8 ký tự",
+  "authResetPassword": "Đặt lại mật khẩu",
+  "authChangePassword": "Đổi mật khẩu",
+  "authPasswordChanged": "Đã đổi mật khẩu thành công!",
+  "authAgreeToTerms": "Bằng cách tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi",
+  "authTermsOfService": "Điều khoản dịch vụ",
+  "authPrivacyPolicy": "Chính sách bảo mật",
+  "authDevLogin": "Đăng nhập Dev",
+  "authUsePhoneInstead": "Dùng điện thoại thay thế",
+  "authUseEmailInstead": "Dùng email thay thế",
+  "authEmailLink": "Liên kết email",
+  "authEmailOtp": "OTP email",
+  "authEmailPassword": "Email + mật khẩu",
+  "authChooseSignInMethod": "Chọn phương thức đăng nhập",
+  "authSendLink": "Gửi liên kết",
+  "authAutoCheckingStatus": "Đang tự động kiểm tra trạng thái xác minh...",
+  "authIveVerified": "Tôi đã xác minh",
+  "authCheckYourEmail": "Kiểm tra email của bạn",
+  "authClickLinkToVerify": "Nhấp vào liên kết chúng tôi đã gửi để xác minh email của bạn",
+  "authEmailVerified": "Xác minh email thành công!",
+  "authSkipForNow": "Bỏ qua lúc này",
+
+  "@@_SETTINGS": "Màn hình cài đặt",
+  "settingsTitle": "Cài đặt",
+  "settingsAppearance": "Giao diện",
+  "settingsAppearanceSubtitle": "Tùy chọn chủ đề và hiển thị",
+  "settingsTheme": "Chủ đề",
+  "settingsThemeLight": "Sáng",
+  "settingsThemeDark": "Tối",
+  "settingsThemeSystem": "Hệ thống",
+  "settingsNotifications": "Thông báo",
+  "settingsNotificationsSubtitle": "Quản lý cảnh báo của bạn",
+  "settingsPushNotifications": "Thông báo đẩy",
+  "settingsEmailNotifications": "Thông báo email",
+  "settingsSound": "Âm thanh",
+  "settingsVibration": "Rung",
+  "settingsLanguageRegion": "Ngôn ngữ & Khu vực",
+  "settingsLanguageRegionSubtitle": "Ngôn ngữ ứng dụng và vị trí",
+  "settingsLanguage": "Ngôn ngữ",
+  "settingsRegion": "Khu vực",
+  "settingsDetectRegion": "Phát hiện khu vực của tôi",
+  "settingsDiscoveryFilters": "Khám phá & Bộ lọc",
+  "settingsDiscoveryFiltersSubtitle": "Bạn muốn xem ai",
+  "settingsAgeRange": "Độ tuổi",
+  "settingsDistance": "Khoảng cách tối đa",
+  "settingsDistanceKm": "{distance} km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "Hiển thị cho tôi",
+  "settingsShowMyDistance": "Hiển thị khoảng cách của tôi",
+  "settingsShowMyAge": "Hiển thị tuổi của tôi",
+  "settingsDataStorage": "Dữ liệu & Lưu trữ",
+  "settingsDataStorageSubtitle": "Bộ nhớ cache và tải xuống",
+  "settingsCacheSize": "Kích thước cache",
+  "settingsClearCache": "Xóa cache",
+  "settingsMediaDownloads": "Tải xuống phương tiện",
+  "settingsWifiOnly": "Chỉ Wi-Fi",
+  "settingsAccountSecurity": "Bảo mật tài khoản",
+  "settingsAccountSecuritySubtitle": "Xác minh email và điện thoại",
+  "settingsAccountActions": "Hành động tài khoản",
+  "settingsAccountActionsSubtitle": "Quản lý tài khoản của bạn",
+  "settingsChangePassword": "Đổi mật khẩu",
+  "settingsDeactivateAccount": "Vô hiệu hóa tài khoản",
+  "settingsDeleteAccount": "Xóa tài khoản",
+  "settingsPrivacy": "Quyền riêng tư",
+  "settingsPrivacySubtitle": "Kiểm soát những gì người khác có thể thấy",
+  "settingsHideFromDiscovery": "Ẩn khỏi khám phá",
+  "settingsIncognitoMode": "Chế độ ẩn danh",
+  "settingsAbout": "Giới thiệu",
+  "settingsAboutSubtitle": "Thông tin ứng dụng và pháp lý",
+  "settingsVersion": "Phiên bản",
+  "settingsRateUs": "Đánh giá chúng tôi",
+  "settingsHelp": "Trợ giúp & Hỗ trợ",
+  "settingsContactUs": "Liên hệ chúng tôi",
+  "settingsFeedback": "Gửi phản hồi",
+  "settingsSubscription": "Gói đăng ký",
+  "settingsSubscriptionSubtitle": "Quản lý gói của bạn",
+  "settingsGetPlus": "Nhận Crush Plus",
+  "settingsRestorePurchases": "Khôi phục giao dịch",
+
+  "@@_DISCOVERY": "Màn hình khám phá/Deck",
+  "discoveryTitle": "Khám phá",
+  "discoveryNoMatchesTitle": "Chưa có kết đôi",
+  "discoveryNoMatchesMessage": "Tiếp tục vuốt để tìm người phù hợp hoàn hảo!",
+  "discoveryStartSwiping": "Bắt đầu vuốt",
+  "discoveryAdjustFilters": "Điều chỉnh bộ lọc",
+  "discoveryAllCaughtUp": "Đã xem hết!",
+  "discoveryNoMorePeople": "Không còn ai gần đây.\nQuay lại sau hoặc mở rộng tìm kiếm.",
+  "discoveryViewFullProfile": "Xem hồ sơ đầy đủ",
+  "discoveryReportProfile": "Báo cáo hồ sơ",
+  "discoveryBlockProfile": "Chặn & ẩn hồ sơ",
+  "discoveryUnmatch": "Hủy kết đôi",
+  "discoveryLike": "Thích",
+  "discoveryPass": "Bỏ qua",
+  "discoverySuperLike": "Siêu thích",
+  "discoveryRewind": "Tua lại",
+  "discoveryBoost": "Tăng cường",
+  "discoveryItsAMatch": "Đã kết đôi!",
+  "discoveryMatchMessage": "Bạn và {name} đã thích nhau",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "Gửi tin nhắn",
+  "discoveryKeepSwiping": "Tiếp tục vuốt",
+  "discoveryWeeklyPicks": "Lựa chọn hàng tuần",
+  "discoveryLikesYou": "Thích bạn",
+  "discoveryTopPicks": "Lựa chọn hàng đầu",
+  "discoveryNewArrivals": "Mới tham gia",
+
+  "@@_CHAT": "Màn hình trò chuyện/Nhắn tin",
+  "chatTitle": "Trò chuyện",
+  "chatMatches": "Kết đôi",
+  "chatMessages": "Tin nhắn",
+  "chatNoMatches": "Chưa có kết đôi",
+  "chatNoMatchesMessage": "Khi bạn kết đôi với ai đó, họ sẽ xuất hiện ở đây",
+  "chatNoMessages": "Chưa có tin nhắn",
+  "chatNoMessagesMessage": "Bắt đầu cuộc trò chuyện với một trong những người kết đôi của bạn",
+  "chatSayHello": "Chào nhé!",
+  "chatStartConversation": "Bắt đầu cuộc trò chuyện với {name}",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "Nhập tin nhắn...",
+  "chatSend": "Gửi",
+  "chatToday": "Hôm nay",
+  "chatYesterday": "Hôm qua",
+  "chatOnline": "Trực tuyến",
+  "chatLastSeen": "Hoạt động lần cuối {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "đang nhập...",
+  "chatDelivered": "Đã gửi",
+  "chatRead": "Đã đọc",
+  "chatDeleteMessage": "Xóa tin nhắn",
+  "chatDeleteForMe": "Xóa cho tôi",
+  "chatDeleteForEveryone": "Xóa cho mọi người",
+  "chatCopyMessage": "Sao chép",
+  "chatReply": "Trả lời",
+  "chatNewMatch": "Kết đôi mới!",
+  "chatMatchedWith": "Bạn đã kết đôi với {name}",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Màn hình hồ sơ",
+  "profileTitle": "Hồ sơ",
+  "profileEdit": "Chỉnh sửa hồ sơ",
+  "profileComplete": "Hoàn thiện hồ sơ của bạn",
+  "profileBasicInfo": "Thông tin cơ bản",
+  "profileName": "Tên",
+  "profileAge": "Tuổi",
+  "profileBirthday": "Ngày sinh",
+  "profileGender": "Giới tính",
+  "profileSexualOrientation": "Xu hướng tính dục",
+  "profileBio": "Tiểu sử",
+  "profileBioHint": "Giới thiệu về bản thân...",
+  "profilePhotos": "Ảnh",
+  "profileAddPhoto": "Thêm ảnh",
+  "profileAddVideo": "Thêm video",
+  "profileMakeMain": "Đặt làm ảnh chính",
+  "profileInterests": "Sở thích",
+  "profileAddInterests": "Thêm sở thích",
+  "profileLocation": "Vị trí",
+  "profileCity": "Thành phố",
+  "profileCountry": "Quốc gia",
+  "profileLivingIn": "Đang sống tại",
+  "profileJobTitle": "Chức danh",
+  "profileCompany": "Công ty",
+  "profileSchool": "Trường học",
+  "profileHeight": "Chiều cao",
+  "profileHeightCm": "{height} cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "Ngôn ngữ",
+  "profileZodiacSign": "Cung hoàng đạo",
+  "profileEducation": "Học vấn",
+  "profileReligion": "Tôn giáo",
+  "profileRelationshipGoals": "Mục tiêu quan hệ",
+  "profileFamilyPlans": "Kế hoạch gia đình",
+  "profilePersonalityType": "Loại tính cách",
+  "profileWorkout": "Tập luyện",
+  "profileSmoking": "Hút thuốc",
+  "profileDrinking": "Uống rượu",
+  "profilePets": "Thú cưng",
+  "profileVerified": "Đã xác minh",
+  "profileGetVerified": "Xác minh",
+  "profileVerificationPending": "Đang chờ xác minh",
+  "profilePreview": "Xem trước hồ sơ",
+  "profileSaved": "Đã lưu hồ sơ thành công!",
+  "profilePrompts": "Câu hỏi gợi ý",
+  "profileAddPrompt": "Thêm câu hỏi gợi ý",
+  "profileAboutMe": "Về tôi",
+  "profileMyDetails": "Chi tiết của tôi",
+  "profileLifestyle": "Lối sống",
+
+  "@@_ONBOARDING": "Màn hình giới thiệu",
+  "onboardingWelcome": "Chào mừng đến Crush",
+  "onboardingTagline": "Tìm người phù hợp hoàn hảo của bạn",
+  "onboardingGetStarted": "Bắt đầu",
+  "onboardingStep": "Bước {current} / {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "Tên bạn là gì?",
+  "onboardingWhenBirthday": "Sinh nhật của bạn khi nào?",
+  "onboardingSelectGender": "Chọn giới tính của bạn",
+  "onboardingAddPhotos": "Thêm những bức ảnh đẹp nhất của bạn",
+  "onboardingPhotosHint": "Thêm ít nhất 2 ảnh để tiếp tục",
+  "onboardingWriteBio": "Viết điều gì đó về bản thân",
+  "onboardingSelectInterests": "Chọn sở thích của bạn",
+  "onboardingInterestsHint": "Chọn ít nhất 3 sở thích",
+  "onboardingAllSet": "Bạn đã sẵn sàng!",
+  "onboardingStartSwiping": "Bắt đầu vuốt",
+
+  "@@_SUBSCRIPTION": "Màn hình gói đăng ký",
+  "subscriptionFree": "Miễn phí",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Nhận Crush Plus",
+  "subscriptionUpgrade": "Nâng cấp",
+  "subscriptionRestore": "Khôi phục giao dịch",
+  "subscriptionUnlimitedLikes": "Thích không giới hạn",
+  "subscriptionUnlimitedRewinds": "Tua lại không giới hạn",
+  "subscriptionSeeWhoLikesYou": "Xem ai thích bạn",
+  "subscriptionBoostsPerMonth": "{count} lần tăng cường mỗi tháng",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "{count} siêu thích mỗi ngày",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "Không quảng cáo",
+  "subscriptionPrioritySupport": "Hỗ trợ ưu tiên",
+  "subscriptionPerMonth": "{price}/tháng",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/năm",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "Giá trị tốt nhất",
+  "subscriptionMostPopular": "Phổ biến nhất",
+
+  "@@_SAFETY": "An toàn và báo cáo",
+  "safetyReportUser": "Báo cáo người dùng",
+  "safetyBlockUser": "Chặn người dùng",
+  "safetyUnblockUser": "Bỏ chặn người dùng",
+  "safetyReportReason": "Tại sao bạn báo cáo?",
+  "safetyBlockConfirm": "Chặn {name}?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "Họ sẽ không thể xem hồ sơ hoặc nhắn tin cho bạn",
+  "safetyReported": "Đã gửi báo cáo",
+  "safetyBlocked": "Đã chặn người dùng",
+  "safetyUnblocked": "Đã bỏ chặn người dùng",
+  "safetyFakeProfile": "Hồ sơ giả",
+  "safetyInappropriateContent": "Nội dung không phù hợp",
+  "safetyHarassment": "Quấy rối",
+  "safetySpam": "Spam",
+  "safetyScam": "Lừa đảo",
+  "safetyOther": "Khác",
+
+  "@@_TIME": "Chuỗi liên quan đến thời gian",
+  "timeJustNow": "Vừa xong",
+  "timeMinutesAgo": "{count, plural, =1{1 phút trước} other{{count} phút trước}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 giờ trước} other{{count} giờ trước}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1 ngày trước} other{{count} ngày trước}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1 tuần trước} other{{count} tuần trước}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Thông báo trạng thái trống",
+  "emptyNoResults": "Không có kết quả",
+  "emptyTryAgain": "Thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn",
+  "emptyNoData": "Không có dữ liệu",
+  "emptyCheckBackLater": "Quay lại sau"
+}

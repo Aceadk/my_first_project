@@ -1,0 +1,568 @@
+{
+  "@@locale": "ko",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "취소",
+  "commonSave": "저장",
+  "commonRetry": "재시도",
+  "commonDone": "완료",
+  "commonLoading": "로딩 중",
+  "commonError": "오류",
+  "commonSuccess": "성공",
+  "commonOk": "확인",
+  "commonNext": "다음",
+  "commonBack": "뒤로",
+  "commonClose": "닫기",
+  "commonDelete": "삭제",
+  "commonEdit": "편집",
+  "commonSearch": "검색",
+  "commonSettings": "설정",
+  "commonContinue": "계속",
+  "commonSkip": "건너뛰기",
+  "commonConfirm": "확인",
+  "commonYes": "예",
+  "commonNo": "아니오",
+  "commonOn": "켜기",
+  "commonOff": "끄기",
+  "commonMore": "더보기",
+  "commonLess": "간략히",
+  "commonAll": "전체",
+  "commonNone": "없음",
+  "commonRefresh": "새로고침",
+  "commonSubmit": "제출",
+  "commonSend": "보내기",
+  "commonApply": "적용",
+  "commonClear": "지우기",
+  "commonReset": "재설정",
+  "commonUpdate": "업데이트",
+  "commonRemove": "제거",
+  "commonAdd": "추가",
+  "commonView": "보기",
+  "commonShare": "공유",
+  "commonReport": "신고",
+  "commonBlock": "차단",
+  "commonUnblock": "차단 해제",
+  "commonMute": "음소거",
+  "commonUnmute": "음소거 해제",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "문제가 발생했습니다. 다시 시도해 주세요.",
+  "errorNetwork": "연결 오류입니다. 인터넷을 확인하고 다시 시도해 주세요.",
+  "errorTimeout": "요청 시간이 초과되었습니다. 다시 시도해 주세요.",
+  "errorServer": "서버 오류입니다. 나중에 다시 시도해 주세요.",
+  "errorUnauthorized": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+  "errorNotFound": "요청한 항목을 찾을 수 없습니다.",
+  "errorOffline": "인터넷 연결이 없습니다. 연결을 확인하고 다시 시도해 주세요.",
+  "errorLoginFailed": "로그인할 수 없습니다. 자격 증명을 확인해 주세요.",
+  "errorSignUpFailed": "계정을 만들 수 없습니다. 다시 시도해 주세요.",
+  "errorLogoutFailed": "로그아웃할 수 없습니다. 다시 시도해 주세요.",
+  "errorInvalidCredentials": "이메일 또는 비밀번호가 잘못되었습니다.",
+  "errorEmailInUse": "이 이메일은 이미 등록되어 있습니다.",
+  "errorWeakPassword": "비밀번호가 너무 약합니다. 8자 이상을 사용하세요.",
+  "errorInvalidEmail": "유효한 이메일 주소를 입력해 주세요.",
+  "errorSendCodeFailed": "코드를 보낼 수 없습니다. 다시 시도해 주세요.",
+  "errorInvalidCode": "유효하지 않거나 만료된 코드입니다. 다시 시도해 주세요.",
+  "errorVerificationFailed": "인증에 실패했습니다. 다시 시도해 주세요.",
+  "errorLoadProfileFailed": "프로필을 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorSaveProfileFailed": "프로필을 저장할 수 없습니다. 다시 시도해 주세요.",
+  "errorUploadPhotoFailed": "사진을 업로드할 수 없습니다. 다시 시도해 주세요.",
+  "errorDeletePhotoFailed": "사진을 삭제할 수 없습니다. 다시 시도해 주세요.",
+  "errorUpdateLocationFailed": "위치를 업데이트할 수 없습니다. 다시 시도해 주세요.",
+  "errorUploadIdFailed": "ID를 업로드할 수 없습니다. 다시 시도해 주세요.",
+  "errorLoadDeckFailed": "프로필을 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorSwipeFailed": "스와이프를 처리할 수 없습니다. 다시 시도해 주세요.",
+  "errorLikeFailed": "좋아요를 할 수 없습니다. 다시 시도해 주세요.",
+  "errorPassFailed": "패스할 수 없습니다. 다시 시도해 주세요.",
+  "errorSuperLikeFailed": "슈퍼 좋아요를 할 수 없습니다. 다시 시도해 주세요.",
+  "errorRewindFailed": "되감기를 할 수 없습니다. 다시 시도해 주세요.",
+  "errorNoSwipeToUndo": "되돌릴 스와이프가 없습니다.",
+  "errorFreeUndoUsed": "오늘의 무료 되돌리기를 사용했습니다. Plus로 업그레이드하여 무제한 되돌리기를 받으세요!",
+  "errorRewindPremiumOnly": "되감기는 Plus 기능입니다. 업그레이드하여 스와이프를 되돌리세요!",
+  "errorLoadChatsFailed": "채팅을 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorLoadMessagesFailed": "메시지를 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorSendMessageFailed": "메시지를 보낼 수 없습니다. 다시 시도해 주세요.",
+  "errorDeleteMessageFailed": "메시지를 삭제할 수 없습니다. 다시 시도해 주세요.",
+  "errorLoadMatchesFailed": "매치를 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorUnmatchFailed": "매치 해제를 할 수 없습니다. 다시 시도해 주세요.",
+  "errorCheckoutFailed": "결제를 시작할 수 없습니다. 다시 시도해 주세요.",
+  "errorLoadSubscriptionFailed": "구독을 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorRestorePurchasesFailed": "구매를 복원할 수 없습니다. 다시 시도해 주세요.",
+  "errorReportFailed": "신고를 제출할 수 없습니다. 다시 시도해 주세요.",
+  "errorBlockFailed": "사용자를 차단할 수 없습니다. 다시 시도해 주세요.",
+  "errorUnblockFailed": "사용자 차단을 해제할 수 없습니다. 다시 시도해 주세요.",
+  "errorLoadInsightsFailed": "인사이트를 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorLocationDisabled": "위치 서비스가 비활성화되어 있습니다. 설정에서 활성화해 주세요.",
+  "errorLocationPermissionDenied": "위치 권한이 거부되었습니다. 설정에서 접근을 허용해 주세요.",
+  "errorLocationTimeout": "위치 요청 시간이 초과되었습니다. GPS 신호가 있는지 확인하고 다시 시도해 주세요.",
+  "errorMediaLoadFailed": "미디어를 불러올 수 없습니다. 다시 시도해 주세요.",
+  "errorMediaUploadFailed": "미디어를 업로드할 수 없습니다. 다시 시도해 주세요.",
+  "errorCouldNot": "{action}할 수 없습니다. 다시 시도해 주세요.",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature}은(는) Plus 기능입니다. 업그레이드하여 잠금 해제하세요!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "뒤로 가기",
+  "a11yCloseButton": "닫기",
+  "a11yMenuButton": "메뉴 열기",
+  "a11ySettingsButton": "설정 열기",
+  "a11ySearchButton": "검색",
+  "a11yFilterButton": "필터 열기",
+  "a11yPassButton": "이 프로필 패스하기",
+  "a11yLikeButton": "이 프로필에 좋아요",
+  "a11ySuperLikeButton": "이 프로필에 슈퍼 좋아요",
+  "a11yRewindButton": "마지막 작업 되돌리기",
+  "a11yBoostButton": "프로필 부스트",
+  "a11yProfilePhoto": "프로필 사진",
+  "a11yProfilePhotoOf": "{name}의 프로필 사진",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "사용자 아바타",
+  "a11yAvatarOf": "{name}의 아바타",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "프로필 편집",
+  "a11yViewProfile": "프로필 보기",
+  "a11yVerifiedBadge": "인증된 프로필",
+  "a11yOnlineNow": "현재 온라인",
+  "a11yOffline": "오프라인",
+  "a11ySendMessage": "메시지 보내기",
+  "a11yAttachPhoto": "사진 첨부",
+  "a11yAttachFile": "파일 첨부",
+  "a11yVoiceMessage": "음성 메시지 녹음",
+  "a11yVideoCall": "영상 통화 시작",
+  "a11yVoiceCall": "음성 통화 시작",
+  "a11yMessageFrom": "{sender}의 메시지",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{읽지 않은 메시지 1개} other{읽지 않은 메시지 {count}개}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "비밀번호 표시",
+  "a11yHidePassword": "비밀번호 숨기기",
+  "a11yLoginButton": "로그인",
+  "a11ySignUpButton": "계정 만들기",
+  "a11yForgotPassword": "비밀번호 재설정",
+  "a11yResendCode": "인증 코드 재전송",
+  "a11yToggleSetting": "설정 전환",
+  "a11yLoading": "로딩 중",
+  "a11yRefreshing": "새로고침 중",
+  "a11yErrorOccurred": "오류가 발생했습니다",
+  "a11yRetry": "다시 시도",
+  "a11yDismiss": "닫기",
+  "a11yMoreOptions": "더 많은 옵션",
+  "a11yDelete": "삭제",
+  "a11yCancel": "취소",
+  "a11yConfirm": "확인",
+  "a11ySaveChanges": "변경 사항 저장",
+  "a11yTapToView": "두 번 탭하여 보기",
+  "a11yTapToSelect": "두 번 탭하여 선택",
+  "a11yTapToToggle": "두 번 탭하여 전환",
+  "a11yTapToEdit": "두 번 탭하여 편집",
+  "a11yTapToExpand": "두 번 탭하여 펼치기",
+  "a11yTapToCollapse": "두 번 탭하여 접기",
+  "a11ySwipeToDelete": "왼쪽으로 스와이프하여 삭제",
+  "a11ySwipeForActions": "왼쪽으로 스와이프하여 더 많은 작업",
+  "a11yDragToReorder": "길게 누르고 드래그하여 재정렬",
+  "a11yPinchToZoom": "핀치하여 확대/축소",
+  "a11yLoadingPleaseWait": "로딩 중, 잠시만 기다려 주세요",
+  "a11yLoadingComplete": "로딩 완료",
+  "a11yMatchFound": "매치되었습니다! {name}님과 매치",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender}님의 새 메시지",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "프로필에 좋아요 함",
+  "a11yProfilePassed": "프로필 패스함",
+  "a11yProfileSuperLiked": "프로필에 슈퍼 좋아요 함",
+  "a11yMessageSent": "메시지 전송됨",
+  "a11ySettingSaved": "설정 저장됨",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "다시 오신 것을 환영합니다",
+  "authSignInToContinue": "Crush를 계속하려면 로그인하세요",
+  "authEmailOrUsername": "이메일 또는 사용자 이름",
+  "authEmail": "이메일",
+  "authPassword": "비밀번호",
+  "authCurrentPassword": "현재 비밀번호",
+  "authNewPassword": "새 비밀번호",
+  "authConfirmPassword": "비밀번호 확인",
+  "authForgotPassword": "비밀번호를 잊으셨나요?",
+  "authSignIn": "로그인",
+  "authSignUp": "가입하기",
+  "authSignOut": "로그아웃",
+  "authCreateAccount": "계정 만들기",
+  "authNoAccount": "계정이 없으신가요?",
+  "authAlreadyHaveAccount": "이미 계정이 있으신가요?",
+  "authOrContinueWith": "또는 다음으로 계속",
+  "authPhone": "전화",
+  "authPhoneNumber": "전화번호",
+  "authEnterCode": "코드 입력",
+  "authVerificationCode": "인증 코드",
+  "authSendCode": "코드 보내기",
+  "authResendCode": "코드 재전송",
+  "authVerify": "인증",
+  "authVerifyEmail": "이메일 인증",
+  "authVerifyPhone": "전화 인증",
+  "authCheckEmail": "이메일을 확인하세요",
+  "authCheckPhone": "전화를 확인하세요",
+  "authCodeSent": "코드가 전송되었습니다",
+  "authCodeSentTo": "{destination}(으)로 코드를 보냈습니다",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6자리 코드를 입력하세요",
+  "authPasswordHint": "8자 이상",
+  "authResetPassword": "비밀번호 재설정",
+  "authChangePassword": "비밀번호 변경",
+  "authPasswordChanged": "비밀번호가 변경되었습니다!",
+  "authAgreeToTerms": "계속하면 서비스 약관 및 개인정보 처리방침에 동의하게 됩니다",
+  "authTermsOfService": "서비스 약관",
+  "authPrivacyPolicy": "개인정보 처리방침",
+  "authDevLogin": "개발자 로그인",
+  "authUsePhoneInstead": "대신 전화 사용",
+  "authUseEmailInstead": "대신 이메일 사용",
+  "authEmailLink": "이메일 링크",
+  "authEmailOtp": "이메일 OTP",
+  "authEmailPassword": "이메일 + 비밀번호",
+  "authChooseSignInMethod": "로그인 방법 선택",
+  "authSendLink": "링크 보내기",
+  "authAutoCheckingStatus": "인증 상태 자동 확인 중...",
+  "authIveVerified": "인증했습니다",
+  "authCheckYourEmail": "이메일을 확인하세요",
+  "authClickLinkToVerify": "보내드린 링크를 클릭하여 이메일을 인증하세요",
+  "authEmailVerified": "이메일이 인증되었습니다!",
+  "authSkipForNow": "지금은 건너뛰기",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "설정",
+  "settingsAppearance": "모양",
+  "settingsAppearanceSubtitle": "테마 및 표시 옵션",
+  "settingsTheme": "테마",
+  "settingsThemeLight": "라이트",
+  "settingsThemeDark": "다크",
+  "settingsThemeSystem": "시스템",
+  "settingsNotifications": "알림",
+  "settingsNotificationsSubtitle": "알림 관리",
+  "settingsPushNotifications": "푸시 알림",
+  "settingsEmailNotifications": "이메일 알림",
+  "settingsSound": "소리",
+  "settingsVibration": "진동",
+  "settingsLanguageRegion": "언어 및 지역",
+  "settingsLanguageRegionSubtitle": "앱 언어 및 위치",
+  "settingsLanguage": "언어",
+  "settingsRegion": "지역",
+  "settingsDetectRegion": "내 지역 감지",
+  "settingsDiscoveryFilters": "발견 및 필터",
+  "settingsDiscoveryFiltersSubtitle": "보고 싶은 사람",
+  "settingsAgeRange": "연령 범위",
+  "settingsDistance": "최대 거리",
+  "settingsDistanceKm": "{distance}km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "표시 대상",
+  "settingsShowMyDistance": "내 거리 표시",
+  "settingsShowMyAge": "내 나이 표시",
+  "settingsDataStorage": "데이터 및 저장소",
+  "settingsDataStorageSubtitle": "캐시 및 다운로드",
+  "settingsCacheSize": "캐시 크기",
+  "settingsClearCache": "캐시 지우기",
+  "settingsMediaDownloads": "미디어 다운로드",
+  "settingsWifiOnly": "Wi-Fi만",
+  "settingsAccountSecurity": "계정 보안",
+  "settingsAccountSecuritySubtitle": "이메일 및 전화 인증",
+  "settingsAccountActions": "계정 작업",
+  "settingsAccountActionsSubtitle": "계정 관리",
+  "settingsChangePassword": "비밀번호 변경",
+  "settingsDeactivateAccount": "계정 비활성화",
+  "settingsDeleteAccount": "계정 삭제",
+  "settingsPrivacy": "개인정보",
+  "settingsPrivacySubtitle": "다른 사람이 볼 수 있는 항목 제어",
+  "settingsHideFromDiscovery": "발견에서 숨기기",
+  "settingsIncognitoMode": "시크릿 모드",
+  "settingsAbout": "정보",
+  "settingsAboutSubtitle": "앱 정보 및 법적 고지",
+  "settingsVersion": "버전",
+  "settingsRateUs": "평가하기",
+  "settingsHelp": "도움말 및 지원",
+  "settingsContactUs": "문의하기",
+  "settingsFeedback": "피드백 보내기",
+  "settingsSubscription": "구독",
+  "settingsSubscriptionSubtitle": "플랜 관리",
+  "settingsGetPlus": "Crush Plus 받기",
+  "settingsRestorePurchases": "구매 복원",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "발견",
+  "discoveryNoMatchesTitle": "아직 매치가 없습니다",
+  "discoveryNoMatchesMessage": "완벽한 매치를 찾기 위해 스와이프를 계속하세요!",
+  "discoveryStartSwiping": "스와이프 시작",
+  "discoveryAdjustFilters": "필터 조정",
+  "discoveryAllCaughtUp": "모두 확인했습니다!",
+  "discoveryNoMorePeople": "현재 주변에 더 이상 사람이 없습니다.\n나중에 다시 확인하거나 검색 범위를 넓히세요.",
+  "discoveryViewFullProfile": "전체 프로필 보기",
+  "discoveryReportProfile": "프로필 신고",
+  "discoveryBlockProfile": "차단하고 숨기기",
+  "discoveryUnmatch": "매치 해제",
+  "discoveryLike": "좋아요",
+  "discoveryPass": "패스",
+  "discoverySuperLike": "슈퍼 좋아요",
+  "discoveryRewind": "되감기",
+  "discoveryBoost": "부스트",
+  "discoveryItsAMatch": "매치되었습니다!",
+  "discoveryMatchMessage": "당신과 {name}님이 서로 좋아합니다",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "메시지 보내기",
+  "discoveryKeepSwiping": "스와이프 계속하기",
+  "discoveryWeeklyPicks": "주간 추천",
+  "discoveryLikesYou": "나를 좋아하는 사람",
+  "discoveryTopPicks": "탑 픽",
+  "discoveryNewArrivals": "신규 가입",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "채팅",
+  "chatMatches": "매치",
+  "chatMessages": "메시지",
+  "chatNoMatches": "아직 매치가 없습니다",
+  "chatNoMatchesMessage": "누군가와 매치되면 여기에 표시됩니다",
+  "chatNoMessages": "아직 메시지가 없습니다",
+  "chatNoMessagesMessage": "매치된 사람과 대화를 시작하세요",
+  "chatSayHello": "안녕하세요!",
+  "chatStartConversation": "{name}님과 대화 시작",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "메시지 입력...",
+  "chatSend": "보내기",
+  "chatToday": "오늘",
+  "chatYesterday": "어제",
+  "chatOnline": "온라인",
+  "chatLastSeen": "마지막 접속 {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "입력 중...",
+  "chatDelivered": "전달됨",
+  "chatRead": "읽음",
+  "chatDeleteMessage": "메시지 삭제",
+  "chatDeleteForMe": "나에게서 삭제",
+  "chatDeleteForEveryone": "모두에게서 삭제",
+  "chatCopyMessage": "복사",
+  "chatReply": "답장",
+  "chatNewMatch": "새 매치!",
+  "chatMatchedWith": "{name}님과 매치되었습니다",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "프로필",
+  "profileEdit": "프로필 편집",
+  "profileComplete": "프로필 완성하기",
+  "profileBasicInfo": "기본 정보",
+  "profileName": "이름",
+  "profileAge": "나이",
+  "profileBirthday": "생일",
+  "profileGender": "성별",
+  "profileSexualOrientation": "성적 지향",
+  "profileBio": "자기소개",
+  "profileBioHint": "자신에 대해 알려주세요...",
+  "profilePhotos": "사진",
+  "profileAddPhoto": "사진 추가",
+  "profileAddVideo": "동영상 추가",
+  "profileMakeMain": "대표 사진으로 설정",
+  "profileInterests": "관심사",
+  "profileAddInterests": "관심사 추가",
+  "profileLocation": "위치",
+  "profileCity": "도시",
+  "profileCountry": "국가",
+  "profileLivingIn": "거주지",
+  "profileJobTitle": "직업",
+  "profileCompany": "회사",
+  "profileSchool": "학교",
+  "profileHeight": "키",
+  "profileHeightCm": "{height}cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "언어",
+  "profileZodiacSign": "별자리",
+  "profileEducation": "학력",
+  "profileReligion": "종교",
+  "profileRelationshipGoals": "연애 목표",
+  "profileFamilyPlans": "가족 계획",
+  "profilePersonalityType": "성격 유형",
+  "profileWorkout": "운동",
+  "profileSmoking": "흡연",
+  "profileDrinking": "음주",
+  "profilePets": "반려동물",
+  "profileVerified": "인증됨",
+  "profileGetVerified": "인증 받기",
+  "profileVerificationPending": "인증 대기 중",
+  "profilePreview": "프로필 미리보기",
+  "profileSaved": "프로필이 저장되었습니다!",
+  "profilePrompts": "프롬프트",
+  "profileAddPrompt": "프롬프트 추가",
+  "profileAboutMe": "나에 대해",
+  "profileMyDetails": "내 정보",
+  "profileLifestyle": "라이프스타일",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Crush에 오신 것을 환영합니다",
+  "onboardingTagline": "완벽한 매치를 찾으세요",
+  "onboardingGetStarted": "시작하기",
+  "onboardingStep": "{current}/{total}단계",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "이름이 무엇인가요?",
+  "onboardingWhenBirthday": "생일이 언제인가요?",
+  "onboardingSelectGender": "성별을 선택하세요",
+  "onboardingAddPhotos": "최고의 사진을 추가하세요",
+  "onboardingPhotosHint": "계속하려면 최소 2장의 사진을 추가하세요",
+  "onboardingWriteBio": "자신에 대해 작성하세요",
+  "onboardingSelectInterests": "관심사를 선택하세요",
+  "onboardingInterestsHint": "최소 3개의 관심사를 선택하세요",
+  "onboardingAllSet": "준비 완료!",
+  "onboardingStartSwiping": "스와이프 시작",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "무료",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus 받기",
+  "subscriptionUpgrade": "업그레이드",
+  "subscriptionRestore": "구매 복원",
+  "subscriptionUnlimitedLikes": "무제한 좋아요",
+  "subscriptionUnlimitedRewinds": "무제한 되감기",
+  "subscriptionSeeWhoLikesYou": "누가 좋아하는지 보기",
+  "subscriptionBoostsPerMonth": "월 {count}회 부스트",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "일 {count}회 슈퍼 좋아요",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "광고 없음",
+  "subscriptionPrioritySupport": "우선 지원",
+  "subscriptionPerMonth": "{price}/월",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/년",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "최고 가치",
+  "subscriptionMostPopular": "가장 인기",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "사용자 신고",
+  "safetyBlockUser": "사용자 차단",
+  "safetyUnblockUser": "사용자 차단 해제",
+  "safetyReportReason": "신고 이유가 무엇인가요?",
+  "safetyBlockConfirm": "{name}님을 차단하시겠습니까?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "상대방이 프로필을 보거나 메시지를 보낼 수 없게 됩니다",
+  "safetyReported": "신고가 제출되었습니다",
+  "safetyBlocked": "사용자가 차단되었습니다",
+  "safetyUnblocked": "사용자 차단이 해제되었습니다",
+  "safetyFakeProfile": "가짜 프로필",
+  "safetyInappropriateContent": "부적절한 콘텐츠",
+  "safetyHarassment": "괴롭힘",
+  "safetySpam": "스팸",
+  "safetyScam": "사기",
+  "safetyOther": "기타",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "방금",
+  "timeMinutesAgo": "{count, plural, =1{1분 전} other{{count}분 전}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1시간 전} other{{count}시간 전}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1일 전} other{{count}일 전}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1주 전} other{{count}주 전}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "결과를 찾을 수 없습니다",
+  "emptyTryAgain": "검색 또는 필터를 조정해 보세요",
+  "emptyNoData": "사용 가능한 데이터가 없습니다",
+  "emptyCheckBackLater": "나중에 다시 확인하세요"
+}

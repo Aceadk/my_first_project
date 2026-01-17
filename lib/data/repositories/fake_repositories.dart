@@ -342,6 +342,12 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<bool> isEmailRegistered(String email) async {
+    final normalized = email.trim().toLowerCase();
+    return _usersByEmail.containsKey(normalized);
+  }
+
+  @override
   Future<void> requestPasswordReset({required String email}) async {
     final normalized = email.trim().toLowerCase();
     final otp = (_rand.nextInt(900000) + 100000).toString();

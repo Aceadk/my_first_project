@@ -20,7 +20,8 @@ class EmailVerificationScreen extends StatefulWidget {
   State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
 }
 
-class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+class _EmailVerificationScreenState extends State<EmailVerificationScreen>
+    with WidgetsBindingObserver {
   Timer? _checkTimer;
   bool _isSending = false;
   bool _isChecking = false;
@@ -31,6 +32,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   void initState() {
     super.initState();
+    // Register for app lifecycle events
+    WidgetsBinding.instance.addObserver(this);
     // Start checking for verification periodically
     _startVerificationCheck();
     // Send initial verification email
@@ -39,9 +42,20 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _checkTimer?.cancel();
     _cooldownTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // App came back to foreground - immediately check verification
+      AppLogger.logInfo('[EmailVerificationScreen] App resumed, checking verification...');
+      _checkVerification();
+    }
   }
 
   void _startVerificationCheck() {
@@ -61,10 +75,24 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       final user = await authRepo.checkEmailVerification();
 
       if (user != null && user.isEmailVerified) {
-        AppLogger.logInfo('[EmailVerificationScreen] Email verified! Router will redirect automatically');
+        AppLogger.logInfo('[EmailVerificationScreen] Email verified! Navigating to home...');
         _checkTimer?.cancel();
-        // The router's refreshListenable will detect the auth state change
-        // and redirect to home automatically. No manual navigation needed.
+
+        if (mounted) {
+          // Show success message
+          setState(() {
+            _message = 'Email verified successfully! Redirecting...';
+          });
+
+          // Give a brief moment for user to see success message, then navigate
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          if (mounted) {
+            // Navigate to home - the router should handle this via auth state,
+            // but we also trigger it explicitly for reliability
+            context.go(CrushRoutes.home);
+          }
+        }
       }
     } catch (e) {
       AppLogger.logError('[EmailVerificationScreen] Error checking verification', e);

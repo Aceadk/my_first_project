@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
-import 'package:crushhour/presentation/widgets/primary_button.dart';
+import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -16,95 +19,376 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final _otpController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _emailTouched = false;
-  bool _otpTouched = false;
-  bool _passwordTouched = false;
-  bool _otpSent = false;
+  bool _emailSent = false;
   bool _isLoading = false;
   String? _sentEmail;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _otpController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AuthScaffold(
-      title: 'Forgot password',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Enter your email to reset your password.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email address',
-              helperText: 'We will send a 6-digit code to the email on file.',
-              errorText: _emailErrorText(),
-            ),
-            onTap: () => _markEmailTouched(),
-            onChanged: (_) => _markEmailTouched(),
-          ),
-          if (_otpSent) ...[
-            const SizedBox(height: 16),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Verification code',
-                helperText: 'Enter the 6-digit code from your email.',
-                errorText: _otpErrorText(),
-              ),
-              onTap: () => _markOtpTouched(),
-              onChanged: (_) => _markOtpTouched(),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'New password',
-                helperText: 'Use at least 8 characters.',
-                errorText: _passwordErrorText(),
-              ),
-              onTap: () => _markPasswordTouched(),
-              onChanged: (_) => _markPasswordTouched(),
-            ),
-          ],
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: _otpSent ? 'Reset password' : 'Send code',
-            loading: _isLoading,
-            onPressed: _isLoading
-                ? null
-                : () {
-                    if (_otpSent) {
-                      _verifyOtp();
-                    } else {
-                      _requestOtp();
-                    }
-                  },
-          ),
-          if (_otpSent) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _isLoading ? null : _requestOtp,
-              child: const Text('Resend code'),
-            ),
-          ],
-        ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: DsEdgeInsets.allXxl,
+          child: _emailSent
+              ? _buildEmailSentView(context, isDark)
+              : _buildEmailInputView(context, isDark),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailInputView(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Icon
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: DsColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Icon(
+            Icons.lock_reset_rounded,
+            size: 36,
+            color: DsColors.primary,
+          ),
+        ),
+        DsGap.xxl,
+        // Title
+        Text(
+          'Forgot Password?',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.sm,
+        // Subtitle
+        Text(
+          'No worries! Enter your email and we\'ll send you a link to reset your password.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
+        ),
+        DsGap.xxxl,
+        // Email field
+        GlassTextField(
+          controller: _emailController,
+          label: 'Email address',
+          hintText: 'you@example.com',
+          prefixIcon: Icons.email_outlined,
+          errorText: _emailErrorText(),
+          enabled: !_isLoading,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => _markEmailTouched(),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _requestPasswordReset(),
+        ),
+        DsGap.xxl,
+        // Send button
+        SizedBox(
+          width: double.infinity,
+          child: GlassPrimaryButton(
+            onPressed: _isLoading ? null : _requestPasswordReset,
+            child: _isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text(
+                    'Send Reset Link',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+        DsGap.xl,
+        // Back to login
+        TextButton.icon(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, size: 18),
+          label: const Text('Back to Sign In'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailSentView(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Success icon
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [DsColors.success, Color(0xFF4CAF50)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: DsColors.success.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.mark_email_read_outlined,
+            size: 40,
+            color: Colors.white,
+          ),
+        ),
+        DsGap.xxl,
+        // Title
+        Text(
+          'Check Your Email',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        DsGap.md,
+        // Email sent to
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark
+                ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                : DsColors.inputFillLight,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            _sentEmail ?? '',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: DsColors.primary,
+            ),
+          ),
+        ),
+        DsGap.xl,
+        // Instructions
+        Container(
+          padding: DsEdgeInsets.allLg,
+          decoration: BoxDecoration(
+            color: isDark
+                ? DsColors.info.withValues(alpha: 0.1)
+                : DsColors.info.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: DsColors.info.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: DsColors.info.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '1',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.info,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Open the email we sent to your inbox',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              DsGap.md,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: DsColors.info.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '2',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.info,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Click the "Reset Password" link in the email',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              DsGap.md,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: DsColors.info.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '3',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.info,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Create your new password and sign in',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        DsGap.xl,
+        // Tip
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 16,
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                'Check your spam folder if you don\'t see the email',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
+              ),
+            ),
+          ],
+        ),
+        DsGap.xxxl,
+        // Open email app button
+        SizedBox(
+          width: double.infinity,
+          child: GlassOutlinedButton(
+            onPressed: _openEmailApp,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.open_in_new, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'Open Email App',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DsGap.md,
+        // Back to login button
+        SizedBox(
+          width: double.infinity,
+          child: GlassPrimaryButton(
+            onPressed: () => context.go(CrushRoutes.login),
+            child: const Text(
+              'Back to Sign In',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        DsGap.xl,
+        // Resend option
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Didn\'t receive the email? ',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
+            ),
+            TextButton(
+              onPressed: _isLoading ? null : _resendEmail,
+              child: Text(
+                _isLoading ? 'Sending...' : 'Resend',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -113,22 +397,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       setState(() {
         _emailTouched = true;
       });
-    }
-  }
-
-  void _markOtpTouched() {
-    if (!_otpTouched) {
-      setState(() {
-        _otpTouched = true;
-      });
-    }
-  }
-
-  void _markPasswordTouched() {
-    if (!_passwordTouched) {
-      setState(() {
-        _passwordTouched = true;
-      });
+    } else {
+      setState(() {}); // Trigger rebuild for validation
     }
   }
 
@@ -144,31 +414,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return null;
   }
 
-  String? _otpErrorText() {
-    if (!_otpTouched) return null;
-    final otp = _otpController.text.trim();
-    if (otp.isEmpty) {
-      return 'Enter the 6-digit code';
-    }
-    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      return 'Use the 6-digit code from your email';
-    }
-    return null;
-  }
-
-  String? _passwordErrorText() {
-    if (!_passwordTouched) return null;
-    final password = _passwordController.text;
-    if (password.isEmpty) {
-      return 'Enter a new password';
-    }
-    if (password.length < 8) {
-      return 'Use at least 8 characters';
-    }
-    return null;
-  }
-
-  Future<void> _requestOtp() async {
+  Future<void> _requestPasswordReset() async {
     setState(() {
       _emailTouched = true;
     });
@@ -186,7 +432,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           .read<AuthRepository>()
           .requestPasswordReset(email: email),
       logLabel: 'AuthRepository.requestPasswordReset',
-      fallbackError: 'Could not send code. Please try again.',
+      fallbackError: 'Could not send reset link. Please try again.',
     );
 
     if (!mounted) return;
@@ -198,84 +444,49 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
     setState(() {
-      _otpSent = true;
+      _emailSent = true;
       _sentEmail = email;
     });
-    showSuccessSnackBar(
-      context,
-      'If an account exists, a 6-digit code is on the way.',
-    );
   }
 
-  Future<void> _verifyOtp() async {
-    setState(() {
-      _otpTouched = true;
-      _passwordTouched = true;
-    });
-    final otpError = _otpErrorText();
-    final passwordError = _passwordErrorText();
-    if (otpError != null) {
-      showErrorSnackBar(context, otpError);
-      return;
-    }
-    if (passwordError != null) {
-      showErrorSnackBar(context, passwordError);
-      return;
-    }
-    final email = normalizeEmail(_sentEmail ?? _emailController.text);
-    final otp = _otpController.text.trim();
-    final newPassword = _passwordController.text;
+  Future<void> _resendEmail() async {
     setState(() {
       _isLoading = true;
     });
-    final tokenResult = await Result.guard(
+    final email = _sentEmail ?? normalizeEmail(_emailController.text);
+    final result = await Result.guard(
       () => context
           .read<AuthRepository>()
-          .verifyPasswordResetOtp(email: email, otp: otp),
-      logLabel: 'AuthRepository.verifyPasswordResetOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
-    );
-
-    if (!mounted) return;
-    if (!tokenResult.isSuccess || tokenResult.data == null) {
-      setState(() {
-        _isLoading = false;
-      });
-      showErrorSnackBar(
-        context,
-        tokenResult.errorMessage ?? 'Invalid or expired code.',
-      );
-      return;
-    }
-
-    final resetResult = await Result.guard(
-      () => context.read<AuthRepository>().resetPasswordWithToken(
-            email: email,
-            resetToken: tokenResult.data!,
-            newPassword: newPassword,
-          ),
-      logLabel: 'AuthRepository.resetPasswordWithToken',
-      fallbackError: 'Could not reset password. Please try again.',
+          .requestPasswordReset(email: email),
+      logLabel: 'AuthRepository.requestPasswordReset',
+      fallbackError: 'Could not resend reset link. Please try again.',
     );
 
     if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
-    if (!resetResult.isSuccess) {
-      showErrorSnackBar(
-        context,
-        resetResult.errorMessage ?? 'Reset failed.',
-      );
+    if (!result.isSuccess) {
+      showErrorSnackBar(context, result.errorMessage ?? 'Resend failed.');
       return;
     }
-    setState(() {
-      _otpSent = false;
-      _sentEmail = null;
-      _otpController.clear();
-      _passwordController.clear();
-    });
-    showSuccessSnackBar(context, 'Password reset. Please log in again.');
-    Navigator.pop(context);
+    showSuccessSnackBar(context, 'Reset link sent again! Check your email.');
+  }
+
+  Future<void> _openEmailApp() async {
+    final emailUri = Uri(scheme: 'mailto');
+    try {
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
+      } else {
+        if (mounted) {
+          showErrorSnackBar(context, 'Could not open email app.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorSnackBar(context, 'Could not open email app.');
+      }
+    }
   }
 }

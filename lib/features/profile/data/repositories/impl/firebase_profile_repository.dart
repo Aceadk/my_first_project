@@ -5,6 +5,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/app_logger.dart';
@@ -253,8 +254,11 @@ class FirebaseProfileRepository implements ProfileRepository {
         videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
         primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(profileData['interests'] ?? []),
+        profilePrompts: _parseProfilePrompts(profileData['profilePrompts']),
         country: profileData['country'] ?? '',
         city: profileData['city'] ?? '',
+        latitude: (profileData['latitude'] as num?)?.toDouble(),
+        longitude: (profileData['longitude'] as num?)?.toDouble(),
         livingIn: profileData['livingIn'],
         isVerified: profileData['isVerified'] ?? false,
         heightCm: profileData['heightCm'],
@@ -266,9 +270,13 @@ class FirebaseProfileRepository implements ProfileRepository {
         personalityType: profileData['personalityType'],
         religion: profileData['religion'],
         workout: profileData['workout'],
+        socialMedia: profileData['socialMedia'],
+        sleepingHabits: profileData['sleepingHabits'],
         smoking: profileData['smoking'],
         drinking: profileData['drinking'],
         pets: profileData['pets'],
+        favoriteSongs: List<String>.from(profileData['favoriteSongs'] ?? []),
+        favoriteSinger: profileData['favoriteSinger'],
         jobTitle: profileData['jobTitle'],
         company: profileData['company'],
         school: profileData['school'],
@@ -329,13 +337,18 @@ class FirebaseProfileRepository implements ProfileRepository {
       'gender': p.gender,
       'sexualOrientation': p.sexualOrientation,
       'dateOfBirth': p.dateOfBirth,
+      'lastDobChangeAt': p.lastDobChangeAt,
+      'lastNameChangeAt': p.lastNameChangeAt,
       'bio': p.bio,
       'photoUrls': p.photoUrls,
       'videoUrls': p.videoUrls,
       'primaryPhotoIndex': p.primaryPhotoIndex,
       'interests': p.interests,
+      'profilePrompts': p.profilePrompts.map((prompt) => prompt.toJson()).toList(),
       'country': p.country,
       'city': p.city,
+      'latitude': p.latitude,
+      'longitude': p.longitude,
       'livingIn': p.livingIn,
       'isVerified': p.isVerified,
       'heightCm': p.heightCm,
@@ -347,9 +360,13 @@ class FirebaseProfileRepository implements ProfileRepository {
       'personalityType': p.personalityType,
       'religion': p.religion,
       'workout': p.workout,
+      'socialMedia': p.socialMedia,
+      'sleepingHabits': p.sleepingHabits,
       'smoking': p.smoking,
       'drinking': p.drinking,
       'pets': p.pets,
+      'favoriteSongs': p.favoriteSongs,
+      'favoriteSinger': p.favoriteSinger,
       'jobTitle': p.jobTitle,
       'company': p.company,
       'school': p.school,
@@ -374,5 +391,22 @@ class FirebaseProfileRepository implements ProfileRepository {
     if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value);
     return null;
+  }
+
+  List<ProfilePrompt> _parseProfilePrompts(dynamic value) {
+    if (value == null) return const [];
+    if (value is! List) return const [];
+
+    return value
+        .whereType<Map<String, dynamic>>()
+        .map((json) {
+          try {
+            return ProfilePrompt.fromJson(json);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<ProfilePrompt>()
+        .toList();
   }
 }

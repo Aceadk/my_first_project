@@ -1,0 +1,568 @@
+{
+  "@@locale": "ja",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "キャンセル",
+  "commonSave": "保存",
+  "commonRetry": "再試行",
+  "commonDone": "完了",
+  "commonLoading": "読み込み中",
+  "commonError": "エラー",
+  "commonSuccess": "成功",
+  "commonOk": "OK",
+  "commonNext": "次へ",
+  "commonBack": "戻る",
+  "commonClose": "閉じる",
+  "commonDelete": "削除",
+  "commonEdit": "編集",
+  "commonSearch": "検索",
+  "commonSettings": "設定",
+  "commonContinue": "続ける",
+  "commonSkip": "スキップ",
+  "commonConfirm": "確認",
+  "commonYes": "はい",
+  "commonNo": "いいえ",
+  "commonOn": "オン",
+  "commonOff": "オフ",
+  "commonMore": "もっと見る",
+  "commonLess": "少なく表示",
+  "commonAll": "すべて",
+  "commonNone": "なし",
+  "commonRefresh": "更新",
+  "commonSubmit": "送信",
+  "commonSend": "送信",
+  "commonApply": "適用",
+  "commonClear": "クリア",
+  "commonReset": "リセット",
+  "commonUpdate": "更新",
+  "commonRemove": "削除",
+  "commonAdd": "追加",
+  "commonView": "表示",
+  "commonShare": "シェア",
+  "commonReport": "報告",
+  "commonBlock": "ブロック",
+  "commonUnblock": "ブロック解除",
+  "commonMute": "ミュート",
+  "commonUnmute": "ミュート解除",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "問題が発生しました。もう一度お試しください。",
+  "errorNetwork": "接続エラーです。インターネット接続を確認して再試行してください。",
+  "errorTimeout": "リクエストがタイムアウトしました。もう一度お試しください。",
+  "errorServer": "サーバーエラーです。後でもう一度お試しください。",
+  "errorUnauthorized": "セッションが期限切れです。再度サインインしてください。",
+  "errorNotFound": "リクエストされた項目が見つかりません。",
+  "errorOffline": "インターネット接続がありません。接続を確認して再試行してください。",
+  "errorLoginFailed": "サインインできませんでした。認証情報を確認してください。",
+  "errorSignUpFailed": "アカウントを作成できませんでした。もう一度お試しください。",
+  "errorLogoutFailed": "サインアウトできませんでした。もう一度お試しください。",
+  "errorInvalidCredentials": "メールアドレスまたはパスワードが無効です。",
+  "errorEmailInUse": "このメールアドレスは既に登録されています。",
+  "errorWeakPassword": "パスワードが弱すぎます。8文字以上を使用してください。",
+  "errorInvalidEmail": "有効なメールアドレスを入力してください。",
+  "errorSendCodeFailed": "コードを送信できませんでした。もう一度お試しください。",
+  "errorInvalidCode": "無効または期限切れのコードです。もう一度お試しください。",
+  "errorVerificationFailed": "認証に失敗しました。もう一度お試しください。",
+  "errorLoadProfileFailed": "プロフィールを読み込めませんでした。もう一度お試しください。",
+  "errorSaveProfileFailed": "プロフィールを保存できませんでした。もう一度お試しください。",
+  "errorUploadPhotoFailed": "写真をアップロードできませんでした。もう一度お試しください。",
+  "errorDeletePhotoFailed": "写真を削除できませんでした。もう一度お試しください。",
+  "errorUpdateLocationFailed": "位置情報を更新できませんでした。もう一度お試しください。",
+  "errorUploadIdFailed": "IDをアップロードできませんでした。もう一度お試しください。",
+  "errorLoadDeckFailed": "プロフィールを読み込めませんでした。もう一度お試しください。",
+  "errorSwipeFailed": "スワイプを処理できませんでした。もう一度お試しください。",
+  "errorLikeFailed": "いいねできませんでした。もう一度お試しください。",
+  "errorPassFailed": "パスできませんでした。もう一度お試しください。",
+  "errorSuperLikeFailed": "スーパーライクできませんでした。もう一度お試しください。",
+  "errorRewindFailed": "巻き戻しできませんでした。もう一度お試しください。",
+  "errorNoSwipeToUndo": "元に戻すスワイプがありません。",
+  "errorFreeUndoUsed": "今日の無料アンドゥを使い切りました。Plusにアップグレードして無制限のアンドゥを！",
+  "errorRewindPremiumOnly": "巻き戻しはPlus機能です。アップグレードしてスワイプを取り消しましょう！",
+  "errorLoadChatsFailed": "チャットを読み込めませんでした。もう一度お試しください。",
+  "errorLoadMessagesFailed": "メッセージを読み込めませんでした。もう一度お試しください。",
+  "errorSendMessageFailed": "メッセージを送信できませんでした。もう一度お試しください。",
+  "errorDeleteMessageFailed": "メッセージを削除できませんでした。もう一度お試しください。",
+  "errorLoadMatchesFailed": "マッチを読み込めませんでした。もう一度お試しください。",
+  "errorUnmatchFailed": "マッチ解除できませんでした。もう一度お試しください。",
+  "errorCheckoutFailed": "チェックアウトを開始できませんでした。もう一度お試しください。",
+  "errorLoadSubscriptionFailed": "サブスクリプションを読み込めませんでした。もう一度お試しください。",
+  "errorRestorePurchasesFailed": "購入を復元できませんでした。もう一度お試しください。",
+  "errorReportFailed": "報告を送信できませんでした。もう一度お試しください。",
+  "errorBlockFailed": "ユーザーをブロックできませんでした。もう一度お試しください。",
+  "errorUnblockFailed": "ユーザーのブロックを解除できませんでした。もう一度お試しください。",
+  "errorLoadInsightsFailed": "インサイトを読み込めませんでした。もう一度お試しください。",
+  "errorLocationDisabled": "位置情報サービスが無効です。設定で有効にしてください。",
+  "errorLocationPermissionDenied": "位置情報の許可が拒否されました。設定でアクセスを許可してください。",
+  "errorLocationTimeout": "位置情報のリクエストがタイムアウトしました。GPS信号があることを確認して再試行してください。",
+  "errorMediaLoadFailed": "メディアを読み込めませんでした。もう一度お試しください。",
+  "errorMediaUploadFailed": "メディアをアップロードできませんでした。もう一度お試しください。",
+  "errorCouldNot": "{action}できませんでした。もう一度お試しください。",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature}はPlus機能です。アップグレードしてロック解除！",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "戻る",
+  "a11yCloseButton": "閉じる",
+  "a11yMenuButton": "メニューを開く",
+  "a11ySettingsButton": "設定を開く",
+  "a11ySearchButton": "検索",
+  "a11yFilterButton": "フィルターを開く",
+  "a11yPassButton": "このプロフィールをパス",
+  "a11yLikeButton": "このプロフィールにいいね",
+  "a11ySuperLikeButton": "このプロフィールにスーパーライク",
+  "a11yRewindButton": "最後のアクションを取り消す",
+  "a11yBoostButton": "プロフィールをブースト",
+  "a11yProfilePhoto": "プロフィール写真",
+  "a11yProfilePhotoOf": "{name}のプロフィール写真",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "ユーザーアバター",
+  "a11yAvatarOf": "{name}のアバター",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "プロフィールを編集",
+  "a11yViewProfile": "プロフィールを見る",
+  "a11yVerifiedBadge": "認証済みプロフィール",
+  "a11yOnlineNow": "オンライン中",
+  "a11yOffline": "オフライン",
+  "a11ySendMessage": "メッセージを送信",
+  "a11yAttachPhoto": "写真を添付",
+  "a11yAttachFile": "ファイルを添付",
+  "a11yVoiceMessage": "音声メッセージを録音",
+  "a11yVideoCall": "ビデオ通話を開始",
+  "a11yVoiceCall": "音声通話を開始",
+  "a11yMessageFrom": "{sender}からのメッセージ",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{1件の未読メッセージ} other{{count}件の未読メッセージ}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "パスワードを表示",
+  "a11yHidePassword": "パスワードを隠す",
+  "a11yLoginButton": "サインイン",
+  "a11ySignUpButton": "アカウント作成",
+  "a11yForgotPassword": "パスワードをリセット",
+  "a11yResendCode": "認証コードを再送信",
+  "a11yToggleSetting": "設定を切り替え",
+  "a11yLoading": "読み込み中",
+  "a11yRefreshing": "更新中",
+  "a11yErrorOccurred": "エラーが発生しました",
+  "a11yRetry": "再試行",
+  "a11yDismiss": "閉じる",
+  "a11yMoreOptions": "その他のオプション",
+  "a11yDelete": "削除",
+  "a11yCancel": "キャンセル",
+  "a11yConfirm": "確認",
+  "a11ySaveChanges": "変更を保存",
+  "a11yTapToView": "ダブルタップで表示",
+  "a11yTapToSelect": "ダブルタップで選択",
+  "a11yTapToToggle": "ダブルタップで切り替え",
+  "a11yTapToEdit": "ダブルタップで編集",
+  "a11yTapToExpand": "ダブルタップで展開",
+  "a11yTapToCollapse": "ダブルタップで折りたたむ",
+  "a11ySwipeToDelete": "左にスワイプで削除",
+  "a11ySwipeForActions": "左にスワイプでアクション表示",
+  "a11yDragToReorder": "長押しでドラッグして並べ替え",
+  "a11yPinchToZoom": "ピンチでズーム",
+  "a11yLoadingPleaseWait": "読み込み中、お待ちください",
+  "a11yLoadingComplete": "読み込み完了",
+  "a11yMatchFound": "マッチしました！{name}とマッチ",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender}からの新しいメッセージ",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "プロフィールにいいねしました",
+  "a11yProfilePassed": "プロフィールをパスしました",
+  "a11yProfileSuperLiked": "プロフィールにスーパーライクしました",
+  "a11yMessageSent": "メッセージを送信しました",
+  "a11ySettingSaved": "設定を保存しました",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "おかえりなさい",
+  "authSignInToContinue": "Crushを続けるにはサインイン",
+  "authEmailOrUsername": "メールまたはユーザー名",
+  "authEmail": "メール",
+  "authPassword": "パスワード",
+  "authCurrentPassword": "現在のパスワード",
+  "authNewPassword": "新しいパスワード",
+  "authConfirmPassword": "パスワードを確認",
+  "authForgotPassword": "パスワードをお忘れですか？",
+  "authSignIn": "サインイン",
+  "authSignUp": "サインアップ",
+  "authSignOut": "サインアウト",
+  "authCreateAccount": "アカウント作成",
+  "authNoAccount": "アカウントをお持ちでないですか？",
+  "authAlreadyHaveAccount": "既にアカウントをお持ちですか？",
+  "authOrContinueWith": "または以下で続ける",
+  "authPhone": "電話",
+  "authPhoneNumber": "電話番号",
+  "authEnterCode": "コードを入力",
+  "authVerificationCode": "認証コード",
+  "authSendCode": "コードを送信",
+  "authResendCode": "コードを再送信",
+  "authVerify": "認証",
+  "authVerifyEmail": "メールを認証",
+  "authVerifyPhone": "電話を認証",
+  "authCheckEmail": "メールを確認",
+  "authCheckPhone": "電話を確認",
+  "authCodeSent": "コードを送信しました",
+  "authCodeSentTo": "{destination}にコードを送信しました",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "6桁のコードを入力",
+  "authPasswordHint": "8文字以上",
+  "authResetPassword": "パスワードをリセット",
+  "authChangePassword": "パスワードを変更",
+  "authPasswordChanged": "パスワードを変更しました！",
+  "authAgreeToTerms": "続けることで、利用規約とプライバシーポリシーに同意します",
+  "authTermsOfService": "利用規約",
+  "authPrivacyPolicy": "プライバシーポリシー",
+  "authDevLogin": "開発者ログイン",
+  "authUsePhoneInstead": "代わりに電話を使用",
+  "authUseEmailInstead": "代わりにメールを使用",
+  "authEmailLink": "メールリンク",
+  "authEmailOtp": "メールOTP",
+  "authEmailPassword": "メール＋パスワード",
+  "authChooseSignInMethod": "サインイン方法を選択",
+  "authSendLink": "リンクを送信",
+  "authAutoCheckingStatus": "認証状態を自動確認中...",
+  "authIveVerified": "認証しました",
+  "authCheckYourEmail": "メールを確認してください",
+  "authClickLinkToVerify": "送信したリンクをクリックしてメールを認証",
+  "authEmailVerified": "メールが認証されました！",
+  "authSkipForNow": "今はスキップ",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "設定",
+  "settingsAppearance": "外観",
+  "settingsAppearanceSubtitle": "テーマと表示オプション",
+  "settingsTheme": "テーマ",
+  "settingsThemeLight": "ライト",
+  "settingsThemeDark": "ダーク",
+  "settingsThemeSystem": "システム",
+  "settingsNotifications": "通知",
+  "settingsNotificationsSubtitle": "アラートを管理",
+  "settingsPushNotifications": "プッシュ通知",
+  "settingsEmailNotifications": "メール通知",
+  "settingsSound": "サウンド",
+  "settingsVibration": "バイブレーション",
+  "settingsLanguageRegion": "言語と地域",
+  "settingsLanguageRegionSubtitle": "アプリの言語と位置",
+  "settingsLanguage": "言語",
+  "settingsRegion": "地域",
+  "settingsDetectRegion": "地域を検出",
+  "settingsDiscoveryFilters": "発見とフィルター",
+  "settingsDiscoveryFiltersSubtitle": "見たい人を設定",
+  "settingsAgeRange": "年齢範囲",
+  "settingsDistance": "最大距離",
+  "settingsDistanceKm": "{distance}km",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "表示対象",
+  "settingsShowMyDistance": "距離を表示",
+  "settingsShowMyAge": "年齢を表示",
+  "settingsDataStorage": "データとストレージ",
+  "settingsDataStorageSubtitle": "キャッシュとダウンロード",
+  "settingsCacheSize": "キャッシュサイズ",
+  "settingsClearCache": "キャッシュをクリア",
+  "settingsMediaDownloads": "メディアダウンロード",
+  "settingsWifiOnly": "Wi-Fiのみ",
+  "settingsAccountSecurity": "アカウントセキュリティ",
+  "settingsAccountSecuritySubtitle": "メールと電話の認証",
+  "settingsAccountActions": "アカウント操作",
+  "settingsAccountActionsSubtitle": "アカウントを管理",
+  "settingsChangePassword": "パスワードを変更",
+  "settingsDeactivateAccount": "アカウントを無効化",
+  "settingsDeleteAccount": "アカウントを削除",
+  "settingsPrivacy": "プライバシー",
+  "settingsPrivacySubtitle": "他の人が見れる内容を制御",
+  "settingsHideFromDiscovery": "発見から隠す",
+  "settingsIncognitoMode": "シークレットモード",
+  "settingsAbout": "情報",
+  "settingsAboutSubtitle": "アプリ情報と法的事項",
+  "settingsVersion": "バージョン",
+  "settingsRateUs": "評価する",
+  "settingsHelp": "ヘルプとサポート",
+  "settingsContactUs": "お問い合わせ",
+  "settingsFeedback": "フィードバックを送信",
+  "settingsSubscription": "サブスクリプション",
+  "settingsSubscriptionSubtitle": "プランを管理",
+  "settingsGetPlus": "Crush Plusを入手",
+  "settingsRestorePurchases": "購入を復元",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "発見",
+  "discoveryNoMatchesTitle": "まだマッチがありません",
+  "discoveryNoMatchesMessage": "パーフェクトマッチを見つけるためにスワイプを続けましょう！",
+  "discoveryStartSwiping": "スワイプを始める",
+  "discoveryAdjustFilters": "フィルターを調整",
+  "discoveryAllCaughtUp": "全て確認しました！",
+  "discoveryNoMorePeople": "現在、近くにいる人がいません。\n後で確認するか、検索範囲を広げてください。",
+  "discoveryViewFullProfile": "プロフィール全体を見る",
+  "discoveryReportProfile": "プロフィールを報告",
+  "discoveryBlockProfile": "ブロックして非表示",
+  "discoveryUnmatch": "マッチ解除",
+  "discoveryLike": "いいね",
+  "discoveryPass": "パス",
+  "discoverySuperLike": "スーパーライク",
+  "discoveryRewind": "巻き戻し",
+  "discoveryBoost": "ブースト",
+  "discoveryItsAMatch": "マッチしました！",
+  "discoveryMatchMessage": "あなたと{name}が互いにいいねしました",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "メッセージを送信",
+  "discoveryKeepSwiping": "スワイプを続ける",
+  "discoveryWeeklyPicks": "週間ピック",
+  "discoveryLikesYou": "あなたにいいね",
+  "discoveryTopPicks": "トップピック",
+  "discoveryNewArrivals": "新着",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "チャット",
+  "chatMatches": "マッチ",
+  "chatMessages": "メッセージ",
+  "chatNoMatches": "まだマッチがありません",
+  "chatNoMatchesMessage": "誰かとマッチすると、ここに表示されます",
+  "chatNoMessages": "まだメッセージがありません",
+  "chatNoMessagesMessage": "マッチした人と会話を始めましょう",
+  "chatSayHello": "こんにちは！",
+  "chatStartConversation": "{name}と会話を始める",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "メッセージを入力...",
+  "chatSend": "送信",
+  "chatToday": "今日",
+  "chatYesterday": "昨日",
+  "chatOnline": "オンライン",
+  "chatLastSeen": "最終ログイン {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "入力中...",
+  "chatDelivered": "配信済み",
+  "chatRead": "既読",
+  "chatDeleteMessage": "メッセージを削除",
+  "chatDeleteForMe": "自分用に削除",
+  "chatDeleteForEveryone": "全員から削除",
+  "chatCopyMessage": "コピー",
+  "chatReply": "返信",
+  "chatNewMatch": "新しいマッチ！",
+  "chatMatchedWith": "{name}とマッチしました",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "プロフィール",
+  "profileEdit": "プロフィールを編集",
+  "profileComplete": "プロフィールを完成させる",
+  "profileBasicInfo": "基本情報",
+  "profileName": "名前",
+  "profileAge": "年齢",
+  "profileBirthday": "誕生日",
+  "profileGender": "性別",
+  "profileSexualOrientation": "性的指向",
+  "profileBio": "自己紹介",
+  "profileBioHint": "自分について教えてください...",
+  "profilePhotos": "写真",
+  "profileAddPhoto": "写真を追加",
+  "profileAddVideo": "動画を追加",
+  "profileMakeMain": "メイン写真にする",
+  "profileInterests": "興味",
+  "profileAddInterests": "興味を追加",
+  "profileLocation": "場所",
+  "profileCity": "市区町村",
+  "profileCountry": "国",
+  "profileLivingIn": "居住地",
+  "profileJobTitle": "職種",
+  "profileCompany": "会社",
+  "profileSchool": "学校",
+  "profileHeight": "身長",
+  "profileHeightCm": "{height}cm",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "言語",
+  "profileZodiacSign": "星座",
+  "profileEducation": "学歴",
+  "profileReligion": "宗教",
+  "profileRelationshipGoals": "恋愛の目標",
+  "profileFamilyPlans": "家族計画",
+  "profilePersonalityType": "性格タイプ",
+  "profileWorkout": "運動",
+  "profileSmoking": "喫煙",
+  "profileDrinking": "飲酒",
+  "profilePets": "ペット",
+  "profileVerified": "認証済み",
+  "profileGetVerified": "認証を取得",
+  "profileVerificationPending": "認証待ち",
+  "profilePreview": "プロフィールプレビュー",
+  "profileSaved": "プロフィールを保存しました！",
+  "profilePrompts": "プロンプト",
+  "profileAddPrompt": "プロンプトを追加",
+  "profileAboutMe": "私について",
+  "profileMyDetails": "詳細情報",
+  "profileLifestyle": "ライフスタイル",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Crushへようこそ",
+  "onboardingTagline": "パーフェクトマッチを見つけよう",
+  "onboardingGetStarted": "始める",
+  "onboardingStep": "ステップ{current}/{total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "お名前は？",
+  "onboardingWhenBirthday": "誕生日はいつですか？",
+  "onboardingSelectGender": "性別を選択",
+  "onboardingAddPhotos": "ベストな写真を追加",
+  "onboardingPhotosHint": "続けるには2枚以上の写真を追加してください",
+  "onboardingWriteBio": "自己紹介を書く",
+  "onboardingSelectInterests": "興味を選択",
+  "onboardingInterestsHint": "3つ以上の興味を選んでください",
+  "onboardingAllSet": "準備完了！",
+  "onboardingStartSwiping": "スワイプを始める",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "無料",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plusを入手",
+  "subscriptionUpgrade": "アップグレード",
+  "subscriptionRestore": "購入を復元",
+  "subscriptionUnlimitedLikes": "無制限のいいね",
+  "subscriptionUnlimitedRewinds": "無制限の巻き戻し",
+  "subscriptionSeeWhoLikesYou": "あなたにいいねした人を見る",
+  "subscriptionBoostsPerMonth": "月{count}回のブースト",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "1日{count}回のスーパーライク",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "広告なし",
+  "subscriptionPrioritySupport": "優先サポート",
+  "subscriptionPerMonth": "{price}/月",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/年",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "お得",
+  "subscriptionMostPopular": "人気",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "ユーザーを報告",
+  "safetyBlockUser": "ユーザーをブロック",
+  "safetyUnblockUser": "ブロックを解除",
+  "safetyReportReason": "報告の理由は？",
+  "safetyBlockConfirm": "{name}をブロックしますか？",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "相手はあなたのプロフィールを見たりメッセージを送ったりできなくなります",
+  "safetyReported": "報告を送信しました",
+  "safetyBlocked": "ユーザーをブロックしました",
+  "safetyUnblocked": "ブロックを解除しました",
+  "safetyFakeProfile": "偽のプロフィール",
+  "safetyInappropriateContent": "不適切なコンテンツ",
+  "safetyHarassment": "ハラスメント",
+  "safetySpam": "スパム",
+  "safetyScam": "詐欺",
+  "safetyOther": "その他",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "たった今",
+  "timeMinutesAgo": "{count, plural, =1{1分前} other{{count}分前}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1時間前} other{{count}時間前}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{1日前} other{{count}日前}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{1週間前} other{{count}週間前}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "結果が見つかりません",
+  "emptyTryAgain": "検索やフィルターを調整してみてください",
+  "emptyNoData": "データがありません",
+  "emptyCheckBackLater": "後でまた確認してください"
+}

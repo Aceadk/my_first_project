@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
@@ -31,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.settingsTitle)),
       body: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return ListView(
@@ -40,8 +41,8 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.brightness_6_outlined,
                 iconColor: Colors.amber,
-                title: 'Appearance',
-                subtitle: _themeLabel(themeMode),
+                title: context.l10n.settingsAppearance,
+                subtitle: _themeLabel(context, themeMode),
                 onTap: () => _showThemeSheet(context, themeMode),
               ),
               const Divider(height: 1),
@@ -57,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
                   return _SettingsTile(
                     icon: Icons.notifications_outlined,
                     iconColor: DsColors.primary,
-                    title: 'Notifications',
+                    title: context.l10n.settingsNotifications,
                     subtitle: '$enabledCount of 4 enabled',
                     onTap: () => context.push(CrushRoutes.notificationsSettings),
                   );
@@ -70,7 +71,7 @@ class SettingsScreen extends StatelessWidget {
                   return _SettingsTile(
                     icon: Icons.language,
                     iconColor: DsColors.secondary,
-                    title: 'Language & Region',
+                    title: context.l10n.settingsLanguageRegion,
                     subtitle: '${_languageLabel(localeState.languageCode)} - ${localeState.region}',
                     onTap: () => context.push(CrushRoutes.languageSettings),
                   );
@@ -83,7 +84,7 @@ class SettingsScreen extends StatelessWidget {
                   return _SettingsTile(
                     icon: Icons.tune,
                     iconColor: Colors.orange,
-                    title: 'Discovery & Filters',
+                    title: context.l10n.settingsDiscoveryFilters,
                     subtitle: '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
                     onTap: () => context.push(CrushRoutes.discoverySettings),
                   );
@@ -96,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                   return _SettingsTile(
                     icon: Icons.storage_outlined,
                     iconColor: Colors.blue,
-                    title: 'Data & Storage',
+                    title: context.l10n.settingsDataStorage,
                     subtitle: 'Cache: ${storageState.cacheSizeMb} MB',
                     onTap: () => context.push(CrushRoutes.storageSettings),
                   );
@@ -123,7 +124,7 @@ class SettingsScreen extends StatelessWidget {
                   return _SettingsTile(
                     icon: Icons.shield_outlined,
                     iconColor: Colors.green,
-                    title: 'Account Security',
+                    title: context.l10n.settingsAccountSecurity,
                     subtitle: subtitle,
                     onTap: () => context.push(CrushRoutes.securitySettings),
                   );
@@ -134,8 +135,8 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.visibility_outlined,
                 iconColor: Colors.indigo,
-                title: 'Privacy',
-                subtitle: 'Control what others can see',
+                title: context.l10n.settingsPrivacy,
+                subtitle: context.l10n.settingsPrivacySubtitle,
                 onTap: () => context.push(CrushRoutes.privacySettings),
               ),
               const Divider(height: 1),
@@ -164,8 +165,8 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.manage_accounts_outlined,
                 iconColor: Colors.deepPurple,
-                title: 'Account Actions',
-                subtitle: 'Change phone, deactivate, or delete',
+                title: context.l10n.settingsAccountActions,
+                subtitle: context.l10n.settingsAccountActionsSubtitle,
                 onTap: () => context.push(CrushRoutes.accountSettings),
               ),
               DsGap.lg,
@@ -207,7 +208,7 @@ class SettingsScreen extends StatelessWidget {
                               ),
                               DsGap.mdH,
                               Text(
-                                'Subscription',
+                                context.l10n.settingsSubscription,
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -333,7 +334,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.logout,
                 iconColor: Colors.grey,
-                title: 'Log out',
+                title: context.l10n.authSignOut,
                 subtitle: 'Sign out of your account',
                 onTap: () => context.push(CrushRoutes.logout),
               ),
@@ -352,27 +353,27 @@ class SettingsScreen extends StatelessWidget {
               DsGap.sm,
               ListTile(
                 leading: const Icon(Icons.article_outlined),
-                title: const Text('Terms of Service'),
+                title: Text(context.l10n.authTermsOfService),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showLegalDialog(
                   context,
-                  'Terms of Service',
+                  context.l10n.authTermsOfService,
                   'Full terms will be available soon.',
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.privacy_tip_outlined),
-                title: const Text('Privacy Policy'),
+                title: Text(context.l10n.authPrivacyPolicy),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showLegalDialog(
                   context,
-                  'Privacy Policy',
+                  context.l10n.authPrivacyPolicy,
                   'Privacy details will be available soon.',
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('App version'),
+                title: Text(context.l10n.settingsVersion),
                 trailing: Text(
                   _appVersion,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -397,14 +398,14 @@ class SettingsScreen extends StatelessWidget {
         : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
   }
 
-  String _themeLabel(ThemeMode mode) {
+  String _themeLabel(BuildContext context, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
-        return 'Light mode';
+        return context.l10n.settingsThemeLight;
       case ThemeMode.dark:
-        return 'Dark mode';
+        return context.l10n.settingsThemeDark;
       case ThemeMode.system:
-        return 'System default';
+        return context.l10n.settingsThemeSystem;
     }
   }
 

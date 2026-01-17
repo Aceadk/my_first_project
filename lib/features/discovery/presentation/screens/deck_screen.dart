@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/shared/utils/profanity_filter.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -914,9 +915,8 @@ class _DeckScreenState extends State<DeckScreen> {
       icon = Icons.explore;
       iconColor = DsColors.secondary;
     } else {
-      title = 'You\'re all caught up!';
-      subtitle = 'No more people within 220 km right now.\n'
-          'Check back soon or try expanding your search.';
+      title = context.l10n.discoveryAllCaughtUp;
+      subtitle = context.l10n.discoveryNoMorePeople;
       icon = Icons.people_outline;
       iconColor = null;
     }

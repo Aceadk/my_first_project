@@ -1,0 +1,568 @@
+{
+  "@@locale": "ne",
+
+  "@@_COMMON": "Common UI elements used throughout the app",
+  "commonCancel": "रद्द गर्नुहोस्",
+  "commonSave": "सेभ गर्नुहोस्",
+  "commonRetry": "पुन: प्रयास गर्नुहोस्",
+  "commonDone": "सम्पन्न",
+  "commonLoading": "लोड हुँदैछ",
+  "commonError": "त्रुटि",
+  "commonSuccess": "सफल",
+  "commonOk": "ठीक छ",
+  "commonNext": "अर्को",
+  "commonBack": "पछाडि",
+  "commonClose": "बन्द गर्नुहोस्",
+  "commonDelete": "मेटाउनुहोस्",
+  "commonEdit": "सम्पादन गर्नुहोस्",
+  "commonSearch": "खोज्नुहोस्",
+  "commonSettings": "सेटिङ्हरू",
+  "commonContinue": "जारी राख्नुहोस्",
+  "commonSkip": "छोड्नुहोस्",
+  "commonConfirm": "पुष्टि गर्नुहोस्",
+  "commonYes": "हो",
+  "commonNo": "होइन",
+  "commonOn": "अन",
+  "commonOff": "अफ",
+  "commonMore": "थप",
+  "commonLess": "कम",
+  "commonAll": "सबै",
+  "commonNone": "कुनै पनि होइन",
+  "commonRefresh": "ताजा गर्नुहोस्",
+  "commonSubmit": "पेश गर्नुहोस्",
+  "commonSend": "पठाउनुहोस्",
+  "commonApply": "लागू गर्नुहोस्",
+  "commonClear": "खाली गर्नुहोस्",
+  "commonReset": "रिसेट गर्नुहोस्",
+  "commonUpdate": "अपडेट गर्नुहोस्",
+  "commonRemove": "हटाउनुहोस्",
+  "commonAdd": "थप्नुहोस्",
+  "commonView": "हेर्नुहोस्",
+  "commonShare": "शेयर गर्नुहोस्",
+  "commonReport": "रिपोर्ट गर्नुहोस्",
+  "commonBlock": "ब्लक गर्नुहोस्",
+  "commonUnblock": "अनब्लक गर्नुहोस्",
+  "commonMute": "म्युट गर्नुहोस्",
+  "commonUnmute": "अनम्युट गर्नुहोस्",
+
+  "@@_ERRORS": "Error messages",
+  "errorGeneric": "केही गलत भयो। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorNetwork": "जडान त्रुटि। आफ्नो इन्टरनेट जाँच गर्नुहोस् र पुन: प्रयास गर्नुहोस्।",
+  "errorTimeout": "अनुरोध समय सकियो। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorServer": "सर्भर त्रुटि। कृपया पछि पुन: प्रयास गर्नुहोस्।",
+  "errorUnauthorized": "सत्र समाप्त भयो। कृपया फेरि साइन इन गर्नुहोस्।",
+  "errorNotFound": "अनुरोध गरिएको वस्तु भेटिएन।",
+  "errorOffline": "इन्टरनेट जडान छैन। आफ्नो जडान जाँच गर्नुहोस् र पुन: प्रयास गर्नुहोस्।",
+  "errorLoginFailed": "साइन इन गर्न सकिएन। कृपया आफ्नो प्रमाणपत्रहरू जाँच गर्नुहोस्।",
+  "errorSignUpFailed": "खाता बनाउन सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLogoutFailed": "साइन आउट गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorInvalidCredentials": "अमान्य इमेल वा पासवर्ड।",
+  "errorEmailInUse": "यो इमेल पहिले नै दर्ता भइसकेको छ।",
+  "errorWeakPassword": "पासवर्ड धेरै कमजोर छ। कम्तीमा ८ वर्ण प्रयोग गर्नुहोस्।",
+  "errorInvalidEmail": "कृपया मान्य इमेल ठेगाना प्रविष्ट गर्नुहोस्।",
+  "errorSendCodeFailed": "कोड पठाउन सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorInvalidCode": "अमान्य वा म्याद सकिएको कोड। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorVerificationFailed": "प्रमाणीकरण असफल भयो। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadProfileFailed": "प्रोफाइल लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorSaveProfileFailed": "प्रोफाइल सेभ गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorUploadPhotoFailed": "फोटो अपलोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorDeletePhotoFailed": "फोटो मेटाउन सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorUpdateLocationFailed": "स्थान अपडेट गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorUploadIdFailed": "ID अपलोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadDeckFailed": "प्रोफाइलहरू लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorSwipeFailed": "स्वाइप प्रक्रिया गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLikeFailed": "प्रोफाइल लाइक गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorPassFailed": "प्रोफाइल पास गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorSuperLikeFailed": "सुपर लाइक गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorRewindFailed": "स्वाइप अनडू गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorNoSwipeToUndo": "अनडू गर्न कुनै स्वाइप छैन।",
+  "errorFreeUndoUsed": "तपाईंले आजको निःशुल्क अनडू प्रयोग गरिसक्नुभयो। असीमित अनडूको लागि Plus मा अपग्रेड गर्नुहोस्!",
+  "errorRewindPremiumOnly": "रिवाइन्ड एक Plus सुविधा हो। स्वाइप अनडू गर्न अपग्रेड गर्नुहोस्!",
+  "errorLoadChatsFailed": "च्याटहरू लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadMessagesFailed": "सन्देशहरू लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorSendMessageFailed": "सन्देश पठाउन सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorDeleteMessageFailed": "सन्देश मेटाउन सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadMatchesFailed": "म्याचहरू लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorUnmatchFailed": "अनम्याच गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorCheckoutFailed": "चेकआउट सुरु गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadSubscriptionFailed": "सदस्यता लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorRestorePurchasesFailed": "खरिदहरू पुनर्स्थापना गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorReportFailed": "रिपोर्ट पेश गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorBlockFailed": "प्रयोगकर्ता ब्लक गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorUnblockFailed": "प्रयोगकर्ता अनब्लक गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLoadInsightsFailed": "इनसाइटहरू लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorLocationDisabled": "स्थान सेवाहरू बन्द छन्। कृपया सेटिङ्हरूमा सक्षम गर्नुहोस्।",
+  "errorLocationPermissionDenied": "स्थान अनुमति अस्वीकृत। कृपया सेटिङ्हरूमा पहुँच अनुमति दिनुहोस्।",
+  "errorLocationTimeout": "स्थान अनुरोध समय सकियो। GPS सिग्नल छ भनी सुनिश्चित गर्नुहोस् र पुन: प्रयास गर्नुहोस्।",
+  "errorMediaLoadFailed": "मिडिया लोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorMediaUploadFailed": "मिडिया अपलोड गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "errorCouldNot": "{action} गर्न सकिएन। कृपया पुन: प्रयास गर्नुहोस्।",
+  "@errorCouldNot": {
+    "placeholders": {
+      "action": {"type": "String"}
+    }
+  },
+  "errorPlusFeature": "{feature} एक Plus सुविधा हो। अनलक गर्न अपग्रेड गर्नुहोस्!",
+  "@errorPlusFeature": {
+    "placeholders": {
+      "feature": {"type": "String"}
+    }
+  },
+
+  "@@_ACCESSIBILITY": "Accessibility labels and hints",
+  "a11yBackButton": "पछाडि जानुहोस्",
+  "a11yCloseButton": "बन्द गर्नुहोस्",
+  "a11yMenuButton": "मेनु खोल्नुहोस्",
+  "a11ySettingsButton": "सेटिङ्हरू खोल्नुहोस्",
+  "a11ySearchButton": "खोज्नुहोस्",
+  "a11yFilterButton": "फिल्टरहरू खोल्नुहोस्",
+  "a11yPassButton": "यो प्रोफाइल पास गर्नुहोस्",
+  "a11yLikeButton": "यो प्रोफाइल लाइक गर्नुहोस्",
+  "a11ySuperLikeButton": "यो प्रोफाइल सुपर लाइक गर्नुहोस्",
+  "a11yRewindButton": "अन्तिम कार्य अनडू गर्नुहोस्",
+  "a11yBoostButton": "तपाईंको प्रोफाइल बुस्ट गर्नुहोस्",
+  "a11yProfilePhoto": "प्रोफाइल फोटो",
+  "a11yProfilePhotoOf": "{name} को प्रोफाइल फोटो",
+  "@a11yProfilePhotoOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yUserAvatar": "प्रयोगकर्ता अवतार",
+  "a11yAvatarOf": "{name} को अवतार",
+  "@a11yAvatarOf": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yEditProfile": "प्रोफाइल सम्पादन गर्नुहोस्",
+  "a11yViewProfile": "प्रोफाइल हेर्नुहोस्",
+  "a11yVerifiedBadge": "प्रमाणित प्रोफाइल",
+  "a11yOnlineNow": "अहिले अनलाइन",
+  "a11yOffline": "अफलाइन",
+  "a11ySendMessage": "सन्देश पठाउनुहोस्",
+  "a11yAttachPhoto": "फोटो संलग्न गर्नुहोस्",
+  "a11yAttachFile": "फाइल संलग्न गर्नुहोस्",
+  "a11yVoiceMessage": "भ्वाइस सन्देश रेकर्ड गर्नुहोस्",
+  "a11yVideoCall": "भिडियो कल सुरु गर्नुहोस्",
+  "a11yVoiceCall": "भ्वाइस कल सुरु गर्नुहोस्",
+  "a11yMessageFrom": "{sender} बाट सन्देश",
+  "@a11yMessageFrom": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yUnreadMessages": "{count, plural, =1{१ नपढेको सन्देश} other{{count} नपढेका सन्देशहरू}}",
+  "@a11yUnreadMessages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "a11yShowPassword": "पासवर्ड देखाउनुहोस्",
+  "a11yHidePassword": "पासवर्ड लुकाउनुहोस्",
+  "a11yLoginButton": "साइन इन गर्नुहोस्",
+  "a11ySignUpButton": "खाता बनाउनुहोस्",
+  "a11yForgotPassword": "पासवर्ड रिसेट गर्नुहोस्",
+  "a11yResendCode": "प्रमाणीकरण कोड पुन: पठाउनुहोस्",
+  "a11yToggleSetting": "सेटिङ टगल गर्नुहोस्",
+  "a11yLoading": "लोड हुँदैछ",
+  "a11yRefreshing": "ताजा हुँदैछ",
+  "a11yErrorOccurred": "त्रुटि भयो",
+  "a11yRetry": "पुन: प्रयास गर्नुहोस्",
+  "a11yDismiss": "खारेज गर्नुहोस्",
+  "a11yMoreOptions": "थप विकल्पहरू",
+  "a11yDelete": "मेटाउनुहोस्",
+  "a11yCancel": "रद्द गर्नुहोस्",
+  "a11yConfirm": "पुष्टि गर्नुहोस्",
+  "a11ySaveChanges": "परिवर्तनहरू सेभ गर्नुहोस्",
+  "a11yTapToView": "हेर्न डबल ट्याप गर्नुहोस्",
+  "a11yTapToSelect": "चयन गर्न डबल ट्याप गर्नुहोस्",
+  "a11yTapToToggle": "टगल गर्न डबल ट्याप गर्नुहोस्",
+  "a11yTapToEdit": "सम्पादन गर्न डबल ट्याप गर्नुहोस्",
+  "a11yTapToExpand": "विस्तार गर्न डबल ट्याप गर्नुहोस्",
+  "a11yTapToCollapse": "संकुचित गर्न डबल ट्याप गर्नुहोस्",
+  "a11ySwipeToDelete": "मेटाउन बायाँ स्वाइप गर्नुहोस्",
+  "a11ySwipeForActions": "थप कार्यहरूको लागि बायाँ स्वाइप गर्नुहोस्",
+  "a11yDragToReorder": "पुनः क्रम गर्न लामो समय थिच्नुहोस् र तान्नुहोस्",
+  "a11yPinchToZoom": "जुम गर्न पिन्च गर्नुहोस्",
+  "a11yLoadingPleaseWait": "लोड हुँदैछ, कृपया पर्खनुहोस्",
+  "a11yLoadingComplete": "लोडिङ सम्पन्न",
+  "a11yMatchFound": "म्याच भयो! तपाईं {name} सँग म्याच हुनुभयो",
+  "@a11yMatchFound": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "a11yNewMessage": "{sender} बाट नयाँ सन्देश",
+  "@a11yNewMessage": {
+    "placeholders": {
+      "sender": {"type": "String"}
+    }
+  },
+  "a11yProfileLiked": "प्रोफाइल लाइक गरियो",
+  "a11yProfilePassed": "प्रोफाइल पास गरियो",
+  "a11yProfileSuperLiked": "प्रोफाइल सुपर लाइक गरियो",
+  "a11yMessageSent": "सन्देश पठाइयो",
+  "a11ySettingSaved": "सेटिङ सेभ गरियो",
+
+  "@@_AUTH": "Authentication screens",
+  "authWelcomeBack": "फेरि स्वागत छ",
+  "authSignInToContinue": "Crush जारी राख्न साइन इन गर्नुहोस्",
+  "authEmailOrUsername": "इमेल वा प्रयोगकर्ता नाम",
+  "authEmail": "इमेल",
+  "authPassword": "पासवर्ड",
+  "authCurrentPassword": "हालको पासवर्ड",
+  "authNewPassword": "नयाँ पासवर्ड",
+  "authConfirmPassword": "पासवर्ड पुष्टि गर्नुहोस्",
+  "authForgotPassword": "पासवर्ड बिर्सनुभयो?",
+  "authSignIn": "साइन इन गर्नुहोस्",
+  "authSignUp": "साइन अप गर्नुहोस्",
+  "authSignOut": "साइन आउट गर्नुहोस्",
+  "authCreateAccount": "खाता बनाउनुहोस्",
+  "authNoAccount": "खाता छैन?",
+  "authAlreadyHaveAccount": "पहिले नै खाता छ?",
+  "authOrContinueWith": "वा यससँग जारी राख्नुहोस्",
+  "authPhone": "फोन",
+  "authPhoneNumber": "फोन नम्बर",
+  "authEnterCode": "कोड प्रविष्ट गर्नुहोस्",
+  "authVerificationCode": "प्रमाणीकरण कोड",
+  "authSendCode": "कोड पठाउनुहोस्",
+  "authResendCode": "कोड पुन: पठाउनुहोस्",
+  "authVerify": "प्रमाणित गर्नुहोस्",
+  "authVerifyEmail": "इमेल प्रमाणित गर्नुहोस्",
+  "authVerifyPhone": "फोन प्रमाणित गर्नुहोस्",
+  "authCheckEmail": "आफ्नो इमेल जाँच गर्नुहोस्",
+  "authCheckPhone": "आफ्नो फोन जाँच गर्नुहोस्",
+  "authCodeSent": "कोड पठाइयो",
+  "authCodeSentTo": "हामीले {destination} मा कोड पठायौं",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "destination": {"type": "String"}
+    }
+  },
+  "authEnterCodeHint": "६-अंकीय कोड प्रविष्ट गर्नुहोस्",
+  "authPasswordHint": "कम्तीमा ८ वर्ण",
+  "authResetPassword": "पासवर्ड रिसेट गर्नुहोस्",
+  "authChangePassword": "पासवर्ड परिवर्तन गर्नुहोस्",
+  "authPasswordChanged": "पासवर्ड सफलतापूर्वक परिवर्तन भयो!",
+  "authAgreeToTerms": "जारी राखेर, तपाईं हाम्रो सेवा सर्तहरू र गोपनीयता नीतिमा सहमत हुनुहुन्छ",
+  "authTermsOfService": "सेवाका सर्तहरू",
+  "authPrivacyPolicy": "गोपनीयता नीति",
+  "authDevLogin": "डेभ लगइन",
+  "authUsePhoneInstead": "यसको सट्टा फोन प्रयोग गर्नुहोस्",
+  "authUseEmailInstead": "यसको सट्टा इमेल प्रयोग गर्नुहोस्",
+  "authEmailLink": "इमेल लिंक",
+  "authEmailOtp": "इमेल OTP",
+  "authEmailPassword": "इमेल + पासवर्ड",
+  "authChooseSignInMethod": "साइन-इन विधि छान्नुहोस्",
+  "authSendLink": "लिंक पठाउनुहोस्",
+  "authAutoCheckingStatus": "प्रमाणीकरण स्थिति स्वचालित जाँच हुँदैछ...",
+  "authIveVerified": "मैले प्रमाणित गरें",
+  "authCheckYourEmail": "आफ्नो इमेल जाँच गर्नुहोस्",
+  "authClickLinkToVerify": "आफ्नो इमेल प्रमाणित गर्न हामीले पठाएको लिंकमा क्लिक गर्नुहोस्",
+  "authEmailVerified": "इमेल सफलतापूर्वक प्रमाणित भयो!",
+  "authSkipForNow": "अहिलेको लागि छोड्नुहोस्",
+
+  "@@_SETTINGS": "Settings screens",
+  "settingsTitle": "सेटिङ्हरू",
+  "settingsAppearance": "रूप",
+  "settingsAppearanceSubtitle": "थिम र प्रदर्शन विकल्पहरू",
+  "settingsTheme": "थिम",
+  "settingsThemeLight": "उज्यालो",
+  "settingsThemeDark": "अँध्यारो",
+  "settingsThemeSystem": "प्रणाली",
+  "settingsNotifications": "सूचनाहरू",
+  "settingsNotificationsSubtitle": "आफ्ना अलर्टहरू व्यवस्थापन गर्नुहोस्",
+  "settingsPushNotifications": "पुश सूचनाहरू",
+  "settingsEmailNotifications": "इमेल सूचनाहरू",
+  "settingsSound": "ध्वनि",
+  "settingsVibration": "कम्पन",
+  "settingsLanguageRegion": "भाषा र क्षेत्र",
+  "settingsLanguageRegionSubtitle": "एप भाषा र स्थान",
+  "settingsLanguage": "भाषा",
+  "settingsRegion": "क्षेत्र",
+  "settingsDetectRegion": "मेरो क्षेत्र पत्ता लगाउनुहोस्",
+  "settingsDiscoveryFilters": "खोज र फिल्टरहरू",
+  "settingsDiscoveryFiltersSubtitle": "तपाईं कसलाई हेर्न चाहनुहुन्छ",
+  "settingsAgeRange": "उमेर दायरा",
+  "settingsDistance": "अधिकतम दूरी",
+  "settingsDistanceKm": "{distance} किमी",
+  "@settingsDistanceKm": {
+    "placeholders": {
+      "distance": {"type": "int"}
+    }
+  },
+  "settingsShowMe": "मलाई देखाउनुहोस्",
+  "settingsShowMyDistance": "मेरो दूरी देखाउनुहोस्",
+  "settingsShowMyAge": "मेरो उमेर देखाउनुहोस्",
+  "settingsDataStorage": "डाटा र भण्डारण",
+  "settingsDataStorageSubtitle": "क्यास र डाउनलोडहरू",
+  "settingsCacheSize": "क्यास साइज",
+  "settingsClearCache": "क्यास खाली गर्नुहोस्",
+  "settingsMediaDownloads": "मिडिया डाउनलोडहरू",
+  "settingsWifiOnly": "Wi-Fi मात्र",
+  "settingsAccountSecurity": "खाता सुरक्षा",
+  "settingsAccountSecuritySubtitle": "इमेल र फोन प्रमाणीकरण",
+  "settingsAccountActions": "खाता कार्यहरू",
+  "settingsAccountActionsSubtitle": "आफ्नो खाता व्यवस्थापन गर्नुहोस्",
+  "settingsChangePassword": "पासवर्ड परिवर्तन गर्नुहोस्",
+  "settingsDeactivateAccount": "खाता निष्क्रिय गर्नुहोस्",
+  "settingsDeleteAccount": "खाता मेटाउनुहोस्",
+  "settingsPrivacy": "गोपनीयता",
+  "settingsPrivacySubtitle": "अरूले के देख्न सक्छन् नियन्त्रण गर्नुहोस्",
+  "settingsHideFromDiscovery": "खोजबाट लुकाउनुहोस्",
+  "settingsIncognitoMode": "गुप्त मोड",
+  "settingsAbout": "बारेमा",
+  "settingsAboutSubtitle": "एप जानकारी र कानूनी",
+  "settingsVersion": "संस्करण",
+  "settingsRateUs": "हामीलाई रेट गर्नुहोस्",
+  "settingsHelp": "मद्दत र समर्थन",
+  "settingsContactUs": "हामीलाई सम्पर्क गर्नुहोस्",
+  "settingsFeedback": "प्रतिक्रिया पठाउनुहोस्",
+  "settingsSubscription": "सदस्यता",
+  "settingsSubscriptionSubtitle": "आफ्नो योजना व्यवस्थापन गर्नुहोस्",
+  "settingsGetPlus": "Crush Plus पाउनुहोस्",
+  "settingsRestorePurchases": "खरिदहरू पुनर्स्थापना गर्नुहोस्",
+
+  "@@_DISCOVERY": "Discovery/Deck screens",
+  "discoveryTitle": "खोज्नुहोस्",
+  "discoveryNoMatchesTitle": "अहिलेसम्म कुनै म्याच छैन",
+  "discoveryNoMatchesMessage": "आफ्नो उत्तम म्याच खोज्न स्वाइप गरिरहनुहोस्!",
+  "discoveryStartSwiping": "स्वाइप सुरु गर्नुहोस्",
+  "discoveryAdjustFilters": "फिल्टरहरू समायोजन गर्नुहोस्",
+  "discoveryAllCaughtUp": "सबै समातियो!",
+  "discoveryNoMorePeople": "अहिले नजिकै थप मानिसहरू छैनन्।\nचाँडै फेरि जाँच गर्नुहोस् वा आफ्नो खोज विस्तार गर्नुहोस्।",
+  "discoveryViewFullProfile": "पूर्ण प्रोफाइल हेर्नुहोस्",
+  "discoveryReportProfile": "प्रोफाइल रिपोर्ट गर्नुहोस्",
+  "discoveryBlockProfile": "प्रोफाइल ब्लक गर्नुहोस् र लुकाउनुहोस्",
+  "discoveryUnmatch": "अनम्याच गर्नुहोस्",
+  "discoveryLike": "लाइक",
+  "discoveryPass": "पास",
+  "discoverySuperLike": "सुपर लाइक",
+  "discoveryRewind": "रिवाइन्ड",
+  "discoveryBoost": "बुस्ट",
+  "discoveryItsAMatch": "म्याच भयो!",
+  "discoveryMatchMessage": "तपाईं र {name} ले एक-अर्कालाई लाइक गर्नुभयो",
+  "@discoveryMatchMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "discoverySendMessage": "सन्देश पठाउनुहोस्",
+  "discoveryKeepSwiping": "स्वाइप गरिरहनुहोस्",
+  "discoveryWeeklyPicks": "साप्ताहिक छनोटहरू",
+  "discoveryLikesYou": "तपाईंलाई लाइक गर्छ",
+  "discoveryTopPicks": "शीर्ष छनोटहरू",
+  "discoveryNewArrivals": "नयाँ आगमनहरू",
+
+  "@@_CHAT": "Chat/Messaging screens",
+  "chatTitle": "च्याटहरू",
+  "chatMatches": "म्याचहरू",
+  "chatMessages": "सन्देशहरू",
+  "chatNoMatches": "अहिलेसम्म कुनै म्याच छैन",
+  "chatNoMatchesMessage": "जब तपाईं कसैसँग म्याच हुनुहुन्छ, तिनीहरू यहाँ देखिनेछन्",
+  "chatNoMessages": "अहिलेसम्म कुनै सन्देश छैन",
+  "chatNoMessagesMessage": "आफ्नो कुनै म्याचसँग कुराकानी सुरु गर्नुहोस्",
+  "chatSayHello": "नमस्ते भन्नुहोस्!",
+  "chatStartConversation": "{name} सँग कुराकानी सुरु गर्नुहोस्",
+  "@chatStartConversation": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chatTypeMessage": "सन्देश टाइप गर्नुहोस्...",
+  "chatSend": "पठाउनुहोस्",
+  "chatToday": "आज",
+  "chatYesterday": "हिजो",
+  "chatOnline": "अनलाइन",
+  "chatLastSeen": "अन्तिम पटक देखिएको {time}",
+  "@chatLastSeen": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "chatTyping": "टाइप गर्दैछ...",
+  "chatDelivered": "डेलिभर भयो",
+  "chatRead": "पढियो",
+  "chatDeleteMessage": "सन्देश मेटाउनुहोस्",
+  "chatDeleteForMe": "मेरो लागि मेटाउनुहोस्",
+  "chatDeleteForEveryone": "सबैको लागि मेटाउनुहोस्",
+  "chatCopyMessage": "कपी गर्नुहोस्",
+  "chatReply": "जवाफ दिनुहोस्",
+  "chatNewMatch": "नयाँ म्याच!",
+  "chatMatchedWith": "तपाईं {name} सँग म्याच हुनुभयो",
+  "@chatMatchedWith": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "@@_PROFILE": "Profile screens",
+  "profileTitle": "प्रोफाइल",
+  "profileEdit": "प्रोफाइल सम्पादन गर्नुहोस्",
+  "profileComplete": "आफ्नो प्रोफाइल पूरा गर्नुहोस्",
+  "profileBasicInfo": "आधारभूत जानकारी",
+  "profileName": "नाम",
+  "profileAge": "उमेर",
+  "profileBirthday": "जन्मदिन",
+  "profileGender": "लिंग",
+  "profileSexualOrientation": "यौन अभिमुखीकरण",
+  "profileBio": "बायो",
+  "profileBioHint": "अरूलाई आफ्नो बारेमा बताउनुहोस्...",
+  "profilePhotos": "फोटोहरू",
+  "profileAddPhoto": "फोटो थप्नुहोस्",
+  "profileAddVideo": "भिडियो थप्नुहोस्",
+  "profileMakeMain": "मुख्य फोटो बनाउनुहोस्",
+  "profileInterests": "रुचिहरू",
+  "profileAddInterests": "रुचिहरू थप्नुहोस्",
+  "profileLocation": "स्थान",
+  "profileCity": "शहर",
+  "profileCountry": "देश",
+  "profileLivingIn": "बस्ने ठाउँ",
+  "profileJobTitle": "जागिर शीर्षक",
+  "profileCompany": "कम्पनी",
+  "profileSchool": "विद्यालय",
+  "profileHeight": "उचाइ",
+  "profileHeightCm": "{height} सेमी",
+  "@profileHeightCm": {
+    "placeholders": {
+      "height": {"type": "int"}
+    }
+  },
+  "profileLanguages": "भाषाहरू",
+  "profileZodiacSign": "राशि चिन्ह",
+  "profileEducation": "शिक्षा",
+  "profileReligion": "धर्म",
+  "profileRelationshipGoals": "सम्बन्ध लक्ष्यहरू",
+  "profileFamilyPlans": "पारिवारिक योजनाहरू",
+  "profilePersonalityType": "व्यक्तित्व प्रकार",
+  "profileWorkout": "व्यायाम",
+  "profileSmoking": "धुम्रपान",
+  "profileDrinking": "मदिरापान",
+  "profilePets": "पाल्तु जनावरहरू",
+  "profileVerified": "प्रमाणित",
+  "profileGetVerified": "प्रमाणित हुनुहोस्",
+  "profileVerificationPending": "प्रमाणीकरण पेन्डिङ",
+  "profilePreview": "प्रोफाइल पूर्वावलोकन",
+  "profileSaved": "प्रोफाइल सफलतापूर्वक सेभ भयो!",
+  "profilePrompts": "प्रम्प्टहरू",
+  "profileAddPrompt": "प्रम्प्ट थप्नुहोस्",
+  "profileAboutMe": "मेरो बारेमा",
+  "profileMyDetails": "मेरो विवरणहरू",
+  "profileLifestyle": "जीवनशैली",
+
+  "@@_ONBOARDING": "Onboarding screens",
+  "onboardingWelcome": "Crush मा स्वागत छ",
+  "onboardingTagline": "आफ्नो उत्तम म्याच खोज्नुहोस्",
+  "onboardingGetStarted": "सुरु गर्नुहोस्",
+  "onboardingStep": "चरण {current} / {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingWhatsYourName": "तपाईंको नाम के हो?",
+  "onboardingWhenBirthday": "तपाईंको जन्मदिन कहिले हो?",
+  "onboardingSelectGender": "आफ्नो लिंग छान्नुहोस्",
+  "onboardingAddPhotos": "आफ्ना उत्कृष्ट फोटोहरू थप्नुहोस्",
+  "onboardingPhotosHint": "जारी राख्न कम्तीमा २ फोटो थप्नुहोस्",
+  "onboardingWriteBio": "आफ्नो बारेमा केही लेख्नुहोस्",
+  "onboardingSelectInterests": "आफ्ना रुचिहरू छान्नुहोस्",
+  "onboardingInterestsHint": "कम्तीमा ३ रुचिहरू छान्नुहोस्",
+  "onboardingAllSet": "तपाईं तयार हुनुहुन्छ!",
+  "onboardingStartSwiping": "स्वाइप सुरु गर्नुहोस्",
+
+  "@@_SUBSCRIPTION": "Subscription screens",
+  "subscriptionFree": "निःशुल्क",
+  "subscriptionPlus": "Plus",
+  "subscriptionGetPlus": "Crush Plus पाउनुहोस्",
+  "subscriptionUpgrade": "अपग्रेड गर्नुहोस्",
+  "subscriptionRestore": "खरिदहरू पुनर्स्थापना गर्नुहोस्",
+  "subscriptionUnlimitedLikes": "असीमित लाइकहरू",
+  "subscriptionUnlimitedRewinds": "असीमित रिवाइन्डहरू",
+  "subscriptionSeeWhoLikesYou": "कसले तपाईंलाई लाइक गर्छ हेर्नुहोस्",
+  "subscriptionBoostsPerMonth": "प्रति महिना {count} बुस्टहरू",
+  "@subscriptionBoostsPerMonth": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionSuperLikesPerDay": "प्रति दिन {count} सुपर लाइकहरू",
+  "@subscriptionSuperLikesPerDay": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "subscriptionNoAds": "कुनै विज्ञापन छैन",
+  "subscriptionPrioritySupport": "प्राथमिकता समर्थन",
+  "subscriptionPerMonth": "{price}/महिना",
+  "@subscriptionPerMonth": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionPerYear": "{price}/वर्ष",
+  "@subscriptionPerYear": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "सबैभन्दा राम्रो मूल्य",
+  "subscriptionMostPopular": "सबैभन्दा लोकप्रिय",
+
+  "@@_SAFETY": "Safety and reporting",
+  "safetyReportUser": "प्रयोगकर्ता रिपोर्ट गर्नुहोस्",
+  "safetyBlockUser": "प्रयोगकर्ता ब्लक गर्नुहोस्",
+  "safetyUnblockUser": "प्रयोगकर्ता अनब्लक गर्नुहोस्",
+  "safetyReportReason": "तपाईं किन रिपोर्ट गर्दै हुनुहुन्छ?",
+  "safetyBlockConfirm": "{name} लाई ब्लक गर्ने?",
+  "@safetyBlockConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "safetyBlockMessage": "तिनीहरूले तपाईंको प्रोफाइल देख्न वा तपाईंलाई सन्देश पठाउन सक्ने छैनन्",
+  "safetyReported": "रिपोर्ट पेश गरियो",
+  "safetyBlocked": "प्रयोगकर्ता ब्लक गरियो",
+  "safetyUnblocked": "प्रयोगकर्ता अनब्लक गरियो",
+  "safetyFakeProfile": "नक्कली प्रोफाइल",
+  "safetyInappropriateContent": "अनुचित सामग्री",
+  "safetyHarassment": "उत्पीडन",
+  "safetySpam": "स्प्याम",
+  "safetyScam": "ठगी",
+  "safetyOther": "अन्य",
+
+  "@@_TIME": "Time-related strings",
+  "timeJustNow": "भर्खरै",
+  "timeMinutesAgo": "{count, plural, =1{१ मिनेट अघि} other{{count} मिनेट अघि}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{१ घण्टा अघि} other{{count} घण्टा अघि}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{१ दिन अघि} other{{count} दिन अघि}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeWeeksAgo": "{count, plural, =1{१ हप्ता अघि} other{{count} हप्ता अघि}}",
+  "@timeWeeksAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "@@_EMPTY_STATES": "Empty state messages",
+  "emptyNoResults": "कुनै परिणाम भेटिएन",
+  "emptyTryAgain": "आफ्नो खोज वा फिल्टरहरू समायोजन गर्ने प्रयास गर्नुहोस्",
+  "emptyNoData": "कुनै डाटा उपलब्ध छैन",
+  "emptyCheckBackLater": "पछि फेरि जाँच गर्नुहोस्"
+}

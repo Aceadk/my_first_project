@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
@@ -156,7 +157,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               ),
               DsGap.sm,
               Text(
-                'Find your perfect match',
+                context.l10n.onboardingTagline,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: isDark
                           ? DsColors.textMutedDark
@@ -195,9 +196,9 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.authCreateAccount,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -221,7 +222,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                     ),
                   ),
                   child: Text(
-                    'Sign In',
+                    context.l10n.authSignIn,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

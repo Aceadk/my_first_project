@@ -207,10 +207,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
 
     context.read<ProfileBloc>().add(ProfileSaveRequested(profile: updated));
-
-    if (mounted) {
-      setState(() => _uploading = false);
-    }
+    // Don't set _uploading = false here! Let the listener handle it when save completes.
+    // The ProfileBloc's isSaving state will control the loading indicator during save.
   }
 
   @override
@@ -805,15 +803,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     return BlocConsumer<ProfileBloc, ProfileState>(
       listenWhen: (prev, curr) =>
           prev.errorMessage != curr.errorMessage ||
-          prev.profile != curr.profile,
+          (prev.isSaving && !curr.isSaving), // Detect save completion
       listener: (context, state) {
+        // Reset uploading flag when save completes (whether success or error)
+        if (!state.isSaving && _uploading) {
+          setState(() => _uploading = false);
+        }
+
         final error = state.errorMessage;
         if (error != null && error.isNotEmpty) {
           showErrorSnackBar(context, error);
           return;
         }
-        if (state.profile != null && _hasLoadedProfile) {
-          showSuccessSnackBar(context, 'Profile saved');
+        // Show success notification when save completes without error
+        if (!state.isSaving && _hasLoadedProfile) {
+          showSuccessSnackBar(context, 'Profile saved successfully!');
         }
       },
       builder: (context, state) {

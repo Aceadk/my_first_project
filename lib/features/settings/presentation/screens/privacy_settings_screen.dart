@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
@@ -14,7 +15,7 @@ class PrivacySettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Privacy Settings'),
+        title: Text(context.l10n.settingsPrivacy),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),

@@ -6,11 +6,13 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,7 +40,24 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.errorMessage != current.errorMessage,
+      listener: (context, state) {
+        // Handle dev bypass errors
+        if (state.status == AuthStatus.unauthenticated &&
+            state.errorMessage != null &&
+            state.errorMessage!.isNotEmpty) {
+          setState(() => _isLoading = false);
+          showErrorSnackBar(context, state.errorMessage!);
+        }
+        // Handle successful authentication (router will redirect)
+        if (state.status == AuthStatus.authenticated) {
+          setState(() => _isLoading = false);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -47,41 +66,45 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           padding: DsEdgeInsets.allXxl,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header
+              // Header - centered
               Container(
-                width: 64,
-                height: 64,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [DsColors.primary, DsColors.secondary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: DsColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
+                      color: DsColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.favorite_rounded,
-                  size: 32,
+                  size: 36,
                   color: Colors.white,
                 ),
               ),
               DsGap.xxl,
               Text(
-                'Welcome back',
+                context.l10n.authWelcomeBack,
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               DsGap.sm,
               Text(
-                'Sign in to continue to Crush',
+                context.l10n.authSignInToContinue,
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
@@ -90,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Email/Username field
               GlassTextField(
                 controller: _identifierController,
-                label: 'Email or username',
+                label: context.l10n.authEmailOrUsername,
                 hintText: 'you@example.com',
                 prefixIcon: Icons.person_outline,
                 errorText: _identifierError,
@@ -103,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Password field
               GlassTextField(
                 controller: _passwordController,
-                label: 'Password',
+                label: context.l10n.authPassword,
                 hintText: '••••••••',
                 prefixIcon: Icons.lock_outline,
                 errorText: _passwordError,
@@ -125,9 +148,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading
                       ? null
                       : () => context.push(CrushRoutes.forgotPassword),
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(color: DsColors.primary),
+                  child: Text(
+                    context.l10n.authForgotPassword,
+                    style: const TextStyle(color: DsColors.primary),
                   ),
                 ),
               ),
@@ -146,9 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Sign In',
-                          style: TextStyle(
+                      : Text(
+                          context.l10n.authSignIn,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -173,78 +196,122 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               DsGap.xxl,
-              // Create account button
-              SizedBox(
+              // Create account button with gradient border
+              Container(
                 width: double.infinity,
-                child: GlassOutlinedButton(
-                  onPressed: _isLoading ? null : () => context.push(CrushRoutes.signUp),
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [DsColors.primary, DsColors.secondary],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Material(
+                  color: isDark ? DsColors.surfaceDark : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: _isLoading ? null : () => context.push(CrushRoutes.signUp),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [DsColors.primary, DsColors.secondary],
+                            ).createShader(bounds),
+                            child: const Icon(
+                              Icons.person_add_alt_1_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [DsColors.primary, DsColors.secondary],
+                            ).createShader(bounds),
+                            child: Text(
+                              context.l10n.authCreateAccount,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              DsGap.lg,
-              // Alternative login methods
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : () => context.push(CrushRoutes.phoneAuth),
-                    icon: const Icon(Icons.phone_outlined, size: 18),
-                    label: const Text('Phone'),
-                  ),
-                  Text(
-                    '  |  ',
-                    style: TextStyle(
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : () => context.push(CrushRoutes.emailAuth),
-                    icon: const Icon(Icons.email_outlined, size: 18),
-                    label: const Text('Email OTP'),
-                  ),
-                ],
-              ),
               DsGap.xl,
-              // Dev mode indicator (credentials not shown for security)
+              // Dev mode indicator - tap to auto-fill admin123 credentials
               if (!kReleaseMode)
-                Container(
-                  padding: DsEdgeInsets.allMd,
-                  decoration: BoxDecoration(
-                    color: DsColors.info.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: DsColors.info.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.developer_mode,
-                        color: DsColors.info,
-                        size: 20,
+                GestureDetector(
+                  onTap: () {
+                    _identifierController.text = 'admin123';
+                    _passwordController.text = 'admin123';
+                    setState(() {
+                      _identifierError = null;
+                      _passwordError = null;
+                    });
+                  },
+                  child: Container(
+                    padding: DsEdgeInsets.allMd,
+                    decoration: BoxDecoration(
+                      color: DsColors.info.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: DsColors.info.withValues(alpha: 0.2),
                       ),
-                      DsGap.mdH,
-                      Expanded(
-                        child: Text(
-                          'Development build',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.info,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.developer_mode,
+                          color: DsColors.info,
+                          size: 20,
+                        ),
+                        DsGap.mdH,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Development Build',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: DsColors.info,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                'Tap to fill test credentials',
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: DsColors.info.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                        Icon(
+                          Icons.touch_app_outlined,
+                          color: DsColors.info.withValues(alpha: 0.6),
+                          size: 18,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
           ),
         ),
       ),
+    ),
     );
   }
 
