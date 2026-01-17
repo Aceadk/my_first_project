@@ -339,7 +339,30 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(CrushRoutes.logout),
               ),
               DsGap.lg,
-              // App info
+              // Legal section
+              Padding(
+                padding: DsEdgeInsets.horizontalLg,
+                child: Text(
+                  'Legal',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
+                ),
+              ),
+              DsGap.sm,
+              ListTile(
+                leading: const Icon(Icons.article_outlined),
+                title: Text(context.l10n.authTermsOfService),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.termsOfService),
+              ),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: Text(context.l10n.authPrivacyPolicy),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.privacyPolicy),
+              ),
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: Text(context.l10n.settingsVersion),

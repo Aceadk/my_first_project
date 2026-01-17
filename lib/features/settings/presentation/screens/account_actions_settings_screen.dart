@@ -195,26 +195,6 @@ class _AccountActionsSettingsScreenState
                   subtitle: 'Download a copy of your personal data',
                   onTap: () => _showExportDataDialog(context),
                 ),
-                const Divider(indent: 72),
-
-                // Privacy Policy
-                _ActionTile(
-                  icon: Icons.privacy_tip_outlined,
-                  iconColor: Colors.purple,
-                  title: 'Privacy Policy',
-                  subtitle: 'How we handle your data',
-                  onTap: () => context.push(CrushRoutes.privacyPolicy),
-                ),
-                const Divider(indent: 72),
-
-                // Terms of Service
-                _ActionTile(
-                  icon: Icons.description_outlined,
-                  iconColor: Colors.teal,
-                  title: 'Terms of Service',
-                  subtitle: 'Our terms and conditions',
-                  onTap: () => context.push(CrushRoutes.termsOfService),
-                ),
 
                 DsGap.xxl,
 
