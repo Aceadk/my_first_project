@@ -1,11 +1,11 @@
 {
-    "name": "Crush Hour",
-    "short_name": "Crush Hour",
+    "name": "Crush",
+    "short_name": "Crush",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#667eea",
+    "theme_color": "#667eea",
+    "description": "Crush - Find your perfect match",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

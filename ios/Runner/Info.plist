@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>My First Project</string>
+	<string>Crush</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>CrushHour</string>
+	<string>Crush</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -46,11 +46,11 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>CrushHour needs your location to show you people nearby and calculate distances.</string>
+	<string>Crush needs your location to show you people nearby and calculate distances.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>CrushHour needs your location to show you people nearby even when the app is in the background.</string>
+	<string>Crush needs your location to show you people nearby even when the app is in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>CrushHour needs your location to suggest people near you when you open the app.</string>
+	<string>Crush needs your location to suggest people near you when you open the app.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
@@ -58,13 +58,13 @@
 		<string>remote-notification</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>CrushHour needs camera access to take profile photos and video call with your matches.</string>
+	<string>Crush needs camera access to take profile photos and video call with your matches.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>CrushHour needs microphone access to record voice messages and make voice/video calls.</string>
+	<string>Crush needs microphone access to record voice messages and make voice/video calls.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CrushHour needs photo library access to select photos for your profile.</string>
+	<string>Crush needs photo library access to select photos for your profile.</string>
 	<key>NSPhotoLibraryAddOnlyUsageDescription</key>
-	<string>CrushHour needs permission to save photos to your library.</string>
+	<string>Crush needs permission to save photos to your library.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>CrushHour uses this to provide personalized recommendations and measure ad effectiveness.</string>
 	<key>NSContactsUsageDescription</key>
