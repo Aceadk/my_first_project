@@ -205,20 +205,24 @@ class _DeckScreenState extends State<DeckScreen> {
                   : const SizedBox.shrink())
               : Column(
                   children: [
-                    DeckStatusBar(
-                      isLoading: isLoading,
-                      retryInSeconds: retryInSeconds,
-                      completeness: completeness,
-                    ),
-                    DeckSearchModeIndicator(
-                      localDeckExhausted: state.localDeckExhausted,
-                      passportModeActive: state.passportModeActive,
-                      currentDistanceKm: state.currentDistanceLimitKm,
-                      onTapPassport: () => context.push(CrushRoutes.discoverySettings),
-                    ),
+                    // Compact status indicators - only show when relevant
+                    if (isLoading || retryInSeconds != null || completeness.score < 0.5)
+                      DeckStatusBar(
+                        isLoading: isLoading,
+                        retryInSeconds: retryInSeconds,
+                        completeness: completeness,
+                      ),
+                    // Search mode indicator - compact
+                    if (state.localDeckExhausted || state.passportModeActive)
+                      DeckSearchModeIndicator(
+                        localDeckExhausted: state.localDeckExhausted,
+                        passportModeActive: state.passportModeActive,
+                        currentDistanceKm: state.currentDistanceLimitKm,
+                        onTapPassport: () => context.push(CrushRoutes.discoverySettings),
+                      ),
                     if (_checkingCompleteness)
                       Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'Checking profile with server...',
                           style: Theme.of(context)
@@ -229,7 +233,7 @@ class _DeckScreenState extends State<DeckScreen> {
                       ),
                     if (_completenessError != null)
                       Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           _completenessError!,
                           style: Theme.of(context)
@@ -238,34 +242,14 @@ class _DeckScreenState extends State<DeckScreen> {
                               ?.copyWith(color: Colors.orange),
                         ),
                       ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: PopupMenuButton<_DeckSafetyAction>(
-                        tooltip: 'Safety tools',
-                        onSelected: (action) => _handleSafetyAction(
-                          context,
-                          action,
-                          currentProfile: currentProfile,
-                          currentUserId: userId,
-                        ),
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: _DeckSafetyAction.viewProfile,
-                            child: Text('View full profile'),
-                          ),
-                          PopupMenuItem(
-                            value: _DeckSafetyAction.report,
-                            child: Text('Report profile'),
-                          ),
-                          PopupMenuItem(
-                            value: _DeckSafetyAction.block,
-                            child: Text('Block & hide profile'),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Immersive card area - fills most of the screen
                     Expanded(
-                      child: SwipeableCard(
+                      child: Padding(
+                        // Minimal padding for edge-to-edge immersive feel
+                        padding: const EdgeInsets.only(left: 6.0, right: 6.0, bottom: 4.0),
+                        child: Stack(
+                          children: [
+                            SwipeableCard(
                         profile: currentProfile,
                         superLikeEnabled: state.superLikesRemaining > 0,
                         onTap: () => context.push(
@@ -378,11 +362,53 @@ class _DeckScreenState extends State<DeckScreen> {
                           );
                         },
                       ),
+                            // Safety menu overlay (top-right of card)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: PopupMenuButton<_DeckSafetyAction>(
+                                tooltip: 'Safety tools',
+                                icon: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.more_vert,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                onSelected: (action) => _handleSafetyAction(
+                                  context,
+                                  action,
+                                  currentProfile: currentProfile,
+                                  currentUserId: userId,
+                                ),
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: _DeckSafetyAction.viewProfile,
+                                    child: Text('View full profile'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _DeckSafetyAction.report,
+                                    child: Text('Report profile'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _DeckSafetyAction.block,
+                                    child: Text('Block & hide profile'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    DsGap.lg,
-                    // Minimal action bar: Rewind, Dislike, Super-like, Like
+                    // Compact action bar: Rewind, Dislike, Super-like, Like
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md, vertical: 4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -391,7 +417,7 @@ class _DeckScreenState extends State<DeckScreen> {
                             icon: Icons.replay,
                             color: DsColors.actionRewind,
                             semanticLabel: 'Undo last swipe',
-                            size: 52,
+                            size: 44,
                             enabled: state.canRewind,
                             onTap: () async {
                               if (userId == null) return;
@@ -404,7 +430,7 @@ class _DeckScreenState extends State<DeckScreen> {
                             icon: Icons.close_rounded,
                             color: DsColors.actionPass,
                             semanticLabel: 'Pass on this profile',
-                            size: 64,
+                            size: 54,
                             onTap: () async {
                               if (userId == null) return;
                               final discoveryBloc = context.read<DiscoveryBloc>();
@@ -448,7 +474,7 @@ class _DeckScreenState extends State<DeckScreen> {
                                 icon: Icons.star_rounded,
                                 color: DsColors.actionSuperLike,
                                 semanticLabel: 'Super like this profile',
-                                size: 56,
+                                size: 48,
                                 enabled: state.superLikesRemaining > 0,
                                 onTap: () async {
                                   if (userId == null) return;
@@ -521,7 +547,7 @@ class _DeckScreenState extends State<DeckScreen> {
                             icon: Icons.favorite_rounded,
                             color: DsColors.actionLike,
                             semanticLabel: 'Like this profile',
-                            size: 64,
+                            size: 54,
                             onTap: () async {
                               if (userId == null) return;
                               final discoveryBloc = context.read<DiscoveryBloc>();
@@ -560,9 +586,9 @@ class _DeckScreenState extends State<DeckScreen> {
                         ],
                       ),
                     ),
-                    // Extra padding for glass bottom nav bar (64px + safe area)
+                    // Minimal padding for glass bottom nav bar
                     SizedBox(
-                      height: 64 + MediaQuery.of(context).padding.bottom + DsSpacing.md,
+                      height: 56 + MediaQuery.of(context).padding.bottom,
                     ),
                   ],
                 ),
@@ -649,6 +675,7 @@ class _DeckScreenState extends State<DeckScreen> {
     required ProfileCompletenessSummary local,
     required bool isAccountVerified,
   }) async {
+    // First check local requirements - fast path
     if (minimum == 'swipe' && !_canSwipe(local, true, isAccountVerified: isAccountVerified)) {
       return const _BackendCheckOutcome(
         allowed: false,
@@ -656,43 +683,49 @@ class _DeckScreenState extends State<DeckScreen> {
       );
     }
 
-    if (_backendCompleteness == null && !_checkingCompleteness) {
-      await _refreshBackendCompleteness(minimum: minimum);
-    }
-
+    // If local checks pass and we already have backend result, use it
     final backend = _backendCompleteness;
-    if (backend == null) {
-      if (_backendBlocked) {
-        return _BackendCheckOutcome(
-          allowed: false,
-          blocked: true,
-          message: _completenessError,
-        );
-      }
-      if (_completenessError != null) {
-        return const _BackendCheckOutcome(
-          allowed: true,
-          message:
-              'Could not verify profile completeness with the server. Using local checks.',
-        );
-      }
-      if (_checkingCompleteness) {
-        return const _BackendCheckOutcome(
-          allowed: false,
-          message:
-              'Checking your profile with the server. Try again in a moment.',
-        );
-      }
-      return const _BackendCheckOutcome(allowed: false);
+    if (backend != null) {
+      final allowed =
+          minimum == 'message' ? backend.allowsMessaging : backend.allowsSwipe;
+      return _BackendCheckOutcome(
+        allowed: allowed,
+        remote: backend,
+        blocked: !allowed,
+      );
     }
 
-    final allowed =
-        minimum == 'message' ? backend.allowsMessaging : backend.allowsSwipe;
-    return _BackendCheckOutcome(
-      allowed: allowed,
-      remote: backend,
-      blocked: !allowed,
-    );
+    // If local checks pass but no backend result yet, allow the action
+    // and trigger a non-blocking backend refresh for future swipes
+    if (local.meetsSwipeMinimum && local.meetsRequiredFields) {
+      // Trigger backend refresh in background (don't await)
+      if (!_checkingCompleteness) {
+        _refreshBackendCompleteness(minimum: minimum);
+      }
+      // Allow swipe based on local checks - don't block the user
+      return const _BackendCheckOutcome(allowed: true);
+    }
+
+    // Local checks failed and no backend - block the user
+    if (_backendBlocked) {
+      return _BackendCheckOutcome(
+        allowed: false,
+        blocked: true,
+        message: _completenessError,
+      );
+    }
+    if (_completenessError != null) {
+      return const _BackendCheckOutcome(
+        allowed: true,
+        message:
+            'Could not verify profile completeness with the server. Using local checks.',
+      );
+    }
+    if (_checkingCompleteness) {
+      // Still checking - allow based on local since local passed above
+      return const _BackendCheckOutcome(allowed: true);
+    }
+    return const _BackendCheckOutcome(allowed: false);
   }
 
   bool _handleBackendOutcome(

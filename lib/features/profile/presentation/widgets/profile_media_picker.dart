@@ -122,12 +122,12 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     if (!widget.enabled) return;
     final remaining = ProfileMediaLimits.maxVideos - _videos.length;
     if (remaining <= 0) {
-      _showError('You can add up to ${ProfileMediaLimits.maxVideos} videos.');
+      _showError('You can only add ${ProfileMediaLimits.maxVideos} video.');
       return;
     }
     final picked = await _picker.pickVideo(
       source: ImageSource.gallery,
-      maxDuration: const Duration(seconds: 20),
+      maxDuration: ProfileMediaLimits.maxVideoDuration,
     );
     if (picked == null) return;
     setState(() {

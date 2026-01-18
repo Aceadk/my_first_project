@@ -14,6 +14,7 @@ class ChatState extends Equatable {
   final String? uploadingAttachmentName;
   final Set<String> typingUserIds;
   final bool otherUserOnline;
+  final String? otherUserPhotoUrl;
   final bool mediaSendingEnabled;
   final bool isUnmatching;
   final bool isUnmatched;
@@ -37,6 +38,7 @@ class ChatState extends Equatable {
     this.uploadingAttachmentName,
     this.typingUserIds = const {},
     this.otherUserOnline = false,
+    this.otherUserPhotoUrl,
     this.mediaSendingEnabled = true,
     this.isUnmatching = false,
     this.isUnmatched = false,
@@ -65,6 +67,7 @@ class ChatState extends Equatable {
     String? uploadingAttachmentName,
     Set<String>? typingUserIds,
     bool? otherUserOnline,
+    String? otherUserPhotoUrl,
     bool? mediaSendingEnabled,
     bool? isUnmatching,
     bool? isUnmatched,
@@ -85,6 +88,7 @@ class ChatState extends Equatable {
           uploadingAttachmentName ?? this.uploadingAttachmentName,
       typingUserIds: typingUserIds ?? this.typingUserIds,
       otherUserOnline: otherUserOnline ?? this.otherUserOnline,
+      otherUserPhotoUrl: otherUserPhotoUrl ?? this.otherUserPhotoUrl,
       mediaSendingEnabled: mediaSendingEnabled ?? this.mediaSendingEnabled,
       isUnmatching: isUnmatching ?? this.isUnmatching,
       isUnmatched: isUnmatched ?? this.isUnmatched,
@@ -107,6 +111,7 @@ class ChatState extends Equatable {
         uploadingAttachmentName,
         typingUserIds,
         otherUserOnline,
+        otherUserPhotoUrl,
         mediaSendingEnabled,
         isUnmatching,
         isUnmatched,

@@ -108,6 +108,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   }) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
@@ -124,25 +125,49 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     if (sanitizedAge == null) throw Exception('Invalid age');
 
-    final profileData = <String, dynamic>{
-      'name': sanitizedName,
-      'age': sanitizedAge,
-      'gender': sanitizedGender,
-      if (sanitizedOrientation != null)
-        'sexualOrientation': sanitizedOrientation,
+    // Use dot notation to update nested fields without overwriting existing profile data
+    final updateData = <String, dynamic>{
+      'profile.name': sanitizedName,
+      'profile.age': sanitizedAge,
+      'profile.gender': sanitizedGender,
+      'profile.updatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    final userData = <String, dynamic>{
-      'profile': profileData,
-      if (sanitizedUsername != null) 'username': sanitizedUsername,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    // Add optional fields
+    if (sanitizedOrientation != null) {
+      updateData['profile.sexualOrientation'] = sanitizedOrientation;
+    }
+    if (dateOfBirth != null) {
+      updateData['profile.dateOfBirth'] = Timestamp.fromDate(dateOfBirth);
+    }
+    if (sanitizedUsername != null) {
+      updateData['username'] = sanitizedUsername;
+    }
 
-    await _firestore.collection('users').doc(userId).set(
-          userData,
-          SetOptions(merge: true),
-        );
+    // Check if document exists first - use set with merge for new users
+    final docRef = _firestore.collection('users').doc(userId);
+    final docSnapshot = await docRef.get();
+
+    if (docSnapshot.exists) {
+      await docRef.update(updateData);
+    } else {
+      // For new users, create the document with nested structure
+      await docRef.set({
+        'profile': {
+          'name': sanitizedName,
+          'age': sanitizedAge,
+          'gender': sanitizedGender,
+          if (sanitizedOrientation != null)
+            'sexualOrientation': sanitizedOrientation,
+          if (dateOfBirth != null)
+            'dateOfBirth': Timestamp.fromDate(dateOfBirth),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        if (sanitizedUsername != null) 'username': sanitizedUsername,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
 
     return (await getCurrentUser())!;
   }
@@ -190,25 +215,64 @@ class FirebaseProfileRepository implements ProfileRepository {
         ? InputSanitizer.sanitizeText(country, maxLength: 100)
         : null;
 
-    final profileData = <String, dynamic>{
-      'bio': sanitizedBio,
-      'photoUrls': sanitizedPhotoUrls,
-      'videoUrls': sanitizedVideoUrls,
-      'interests': sanitizedInterests,
-      if (sanitizedJobTitle != null) 'jobTitle': sanitizedJobTitle,
-      if (sanitizedCompany != null) 'company': sanitizedCompany,
-      if (sanitizedSchool != null) 'school': sanitizedSchool,
-      if (prompts != null) 'prompts': prompts,
-      if (sanitizedCity != null) 'city': sanitizedCity,
-      if (sanitizedCountry != null) 'country': sanitizedCountry,
-      if (favourites != null) 'favourites': favourites.toJson(),
+    // Use dot notation to update nested fields without overwriting existing profile data
+    // This preserves name, age, gender from basic info while adding profile details
+    final updateData = <String, dynamic>{
+      'profile.bio': sanitizedBio,
+      'profile.photoUrls': sanitizedPhotoUrls,
+      'profile.videoUrls': sanitizedVideoUrls,
+      'profile.interests': sanitizedInterests,
+      'profile.updatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    await _firestore.collection('users').doc(userId).set(
-          {'profile': profileData},
-          SetOptions(merge: true),
-        );
+    // Add optional fields with dot notation
+    if (sanitizedJobTitle != null) updateData['profile.jobTitle'] = sanitizedJobTitle;
+    if (sanitizedCompany != null) updateData['profile.company'] = sanitizedCompany;
+    if (sanitizedSchool != null) updateData['profile.school'] = sanitizedSchool;
+    if (prompts != null) updateData['profile.prompts'] = prompts;
+    if (sanitizedCity != null) updateData['profile.city'] = sanitizedCity;
+    if (sanitizedCountry != null) updateData['profile.country'] = sanitizedCountry;
+    if (favourites != null) updateData['profile.favourites'] = favourites.toJson();
+
+    final docRef = _firestore.collection('users').doc(userId);
+
+    try {
+      final docSnapshot = await docRef.get();
+      AppLogger.logInfo('[FirebaseProfileRepo] saveProfileDetails: docExists=${docSnapshot.exists}, userId=$userId');
+      AppLogger.logInfo('[FirebaseProfileRepo] saveProfileDetails: photoUrls=${sanitizedPhotoUrls.length}, city=$sanitizedCity, country=$sanitizedCountry');
+
+      if (docSnapshot.exists) {
+        AppLogger.logInfo('[FirebaseProfileRepo] Updating existing document with dot notation');
+        await docRef.update(updateData);
+        AppLogger.logInfo('[FirebaseProfileRepo] Update successful');
+      } else {
+        // Fallback: create document if it doesn't exist (shouldn't happen in normal flow)
+        AppLogger.logInfo('[FirebaseProfileRepo] Document does not exist, creating with set()');
+        await docRef.set({
+          'profile': {
+            'bio': sanitizedBio,
+            'photoUrls': sanitizedPhotoUrls,
+            'videoUrls': sanitizedVideoUrls,
+            'interests': sanitizedInterests,
+            if (sanitizedJobTitle != null) 'jobTitle': sanitizedJobTitle,
+            if (sanitizedCompany != null) 'company': sanitizedCompany,
+            if (sanitizedSchool != null) 'school': sanitizedSchool,
+            if (prompts != null) 'prompts': prompts,
+            if (sanitizedCity != null) 'city': sanitizedCity,
+            if (sanitizedCountry != null) 'country': sanitizedCountry,
+            if (favourites != null) 'favourites': favourites.toJson(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        AppLogger.logInfo('[FirebaseProfileRepo] Set successful');
+      }
+    } catch (e, stackTrace) {
+      AppLogger.logError('[FirebaseProfileRepo] saveProfileDetails FAILED', e);
+      AppLogger.logInfo('[FirebaseProfileRepo] Stack trace: $stackTrace');
+      rethrow;
+    }
 
     return (await getCurrentUser())!;
   }
@@ -240,6 +304,46 @@ class FirebaseProfileRepository implements ProfileRepository {
           {'profile': profileData, 'updatedAt': FieldValue.serverTimestamp()},
           SetOptions(merge: true),
         );
+
+    return (await getCurrentUser())!;
+  }
+
+  @override
+  Future<CrushUser> skipBasicInfo({required String username}) async {
+    final userId = _currentUserId;
+    if (userId == null) throw Exception('No user logged in');
+
+    final sanitizedUsername = InputSanitizer.sanitizeUsername(username);
+    if (sanitizedUsername.isEmpty) {
+      throw Exception('Username is required');
+    }
+
+    final docRef = _firestore.collection('users').doc(userId);
+
+    await docRef.set({
+      'username': sanitizedUsername,
+      'hasSkippedBasicInfo': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    AppLogger.logInfo('[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername');
+
+    return (await getCurrentUser())!;
+  }
+
+  @override
+  Future<CrushUser> skipProfileSetup() async {
+    final userId = _currentUserId;
+    if (userId == null) throw Exception('No user logged in');
+
+    final docRef = _firestore.collection('users').doc(userId);
+
+    await docRef.set({
+      'hasSkippedProfileSetup': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    AppLogger.logInfo('[FirebaseProfileRepo] skipProfileSetup');
 
     return (await getCurrentUser())!;
   }
@@ -314,6 +418,9 @@ class FirebaseProfileRepository implements ProfileRepository {
       isIdVerified: data['isIdVerified'] ?? false,
       plan: data['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
       profile: profile,
+      hasAcceptedTerms: data['hasAcceptedTerms'] ?? false,
+      hasSkippedBasicInfo: data['hasSkippedBasicInfo'] ?? false,
+      hasSkippedProfileSetup: data['hasSkippedProfileSetup'] ?? false,
     );
   }
 

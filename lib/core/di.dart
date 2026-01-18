@@ -45,8 +45,6 @@ import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/phone_auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/email_auth_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
@@ -194,16 +192,6 @@ class CrushDI {
       ),
       BlocProvider<SessionBloc>(
         create: (context) => SessionBloc(
-          authRepository: context.read<AuthRepository>(),
-        ),
-      ),
-      BlocProvider<PhoneAuthBloc>(
-        create: (context) => PhoneAuthBloc(
-          authRepository: context.read<AuthRepository>(),
-        ),
-      ),
-      BlocProvider<EmailAuthBloc>(
-        create: (context) => EmailAuthBloc(
           authRepository: context.read<AuthRepository>(),
         ),
       ),

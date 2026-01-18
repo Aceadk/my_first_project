@@ -258,6 +258,7 @@ class _ChatListView extends StatelessWidget {
                         currentUserId: currentUserId,
                         otherUserId: match.otherUserId,
                         otherName: otherName,
+                        otherPhotoUrl: match.otherUserPhotoUrl,
                       ),
                     );
                   },
@@ -299,35 +300,48 @@ class _ChatTileState extends State<_ChatTile>
   StreamSubscription<List<Message>>? _messagesSubscription;
   StreamSubscription<bool>? _presenceSubscription;
 
+  // Store references to avoid context.read() in dispose/async callbacks
+  BadgeCounterCubit? _badgeCounterCubit;
+  ChatRepository? _chatRepository;
+
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    // Store references before any async operations
+    _badgeCounterCubit = context.read<BadgeCounterCubit>();
+    _chatRepository = context.read<ChatRepository>();
     _subscribeToMessages();
     _subscribeToPresence();
   }
 
   @override
   void dispose() {
-    // Remove this match's count and update badge
+    // Remove this match's count and update badge using stored reference
     _unreadCounts.remove(widget.match.id);
-    _updateBadgeCounter();
+    _updateBadgeCounterSafe();
     // Cancel subscriptions to prevent memory leaks
     _messagesSubscription?.cancel();
     _presenceSubscription?.cancel();
     super.dispose();
   }
 
+  /// Update badge counter using stored reference (safe for dispose/async)
+  void _updateBadgeCounterSafe() {
+    final totalUnread = _unreadCounts.values.fold(0, (sum, count) => sum + count);
+    _badgeCounterCubit?.updateUnreadChats(totalUnread);
+  }
+
   void _updateBadgeCounter() {
     if (!mounted) return;
-    final totalUnread = _unreadCounts.values.fold(0, (sum, count) => sum + count);
-    context.read<BadgeCounterCubit>().updateUnreadChats(totalUnread);
+    _updateBadgeCounterSafe();
   }
 
   void _subscribeToMessages() {
-    final chatRepo = context.read<ChatRepository>();
+    final chatRepo = _chatRepository;
+    if (chatRepo == null) return;
     _messagesSubscription = chatRepo.watchMessages(widget.match.id).listen(
       (messages) {
         if (!mounted) return;
@@ -355,7 +369,8 @@ class _ChatTileState extends State<_ChatTile>
   }
 
   void _subscribeToPresence() {
-    final chatRepo = context.read<ChatRepository>();
+    final chatRepo = _chatRepository;
+    if (chatRepo == null) return;
     _presenceSubscription = chatRepo.watchPresence(widget.match.otherUserId).listen(
       (isOnline) {
         if (!mounted) return;
@@ -462,6 +477,7 @@ class _ChatTileState extends State<_ChatTile>
                         ),
                       ),
                       // Online indicator with glow effect
+                      // Online indicator (green dot)
                       if (_isOnline)
                         Positioned(
                           right: 0,
@@ -487,6 +503,31 @@ class _ChatTileState extends State<_ChatTile>
                             ),
                           ),
                         ),
+                      // Unread message indicator (red dot) - top right
+                      if (hasUnread)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? Colors.black : Colors.white,
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   DsGap.lgH,
@@ -497,15 +538,35 @@ class _ChatTileState extends State<_ChatTile>
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                name,
-                                style:
-                                    Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: hasUnread
-                                              ? FontWeight.bold
-                                              : FontWeight.w600,
-                                        ),
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: hasUnread
+                                                  ? FontWeight.bold
+                                                  : FontWeight.w600,
+                                            ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Text(
+                                      hasUnread ? 'New Message' : lastMessageText,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                                        color: hasUnread
+                                            ? Colors.red.shade400
+                                            : DsColors.textMutedLight,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             if (lastMessageTime != null)

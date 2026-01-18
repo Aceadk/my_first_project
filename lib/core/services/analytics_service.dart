@@ -115,7 +115,7 @@ class AnalyticsService {
   Future<void> logPhoneVerificationCompleted({required bool success}) async {
     await _analytics.logEvent(
       name: 'phone_verification_completed',
-      parameters: {'success': success},
+      parameters: {'success': success ? 1 : 0},
     );
     _log('phone_verification_completed', {'success': success});
   }
@@ -202,7 +202,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'swipe_right',
-      parameters: {'with_message': withMessage},
+      parameters: {'with_message': withMessage ? 1 : 0},
     );
     _log('swipe_right', {'with_message': withMessage});
   }
@@ -353,7 +353,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'call_started',
-      parameters: {'is_video': isVideo},
+      parameters: {'is_video': isVideo ? 1 : 0},
     );
     _log('call_started', {'is_video': isVideo});
   }
@@ -367,7 +367,7 @@ class AnalyticsService {
       name: 'call_ended',
       parameters: {
         'duration_seconds': durationSeconds,
-        'is_video': isVideo,
+        'is_video': isVideo ? 1 : 0,
       },
     );
     _log('call_ended', {'duration': durationSeconds, 'is_video': isVideo});
@@ -550,7 +550,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'notification_settings_changed',
-      parameters: {'type': type, 'enabled': enabled},
+      parameters: {'type': type, 'enabled': enabled ? 1 : 0},
     );
     _log('notification_settings_changed', {'type': type, 'enabled': enabled});
   }

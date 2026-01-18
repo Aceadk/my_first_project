@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -21,12 +21,24 @@ class BasicInfoScreen extends StatefulWidget {
 class _BasicInfoScreenState extends State<BasicInfoScreen> {
   final _usernameController = TextEditingController();
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
+  DateTime? _dateOfBirth;
   String _gender = 'female';
   String? _orientation;
   bool _usernameTouched = false;
-  bool _ageTouched = false;
+  bool _birthdateTouched = false;
   bool _hasShownAgeWarning = false;
+
+  /// Calculate age from date of birth
+  int? get _calculatedAge {
+    if (_dateOfBirth == null) return null;
+    final today = DateTime.now();
+    int age = today.year - _dateOfBirth!.year;
+    if (today.month < _dateOfBirth!.month ||
+        (today.month == _dateOfBirth!.month && today.day < _dateOfBirth!.day)) {
+      age--;
+    }
+    return age;
+  }
 
   final List<Map<String, dynamic>> _genderOptions = [
     {'value': 'female', 'label': 'Female', 'icon': Icons.female},
@@ -50,7 +62,6 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   void dispose() {
     _usernameController.dispose();
     _nameController.dispose();
-    _ageController.dispose();
     super.dispose();
   }
 
@@ -80,10 +91,13 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         child: SafeArea(
           child: BlocConsumer<ProfileBloc, ProfileState>(
             listenWhen: (previous, current) =>
-                previous.user != current.user ||
+                (previous.isSaving && !current.isSaving) ||
                 previous.errorMessage != current.errorMessage,
             listener: (context, state) {
-              if (state.user != null) {
+              // Navigate when save completes successfully
+              if (!state.isSaving && state.user?.hasCompletedBasicInfo == true && state.errorMessage == null) {
+                // Refresh auth state so router has updated user data
+                context.read<AuthBloc>().add(AuthUserRefreshRequested());
                 context.go(CrushRoutes.idVerification);
               }
               final error = state.errorMessage;
@@ -125,6 +139,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                     ),
                               ),
                               const Spacer(),
+                              // Spacer for layout balance
                               const SizedBox(width: 40),
                             ],
                           ),
@@ -230,25 +245,11 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                   onChanged: (_) => setState(() {}),
                                 ),
                                 DsGap.lg,
-                                // Age Field
+                                // Birthdate Field
                                 _buildSectionLabel(
-                                    context, 'Age', isDark, true),
+                                    context, 'Date of Birth', isDark, true),
                                 DsGap.sm,
-                                GlassTextField(
-                                  controller: _ageController,
-                                  hintText: '18-75',
-                                  prefixIcon: Icons.cake_outlined,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(2),
-                                  ],
-                                  errorText: _ageErrorText(),
-                                  onChanged: (value) {
-                                    _markAgeTouched();
-                                    setState(() {});
-                                  },
-                                ),
+                                _buildBirthdatePicker(context, isDark),
                                 DsGap.xl,
                                 // Gender Selection
                                 _buildSectionLabel(
@@ -439,6 +440,136 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildBirthdatePicker(BuildContext context, bool isDark) {
+    final errorText = _birthdateErrorText();
+    final hasError = errorText != null;
+
+    String displayText;
+    if (_dateOfBirth != null) {
+      final age = _calculatedAge;
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      displayText = '${months[_dateOfBirth!.month - 1]} ${_dateOfBirth!.day}, ${_dateOfBirth!.year}';
+      if (age != null) {
+        displayText += ' ($age years old)';
+      }
+    } else {
+      displayText = 'Select your birthdate';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => _showBirthdatePicker(context, isDark),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                  : DsColors.inputFillLight,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: hasError
+                    ? DsColors.error
+                    : (_dateOfBirth != null
+                        ? DsColors.primary
+                        : (isDark ? DsColors.borderDark : DsColors.borderLight)),
+                width: (_dateOfBirth != null || hasError) ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.cake_outlined,
+                  size: 22,
+                  color: hasError
+                      ? DsColors.error
+                      : (_dateOfBirth != null
+                          ? DsColors.primary
+                          : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    displayText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: _dateOfBirth != null
+                              ? (isDark
+                                  ? DsColors.textPrimaryDark
+                                  : DsColors.textPrimaryLight)
+                              : (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight),
+                        ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 20,
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              errorText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: DsColors.error,
+                    fontSize: 12,
+                  ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _showBirthdatePicker(BuildContext context, bool isDark) async {
+    _markBirthdateTouched();
+
+    final now = DateTime.now();
+    final minDate = DateTime(now.year - 75, now.month, now.day);
+    final maxDate = DateTime(now.year - 18, now.month, now.day);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? maxDate,
+      firstDate: minDate,
+      lastDate: maxDate,
+      helpText: 'SELECT YOUR BIRTHDATE',
+      cancelText: 'CANCEL',
+      confirmText: 'CONFIRM',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: DsColors.primary,
+              onPrimary: Colors.white,
+              surface: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
+              onSurface: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+            ),
+            dialogTheme: DialogThemeData(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _dateOfBirth = picked;
+      });
+    }
   }
 
   Widget _buildOrientationSelector(BuildContext context, bool isDark) {
@@ -646,23 +777,22 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     return null;
   }
 
-  void _markAgeTouched() {
-    if (!_ageTouched) {
+  void _markBirthdateTouched() {
+    if (!_birthdateTouched) {
       setState(() {
-        _ageTouched = true;
+        _birthdateTouched = true;
       });
     }
   }
 
-  String? _ageErrorText() {
-    if (!_ageTouched) return null;
-    final ageText = _ageController.text.trim();
-    if (ageText.isEmpty) {
-      return 'Enter your age';
+  String? _birthdateErrorText() {
+    if (!_birthdateTouched) return null;
+    if (_dateOfBirth == null) {
+      return 'Select your date of birth';
     }
-    final age = int.tryParse(ageText);
+    final age = _calculatedAge;
     if (age == null) {
-      return 'Enter a valid number';
+      return 'Select a valid date';
     }
     if (age < 18) {
       return 'You must be at least 18 years old';
@@ -676,19 +806,19 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   Future<void> _handleNext(BuildContext context) async {
     setState(() {
       _usernameTouched = true;
-      _ageTouched = true;
+      _birthdateTouched = true;
     });
     final usernameError = _usernameErrorText();
     if (usernameError != null) {
       showErrorSnackBar(context, usernameError);
       return;
     }
-    final ageError = _ageErrorText();
-    if (ageError != null) {
-      showErrorSnackBar(context, ageError);
+    final birthdateError = _birthdateErrorText();
+    if (birthdateError != null) {
+      showErrorSnackBar(context, birthdateError);
       return;
     }
-    final age = int.tryParse(_ageController.text) ?? 0;
+    final age = _calculatedAge ?? 0;
     final profileBloc = context.read<ProfileBloc>();
     // Show warning for users aged 70-75
     final proceed = await _showAgeWarningIfNeeded(age);
@@ -701,6 +831,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         age: age,
         gender: _gender,
         sexualOrientation: _orientation,
+        dateOfBirth: _dateOfBirth,
       ),
     );
   }

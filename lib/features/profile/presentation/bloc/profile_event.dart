@@ -24,6 +24,7 @@ class ProfileBasicInfoSubmitted extends ProfileEvent {
   final int age;
   final String gender;
   final String? sexualOrientation;
+  final DateTime? dateOfBirth;
 
   ProfileBasicInfoSubmitted({
     this.username,
@@ -31,10 +32,11 @@ class ProfileBasicInfoSubmitted extends ProfileEvent {
     required this.age,
     required this.gender,
     this.sexualOrientation,
+    this.dateOfBirth,
   });
 
   @override
-  List<Object?> get props => [username, name, age, gender, sexualOrientation];
+  List<Object?> get props => [username, name, age, gender, sexualOrientation, dateOfBirth];
 }
 
 class ProfileDetailsSubmitted extends ProfileEvent {
@@ -88,3 +90,16 @@ class ProfileLocationUpdateRequested extends ProfileEvent {
   @override
   List<Object?> get props => [latitude, longitude, city, country];
 }
+
+/// Event to skip basic info setup (only username is required).
+class ProfileBasicInfoSkipped extends ProfileEvent {
+  final String username;
+
+  ProfileBasicInfoSkipped({required this.username});
+
+  @override
+  List<Object?> get props => [username];
+}
+
+/// Event to skip profile setup entirely.
+class ProfileSetupSkipped extends ProfileEvent {}

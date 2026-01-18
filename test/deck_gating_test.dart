@@ -254,6 +254,9 @@ class _StubAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<CrushUser?> refreshCurrentUser() async => user;
+
+  @override
   Future<void> deactivateAccount({required String reason}) async {}
 
   @override
@@ -277,6 +280,7 @@ class _StubProfileRepository implements ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   }) async =>
       user;
 
@@ -305,6 +309,14 @@ class _StubProfileRepository implements ProfileRepository {
   @override
   Future<CrushUser> updateProfile(Profile profile) async =>
       user.copyWith(profile: profile);
+
+  @override
+  Future<CrushUser> skipBasicInfo({required String username}) async =>
+      user.copyWith(username: username, hasSkippedBasicInfo: true);
+
+  @override
+  Future<CrushUser> skipProfileSetup() async =>
+      user.copyWith(hasSkippedProfileSetup: true);
 }
 
 class _StubDiscoveryRepository implements DiscoveryRepository {

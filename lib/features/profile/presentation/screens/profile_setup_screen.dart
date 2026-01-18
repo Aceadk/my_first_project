@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
@@ -73,15 +74,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _submit(ProfileState state) async {
     if (_uploading || state.isSaving) return;
-    if (_photoPaths.length < ProfileMediaLimits.minPhotos) {
-      showErrorSnackBar(context, 'Add at least one photo to finish your profile.');
-      return;
-    }
-
-    if (_cityController.text.trim().isEmpty || _countryController.text.trim().isEmpty) {
-      showErrorSnackBar(context, 'Please enter your city and country.');
-      return;
-    }
 
     final userId = state.user?.id;
     if (userId == null) {
@@ -89,13 +81,24 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
+    // Check if user is skipping (no photos added)
+    final isSkipping = _photoPaths.isEmpty;
+
+    if (isSkipping) {
+      // User is skipping - mark profile setup as skipped
+      context.read<ProfileBloc>().add(ProfileSetupSkipped());
+      return;
+    }
+
     setState(() => _uploading = true);
 
-    // Record location for passport mode tracking
-    await _passportService.recordLocation(
-      _cityController.text.trim(),
-      _countryController.text.trim(),
-    );
+    // Record location for passport mode tracking if provided
+    if (_cityController.text.trim().isNotEmpty && _countryController.text.trim().isNotEmpty) {
+      await _passportService.recordLocation(
+        _cityController.text.trim(),
+        _countryController.text.trim(),
+      );
+    }
 
     final uploadResult = await Result.guard(
       () => _mediaService.ensureRemoteUrls(
@@ -161,9 +164,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         child: SafeArea(
           child: BlocConsumer<ProfileBloc, ProfileState>(
             listenWhen: (previous, current) =>
-                previous.user != current.user || previous.errorMessage != current.errorMessage,
+                (previous.isSaving && !current.isSaving) || previous.errorMessage != current.errorMessage,
             listener: (context, state) {
-              if (state.user != null) {
+              // Only navigate when save just completed successfully (was saving, now not saving)
+              if (!state.isSaving && state.user?.hasCompletedProfileSetup == true && state.errorMessage == null) {
+                // Refresh auth state so router has updated user data
+                context.read<AuthBloc>().add(AuthUserRefreshRequested());
+
+                // Check if we need email verification first
+                final user = state.user;
+                if (user != null &&
+                    user.email != null &&
+                    user.email!.isNotEmpty &&
+                    !user.isEmailVerified) {
+                  context.go(CrushRoutes.emailVerification);
+                  return;
+                }
                 context.go(CrushRoutes.home);
               }
               final error = state.errorMessage;
@@ -194,8 +210,33 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Optional notice
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: DsColors.primary.withValues(alpha: 0.3)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.info_outline_rounded, color: DsColors.primary, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'All fields are optional. You can complete your profile later in Settings.',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: DsColors.primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                DsGap.lg,
                                 // Photos Section
-                                _buildSectionHeader(context, isDark, 'Your Photos', 'Add at least 1 photo', Icons.photo_library_rounded),
+                                _buildSectionHeader(context, isDark, 'Your Photos', 'Optional - helps you get more matches', Icons.photo_library_rounded),
                                 DsGap.md,
                                 ProfileMediaPicker(
                                   initialPhotos: _photoPaths,

@@ -11,10 +11,11 @@ class ChatOpened extends ChatEvent {
   final String matchId;
   final String currentUserId;
   final String otherUserId;
-  ChatOpened(this.matchId, this.currentUserId, this.otherUserId);
+  final String? otherUserPhotoUrl;
+  ChatOpened(this.matchId, this.currentUserId, this.otherUserId, {this.otherUserPhotoUrl});
 
   @override
-  List<Object?> get props => [matchId, currentUserId, otherUserId];
+  List<Object?> get props => [matchId, currentUserId, otherUserId, otherUserPhotoUrl];
 }
 
 class ChatClosed extends ChatEvent {

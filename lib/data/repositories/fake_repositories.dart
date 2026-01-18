@@ -354,6 +354,14 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<CrushUser?> refreshCurrentUser() async {
+    if (_current != null) {
+      _controller.add(_current);
+    }
+    return _current;
+  }
+
+  @override
   Future<bool> isEmailRegistered(String email) async {
     final normalized = email.trim().toLowerCase();
     return _usersByEmail.containsKey(normalized);
@@ -572,6 +580,7 @@ class FakeProfileRepository implements ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   }) async {
     if (age < CrushConstants.minAge) {
       throw Exception('User must be at least ${CrushConstants.minAge}.');
@@ -596,6 +605,7 @@ class FakeProfileRepository implements ProfileRepository {
       age: age,
       gender: gender,
       sexualOrientation: sexualOrientation,
+      dateOfBirth: dateOfBirth,
       bio: '',
       photoUrls: const [],
       videoUrls: const [],
@@ -693,6 +703,33 @@ class FakeProfileRepository implements ProfileRepository {
   @override
   Future<CrushUser> updateProfile(Profile profile) async {
     _user = _user!.copyWith(profile: profile);
+    return _user!;
+  }
+
+  @override
+  Future<CrushUser> skipBasicInfo({required String username}) async {
+    _user = (_user ??
+            CrushUser(
+              id: _uuid.v4(),
+              phoneNumber: '',
+              email: null,
+              username: null,
+              isEmailVerified: false,
+              profile: null,
+              isPhoneVerified: true,
+              isIdVerified: false,
+              plan: SubscriptionPlan.free,
+            ))
+        .copyWith(
+          username: username,
+          hasSkippedBasicInfo: true,
+        );
+    return _user!;
+  }
+
+  @override
+  Future<CrushUser> skipProfileSetup() async {
+    _user = _user!.copyWith(hasSkippedProfileSetup: true);
     return _user!;
   }
 }

@@ -389,4 +389,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> acceptTermsAndConditions() async {
     return _testUser.copyWith(hasAcceptedTerms: true);
   }
+
+  @override
+  Future<CrushUser?> refreshCurrentUser() async => _testUser;
 }

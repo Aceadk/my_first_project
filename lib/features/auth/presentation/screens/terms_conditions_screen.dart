@@ -6,6 +6,8 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 
 class TermsConditionsScreen extends StatefulWidget {
   const TermsConditionsScreen({super.key});
@@ -50,6 +52,8 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
       await authRepo.acceptTermsAndConditions();
 
       if (mounted) {
+        // Refresh auth state so router has updated user data
+        context.read<AuthBloc>().add(AuthUserRefreshRequested());
         context.go(CrushRoutes.basicInfo);
       }
     } catch (e) {

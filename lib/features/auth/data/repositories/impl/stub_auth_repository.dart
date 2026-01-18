@@ -672,6 +672,8 @@ class StubAuthRepository implements AuthRepository {
       plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
       profile: profile,
       hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
+      hasSkippedBasicInfo: json['hasSkippedBasicInfo'] ?? false,
+      hasSkippedProfileSetup: json['hasSkippedProfileSetup'] ?? false,
     );
   }
 
@@ -748,6 +750,8 @@ class StubAuthRepository implements AuthRepository {
       'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,
+      'hasSkippedBasicInfo': user.hasSkippedBasicInfo,
+      'hasSkippedProfileSetup': user.hasSkippedProfileSetup,
     };
   }
 
@@ -832,6 +836,17 @@ class StubAuthRepository implements AuthRepository {
   Future<CrushUser> acceptTermsAndConditions() async {
     await Future.delayed(const Duration(milliseconds: 50));
 
+    // Try to restore user from storage if not in memory
+    if (_currentUser == null) {
+      final userId = await _secureStorage.read(key: _currentUserKey);
+      if (userId != null) {
+        final user = await _getUserById(userId);
+        if (user != null) {
+          _currentUser = user;
+        }
+      }
+    }
+
     if (_currentUser == null) {
       throw Exception('No user logged in');
     }
@@ -840,6 +855,19 @@ class StubAuthRepository implements AuthRepository {
     await _updateUser(_currentUser!);
     _authStateController.add(_currentUser);
     return _currentUser!;
+  }
+
+  @override
+  Future<CrushUser?> refreshCurrentUser() async {
+    final userId = await _secureStorage.read(key: _currentUserKey);
+    if (userId == null) return null;
+
+    final user = await _getUserById(userId);
+    if (user != null) {
+      _currentUser = user;
+      _authStateController.add(user);
+    }
+    return user;
   }
 
   void dispose() {

@@ -159,18 +159,40 @@ class _SplashScreenState extends State<SplashScreen>
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           final user = state.user;
-          // User is verified if EITHER email OR phone is verified
-          if (user != null && user.isAccountVerified) {
-            // Account is verified (email or phone), go directly to home
-            _setNavigationTarget(CrushRoutes.home);
-          } else if (user?.email != null && user!.email!.isNotEmpty) {
-            // Has email but not verified, and phone not verified - show email protection
-            _setNavigationTarget(CrushRoutes.emailProtection, arguments: true);
-          } else {
-            // No verification yet, but authenticated - go to home
-            // They can verify from settings or will be prompted when swiping
-            _setNavigationTarget(CrushRoutes.home);
+
+          // Check onboarding steps in order (same as router)
+          // 1. Check if user needs to accept terms and conditions
+          if (user != null && !user.hasAcceptedTerms) {
+            _setNavigationTarget(CrushRoutes.termsConditions);
+            return;
           }
+
+          // 2. Check if user needs to complete basic info
+          if (user != null && user.hasAcceptedTerms && !user.hasCompletedBasicInfo) {
+            _setNavigationTarget(CrushRoutes.basicInfo);
+            return;
+          }
+
+          // 3. Check if user needs to complete profile setup
+          if (user != null && user.hasAcceptedTerms && user.hasCompletedBasicInfo && !user.hasCompletedProfileSetup) {
+            _setNavigationTarget(CrushRoutes.profileSetup);
+            return;
+          }
+
+          // 4. Check if email verification is needed (after completing onboarding)
+          if (user != null &&
+              user.email != null &&
+              user.email!.isNotEmpty &&
+              !user.isEmailVerified &&
+              user.hasAcceptedTerms &&
+              user.hasCompletedBasicInfo &&
+              user.hasCompletedProfileSetup) {
+            _setNavigationTarget(CrushRoutes.emailVerification);
+            return;
+          }
+
+          // All onboarding complete - go to home
+          _setNavigationTarget(CrushRoutes.home);
         } else if (state.status == AuthStatus.unauthenticated ||
             state.status == AuthStatus.otpSent ||
             state.status == AuthStatus.emailLinkSent ||

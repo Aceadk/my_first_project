@@ -19,6 +19,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   int _retryCount = 0;
   static const int _maxAutoRetries = 2;
   bool _isManualRefresh = false;
+  StreamSubscription? _authSubscription;
 
   ProfileBloc({
     required this.profileRepository,
@@ -31,6 +32,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileIdDocumentUploaded>(_onIdDocumentUploaded);
     on<ProfileIdVerifiedMarked>(_onIdVerifiedMarked);
     on<ProfileLocationUpdateRequested>(_onLocationUpdateRequested);
+    on<ProfileBasicInfoSkipped>(_onBasicInfoSkipped);
+    on<ProfileSetupSkipped>(_onSetupSkipped);
+
+    // Subscribe to auth state changes and auto-load profile when authenticated
+    _authSubscription = authRepository.authStateChanges().listen((user) {
+      if (user != null && state.status == ProfileStatus.initial) {
+        add(ProfileLoadRequested());
+      }
+    });
   }
 
   Future<void> _onLoadRequested(
@@ -170,6 +180,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         age: event.age,
         gender: event.gender,
         sexualOrientation: event.sexualOrientation,
+        dateOfBirth: event.dateOfBirth,
       ),
       logLabel: 'ProfileRepository.saveBasicInfo',
       fallbackError: 'Could not save basic info. Please try again.',
@@ -345,9 +356,48 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
+  Future<void> _onBasicInfoSkipped(
+      ProfileBasicInfoSkipped event, Emitter<ProfileState> emit) async {
+    emit(state.copyWith(isSaving: true, errorMessage: null));
+
+    final result = await Result.guard(
+      () => profileRepository.skipBasicInfo(username: event.username),
+      logLabel: 'ProfileRepository.skipBasicInfo',
+      fallbackError: 'Could not skip basic info. Please try again.',
+    );
+
+    final user = result.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: result.errorMessage,
+    ));
+  }
+
+  Future<void> _onSetupSkipped(
+      ProfileSetupSkipped event, Emitter<ProfileState> emit) async {
+    emit(state.copyWith(isSaving: true, errorMessage: null));
+
+    final result = await Result.guard(
+      () => profileRepository.skipProfileSetup(),
+      logLabel: 'ProfileRepository.skipProfileSetup',
+      fallbackError: 'Could not skip profile setup. Please try again.',
+    );
+
+    final user = result.data;
+    emit(state.copyWith(
+      user: user ?? state.user,
+      profile: user?.profile ?? state.profile,
+      isSaving: false,
+      errorMessage: result.errorMessage,
+    ));
+  }
+
   @override
   Future<void> close() {
     _retryTimer?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

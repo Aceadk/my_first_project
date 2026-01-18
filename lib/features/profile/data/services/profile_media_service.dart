@@ -1,37 +1,160 @@
-/// Mock implementation of ProfileMediaService.
-/// For demo purposes, this returns local file paths as-is.
-/// Replace with your actual media upload backend for production.
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
+import 'package:uuid/uuid.dart';
+
+/// ProfileMediaService handles uploading profile photos and videos to Firebase Storage.
+///
+/// In debug mode, if Firebase Storage upload fails (e.g., due to security rules),
+/// it will fall back to using local file paths. This allows development to continue
+/// while Firebase Storage rules are being configured.
 class ProfileMediaService {
-  /// Upload a photo to storage and return the download URL.
-  /// For demo: returns the local file path as-is.
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final _uuid = const Uuid();
+
+  /// Whether to use local file fallback when Firebase Storage fails (debug only)
+  static bool useFallbackInDebug = true;
+
+  /// Upload a photo to Firebase Storage and return the download URL.
+  /// In debug mode with fallback enabled, returns local path if upload fails.
   Future<String> uploadPhoto({
     required String userId,
     required String filePath,
   }) async {
-    // Minimal delay for responsiveness (production would have real upload time)
-    await Future.delayed(const Duration(milliseconds: 50));
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('Photo file not found: $filePath');
+    }
 
-    // For demo: return local path as-is (works for displaying local images)
-    return filePath;
+    try {
+      // Generate unique filename
+      final extension = path.extension(filePath).toLowerCase();
+      final filename = '${_uuid.v4()}$extension';
+      final storagePath = 'users/$userId/photos/$filename';
+
+      // Upload to Firebase Storage
+      final ref = _storage.ref().child(storagePath);
+      final uploadTask = ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: _getContentType(extension),
+          customMetadata: {
+            'uploadedAt': DateTime.now().toIso8601String(),
+            'userId': userId,
+          },
+        ),
+      );
+
+      // Wait for upload to complete
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      debugPrint('ProfileMediaService: Photo uploaded - $downloadUrl');
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      debugPrint('ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
+      debugPrint('ProfileMediaService: Make sure Firebase Storage rules allow uploads for authenticated users.');
+      debugPrint('ProfileMediaService: Example rules:');
+      debugPrint('  rules_version = "2";');
+      debugPrint('  service firebase.storage {');
+      debugPrint('    match /b/{bucket}/o {');
+      debugPrint('      match /users/{userId}/{allPaths=**} {');
+      debugPrint('        allow read, write: if request.auth != null && request.auth.uid == userId;');
+      debugPrint('      }');
+      debugPrint('    }');
+      debugPrint('  }');
+
+      // In debug mode, fall back to local path
+      if (kDebugMode && useFallbackInDebug) {
+        debugPrint('ProfileMediaService: Using local file fallback for development');
+        return filePath;
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('ProfileMediaService: Photo upload failed - $e');
+
+      // In debug mode, fall back to local path
+      if (kDebugMode && useFallbackInDebug) {
+        debugPrint('ProfileMediaService: Using local file fallback for development');
+        return filePath;
+      }
+      rethrow;
+    }
   }
 
-  /// Upload a video to storage and return the download URL.
-  /// For demo: returns the local file path as-is.
+  /// Upload a video to Firebase Storage and return the download URL.
+  /// In debug mode with fallback enabled, returns local path if upload fails.
   Future<String> uploadVideo({
     required String userId,
     required String filePath,
   }) async {
-    // Minimal delay for responsiveness (production would have real upload time)
-    await Future.delayed(const Duration(milliseconds: 100));
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('Video file not found: $filePath');
+    }
 
-    // For demo: return local path as-is (works for displaying local videos)
-    return filePath;
+    try {
+      // Generate unique filename
+      final extension = path.extension(filePath).toLowerCase();
+      final filename = '${_uuid.v4()}$extension';
+      final storagePath = 'users/$userId/videos/$filename';
+
+      // Upload to Firebase Storage
+      final ref = _storage.ref().child(storagePath);
+      final uploadTask = ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: _getVideoContentType(extension),
+          customMetadata: {
+            'uploadedAt': DateTime.now().toIso8601String(),
+            'userId': userId,
+          },
+        ),
+      );
+
+      // Wait for upload to complete
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      debugPrint('ProfileMediaService: Video uploaded - $downloadUrl');
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      debugPrint('ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
+
+      // In debug mode, fall back to local path
+      if (kDebugMode && useFallbackInDebug) {
+        debugPrint('ProfileMediaService: Using local file fallback for development');
+        return filePath;
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('ProfileMediaService: Video upload failed - $e');
+
+      // In debug mode, fall back to local path
+      if (kDebugMode && useFallbackInDebug) {
+        debugPrint('ProfileMediaService: Using local file fallback for development');
+        return filePath;
+      }
+      rethrow;
+    }
   }
 
-  /// Delete a media file from storage.
+  /// Delete a media file from Firebase Storage.
   Future<void> deleteMedia(String url) async {
-    // For demo: no-op (files remain on device)
-    // In production: delete from cloud storage
+    try {
+      if (!url.startsWith('https://firebasestorage.googleapis.com')) {
+        // Not a Firebase Storage URL, skip
+        return;
+      }
+
+      final ref = _storage.refFromURL(url);
+      await ref.delete();
+      debugPrint('ProfileMediaService: Media deleted - $url');
+    } catch (e) {
+      debugPrint('ProfileMediaService: Media delete failed - $e');
+      // Don't rethrow - deletion failures shouldn't block user operations
+    }
   }
 
   /// Check if a path is a local file (not a remote URL).
@@ -48,24 +171,58 @@ class ProfileMediaService {
     final photoUrls = <String>[];
     final videoUrls = <String>[];
 
-    for (final path in photoPaths) {
-      if (isLocalFile(path)) {
-        final url = await uploadPhoto(userId: userId, filePath: path);
+    for (final filePath in photoPaths) {
+      if (isLocalFile(filePath)) {
+        final url = await uploadPhoto(userId: userId, filePath: filePath);
         photoUrls.add(url);
       } else {
-        photoUrls.add(path);
+        photoUrls.add(filePath);
       }
     }
 
-    for (final path in videoPaths) {
-      if (isLocalFile(path)) {
-        final url = await uploadVideo(userId: userId, filePath: path);
+    for (final filePath in videoPaths) {
+      if (isLocalFile(filePath)) {
+        final url = await uploadVideo(userId: userId, filePath: filePath);
         videoUrls.add(url);
       } else {
-        videoUrls.add(path);
+        videoUrls.add(filePath);
       }
     }
 
     return (photoUrls: photoUrls, videoUrls: videoUrls);
+  }
+
+  String _getContentType(String extension) {
+    switch (extension) {
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.png':
+        return 'image/png';
+      case '.gif':
+        return 'image/gif';
+      case '.webp':
+        return 'image/webp';
+      case '.heic':
+      case '.heif':
+        return 'image/heic';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  String _getVideoContentType(String extension) {
+    switch (extension) {
+      case '.mp4':
+        return 'video/mp4';
+      case '.mov':
+        return 'video/quicktime';
+      case '.avi':
+        return 'video/x-msvideo';
+      case '.webm':
+        return 'video/webm';
+      default:
+        return 'video/mp4';
+    }
   }
 }

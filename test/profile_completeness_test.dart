@@ -59,13 +59,13 @@ void main() {
       gender: 'female',
       sexualOrientation: null,
       bio: '',
-      photoUrls:  ['a.jpg'],
-      videoUrls:  [],
+      photoUrls: ['a.jpg'],
+      videoUrls: [],
       isVerified: false,
       jobTitle: null,
       company: null,
       school: null,
-      interests:  ['music'],
+      interests: ['music'],
       country: '',
       city: '',
       latitude: null,
@@ -75,7 +75,11 @@ void main() {
 
     final summary = evaluateProfileCompleteness(profile);
     expect(summary.score, lessThan(kSwipeMinimumCompleteness));
-    expect(summary.missing, contains('Write about yourself for a better profile'));
-    expect(summary.missing, contains('Add interests to find better matches'));
+    // Required fields: 1 photo, 10 char bio, 3 interests, city + country
+    expect(summary.missing, contains('Write a bio (at least $kMinBioLength characters)'));
+    expect(summary.missing, contains('Add at least $kMinInterests interests'));
+    expect(summary.missing, contains('Add your city and country'));
+    // Prompts are optional - shown in recommended
+    expect(summary.recommended, contains('Answer prompts to stand out'));
   });
 }

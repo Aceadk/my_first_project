@@ -41,6 +41,7 @@ class StubProfileRepository implements ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   }) async {
     await Future.delayed(const Duration(milliseconds: 50));
 
@@ -72,6 +73,7 @@ class StubProfileRepository implements ProfileRepository {
       age: sanitizedAge,
       gender: sanitizedGender,
       sexualOrientation: sanitizedOrientation ?? existingProfile?.sexualOrientation,
+      dateOfBirth: dateOfBirth ?? existingProfile?.dateOfBirth,
       bio: existingProfile?.bio ?? '',
       photoUrls: existingProfile?.photoUrls ?? [],
       videoUrls: existingProfile?.videoUrls ?? [],
@@ -220,6 +222,46 @@ class StubProfileRepository implements ProfileRepository {
     return updatedUser;
   }
 
+  @override
+  Future<CrushUser> skipBasicInfo({required String username}) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final sanitizedUsername = InputSanitizer.sanitizeUsername(username);
+    if (sanitizedUsername.isEmpty) {
+      throw Exception('Username is required');
+    }
+
+    final updatedUser = currentUser.copyWith(
+      username: sanitizedUsername,
+      hasSkippedBasicInfo: true,
+    );
+
+    await _saveUser(updatedUser);
+    return updatedUser;
+  }
+
+  @override
+  Future<CrushUser> skipProfileSetup() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final updatedUser = currentUser.copyWith(
+      hasSkippedProfileSetup: true,
+    );
+
+    await _saveUser(updatedUser);
+    return updatedUser;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -309,6 +351,9 @@ class StubProfileRepository implements ProfileRepository {
       isIdVerified: json['isIdVerified'] ?? false,
       plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
       profile: profile,
+      hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
+      hasSkippedBasicInfo: json['hasSkippedBasicInfo'] ?? false,
+      hasSkippedProfileSetup: json['hasSkippedProfileSetup'] ?? false,
     );
   }
 
@@ -376,6 +421,9 @@ class StubProfileRepository implements ProfileRepository {
       'isIdVerified': user.isIdVerified,
       'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
       'profile': profileJson,
+      'hasAcceptedTerms': user.hasAcceptedTerms,
+      'hasSkippedBasicInfo': user.hasSkippedBasicInfo,
+      'hasSkippedProfileSetup': user.hasSkippedProfileSetup,
     };
   }
 }

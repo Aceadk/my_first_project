@@ -432,40 +432,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    final result = await Result.guard(
-      () => authRepo.signUpWithPassword(
-            username: username,
-            email: email,
-            password: password,
-          ),
-      logLabel: 'AuthRepository.signUpWithPassword',
-      fallbackError: 'Could not create account. Please try again.',
-    );
+    try {
+      await authRepo.signUpWithPassword(
+        username: username,
+        email: email,
+        password: password,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
+      setState(() => _isLoading = false);
 
-    setState(() => _isLoading = false);
+      if (context.read<AuthRepository>().isVerificationBypassEnabled) {
+        showSuccessSnackBar(context, 'Account created! Welcome to Crush.');
+        context.go(CrushRoutes.termsConditions);
+        return;
+      }
 
-    if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Sign up failed.');
-      return;
+      _registeredEmail = email;
+
+      // Send email verification link
+      await _sendEmailLink();
+
+      if (!mounted) return;
+
+      setState(() => _currentStep = 3);
+      showSuccessSnackBar(context, 'Check your email for a verification link.');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      // Show the actual error message to help debug
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      showErrorSnackBar(context, errorMessage);
     }
-
-    if (context.read<AuthRepository>().isVerificationBypassEnabled) {
-      showSuccessSnackBar(context, 'Account created! Welcome to Crush.');
-      context.go(CrushRoutes.termsConditions);
-      return;
-    }
-
-    _registeredEmail = email;
-
-    // Send email verification link
-    await _sendEmailLink();
-
-    if (!mounted) return;
-
-    setState(() => _currentStep = 3);
-    showSuccessSnackBar(context, 'Check your email for a verification link.');
   }
 
   Future<void> _sendEmailLink() async {

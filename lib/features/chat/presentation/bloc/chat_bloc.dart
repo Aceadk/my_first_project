@@ -51,6 +51,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       errorMessage: null,
       typingUserIds: const {},
       otherUserOnline: false,
+      otherUserPhotoUrl: event.otherUserPhotoUrl,
       mediaSendingEnabled: true,
       isUnmatching: false,
       isUnmatched: false,

@@ -603,6 +603,23 @@ class HttpAuthRepository implements AuthRepository {
     throw Exception('No user logged in');
   }
 
+  @override
+  Future<CrushUser?> refreshCurrentUser() async {
+    final result = await _apiClient.get<Map<String, dynamic>>(
+      ApiEndpoints.profileMe,
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isSuccess && result.data != null) {
+      final userDto = UserDto.fromJson(result.data!);
+      _currentUser = AuthMapper.userFromDto(userDto);
+      _emitAuthState(_currentUser);
+      return _currentUser;
+    }
+
+    return _currentUser;
+  }
+
   /// Dispose resources.
   void dispose() {
     _authStateController.close();

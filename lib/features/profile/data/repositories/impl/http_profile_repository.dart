@@ -59,9 +59,10 @@ class HttpProfileRepository implements ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   }) async {
-    // Calculate birth date from age
-    final birthDate = DateTime(DateTime.now().year - age, 1, 1);
+    // Use provided birth date or calculate from age
+    final birthDate = dateOfBirth ?? DateTime(DateTime.now().year - age, 1, 1);
 
     final request = UpdateProfileRequestDto(
       displayName: name,
@@ -311,5 +312,44 @@ class HttpProfileRepository implements ProfileRepository {
     if (result.isFailure) {
       throw Exception(result.error?.message ?? 'Failed to reorder photos');
     }
+  }
+
+  @override
+  Future<CrushUser> skipBasicInfo({required String username}) async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/profile/skip-basic-info',
+      body: {'username': username},
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to skip basic info');
+    }
+
+    final user = await getCurrentUser();
+    if (user == null) {
+      throw Exception('Failed to retrieve updated user');
+    }
+
+    return user;
+  }
+
+  @override
+  Future<CrushUser> skipProfileSetup() async {
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/profile/skip-setup',
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Failed to skip profile setup');
+    }
+
+    final user = await getCurrentUser();
+    if (user == null) {
+      throw Exception('Failed to retrieve updated user');
+    }
+
+    return user;
   }
 }

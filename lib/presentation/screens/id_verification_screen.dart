@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -179,6 +181,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
     if (widget.fromSettings) {
       Navigator.of(context).pop();
     } else {
+      // Refresh auth state so router has updated user data
+      context.read<AuthBloc>().add(AuthUserRefreshRequested());
       context.go(CrushRoutes.profileSetup);
     }
   }
@@ -187,6 +191,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
     if (widget.fromSettings) {
       Navigator.of(context).pop();
     } else {
+      // Refresh auth state so router has updated user data
+      context.read<AuthBloc>().add(AuthUserRefreshRequested());
       context.go(CrushRoutes.profileSetup);
     }
   }

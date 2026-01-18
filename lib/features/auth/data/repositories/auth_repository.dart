@@ -141,4 +141,8 @@ abstract class AuthRepository {
   /// Accept terms and conditions and privacy policy.
   /// Updates the user's hasAcceptedTerms field to true.
   Future<CrushUser> acceptTermsAndConditions();
+
+  /// Refresh the current user from storage/backend.
+  /// Used to sync auth state after profile changes.
+  Future<CrushUser?> refreshCurrentUser();
 }

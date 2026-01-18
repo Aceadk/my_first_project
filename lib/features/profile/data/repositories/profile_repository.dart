@@ -11,6 +11,7 @@ abstract class ProfileRepository {
     required int age,
     required String gender,
     String? sexualOrientation,
+    DateTime? dateOfBirth,
   });
 
   Future<CrushUser> saveProfileDetails({
@@ -32,4 +33,10 @@ abstract class ProfileRepository {
   Future<CrushUser> markIdVerified();
 
   Future<CrushUser> updateProfile(Profile profile);
+
+  /// Skip basic info setup - only saves username, marks hasCompletedBasicInfo as true.
+  Future<CrushUser> skipBasicInfo({required String username});
+
+  /// Skip profile setup entirely - marks hasCompletedProfileSetup as true.
+  Future<CrushUser> skipProfileSetup();
 }

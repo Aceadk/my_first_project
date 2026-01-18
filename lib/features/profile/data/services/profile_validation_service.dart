@@ -81,12 +81,24 @@ class RemoteProfileCompleteness {
 class ProfileValidationService {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
+  /// Timeout for Firebase function calls to prevent hanging
+  static const Duration _callTimeout = Duration(seconds: 5);
+
   Future<RemoteProfileCompleteness> validate({String minimum = 'swipe'}) async {
     try {
-      final callable = _functions.httpsCallable('checkProfileCompleteness');
+      final callable = _functions.httpsCallable(
+        'checkProfileCompleteness',
+        options: HttpsCallableOptions(timeout: _callTimeout),
+      );
       final result = await callable.call<Map<String, dynamic>>({
         'minimum': minimum,
-      });
+      }).timeout(
+        _callTimeout,
+        onTimeout: () {
+          debugPrint('ProfileValidationService.validate: timeout after $_callTimeout');
+          throw TimeoutException('Profile validation timed out');
+        },
+      );
 
       return RemoteProfileCompleteness.fromMap(
         Map<String, dynamic>.from(result.data),
@@ -108,4 +120,12 @@ class ProfileValidationService {
       );
     }
   }
+}
+
+/// Exception thrown when a timeout occurs
+class TimeoutException implements Exception {
+  final String message;
+  TimeoutException(this.message);
+  @override
+  String toString() => message;
 }

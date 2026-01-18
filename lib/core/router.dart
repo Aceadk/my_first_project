@@ -134,6 +134,19 @@ GoRouter createRouter(AuthBloc authBloc) {
           user != null &&
           !user.hasAcceptedTerms;
 
+      // Check if user needs to complete basic info (after T&C)
+      final needsBasicInfo = isLoggedIn &&
+          user != null &&
+          user.hasAcceptedTerms &&
+          !user.hasCompletedBasicInfo;
+
+      // Check if user needs to complete profile setup (after basic info)
+      final needsProfileSetup = isLoggedIn &&
+          user != null &&
+          user.hasAcceptedTerms &&
+          user.hasCompletedBasicInfo &&
+          !user.hasCompletedProfileSetup;
+
       // While auth status is unknown, stay on splash screen
       // Don't redirect - let the splash screen handle navigation via BlocListener
       if (isUnknown) {
@@ -146,9 +159,15 @@ GoRouter createRouter(AuthBloc authBloc) {
       // Auth status is known - redirect away from splash
       if (isSplash) {
         if (isLoggedIn) {
-          // Check if terms acceptance is needed first (before email verification)
+          // Check onboarding steps in order
           if (needsTermsAcceptance) {
             return CrushRoutes.termsConditions;
+          }
+          if (needsBasicInfo) {
+            return CrushRoutes.basicInfo;
+          }
+          if (needsProfileSetup) {
+            return CrushRoutes.profileSetup;
           }
           // Check if email verification is needed
           if (needsEmailVerification) {
@@ -176,8 +195,32 @@ GoRouter createRouter(AuthBloc authBloc) {
         }
       }
 
-      // Logged in but needs email verification (after accepting terms)
-      if (needsEmailVerification && !needsTermsAcceptance) {
+      // Logged in but needs to complete basic info
+      if (needsBasicInfo) {
+        // Allow staying on basic info screen only - no skipping to later steps
+        if (path == CrushRoutes.basicInfo) {
+          return null;
+        }
+        // Redirect to basic info from any other protected route
+        if (!isAuthRoute && !isTermsRoute) {
+          return CrushRoutes.basicInfo;
+        }
+      }
+
+      // Logged in but needs to complete profile setup
+      if (needsProfileSetup) {
+        // Allow staying on profile setup or ID verification (optional step in between)
+        if (path == CrushRoutes.profileSetup || path == CrushRoutes.idVerification) {
+          return null;
+        }
+        // Redirect to profile setup from any other protected route (including earlier onboarding steps)
+        if (!isAuthRoute) {
+          return CrushRoutes.profileSetup;
+        }
+      }
+
+      // Logged in but needs email verification (after completing onboarding)
+      if (needsEmailVerification && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup) {
         // Allow staying on verification screen or onboarding routes
         if (isEmailVerificationRoute || isOnboardingRoute) {
           return null;
@@ -188,9 +231,9 @@ GoRouter createRouter(AuthBloc authBloc) {
         }
       }
 
-      // Logged in with verified email and accepted terms and trying to access auth route or verification
-      if (isLoggedIn && !needsEmailVerification && !needsTermsAcceptance) {
-        if (isAuthRoute || isEmailVerificationRoute) {
+      // Logged in with completed onboarding - redirect away from auth/onboarding routes
+      if (isLoggedIn && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup && !needsEmailVerification) {
+        if (isAuthRoute || isEmailVerificationRoute || isOnboardingRoute) {
           return CrushRoutes.home;
         }
       }
@@ -201,9 +244,16 @@ GoRouter createRouter(AuthBloc authBloc) {
           if (needsTermsAcceptance) {
             return CrushRoutes.termsConditions;
           }
-          return needsEmailVerification
-              ? CrushRoutes.emailVerification
-              : CrushRoutes.home;
+          if (needsBasicInfo) {
+            return CrushRoutes.basicInfo;
+          }
+          if (needsProfileSetup) {
+            return CrushRoutes.profileSetup;
+          }
+          if (needsEmailVerification) {
+            return CrushRoutes.emailVerification;
+          }
+          return CrushRoutes.home;
         }
         return CrushRoutes.authGateway;
       }

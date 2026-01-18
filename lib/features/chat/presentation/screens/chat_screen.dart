@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/gradients.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -38,11 +39,13 @@ class ChatScreenArgs {
   final String currentUserId;
   final String otherUserId;
   final String otherName;
+  final String? otherPhotoUrl;
   ChatScreenArgs({
     required this.matchId,
     required this.currentUserId,
     required this.otherUserId,
     required this.otherName,
+    this.otherPhotoUrl,
   });
 }
 
@@ -83,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
               widget.args.matchId,
               widget.args.currentUserId,
               widget.args.otherUserId,
+              otherUserPhotoUrl: widget.args.otherPhotoUrl,
             ));
       }
     });
@@ -424,7 +428,19 @@ class _ChatScreenState extends State<ChatScreen> {
                               final reactionCounts = _reactionCounts(msg);
                               final alignment =
                                   isMe ? Alignment.centerRight : Alignment.centerLeft;
-                              return Align(
+
+                              // Check if we need a date separator
+                              final showDateSeparator = _shouldShowDateSeparator(
+                                messages,
+                                messages.length - 1 - index,
+                              );
+
+                              return Column(
+                                children: [
+                                  // Date separator (shown above the message in reversed list)
+                                  if (showDateSeparator)
+                                    _DateSeparator(date: msg.sentAt),
+                                  Align(
                                 alignment: alignment,
                                 child: GestureDetector(
                                   onLongPress: () => _showMessageActions(
@@ -714,6 +730,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ],
                                   ),
                                 ),
+                              ),
+                                ],
                               );
                             },
                           ),
@@ -801,6 +819,83 @@ class _ChatScreenState extends State<ChatScreen> {
                       icon: const Icon(Icons.arrow_back),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
+                    // User avatar with online indicator
+                    Stack(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: state.otherUserOnline
+                                  ? DsColors.onlineIndicator
+                                  : (isDark
+                                      ? DsGlassColors.borderDark
+                                      : DsGlassColors.borderLight),
+                              width: 2,
+                            ),
+                            boxShadow: state.otherUserOnline
+                                ? [
+                                    BoxShadow(
+                                      color: DsColors.onlineIndicator
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: ClipOval(
+                            child: state.otherUserPhotoUrl != null
+                                ? CachedImage(
+                                    imageUrl: state.otherUserPhotoUrl!,
+                                    width: 36,
+                                    height: 36,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: isDark
+                                        ? DsGlassColors.surfaceDark
+                                        : DsGlassColors.surfaceLight,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 20,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black38,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        if (state.otherUserOnline)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: DsColors.onlineIndicator,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark ? Colors.black : Colors.white,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: DsColors.onlineIndicator
+                                        .withValues(alpha: 0.5),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: DsSpacing.sm),
                     // User info
                     Expanded(
                       child: Column(
@@ -815,41 +910,19 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
+                          Text(
+                            state.otherUserOnline ? 'Online now' : 'Offline',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
                                   color: state.otherUserOnline
                                       ? DsColors.onlineIndicator
-                                      : DsColors.surfaceLight,
-                                  boxShadow: state.otherUserOnline
-                                      ? [
-                                          BoxShadow(
-                                            color: DsColors.onlineIndicator
-                                                .withValues(alpha: 0.5),
-                                            blurRadius: 4,
-                                            spreadRadius: 1,
-                                          ),
-                                        ]
-                                      : null,
+                                      : DsColors.textMutedLight,
+                                  fontWeight: state.otherUserOnline
+                                      ? FontWeight.w500
+                                      : FontWeight.normal,
                                 ),
-                              ),
-                              const SizedBox(width: DsSpacing.xs),
-                              Text(
-                                state.otherUserOnline ? 'Online' : 'Offline',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: state.otherUserOnline
-                                          ? DsColors.onlineIndicator
-                                          : DsColors.textMutedLight,
-                                    ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -1572,6 +1645,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return counts;
   }
 
+  /// Check if we should show a date separator before this message.
+  bool _shouldShowDateSeparator(List<Message> messages, int index) {
+    if (index == 0) return true; // Always show for first message
+    final currentDate = messages[index].sentAt;
+    final previousDate = messages[index - 1].sentAt;
+    return !_isSameDay(currentDate, previousDate);
+  }
+
+  /// Check if two dates are on the same day.
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
   /// Builds a styled error placeholder for media that fails to load.
   Widget _buildMediaErrorPlaceholder(IconData icon, String message) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -2191,6 +2277,111 @@ enum _ChatSafetyAction {
   safetyCenter
 }
 
+/// Date separator widget for chat messages.
+class _DateSeparator extends StatelessWidget {
+  const _DateSeparator({required this.date});
+
+  final DateTime date;
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == today) {
+      return 'Today';
+    } else if (dateOnly == yesterday) {
+      return 'Yesterday';
+    } else if (now.difference(date).inDays < 7) {
+      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return weekdays[date.weekday - 1];
+    } else {
+      final months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: DsSpacing.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 0.5,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    (isDark ? Colors.white24 : Colors.black12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DsRadius.round),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpacing.md,
+                    vertical: DsSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(DsRadius.round),
+                    border: Border.all(
+                      color: isDark
+                          ? DsGlassColors.borderDark
+                          : DsGlassColors.borderLight,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    _formatDate(date),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 0.5,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    (isDark ? Colors.white24 : Colors.black12),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SendStatusBar extends StatelessWidget {
   const _SendStatusBar({required this.state});
 
@@ -2367,32 +2558,62 @@ class _EmptyChatState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           DsGap.xxl,
-          // Match icon
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  DsColors.primary.withValues(alpha: 0.2),
-                  DsColors.secondary.withValues(alpha: 0.1),
-                ],
+          // Match icon with glass effect
+          ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      DsColors.primary.withValues(alpha: 0.25),
+                      DsColors.secondary.withValues(alpha: 0.15),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark
+                        ? DsGlassColors.borderDark
+                        : DsGlassColors.borderLight,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: DsColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: ShaderMask(
+                  shaderCallback: (bounds) =>
+                      DsGradients.primaryHorizontal.createShader(bounds),
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    size: 48,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.favorite_rounded,
-              size: 48,
-              color: DsColors.primary,
             ),
           ),
           DsGap.lg,
-          Text(
-            'You matched with $otherName!',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          ShaderMask(
+            shaderCallback: (bounds) =>
+                DsGradients.primaryHorizontal.createShader(bounds),
+            child: Text(
+              'You matched with $otherName!',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           DsGap.sm,
           Text(
@@ -2408,7 +2629,15 @@ class _EmptyChatState extends StatelessWidget {
           if (suggestions.isNotEmpty) ...[
             Row(
               children: [
-                const Icon(Icons.lightbulb_outline, size: 18, color: DsColors.primary),
+                ShaderMask(
+                  shaderCallback: (bounds) =>
+                      DsGradients.primaryHorizontal.createShader(bounds),
+                  child: const Icon(
+                    Icons.lightbulb_outline,
+                    size: 20,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Suggested openers',
@@ -2430,11 +2659,34 @@ class _EmptyChatState extends StatelessWidget {
             )),
           ],
           DsGap.lg,
-          // Refresh button
-          TextButton.icon(
-            onPressed: onRefresh,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Show different suggestions'),
+          // Glass refresh button
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? DsGlassColors.borderDark
+                        : DsGlassColors.borderLight,
+                    width: 0.5,
+                  ),
+                ),
+                child: TextButton.icon(
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Show different suggestions'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: DsColors.primary,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -2442,7 +2694,7 @@ class _EmptyChatState extends StatelessWidget {
   }
 }
 
-/// A single ice breaker suggestion tile.
+/// A single ice breaker suggestion tile with glass effect.
 class _IceBreakerTile extends StatelessWidget {
   const _IceBreakerTile({
     required this.suggestion,
@@ -2456,44 +2708,95 @@ class _IceBreakerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(DsSpacing.md),
-          decoration: BoxDecoration(
-            color: isDark
-                ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                : DsColors.surfaceLight.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark ? DsColors.borderDark : DsColors.borderLight,
-            ),
-          ),
-          child: Row(
-            children: [
-              Text(
-                suggestion.icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-              const SizedBox(width: DsSpacing.sm),
-              Expanded(
-                child: Text(
-                  suggestion.text,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-                  ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.lg),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            child: Container(
+              padding: const EdgeInsets.all(DsSpacing.md),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          DsGlassColors.surfaceDark.withValues(alpha: 0.6),
+                          DsGlassColors.surfaceDark.withValues(alpha: 0.4),
+                        ]
+                      : [
+                          DsGlassColors.surfaceLight.withValues(alpha: 0.7),
+                          DsGlassColors.surfaceLight.withValues(alpha: 0.5),
+                        ],
+                ),
+                borderRadius: BorderRadius.circular(DsRadius.lg),
+                border: Border.all(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 0.5,
                 ),
               ),
-              Icon(
-                Icons.send_rounded,
-                size: 18,
-                color: DsColors.primary.withValues(alpha: 0.6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          DsColors.primary.withValues(alpha: 0.15),
+                          DsColors.secondary.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(DsRadius.md),
+                    ),
+                    child: Center(
+                      child: Text(
+                        suggestion.icon,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: DsSpacing.md),
+                  Expanded(
+                    child: Text(
+                      suggestion.text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: DsGradients.primaryHorizontal,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: DsColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.send_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

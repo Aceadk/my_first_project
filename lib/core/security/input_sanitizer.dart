@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Input sanitization utilities for security.
 ///
 /// SECURITY FEATURES:
@@ -119,13 +121,23 @@ class InputSanitizer {
   }
 
   /// Sanitize a URL (for photo/video URLs).
-  static String? sanitizeUrl(String? input) {
+  /// In debug mode, allows local file paths for development with local file fallback.
+  static String? sanitizeUrl(String? input, {bool allowLocalPaths = false}) {
     if (input == null || input.isEmpty) return null;
 
     var sanitized = sanitizeText(input, maxLength: maxUrlLength);
 
-    // Must start with http:// or https://
-    if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+    // Check if it's a local file path (for debug mode fallback)
+    final isLocalPath = !sanitized.startsWith('http://') &&
+                        !sanitized.startsWith('https://') &&
+                        (sanitized.startsWith('/') || sanitized.startsWith('file://'));
+
+    // In debug mode, allow local file paths if enabled
+    if (isLocalPath) {
+      if (kDebugMode && allowLocalPaths) {
+        // Allow local paths in debug mode for development
+        return sanitized;
+      }
       return null;
     }
 
@@ -154,11 +166,12 @@ class InputSanitizer {
   }
 
   /// Sanitize a list of URLs.
-  static List<String> sanitizeUrls(List<String>? inputs) {
+  /// In debug mode, allows local file paths for development with local file fallback.
+  static List<String> sanitizeUrls(List<String>? inputs, {bool allowLocalPaths = true}) {
     if (inputs == null || inputs.isEmpty) return [];
 
     return inputs
-        .map((u) => sanitizeUrl(u))
+        .map((u) => sanitizeUrl(u, allowLocalPaths: allowLocalPaths))
         .where((u) => u != null)
         .cast<String>()
         .take(20) // Limit number of URLs

@@ -77,13 +77,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     ),
     const Profile(
       id: 'mock_2',
-      name: 'James',
-      age: 29,
+      name: 'Aayush',
+      age: 23,
       gender: 'Man',
       bio:
           'Software engineer by day, musician by night 🎸\n\nLet\'s grab tacos and talk about life.',
       photoUrls: [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
+        'https://www.instagram.com/p/DO0vpy8DxHr/?igsh=NjcyOXlqYzU1NGdu'
       ],
       videoUrls: [],
       interests: ['Music', 'Coding', 'Tacos', 'Gaming', 'Fitness'],
@@ -99,8 +99,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
             answer:
                 'Coffee, coding side projects, and catching up on Formula 1'),
       ],
-      country: 'United States',
-      city: 'San Francisco',
+      country: 'Nepal',
+      city: 'Pokhara',
       latitude: 37.7599, // Mission District
       longitude: -122.4148,
       distance: 8,
@@ -408,13 +408,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     ),
     const Profile(
       id: 'mock_10',
-      name: 'Ethan',
-      age: 27,
+      name: 'Niraj',
+      age: 22,
       gender: 'Man',
       bio:
           'Physical therapist 🏥 | Rock climber 🧗 | Coffee snob ☕\n\nI can fix your back pain and your bad mood.',
       photoUrls: [
-        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400'
+        'https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MDYyNTg1NTU1MTE1MjY4?story_media_id=3587444512416620001&igsh=NXF2Mzl0bGp1aGNq'
       ],
       videoUrls: [],
       interests: [
@@ -599,13 +599,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     ),
     const Profile(
       id: 'mock_14',
-      name: 'Alexander',
-      age: 32,
+      name: 'Mandip',
+      age: 2,
       gender: 'Man',
       bio:
           'Investment banker 💼 | Pilot on weekends ✈️ | Wine enthusiast 🍷\n\nWork hard, fly harder.',
       photoUrls: [
-        'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400'
+        'https://www.instagram.com/p/DQcHxf1k8hT/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ=='
       ],
       videoUrls: [],
       interests: ['Flying', 'Wine', 'Golf', 'Investing', 'Travel'],

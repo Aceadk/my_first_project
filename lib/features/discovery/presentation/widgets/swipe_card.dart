@@ -265,34 +265,29 @@ class _SwipeCardState extends State<SwipeCard> {
       isVerified: profile.isVerified,
     );
 
+    // Tinder-like immersive card - slight rounded corners, minimal styling
+    const double cardRadius = 12.0;
+
     return Semantics(
       label: semanticLabel,
       hint: 'Swipe right to like, swipe left to pass',
       container: true,
       child: Container(
-      // No margin - full-size card like Tinder
+      // Full-width immersive card with minimal styling - no heavy borders
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DsRadius.lg),
-        border: Border.all(
-          color: DsGlassColors.borderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(cardRadius),
+        // Subtle shadow only for depth
         boxShadow: [
           BoxShadow(
-            color: DsColors.primary.withValues(alpha: 0.1),
-            blurRadius: 16,
-            spreadRadius: 1,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(DsRadius.lg),
+        borderRadius: BorderRadius.circular(cardRadius),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -517,8 +512,8 @@ class _SwipeCardState extends State<SwipeCard> {
                 },
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(DsRadius.lg - 1),
-                    bottomRight: Radius.circular(DsRadius.lg - 1),
+                    bottomLeft: Radius.circular(11.0), // cardRadius - 1
+                    bottomRight: Radius.circular(11.0),
                   ),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(

@@ -1118,6 +1118,57 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
+  @override
+  Future<CrushUser?> refreshCurrentUser() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) return null;
+
+    // Reload Firebase user to get latest state
+    await firebaseUser.reload();
+    final updatedFirebaseUser = _firebaseAuth.currentUser;
+    if (updatedFirebaseUser == null) return null;
+
+    // Check Firestore for full user data including skip flags
+    try {
+      final userDoc = await _firestore.collection('users').doc(updatedFirebaseUser.uid).get();
+      final userData = userDoc.data();
+
+      if (userData != null) {
+        final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
+        final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
+        final isDeveloper = userData['isDeveloper'] as bool? ?? false;
+        final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
+        final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+        final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
+        final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
+
+        _currentUser = CrushUser(
+          id: updatedFirebaseUser.uid,
+          phoneNumber: updatedFirebaseUser.phoneNumber ?? '',
+          email: updatedFirebaseUser.email,
+          username: updatedFirebaseUser.displayName,
+          isEmailVerified: updatedFirebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper,
+          isPhoneVerified: firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
+          isIdVerified: false,
+          plan: SubscriptionPlan.free,
+          profile: null,
+          hasAcceptedTerms: hasAcceptedTerms,
+          hasSkippedBasicInfo: hasSkippedBasicInfo,
+          hasSkippedProfileSetup: hasSkippedProfileSetup,
+        );
+        _authStateController.add(_currentUser);
+        return _currentUser;
+      }
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Error refreshing user from Firestore', e);
+    }
+
+    // Fall back to basic Firebase user
+    _currentUser = _mapFirebaseUser(updatedFirebaseUser);
+    _authStateController.add(_currentUser);
+    return _currentUser;
+  }
+
   void dispose() {
     _firebaseAuthSubscription?.cancel();
     _authStateController.close();

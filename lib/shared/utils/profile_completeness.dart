@@ -1,7 +1,16 @@
 import 'package:crushhour/data/models/profile.dart';
 
-const double kSwipeMinimumCompleteness = 0.70;
-const double kMessagingMinimumCompleteness = 0.70;
+/// Minimum completeness thresholds
+const double kSwipeMinimumCompleteness = 1.0; // Must complete all required fields
+const double kMessagingMinimumCompleteness = 1.0;
+
+/// Minimum requirements for swiping
+const int kMinPhotos = 1;
+const int kMinBioLength = 10; // Only 10 characters needed
+const int kMinInterests = 3;
+
+/// Optional enhancement (prompts are not required for swiping)
+const int kRecommendedPrompts = 2;
 
 class ProfileCompletenessSummary {
   const ProfileCompletenessSummary({
@@ -35,134 +44,93 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
     return const ProfileCompletenessSummary(
       score: 0,
       breakdown: {},
-      missing: ['Add photos', 'Add display name'],
+      missing: [
+        'Add at least 1 photo',
+        'Write a bio (at least 10 characters)',
+        'Add at least 3 interests',
+        'Add your city and country',
+      ],
       requiredMissing: [
         'Add at least 1 photo',
-        'Add your display name',
-        'Add your date of birth',
-        'Add your location',
-        'Specify your gender',
-        'Specify your sexual orientation',
+        'Write a bio (at least 10 characters)',
+        'Add at least 3 interests',
+        'Add your city and country',
       ],
       recommended: [
-        'Write about yourself',
-        'Add interests for better matches',
+        'Answer prompts to stand out',
       ],
     );
   }
 
-  double score = 0.0;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROFILE COMPLETENESS FOR SWIPING
+  // Required: 1 photo, 10 char bio, 3 interests, city + country
+  // Prompts are optional (recommended only)
+  // ═══════════════════════════════════════════════════════════════════════════
+
   final breakdown = <String, double>{};
   final missing = <String>[];
   final requiredMissing = <String>[];
   final recommended = <String>[];
 
-  void addRule({
-    required String key,
-    required double weight,
-    required bool satisfied,
-    required String missingMessage,
-    bool required = false,
-    bool isRecommended = false,
-  }) {
-    if (satisfied) {
-      score += weight;
-      breakdown[key] = weight;
-    } else {
-      breakdown[key] = 0.0;
-      missing.add(missingMessage);
-      if (required) {
-        requiredMissing.add(missingMessage);
-      }
-      if (isRecommended) {
-        recommended.add(missingMessage);
-      }
-    }
+  // Photos: 30% weight (min 1 photo required)
+  final photoCount = profile.photoUrls.length;
+  final photoScore = (photoCount / kMinPhotos).clamp(0.0, 1.0);
+  breakdown['photos'] = photoScore * 0.30;
+  if (photoCount < kMinPhotos) {
+    const msg = 'Add at least 1 photo';
+    missing.add(msg);
+    requiredMissing.add(msg);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REQUIRED FIELDS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // Bio: 25% weight (min 10 chars required)
+  final bioLength = profile.bio.trim().length;
+  final bioScore = (bioLength / kMinBioLength).clamp(0.0, 1.0);
+  breakdown['bio'] = bioScore * 0.25;
+  if (bioLength < kMinBioLength) {
+    const msg = 'Write a bio (at least $kMinBioLength characters)';
+    missing.add(msg);
+    requiredMissing.add(msg);
+  }
 
-  // At least 1 photo (required)
-  addRule(
-    key: 'photos',
-    weight: 0.20,
-    satisfied: profile.photoUrls.isNotEmpty,
-    missingMessage: 'Add at least 1 photo',
-    required: true,
-  );
+  // Interests: 25% weight (min 3 interests required)
+  final interestCount = profile.interests.length;
+  final interestsScore = (interestCount / kMinInterests).clamp(0.0, 1.0);
+  breakdown['interests'] = interestsScore * 0.25;
+  if (interestCount < kMinInterests) {
+    const msg = 'Add at least $kMinInterests interests';
+    missing.add(msg);
+    requiredMissing.add(msg);
+  }
 
-  // Display name (required)
-  addRule(
-    key: 'name',
-    weight: 0.15,
-    satisfied: profile.name.trim().isNotEmpty,
-    missingMessage: 'Add your display name',
-    required: true,
-  );
+  // Location: 20% weight (city + country required)
+  final hasLocation = profile.city.trim().isNotEmpty &&
+      profile.country.trim().isNotEmpty &&
+      profile.country.trim().toLowerCase() != 'unknown';
+  final locationScore = hasLocation ? 1.0 : 0.0;
+  breakdown['location'] = locationScore * 0.20;
+  if (!hasLocation) {
+    const msg = 'Add your city and country';
+    missing.add(msg);
+    requiredMissing.add(msg);
+  }
 
-  // Date of birth (required)
-  addRule(
-    key: 'date_of_birth',
-    weight: 0.15,
-    satisfied: profile.dateOfBirth != null,
-    missingMessage: 'Add your date of birth',
-    required: true,
-  );
+  // Prompts: Optional (not counted in score, just recommended)
+  final promptCount = profile.profilePrompts.isNotEmpty
+      ? profile.profilePrompts.length
+      // ignore: deprecated_member_use_from_same_package
+      : profile.prompts.length;
+  breakdown['prompts'] = promptCount > 0 ? 1.0 : 0.0; // Just for tracking
+  if (promptCount < kRecommendedPrompts) {
+    recommended.add('Answer prompts to stand out');
+  }
 
-  // Location (required)
-  addRule(
-    key: 'location',
-    weight: 0.15,
-    satisfied: profile.city.trim().isNotEmpty &&
-        profile.country.trim().isNotEmpty &&
-        profile.country.trim().toLowerCase() != 'unknown',
-    missingMessage: 'Add your location',
-    required: true,
-  );
-
-  // Gender (required)
-  addRule(
-    key: 'gender',
-    weight: 0.15,
-    satisfied: profile.gender.trim().isNotEmpty,
-    missingMessage: 'Specify your gender',
-    required: true,
-  );
-
-  // Sexual orientation (required)
-  addRule(
-    key: 'sexual_orientation',
-    weight: 0.10,
-    satisfied: profile.sexualOrientation?.trim().isNotEmpty ?? false,
-    missingMessage: 'Specify your sexual orientation',
-    required: true,
-  );
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // OPTIONAL BUT RECOMMENDED FIELDS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  // Bio/about me (optional but recommended)
-  addRule(
-    key: 'bio',
-    weight: 0.05,
-    satisfied: profile.bio.trim().length >= 20,
-    missingMessage: 'Write about yourself for a better profile',
-    isRecommended: true,
-  );
-
-  // Interests (optional but recommended)
-  addRule(
-    key: 'interests',
-    weight: 0.05,
-    satisfied: profile.interests.length >= 3,
-    missingMessage: 'Add interests to find better matches',
-    isRecommended: true,
-  );
-
-  score = score.clamp(0.0, 1.0);
+  // Calculate total score (photos + bio + interests + location = 100%)
+  final score = (breakdown['photos']! +
+          breakdown['bio']! +
+          breakdown['interests']! +
+          breakdown['location']!)
+      .clamp(0.0, 1.0);
 
   return ProfileCompletenessSummary(
     score: score,

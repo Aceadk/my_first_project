@@ -94,3 +94,7 @@ class AuthDevBypassRequested extends AuthEvent {
   @override
   List<Object?> get props => [identifier, password];
 }
+
+/// Request to refresh the current user from storage/backend.
+/// Used to sync auth state after profile changes.
+class AuthUserRefreshRequested extends AuthEvent {}

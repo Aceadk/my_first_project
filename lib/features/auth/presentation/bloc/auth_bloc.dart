@@ -25,6 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEmailOtpCancelled>(_onEmailOtpCancelled);
     on<AuthSignedOut>(_onSignedOut);
     on<AuthDevBypassRequested>(_onDevBypassRequested);
+    on<AuthUserRefreshRequested>(_onUserRefreshRequested);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
@@ -303,6 +304,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     emit(AuthState.unknown());
+  }
+
+  Future<void> _onUserRefreshRequested(
+      AuthUserRefreshRequested event, Emitter<AuthState> emit) async {
+    final user = await authRepository.refreshCurrentUser();
+    if (user != null) {
+      emit(state.copyWith(
+        user: user,
+        status: AuthStatus.authenticated,
+      ));
+    }
   }
 
   @override

@@ -28,7 +28,7 @@ class FeatureFlags extends Equatable {
     this.enableSpotifyIntegration = false,
     this.enableInstagramIntegration = false,
     this.maxPhotos = 6,
-    this.maxVideos = 2,
+    this.maxVideos = 1, // Only 1 video allowed (15 sec max)
     this.enablePrompts = true,
     this.maxPrompts = 3,
 
