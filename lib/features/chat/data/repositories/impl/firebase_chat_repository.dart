@@ -27,19 +27,16 @@ class FirebaseChatRepository implements ChatRepository {
         .snapshots()
         .map((snapshot) {
       final userId = _currentUserId;
-      return snapshot.docs
-          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
-          .where((msg) {
+      return snapshot.docs.where((doc) {
+        final data = doc.data();
+        final msg = _messageFromFirestore(doc.id, data);
         // Filter out messages deleted for the current user
         if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
           return false;
         }
-        final deletedFor = (snapshot.docs
-                    .firstWhere((d) => d.id == msg.id)
-                    .data()['deletedFor'] as List<dynamic>?) ??
-            [];
+        final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
         return !deletedFor.contains(userId);
-      }).toList();
+      }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
     });
   }
 
@@ -73,18 +70,16 @@ class FirebaseChatRepository implements ChatRepository {
     final docs = hasMore ? snapshot.docs.take(limit).toList() : snapshot.docs;
 
     // Parse messages and filter deleted ones
-    final messages = docs
-        .map((doc) => _messageFromFirestore(doc.id, doc.data()))
-        .where((msg) {
-          // Filter out messages deleted for the current user
-          if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
-            return false;
-          }
-          final docData = docs.firstWhere((d) => d.id == msg.id).data();
-          final deletedFor = (docData['deletedFor'] as List<dynamic>?) ?? [];
-          return !deletedFor.contains(userId);
-        })
-        .toList();
+    final messages = docs.where((doc) {
+      final data = doc.data();
+      final msg = _messageFromFirestore(doc.id, data);
+      // Filter out messages deleted for the current user
+      if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
+        return false;
+      }
+      final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+      return !deletedFor.contains(userId);
+    }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
 
     // Reverse to get chronological order (oldest first) for UI
     return PaginatedResult(
@@ -109,18 +104,16 @@ class FirebaseChatRepository implements ChatRepository {
         .orderBy('sentAt', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
-          .where((msg) {
-            // Filter out messages deleted for the current user
-            if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
-              return false;
-            }
-            final docData = snapshot.docs.firstWhere((d) => d.id == msg.id).data();
-            final deletedFor = (docData['deletedFor'] as List<dynamic>?) ?? [];
-            return !deletedFor.contains(userId);
-          })
-          .toList();
+      return snapshot.docs.where((doc) {
+        final data = doc.data();
+        final msg = _messageFromFirestore(doc.id, data);
+        // Filter out messages deleted for the current user
+        if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
+          return false;
+        }
+        final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+        return !deletedFor.contains(userId);
+      }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
     });
   }
 

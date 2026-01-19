@@ -6,8 +6,6 @@ library auth;
 export 'presentation/bloc/auth_bloc.dart';
 export 'presentation/bloc/auth_event.dart';
 export 'presentation/bloc/auth_state.dart';
-export 'presentation/bloc/email_auth_bloc.dart';
-export 'presentation/bloc/phone_auth_bloc.dart';
 export 'presentation/bloc/session_bloc.dart';
 
 // Data (Repositories)

@@ -824,58 +824,6 @@ class _GlassPlayButton extends StatelessWidget {
   }
 }
 
-/// Compact prompt display for swipe cards (with background).
-class _CompactPromptDisplay extends StatelessWidget {
-  const _CompactPromptDisplay({required this.prompt});
-
-  final ProfilePrompt prompt;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Question with emoji
-        Row(
-          children: [
-            Text(
-              prompt.emoji,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                prompt.question,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        // Answer
-        Text(
-          prompt.answer,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.95),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            height: 1.3,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
 /// Compact prompt display without background - uses text shadows for readability.
 class _CompactPromptDisplayClean extends StatelessWidget {
   const _CompactPromptDisplayClean({required this.prompt});

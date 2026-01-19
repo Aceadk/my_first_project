@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageSettingsState {
@@ -62,7 +65,48 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
   }
 
   Future<void> clearCache() async {
-    // Hook for clearing caches; currently resets size to default.
+    try {
+      // Get the temporary directory where cached files are stored
+      final tempDir = await getTemporaryDirectory();
+      if (await tempDir.exists()) {
+        // Delete all files in the temp directory
+        final files = tempDir.listSync();
+        for (final file in files) {
+          try {
+            if (file is File) {
+              await file.delete();
+            } else if (file is Directory) {
+              await file.delete(recursive: true);
+            }
+          } catch (e) {
+            debugPrint('StorageSettingsCubit: Failed to delete ${file.path}: $e');
+          }
+        }
+      }
+
+      // Also clear the app's cache directory if different
+      final cacheDir = await getApplicationCacheDirectory();
+      if (await cacheDir.exists() && cacheDir.path != tempDir.path) {
+        final cacheFiles = cacheDir.listSync();
+        for (final file in cacheFiles) {
+          try {
+            if (file is File) {
+              await file.delete();
+            } else if (file is Directory) {
+              await file.delete(recursive: true);
+            }
+          } catch (e) {
+            debugPrint('StorageSettingsCubit: Failed to delete ${file.path}: $e');
+          }
+        }
+      }
+
+      debugPrint('StorageSettingsCubit: Cache cleared successfully');
+    } catch (e) {
+      debugPrint('StorageSettingsCubit: Failed to clear cache: $e');
+    }
+
+    // Reset tracked cache size to default
     await _persist(state.copyWith(cacheSizeMb: _defaultCacheMb));
   }
 

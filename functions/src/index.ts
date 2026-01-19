@@ -617,7 +617,7 @@ function hashOtpValue(otp: string, salt: string): string {
 }
 
 function isValidOtp(otp: string): boolean {
-  return new RegExp(`^\\\\d{${OTP_DIGITS}}$`).test(otp);
+  return new RegExp(`^\\d{${OTP_DIGITS}}$`).test(otp);
 }
 
 function generateResetToken(): string {
@@ -2076,14 +2076,30 @@ async function ensureUserExists(uid: string): Promise<UserDoc> {
 }
 
 async function ensureNotBlocked(uid: string, targetUserId: string) {
-  const blockedSnap = await db
+  // Check if uid blocked targetUserId
+  const uidBlockedTarget = await db
     .collection("blocks")
-    .where("blockerId", "in", [uid, targetUserId])
-    .where("blockedId", "in", [uid, targetUserId])
+    .where("blockerId", "==", uid)
+    .where("blockedId", "==", targetUserId)
     .limit(1)
     .get();
 
-  if (!blockedSnap.empty) {
+  if (!uidBlockedTarget.empty) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You cannot interact with this user."
+    );
+  }
+
+  // Check if targetUserId blocked uid
+  const targetBlockedUid = await db
+    .collection("blocks")
+    .where("blockerId", "==", targetUserId)
+    .where("blockedId", "==", uid)
+    .limit(1)
+    .get();
+
+  if (!targetBlockedUid.empty) {
     throw new functions.https.HttpsError(
       "permission-denied",
       "You cannot interact with this user."
@@ -3296,64 +3312,6 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
     };
   }
 );
-
-// HTTP endpoint for local testing (not authenticated) - only enabled in emulator
-export const testAgoraToken = functions.https.onRequest((req, res) => {
-  // Only allow in development/emulator
-  if (!isDevelopment) {
-    res.status(403).json({ error: "This endpoint is only available in development mode" });
-    return;
-  }
-
-  // Basic CORS handling for browser preflight and requests
-  const origin = req.headers.origin;
-  const allowedOrigin = isDevelopment && origin ? origin : "";
-
-  if (req.method === "OPTIONS") {
-    if (allowedOrigin) res.set("Access-Control-Allow-Origin", allowedOrigin);
-    res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    res.status(204).send("");
-    return;
-  }
-
-  if (allowedOrigin) res.set("Access-Control-Allow-Origin", allowedOrigin);
-
-  if (!agoraAppId || !agoraCertificate) {
-    res.status(500).json({ error: "Agora credentials not configured" });
-    return;
-  }
-
-  const channelNameParam = req.query.channel;
-  const channelNameRaw = Array.isArray(channelNameParam)
-    ? channelNameParam[0]
-    : channelNameParam;
-  const channelName =
-    typeof channelNameRaw === "string" ? channelNameRaw : "test-channel";
-
-  const uidParam = req.query.uid;
-  const uidRaw = Array.isArray(uidParam) ? uidParam[0] : uidParam;
-  const uid =
-    (typeof uidRaw === "string" ? parseInt(uidRaw, 10) : NaN) || 123;
-
-  const token = RtcTokenBuilder.buildTokenWithUid(
-    agoraAppId,
-    agoraCertificate,
-    channelName,
-    uid,
-    RtcRole.PUBLISHER,
-    Math.floor(Date.now() / 1000) + 3600
-  );
-
-  res.json({
-    success: true,
-    appId: agoraAppId,
-    token,
-    channelName,
-    uid,
-    note: "This is for testing only. Use generateAgoraToken for production.",
-  });
-});
 
 // Callable function to return an Agora token for a call (uses auth UID)
 export const getAgoraToken = callable<AgoraTokenRequest>(async (data, context) => {
