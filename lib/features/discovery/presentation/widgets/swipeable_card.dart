@@ -239,38 +239,38 @@ class _SwipeableCardState extends State<SwipeableCard>
                         // Use child parameter for static content optimization
                         child: child,
                       ),
-                      // Like indicator (right side)
+                      // Like indicator (right side) - Red heart icon
                       if (dragX > _indicatorVisibilityThreshold)
                         const Positioned(
                           left: 30.0,
                           top: 30.0,
-                          child: _SwipeIndicator(
-                            text: 'LIKE',
-                            color: Colors.green,
+                          child: _SwipeIconIndicator(
+                            icon: Icons.favorite_rounded,
+                            color: Colors.red,
                             angle: -0.3,
                           ),
                         ),
-                      // Pass indicator (left side)
+                      // Pass indicator (left side) - Black X icon
                       if (dragX < -_indicatorVisibilityThreshold)
                         const Positioned(
                           right: 30.0,
                           top: 30.0,
-                          child: _SwipeIndicator(
-                            text: 'NOPE',
-                            color: Colors.red,
+                          child: _SwipeIconIndicator(
+                            icon: Icons.close_rounded,
+                            color: Colors.black,
                             angle: 0.3,
                           ),
                         ),
-                      // SuperLike indicator (top center) - shown when swiping up
+                      // SuperLike indicator (top center) - Purple star icon
                       if (dragY < -_indicatorVisibilityThreshold && widget.superLikeEnabled)
                         const Positioned(
                           left: 0,
                           right: 0,
                           bottom: 100.0,
                           child: Center(
-                            child: _SwipeIndicator(
-                              text: 'SUPER LIKE',
-                              color: Colors.blue,
+                            child: _SwipeIconIndicator(
+                              icon: Icons.star_rounded,
+                              color: Colors.purple,
                               angle: 0,
                             ),
                           ),
@@ -289,14 +289,14 @@ class _SwipeableCardState extends State<SwipeableCard>
   }
 }
 
-/// Extracted swipe indicator widget to avoid rebuilds
-class _SwipeIndicator extends StatelessWidget {
-  final String text;
+/// Swipe indicator widget showing icon instead of text
+class _SwipeIconIndicator extends StatelessWidget {
+  final IconData icon;
   final Color color;
   final double angle;
 
-  const _SwipeIndicator({
-    required this.text,
+  const _SwipeIconIndicator({
+    required this.icon,
     required this.color,
     required this.angle,
   });
@@ -306,30 +306,25 @@ class _SwipeIndicator extends StatelessWidget {
     return Transform.rotate(
       angle: angle,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
           border: Border.all(
             color: color,
             width: 3,
           ),
-          borderRadius: BorderRadius.circular(8),
+          shape: BoxShape.circle,
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: color,
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 4,
-              ),
-            ],
-          ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 48,
+          shadows: [
+            Shadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 4,
+            ),
+          ],
         ),
       ),
     );

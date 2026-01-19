@@ -40,8 +40,17 @@ class _SwipeCardState extends State<SwipeCard> {
   String? _sentReactionEmoji;
   bool _showSentReaction = false;
 
+  /// Cached media list to avoid recreation on every access.
+  List<_MediaItem>? _cachedMedia;
+  String? _cachedProfileId;
+
   /// Combined list of all media (photos first, then videos).
   List<_MediaItem> get _allMedia {
+    // Return cached list if profile hasn't changed
+    if (_cachedMedia != null && _cachedProfileId == widget.profile.id) {
+      return _cachedMedia!;
+    }
+    // Rebuild and cache the media list
     final items = <_MediaItem>[];
     for (final url in widget.profile.photoUrls) {
       items.add(_MediaItem(url: url, isVideo: false));
@@ -49,6 +58,8 @@ class _SwipeCardState extends State<SwipeCard> {
     for (final url in widget.profile.videoUrls) {
       items.add(_MediaItem(url: url, isVideo: true));
     }
+    _cachedMedia = items;
+    _cachedProfileId = widget.profile.id;
     return items;
   }
 
@@ -265,30 +276,15 @@ class _SwipeCardState extends State<SwipeCard> {
       isVerified: profile.isVerified,
     );
 
-    // Tinder-like immersive card - slight rounded corners, minimal styling
-    const double cardRadius = 12.0;
-
+    // Tinder-like immersive card - edge-to-edge, no rounded corners for full-screen feel
     return Semantics(
       label: semanticLabel,
       hint: 'Swipe right to like, swipe left to pass',
       container: true,
       child: Container(
-      // Full-width immersive card with minimal styling - no heavy borders
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(cardRadius),
-        // Subtle shadow only for depth
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(cardRadius),
-        child: Stack(
+      // Full-screen immersive card - no borders, no shadows, pure photo
+      color: Colors.black,
+      child: Stack(
           fit: StackFit.expand,
           children: [
             // Media (photo or video) with accessibility
@@ -368,19 +364,20 @@ class _SwipeCardState extends State<SwipeCard> {
               ],
             ),
 
-            // Gradient overlay for readability
+            // Gradient overlay for readability - extended for floating action buttons
             IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
-                    end: Alignment.center,
+                    end: const Alignment(0, -0.3), // Extend higher for action buttons
                     colors: [
-                      Colors.black.withValues(alpha: 0.8),
+                      Colors.black.withValues(alpha: 0.85),
+                      Colors.black.withValues(alpha: 0.6),
                       Colors.black.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
-                    stops: const [0.0, 0.4, 0.7],
+                    stops: const [0.0, 0.25, 0.5, 0.75],
                   ),
                 ),
               ),
@@ -464,11 +461,11 @@ class _SwipeCardState extends State<SwipeCard> {
                 ),
               ),
 
-            // Reaction button (right side, above info panel)
+            // Reaction button (left side, above profile info since action buttons are on right)
             if (widget.onReaction != null)
               Positioned(
-                right: DsSpacing.md,
-                bottom: 180, // Above the info panel
+                left: DsSpacing.md,
+                bottom: 140, // Above the profile identity overlay
                 child: ContentReactionButton(
                   onReaction: _handleReaction,
                   onComment: _handleCommentReaction,
@@ -489,19 +486,19 @@ class _SwipeCardState extends State<SwipeCard> {
                 ),
               ),
 
-            // Profile identity overlay (name, age, status badge, traits) - lower left on photo
+            // Profile identity overlay (name, age, status badge, traits) - positioned above info panel
             Positioned(
               left: 0,
-              right: 0, // Allow chips to wrap properly
-              bottom: 140, // Above the frosted glass info panel
+              right: 70, // Leave space for action buttons on right
+              bottom: 100, // Above the info panel
               child: _ProfileIdentityOverlay(profile: profile),
             ),
 
-            // Frosted glass info panel (bottom)
+            // Info panel (prompt + location) - no background, just text with shadows
             Positioned(
               left: 0,
-              right: 0,
-              bottom: 0,
+              right: 70, // Leave space for action buttons on right
+              bottom: 16, // Near the bottom, above navigation
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
@@ -510,117 +507,104 @@ class _SwipeCardState extends State<SwipeCard> {
                     ),
                   );
                 },
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(11.0), // cardRadius - 1
-                    bottomRight: Radius.circular(11.0),
-                  ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: DsBlur.medium,
-                      sigmaY: DsBlur.medium,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(DsSpacing.lg),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            DsGlassColors.surfaceDark,
-                            DsGlassColors.surfaceDark,
-                          ],
-                        ),
-                        border: Border(
-                          top: BorderSide(
-                            color: DsGlassColors.borderLight,
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Bio or first prompt
-                          if (profile.profilePrompts.isNotEmpty)
-                            _CompactPromptDisplay(
-                              prompt: profile.profilePrompts.first,
-                            )
-                          else
-                            Text(
-                              bio,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontSize: 14,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Bio or first prompt - no background
+                      if (profile.profilePrompts.isNotEmpty)
+                        _CompactPromptDisplayClean(
+                          prompt: profile.profilePrompts.first,
+                        )
+                      else if (bio.isNotEmpty && bio != 'This member has not added a bio yet.')
+                        Text(
+                          bio,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            fontSize: 14,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.8),
+                                blurRadius: 8,
+                                offset: const Offset(0, 1),
                               ),
-                            ),
-                          const SizedBox(height: DsSpacing.xs),
-                          // Location and distance row
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 14,
-                                color: Colors.white.withValues(alpha: 0.7),
-                              ),
-                              const SizedBox(width: DsSpacing.xs / 2),
-                              Flexible(
-                                child: Text(
-                                  location.isEmpty
-                                      ? 'Location unavailable'
-                                      : location,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.7),
-                                    fontSize: 12,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              // Distance indicator
-                              if (profile.distanceDisplay != null) ...[
-                                const SizedBox(width: DsSpacing.sm),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: DsSpacing.sm,
-                                    vertical: DsSpacing.xs / 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: DsColors.primary.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(DsRadius.round),
-                                    border: Border.all(
-                                      color: DsColors.primary.withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.near_me,
-                                        size: 12,
-                                        color: Colors.white.withValues(alpha: 0.9),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        profile.distanceDisplay!,
-                                        style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.9),
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
+                        ),
+                      const SizedBox(height: DsSpacing.sm),
+                      // Location and distance row
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.8),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: DsSpacing.xs / 2),
+                          Flexible(
+                            child: Text(
+                              location.isEmpty
+                                  ? 'Location unavailable'
+                                  : location,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 13,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withValues(alpha: 0.8),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Distance indicator
+                          if (profile.distanceDisplay != null) ...[
+                            const SizedBox(width: DsSpacing.sm),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DsSpacing.sm,
+                                vertical: DsSpacing.xs / 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: DsColors.primary.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(DsRadius.round),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.near_me,
+                                    size: 12,
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    profile.distanceDisplay!,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -628,7 +612,6 @@ class _SwipeCardState extends State<SwipeCard> {
           ],
         ),
       ),
-    ),
     );
   }
 
@@ -841,7 +824,7 @@ class _GlassPlayButton extends StatelessWidget {
   }
 }
 
-/// Compact prompt display for swipe cards.
+/// Compact prompt display for swipe cards (with background).
 class _CompactPromptDisplay extends StatelessWidget {
   const _CompactPromptDisplay({required this.prompt});
 
@@ -884,6 +867,71 @@ class _CompactPromptDisplay extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             height: 1.3,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+/// Compact prompt display without background - uses text shadows for readability.
+class _CompactPromptDisplayClean extends StatelessWidget {
+  const _CompactPromptDisplayClean({required this.prompt});
+
+  final ProfilePrompt prompt;
+
+  @override
+  Widget build(BuildContext context) {
+    final textShadows = [
+      Shadow(
+        color: Colors.black.withValues(alpha: 0.8),
+        blurRadius: 8,
+        offset: const Offset(0, 1),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Question with emoji
+        Row(
+          children: [
+            Text(
+              prompt.emoji,
+              style: TextStyle(
+                fontSize: 14,
+                shadows: textShadows,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                prompt.question,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  shadows: textShadows,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        // Answer
+        Text(
+          prompt.answer,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.95),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            height: 1.3,
+            shadows: textShadows,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -1207,8 +1255,8 @@ class _ProfileStatusBadge extends StatelessWidget {
   }
 }
 
-/// A glassmorphism-styled verification badge for profile cards.
-/// Only shows when user is verified - no warning for unverified users.
+/// A simple verified badge icon for profile cards.
+/// Only shows when user is verified - no text, just the icon.
 class _GlassVerificationPill extends StatelessWidget {
   const _GlassVerificationPill({required this.isVerified});
 
@@ -1221,52 +1269,18 @@ class _GlassVerificationPill extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    const color = Colors.lightBlueAccent;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(DsRadius.round),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DsSpacing.sm + 2,
-            vertical: DsSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withValues(alpha: 0.25),
-                DsGlassColors.surfaceDark.withValues(alpha: 0.5),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(DsRadius.round),
-            border: Border.all(
-              color: color.withValues(alpha: 0.4),
-              width: 1,
-            ),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.verified, size: 16, color: Colors.lightBlueAccent),
-              SizedBox(width: DsSpacing.xs),
-              Text(
-                'Verified',
-                style: TextStyle(
-                  color: Colors.lightBlueAccent,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.4),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.verified,
+        size: 18,
+        color: Colors.lightBlueAccent,
       ),
     );
   }
 }
+

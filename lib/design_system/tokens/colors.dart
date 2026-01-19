@@ -40,10 +40,10 @@ class DsColors {
   static const Color busyIndicator = Color(0xFFFF9800);
 
   // Action button colors for deck/discovery
-  static const Color actionPass = Color(0xFFE0E0E0);
-  static const Color actionPassDark = Color(0xFF424242);
-  static const Color actionLike = primary;
-  static const Color actionSuperLike = Color(0xFF2196F3);
+  static const Color actionPass = Color(0xFF1A1A1A); // Black for pass/nope
+  static const Color actionPassDark = Color(0xFF000000);
+  static const Color actionLike = Color(0xFFE53935); // Red for like/heart
+  static const Color actionSuperLike = Color(0xFF9C27B0); // Purple for super like
   static const Color actionMessage = secondary;
   static const Color actionRewind = Color(0xFFFFB300); // Amber/gold for rewind
 

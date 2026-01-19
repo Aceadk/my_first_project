@@ -120,14 +120,12 @@ GoRouter createRouter(AuthBloc authBloc) {
           path == CrushRoutes.idVerification ||
           path == CrushRoutes.termsConditions;
 
-      // Check if user needs email verification
-      // Only require verification for users who signed up with email/password
-      // AND have completed basic onboarding
-      final needsEmailVerification = isLoggedIn &&
+      // Check if user needs account verification
+      // Only require verification for users who have neither email nor phone verified
+      // Users with phone verification can skip email verification
+      final needsAccountVerification = isLoggedIn &&
           user != null &&
-          user.email != null &&
-          user.email!.isNotEmpty &&
-          !user.isEmailVerified;
+          !user.isAccountVerified;
 
       // Check if user needs to accept terms and conditions
       final needsTermsAcceptance = isLoggedIn &&
@@ -170,7 +168,7 @@ GoRouter createRouter(AuthBloc authBloc) {
             return CrushRoutes.profileSetup;
           }
           // Check if email verification is needed
-          if (needsEmailVerification) {
+          if (needsAccountVerification) {
             return CrushRoutes.emailVerification;
           }
           return CrushRoutes.home;
@@ -220,7 +218,7 @@ GoRouter createRouter(AuthBloc authBloc) {
       }
 
       // Logged in but needs email verification (after completing onboarding)
-      if (needsEmailVerification && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup) {
+      if (needsAccountVerification && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup) {
         // Allow staying on verification screen or onboarding routes
         if (isEmailVerificationRoute || isOnboardingRoute) {
           return null;
@@ -232,7 +230,7 @@ GoRouter createRouter(AuthBloc authBloc) {
       }
 
       // Logged in with completed onboarding - redirect away from auth/onboarding routes
-      if (isLoggedIn && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup && !needsEmailVerification) {
+      if (isLoggedIn && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup && !needsAccountVerification) {
         if (isAuthRoute || isEmailVerificationRoute || isOnboardingRoute) {
           return CrushRoutes.home;
         }
@@ -250,7 +248,7 @@ GoRouter createRouter(AuthBloc authBloc) {
           if (needsProfileSetup) {
             return CrushRoutes.profileSetup;
           }
-          if (needsEmailVerification) {
+          if (needsAccountVerification) {
             return CrushRoutes.emailVerification;
           }
           return CrushRoutes.home;

@@ -14,6 +14,7 @@ import 'package:crushhour/features/profile/data/services/profile_validation_serv
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
+import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
@@ -203,53 +204,12 @@ class _DeckScreenState extends State<DeckScreen> {
               ? (isLoading && state.deck.isEmpty
                   ? const DeckSkeletonList()
                   : const SizedBox.shrink())
-              : Column(
+              : Stack(
+                  fit: StackFit.expand,
                   children: [
-                    // Compact status indicators - only show when relevant
-                    if (isLoading || retryInSeconds != null || completeness.score < 0.5)
-                      DeckStatusBar(
-                        isLoading: isLoading,
-                        retryInSeconds: retryInSeconds,
-                        completeness: completeness,
-                      ),
-                    // Search mode indicator - compact
-                    if (state.localDeckExhausted || state.passportModeActive)
-                      DeckSearchModeIndicator(
-                        localDeckExhausted: state.localDeckExhausted,
-                        passportModeActive: state.passportModeActive,
-                        currentDistanceKm: state.currentDistanceLimitKm,
-                        onTapPassport: () => context.push(CrushRoutes.discoverySettings),
-                      ),
-                    if (_checkingCompleteness)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Checking profile with server...',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
-                        ),
-                      ),
-                    if (_completenessError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          _completenessError!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.orange),
-                        ),
-                      ),
-                    // Immersive card area - fills most of the screen
-                    Expanded(
-                      child: Padding(
-                        // Minimal padding for edge-to-edge immersive feel
-                        padding: const EdgeInsets.only(left: 6.0, right: 6.0, bottom: 4.0),
-                        child: Stack(
-                          children: [
-                            SwipeableCard(
+                    // Full-screen immersive card - edge to edge
+                    Positioned.fill(
+                      child: SwipeableCard(
                         profile: currentProfile,
                         superLikeEnabled: state.superLikesRemaining > 0,
                         onTap: () => context.push(
@@ -362,233 +322,301 @@ class _DeckScreenState extends State<DeckScreen> {
                           );
                         },
                       ),
-                            // Safety menu overlay (top-right of card)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: PopupMenuButton<_DeckSafetyAction>(
-                                tooltip: 'Safety tools',
-                                icon: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.3),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.more_vert,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                onSelected: (action) => _handleSafetyAction(
-                                  context,
-                                  action,
-                                  currentProfile: currentProfile,
-                                  currentUserId: userId,
-                                ),
-                                itemBuilder: (context) => const [
-                                  PopupMenuItem(
-                                    value: _DeckSafetyAction.viewProfile,
-                                    child: Text('View full profile'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _DeckSafetyAction.report,
-                                    child: Text('Report profile'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _DeckSafetyAction.block,
-                                    child: Text('Block & hide profile'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ),
-                    // Compact action bar: Rewind, Dislike, Super-like, Like
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md, vertical: 4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          // Rewind button (premium only)
-                          DeckActionButton(
-                            icon: Icons.replay,
-                            color: DsColors.actionRewind,
-                            semanticLabel: 'Undo last swipe',
-                            size: 44,
-                            enabled: state.canRewind,
-                            onTap: () async {
-                              if (userId == null) return;
-                              final discoveryBloc = context.read<DiscoveryBloc>();
-                              discoveryBloc.add(DiscoveryRewindRequested(userId));
-                            },
+
+                    // Safety menu overlay (top-right of card)
+                    Positioned(
+                      top: DsSpacing.md,
+                      right: DsSpacing.md,
+                      child: PopupMenuButton<_DeckSafetyAction>(
+                        tooltip: 'Safety tools',
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            shape: BoxShape.circle,
                           ),
-                          // Dislike button
-                          DeckActionButton(
-                            icon: Icons.close_rounded,
-                            color: DsColors.actionPass,
-                            semanticLabel: 'Pass on this profile',
-                            size: 54,
-                            onTap: () async {
-                              if (userId == null) return;
-                              final discoveryBloc = context.read<DiscoveryBloc>();
-                              if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                                _showProfileIncompleteDialog(
-                                  context,
-                                  completeness,
-                                  remote: _backendCompleteness,
-                                  minimum: 'swipe',
-                                  isAccountVerified: isAccountVerified,
-                                );
-                                return;
-                              }
-                              final outcome = await _evaluateBackendAllowance(
-                                minimum: 'swipe',
-                                local: completeness,
-                                isAccountVerified: isAccountVerified,
-                              );
-                              if (!context.mounted) return;
-                              final allowed = _handleBackendOutcome(
-                                context,
-                                outcome,
-                                minimum: 'swipe',
-                                completeness: completeness,
-                                isAccountVerified: isAccountVerified,
-                              );
-                              if (!allowed) return;
-                              discoveryBloc.add(
-                                DiscoverySwipedLeft(
-                                  userId: userId,
-                                  targetUserId: currentProfile.id,
-                                ),
-                              );
-                            },
+                          child: const Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                            size: 20,
                           ),
-                          // Super Like button (with remaining count badge)
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              DeckActionButton(
-                                icon: Icons.star_rounded,
-                                color: DsColors.actionSuperLike,
-                                semanticLabel: 'Super like this profile',
-                                size: 48,
-                                enabled: state.superLikesRemaining > 0,
-                                onTap: () async {
-                                  if (userId == null) return;
-                                  final discoveryBloc = context.read<DiscoveryBloc>();
-                                  if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                                    _showProfileIncompleteDialog(
-                                      context,
-                                      completeness,
-                                      remote: _backendCompleteness,
-                                      minimum: 'swipe',
-                                      isAccountVerified: isAccountVerified,
-                                    );
-                                    return;
-                                  }
-                                  final outcome = await _evaluateBackendAllowance(
-                                    minimum: 'swipe',
-                                    local: completeness,
-                                    isAccountVerified: isAccountVerified,
-                                  );
-                                  if (!context.mounted) return;
-                                  final allowed = _handleBackendOutcome(
-                                    context,
-                                    outcome,
-                                    minimum: 'swipe',
-                                    completeness: completeness,
-                                    isAccountVerified: isAccountVerified,
-                                  );
-                                  if (!allowed) return;
-                                  discoveryBloc.add(
-                                    DiscoverySuperLiked(
-                                      userId: userId,
-                                      targetUserId: currentProfile.id,
-                                    ),
-                                  );
-                                },
-                              ),
-                              // Badge showing remaining super likes
-                              Positioned(
-                                top: -2,
-                                right: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: state.superLikesRemaining > 0
-                                        ? DsColors.actionSuperLike
-                                        : Colors.grey,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.15),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    '${state.superLikesRemaining}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                        ),
+                        onSelected: (action) => _handleSafetyAction(
+                          context,
+                          action,
+                          currentProfile: currentProfile,
+                          currentUserId: userId,
+                        ),
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.viewProfile,
+                            child: Text('View full profile'),
                           ),
-                          // Like button
-                          DeckActionButton(
-                            icon: Icons.favorite_rounded,
-                            color: DsColors.actionLike,
-                            semanticLabel: 'Like this profile',
-                            size: 54,
-                            onTap: () async {
-                              if (userId == null) return;
-                              final discoveryBloc = context.read<DiscoveryBloc>();
-                              if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                                _showProfileIncompleteDialog(
-                                  context,
-                                  completeness,
-                                  remote: _backendCompleteness,
-                                  minimum: 'swipe',
-                                  isAccountVerified: isAccountVerified,
-                                );
-                                return;
-                              }
-                              final outcome = await _evaluateBackendAllowance(
-                                minimum: 'swipe',
-                                local: completeness,
-                                isAccountVerified: isAccountVerified,
-                              );
-                              if (!context.mounted) return;
-                              final allowed = _handleBackendOutcome(
-                                context,
-                                outcome,
-                                minimum: 'swipe',
-                                completeness: completeness,
-                                isAccountVerified: isAccountVerified,
-                              );
-                              if (!allowed) return;
-                              discoveryBloc.add(
-                                DiscoverySwipedRight(
-                                  userId: userId,
-                                  targetUserId: currentProfile.id,
-                                ),
-                              );
-                            },
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.report,
+                            child: Text('Report profile'),
+                          ),
+                          PopupMenuItem(
+                            value: _DeckSafetyAction.block,
+                            child: Text('Block & hide profile'),
                           ),
                         ],
                       ),
                     ),
-                    // Minimal padding for glass bottom nav bar
-                    SizedBox(
-                      height: 56 + MediaQuery.of(context).padding.bottom,
+
+                    // Status indicators overlay (top-left) - only show when relevant
+                    if (isLoading || retryInSeconds != null || completeness.score < 0.5 ||
+                        state.localDeckExhausted || state.passportModeActive ||
+                        _checkingCompleteness || _completenessError != null)
+                      Positioned(
+                        top: DsSpacing.md,
+                        left: DsSpacing.md,
+                        right: 60, // Leave space for safety menu
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isLoading || retryInSeconds != null || completeness.score < 0.5)
+                              DeckStatusBar(
+                                isLoading: isLoading,
+                                retryInSeconds: retryInSeconds,
+                                completeness: completeness,
+                              ),
+                            if (state.localDeckExhausted || state.passportModeActive)
+                              Padding(
+                                padding: const EdgeInsets.only(top: DsSpacing.xs),
+                                child: DeckSearchModeIndicator(
+                                  localDeckExhausted: state.localDeckExhausted,
+                                  passportModeActive: state.passportModeActive,
+                                  currentDistanceKm: state.currentDistanceLimitKm,
+                                  onTapPassport: () => context.push(CrushRoutes.discoverySettings),
+                                ),
+                              ),
+                            if (_checkingCompleteness)
+                              Container(
+                                margin: const EdgeInsets.only(top: DsSpacing.xs),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(DsRadius.sm),
+                                ),
+                                child: Text(
+                                  'Checking profile...',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.white70),
+                                ),
+                              ),
+                            if (_completenessError != null)
+                              Container(
+                                margin: const EdgeInsets.only(top: DsSpacing.xs),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withValues(alpha: 0.8),
+                                  borderRadius: BorderRadius.circular(DsRadius.sm),
+                                ),
+                                child: Text(
+                                  _completenessError!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.white),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                    // Floating action buttons on the right side - vertical layout
+                    Positioned(
+                      right: DsSpacing.md,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Rewind button (premium only)
+                            DeckActionButton(
+                              icon: Icons.replay,
+                              color: DsColors.actionRewind,
+                              semanticLabel: 'Undo last swipe',
+                              size: 44,
+                              enabled: state.canRewind,
+                              onTap: () async {
+                                if (userId == null) return;
+                                final discoveryBloc = context.read<DiscoveryBloc>();
+                                discoveryBloc.add(DiscoveryRewindRequested(userId));
+                              },
+                            ),
+                            const SizedBox(height: DsSpacing.md),
+                            // Dislike button
+                            DeckActionButton(
+                              icon: Icons.close_rounded,
+                              color: DsColors.actionPass,
+                              semanticLabel: 'Pass on this profile',
+                              size: 52,
+                              onTap: () async {
+                                if (userId == null) return;
+                                final discoveryBloc = context.read<DiscoveryBloc>();
+                                if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                  _showProfileIncompleteDialog(
+                                    context,
+                                    completeness,
+                                    remote: _backendCompleteness,
+                                    minimum: 'swipe',
+                                    isAccountVerified: isAccountVerified,
+                                  );
+                                  return;
+                                }
+                                final outcome = await _evaluateBackendAllowance(
+                                  minimum: 'swipe',
+                                  local: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!context.mounted) return;
+                                final allowed = _handleBackendOutcome(
+                                  context,
+                                  outcome,
+                                  minimum: 'swipe',
+                                  completeness: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!allowed) return;
+                                discoveryBloc.add(
+                                  DiscoverySwipedLeft(
+                                    userId: userId,
+                                    targetUserId: currentProfile.id,
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: DsSpacing.md),
+                            // Super Like button (with remaining count badge)
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                DeckActionButton(
+                                  icon: Icons.star_rounded,
+                                  color: DsColors.actionSuperLike,
+                                  semanticLabel: 'Super like this profile',
+                                  size: 48,
+                                  enabled: state.superLikesRemaining > 0,
+                                  onTap: () async {
+                                    if (userId == null) return;
+                                    final discoveryBloc = context.read<DiscoveryBloc>();
+                                    if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                      _showProfileIncompleteDialog(
+                                        context,
+                                        completeness,
+                                        remote: _backendCompleteness,
+                                        minimum: 'swipe',
+                                        isAccountVerified: isAccountVerified,
+                                      );
+                                      return;
+                                    }
+                                    final outcome = await _evaluateBackendAllowance(
+                                      minimum: 'swipe',
+                                      local: completeness,
+                                      isAccountVerified: isAccountVerified,
+                                    );
+                                    if (!context.mounted) return;
+                                    final allowed = _handleBackendOutcome(
+                                      context,
+                                      outcome,
+                                      minimum: 'swipe',
+                                      completeness: completeness,
+                                      isAccountVerified: isAccountVerified,
+                                    );
+                                    if (!allowed) return;
+                                    discoveryBloc.add(
+                                      DiscoverySuperLiked(
+                                        userId: userId,
+                                        targetUserId: currentProfile.id,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                // Badge showing remaining super likes
+                                Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: state.superLikesRemaining > 0
+                                          ? DsColors.actionSuperLike
+                                          : Colors.grey,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '${state.superLikesRemaining}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: DsSpacing.md),
+                            // Like button
+                            DeckActionButton(
+                              icon: Icons.favorite_rounded,
+                              color: DsColors.actionLike,
+                              semanticLabel: 'Like this profile',
+                              size: 52,
+                              onTap: () async {
+                                if (userId == null) return;
+                                final discoveryBloc = context.read<DiscoveryBloc>();
+                                if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                  _showProfileIncompleteDialog(
+                                    context,
+                                    completeness,
+                                    remote: _backendCompleteness,
+                                    minimum: 'swipe',
+                                    isAccountVerified: isAccountVerified,
+                                  );
+                                  return;
+                                }
+                                final outcome = await _evaluateBackendAllowance(
+                                  minimum: 'swipe',
+                                  local: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!context.mounted) return;
+                                final allowed = _handleBackendOutcome(
+                                  context,
+                                  outcome,
+                                  minimum: 'swipe',
+                                  completeness: completeness,
+                                  isAccountVerified: isAccountVerified,
+                                );
+                                if (!allowed) return;
+                                discoveryBloc.add(
+                                  DiscoverySwipedRight(
+                                    userId: userId,
+                                    targetUserId: currentProfile.id,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -642,31 +670,35 @@ class _DeckScreenState extends State<DeckScreen> {
   }
 
   Future<void> _refreshBackendCompleteness({String minimum = 'message'}) async {
+    // Single setState at start
     setState(() {
       _checkingCompleteness = true;
       _completenessError = null;
     });
+
+    RemoteProfileCompleteness? result;
+    String? error;
+
     try {
-      final result = await _validationService.validate(minimum: minimum);
-      if (!mounted) return;
-      setState(() {
-        _backendCompleteness = result;
-        _completenessError = null;
-        _backendBlocked = false;
-      });
+      result = await _validationService.validate(minimum: minimum);
     } catch (e) {
-      if (!mounted) return;
+      error = _friendlyError(e);
+    }
+
+    // Single setState at end with all updates
+    if (mounted) {
       setState(() {
-        _backendCompleteness = null;
-        _completenessError = _friendlyError(e);
-        _backendBlocked = false;
+        _checkingCompleteness = false;
+        if (error != null) {
+          _backendCompleteness = null;
+          _completenessError = error;
+          _backendBlocked = false;
+        } else {
+          _backendCompleteness = result;
+          _completenessError = null;
+          _backendBlocked = false;
+        }
       });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _checkingCompleteness = false;
-        });
-      }
     }
   }
 

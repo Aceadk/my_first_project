@@ -79,14 +79,24 @@ class FirebaseAuthRepository implements AuthRepository {
       // Read phone verification status from Firestore - don't assume from isDeveloper
       final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
       final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+      // Read skip flags for onboarding steps
+      final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
+      final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
 
       // Determine if we need to update email verification status
       final needsEmailVerificationUpdate = !firebaseUser.emailVerified &&
           (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper);
 
-      // Always update if hasAcceptedTerms differs or email verification needs update
+      // Check if any state differs from current user
       final currentTermsStatus = _currentUser?.hasAcceptedTerms ?? false;
-      if (needsEmailVerificationUpdate || hasAcceptedTerms != currentTermsStatus) {
+      final currentSkippedBasicInfo = _currentUser?.hasSkippedBasicInfo ?? false;
+      final currentSkippedProfileSetup = _currentUser?.hasSkippedProfileSetup ?? false;
+      final needsUpdate = needsEmailVerificationUpdate ||
+          hasAcceptedTerms != currentTermsStatus ||
+          hasSkippedBasicInfo != currentSkippedBasicInfo ||
+          hasSkippedProfileSetup != currentSkippedProfileSetup;
+
+      if (needsUpdate) {
         _currentUser = CrushUser(
           id: firebaseUser.uid,
           phoneNumber: firebaseUser.phoneNumber ?? '',
@@ -100,9 +110,11 @@ class FirebaseAuthRepository implements AuthRepository {
           plan: SubscriptionPlan.free,
           profile: null,
           hasAcceptedTerms: hasAcceptedTerms,
+          hasSkippedBasicInfo: hasSkippedBasicInfo,
+          hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
         _authStateController.add(_currentUser);
-        AppLogger.logInfo('[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms)');
+        AppLogger.logInfo('[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
       }
     } catch (e) {
       // Don't log error for expected document-not-found cases

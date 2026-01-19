@@ -35,6 +35,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _schoolController = TextEditingController();
   final _livingInController = TextEditingController();
   final _favoriteSingerController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _cityController = TextEditingController();
   final _scrollController = ScrollController();
 
   String? _lastProfileId;
@@ -200,10 +202,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       school: _schoolController.text.trim().isNotEmpty ? _schoolController.text.trim() : null,
       livingIn: _livingInController.text.trim().isNotEmpty ? _livingInController.text.trim() : null,
       favoriteSongs: _favoriteSongs,
-      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty ? _favoriteSingerController.text.trim() : null,
+      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty ? _favoriteSingerController.text.trim() : base.favoriteSinger,
       dateOfBirth: _dateOfBirth,
       gender: _gender,
       sexualOrientation: _sexualOrientation,
+      // Location fields
+      country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : base.country,
+      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : base.city,
     );
 
     context.read<ProfileBloc>().add(ProfileSaveRequested(profile: updated));
@@ -226,6 +231,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _schoolController.dispose();
     _livingInController.dispose();
     _favoriteSingerController.dispose();
+    _countryController.dispose();
+    _cityController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -290,7 +297,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       initialHeightCm: _heightCm,
     );
-    if (result != null || _heightCm != null) {
+    if (result != null) {
       setState(() => _heightCm = result);
     }
   }
@@ -305,7 +312,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _relationshipGoals != null) {
+    if (result != null) {
       setState(() => _relationshipGoals = result);
     }
   }
@@ -486,7 +493,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       subtitleBuilder: (v) => options.firstWhere((e) => e.value == v).dateRange,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _zodiacSign != null) {
+    if (result != null) {
       setState(() => _zodiacSign = result);
     }
   }
@@ -501,7 +508,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _educationLevel != null) {
+    if (result != null) {
       setState(() => _educationLevel = result);
     }
   }
@@ -516,7 +523,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _familyPlans != null) {
+    if (result != null) {
       setState(() => _familyPlans = result);
     }
   }
@@ -531,7 +538,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       subtitleBuilder: (v) => options.firstWhere((e) => e.value == v).description,
     );
-    if (result != null || _personalityType != null) {
+    if (result != null) {
       setState(() => _personalityType = result);
     }
   }
@@ -546,7 +553,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _religion != null) {
+    if (result != null) {
       setState(() => _religion = result);
     }
   }
@@ -561,7 +568,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _workout != null) {
+    if (result != null) {
       setState(() => _workout = result);
     }
   }
@@ -576,7 +583,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _socialMedia != null) {
+    // Only update if user made a selection (don't clear on dismiss)
+    if (result != null) {
       setState(() => _socialMedia = result);
     }
   }
@@ -591,7 +599,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _sleepingHabits != null) {
+    // Only update if user made a selection (don't clear on dismiss)
+    if (result != null) {
       setState(() => _sleepingHabits = result);
     }
   }
@@ -606,7 +615,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _smoking != null) {
+    if (result != null) {
       setState(() => _smoking = result);
     }
   }
@@ -621,7 +630,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _drinking != null) {
+    if (result != null) {
       setState(() => _drinking = result);
     }
   }
@@ -636,7 +645,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
       emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
     );
-    if (result != null || _pets != null) {
+    if (result != null) {
       setState(() => _pets = result);
     }
   }
@@ -779,7 +788,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       selectedValue: _gender,
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
     );
-    if (result != null || _gender != null) {
+    if (result != null) {
       setState(() => _gender = result);
     }
   }
@@ -793,7 +802,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       selectedValue: _sexualOrientation,
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
     );
-    if (result != null || _sexualOrientation != null) {
+    if (result != null) {
       setState(() => _sexualOrientation = result);
     }
   }
@@ -843,6 +852,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _schoolController.text = profile.school ?? '';
           _livingInController.text = profile.livingIn ?? '';
           _favoriteSingerController.text = profile.favoriteSinger ?? '';
+          // Don't load "Unknown" as it's just a placeholder
+          _countryController.text = profile.country != 'Unknown' ? profile.country : '';
+          _cityController.text = profile.city != 'Unknown' ? profile.city : '';
           _heightCm = profile.heightCm;
           _relationshipGoals = profile.relationshipGoals;
           _languages = List.of(profile.languages);
@@ -1163,10 +1175,32 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       title: 'Location',
                       icon: Icons.location_on_outlined,
                       children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _StyledTextField(
+                                controller: _countryController,
+                                label: 'Country',
+                                hint: 'Your country',
+                                icon: Icons.public,
+                              ),
+                            ),
+                            const SizedBox(width: DsSpacing.md),
+                            Expanded(
+                              child: _StyledTextField(
+                                controller: _cityController,
+                                label: 'City',
+                                hint: 'Your city',
+                                icon: Icons.location_city,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: DsSpacing.md),
                         _StyledTextField(
                           controller: _livingInController,
                           label: 'Currently Living In',
-                          hint: 'City, Country',
+                          hint: 'Neighborhood or area',
                           icon: Icons.home,
                         ),
                       ],
