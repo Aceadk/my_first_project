@@ -30,6 +30,9 @@ class StubAuthRepository implements AuthRepository {
   bool get isVerificationBypassEnabled => true;
 
   @override
+  bool get supportsUsernameLogin => true;
+
+  @override
   Future<void> bootstrapSession() async {
     // Try to restore session from secure storage
     final userId = await _secureStorage.read(key: _currentUserKey);

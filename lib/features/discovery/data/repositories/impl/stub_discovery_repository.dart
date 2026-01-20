@@ -24,11 +24,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
   // Note: Some profiles have isActive/createdAt to demonstrate Active/New here badges
   // ignore: unnecessary_const
   final List<Profile> _mockProfiles = [
-    const Profile(
+    Profile(
       id: 'mock_1',
       name: 'Emma',
       age: 26,
       gender: 'Woman',
+      dateOfBirth: DateTime(1998, 4, 12),
       bio:
           'Coffee entwhen husiast ☕ | Travel addict ✈️ | Dog mom 🐕\n\nLooking for someone to explore the city with!',
       photoUrls: [
@@ -75,11 +76,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
           country: 'United States',
           city: 'San Francisco'),
     ),
-    const Profile(
+    Profile(
       id: 'mock_2',
       name: 'Aayush',
       age: 23,
       gender: 'Man',
+      dateOfBirth: DateTime(2001, 1, 9),
       bio:
           'Software engineer by day, musician by night 🎸\n\nLet\'s grab tacos and talk about life.',
       photoUrls: [
@@ -130,6 +132,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       name: 'Sofia',
       age: 24,
       gender: 'Woman',
+      dateOfBirth: DateTime(2000, 7, 22),
       bio:
           'Med student 👩‍⚕️ | Foodie 🍕 | Netflix binger 📺\n\nSwipe right if you can handle my puns!',
       photoUrls: const [
@@ -1080,14 +1083,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     await Future.delayed(const Duration(milliseconds: 100));
 
     // Return profiles that have liked the current user but haven't been matched yet
+    final matches = await _getMatches(userId);
+    final matchedIds = matches.map((match) => match.otherUserId).toSet();
     final likesYou = <Profile>[];
     for (final profile in _mockProfiles) {
       final hasLikedUser = await _hasLiked(profile.id, userId);
       if (hasLikedUser) {
-        // Check if already matched
-        final matches = await _getMatches(userId);
-        final alreadyMatched = matches.any((m) => m.otherUserId == profile.id);
-        if (!alreadyMatched) {
+        if (!matchedIds.contains(profile.id)) {
           likesYou.add(profile);
         }
       }
@@ -1095,14 +1097,21 @@ class StubDiscoveryRepository implements DiscoveryRepository {
 
     // For demo purposes, if no one has liked the user yet, return some mock profiles
     // that "simulate" having liked the user (helps testing)
-    if (likesYou.isEmpty) {
-      // Simulate that some mock profiles have liked the current user
-      final shuffled = List<Profile>.from(_mockProfiles)..shuffle(_random);
-      final simulatedLikes = shuffled.take(2).toList();
+    if (likesYou.length < 3) {
+      final candidates = _mockProfiles
+          .where((profile) =>
+              !matchedIds.contains(profile.id) &&
+              !likesYou.any((liked) => liked.id == profile.id))
+          .toList();
+      final preferred = candidates.where((profile) => profile.dateOfBirth != null).toList();
+      final pool = preferred.isNotEmpty ? preferred : candidates;
+      pool.shuffle(_random);
+      final needed = (3 - likesYou.length).clamp(0, pool.length);
+      final simulatedLikes = pool.take(needed).toList();
       for (final profile in simulatedLikes) {
         await _recordLike(profile.id, userId);
       }
-      return simulatedLikes;
+      likesYou.addAll(simulatedLikes);
     }
 
     return likesYou;

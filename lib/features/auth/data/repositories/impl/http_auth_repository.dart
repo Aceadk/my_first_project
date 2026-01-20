@@ -41,6 +41,9 @@ class HttpAuthRepository implements AuthRepository {
   bool get isVerificationBypassEnabled => kDebugMode;
 
   @override
+  bool get supportsUsernameLogin => true;
+
+  @override
   Stream<CrushUser?> authStateChanges() => _authStateController.stream;
 
   @override

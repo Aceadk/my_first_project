@@ -33,6 +33,7 @@ import 'package:crushhour/features/profile/presentation/screens/profile_edit_scr
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_player.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
 import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
+import 'package:crushhour/core/services/haptic_service.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -1526,6 +1527,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               if (!allowed || !mounted) return;
                               final text = _controller.text.trim();
                               if (text.isEmpty) return;
+                              HapticService.messageSent();
                               context.read<ChatBloc>().add(ChatMessageSent(
                                     matchId: widget.args.matchId,
                                     fromUserId: widget.args.currentUserId,
@@ -1887,6 +1889,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!allowed || !mounted) return;
     final result = await _picker.pickImage(source: ImageSource.gallery);
     if (!mounted || result == null) return;
+    HapticService.messageSent();
     context.read<ChatBloc>().add(
           ChatMediaSendRequested(
             matchId: widget.args.matchId,
@@ -1913,6 +1916,7 @@ class _ChatScreenState extends State<ChatScreen> {
       maxDuration: const Duration(seconds: 20),
     );
     if (!mounted || result == null) return;
+    HapticService.messageSent();
     context.read<ChatBloc>().add(
           ChatMediaSendRequested(
             matchId: widget.args.matchId,
@@ -1940,6 +1944,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendVoiceNote(String filePath) {
+    HapticService.messageSent();
     context.read<ChatBloc>().add(
           ChatMediaSendRequested(
             matchId: widget.args.matchId,

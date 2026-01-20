@@ -21,12 +21,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Email OTP tab controllers
-  final _identifierController = TextEditingController();
-  final _otpController = TextEditingController();
-  bool _identifierTouched = false;
-  bool _otpTouched = false;
-
   // Email Link tab controller
   final _emailLinkController = TextEditingController();
   bool _emailLinkTouched = false;
@@ -41,14 +35,12 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _identifierController.dispose();
-    _otpController.dispose();
     _emailLinkController.dispose();
     _emailPasswordController.dispose();
     _passwordController.dispose();
@@ -69,7 +61,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
           unselectedLabelColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           indicatorColor: DsColors.primary,
           tabs: const [
-            Tab(text: 'Email OTP'),
             Tab(text: 'Email link'),
             Tab(text: 'Password'),
           ],
@@ -81,18 +72,12 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
             previous.errorMessage != current.errorMessage,
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated) {
-            context.go(CrushRoutes.termsConditions);
+            _routeAfterAuth(context, state);
           } else if (state.status == AuthStatus.emailLinkSent &&
               state.emailInProgress != null) {
             showSuccessSnackBar(
               context,
               'Check your email! We sent a sign-in link to ${state.emailInProgress}',
-            );
-          } else if (state.status == AuthStatus.emailOtpSent &&
-              state.emailOtpIdentifier != null) {
-            showSuccessSnackBar(
-              context,
-              'Verification code sent! Check your email inbox.',
             );
           }
           final error = state.errorMessage;
@@ -107,16 +92,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _EmailOtpTab(
-                      identifierController: _identifierController,
-                      otpController: _otpController,
-                      identifierTouched: _identifierTouched,
-                      otpTouched: _otpTouched,
-                      onIdentifierTouched: () =>
-                          setState(() => _identifierTouched = true),
-                      onOtpTouched: () => setState(() => _otpTouched = true),
-                      state: state,
-                    ),
                     _EmailLinkTab(
                       emailController: _emailLinkController,
                       emailTouched: _emailLinkTouched,
@@ -160,238 +135,35 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
       ),
     );
   }
-}
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EMAIL OTP TAB
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _EmailOtpTab extends StatelessWidget {
-  const _EmailOtpTab({
-    required this.identifierController,
-    required this.otpController,
-    required this.identifierTouched,
-    required this.otpTouched,
-    required this.onIdentifierTouched,
-    required this.onOtpTouched,
-    required this.state,
-  });
-
-  final TextEditingController identifierController;
-  final TextEditingController otpController;
-  final bool identifierTouched;
-  final bool otpTouched;
-  final VoidCallback onIdentifierTouched;
-  final VoidCallback onOtpTouched;
-  final AuthState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final otpSent = state.status == AuthStatus.emailOtpSent;
-    final isLoading = state.isLoading;
-
-    final rawIdentifier = identifierController.text.trim();
-    final identifier =
-        rawIdentifier.contains('@') ? normalizeEmail(rawIdentifier) : rawIdentifier;
-    final storedIdentifier = state.emailOtpIdentifier;
-    final effectiveIdentifier =
-        (storedIdentifier != null && storedIdentifier.isNotEmpty)
-            ? storedIdentifier
-            : identifier;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Icon(
-            otpSent ? Icons.mark_email_read_outlined : Icons.email_outlined,
-            size: 48,
-            color: DsColors.primary,
-          ),
-          DsGap.lg,
-          Text(
-            otpSent ? 'Enter verification code' : 'Sign in with email code',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          DsGap.sm,
-          Text(
-            otpSent
-                ? 'We sent a 6-digit code to your email'
-                : 'Enter your email address and we\'ll send you a verification code',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          DsGap.xl,
-
-          // Email input
-          TextField(
-            controller: identifierController,
-            keyboardType: TextInputType.emailAddress,
-            enabled: !otpSent && !isLoading,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: 'Email address',
-              hintText: 'you@example.com',
-              prefixIcon: const Icon(Icons.email_outlined),
-              errorText: _getIdentifierError(identifierTouched),
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onTap: onIdentifierTouched,
-            onChanged: (_) => onIdentifierTouched(),
-            onSubmitted: (_) {
-              if (!otpSent && !isLoading) {
-                _sendCode(context, identifier);
-              }
-            },
-          ),
-
-          // OTP input (shown after code sent)
-          if (otpSent) ...[
-            DsGap.lg,
-            TextField(
-              controller: otpController,
-              keyboardType: TextInputType.number,
-              enabled: !isLoading,
-              maxLength: 6,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: 'Verification code',
-                hintText: '000000',
-                prefixIcon: const Icon(Icons.lock_outline),
-                errorText: _getOtpError(otpTouched),
-                counterText: '',
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onTap: onOtpTouched,
-              onChanged: (_) => onOtpTouched(),
-              onSubmitted: (_) {
-                if (!isLoading) {
-                  _verifyCode(context, effectiveIdentifier);
-                }
-              },
-            ),
-          ],
-
-          DsGap.xl,
-
-          // Action button
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      if (otpSent) {
-                        _verifyCode(context, effectiveIdentifier);
-                      } else {
-                        _sendCode(context, identifier);
-                      }
-                    },
-              style: FilledButton.styleFrom(
-                backgroundColor: DsColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      otpSent ? 'Verify code' : 'Send code',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-            ),
-          ),
-
-          // Secondary actions (when OTP sent)
-          if (otpSent) ...[
-            DsGap.lg,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () => context.read<AuthBloc>().add(
-                            AuthEmailOtpResendRequested(effectiveIdentifier),
-                          ),
-                  child: const Text('Resend code'),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          otpController.clear();
-                          context.read<AuthBloc>().add(AuthEmailOtpCancelled());
-                        },
-                  child: const Text('Change email'),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  String? _getIdentifierError(bool touched) {
-    if (!touched) return null;
-    final text = identifierController.text.trim();
-    if (text.isEmpty) return 'Please enter your email address';
-    if (!looksLikeEmail(text)) return 'Please enter a valid email address';
-    return null;
-  }
-
-  String? _getOtpError(bool touched) {
-    if (!touched) return null;
-    final otp = otpController.text.trim();
-    if (otp.isEmpty) return 'Please enter the verification code';
-    if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) return 'Code must be 6 digits';
-    return null;
-  }
-
-  void _sendCode(BuildContext context, String identifier) {
-    final error = _getIdentifierError(true);
-    if (error != null) {
-      showErrorSnackBar(context, error);
+  void _routeAfterAuth(BuildContext context, AuthState state) {
+    final user = state.user;
+    if (user == null) {
+      context.go(CrushRoutes.home);
       return;
     }
-    context.read<AuthBloc>().add(AuthEmailOtpRequested(identifier));
-  }
 
-  void _verifyCode(BuildContext context, String identifier) {
-    final otpError = _getOtpError(true);
-    if (otpError != null) {
-      showErrorSnackBar(context, otpError);
+    if (!user.hasAcceptedTerms) {
+      context.go(CrushRoutes.termsConditions);
       return;
     }
-    context.read<AuthBloc>().add(
-          AuthEmailOtpSubmitted(identifier, otpController.text.trim()),
-        );
+
+    if (!user.hasCompletedBasicInfo) {
+      context.go(CrushRoutes.basicInfo);
+      return;
+    }
+
+    if (!user.hasCompletedProfileSetup) {
+      context.go(CrushRoutes.profileSetup);
+      return;
+    }
+
+    if (!user.isAccountVerified) {
+      context.go(CrushRoutes.emailVerification);
+      return;
+    }
+
+    context.go(CrushRoutes.home);
   }
 }
 

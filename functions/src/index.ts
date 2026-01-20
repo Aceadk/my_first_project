@@ -145,14 +145,44 @@ interface AppealRequest {
   targetId?: string;
 }
 
+interface DatePlanEmailRequest {
+  contactName?: string;
+  contactEmail?: string;
+  matchName?: string;
+  dateTimeMs?: number;
+  timeZoneOffsetMinutes?: number;
+  location?: string;
+  notes?: string;
+}
+
 const PROFILE_MIN_PHOTOS = 1;
 const PROFILE_MIN_PROMPTS = 0; // Prompts are optional for swiping
 const PROFILE_MIN_BIO_LENGTH = 10; // Only 10 characters needed
 const PROFILE_MIN_INTERESTS = 3;
 const DAILY_LIKE_LIMIT_FREE = 30;
 const DAILY_LIKE_LIMIT_PLUS = 300;
+const HOURLY_LIKE_LIMIT_FREE = 10; // Hourly throttle for free users
+const HOURLY_LIKE_LIMIT_PLUS = 50; // Hourly throttle for plus users
 const DISCOVERY_PAGE_SIZE = 120;
-const BANNED_TERMS = ["kill", "terror", "hate", "shit", "fuck", "bitch", "spam", ];
+
+// Content moderation - comprehensive banned terms list
+const BANNED_TERMS = [
+  // Violence and threats
+  "kill", "murder", "threat", "terror", "bomb", "attack", "weapon", "shoot",
+  // Hate speech
+  "hate", "racist", "nazi", "supremacist",
+  // Explicit profanity (core)
+  "shit", "fuck", "bitch", "cunt", "ass hole", "bastard",
+  // Spam and scam indicators
+  "spam", "scam", "wire money", "western union", "moneygram", "bitcoin wallet",
+  "crypto investment", "forex trading", "click here", "act now",
+  // Solicitation
+  "escort", "prostitute", "pay for sex", "sugar daddy arrangement",
+  // Contact info harvesting
+  "whatsapp me", "telegram me", "kik me", "snapchat me",
+  // Drugs
+  "buy drugs", "sell drugs", "cocaine", "heroin", "meth",
+];
 
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
@@ -244,6 +274,11 @@ function optionalString(value: unknown): string | undefined {
   return str.length > 0 ? str : undefined;
 }
 
+function truncateString(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  return value.slice(0, maxLength).trim();
+}
+
 function toNumber(value: unknown): number | undefined {
   if (typeof value === "number" && !isNaN(value)) return value;
   if (typeof value === "string") {
@@ -289,6 +324,9 @@ const LOGIN_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
 const SIGNUP_ATTEMPT_LIMIT = 5;
 const SIGNUP_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
 const SIGNUP_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
+const DATE_PLAN_EMAIL_LIMIT = 3;
+const DATE_PLAN_EMAIL_WINDOW_MS = 60 * 60 * 1000;
+const DATE_PLAN_EMAIL_BLOCK_MS = 2 * 60 * 60 * 1000;
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -489,6 +527,112 @@ async function sendOtpEmail(params: {
   }
 }
 
+async function sendPasswordChangedEmail(params: {
+  to: string;
+  method: "in_app" | "forgot_password";
+}) {
+  if (!emailResendKey) {
+    console.warn("RESEND_API_KEY not set; skipping email send.");
+    return;
+  }
+  const subject = "Your CrushHour password was changed";
+  const methodText =
+    params.method === "forgot_password"
+      ? "using the forgot password feature"
+      : "from within the app";
+  const text = [
+    "Hello,",
+    "",
+    `Your CrushHour account password was recently changed ${methodText}.`,
+    "",
+    "If you made this change, you can safely ignore this email.",
+    "",
+    "If you did NOT change your password, please secure your account immediately:",
+    "1. Reset your password using the 'Forgot Password' option in the app",
+    "2. Review your account activity",
+    "3. Contact our support team if you need assistance",
+    "",
+    "Your account security is important to us.",
+    "",
+    "Thanks,",
+    "CrushHour Security Team",
+  ].join("\\n");
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${emailResendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: emailFrom,
+      to: [params.to],
+      subject,
+      text,
+      tags: [{ name: "purpose", value: "password_changed" }],
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    console.error(`Password changed email failed: ${response.status} ${body}`);
+  }
+}
+
+async function sendDatePlanEmail(params: {
+  to: string;
+  contactName: string;
+  creatorName: string;
+  matchName: string;
+  dateLabel: string;
+  timeLabel: string;
+  location: string;
+  notes?: string;
+}) {
+  if (!emailResendKey) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Email notifications are not configured."
+    );
+  }
+  const subject = `${params.creatorName} shared a CrushHour date plan`;
+  const lines = [
+    `Hi ${params.contactName},`,
+    "",
+    `${params.creatorName} shared their date plan with you in CrushHour.`,
+    "",
+    `Who: ${params.matchName}`,
+    `When: ${params.dateLabel} at ${params.timeLabel}`,
+    `Where: ${params.location}`,
+  ];
+  if (params.notes) {
+    lines.push(`Notes: ${params.notes}`);
+  }
+  lines.push(
+    "",
+    "You are listed as an emergency contact.",
+    "If you are concerned about their safety, please contact them directly.",
+    "",
+    "CrushHour Safety Team"
+  );
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${emailResendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: emailFrom,
+      to: [params.to],
+      subject,
+      text: lines.join("\\n"),
+      tags: [{ name: "purpose", value: "date_plan_created" }],
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Resend error: ${response.status} ${body}`);
+  }
+}
+
 async function resolveUserByIdentifier(identifier: string): Promise<{
   uid?: string;
   emailLower?: string;
@@ -584,6 +728,13 @@ interface PasswordResetFinalizeRequest {
   email?: string;
   resetToken?: string;
   reset_token?: string;
+  newPassword?: string;
+  new_password?: string;
+}
+
+interface ChangePasswordRequest {
+  currentPassword?: string;
+  current_password?: string;
   newPassword?: string;
   new_password?: string;
 }
@@ -1054,8 +1205,18 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       }
       const resolved = await resolveUserByIdentifier(identifierRaw);
       const uid = resolved?.uid;
+      const userEmail = resolved?.emailLower || resolved?.email;
       if (uid) {
         await setPasswordHash(uid, newPassword);
+        // Send password changed email notification
+        if (userEmail) {
+          sendPasswordChangedEmail({
+            to: userEmail,
+            method: "forgot_password",
+          }).catch((err) =>
+            console.error("Failed to send password changed email:", err)
+          );
+        }
       }
       await logAuthAudit({
         action: "verify_email_otp",
@@ -1754,6 +1915,13 @@ async function resetPasswordWithTokenCore(params: {
   if (uid) {
     await setPasswordHash(uid, newPassword);
     await admin.auth().revokeRefreshTokens(uid);
+    // Send password changed email notification
+    sendPasswordChangedEmail({
+      to: email,
+      method: "forgot_password",
+    }).catch((err) =>
+      console.error("Failed to send password changed email:", err)
+    );
   }
 
   await matchedDoc.ref.update({
@@ -1954,6 +2122,139 @@ export const resetPasswordWithToken = callable<PasswordResetFinalizeRequest>(
   }
 );
 
+export const changePassword = callable<ChangePasswordRequest>(
+  async (data, context) => {
+    const uid = context.auth?.uid;
+    if (!uid) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "You must be logged in to change your password."
+      );
+    }
+
+    const currentPassword =
+      typeof data?.currentPassword === "string"
+        ? data.currentPassword
+        : typeof data?.current_password === "string"
+          ? data.current_password
+          : "";
+    const newPassword =
+      typeof data?.newPassword === "string"
+        ? data.newPassword
+        : typeof data?.new_password === "string"
+          ? data.new_password
+          : "";
+
+    if (!currentPassword) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Current password is required."
+      );
+    }
+
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `New password must be at least ${PASSWORD_MIN_LENGTH} characters.`
+      );
+    }
+
+    const ip = getClientIp(context);
+    const userAgent =
+      context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
+
+    // Rate limiting
+    const ipLimit = ip
+      ? await applyRateLimit(
+          `change_password:ip:${ip}`,
+          LOGIN_ATTEMPT_LIMIT,
+          LOGIN_ATTEMPT_WINDOW_MS,
+          LOGIN_ATTEMPT_BLOCK_MS
+        )
+      : { allowed: true };
+    const idLimit = await applyRateLimit(
+      `change_password:uid:${uid}`,
+      LOGIN_ATTEMPT_LIMIT,
+      LOGIN_ATTEMPT_WINDOW_MS,
+      LOGIN_ATTEMPT_BLOCK_MS
+    );
+
+    if (!ipLimit.allowed || !idLimit.allowed) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "blocked",
+        uid,
+        ip,
+        userAgent,
+      });
+      const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
+      throwRateLimitError(retryMs);
+    }
+
+    // Verify current password
+    const passwordHash = await getPasswordHash(uid);
+    if (!passwordHash) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "error",
+        uid,
+        ip,
+        userAgent,
+        metadata: { reason: "no_password_set" },
+      });
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "No password set for this account."
+      );
+    }
+
+    const isValid = await verifyPassword(currentPassword, passwordHash);
+    if (!isValid) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "invalid",
+        uid,
+        ip,
+        userAgent,
+      });
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Current password is incorrect."
+      );
+    }
+
+    // Set new password
+    await setPasswordHash(uid, newPassword);
+
+    // Revoke existing sessions
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // Get user's email for notification
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userEmail =
+      userDoc.data()?.emailLower || userDoc.data()?.email || null;
+
+    // Send password changed email notification
+    if (userEmail) {
+      sendPasswordChangedEmail({
+        to: userEmail,
+        method: "in_app",
+      }).catch((err) =>
+        console.error("Failed to send password changed email:", err)
+      );
+    }
+
+    await logAuthAudit({
+      action: "change_password",
+      status: "ok",
+      uid,
+      ip,
+      userAgent,
+    });
+
+    return { status: "ok" };
+  }
+);
 
 type ProfileData = {
   bio?: unknown;
@@ -2259,35 +2560,140 @@ function haversineDistanceKm(
 }
 
 async function enforceDailyLikeLimit(uid: string, plan?: string) {
-  const limit =
-    (plan ?? "").toLowerCase() === "plus"
-      ? DAILY_LIKE_LIMIT_PLUS
-      : DAILY_LIKE_LIMIT_FREE;
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const isPlus = (plan ?? "").toLowerCase() === "plus";
+  const dailyLimit = isPlus ? DAILY_LIKE_LIMIT_PLUS : DAILY_LIKE_LIMIT_FREE;
+  const hourlyLimit = isPlus ? HOURLY_LIKE_LIMIT_PLUS : HOURLY_LIKE_LIMIT_FREE;
+
+  const now = new Date();
+  const todayKey = now.toISOString().slice(0, 10);
+  const hourKey = `${todayKey}T${now.getUTCHours().toString().padStart(2, "0")}`;
   const ref = db.collection("rateLimits").doc(uid);
 
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists ? (snap.data() as Record<string, unknown>) : {};
+
+    // Check daily limit
     const dailyLikes = (data.dailyLikes as Record<string, number> | undefined) ?? {};
-    const count = dailyLikes[todayKey] ?? 0;
-    if (count >= limit) {
+    const dailyCount = dailyLikes[todayKey] ?? 0;
+    if (dailyCount >= dailyLimit) {
       throw new functions.https.HttpsError(
         "resource-exhausted",
-        `Daily like limit reached (${limit}). Try again tomorrow.`
+        `Daily like limit reached (${dailyLimit}). Try again tomorrow.`
       );
     }
-    dailyLikes[todayKey] = count + 1;
+
+    // Check hourly limit (throttling)
+    const hourlyLikes = (data.hourlyLikes as Record<string, number> | undefined) ?? {};
+    const hourlyCount = hourlyLikes[hourKey] ?? 0;
+    if (hourlyCount >= hourlyLimit) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        `Slow down! You've liked ${hourlyLimit} profiles this hour. Try again in a bit.`
+      );
+    }
+
+    // Increment both counters
+    dailyLikes[todayKey] = dailyCount + 1;
+    hourlyLikes[hourKey] = hourlyCount + 1;
+
+    // Clean up old hourly keys (keep only last 24 hours)
+    const cutoffHour = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 13);
+    for (const key of Object.keys(hourlyLikes)) {
+      if (key < cutoffHour) delete hourlyLikes[key];
+    }
+
     tx.set(
       ref,
       {
         dailyLikes,
+        hourlyLikes,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
     );
   });
 }
+
+export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "share a date plan");
+    const contactNameRaw = requireString(data?.contactName, "contactName");
+    const contactEmailRaw = requireString(data?.contactEmail, "contactEmail");
+    if (!isEmailLike(contactEmailRaw)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Enter a valid contact email."
+      );
+    }
+    const matchNameRaw = requireString(data?.matchName, "matchName");
+    const locationRaw = requireString(data?.location, "location");
+    const dateTimeMs = toNumber(data?.dateTimeMs);
+    if (dateTimeMs == null) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "dateTimeMs is required."
+      );
+    }
+    const timeZoneOffsetMinutes = toNumber(data?.timeZoneOffsetMinutes) ?? 0;
+
+    const contactEmail = normalizeEmail(contactEmailRaw);
+    const contactName = truncateString(contactNameRaw, 80);
+    const matchName = truncateString(matchNameRaw, 80);
+    const location = truncateString(locationRaw, 200);
+    const notesRaw = optionalString(data?.notes);
+    const notes = notesRaw ? truncateString(notesRaw, 500) : undefined;
+
+    const identifierHash = hashIdentifier(contactEmail);
+    const rateLimit = await applyRateLimit(
+      `date_plan_email:${uid}:${identifierHash}`,
+      DATE_PLAN_EMAIL_LIMIT,
+      DATE_PLAN_EMAIL_WINDOW_MS,
+      DATE_PLAN_EMAIL_BLOCK_MS
+    );
+    if (!rateLimit.allowed) {
+      throwRateLimitError(rateLimit.retryAfterMs);
+    }
+
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.data() || {};
+    const profile = (userData.profile as { name?: string } | undefined) ?? {};
+    const creatorNameRaw =
+      (typeof profile.name === "string" && profile.name.trim()) ||
+      (typeof userData.username === "string" && userData.username.trim()) ||
+      "A CrushHour user";
+    const creatorName = truncateString(creatorNameRaw, 80);
+
+    const safeOffset = Math.max(-14 * 60, Math.min(14 * 60, timeZoneOffsetMinutes));
+    const localMillis = dateTimeMs + safeOffset * 60 * 1000;
+    const localDate = new Date(localMillis);
+    const dateLabel = localDate.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+    const timeLabel = localDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
+
+    await sendDatePlanEmail({
+      to: contactEmail,
+      contactName,
+      creatorName,
+      matchName,
+      dateLabel,
+      timeLabel,
+      location,
+      notes,
+    });
+
+    return { success: true };
+  }
+);
 
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
@@ -3678,6 +4084,132 @@ app.post("/v1/auth/logout", authMiddleware, async (req: AuthRequest, res: Respon
   } catch (err) {
     console.error("Logout error:", err);
     return res.status(500).json({ error: "Failed to logout" });
+  }
+});
+
+// Change password
+app.post("/v1/auth/password/change", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const uid = req.uid!;
+    const currentPassword =
+      typeof req.body?.current_password === "string"
+        ? req.body.current_password
+        : typeof req.body?.currentPassword === "string"
+          ? req.body.currentPassword
+          : "";
+    const newPassword =
+      typeof req.body?.new_password === "string"
+        ? req.body.new_password
+        : typeof req.body?.newPassword === "string"
+          ? req.body.newPassword
+          : "";
+
+    if (!currentPassword) {
+      return res.status(400).json({ error: "Current password is required." });
+    }
+
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
+      return res.status(400).json({
+        error: `New password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
+      });
+    }
+
+    const ip =
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      undefined;
+    const userAgent = req.headers["user-agent"]?.toString() ?? undefined;
+
+    // Rate limiting
+    const ipLimit = ip
+      ? await applyRateLimit(
+          `change_password:ip:${ip}`,
+          LOGIN_ATTEMPT_LIMIT,
+          LOGIN_ATTEMPT_WINDOW_MS,
+          LOGIN_ATTEMPT_BLOCK_MS
+        )
+      : { allowed: true };
+    const idLimit = await applyRateLimit(
+      `change_password:uid:${uid}`,
+      LOGIN_ATTEMPT_LIMIT,
+      LOGIN_ATTEMPT_WINDOW_MS,
+      LOGIN_ATTEMPT_BLOCK_MS
+    );
+
+    if (!ipLimit.allowed || !idLimit.allowed) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "blocked",
+        uid,
+        ip,
+        userAgent,
+      });
+      const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
+      return res.status(429).json({
+        error: "Too many attempts. Please try again later.",
+        retryAfterMs: retryMs,
+      });
+    }
+
+    // Verify current password
+    const passwordHash = await getPasswordHash(uid);
+    if (!passwordHash) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "error",
+        uid,
+        ip,
+        userAgent,
+        metadata: { reason: "no_password_set" },
+      });
+      return res.status(400).json({ error: "No password set for this account." });
+    }
+
+    const isValid = await verifyPassword(currentPassword, passwordHash);
+    if (!isValid) {
+      await logAuthAudit({
+        action: "change_password",
+        status: "invalid",
+        uid,
+        ip,
+        userAgent,
+      });
+      return res.status(400).json({ error: "Current password is incorrect." });
+    }
+
+    // Set new password
+    await setPasswordHash(uid, newPassword);
+
+    // Revoke existing sessions
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // Get user's email for notification
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userEmail =
+      userDoc.data()?.emailLower || userDoc.data()?.email || null;
+
+    // Send password changed email notification
+    if (userEmail) {
+      sendPasswordChangedEmail({
+        to: userEmail,
+        method: "in_app",
+      }).catch((err) =>
+        console.error("Failed to send password changed email:", err)
+      );
+    }
+
+    await logAuthAudit({
+      action: "change_password",
+      status: "ok",
+      uid,
+      ip,
+      userAgent,
+    });
+
+    res.json({ success: true, message: "Password changed successfully." });
+  } catch (err) {
+    console.error("Change password error:", err);
+    return res.status(500).json({ error: "Failed to change password." });
   }
 });
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
@@ -43,6 +44,7 @@ class ChatListScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => MatchesBloc(
         chatRepository: context.read<ChatRepository>(),
+        authRepository: context.read<AuthRepository>(),
         userId: userId,
       )..add(const MatchesLoadRequested()),
       child: _ChatListView(currentUserId: userId),

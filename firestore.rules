@@ -15,13 +15,16 @@ service cloud.firestore {
       // Allow signed-in users to read basic profiles.
       allow read: if isSignedIn();
 
-      // Only owner can update, and cannot change plan or isIdVerified.
-      allow update: if isOwner(uid)
-        && request.resource.data.plan == resource.data.plan
-        && request.resource.data.isIdVerified == resource.data.isIdVerified;
+      // Allow owner to create their own document during onboarding
+      allow create: if isOwner(uid);
 
-      // Creation/deletion should be via auth/signup pipeline or admin.
-      allow create, delete: if false;
+      // Owner can update their own document, but cannot change protected fields.
+      // Protected fields (plan, isIdVerified) can only be changed by admin/backend.
+      allow update: if isOwner(uid)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'isIdVerified']);
+
+      // No client deletes; handled via admin.
+      allow delete: if false;
     }
 
     // USERNAME INDEX (server only)

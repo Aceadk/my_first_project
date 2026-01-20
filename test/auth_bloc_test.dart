@@ -254,6 +254,9 @@ class _StubAuthRepository implements AuthRepository {
   bool get isVerificationBypassEnabled => false;
 
   @override
+  bool get supportsUsernameLogin => true;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override

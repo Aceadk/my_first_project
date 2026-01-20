@@ -9,6 +9,7 @@ import 'package:crushhour/features/safety/data/services/date_plan_service.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/core/utils/validators.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 
@@ -173,7 +174,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
         onPlanCreated: () {
           Navigator.pop(ctx);
           _loadDatePlans();
-          showSuccessSnackBar(context, 'Date plan created! Share it with your trusted contacts.');
+          showSuccessSnackBar(context, 'Date plan created! We emailed your contact.');
         },
       ),
     );
@@ -1134,9 +1135,14 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
       setState(() => _error = 'Please enter a location');
       return;
     }
-    if (_contactNameController.text.trim().isEmpty ||
-        _contactEmailController.text.trim().isEmpty) {
+    final contactName = _contactNameController.text.trim();
+    final contactEmail = _contactEmailController.text.trim();
+    if (contactName.isEmpty || contactEmail.isEmpty) {
       setState(() => _error = 'Please add an emergency contact with email');
+      return;
+    }
+    if (!looksLikeEmail(contactEmail)) {
+      setState(() => _error = 'Please enter a valid contact email');
       return;
     }
 
@@ -1165,9 +1171,9 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             : _notesController.text.trim(),
         sharedWith: [
           EmergencyContact(
-            name: _contactNameController.text.trim(),
+            name: contactName,
             phone: '', // Phone is optional, using email instead
-            email: _contactEmailController.text.trim(),
+            email: contactEmail,
             notifyBySms: false,
             notifyByEmail: true,
           ),
@@ -1176,9 +1182,15 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
 
       widget.onPlanCreated();
     } catch (e) {
+      final rawMessage = e.toString();
+      final cleaned = rawMessage.startsWith('Exception: ')
+          ? rawMessage.substring(11)
+          : rawMessage;
       setState(() {
         _isLoading = false;
-        _error = 'Could not create plan. Please try again.';
+        _error = cleaned.isNotEmpty
+            ? cleaned
+            : 'Could not create plan. Please try again.';
       });
     }
   }

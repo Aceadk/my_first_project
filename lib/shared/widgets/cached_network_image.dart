@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -49,6 +50,12 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
   bool _isLoading = true;
   bool _hasError = false;
 
+  /// Check if the URL is a remote URL (http/https) or a local file path
+  bool _isRemoteUrl(String url) {
+    final uri = Uri.tryParse(url);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -78,12 +85,25 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
     });
 
     try {
-      final bytes = await NetworkImageCache.instance.get(widget.imageUrl);
+      Uint8List? bytes;
+
+      // Check if this is a local file path or a remote URL
+      if (_isRemoteUrl(widget.imageUrl)) {
+        // Remote URL - fetch from network with caching
+        bytes = await NetworkImageCache.instance.get(widget.imageUrl);
+      } else {
+        // Local file path - load directly from file system
+        final file = File(widget.imageUrl);
+        if (await file.exists()) {
+          bytes = await file.readAsBytes();
+        }
+      }
+
       if (!mounted) return;
 
       if (bytes != null) {
         setState(() {
-          _imageProvider = MemoryImage(bytes);
+          _imageProvider = MemoryImage(bytes!);
           _isLoading = false;
           _hasError = false;
         });

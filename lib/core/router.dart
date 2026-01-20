@@ -115,10 +115,21 @@ GoRouter createRouter(AuthBloc authBloc) {
       final isSplash = path == CrushRoutes.splash;
       final isEmailVerificationRoute = path == CrushRoutes.emailVerification;
       final isTermsRoute = path == CrushRoutes.termsConditions;
+      final isProfileRoute = path == CrushRoutes.profile;
+      final isProfileEditRoute = path == CrushRoutes.profileEdit;
+      final isSettingsRoute = path.startsWith(CrushRoutes.settings);
       final isOnboardingRoute = path == CrushRoutes.basicInfo ||
           path == CrushRoutes.profileSetup ||
           path == CrushRoutes.idVerification ||
           path == CrushRoutes.termsConditions;
+
+      // Legal/public routes that should always be accessible during onboarding
+      final isPublicRoute = path == CrushRoutes.privacyPolicy ||
+          path == CrushRoutes.termsOfService ||
+          path == CrushRoutes.safetyGuidelines ||
+          path == CrushRoutes.weeklyPicks ||
+          path == CrushRoutes.safety ||
+          path == CrushRoutes.logout;
 
       // Check if user needs account verification
       // Only require verification for users who have neither email nor phone verified
@@ -183,8 +194,8 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Logged in but needs to accept terms
       if (needsTermsAcceptance) {
-        // Allow staying on terms screen
-        if (isTermsRoute) {
+        // Allow staying on terms screen or accessing public routes
+        if (isTermsRoute || isPublicRoute) {
           return null;
         }
         // Redirect to terms screen from any other protected route
@@ -195,8 +206,15 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Logged in but needs to complete basic info
       if (needsBasicInfo) {
-        // Allow staying on basic info screen only - no skipping to later steps
-        if (path == CrushRoutes.basicInfo) {
+        // Allow staying on basic info, proceeding to next onboarding steps,
+        // or accessing public/legal routes
+        if (path == CrushRoutes.basicInfo ||
+            path == CrushRoutes.idVerification ||
+            path == CrushRoutes.profileSetup ||
+            isProfileRoute ||
+            isProfileEditRoute ||
+            isSettingsRoute ||
+            isPublicRoute) {
           return null;
         }
         // Redirect to basic info from any other protected route
@@ -207,8 +225,14 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Logged in but needs to complete profile setup
       if (needsProfileSetup) {
-        // Allow staying on profile setup or ID verification (optional step in between)
-        if (path == CrushRoutes.profileSetup || path == CrushRoutes.idVerification) {
+        // Allow staying on profile setup, ID verification,
+        // or accessing public/legal routes
+        if (path == CrushRoutes.profileSetup ||
+            path == CrushRoutes.idVerification ||
+            isProfileRoute ||
+            isProfileEditRoute ||
+            isSettingsRoute ||
+            isPublicRoute) {
           return null;
         }
         // Redirect to profile setup from any other protected route (including earlier onboarding steps)
@@ -219,8 +243,12 @@ GoRouter createRouter(AuthBloc authBloc) {
 
       // Logged in but needs email verification (after completing onboarding)
       if (needsAccountVerification && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup) {
-        // Allow staying on verification screen or onboarding routes
-        if (isEmailVerificationRoute || isOnboardingRoute) {
+        // Allow staying on verification screen, onboarding routes, settings,
+        // or accessing public/legal routes
+        if (isEmailVerificationRoute ||
+            isOnboardingRoute ||
+            isSettingsRoute ||
+            isPublicRoute) {
           return null;
         }
         // Redirect to verification screen from any other protected route

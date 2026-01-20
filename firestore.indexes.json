@@ -4,6 +4,32 @@
       "collectionGroup": "users",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "profile.preferences.hideFromDiscovery", "order": "ASCENDING" },
+        { "fieldPath": "profile.preferences.incognitoMode", "order": "ASCENDING" },
+        { "fieldPath": "profile.gender", "order": "ASCENDING" },
+        { "fieldPath": "profile.country", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profile.preferences.hideFromDiscovery", "order": "ASCENDING" },
+        { "fieldPath": "profile.preferences.incognitoMode", "order": "ASCENDING" },
+        { "fieldPath": "profile.country", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profile.preferences.hideFromDiscovery", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "lastActiveAt", "order": "DESCENDING" }
       ]

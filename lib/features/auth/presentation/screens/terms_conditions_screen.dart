@@ -5,6 +5,7 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
@@ -50,11 +51,12 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
     try {
       final authRepo = context.read<AuthRepository>();
       await authRepo.acceptTermsAndConditions();
+      final refreshedUser = await authRepo.refreshCurrentUser();
 
       if (mounted) {
         // Refresh auth state so router has updated user data
         context.read<AuthBloc>().add(AuthUserRefreshRequested());
-        context.go(CrushRoutes.basicInfo);
+        _routeAfterTerms(refreshedUser);
       }
     } catch (e) {
       if (mounted) {
@@ -65,6 +67,36 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _routeAfterTerms(CrushUser? user) {
+    final resolvedUser = user ?? context.read<AuthBloc>().state.user;
+    if (resolvedUser == null) {
+      context.go(CrushRoutes.authGateway);
+      return;
+    }
+
+    if (!resolvedUser.hasAcceptedTerms) {
+      context.go(CrushRoutes.termsConditions);
+      return;
+    }
+
+    if (!resolvedUser.hasCompletedBasicInfo) {
+      context.go(CrushRoutes.basicInfo);
+      return;
+    }
+
+    if (!resolvedUser.hasCompletedProfileSetup) {
+      context.go(CrushRoutes.profileSetup);
+      return;
+    }
+
+    if (!resolvedUser.isAccountVerified) {
+      context.go(CrushRoutes.emailVerification);
+      return;
+    }
+
+    context.go(CrushRoutes.home);
   }
 
   @override

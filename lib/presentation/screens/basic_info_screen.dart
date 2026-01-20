@@ -27,6 +27,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   bool _usernameTouched = false;
   bool _birthdateTouched = false;
   bool _hasShownAgeWarning = false;
+  bool _isSubmitting = false; // Track if we initiated a save
 
   /// Calculate age from date of birth
   int? get _calculatedAge {
@@ -94,14 +95,29 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 (previous.isSaving && !current.isSaving) ||
                 previous.errorMessage != current.errorMessage,
             listener: (context, state) {
-              // Navigate when save completes successfully
-              if (!state.isSaving && state.user?.hasCompletedBasicInfo == true && state.errorMessage == null) {
-                // Refresh auth state so router has updated user data
-                context.read<AuthBloc>().add(AuthUserRefreshRequested());
-                context.go(CrushRoutes.idVerification);
+              // Debug logging
+              debugPrint('[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}');
+
+              // Navigate when our save completes successfully (no error)
+              if (_isSubmitting && !state.isSaving) {
+                _isSubmitting = false; // Reset the flag
+
+                if (state.errorMessage == null) {
+                  debugPrint('[BasicInfo] Save successful, navigating to idVerification');
+                  context.read<AuthBloc>().add(AuthUserRefreshRequested());
+                  if (context.canPop()) {
+                    context.pop();
+                    return;
+                  }
+                  context.go(CrushRoutes.idVerification);
+                  return;
+                }
               }
+
+              // Show error if any
               final error = state.errorMessage;
               if (error != null && error.isNotEmpty) {
+                debugPrint('[BasicInfo] Showing error: $error');
                 showErrorSnackBar(context, error);
               }
             },
@@ -747,6 +763,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
     final phone = context.read<AuthBloc>().state.phoneInProgress;
     if (phone != null && phone.isNotEmpty) {
       final encoded = Uri.encodeComponent(phone);
@@ -824,6 +844,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     final proceed = await _showAgeWarningIfNeeded(age);
     if (!proceed) return;
     if (!mounted) return;
+
+    // Set flag so listener knows to navigate on success
+    setState(() => _isSubmitting = true);
+
     profileBloc.add(
       ProfileBasicInfoSubmitted(
         username: _usernameController.text.trim(),

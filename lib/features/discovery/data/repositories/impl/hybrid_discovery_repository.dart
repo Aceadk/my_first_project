@@ -1,0 +1,161 @@
+import 'package:flutter/foundation.dart';
+import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/profile.dart';
+import '../discovery_repository.dart';
+import 'firebase_discovery_repository.dart';
+import 'stub_discovery_repository.dart';
+
+/// Hybrid implementation that combines Firebase and stub mock profiles.
+/// This shows dummy accounts in the discovery deck alongside real users.
+class HybridDiscoveryRepository implements DiscoveryRepository {
+  HybridDiscoveryRepository()
+      : _firebaseRepo = FirebaseDiscoveryRepository(),
+        _stubRepo = StubDiscoveryRepository();
+
+  final FirebaseDiscoveryRepository _firebaseRepo;
+  final StubDiscoveryRepository _stubRepo;
+
+  @override
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async {
+    // Fetch from both sources in parallel
+    late List<Profile> firebaseProfiles;
+    late List<Profile> stubProfiles;
+
+    try {
+      debugPrint('HybridDiscoveryRepository: Fetching deck for user $userId');
+      final results = await Future.wait([
+        _firebaseRepo.fetchDeck(userId, filter: filter),
+        _stubRepo.fetchDeck(userId, filter: filter),
+      ]);
+      firebaseProfiles = results[0];
+      stubProfiles = results[1];
+      debugPrint('HybridDiscoveryRepository: Firebase returned ${firebaseProfiles.length} profiles');
+      debugPrint('HybridDiscoveryRepository: Stub returned ${stubProfiles.length} profiles');
+    } catch (e) {
+      // If Firebase fails, just use stub profiles
+      debugPrint('HybridDiscoveryRepository: Firebase error: $e');
+      firebaseProfiles = [];
+      stubProfiles = await _stubRepo.fetchDeck(userId, filter: filter);
+    }
+
+    // Combine and shuffle - stub profiles are always included
+    final combined = <Profile>[...firebaseProfiles, ...stubProfiles];
+
+    // Shuffle to mix real and dummy accounts
+    combined.shuffle();
+
+    return combined;
+  }
+
+  @override
+  Future<CrushMatch?> swipeRight({
+    required String userId,
+    required String targetUserId,
+    String? attachedMessage,
+  }) async {
+    // Check if this is a mock profile (IDs start with 'mock_')
+    if (targetUserId.startsWith('mock_')) {
+      return _stubRepo.swipeRight(
+        userId: userId,
+        targetUserId: targetUserId,
+        attachedMessage: attachedMessage,
+      );
+    }
+
+    return _firebaseRepo.swipeRight(
+      userId: userId,
+      targetUserId: targetUserId,
+      attachedMessage: attachedMessage,
+    );
+  }
+
+  @override
+  Future<void> swipeLeft({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    // Check if this is a mock profile
+    if (targetUserId.startsWith('mock_')) {
+      return _stubRepo.swipeLeft(userId: userId, targetUserId: targetUserId);
+    }
+
+    return _firebaseRepo.swipeLeft(userId: userId, targetUserId: targetUserId);
+  }
+
+  @override
+  Future<List<Profile>> fetchTopPicks(String userId) async {
+    // Combine top picks from both sources
+    List<Profile> firebaseTopPicks = [];
+    try {
+      firebaseTopPicks = await _firebaseRepo.fetchTopPicks(userId);
+    } catch (_) {
+      // Ignore Firebase errors
+    }
+    final stubTopPicks = await _stubRepo.fetchTopPicks(userId);
+
+    return [...firebaseTopPicks, ...stubTopPicks];
+  }
+
+  @override
+  Future<List<Profile>> fetchLikesYou(String userId) async {
+    // Combine likes from both sources
+    List<Profile> firebaseLikes = [];
+    try {
+      firebaseLikes = await _firebaseRepo.fetchLikesYou(userId);
+    } catch (_) {
+      // Ignore Firebase errors
+    }
+    final stubLikes = await _stubRepo.fetchLikesYou(userId);
+
+    return [...firebaseLikes, ...stubLikes];
+  }
+
+  @override
+  Future<List<CrushMatch>> fetchMatches(String userId) async {
+    // Combine matches from both sources
+    List<CrushMatch> firebaseMatches = [];
+    try {
+      firebaseMatches = await _firebaseRepo.fetchMatches(userId);
+    } catch (_) {
+      // Ignore Firebase errors
+    }
+    final stubMatches = await _stubRepo.fetchMatches(userId);
+
+    return [...firebaseMatches, ...stubMatches];
+  }
+
+  @override
+  Future<Profile?> fetchProfileById(String profileId) async {
+    // Check if this is a mock profile
+    if (profileId.startsWith('mock_')) {
+      return _stubRepo.fetchProfileById(profileId);
+    }
+
+    return _firebaseRepo.fetchProfileById(profileId);
+  }
+
+  @override
+  Future<CrushMatch?> superLike({
+    required String userId,
+    required String targetUserId,
+  }) async {
+    // Check if this is a mock profile
+    if (targetUserId.startsWith('mock_')) {
+      return _stubRepo.superLike(userId: userId, targetUserId: targetUserId);
+    }
+
+    return _firebaseRepo.superLike(userId: userId, targetUserId: targetUserId);
+  }
+
+  @override
+  Future<Profile?> rewindLastSwipe(String userId) async {
+    // Try stub first, then Firebase
+    final stubResult = await _stubRepo.rewindLastSwipe(userId);
+    if (stubResult != null) return stubResult;
+
+    return _firebaseRepo.rewindLastSwipe(userId);
+  }
+}

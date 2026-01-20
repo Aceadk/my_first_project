@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -29,8 +28,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _otpController = TextEditingController();
   final _phoneController = TextEditingController();
   final _dialCodeController = TextEditingController();
-  final _secureStorage = const FlutterSecureStorage();
-  static const _pendingEmailKey = 'pending_email_link_email';
 
   // Auth method: 'email' or 'phone'
   String _authMethod = 'email';
@@ -219,9 +216,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _currentStep = 0;
             });
           },
-          onSwitchToEmailOtp: () {
-            context.push(CrushRoutes.emailAuth);
-          },
         );
       case 1:
         return _EmailStep(
@@ -254,7 +248,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           isLoading: _isLoading,
           isDark: isDark,
           email: _registeredEmail ?? _emailController.text,
-          onResend: _sendEmailLink,
+          onResend: _sendEmailVerification,
           onOpenEmail: _openEmailApp,
           onCheckVerification: () => _checkEmailVerification(silent: true),
           onManualCheck: () => _checkEmailVerification(silent: false),
@@ -319,20 +313,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     context.read<AuthBloc>().add(AuthOtpResendRequested(phoneNumber));
   }
 
-  /// Validates username - allows skip if empty, validates format if filled
+  /// Validates username - required for account creation.
   void _validateUsername() {
     final username = _usernameController.text.trim();
 
-    // Allow skipping if empty
     if (username.isEmpty) {
-      setState(() {
-        _usernameError = null;
-        _currentStep = 1;
-      });
+      setState(() => _usernameError = 'Username is required');
       return;
     }
 
-    // If filled, must be valid
+    // Must be valid
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
     if (!valid) {
       setState(() => _usernameError = 'Use 3-20 letters, numbers, or underscore');
@@ -344,20 +334,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  /// Validates email - allows skip if empty, validates format if filled
+  /// Validates email - required for account creation.
   void _validateEmail() {
     final email = normalizeEmail(_emailController.text);
 
-    // Allow skipping if empty
     if (email.isEmpty) {
-      setState(() {
-        _emailError = null;
-        _currentStep = 2;
-      });
+      setState(() => _emailError = 'Email is required');
       return;
     }
 
-    // If filled, must be valid
+    // Must be valid
     if (!looksLikeEmail(email)) {
       setState(() => _emailError = 'Please enter a valid email');
       return;
@@ -450,13 +436,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       _registeredEmail = email;
 
-      // Send email verification link
-      await _sendEmailLink();
+      // Send email verification email
+      await _sendEmailVerification();
 
       if (!mounted) return;
 
       setState(() => _currentStep = 3);
-      showSuccessSnackBar(context, 'Check your email for a verification link.');
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -470,22 +455,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _sendEmailLink() async {
-    final email = normalizeEmail(_registeredEmail ?? _emailController.text);
-    if (email.isEmpty) {
-      showErrorSnackBar(context, 'Email address is required.');
-      return;
-    }
-
+  Future<void> _sendEmailVerification() async {
     setState(() => _isLoading = true);
 
-    // Store pending email for deep link handler
-    await _secureStorage.write(key: _pendingEmailKey, value: email);
-
     final result = await Result.guard(
-      () => context.read<AuthRepository>().sendEmailSignInLink(email),
-      logLabel: 'AuthRepository.sendEmailSignInLink',
-      fallbackError: 'Could not send verification link. Please try again.',
+      () => context.read<AuthRepository>().sendEmailVerification(),
+      logLabel: 'AuthRepository.sendEmailVerification',
+      fallbackError: 'Could not send verification email. Please try again.',
     );
 
     if (!mounted) return;
@@ -497,7 +473,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    showSuccessSnackBar(context, 'A verification link has been sent to your email.');
+    showSuccessSnackBar(context, 'A verification email has been sent to your inbox.');
   }
 
   Future<void> _openEmailApp() async {
@@ -542,8 +518,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     if (result.isSuccess && result.data != null && result.data!.isEmailVerified) {
-      // Clear pending email from secure storage
-      await _secureStorage.delete(key: _pendingEmailKey);
       if (mounted) {
         showSuccessSnackBar(context, 'Email verified! Welcome to Crush.');
         context.go(CrushRoutes.termsConditions);
@@ -618,7 +592,6 @@ class _UsernameStep extends StatelessWidget {
     required this.onNext,
     required this.onChanged,
     this.onSwitchToPhone,
-    this.onSwitchToEmailOtp,
   });
 
   final TextEditingController controller;
@@ -628,12 +601,9 @@ class _UsernameStep extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onChanged;
   final VoidCallback? onSwitchToPhone;
-  final VoidCallback? onSwitchToEmailOtp;
 
   @override
   Widget build(BuildContext context) {
-    final hasContent = controller.text.trim().isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -696,12 +666,12 @@ class _UsernameStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: Text(hasContent ? 'Continue' : 'Skip for now'),
+          child: const Text('Continue'),
         ),
         DsGap.lg,
         _LoginLink(),
         // Alternative sign up methods
-        if (onSwitchToPhone != null || onSwitchToEmailOtp != null) ...[
+        if (onSwitchToPhone != null) ...[
           DsGap.xl,
           // Divider with "or sign up with"
           Row(
@@ -720,29 +690,17 @@ class _UsernameStep extends StatelessWidget {
             ],
           ),
           DsGap.lg,
-          // Phone and Email OTP buttons
+          // Phone sign up button
           Row(
             children: [
-              if (onSwitchToPhone != null)
-                Expanded(
-                  child: _AltSignUpOption(
-                    icon: Icons.phone_outlined,
-                    label: 'Phone',
-                    onTap: isLoading ? null : onSwitchToPhone,
-                    isDark: isDark,
-                  ),
+              Expanded(
+                child: _AltSignUpOption(
+                  icon: Icons.phone_outlined,
+                  label: 'Phone',
+                  onTap: isLoading ? null : onSwitchToPhone,
+                  isDark: isDark,
                 ),
-              if (onSwitchToPhone != null && onSwitchToEmailOtp != null)
-                const SizedBox(width: 12),
-              if (onSwitchToEmailOtp != null)
-                Expanded(
-                  child: _AltSignUpOption(
-                    icon: Icons.email_outlined,
-                    label: 'Email OTP',
-                    onTap: isLoading ? null : onSwitchToEmailOtp,
-                    isDark: isDark,
-                  ),
-                ),
+              ),
             ],
           ),
         ],
@@ -828,8 +786,6 @@ class _EmailStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasContent = controller.text.trim().isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -843,7 +799,7 @@ class _EmailStep extends StatelessWidget {
         Text(
           bypassVerification
               ? 'Test mode: verification is disabled.'
-              : 'We\'ll send you a code to verify your account.',
+              : 'We\'ll send you a verification link to confirm your email.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -866,7 +822,7 @@ class _EmailStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: Text(hasContent ? 'Continue' : 'Skip for now'),
+          child: const Text('Continue'),
         ),
       ],
     );
@@ -943,7 +899,7 @@ class _PasswordStep extends StatelessWidget {
                 DsGap.smH,
                 Expanded(
                   child: Text(
-                    'You skipped: ${missingFields.join(", ")}. Go back to fill them before creating your account.',
+                    'Missing required fields: ${missingFields.join(", ")}. Go back to fill them before creating your account.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: DsColors.warning,
                     ),

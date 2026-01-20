@@ -4,6 +4,11 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
 import 'package:crushhour/core/app_logger.dart';
@@ -19,6 +24,7 @@ class FirebaseAuthRepository implements AuthRepository {
   static const _pendingEmailKey = 'pending_email_link_email';
   static const _emailOtpIdentifierKey = 'email_otp_identifier';
   static const _emailOtpPurposeKey = 'email_otp_purpose';
+  static const _termsAcceptedKeyPrefix = 'terms_accepted_';
 
   CrushUser? _currentUser;
   StreamSubscription<fb.User?>? _firebaseAuthSubscription;
@@ -45,7 +51,7 @@ class FirebaseAuthRepository implements AuthRepository {
         _firebaseAuth.authStateChanges().listen(_onFirebaseAuthStateChanged);
   }
 
-  void _onFirebaseAuthStateChanged(fb.User? firebaseUser) {
+  Future<void> _onFirebaseAuthStateChanged(fb.User? firebaseUser) async {
     // Skip processing during dev bypass to prevent overwriting verified status
     if (_devBypassInProgress) {
       AppLogger.logInfo('[FirebaseAuthRepo] Skipping auth state change during dev bypass');
@@ -56,22 +62,24 @@ class FirebaseAuthRepository implements AuthRepository {
       _currentUser = null;
       _authStateController.add(null);
     } else {
-      // First emit with Firebase SDK data
-      _currentUser = _mapFirebaseUser(firebaseUser);
-      _authStateController.add(_currentUser);
+      final cachedTermsAccepted =
+          await _readCachedTermsAccepted(firebaseUser.uid);
+      _currentUser = _mapFirebaseUser(firebaseUser).copyWith(
+        hasAcceptedTerms: cachedTermsAccepted,
+      );
 
-      // Then check Firestore for OTP-verified users and update if needed
-      _checkAndUpdateFirestoreVerification(firebaseUser);
+      await _checkAndUpdateFirestoreVerification(firebaseUser);
+      _authStateController.add(_currentUser);
     }
   }
 
   /// Checks Firestore for OTP-based email verification, developer status, and terms acceptance.
   /// Always syncs hasAcceptedTerms from Firestore to ensure permanent T&C acceptance.
-  Future<void> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
+  Future<bool> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
     try {
       final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
       final userData = userDoc.data();
-      if (userData == null) return;
+      if (userData == null) return false;
 
       final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
@@ -79,9 +87,13 @@ class FirebaseAuthRepository implements AuthRepository {
       // Read phone verification status from Firestore - don't assume from isDeveloper
       final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
       final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+      await _cacheTermsAccepted(firebaseUser.uid, hasAcceptedTerms);
       // Read skip flags for onboarding steps
       final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
       final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
+      final plan =
+          userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final profile = _profileFromFirestore(firebaseUser.uid, userData);
 
       // Determine if we need to update email verification status
       final needsEmailVerificationUpdate = !firebaseUser.emailVerified &&
@@ -91,10 +103,13 @@ class FirebaseAuthRepository implements AuthRepository {
       final currentTermsStatus = _currentUser?.hasAcceptedTerms ?? false;
       final currentSkippedBasicInfo = _currentUser?.hasSkippedBasicInfo ?? false;
       final currentSkippedProfileSetup = _currentUser?.hasSkippedProfileSetup ?? false;
+      final currentProfile = _currentUser?.profile;
+      final needsProfileUpdate = profile != null && profile != currentProfile;
       final needsUpdate = needsEmailVerificationUpdate ||
           hasAcceptedTerms != currentTermsStatus ||
           hasSkippedBasicInfo != currentSkippedBasicInfo ||
-          hasSkippedProfileSetup != currentSkippedProfileSetup;
+          hasSkippedProfileSetup != currentSkippedProfileSetup ||
+          needsProfileUpdate;
 
       if (needsUpdate) {
         _currentUser = CrushUser(
@@ -107,18 +122,20 @@ class FirebaseAuthRepository implements AuthRepository {
           // Phone verification should come from Firestore or Firebase Auth
           isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
-          plan: SubscriptionPlan.free,
-          profile: null,
+          plan: plan,
+          profile: profile ?? currentProfile,
           hasAcceptedTerms: hasAcceptedTerms,
           hasSkippedBasicInfo: hasSkippedBasicInfo,
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
-        _authStateController.add(_currentUser);
         AppLogger.logInfo('[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
+        return true;
       }
+      return false;
     } catch (e) {
       // Don't log error for expected document-not-found cases
       AppLogger.logInfo('[FirebaseAuthRepo] Could not check Firestore verification: $e');
+      return false;
     }
   }
 
@@ -134,6 +151,22 @@ class FirebaseAuthRepository implements AuthRepository {
       plan: SubscriptionPlan.free,
       profile: null,
     );
+  }
+
+  String _termsAcceptedKey(String userId) => '$_termsAcceptedKeyPrefix$userId';
+
+  Future<bool> _readCachedTermsAccepted(String userId) async {
+    final value = await _secureStorage.read(key: _termsAcceptedKey(userId));
+    return value == 'true';
+  }
+
+  Future<void> _cacheTermsAccepted(String userId, bool accepted) async {
+    final key = _termsAcceptedKey(userId);
+    if (accepted) {
+      await _secureStorage.write(key: key, value: 'true');
+    } else {
+      await _secureStorage.delete(key: key);
+    }
   }
 
   /// Ensures a Firestore user document exists for the authenticated user.
@@ -191,6 +224,9 @@ class FirebaseAuthRepository implements AuthRepository {
   bool get isVerificationBypassEnabled => false;
 
   @override
+  bool get supportsUsernameLogin => false;
+
+  @override
   Future<void> bootstrapSession() async {
     // Firebase handles session restoration automatically
     // Check for pending email link sign-in
@@ -204,13 +240,14 @@ class FirebaseAuthRepository implements AuthRepository {
     Future.microtask(() async {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser != null) {
-        _currentUser = _mapFirebaseUser(firebaseUser);
-        _authStateController.add(_currentUser);
+        final cachedTermsAccepted =
+            await _readCachedTermsAccepted(firebaseUser.uid);
+        _currentUser = _mapFirebaseUser(firebaseUser).copyWith(
+          hasAcceptedTerms: cachedTermsAccepted,
+        );
 
-        // Check Firestore for OTP-verified users
         await _checkAndUpdateFirestoreVerification(firebaseUser);
-      } else {
-        _authStateController.add(null);
+        _authStateController.add(_currentUser);
       }
     });
   }
@@ -466,9 +503,6 @@ class FirebaseAuthRepository implements AuthRepository {
       // Update display name
       await firebaseUser.updateDisplayName(username);
 
-      // Send email verification
-      await firebaseUser.sendEmailVerification();
-
       // Create Firestore document for the new user
       await _ensureUserDocumentExists(firebaseUser);
       return _mapFirebaseUser(firebaseUser);
@@ -670,6 +704,13 @@ class FirebaseAuthRepository implements AuthRepository {
       final firestorePhoneVerified = userData?['isPhoneVerified'] as bool? ?? false;
       // Read terms acceptance from Firestore (permanent per account)
       final hasAcceptedTerms = userData?['hasAcceptedTerms'] as bool? ?? false;
+      final hasSkippedBasicInfo = userData?['hasSkippedBasicInfo'] as bool? ?? false;
+      final hasSkippedProfileSetup = userData?['hasSkippedProfileSetup'] as bool? ?? false;
+      final plan =
+          userData?['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final profile = userData != null
+          ? _profileFromFirestore(updatedUser.uid, userData)
+          : _currentUser?.profile;
 
       AppLogger.logInfo('[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
 
@@ -684,9 +725,11 @@ class FirebaseAuthRepository implements AuthRepository {
           // Phone verification should come from Firestore or Firebase Auth
           isPhoneVerified: firestorePhoneVerified || updatedUser.phoneNumber != null,
           isIdVerified: false,
-          plan: SubscriptionPlan.free,
-          profile: null,
+          plan: plan,
+          profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,
+          hasSkippedBasicInfo: hasSkippedBasicInfo,
+          hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
         _authStateController.add(_currentUser);
         AppLogger.logInfo('[FirebaseAuthRepo] User verified via OTP, returning verified status');
@@ -1093,6 +1136,120 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
+  Profile? _profileFromFirestore(String userId, Map<String, dynamic> data) {
+    final profileData = data['profile'] as Map<String, dynamic>?;
+    if (profileData == null) return null;
+    final preferencesData = profileData['preferences'];
+    final privacyData = profileData['privacySettings'];
+    final favouritesData = profileData['favourites'];
+
+    return Profile(
+      id: userId,
+      name: profileData['name'] ?? '',
+      age: profileData['age'] ?? 0,
+      gender: profileData['gender'] ?? '',
+      sexualOrientation: profileData['sexualOrientation'],
+      dateOfBirth: _parseTimestamp(profileData['dateOfBirth']),
+      lastDobChangeAt: _parseTimestamp(profileData['lastDobChangeAt']),
+      lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
+      bio: profileData['bio'] ?? '',
+      photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
+      videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
+      primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
+      interests: List<String>.from(profileData['interests'] ?? []),
+      profilePrompts: _parseProfilePrompts(profileData['profilePrompts']),
+      country: profileData['country'] ?? '',
+      city: profileData['city'] ?? '',
+      latitude: (profileData['latitude'] as num?)?.toDouble(),
+      longitude: (profileData['longitude'] as num?)?.toDouble(),
+      livingIn: profileData['livingIn'],
+      isVerified: profileData['isVerified'] ?? false,
+      heightCm: profileData['heightCm'],
+      relationshipGoals: profileData['relationshipGoals'],
+      languages: List<String>.from(profileData['languages'] ?? []),
+      zodiacSign: profileData['zodiacSign'],
+      educationLevel: profileData['educationLevel'],
+      familyPlans: profileData['familyPlans'],
+      personalityType: profileData['personalityType'],
+      religion: profileData['religion'],
+      workout: profileData['workout'],
+      socialMedia: profileData['socialMedia'],
+      sleepingHabits: profileData['sleepingHabits'],
+      smoking: profileData['smoking'],
+      drinking: profileData['drinking'],
+      pets: profileData['pets'],
+      favoriteSongs: List<String>.from(profileData['favoriteSongs'] ?? []),
+      favoriteSinger: profileData['favoriteSinger'],
+      jobTitle: profileData['jobTitle'],
+      company: profileData['company'],
+      school: profileData['school'],
+      preferences: _preferencesFromFirestore(
+        preferencesData is Map<String, dynamic> ? preferencesData : null,
+      ),
+      privacySettings: ProfilePrivacySettings.fromJson(
+        privacyData is Map<String, dynamic> ? privacyData : null,
+      ),
+      favourites: favouritesData is Map<String, dynamic>
+          ? ProfileFavourites.fromJson(favouritesData)
+          : const ProfileFavourites(),
+    );
+  }
+
+  DiscoveryPreferences _preferencesFromFirestore(Map<String, dynamic>? data) {
+    if (data == null) {
+      return const DiscoveryPreferences(
+        minAge: 18,
+        maxAge: 50,
+        maxDistanceKm: 100,
+        showMeGenders: ['All'],
+        showMyDistance: true,
+        showMyAge: true,
+        hideFromDiscovery: false,
+        incognitoMode: false,
+        country: '',
+        city: '',
+      );
+    }
+
+    return DiscoveryPreferences(
+      minAge: data['minAge'] ?? 18,
+      maxAge: data['maxAge'] ?? 50,
+      maxDistanceKm: (data['maxDistanceKm'] ?? 100).toDouble(),
+      showMeGenders: List<String>.from(data['showMeGenders'] ?? ['All']),
+      showMyDistance: data['showMyDistance'] ?? true,
+      showMyAge: data['showMyAge'] ?? true,
+      hideFromDiscovery: data['hideFromDiscovery'] ?? false,
+      incognitoMode: data['incognitoMode'] ?? false,
+      country: data['country'] ?? '',
+      city: data['city'] ?? '',
+    );
+  }
+
+  DateTime? _parseTimestamp(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  List<ProfilePrompt> _parseProfilePrompts(dynamic value) {
+    if (value == null) return const [];
+    if (value is! List) return const [];
+
+    return value
+        .whereType<Map<String, dynamic>>()
+        .map((json) {
+          try {
+            return ProfilePrompt.fromJson(json);
+          } catch (e) {
+            AppLogger.logError('[FirebaseAuthRepo] Error parsing prompt', e);
+            return null;
+          }
+        })
+        .whereType<ProfilePrompt>()
+        .toList();
+  }
+
   @override
   Future<CrushUser> acceptTermsAndConditions() async {
     final firebaseUser = _firebaseAuth.currentUser;
@@ -1106,6 +1263,8 @@ class FirebaseAuthRepository implements AuthRepository {
         'hasAcceptedTerms': true,
         'termsAcceptedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
+      await _cacheTermsAccepted(firebaseUser.uid, true);
 
       // Update current user state
       _currentUser = _currentUser?.copyWith(hasAcceptedTerms: true) ??
@@ -1151,8 +1310,12 @@ class FirebaseAuthRepository implements AuthRepository {
         final isDeveloper = userData['isDeveloper'] as bool? ?? false;
         final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
         final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+        await _cacheTermsAccepted(updatedFirebaseUser.uid, hasAcceptedTerms);
         final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
         final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
+        final plan =
+            userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+        final profile = _profileFromFirestore(updatedFirebaseUser.uid, userData);
 
         _currentUser = CrushUser(
           id: updatedFirebaseUser.uid,
@@ -1162,8 +1325,8 @@ class FirebaseAuthRepository implements AuthRepository {
           isEmailVerified: updatedFirebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper,
           isPhoneVerified: firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
           isIdVerified: false,
-          plan: SubscriptionPlan.free,
-          profile: null,
+          plan: plan,
+          profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,
           hasSkippedBasicInfo: hasSkippedBasicInfo,
           hasSkippedProfileSetup: hasSkippedProfileSetup,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/date_plan.dart';
 
 /// Service for managing date plans and safety features.
@@ -9,6 +10,7 @@ class DatePlanService {
 
   final _datePlanController = StreamController<DatePlan>.broadcast();
   final _checkInController = StreamController<CheckInStatus>.broadcast();
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   Stream<DatePlan> get datePlanStream => _datePlanController.stream;
   Stream<CheckInStatus> get checkInStream => _checkInController.stream;
@@ -49,6 +51,8 @@ class DatePlanService {
       status: DatePlanStatus.scheduled,
     );
 
+    await _notifyContactsPlanCreated(plan);
+
     _plans[plan.id] = plan;
     _datePlanController.add(plan);
 
@@ -56,6 +60,35 @@ class DatePlanService {
     _scheduleCheckInReminder(plan);
 
     return plan;
+  }
+
+  Future<void> _notifyContactsPlanCreated(DatePlan plan) async {
+    final contacts = plan.sharedWith
+        .where((contact) =>
+            contact.notifyByEmail &&
+            (contact.email?.trim().isNotEmpty ?? false))
+        .toList();
+    if (contacts.isEmpty) return;
+
+    final callable = _functions.httpsCallable('notifyDatePlanContact');
+    final dateTimeMs = plan.dateTime.millisecondsSinceEpoch;
+    final timeZoneOffsetMinutes = plan.dateTime.timeZoneOffset.inMinutes;
+
+    for (final contact in contacts) {
+      try {
+        await callable.call<Map<String, dynamic>>({
+          'contactName': contact.name,
+          'contactEmail': contact.email,
+          'matchName': plan.matchName,
+          'dateTimeMs': dateTimeMs,
+          'timeZoneOffsetMinutes': timeZoneOffsetMinutes,
+          'location': plan.location,
+          'notes': plan.notes,
+        });
+      } on FirebaseFunctionsException catch (e) {
+        throw Exception(e.message ?? 'Could not notify your contact.');
+      }
+    }
   }
 
   /// Add emergency contact to a date plan.

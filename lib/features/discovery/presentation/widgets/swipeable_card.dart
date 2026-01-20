@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/profile_reaction.dart';
 import 'swipe_card.dart';
 
 /// A swipeable card widget that handles horizontal swipe gestures.
@@ -19,6 +20,7 @@ class SwipeableCard extends StatefulWidget {
     required this.onSwipeRight,
     this.onSwipeUp,
     this.superLikeEnabled = true,
+    this.onReaction,
   });
 
   final Profile profile;
@@ -27,6 +29,9 @@ class SwipeableCard extends StatefulWidget {
   final VoidCallback onSwipeRight;
   final VoidCallback? onSwipeUp; // For SuperLike
   final bool superLikeEnabled;
+
+  /// Callback when user reacts to content (photo/prompt).
+  final void Function(String reactionType, ReactionContentType contentType, int index, String? comment)? onReaction;
 
   @override
   State<SwipeableCard> createState() => _SwipeableCardState();
@@ -280,7 +285,10 @@ class _SwipeableCardState extends State<SwipeableCard>
                 );
               },
               // Static child passed to builder for optimization
-              child: SwipeCard(profile: widget.profile),
+              child: SwipeCard(
+                profile: widget.profile,
+                onReaction: widget.onReaction,
+              ),
             );
           },
         ),

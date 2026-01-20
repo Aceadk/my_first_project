@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -22,6 +23,10 @@ class PushNotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  /// SharedPreferences keys for notification settings
+  static const _soundKey = 'notifications_sound';
+  static const _vibrationKey = 'notifications_vibration';
 
   String? _currentUserId;
 
@@ -148,29 +153,45 @@ class PushNotificationService {
     }
   }
 
-  /// Show a local notification
+  /// Get user's sound preference from SharedPreferences
+  Future<bool> _getSoundEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_soundKey) ?? true;
+  }
+
+  /// Get user's vibration preference from SharedPreferences
+  Future<bool> _getVibrationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_vibrationKey) ?? true;
+  }
+
+  /// Show a local notification respecting user's sound/vibration preferences
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
-    const androidDetails = AndroidNotificationDetails(
+    // Read user preferences for sound and vibration
+    final soundEnabled = await _getSoundEnabled();
+    final vibrationEnabled = await _getVibrationEnabled();
+
+    final androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
       channelDescription: 'This channel is used for important notifications.',
       importance: Importance.high,
       priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
+      playSound: soundEnabled,
+      enableVibration: vibrationEnabled,
       icon: '@mipmap/ic_launcher',
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: soundEnabled,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -263,6 +284,9 @@ class PushNotificationService {
   /// Update notification preferences in Firestore (backend uses these to filter notifications)
   Future<void> updateNotificationPreferences({
     bool? push,
+    bool? email,
+    bool? sound,
+    bool? vibration,
     bool? messages,
     bool? matches,
     bool? subscriptions,
@@ -273,6 +297,9 @@ class PushNotificationService {
     try {
       final prefs = <String, dynamic>{};
       if (push != null) prefs['push'] = push;
+      if (email != null) prefs['email'] = email;
+      if (sound != null) prefs['sound'] = sound;
+      if (vibration != null) prefs['vibration'] = vibration;
       if (messages != null) prefs['messages'] = messages;
       if (matches != null) prefs['matches'] = matches;
       if (subscriptions != null) prefs['subscriptions'] = subscriptions;
@@ -301,31 +328,35 @@ class PushNotificationService {
     debugPrint('Unsubscribed from topic: $topic');
   }
 
-  /// Show a custom local notification
+  /// Show a custom local notification respecting user's sound/vibration preferences
   Future<void> showNotification({
     required int id,
     required String title,
     required String body,
     String? payload,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    // Read user preferences for sound and vibration
+    final soundEnabled = await _getSoundEnabled();
+    final vibrationEnabled = await _getVibrationEnabled();
+
+    final androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
       channelDescription: 'This channel is used for important notifications.',
       importance: Importance.high,
       priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
+      playSound: soundEnabled,
+      enableVibration: vibrationEnabled,
       icon: '@mipmap/ic_launcher',
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: soundEnabled,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

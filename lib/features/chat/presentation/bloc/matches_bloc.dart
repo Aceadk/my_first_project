@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'matches_event.dart';
 import 'matches_state.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 
 class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
   final ChatRepository chatRepository;
+  final AuthRepository authRepository;
   final String userId;
 
   /// Cache duration - matches are refreshed after this period.
@@ -19,6 +22,7 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
   /// Max auto-retries before showing empty state.
   static const int _maxAutoRetries = 2;
 
+  StreamSubscription? _authSubscription;
   DateTime? _lastFetchTime;
   Timer? _retryTimer;
   int _retryDelayMs = 1000;
@@ -27,11 +31,21 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
 
   MatchesBloc({
     required this.chatRepository,
+    required this.authRepository,
     required this.userId,
   }) : super(const MatchesState()) {
     on<MatchesLoadRequested>(_onLoadRequested);
     on<MatchesRefreshRequested>(_onRefreshRequested);
     on<MatchesLoadMoreRequested>(_onLoadMoreRequested);
+    on<MatchesResetRequested>(_onResetRequested);
+
+    // Listen to auth state changes to reset on logout
+    _authSubscription = authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        // CRITICAL: Reset state on logout to prevent data leakage to next user
+        add(const MatchesResetRequested());
+      }
+    });
   }
 
   /// Returns true if cache is valid and fresh.
@@ -196,9 +210,25 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     _lastFetchTime = null;
   }
 
+  /// Reset matches state on logout.
+  /// CRITICAL: Prevents data leakage to next user.
+  void _onResetRequested(
+    MatchesResetRequested event,
+    Emitter<MatchesState> emit,
+  ) {
+    debugPrint('MatchesBloc: Resetting matches state on logout');
+    _retryTimer?.cancel();
+    _retryCount = 0;
+    _retryDelayMs = 1000;
+    _lastFetchTime = null;
+    _isManualRefresh = false;
+    emit(const MatchesState()); // Reset to initial empty state
+  }
+
   @override
   Future<void> close() {
     _retryTimer?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

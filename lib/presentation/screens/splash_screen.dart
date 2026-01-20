@@ -155,7 +155,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (prev, current) => prev.status != current.status,
+      listenWhen: (prev, current) =>
+          prev.status != current.status || prev.user != current.user,
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           final user = state.user;

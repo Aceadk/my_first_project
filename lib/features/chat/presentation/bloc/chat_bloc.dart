@@ -5,6 +5,7 @@ import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'chat_event.dart';
@@ -13,17 +14,20 @@ import 'chat_state.dart';
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository chatRepository;
   final SubscriptionRepository subscriptionRepository;
+  final AuthRepository authRepository;
   StreamSubscription<List<Message>>? _sub;
   StreamSubscription<List<Message>>? _newMessagesSub;
   StreamSubscription<Set<String>>? _typingSub;
   StreamSubscription<bool>? _presenceSub;
   StreamSubscription<bool>? _mediaSub;
+  StreamSubscription? _authSubscription;
 
   static const int _pageSize = 30;
 
   ChatBloc({
     required this.chatRepository,
     required this.subscriptionRepository,
+    required this.authRepository,
   }) : super(const ChatState()) {
     on<ChatOpened>(_onChatOpened);
     on<ChatClosed>(_onChatClosed);
@@ -44,6 +48,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatLoadMoreMessagesRequested>(_onLoadMoreMessages);
     on<ChatNewMessagesReceived>(_onNewMessagesReceived);
     on<ChatMessageRetryRequested>(_onMessageRetryRequested);
+    on<ChatResetRequested>(_onResetRequested);
+
+    // Subscribe to auth state changes to reset on logout
+    _authSubscription = authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        // CRITICAL: Reset state on logout to prevent data leakage
+        add(ChatResetRequested());
+      }
+    });
   }
 
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
@@ -506,10 +519,34 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onMessagesUpdated(ChatMessagesUpdated event, Emitter<ChatState> emit) {
+    // Remove optimistic messages that now have real counterparts from server
+    // Match by content, sender, and approximate timestamp (within 30 seconds)
+    final updatedFailedMessages = Map<String, Message>.from(state.failedMessages);
+    final serverMessageSignatures = event.messages.map((m) =>
+      '${m.fromUserId}_${m.content}_${m.type.name}'
+    ).toSet();
+
+    updatedFailedMessages.removeWhere((tempId, optimisticMsg) {
+      final signature = '${optimisticMsg.fromUserId}_${optimisticMsg.content}_${optimisticMsg.type.name}';
+      // If a server message matches this optimistic message, remove it
+      if (serverMessageSignatures.contains(signature)) {
+        // Find the matching server message and check timestamp
+        final matchingServerMsg = event.messages.firstWhere(
+          (m) => '${m.fromUserId}_${m.content}_${m.type.name}' == signature,
+          orElse: () => optimisticMsg,
+        );
+        // Only remove if within 30 seconds of each other
+        final timeDiff = matchingServerMsg.sentAt.difference(optimisticMsg.sentAt).inSeconds.abs();
+        return timeDiff < 30;
+      }
+      return false;
+    });
+
     emit(state.copyWith(
       messages: event.messages,
       canUnsend: event.plan.isPlus,
       canEdit: event.plan.isPlus,
+      failedMessages: updatedFailedMessages,
     ));
   }
 
@@ -653,6 +690,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     return path;
   }
 
+  /// Reset chat state on logout.
+  /// CRITICAL: This prevents the next user from seeing the previous user's chat history.
+  void _onResetRequested(ChatResetRequested event, Emitter<ChatState> emit) {
+    debugPrint('ChatBloc: Resetting chat state on logout');
+    _sub?.cancel();
+    _newMessagesSub?.cancel();
+    _typingSub?.cancel();
+    _presenceSub?.cancel();
+    _mediaSub?.cancel();
+    _sub = null;
+    _newMessagesSub = null;
+    _typingSub = null;
+    _presenceSub = null;
+    _mediaSub = null;
+    emit(const ChatState()); // Reset to initial empty state
+  }
+
   @override
   Future<void> close() {
     _sub?.cancel();
@@ -660,6 +714,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _typingSub?.cancel();
     _presenceSub?.cancel();
     _mediaSub?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

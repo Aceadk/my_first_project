@@ -698,7 +698,7 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-/// Grid of photos with glass blend effect
+/// Grid of photos for user's own profile (no blur/overlay effects)
 class _PhotosGrid extends StatelessWidget {
   final List<String> photos;
 
@@ -712,10 +712,10 @@ class _PhotosGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.75,
+        crossAxisCount: 2, // Larger photos (2 columns instead of 3)
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.8, // Slightly wider aspect ratio
       ),
       itemCount: photos.length,
       itemBuilder: (context, index) {
@@ -724,7 +724,7 @@ class _PhotosGrid extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Photo
+              // Photo - displayed clearly without blur
               CachedNetworkImage(
                 imageUrl: photos[index],
                 fit: BoxFit.cover,
@@ -740,26 +740,7 @@ class _PhotosGrid extends StatelessWidget {
                   ),
                 ),
               ),
-              // Glass blend overlay at bottom
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        DsColors.primary.withValues(alpha: 0.3),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Glass border overlay
+              // Subtle border overlay (no gradient/blur)
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DsRadius.md),

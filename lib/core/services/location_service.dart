@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer;
+import 'dart:io';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -178,21 +179,35 @@ class LocationService {
     // Cancel existing stream if any
     await stopLocationStream();
 
-    // Configure location settings
+    // Configure location settings - platform specific
     late LocationSettings locationSettings;
 
-    // Platform-specific settings
-    locationSettings = AndroidSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: distanceFilter,
-      intervalDuration: intervalDuration,
-      foregroundNotificationConfig: const ForegroundNotificationConfig(
-        notificationText:
-            'Crush is updating your location to show you nearby matches',
-        notificationTitle: 'Location Active',
-        enableWakeLock: true,
-      ),
-    );
+    if (Platform.isAndroid) {
+      locationSettings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilter,
+        intervalDuration: intervalDuration,
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationText:
+              'Crush is updating your location to show you nearby matches',
+          notificationTitle: 'Location Active',
+          enableWakeLock: true,
+        ),
+      );
+    } else if (Platform.isIOS) {
+      locationSettings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilter,
+        activityType: ActivityType.other,
+        pauseLocationUpdatesAutomatically: true,
+        showBackgroundLocationIndicator: true,
+      );
+    } else {
+      locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilter,
+      );
+    }
 
     _positionStream = Geolocator.getPositionStream(
       locationSettings: locationSettings,

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/services/haptic_service.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
@@ -111,7 +112,12 @@ class GlassPrimaryButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: isDisabled ? null : onPressed,
+        onTap: isDisabled
+            ? null
+            : () {
+                HapticService.mediumTap();
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(borderRadius),
         child: buttonContent,
       ),
@@ -214,7 +220,12 @@ class GlassOutlinedButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: isDisabled ? null : onPressed,
+        onTap: isDisabled
+            ? null
+            : () {
+                HapticService.lightTap();
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(borderRadius),
         child: buttonContent,
       ),
@@ -280,7 +291,12 @@ class GlassIconButton extends StatelessWidget {
     button = Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onPressed,
+        onTap: onPressed == null
+            ? null
+            : () {
+                HapticService.lightTap();
+                onPressed?.call();
+              },
         customBorder: const CircleBorder(),
         child: button,
       ),
@@ -370,7 +386,12 @@ class GlassActionButton extends StatelessWidget {
     button = Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onPressed,
+        onTap: onPressed == null
+            ? null
+            : () {
+                HapticService.mediumTap();
+                onPressed?.call();
+              },
         customBorder: const CircleBorder(),
         child: button,
       ),
@@ -418,7 +439,12 @@ class GlassSmallButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onPressed,
+        onTap: onPressed == null
+            ? null
+            : () {
+                HapticService.lightTap();
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(borderRadius),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),

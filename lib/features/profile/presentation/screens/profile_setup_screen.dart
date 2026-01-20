@@ -171,6 +171,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 // Refresh auth state so router has updated user data
                 context.read<AuthBloc>().add(AuthUserRefreshRequested());
 
+                if (context.canPop()) {
+                  context.pop();
+                  return;
+                }
+
                 // Check if we need email verification first
                 final user = state.user;
                 if (user != null &&
@@ -355,7 +360,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         children: [
           GlassIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
-            onPressed: () => context.go(CrushRoutes.idVerification),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+                return;
+              }
+              context.go(CrushRoutes.idVerification);
+            },
             size: 40,
           ),
           const Spacer(),

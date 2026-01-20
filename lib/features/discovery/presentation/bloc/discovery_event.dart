@@ -72,3 +72,7 @@ class DiscoveryRewindRequested extends DiscoveryEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+/// Reset discovery state on logout.
+/// CRITICAL: Prevents data leakage to next user.
+class DiscoveryResetRequested extends DiscoveryEvent {}

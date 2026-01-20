@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
@@ -166,6 +167,7 @@ class SafetyCubit extends Cubit<SafetyState> {
             blockerId: currentUserId,
             blockedId: userId,
           );
+          await AnalyticsService.instance.logUserBlocked();
         } else {
           await _chatRepository.unblockUser(
             blockerId: currentUserId,
@@ -242,6 +244,7 @@ class SafetyCubit extends Cubit<SafetyState> {
     if (!result.isSuccess) {
       emit(state.copyWith(errorMessage: result.errorMessage));
     } else {
+      await AnalyticsService.instance.logUserReported(reason: reason);
       // Add user to reported list to hide them for 10 days
       final updatedReported = Map<String, DateTime>.from(state.reportedUsers);
       updatedReported[reportedId] = DateTime.now();

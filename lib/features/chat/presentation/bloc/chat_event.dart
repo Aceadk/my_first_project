@@ -250,3 +250,7 @@ class ChatMessageRetryRequested extends ChatEvent {
   @override
   List<Object?> get props => [matchId, messageId];
 }
+
+/// Reset chat state on logout.
+/// CRITICAL: Prevents data leakage to next user.
+class ChatResetRequested extends ChatEvent {}

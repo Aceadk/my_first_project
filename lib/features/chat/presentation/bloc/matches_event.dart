@@ -21,3 +21,9 @@ class MatchesRefreshRequested extends MatchesEvent {
 class MatchesLoadMoreRequested extends MatchesEvent {
   const MatchesLoadMoreRequested();
 }
+
+/// Reset matches state on logout.
+/// CRITICAL: Prevents data leakage to next user.
+class MatchesResetRequested extends MatchesEvent {
+  const MatchesResetRequested();
+}

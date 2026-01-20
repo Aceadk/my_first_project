@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
@@ -212,6 +214,158 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
       SubscriptionStatus(plan: SubscriptionPlan.free);
 }
 
+class _FakeAuthRepository implements AuthRepository {
+  final StreamController<CrushUser?> _controller =
+      StreamController<CrushUser?>.broadcast();
+
+  @override
+  bool get isVerificationBypassEnabled => false;
+
+  @override
+  bool get supportsUsernameLogin => false;
+
+  @override
+  Future<void> bootstrapSession() async {}
+
+  @override
+  Stream<CrushUser?> authStateChanges() => _controller.stream;
+
+  void dispose() {
+    _controller.close();
+  }
+
+  @override
+  Future<void> sendOtp(String phoneNumber) async => throw UnimplementedError();
+
+  @override
+  Future<CrushUser> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> sendEmailSignInLink(String email) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> signOut() async {
+    _controller.add(null);
+  }
+
+  @override
+  Future<void> sendEmailVerification() async => throw UnimplementedError();
+
+  @override
+  Future<CrushUser?> checkEmailVerification() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deactivateAccount({required String reason}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser?> devLoginBypass({
+    required String identifier,
+    required String password,
+  }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<bool> isEmailRegistered(String email) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser> acceptTermsAndConditions() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<CrushUser?> refreshCurrentUser() async => null;
+}
+
 Message _mediaMessage(String userId, MessageType type) => Message(
       id: 'm-${type.name}',
       matchId: 'match',
@@ -229,8 +383,13 @@ void main() {
     test('blocks media when non-Plus user exceeds limit', () async {
       final chatRepo = _FakeChatRepository();
       final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.free);
-      final bloc =
-          ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
+      final authRepo = _FakeAuthRepository();
+      addTearDown(authRepo.dispose);
+      final bloc = ChatBloc(
+        chatRepository: chatRepo,
+        subscriptionRepository: subRepo,
+        authRepository: authRepo,
+      );
 
       // Seed 8 existing media messages from current user
       bloc.add(ChatMessagesUpdated(
@@ -257,8 +416,13 @@ void main() {
     test('allows media for Plus users', () async {
       final chatRepo = _FakeChatRepository();
       final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.plus);
-      final bloc =
-          ChatBloc(chatRepository: chatRepo, subscriptionRepository: subRepo);
+      final authRepo = _FakeAuthRepository();
+      addTearDown(authRepo.dispose);
+      final bloc = ChatBloc(
+        chatRepository: chatRepo,
+        subscriptionRepository: subRepo,
+        authRepository: authRepo,
+      );
 
       bloc.add(ChatMediaSendRequested(
         matchId: 'match',

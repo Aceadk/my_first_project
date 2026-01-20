@@ -12,11 +12,15 @@ class BoostState extends Equatable {
     this.status = const BoostStatus(canBoost: false, nextBoostAvailableAt: null),
     this.isLoading = false,
     this.errorMessage,
+    this.tick = 0,
   });
 
   final BoostStatus status;
   final bool isLoading;
   final String? errorMessage;
+
+  /// Tick counter that increments each second to force UI rebuilds for countdown
+  final int tick;
 
   /// Whether the user can activate a boost right now.
   bool get canBoost => status.canBoost && !isLoading;
@@ -34,16 +38,18 @@ class BoostState extends Equatable {
     BoostStatus? status,
     bool? isLoading,
     String? errorMessage,
+    int? tick,
   }) {
     return BoostState(
       status: status ?? this.status,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      tick: tick ?? this.tick,
     );
   }
 
   @override
-  List<Object?> get props => [status, isLoading, errorMessage];
+  List<Object?> get props => [status, isLoading, errorMessage, tick];
 }
 
 /// Cubit for managing boost feature.
@@ -152,8 +158,10 @@ class BoostCubit extends Cubit<BoostState> {
         return;
       }
 
-      // Just emit to trigger rebuild for countdown display
-      emit(state.copyWith(status: currentStatus));
+      // Increment tick to force UI rebuild for countdown display
+      // This is needed because Equatable compares object references,
+      // not the dynamic getter values like remainingDuration
+      emit(state.copyWith(tick: state.tick + 1));
     });
   }
 

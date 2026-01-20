@@ -87,7 +87,7 @@ void main() {
     final profileRepo = _StubProfileRepository(user);
     final authBloc = _StubAuthBloc(user, authRepo);
     final profileBloc = _StubProfileBloc(profileRepo, authRepo);
-    final discoveryBloc = _StubDiscoveryBloc(deckProfile);
+    final discoveryBloc = _StubDiscoveryBloc(deckProfile, authRepo);
 
     await tester.pumpWidget(
       MultiRepositoryProvider(
@@ -137,6 +137,9 @@ class _StubAuthRepository implements AuthRepository {
 
   @override
   bool get isVerificationBypassEnabled => false;
+
+  @override
+  bool get supportsUsernameLogin => true;
 
   @override
   Future<void> bootstrapSession() async {}
@@ -420,10 +423,11 @@ class _StubProfileBloc extends ProfileBloc {
 }
 
 class _StubDiscoveryBloc extends DiscoveryBloc {
-  _StubDiscoveryBloc(Profile profile)
+  _StubDiscoveryBloc(Profile profile, AuthRepository authRepo)
       : super(
           discoveryRepository: _StubDiscoveryRepository([profile]),
           subscriptionRepository: _StubSubscriptionRepository(),
+          authRepository: authRepo,
         ) {
     emit(DiscoveryState(
       deck: [profile],

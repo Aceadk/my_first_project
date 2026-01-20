@@ -103,3 +103,7 @@ class ProfileBasicInfoSkipped extends ProfileEvent {
 
 /// Event to skip profile setup entirely.
 class ProfileSetupSkipped extends ProfileEvent {}
+
+/// Event to reset profile state on logout.
+/// CRITICAL: Prevents data leakage to next user.
+class ProfileResetRequested extends ProfileEvent {}

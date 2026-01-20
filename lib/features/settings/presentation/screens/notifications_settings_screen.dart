@@ -106,7 +106,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                 subtitle: 'Updates sent to your inbox',
                 trailing: Switch(
                   value: notifState.email,
-                  onChanged: (value) => notifier.toggleEmail(value),
+                  onChanged: (value) async {
+                    await notifier.toggleEmail(value);
+                    // Sync with Firestore so backend can send/skip emails
+                    await PushNotificationService.instance
+                        .updateNotificationPreferences(email: value);
+                  },
                 ),
               ),
               const Divider(indent: 72),
@@ -117,7 +122,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                 subtitle: 'Play sounds for alerts',
                 trailing: Switch(
                   value: notifState.sound,
-                  onChanged: (value) => notifier.toggleSound(value),
+                  onChanged: (value) async {
+                    await notifier.toggleSound(value);
+                    // Sync with Firestore for backend awareness
+                    await PushNotificationService.instance
+                        .updateNotificationPreferences(sound: value);
+                  },
                 ),
               ),
               const Divider(indent: 72),
@@ -128,7 +138,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                 subtitle: 'Vibrate on new messages or matches',
                 trailing: Switch(
                   value: notifState.vibration,
-                  onChanged: (value) => notifier.toggleVibration(value),
+                  onChanged: (value) async {
+                    await notifier.toggleVibration(value);
+                    // Sync with Firestore for backend awareness
+                    await PushNotificationService.instance
+                        .updateNotificationPreferences(vibration: value);
+                  },
                 ),
               ),
               DsGap.xxl,

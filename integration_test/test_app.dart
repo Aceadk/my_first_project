@@ -109,12 +109,14 @@ class TestApp extends StatelessWidget {
         create: (context) => DiscoveryBloc(
           discoveryRepository: context.read<DiscoveryRepository>(),
           subscriptionRepository: context.read<SubscriptionRepository>(),
+          authRepository: context.read<AuthRepository>(),
         ),
       ),
       BlocProvider<ChatBloc>(
         create: (context) => ChatBloc(
           chatRepository: context.read<ChatRepository>(),
           subscriptionRepository: context.read<SubscriptionRepository>(),
+          authRepository: context.read<AuthRepository>(),
         ),
       ),
       BlocProvider<CallBloc>(

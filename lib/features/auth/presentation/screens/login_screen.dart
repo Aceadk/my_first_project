@@ -39,6 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final supportsUsernameLogin =
+        context.read<AuthRepository>().supportsUsernameLogin;
 
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previous, current) =>
@@ -113,12 +115,18 @@ class _LoginScreenState extends State<LoginScreen> {
               // Email/Username field
               GlassTextField(
                 controller: _identifierController,
-                label: context.l10n.authEmailOrUsername,
+                label: supportsUsernameLogin
+                    ? context.l10n.authEmailOrUsername
+                    : context.l10n.authEmail,
                 hintText: 'you@example.com',
-                prefixIcon: Icons.person_outline,
+                prefixIcon: supportsUsernameLogin
+                    ? Icons.person_outline
+                    : Icons.email_outlined,
                 errorText: _identifierError,
                 enabled: !_isLoading,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: supportsUsernameLogin
+                    ? TextInputType.text
+                    : TextInputType.emailAddress,
                 onChanged: (_) => setState(() => _identifierError = null),
                 textInputAction: TextInputAction.next,
               ),
@@ -315,10 +323,18 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  String? _validateIdentifier() {
+  String? _validateIdentifier({required bool supportsUsernameLogin}) {
     final identifier = _identifierController.text.trim();
     if (identifier.isEmpty) {
-      return 'Please enter your email or username';
+      return supportsUsernameLogin
+          ? 'Please enter your email or username'
+          : 'Please enter your email address';
+    }
+    if (!supportsUsernameLogin) {
+      if (!looksLikeEmail(identifier)) {
+        return 'Please enter a valid email address';
+      }
+      return null;
     }
     if (identifier.contains('@')) {
       if (!looksLikeEmail(identifier)) {
@@ -342,7 +358,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final identifierError = _validateIdentifier();
+    final supportsUsernameLogin =
+        context.read<AuthRepository>().supportsUsernameLogin;
+    final identifierError =
+        _validateIdentifier(supportsUsernameLogin: supportsUsernameLogin);
     final passwordError = _validatePassword();
 
     setState(() {
@@ -356,9 +375,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
     final rawIdentifier = _identifierController.text.trim();
-    final identifier = rawIdentifier.contains('@')
-        ? normalizeEmail(rawIdentifier)
-        : rawIdentifier;
+    final identifier = supportsUsernameLogin
+        ? (rawIdentifier.contains('@')
+            ? normalizeEmail(rawIdentifier)
+            : rawIdentifier)
+        : normalizeEmail(rawIdentifier);
 
     setState(() => _isLoading = true);
 

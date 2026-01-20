@@ -42,14 +42,14 @@ class CrushUser extends Equatable {
   bool get hasCompletedBasicInfo {
     if (hasSkippedBasicInfo) return true;
     if (profile == null) return false;
-    return profile!.name.isNotEmpty && profile!.age > 0 && profile!.gender.isNotEmpty;
+    return profile!.age > 0 && profile!.gender.isNotEmpty;
   }
 
   /// Check if user has completed profile setup (at least one photo) OR skipped it
   bool get hasCompletedProfileSetup {
     if (hasSkippedProfileSetup) return true;
     if (profile == null) return false;
-    return profile!.photoUrls.isNotEmpty;
+    return profile!.photoUrls.isNotEmpty || profile!.videoUrls.isNotEmpty;
   }
 
   /// Check if all onboarding steps are complete

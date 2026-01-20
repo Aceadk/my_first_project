@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/services/haptic_service.dart';
 import '../tokens/blur.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
@@ -175,7 +176,10 @@ class _GlassNavItemWidget extends StatelessWidget {
       selected: isSelected,
       hint: 'Double tap to navigate to ${item.label}',
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          HapticService.navTap();
+          onTap();
+        },
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

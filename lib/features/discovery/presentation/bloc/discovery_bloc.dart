@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
@@ -18,7 +20,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository discoveryRepository;
   final SubscriptionRepository subscriptionRepository;
   final ProfileRepository? profileRepository;
+  final AuthRepository authRepository;
 
+  StreamSubscription? _authSubscription;
   int? _remainingFreeSwipesToday;
   Timer? _retryTimer;
   int _retryDelayMs = 1000;
@@ -37,6 +41,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   DiscoveryBloc({
     required this.discoveryRepository,
     required this.subscriptionRepository,
+    required this.authRepository,
     this.profileRepository,
   }) : super(const DiscoveryState()) {
     on<DiscoveryDeckRequested>(_onDeckRequested);
@@ -46,6 +51,15 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<DiscoveryMatchCelebrationShown>(_onMatchCelebrationShown);
     on<DiscoverySuperLiked>(_onSuperLiked);
     on<DiscoveryRewindRequested>(_onRewindRequested);
+    on<DiscoveryResetRequested>(_onResetRequested);
+
+    // Listen to auth state changes to reset on logout
+    _authSubscription = authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        // CRITICAL: Reset state on logout to prevent data leakage to next user
+        add(DiscoveryResetRequested());
+      }
+    });
   }
 
   void _onMatchCelebrationShown(
@@ -53,6 +67,25 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) {
     emit(state.copyWith(newMatch: null));
+  }
+
+  /// Reset discovery state on logout.
+  /// CRITICAL: Prevents data leakage to next user.
+  void _onResetRequested(
+    DiscoveryResetRequested event,
+    Emitter<DiscoveryState> emit,
+  ) {
+    debugPrint('DiscoveryBloc: Resetting discovery state on logout');
+    _retryTimer?.cancel();
+    _retryCount = 0;
+    _retryDelayMs = 1000;
+    _lastRequestedUserId = null;
+    _isManualRefresh = false;
+    _remainingFreeSwipesToday = null;
+    _cachedPreferences = null;
+    _userLatitude = null;
+    _userLongitude = null;
+    emit(const DiscoveryState()); // Reset to initial empty state
   }
 
   Future<void> _onDeckRequested(
@@ -656,6 +689,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   @override
   Future<void> close() {
     _retryTimer?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

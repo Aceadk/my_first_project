@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 
 class NotificationSettingsState {
   const NotificationSettingsState({
@@ -52,14 +53,25 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
     );
   }
 
-  Future<void> togglePush(bool value) => _update(state.copyWith(push: value));
+  Future<void> togglePush(bool value) async {
+    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'push', enabled: value);
+    await _update(state.copyWith(push: value));
+  }
 
-  Future<void> toggleEmail(bool value) => _update(state.copyWith(email: value));
+  Future<void> toggleEmail(bool value) async {
+    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'email', enabled: value);
+    await _update(state.copyWith(email: value));
+  }
 
-  Future<void> toggleSound(bool value) => _update(state.copyWith(sound: value));
+  Future<void> toggleSound(bool value) async {
+    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'sound', enabled: value);
+    await _update(state.copyWith(sound: value));
+  }
 
-  Future<void> toggleVibration(bool value) =>
-      _update(state.copyWith(vibration: value));
+  Future<void> toggleVibration(bool value) async {
+    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'vibration', enabled: value);
+    await _update(state.copyWith(vibration: value));
+  }
 
   Future<void> _update(NotificationSettingsState next) async {
     emit(next);

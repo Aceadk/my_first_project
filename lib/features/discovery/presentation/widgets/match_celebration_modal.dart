@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:confetti/confetti.dart';
-import 'package:go_router/go_router.dart';
-import 'package:crushhour/core/router.dart';
+import 'dart:math';
+
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Modal displayed when two users match after a swipe.
 class MatchCelebrationModal extends StatefulWidget {
@@ -34,8 +32,8 @@ class MatchCelebrationModal extends StatefulWidget {
     return showGeneralDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black87,
-      transitionDuration: const Duration(milliseconds: 400),
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, anim1, anim2) {
         return MatchCelebrationModal(
           matchedProfile: matchedProfile,
@@ -47,12 +45,7 @@ class MatchCelebrationModal extends StatefulWidget {
       transitionBuilder: (context, anim1, anim2, child) {
         return FadeTransition(
           opacity: anim1,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-              CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
-            ),
-            child: child,
-          ),
+          child: child,
         );
       },
     );
@@ -64,98 +57,149 @@ class MatchCelebrationModal extends StatefulWidget {
 
 class _MatchCelebrationModalState extends State<MatchCelebrationModal>
     with TickerProviderStateMixin {
-  late ConfettiController _confettiController;
-  late AnimationController _pulseController;
+  late AnimationController _mainController;
   late AnimationController _heartBeatController;
-  late AnimationController _slideController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _heartBeatAnimation;
-  late Animation<Offset> _slideAnimation;
+  late AnimationController _shimmerController;
+  late AnimationController _floatingHeartsController;
+
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _leftPhotoSlide;
+  late Animation<Offset> _rightPhotoSlide;
+  late Animation<double> _heartScale;
+  late Animation<double> _textScale;
+  late Animation<double> _buttonsSlide;
+
+  final List<_FloatingHeart> _floatingHearts = [];
+  final Random _random = Random();
 
   @override
   void initState() {
     super.initState();
 
-    // Trigger strong haptic feedback immediately
+    // Trigger haptic feedback
     HapticFeedback.heavyImpact();
 
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 4),
-    );
-
-    // Pulse animation for "It's a Match!" text
-    _pulseController = AnimationController(
+    // Main entrance animation controller
+    _mainController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _pulseController.repeat(reverse: true);
 
-    // Heart beat animation for center heart
+    // Heart beat animation
     _heartBeatController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _heartBeatAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.2), weight: 25),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 25),
-    ]).animate(CurvedAnimation(parent: _heartBeatController, curve: Curves.easeInOut));
-
-    // Slide animation for profile photos
-    _slideController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+
+    // Shimmer effect
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat();
+
+    // Floating hearts controller
+    _floatingHeartsController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat();
+
+    // Setup animations
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOutBack),
+      ),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
+      ),
+    );
+
+    _leftPhotoSlide = Tween<Offset>(
+      begin: const Offset(-1.5, 0),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
 
-    // Start animations with proper sequencing
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _confettiController.play();
-        _slideController.forward();
-      }
-    });
+    _rightPhotoSlide = Tween<Offset>(
+      begin: const Offset(1.5, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
 
-    // Start heart beat after slide completes
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _heartScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.5, 0.8, curve: Curves.elasticOut),
+      ),
+    );
+
+    _textScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.3, 0.6, curve: Curves.easeOutBack),
+      ),
+    );
+
+    _buttonsSlide = Tween<double>(begin: 100.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Generate floating hearts
+    _generateFloatingHearts();
+
+    // Start animations
+    _mainController.forward();
+
+    // Start heart beat after entrance
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
-        _heartBeatController.repeat();
-        // Additional haptic pulses synced with heart beat
-        _triggerHeartBeatHaptics();
+        _heartBeatController.repeat(reverse: true);
+        HapticFeedback.mediumImpact();
       }
     });
   }
 
-  void _triggerHeartBeatHaptics() {
-    if (!mounted) return;
-    HapticFeedback.mediumImpact();
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        HapticFeedback.lightImpact();
-        Future.delayed(const Duration(milliseconds: 800), _triggerHeartBeatHaptics);
-      }
-    });
+  void _generateFloatingHearts() {
+    for (int i = 0; i < 20; i++) {
+      _floatingHearts.add(_FloatingHeart(
+        startX: _random.nextDouble(),
+        startY: 1.0 + _random.nextDouble() * 0.5,
+        endY: -0.2 - _random.nextDouble() * 0.3,
+        size: 16 + _random.nextDouble() * 24,
+        delay: _random.nextDouble(),
+        duration: 2.0 + _random.nextDouble() * 2.0,
+        swayAmount: 0.05 + _random.nextDouble() * 0.1,
+      ));
+    }
   }
 
   @override
   void dispose() {
-    _confettiController.dispose();
-    _pulseController.dispose();
+    _mainController.dispose();
     _heartBeatController.dispose();
-    _slideController.dispose();
+    _shimmerController.dispose();
+    _floatingHeartsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final matchedName = widget.matchedProfile.name.isNotEmpty
         ? widget.matchedProfile.name.split(' ').first
         : 'Someone';
@@ -165,175 +209,209 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
 
     return Material(
       color: Colors.transparent,
-      child: Stack(
-        children: [
-          // Main content
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  // "It's a Match!" text
-                  ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: [
-                          DsColors.actionLike,
-                          DsColors.actionLike.withValues(alpha: 0.8),
-                          Colors.pinkAccent,
-                        ],
-                      ).createShader(bounds),
-                      child: Text(
-                        "It's a Match!",
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([
+          _mainController,
+          _heartBeatController,
+          _shimmerController,
+          _floatingHeartsController,
+        ]),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              // Gradient background
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFFFF6B6B).withValues(alpha: 0.95),
+                      const Color(0xFFFF8E8E).withValues(alpha: 0.95),
+                      const Color(0xFFFFB4B4).withValues(alpha: 0.95),
+                      const Color(0xFFFF6B9D).withValues(alpha: 0.95),
+                    ],
+                    stops: const [0.0, 0.3, 0.6, 1.0],
                   ),
-                  DsGap.md,
-                  Text(
-                    'You and $matchedName liked each other',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white70,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  DsGap.xxl,
-                  // Profile photos with heart overlay
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: SizedBox(
-                      height: 160,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Current user photo (left)
-                          Positioned(
-                            left: MediaQuery.of(context).size.width / 2 - 140,
-                            child: _buildProfileCircle(
-                              photoUrl: widget.currentUserPhotoUrl,
-                              isCurrentUser: true,
-                            ),
-                          ),
-                          // Matched user photo (right)
-                          Positioned(
-                            right: MediaQuery.of(context).size.width / 2 - 140,
-                            child: _buildProfileCircle(
-                              photoUrl: matchedPhotoUrl,
-                              isCurrentUser: false,
-                            ),
-                          ),
-                          // Heart icon in center with beat animation
-                          ScaleTransition(
-                            scale: _heartBeatAnimation,
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: DsColors.actionLike,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: DsColors.actionLike.withValues(alpha: 0.4),
-                                    blurRadius: 20,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.favorite,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  // Action buttons
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: _handleSendMessage,
-                      icon: const Icon(Icons.message),
-                      label: Text('Message $matchedName'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: DsColors.actionLike,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                  ),
-                  DsGap.md,
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: _handleKeepSwiping,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white54),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Keep Swiping'),
-                    ),
-                  ),
-                  DsGap.xl,
-                ],
+                ),
               ),
-            ),
-          ),
-          // Confetti from top center
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [
-                Colors.red,
-                Colors.pink,
-                Colors.pinkAccent,
-                Colors.white,
-                Colors.yellow,
-                Colors.orange,
-              ],
-              numberOfParticles: 30,
-              maxBlastForce: 20,
-              minBlastForce: 10,
-              emissionFrequency: 0.03,
-              gravity: 0.2,
-            ),
-          ),
-        ],
+
+              // Floating hearts background
+              ..._buildFloatingHearts(),
+
+              // Main content
+              SafeArea(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          const Spacer(flex: 2),
+
+                          // "It's a Match!" text with shimmer
+                          ScaleTransition(
+                            scale: _textScale,
+                            child: _buildMatchText(),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Subtitle
+                          FadeTransition(
+                            opacity: _textScale,
+                            child: Text(
+                              'You and $matchedName liked each other',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+
+                          const SizedBox(height: 48),
+
+                          // Profile photos with heart
+                          SizedBox(
+                            height: 180,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Left photo (current user)
+                                Positioned(
+                                  left: 40,
+                                  child: SlideTransition(
+                                    position: _leftPhotoSlide,
+                                    child: _buildProfilePhoto(
+                                      photoUrl: widget.currentUserPhotoUrl,
+                                      isLeft: true,
+                                    ),
+                                  ),
+                                ),
+
+                                // Right photo (matched user)
+                                Positioned(
+                                  right: 40,
+                                  child: SlideTransition(
+                                    position: _rightPhotoSlide,
+                                    child: _buildProfilePhoto(
+                                      photoUrl: matchedPhotoUrl,
+                                      isLeft: false,
+                                    ),
+                                  ),
+                                ),
+
+                                // Heart icon in center
+                                ScaleTransition(
+                                  scale: _heartScale,
+                                  child: _buildCenterHeart(),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Spacer(flex: 3),
+
+                          // Action buttons
+                          Transform.translate(
+                            offset: Offset(0, _buttonsSlide.value),
+                            child: Opacity(
+                              opacity: (1 - _buttonsSlide.value / 100)
+                                  .clamp(0.0, 1.0),
+                              child: _buildActionButtons(matchedName),
+                            ),
+                          ),
+
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildProfileCircle({
+  Widget _buildMatchText() {
+    return ShaderMask(
+      shaderCallback: (bounds) {
+        return LinearGradient(
+          colors: [
+            Colors.white,
+            Colors.white.withValues(alpha: 0.8),
+            Colors.white,
+          ],
+          stops: [
+            (_shimmerController.value - 0.3).clamp(0.0, 1.0),
+            _shimmerController.value,
+            (_shimmerController.value + 0.3).clamp(0.0, 1.0),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ).createShader(bounds);
+      },
+      child: const Text(
+        "It's a Match!",
+        style: TextStyle(
+          fontSize: 42,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          letterSpacing: 1.5,
+          shadows: [
+            Shadow(
+              color: Colors.black26,
+              offset: Offset(0, 4),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfilePhoto({
     required String? photoUrl,
-    required bool isCurrentUser,
+    required bool isLeft,
   }) {
+    final borderGradient = LinearGradient(
+      begin: isLeft ? Alignment.topRight : Alignment.topLeft,
+      end: isLeft ? Alignment.bottomLeft : Alignment.bottomRight,
+      colors: const [
+        Colors.white,
+        Color(0xFFFFD700),
+        Colors.white,
+      ],
+    );
+
     return Container(
-      width: 120,
-      height: 120,
+      width: 140,
+      height: 140,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 4),
+        gradient: borderGradient,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 15,
+            blurRadius: 20,
             spreadRadius: 2,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: DsColors.actionLike.withValues(alpha: 0.4),
+            blurRadius: 30,
+            spreadRadius: -5,
           ),
         ],
       ),
+      padding: const EdgeInsets.all(4),
       child: ClipOval(
         child: photoUrl != null
             ? CachedNetworkImage(
@@ -341,29 +419,191 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                 fit: BoxFit.cover,
               )
             : Container(
-                color: Colors.grey[800],
+                color: Colors.grey[300],
                 child: Icon(
                   Icons.person,
                   size: 60,
-                  color: Colors.grey[600],
+                  color: Colors.grey[500],
                 ),
               ),
       ),
     );
   }
 
+  Widget _buildCenterHeart() {
+    final heartBeatValue = 1.0 + (_heartBeatController.value * 0.15);
+
+    return Transform.scale(
+      scale: heartBeatValue,
+      child: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFF4D6D),
+              Color(0xFFFF0844),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF0844).withValues(alpha: 0.5),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.3),
+              blurRadius: 10,
+              spreadRadius: -2,
+              offset: const Offset(-2, -2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.favorite,
+          color: Colors.white,
+          size: 36,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(String matchedName) {
+    return Column(
+      children: [
+        // Send Message button - primary
+        Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: const LinearGradient(
+              colors: [Colors.white, Color(0xFFFFF5F5)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _handleSendMessage,
+              borderRadius: BorderRadius.circular(28),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.chat_bubble_rounded,
+                      color: Color(0xFFFF4D6D),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Say Hi to $matchedName',
+                    style: const TextStyle(
+                      color: Color(0xFFFF4D6D),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Keep Swiping button - secondary
+        Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.6),
+              width: 2,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _handleKeepSwiping,
+              borderRadius: BorderRadius.circular(28),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.layers_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Keep Swiping',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildFloatingHearts() {
+    return _floatingHearts.map((heart) {
+      final progress = ((_floatingHeartsController.value + heart.delay) % 1.0);
+      final adjustedProgress = progress / heart.duration.clamp(0.5, 1.0);
+
+      if (adjustedProgress > 1.0) return const SizedBox.shrink();
+
+      final currentY =
+          heart.startY + (heart.endY - heart.startY) * adjustedProgress;
+      final sway = sin(adjustedProgress * pi * 4) * heart.swayAmount;
+      final currentX = heart.startX + sway;
+      final opacity = (1.0 - adjustedProgress).clamp(0.0, 0.7);
+
+      return Positioned(
+        left: MediaQuery.of(context).size.width * currentX,
+        top: MediaQuery.of(context).size.height * currentY,
+        child: Opacity(
+          opacity: opacity,
+          child: Icon(
+            Icons.favorite,
+            size: heart.size,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
   void _handleSendMessage() {
     HapticFeedback.mediumImpact();
     Navigator.of(context).pop();
-    if (widget.onSendMessage != null) {
-      widget.onSendMessage!();
-    } else {
-      // Navigate to chat with matched user
-      context.push(
-        CrushRoutes.chat,
-        extra: {'userId': widget.matchedProfile.id},
-      );
-    }
+    widget.onSendMessage?.call();
   }
 
   void _handleKeepSwiping() {
@@ -371,4 +611,24 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
     Navigator.of(context).pop();
     widget.onKeepSwiping?.call();
   }
+}
+
+class _FloatingHeart {
+  final double startX;
+  final double startY;
+  final double endY;
+  final double size;
+  final double delay;
+  final double duration;
+  final double swayAmount;
+
+  _FloatingHeart({
+    required this.startX,
+    required this.startY,
+    required this.endY,
+    required this.size,
+    required this.delay,
+    required this.duration,
+    required this.swayAmount,
+  });
 }

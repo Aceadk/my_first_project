@@ -34,11 +34,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileLocationUpdateRequested>(_onLocationUpdateRequested);
     on<ProfileBasicInfoSkipped>(_onBasicInfoSkipped);
     on<ProfileSetupSkipped>(_onSetupSkipped);
+    on<ProfileResetRequested>(_onResetRequested);
 
-    // Subscribe to auth state changes and auto-load profile when authenticated
+    // Subscribe to auth state changes
     _authSubscription = authRepository.authStateChanges().listen((user) {
       if (user != null && state.status == ProfileStatus.initial) {
+        // Auto-load profile when authenticated
         add(ProfileLoadRequested());
+      } else if (user == null) {
+        // CRITICAL: Reset state on logout to prevent data leakage to next user
+        add(ProfileResetRequested());
       }
     });
   }
@@ -172,6 +177,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onBasicInfoSubmitted(
       ProfileBasicInfoSubmitted event, Emitter<ProfileState> emit) async {
+    AppLogger.logInfo('[ProfileBloc] _onBasicInfoSubmitted: name=${event.name}, age=${event.age}, gender=${event.gender}');
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final result = await Result.guard(
       () => profileRepository.saveBasicInfo(
@@ -186,6 +192,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       fallbackError: 'Could not save basic info. Please try again.',
     );
 
+    AppLogger.logInfo('[ProfileBloc] saveBasicInfo result: isSuccess=${result.isSuccess}, error=${result.errorMessage}');
+
     // Track profile update
     if (result.isSuccess) {
       AnalyticsService.instance.logProfileUpdated(
@@ -194,6 +202,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
 
     final user = result.data;
+    AppLogger.logInfo('[ProfileBloc] After save: hasUser=${user != null}, hasProfile=${user?.profile != null}');
+    if (user != null) {
+      AppLogger.logInfo('[ProfileBloc] User profile: name=${user.profile?.name}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}');
+    }
+
     emit(state.copyWith(
       user: user ?? state.user,
       profile: user?.profile ?? state.profile,
@@ -392,6 +405,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       isSaving: false,
       errorMessage: result.errorMessage,
     ));
+  }
+
+  /// Reset profile state on logout.
+  /// CRITICAL: This prevents the next user from seeing the previous user's profile data.
+  void _onResetRequested(
+      ProfileResetRequested event, Emitter<ProfileState> emit) {
+    AppLogger.logInfo('[ProfileBloc] Resetting profile state on logout');
+    _retryTimer?.cancel();
+    _retryCount = 0;
+    _retryDelayMs = 1000;
+    _isManualRefresh = false;
+    emit(const ProfileState()); // Reset to initial empty state
   }
 
   @override

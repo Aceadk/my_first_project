@@ -40,7 +40,7 @@ class _OtpScreenState extends State<OtpScreen> {
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state.status == AuthStatus.authenticated) {
-              context.go(CrushRoutes.basicInfo);
+              context.go(CrushRoutes.home);
             }
             final error = state.errorMessage;
             if (error != null && error.isNotEmpty) {

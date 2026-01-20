@@ -125,51 +125,43 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     if (sanitizedAge == null) throw Exception('Invalid age');
 
-    // Use dot notation to update nested fields without overwriting existing profile data
-    final updateData = <String, dynamic>{
-      'profile.name': sanitizedName,
-      'profile.age': sanitizedAge,
-      'profile.gender': sanitizedGender,
-      'profile.updatedAt': FieldValue.serverTimestamp(),
+    // Build the profile data to save
+    final profileData = <String, dynamic>{
+      'name': sanitizedName,
+      'age': sanitizedAge,
+      'gender': sanitizedGender,
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
     // Add optional fields
     if (sanitizedOrientation != null) {
-      updateData['profile.sexualOrientation'] = sanitizedOrientation;
+      profileData['sexualOrientation'] = sanitizedOrientation;
     }
     if (dateOfBirth != null) {
-      updateData['profile.dateOfBirth'] = Timestamp.fromDate(dateOfBirth);
+      profileData['dateOfBirth'] = Timestamp.fromDate(dateOfBirth);
     }
+
+    // Build the document data
+    final docData = <String, dynamic>{
+      'profile': profileData,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
     if (sanitizedUsername != null) {
-      updateData['username'] = sanitizedUsername;
+      docData['username'] = sanitizedUsername;
     }
 
-    // Check if document exists first - use set with merge for new users
+    // Always use set with merge to ensure nested structure is created properly
     final docRef = _firestore.collection('users').doc(userId);
-    final docSnapshot = await docRef.get();
+    AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: Saving to users/$userId with profile data: $profileData');
+    await docRef.set(docData, SetOptions(merge: true));
+    AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: Firestore write completed, now fetching user');
 
-    if (docSnapshot.exists) {
-      await docRef.update(updateData);
-    } else {
-      // For new users, create the document with nested structure
-      await docRef.set({
-        'profile': {
-          'name': sanitizedName,
-          'age': sanitizedAge,
-          'gender': sanitizedGender,
-          if (sanitizedOrientation != null)
-            'sexualOrientation': sanitizedOrientation,
-          if (dateOfBirth != null)
-            'dateOfBirth': Timestamp.fromDate(dateOfBirth),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        if (sanitizedUsername != null) 'username': sanitizedUsername,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+    final user = await getCurrentUser();
+    AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: getCurrentUser returned user=${user != null}, profile=${user?.profile != null}');
+    if (user?.profile != null) {
+      AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: profile name=${user!.profile!.name}, age=${user.profile!.age}, gender=${user.profile!.gender}');
     }
-
-    return (await getCurrentUser())!;
+    return user!;
   }
 
   @override

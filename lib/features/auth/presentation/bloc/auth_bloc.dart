@@ -3,12 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/services/user_data_clearance_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   StreamSubscription<CrushUser?>? _sub;
+  bool _didInitialRefresh = false;
 
   AuthBloc({required this.authRepository}) : super(AuthState.unknown()) {
     on<AuthStarted>(_onStarted);
@@ -33,14 +36,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await Result.guard(
       () async {
         await _sub?.cancel();
-        await authRepository.bootstrapSession();
-        final sub = authRepository.authStateChanges().listen((user) {
-          add(_AuthUserChanged(user));
-        });
+        StreamSubscription<CrushUser?>? sub;
+        try {
+          sub = authRepository.authStateChanges().listen((user) {
+            add(_AuthUserChanged(user));
+          });
+          await authRepository.bootstrapSession();
+          return sub;
+        } catch (e) {
+          await sub?.cancel();
+          rethrow;
+        }
         // Don't emit null here - let the Firebase stream determine auth state.
         // The stream will emit null if no user is logged in, or the user if
         // a session was restored from secure storage.
-        return sub;
       },
       logLabel: 'AuthRepository.authStateChanges',
       fallbackError:
@@ -58,6 +67,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onUserChanged(_AuthUserChanged event, Emitter<AuthState> emit) {
+    if (event.user == null) {
+      _didInitialRefresh = false;
+    } else if (!_didInitialRefresh) {
+      _didInitialRefresh = true;
+      add(AuthUserRefreshRequested());
+    }
     emit(
       state.copyWith(
         status: event.user == null
@@ -91,6 +106,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Invalid code. Please try again.',
     );
     final user = result.data;
+    if (user != null) {
+      await AnalyticsService.instance.logLogin(method: 'phone');
+      await AnalyticsService.instance.logPhoneVerificationCompleted(success: true);
+    } else {
+      await AnalyticsService.instance.logPhoneVerificationCompleted(success: false);
+    }
     emit(state.copyWith(
       status: user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
       user: user ?? state.user,
@@ -166,6 +187,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Invalid or expired email link.',
     );
     final user = result.data;
+    if (user != null) {
+      await AnalyticsService.instance.logLogin(method: 'email_link');
+    }
     emit(state.copyWith(
       status:
           user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
@@ -192,6 +216,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Could not sign in. Please try again.',
     );
     final user = result.data;
+    if (user != null) {
+      await AnalyticsService.instance.logLogin(method: 'email_password');
+    }
     emit(state.copyWith(
       status:
           user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
@@ -256,6 +283,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Invalid or expired code. Please try again.',
     );
     final user = result.data;
+    if (user != null) {
+      await AnalyticsService.instance.logLogin(method: 'email_otp');
+    }
     emit(state.copyWith(
       status:
           user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
@@ -291,6 +321,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignedOut(
       AuthSignedOut event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
+
+    // CRITICAL: Clear all user-specific data BEFORE signing out
+    // This prevents the next user from seeing previous user's data
+    await UserDataClearanceService.instance.clearAllUserData();
+
     final result = await Result.guard(
       () => authRepository.signOut(),
       logLabel: 'AuthRepository.signOut',
@@ -359,6 +394,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required String phone,
     required Emitter<AuthState> emit,
   }) async {
+    await AnalyticsService.instance.logPhoneVerificationStarted();
     emit(state.copyWith(
       status: AuthStatus.authenticating,
       phoneInProgress: phone,

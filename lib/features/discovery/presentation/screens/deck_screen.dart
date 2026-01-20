@@ -35,6 +35,7 @@ import 'package:crushhour/presentation/widgets/upsell_widgets.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/match_celebration_modal.dart';
+import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/boost_button.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
@@ -110,6 +111,9 @@ class _DeckScreenState extends State<DeckScreen> {
         // Show match celebration when a new match occurs
         final newMatch = state.newMatch;
         if (newMatch != null) {
+          // Clear the match state immediately to prevent showing twice
+          context.read<DiscoveryBloc>().add(DiscoveryMatchCelebrationShown());
+
           // Get current user's photo for the celebration modal
           final currentProfile = context.read<ProfileBloc>().state.profile;
           final currentUserPhotoUrl = currentProfile?.photoUrls.isNotEmpty == true
@@ -122,15 +126,22 @@ class _DeckScreenState extends State<DeckScreen> {
             matchedProfile: newMatch.matchedProfile,
             currentUserPhotoUrl: currentUserPhotoUrl,
             onKeepSwiping: () {
-              // Clear the match after showing
-              context.read<DiscoveryBloc>().add(DiscoveryMatchCelebrationShown());
+              // Just close the modal - state already cleared
             },
             onSendMessage: () {
-              // Clear the match and navigate to chat
-              context.read<DiscoveryBloc>().add(DiscoveryMatchCelebrationShown());
+              // Navigate to chat
+              final matchedProfile = newMatch.matchedProfile;
               context.push(
-                CrushRoutes.chat,
-                extra: {'matchId': newMatch.matchId},
+                '${CrushRoutes.chat}/${newMatch.matchId}',
+                extra: ChatScreenArgs(
+                  matchId: newMatch.matchId,
+                  currentUserId: userId ?? '',
+                  otherUserId: matchedProfile.id,
+                  otherName: matchedProfile.name,
+                  otherPhotoUrl: matchedProfile.photoUrls.isNotEmpty
+                      ? matchedProfile.photoUrls.first
+                      : null,
+                ),
               );
             },
           );
@@ -1232,12 +1243,6 @@ class _DeckScreenState extends State<DeckScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          GlassIconButton(
-                            icon: Icons.shield_outlined,
-                            onPressed: () => context.push(CrushRoutes.safety),
-                            size: 40,
-                          ),
-                          const SizedBox(width: DsSpacing.xs),
                           GlassIconButton(
                             icon: Icons.refresh,
                             onPressed: userId == null

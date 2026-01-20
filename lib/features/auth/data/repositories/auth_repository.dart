@@ -30,6 +30,8 @@ extension EmailOtpPurposeValue on EmailOtpPurpose {
 
 abstract class AuthRepository {
   bool get isVerificationBypassEnabled;
+  /// Whether password login accepts usernames in addition to email.
+  bool get supportsUsernameLogin;
 
   Future<void> bootstrapSession();
 
