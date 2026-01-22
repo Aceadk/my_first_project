@@ -4,6 +4,37 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-23] Task: Enforce AI doc sync before/after edits
+
+Summary:
+- Strengthened CLAUDE.md rules to require reading AI collaboration docs before and after edits.
+- Added explicit requirement to log suggestions/issues in `ai_collab_chat.md`.
+
+Files Added:
+- None
+
+Files Modified:
+- CLAUDE.md
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested stricter AI doc sync and cross-agent suggestions.
+
+Risks & Mitigations:
+- None.
+
+Verification Steps:
+- Not run (documentation change)
+
+Follow-ups / TODO:
+- None
+
 ### [2026-01-23] Task: Move auth screens into auth feature folder
 
 Summary:

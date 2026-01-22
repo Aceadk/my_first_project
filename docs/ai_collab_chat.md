@@ -27,6 +27,31 @@ What changed from the original plan:
 
 ## Logs
 
+T-025 - Enforce before/after AI doc sync - 2026-01-23
+Planner AI:
+Summary of repo context:
+- Collaboration docs already required before changes, but no explicit after-edit re-read and suggestion loop.
+Proposed approach:
+- Strengthen CLAUDE.md rules to require reading the four docs before and after edits and to log suggestions in ai_collab_chat.
+File impact list:
+- CLAUDE.md
+Risks + mitigations:
+- None (documentation-only change).
+Critic AI:
+Concerns / edge cases:
+- Ensure after-edit requirement is unambiguous and applies to all agents.
+Better alternatives:
+- Add a pre-commit hook to enforce doc reads (out of scope).
+Required tests:
+- None.
+UX notes:
+- N/A.
+Resolution:
+Final agreed plan:
+- Update CLAUDE.md rule wording; log change in AI docs.
+What changed from the original plan:
+- None.
+
 T-024 - Move auth screens into auth feature folder - 2026-01-23
 Planner AI:
 Summary of repo context:

@@ -4,6 +4,34 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-112 — AI collaboration docs may drift without after-edit sync
+
+Category: Process / Quality
+
+Description:
+If agents do not re-read and update collaboration docs after edits, changes can be missed and tasks can diverge.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* docs/ai_change_log.md
+* docs/ai_tasks_board.md
+* docs/ai_collab_chat.md
+* docs/risk_notes.md
+
+Mitigation:
+* CLAUDE.md now explicitly requires before/after doc reads and AI-to-AI suggestions.
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
 ### R-111 — Auth screen moves could leave stale import paths
 
 Category: Build / Architecture

@@ -34,6 +34,41 @@ Manual flow:
 
 ## Completed Tasks
 
+### Task: Enforce before/after AI doc sync
+ID: T-025
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Ensure every AI agent re-reads AI collaboration docs before and after edits and shares issues/suggestions.
+
+Scope (in/out):
+In:
+- Update CLAUDE.md rules to require before/after doc reads and AI-to-AI suggestions
+Out:
+- Code changes or feature work
+
+Files changed:
+- CLAUDE.md
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- None (documentation change)
+
+Acceptance criteria:
+- ✅ CLAUDE.md explicitly requires before/after doc reads and suggestions
+
+Verification:
+Commands: Not run (not requested)
+Manual flow:
+1. Open CLAUDE.md and confirm rule wording
+
+Completed: 2026-01-23
+
 ### Task: Move auth screens into auth feature folder
 ID: T-024
 Owner AI: Codex
