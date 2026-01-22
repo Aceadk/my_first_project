@@ -23,6 +23,11 @@ ui-debug.log
 pubsub-debug.log
 database-debug.log
 
+# Firebase config files (contain API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+macos/Runner/GoogleService-Info.plist
+
 # Duplicate/numbered directories (accidental copies from macOS)
 **/* 2/
 **/* 3/
