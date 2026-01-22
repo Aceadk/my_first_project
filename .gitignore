@@ -12,6 +12,17 @@
 .swiftpm/
 migrate_working_dir/
 
+# Claude Code session data
+.claude/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+database-debug.log
+
 # Duplicate/numbered directories (accidental copies from macOS)
 **/* 2/
 **/* 3/
@@ -19,13 +30,6 @@ migrate_working_dir/
 **/* 3
 **/*(2)/
 **/*(3)/
-
-# Firebase debug logs
-firestore-debug.log
-ui-debug.log
-firebase-debug.log
-pubsub-debug.log
-database-debug.log
 
 # IntelliJ related
 *.iml
@@ -74,8 +78,11 @@ app.*.map.json
 .env
 
 # Node + functions
+**/node_modules/
 functions/node_modules/
 crushhour-recommendation-service/node_modules/
+functions/.env
+functions/.env.local
 
 # macOS
 .DS_Store
@@ -101,3 +108,28 @@ lib/core/services/email_service.dart
 
 # Empty/test files to exclude
 web_entrypoint.dart
+
+# iOS symlinks (generated)
+ios/.symlinks/
+
+# Xcode workspace settings (local user data)
+**/xcuserdata/
+**/*.xcworkspace/xcshareddata/
+
+# Android local files
+android/app/.cxx/
+
+# Flutter generated files
+.flutter-plugins
+.packages
+
+# Test coverage
+coverage/
+lcov.info
+
+# Crash reports
+*.symbolmap
+*.dSYM.zip
+
+# macOS generated
+**/.DS_Store
