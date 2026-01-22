@@ -29,7 +29,6 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   bool _birthdateTouched = false;
   bool _hasShownAgeWarning = false;
   bool _isSubmitting = false; // Track if we initiated a save
-  bool _showNameOnProfile = false;
 
   /// Calculate age from date of birth
   int? get _calculatedAge {
@@ -273,76 +272,6 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                   hintText: 'Enter your last name (optional)',
                                   prefixIcon: Icons.badge_outlined,
                                   onChanged: (_) => setState(() {}),
-                                ),
-                                DsGap.lg,
-                                _buildSectionLabel(
-                                    context, 'Name Visibility', isDark, false),
-                                DsGap.sm,
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? DsColors.surfaceDark
-                                            .withValues(alpha: 0.5)
-                                        : DsColors.inputFillLight,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? DsColors.borderDark
-                                          : DsColors.borderLight,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Show my name on my profile',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w600,
-                                                    color: isDark
-                                                        ? DsColors
-                                                            .textPrimaryDark
-                                                        : DsColors
-                                                            .textPrimaryLight,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Your first and last name are private by default.',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: isDark
-                                                        ? DsColors
-                                                            .textMutedDark
-                                                        : DsColors
-                                                            .textMutedLight,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Switch(
-                                        value: _showNameOnProfile,
-                                        onChanged: (value) {
-                                          setState(
-                                            () => _showNameOnProfile = value,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
                                 ),
                                 DsGap.lg,
                                 // Birthdate Field
@@ -944,8 +873,6 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         gender: _gender,
         sexualOrientation: _orientation,
         dateOfBirth: _dateOfBirth,
-        showFirstName: _showNameOnProfile,
-        showLastName: _showNameOnProfile,
       ),
     );
   }

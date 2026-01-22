@@ -130,6 +130,28 @@ class PrivacySettingsScreen extends StatelessWidget {
                 ),
               ),
 
+              // Name Visibility Section
+              const _SectionHeader(
+                title: 'Name Visibility',
+                subtitle: 'Control how your name appears',
+                icon: Icons.badge_outlined,
+                color: DsColors.primary,
+              ),
+              _PrivacyTile(
+                icon: Icons.person_outline,
+                title: 'First Name',
+                subtitle: 'Show your first name on your profile',
+                value: state.showFirstName,
+                onChanged: cubit.toggleShowFirstName,
+              ),
+              _PrivacyTile(
+                icon: Icons.person,
+                title: 'Last Name',
+                subtitle: 'Show your last name on your profile',
+                value: state.showLastName,
+                onChanged: cubit.toggleShowLastName,
+              ),
+
               // Sensitive Information Section
               const _SectionHeader(
                 title: 'Sensitive Information',

@@ -30,6 +30,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _schoolController = TextEditingController();
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _mediaService = ProfileMediaService();
   final _passportService = PassportLocationsService.instance;
 
@@ -37,6 +38,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<String> _videoPaths = [];
   final List<String> _selectedInterests = [];
   bool _uploading = false;
+  bool _usernameTouched = false;
+  bool _usernameInitialized = false;
+  bool _isEditingUsername = false;
 
   // Favourites
   String? _favouriteAthlete;
@@ -63,7 +67,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     _schoolController.dispose();
     _cityController.dispose();
     _countryController.dispose();
+    _usernameController.dispose();
     super.dispose();
+  }
+
+  String? _usernameErrorText() {
+    if (!_usernameTouched) return null;
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) {
+      return 'Username is required';
+    }
+    final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
+    if (!valid) {
+      return 'Use 3-20 letters, numbers, or underscore';
+    }
+    return null;
   }
 
   final List<String> _interestOptions = [
@@ -240,6 +258,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                   ),
                                 ),
                                 DsGap.lg,
+                                // Username Section
+                                _buildUsernameSection(context, isDark, state),
+                                DsGap.xl,
                                 // Photos Section
                                 _buildSectionHeader(context, isDark, 'Your Photos', 'Optional - helps you get more matches', Icons.photo_library_rounded),
                                 DsGap.md,
@@ -456,6 +477,183 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildUsernameSection(BuildContext context, bool isDark, ProfileState state) {
+    // Initialize username from user profile if not done yet
+    if (!_usernameInitialized) {
+      final currentUsername = state.user?.username ??
+          context.read<AuthBloc>().state.user?.username ?? '';
+      _usernameController.text = currentUsername;
+      _usernameInitialized = true;
+    }
+
+    final profile = state.user?.profile;
+    final canChangeName = profile?.canChangeName ?? true;
+    final daysUntilChange = profile?.daysUntilNameChange ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          isDark,
+          'Your Username',
+          canChangeName ? 'You can change this once per month' : 'Can change in $daysUntilChange days',
+          Icons.alternate_email_rounded,
+        ),
+        DsGap.md,
+        if (_isEditingUsername) ...[
+          GlassTextField(
+            controller: _usernameController,
+            hintText: 'Enter username',
+            prefixIcon: Icons.alternate_email_rounded,
+            errorText: _usernameErrorText(),
+            enabled: canChangeName,
+            onChanged: (value) {
+              setState(() => _usernameTouched = true);
+            },
+          ),
+          if (_usernameErrorText() == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 12),
+              child: Text(
+                '3-20 characters, letters, numbers, or underscore',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          DsGap.sm,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isEditingUsername = false;
+                    _usernameTouched = false;
+                    // Reset to original
+                    final currentUsername = state.user?.username ??
+                        context.read<AuthBloc>().state.user?.username ?? '';
+                    _usernameController.text = currentUsername;
+                  });
+                },
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GlassPrimaryButton(
+                onPressed: _usernameErrorText() == null ? () {
+                  setState(() => _isEditingUsername = false);
+                } : null,
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        ] else ...[
+          GestureDetector(
+            onTap: canChangeName ? () {
+              setState(() => _isEditingUsername = true);
+            } : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                    : DsColors.inputFillLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: DsColors.primary,
+                  width: 2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.alternate_email_rounded,
+                    size: 22,
+                    color: DsColors.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Username',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          _usernameController.text.isNotEmpty
+                              ? '@${_usernameController.text}'
+                              : 'Not set',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (canChangeName)
+                    const Icon(
+                      Icons.edit_rounded,
+                      size: 20,
+                      color: DsColors.primary,
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$daysUntilChange days',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (!canChangeName)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'You can change your username again in $daysUntilChange days',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.orange,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }

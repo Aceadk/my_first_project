@@ -21,6 +21,13 @@ class PrivacySettingsCubit extends Cubit<ProfilePrivacySettings> {
     }
   }
 
+  // Name visibility toggles
+  Future<void> toggleShowFirstName(bool value) =>
+      _update(state.copyWith(showFirstName: value));
+
+  Future<void> toggleShowLastName(bool value) =>
+      _update(state.copyWith(showLastName: value));
+
   // Sensitive info toggles
   Future<void> toggleShowAge(bool value) =>
       _update(state.copyWith(showAge: value));
