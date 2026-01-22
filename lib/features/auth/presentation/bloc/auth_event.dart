@@ -86,15 +86,6 @@ class AuthEmailOtpCancelled extends AuthEvent {}
 
 class AuthSignedOut extends AuthEvent {}
 
-class AuthDevBypassRequested extends AuthEvent {
-  final String identifier;
-  final String password;
-  AuthDevBypassRequested(this.identifier, this.password);
-
-  @override
-  List<Object?> get props => [identifier, password];
-}
-
 /// Request to refresh the current user from storage/backend.
 /// Used to sync auth state after profile changes.
 class AuthUserRefreshRequested extends AuthEvent {}

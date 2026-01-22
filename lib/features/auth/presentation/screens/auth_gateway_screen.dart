@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
 class AuthGatewayScreen extends StatefulWidget {
@@ -98,7 +98,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                 child: const Icon(
                   Icons.favorite_rounded,
                   size: 56,
-                  color: Colors.white,
+                  color: DsColors.backgroundLight,
                 ),
               ),
               DsGap.xxl,
@@ -135,7 +135,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                               ?.copyWith(
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.5,
-                            color: Colors.white,
+                            color: DsColors.backgroundLight,
                             shadows: [
                               Shadow(
                                 color: DsColors.primary
@@ -185,50 +185,39 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               ),
               const Spacer(flex: 2),
               // Auth buttons
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: FilledButton(
-                  onPressed: () => context.push(CrushRoutes.signUp),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: DsColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    context.l10n.authCreateAccount,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+              Semantics(
+                button: true,
+                label: context.l10n.authCreateAccount,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassPrimaryButton(
+                    onPressed: () => context.push(CrushRoutes.signUp),
+                    isExpanded: true,
+                    child: Text(
+                      context.l10n.authCreateAccount,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
               DsGap.md,
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: () => context.push(CrushRoutes.login),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color:
-                          isDark ? DsColors.borderDark : DsColors.borderLight,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    context.l10n.authSignIn,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight,
+              Semantics(
+                button: true,
+                label: context.l10n.authSignIn,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassOutlinedButton(
+                    onPressed: () => context.push(CrushRoutes.login),
+                    isExpanded: true,
+                    child: Text(
+                      context.l10n.authSignIn,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

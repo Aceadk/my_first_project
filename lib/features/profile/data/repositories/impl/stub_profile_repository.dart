@@ -38,10 +38,13 @@ class StubProfileRepository implements ProfileRepository {
   Future<CrushUser> saveBasicInfo({
     String? username,
     required String name,
+    String? lastName,
     required int age,
     required String gender,
     String? sexualOrientation,
     DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
   }) async {
     await Future.delayed(const Duration(milliseconds: 50));
 
@@ -52,6 +55,7 @@ class StubProfileRepository implements ProfileRepository {
 
     // Sanitize input data
     final sanitizedName = InputSanitizer.sanitizeName(name);
+    final sanitizedLastName = InputSanitizer.sanitizeName(lastName);
     final sanitizedUsername = username != null
         ? InputSanitizer.sanitizeUsername(username)
         : null;
@@ -67,9 +71,17 @@ class StubProfileRepository implements ProfileRepository {
 
     // Create or update profile
     final existingProfile = currentUser.profile;
+    final existingPrivacy =
+        existingProfile?.privacySettings ?? const ProfilePrivacySettings();
+    final updatedPrivacy = existingPrivacy.copyWith(
+      showFirstName: showFirstName ?? existingPrivacy.showFirstName,
+      showLastName: showLastName ?? existingPrivacy.showLastName,
+    );
+
     final newProfile = Profile(
       id: existingProfile?.id ?? 'profile_${currentUser.id}',
       name: sanitizedName,
+      lastName: sanitizedLastName.isNotEmpty ? sanitizedLastName : existingProfile?.lastName,
       age: sanitizedAge,
       gender: sanitizedGender,
       sexualOrientation: sanitizedOrientation ?? existingProfile?.sexualOrientation,
@@ -98,6 +110,7 @@ class StubProfileRepository implements ProfileRepository {
       jobTitle: existingProfile?.jobTitle,
       company: existingProfile?.company,
       school: existingProfile?.school,
+      privacySettings: updatedPrivacy,
       preferences: existingProfile?.preferences ?? const DiscoveryPreferences(
         minAge: 18,
         maxAge: 50,
@@ -284,6 +297,7 @@ class StubProfileRepository implements ProfileRepository {
       profile = Profile(
         id: p['id'] ?? '',
         name: p['name'] ?? '',
+        lastName: p['lastName'],
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
@@ -364,6 +378,7 @@ class StubProfileRepository implements ProfileRepository {
       profileJson = {
         'id': p.id,
         'name': p.name,
+        'lastName': p.lastName,
         'age': p.age,
         'gender': p.gender,
         'sexualOrientation': p.sexualOrientation,

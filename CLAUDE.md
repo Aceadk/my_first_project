@@ -7,25 +7,51 @@ Your job is to understand the entire codebase, preserve intent, improve quality,
 
 ## 0) Absolute Rules (Non-negotiable)
 
-1. **Read the project first**
+1. **READ AI COLLABORATION DOCS BEFORE AND AFTER EDITS (MANDATORY)**
+   - **BEFORE making ANY changes** to the codebase, you MUST read these files:
+     - `/docs/ai_change_log.md` — to understand recent changes and avoid conflicts
+     - `/docs/ai_tasks_board.md` — to see current task status and ownership
+     - `/docs/ai_collab_chat.md` — to understand ongoing discussions and decisions
+     - `/docs/risk_notes.md` — to be aware of known risks and constraints
+   - **AFTER every edit session**, you MUST re-read the same four files and:
+     - update them with what changed, what to do next, and any new risks
+     - add suggestions or issues for other agents in `/docs/ai_collab_chat.md`
+   - This applies to BOTH Claude AND Codex (and any other AI assistant)
+   - Failure to read these docs first may result in duplicate work, conflicts, or regressions
+
+2. **Read the project structure**
    - Before proposing changes, scan the repository structure and key files.
    - Identify frameworks, architecture style, state management (BLoC), routing, networking, storage, and build flavors.
 
-2. **Do not break routes, BLoCs, or navigation**
+3. **Do not break routes, BLoCs, or navigation**
    - Routing and state management are fragile. Always trace route definitions → pages/screens → BLoCs/providers → repositories → data sources.
    - Any change that touches routes, navigation guards, deep links, or auth flows must be handled carefully and tested.
 
-3. **Do not introduce architectural drift**
+4. **Do not introduce architectural drift**
    - Keep/upgrade toward **Clean Architecture**:
      - Presentation (UI) → State (BLoC/Cubit) → Domain (use cases/entities) → Data (repos/datasources)
    - Avoid mixing UI logic with data logic.
    - Never call APIs directly from UI widgets/screens.
 
-4. **Prefer safe, incremental refactors**
+5. **Prefer safe, incremental refactors**
    - Small PR-style changes are better than big rewrites.
    - Always ensure the app compiles/tests after your change.
 
-5. **Track everything**
+6. **UPDATE AI COLLABORATION DOCS AFTER EVERY TASK (MANDATORY)**
+   - **AFTER completing ANY task**, you MUST update these files:
+     - `/docs/ai_change_log.md` — log all files added/modified/deleted and why
+     - `/docs/ai_tasks_board.md` — update task status (mark completed, add new tasks discovered)
+     - `/docs/risk_notes.md` — document any new risks or mitigations
+     - `/docs/ai_collab_chat.md` — note issues found, decisions made, and suggestions for other agents
+   - **When architecture, flows, or data models change**, ALSO update:
+     - `/docs/project_flowchart.md` — if screen flows or navigation changed
+     - `/docs/project_dfd.md` — if data flow or processing changed
+     - `/docs/project_er_diagram.md` — if data models or relationships changed
+   - This applies to BOTH Claude AND Codex (and any other AI assistant)
+   - DO NOT consider a task complete until documentation is updated
+   - The user relies on these docs to track progress and understand changes
+
+7. **Track everything**
    - Maintain a running record of:
      - Files added
      - Files modified
@@ -39,6 +65,16 @@ Your job is to understand the entire codebase, preserve intent, improve quality,
 ## 1) First Action on Every Task (Project Understanding Checklist)
 
 When you start any task, do this (briefly but thoroughly):
+
+### 0. READ AI COLLABORATION DOCS (MANDATORY FIRST STEP)
+Before doing ANYTHING else, read:
+```
+/docs/ai_change_log.md      # What changed recently?
+/docs/ai_tasks_board.md     # What tasks are in progress?
+/docs/ai_collab_chat.md     # Any ongoing AI discussions?
+/docs/risk_notes.md         # Any known risks to avoid?
+```
+This prevents duplicate work, conflicts, and regressions.
 
 ### A. Repository Map
 - List major folders and what they do (e.g., `lib/`, `src/`, `features/`, `core/`, `data/`, `domain/`, `presentation/`, `routes/`, `di/`, `assets/`, `test/`).
@@ -210,6 +246,14 @@ Minimum checks after changes:
 If test suite exists:
 - run unit/widget tests for changed areas
 - add tests for new use cases or tricky logic
+
+**MANDATORY: Update Documentation After Verification**
+After verifying the task works:
+- [ ] Update `/docs/ai_change_log.md` with files changed and why
+- [ ] Update `/docs/ai_tasks_board.md` with task completion status
+- [ ] Update `/docs/risk_notes.md` if any new risks discovered
+- [ ] Update flowchart/DFD/ER diagram if architecture/flows/data changed
+Task is NOT complete until documentation is updated!
 
 ---
 
@@ -577,6 +621,43 @@ If you detect different priorities in code/docs, update `/docs/project_understan
 
 Do not stall.
 Make the best grounded assumption from existing code and document it, then proceed safely.
+
+---
+
+## 14) Quick Reference: Mandatory Doc Workflow (Claude + Codex)
+
+### ⚠️ BEFORE Starting Any Task:
+```
+READ THESE FILES FIRST:
+├── /docs/ai_change_log.md      ← Recent changes (avoid conflicts)
+├── /docs/ai_tasks_board.md     ← Current task status
+├── /docs/ai_collab_chat.md     ← AI discussion history
+└── /docs/risk_notes.md         ← Known risks to avoid
+```
+
+### ⚠️ AFTER Completing Any Task:
+```
+UPDATE THESE FILES:
+├── /docs/ai_change_log.md      ← Log your changes
+├── /docs/ai_tasks_board.md     ← Mark task completed
+├── /docs/risk_notes.md         ← Add any new risks
+│
+└── IF architecture/flows/data changed, ALSO update:
+    ├── /docs/project_flowchart.md
+    ├── /docs/project_dfd.md
+    └── /docs/project_er_diagram.md
+```
+
+### Task Completion Checklist:
+- [ ] Code changes implemented
+- [ ] Build succeeds
+- [ ] Core flows tested
+- [ ] `/docs/ai_change_log.md` updated
+- [ ] `/docs/ai_tasks_board.md` updated
+- [ ] `/docs/risk_notes.md` updated (if applicable)
+- [ ] Diagrams updated (if architecture/flow/data changed)
+
+**A task is NOT complete until all documentation is updated.**
 
 ---
 End of instructions.

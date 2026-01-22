@@ -290,6 +290,7 @@ class _CachedProfile {
   static Map<String, dynamic> _profileToJson(Profile p) => {
         'id': p.id,
         'name': p.name,
+        'lastName': p.lastName,
         'age': p.age,
         'gender': p.gender,
         'sexualOrientation': p.sexualOrientation,
@@ -326,6 +327,7 @@ class _CachedProfile {
         'distanceUnit': p.distanceUnit,
         'isVerified': p.isVerified,
         'verificationBadge': p.verificationBadge,
+        'privacySettings': p.privacySettings.toJson(),
       };
 
   static Profile _profileFromJson(Map<String, dynamic> json) {
@@ -340,6 +342,7 @@ class _CachedProfile {
     return Profile(
       id: json['id'] as String,
       name: json['name'] as String,
+      lastName: json['lastName'] as String?,
       age: json['age'] as int,
       gender: json['gender'] as String,
       sexualOrientation: json['sexualOrientation'] as String?,
@@ -388,7 +391,9 @@ class _CachedProfile {
         country: json['country'] as String? ?? '',
         city: json['city'] as String? ?? '',
       ),
-      privacySettings: const ProfilePrivacySettings(),
+      privacySettings: ProfilePrivacySettings.fromJson(
+        json['privacySettings'] as Map<String, dynamic>?,
+      ),
     );
   }
 }

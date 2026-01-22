@@ -21,7 +21,7 @@ class SafetyProfileInfo {
   factory SafetyProfileInfo.fromProfile(Profile profile) {
     return SafetyProfileInfo(
       id: profile.id,
-      name: profile.name,
+      name: profile.publicDisplayName,
       photoUrl: profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null,
     );
   }

@@ -28,6 +28,110 @@ Crush is a production-ready Flutter dating application featuring a modern glass 
 
 ---
 
+## Audit Update — 2026-01-22 (Delta Review)
+
+Scope & Method:
+- Static code/config review only (no builds or device tests executed).
+- Focus on cross-platform parity, Firebase alignment, and critical user flows.
+
+### Critical Findings (Blockers)
+
+1) Firebase discovery payload mismatch prevents real users from showing in deck
+- Cloud Function returns `profiles`, but client expects `candidates` and flattens fields.
+- Impact: Firebase discovery results are empty; only stub profiles appear in Hybrid mode.
+- Files:
+  - `functions/src/index.ts`
+  - `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart`
+
+2) Firebase chat callables missing for core actions
+- Client calls `sendMessage`, `markMessagesRead`, and `editMessage` callables that do not exist.
+- Impact: Messaging, read receipts, and edit flows fail in Firebase mode.
+- Files:
+  - `functions/src/index.ts`
+  - `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart`
+
+3) Firebase Storage rules do not match upload paths used by the app
+- Profile uploads use `users/{uid}/photos` and `users/{uid}/videos`, but rules allow `users/{uid}/media`.
+- Chat uploads use `chat_media/...`, but rules allow `chats/{matchId}/{messageId}/{fileName}`.
+- Impact: Media uploads fail in production (work in debug via local fallbacks).
+- Files:
+  - `storage.rules`
+  - `lib/features/profile/data/services/profile_media_service.dart`
+  - `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart`
+
+### High Findings
+
+4) Remote profile completeness scoring units mismatch (0–100 vs 0–1)
+- Cloud Function returns `score` in 0–100, UI expects 0–1.
+- Impact: progress bars overflow; percent labels can exceed 100%.
+- Files:
+  - `functions/src/index.ts`
+  - `lib/features/profile/data/services/profile_validation_service.dart`
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+
+5) Client uses `minimum: "message"` but function expects `"messaging"`
+- Function treats unknown values as swipe; future threshold divergence will break messaging gates.
+- Files:
+  - `functions/src/index.ts`
+  - `lib/features/profile/data/services/profile_validation_service.dart`
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+
+6) Discovery server ignores client filter parameters
+- Client passes `maxDistanceKm`, `passportModeEnabled`, and coordinates; function only uses profile prefs.
+- Impact: Passport mode and extended distance logic do not apply on Firebase.
+- Files:
+  - `functions/src/index.ts`
+  - `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart`
+
+### Medium Findings
+
+7) DiscoveryBloc not injected with ProfileRepository
+- `_loadUserPreferencesAndLocation` is never executed, so passport/location inputs are stale.
+- Impact: inconsistent distance logic and missed preference updates.
+- File:
+  - `lib/core/di.dart`
+
+8) ~~Android permissions missing for camera/microphone~~ ✅ FIXED
+- ~~No `CAMERA` or `RECORD_AUDIO` permissions declared in `AndroidManifest.xml`.~~
+- ~~Impact: voice notes/video calls may fail at runtime on Android.~~
+- Added: CAMERA, RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, READ/WRITE_EXTERNAL_STORAGE, READ_MEDIA_*
+- File:
+  - `android/app/src/main/AndroidManifest.xml`
+
+9) HybridDiscoveryRepository ships dummy accounts in Firebase mode
+- Production builds will show mock profiles unless explicitly switched.
+- Impact: compliance/UX risk if demo data appears in production.
+- File:
+  - `lib/core/di.dart`
+
+### Repo Hygiene / Unmanaged Files
+
+- Working tree is dirty with many modified files; audit results are not from a clean baseline.
+- Ignored artifacts present: `build/`, `firestore-debug.log`, `*.iml`.
+- Current `.gitignore` already excludes duplicate-numbered folders and debug logs.
+
+### Recommended Actions (Priority Order)
+
+P0 (Must Fix Before Production):
+- Align discovery payloads (`profiles` vs `candidates`) and flatten profile mapping.
+- Implement missing chat callables or switch Firebase chat to direct Firestore with rules.
+- Align Storage rules with actual upload paths (or update upload paths).
+- Normalize profile completeness scoring units (0–1 everywhere).
+
+P1 (Should Fix):
+- Use correct `minimum` parameter (`messaging`), and update client/constants.
+- Wire `ProfileRepository` into `DiscoveryBloc` for preference/location usage.
+- Add Android `CAMERA` and `RECORD_AUDIO` permissions; verify runtime requests.
+- Confirm production mode does not mix stub users.
+
+P2 (Cleanups / Config):
+- Verify deep link domain consistency across iOS + Android (`crushhour.app` vs `crush-265f7.firebaseapp.com`).
+- Ensure `firebase.json` hosting aligns with Flutter web build output.
+
+---
+
 ## 1. Architecture Overview
 
 ### Project Structure

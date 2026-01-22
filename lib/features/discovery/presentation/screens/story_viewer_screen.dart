@@ -19,6 +19,18 @@ import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/core/router.dart';
 
+class StoryViewerArgs {
+  const StoryViewerArgs({
+    required this.stories,
+    required this.profile,
+    this.initialIndex = 0,
+  });
+
+  final List<ProfileStory> stories;
+  final Profile profile;
+  final int initialIndex;
+}
+
 /// Full-screen story viewer with auto-advance and progress indicators.
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
@@ -219,7 +231,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     }
 
     final storyOwnerId = widget.profile.id;
-    final storyOwnerName = widget.profile.name;
+    final storyOwnerName = widget.profile.publicDisplayName;
 
     // Pause story while we look up the match
     _pause();
@@ -256,7 +268,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       } else {
         // No mutual match exists - inform user
         _resume();
-        _showSnackBarMessage('Match with ${widget.profile.name} first to send messages');
+        _showSnackBarMessage('Match with ${widget.profile.publicDisplayName} first to send messages');
       }
     } catch (e) {
       if (!mounted) return;
@@ -462,7 +474,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                profile.name,
+                profile.publicDisplayName,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,

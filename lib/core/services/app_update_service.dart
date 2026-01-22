@@ -21,9 +21,9 @@ class AppUpdateService {
 
   // Store URLs - Update these once your app is published to the stores
   // iOS: Replace 'id000000000' with your actual App Store ID after submission
-  // Android: Package ID is 'com.example.crushhour' (matches build.gradle.kts)
+  // Android: Package ID is 'com.ace.crush' (matches build.gradle.kts)
   static const String _appStoreUrl = 'https://apps.apple.com/app/crushhour/id000000000';
-  static const String _playStoreUrl = 'https://play.google.com/store/apps/details?id=com.example.crushhour';
+  static const String _playStoreUrl = 'https://play.google.com/store/apps/details?id=com.ace.crush';
 
   /// Initialize the service.
   Future<void> initialize() async {

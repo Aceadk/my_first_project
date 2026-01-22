@@ -233,13 +233,6 @@ class _StubAuthRepository implements AuthRepository {
   }) async {}
 
   @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async =>
-      null;
-
-  @override
   Future<bool> isEmailRegistered(String email) async => false;
 
   @override
@@ -280,10 +273,13 @@ class _StubProfileRepository implements ProfileRepository {
   Future<CrushUser> saveBasicInfo({
     String? username,
     required String name,
+    String? lastName,
     required int age,
     required String gender,
     String? sexualOrientation,
     DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
   }) async =>
       user;
 

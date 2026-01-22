@@ -6,7 +6,7 @@ import 'router_refresh_stream.dart';
 import 'performance/performance_observer.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import '../presentation/screens/splash_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/splash_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/auth_gateway_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/login_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart';
@@ -16,20 +16,23 @@ import '../presentation/screens/home_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/phone_auth_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/email_auth_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/email_verification_screen.dart';
-import '../presentation/screens/email_protection_screen.dart';
-import '../presentation/screens/phone_protection_screen.dart';
-import '../presentation/screens/change_email_screen.dart';
-import '../presentation/screens/new_device_screen.dart';
-import '../presentation/screens/basic_info_screen.dart';
-import '../presentation/screens/id_verification_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/email_protection_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/phone_protection_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/change_email_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/new_device_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/basic_info_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/id_verification_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
-import '../presentation/screens/logout_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/logout_screen.dart';
 import '../presentation/screens/safety_screen.dart';
 import '../presentation/screens/community_guidelines_screen.dart';
 import '../presentation/screens/test/test_video_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart' as settings;
 import 'package:crushhour/features/settings/presentation/screens/privacy_settings_screen.dart';
@@ -39,8 +42,17 @@ import 'package:crushhour/features/settings/presentation/screens/discovery_filte
 import 'package:crushhour/features/settings/presentation/screens/data_storage_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_security_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_actions_settings_screen.dart';
+import 'package:crushhour/features/settings/presentation/screens/chat_settings_screen.dart';
+import 'package:crushhour/features/settings/presentation/bloc/chat_settings_cubit.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/chat_settings.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/screens/likes_you_screen.dart';
 import 'package:crushhour/features/discovery/presentation/screens/weekly_picks_screen.dart';
+import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
 import 'package:crushhour/features/social/presentation/screens/date_ideas_screen.dart';
 import 'package:crushhour/features/social/presentation/screens/compatibility_quiz_screen.dart';
 import 'package:crushhour/features/analytics/presentation/screens/profile_insights_screen.dart';
@@ -71,12 +83,16 @@ class CrushRoutes {
   static const termsConditions = '/terms-conditions';
   static const home = '/home';
   static const chat = '/chat';
+  static const call = '/call';
+  static const videoCall = '/video-call';
   static const logout = '/logout';
   static const safety = '/safety';
   static const safetyGuidelines = '/safety-guidelines';
   static const testAgora = '/test-agora';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
+  static const profileMedia = '/profile/media';
+  static const storyViewer = '/story-viewer';
   static const userProfile = '/user-profile';
   static const settings = '/settings';
   static const privacySettings = '/settings/privacy';
@@ -86,6 +102,7 @@ class CrushRoutes {
   static const storageSettings = '/settings/storage';
   static const securitySettings = '/settings/security';
   static const accountSettings = '/settings/account';
+  static const chatSettings = '/settings/chat';
   static const widgetCatalog = '/dev/widget-catalog';
   static const likesYou = '/likes-you';
   static const weeklyPicks = '/weekly-picks';
@@ -115,7 +132,8 @@ GoRouter createRouter(AuthBloc authBloc) {
       final isSplash = path == CrushRoutes.splash;
       final isEmailVerificationRoute = path == CrushRoutes.emailVerification;
       final isTermsRoute = path == CrushRoutes.termsConditions;
-      final isProfileRoute = path == CrushRoutes.profile;
+      final isProfileRoute =
+          path == CrushRoutes.profile || path == CrushRoutes.profileMedia;
       final isProfileEditRoute = path == CrushRoutes.profileEdit;
       final isSettingsRoute = path.startsWith(CrushRoutes.settings);
       final isOnboardingRoute = path == CrushRoutes.basicInfo ||
@@ -419,6 +437,41 @@ GoRouter createRouter(AuthBloc authBloc) {
         },
       ),
       GoRoute(
+        path: CrushRoutes.call,
+        pageBuilder: (context, state) {
+          final args = state.extra;
+          if (args is CallScreenArgs) {
+            return _buildPage(
+              state,
+              CallScreen(
+                matchId: args.matchId,
+                isVideoCall: args.isVideoCall,
+                matchName: args.matchName,
+                matchPhotoUrl: args.matchPhotoUrl,
+              ),
+            );
+          }
+          return _buildPage(state, const HomeScreen());
+        },
+      ),
+      GoRoute(
+        path: CrushRoutes.videoCall,
+        pageBuilder: (context, state) {
+          final args = state.extra;
+          if (args is VideoCallArgs) {
+            return _buildPage(
+              state,
+              VideoCallScreen(
+                currentUserId: args.currentUserId,
+                otherUserId: args.otherUserId,
+                otherName: args.otherName,
+              ),
+            );
+          }
+          return _buildPage(state, const HomeScreen());
+        },
+      ),
+      GoRoute(
         path: CrushRoutes.logout,
         pageBuilder: (context, state) =>
             _buildPage(state, const LogoutScreen()),
@@ -482,6 +535,19 @@ GoRouter createRouter(AuthBloc authBloc) {
             _buildPage(state, const ProfileEditScreen()),
       ),
       GoRoute(
+        path: CrushRoutes.profileMedia,
+        pageBuilder: (context, state) {
+          final args = state.extra;
+          if (args is ProfileMediaArgs) {
+            return _buildPage(
+              state,
+              ProfileMediaScreen(profile: args.profile),
+            );
+          }
+          return _buildPage(state, const HomeScreen());
+        },
+      ),
+      GoRoute(
         path: CrushRoutes.settings,
         pageBuilder: (context, state) =>
             _buildPage(state, const settings.SettingsScreen()),
@@ -522,11 +588,49 @@ GoRouter createRouter(AuthBloc authBloc) {
             _buildPage(state, const AccountActionsSettingsScreen()),
       ),
       GoRoute(
+        path: CrushRoutes.chatSettings,
+        pageBuilder: (context, state) {
+          // Get current chat settings from profile and subscription status
+          final profileState = context.read<ProfileBloc>().state;
+          final subState = context.read<SubscriptionBloc>().state;
+          final chatSettings = profileState.profile?.chatSettings ?? const ChatSettings();
+          final isPremium = subState.plan == SubscriptionPlan.plus;
+
+          return _buildPage(
+            state,
+            BlocProvider(
+              create: (_) => ChatSettingsCubit(
+                initialSettings: chatSettings,
+                isPremium: isPremium,
+              ),
+              child: const ChatSettingsScreen(),
+            ),
+          );
+        },
+      ),
+      GoRoute(
         path: CrushRoutes.userProfile,
         pageBuilder: (context, state) {
           final args = state.extra;
           if (args is OtherUserProfileArgs) {
             return _buildPage(state, OtherUserProfileScreen(args: args));
+          }
+          return _buildPage(state, const HomeScreen());
+        },
+      ),
+      GoRoute(
+        path: CrushRoutes.storyViewer,
+        pageBuilder: (context, state) {
+          final args = state.extra;
+          if (args is StoryViewerArgs && args.stories.isNotEmpty) {
+            return _buildPage(
+              state,
+              StoryViewerScreen(
+                stories: args.stories,
+                profile: args.profile,
+                initialIndex: args.initialIndex,
+              ),
+            );
           }
           return _buildPage(state, const HomeScreen());
         },

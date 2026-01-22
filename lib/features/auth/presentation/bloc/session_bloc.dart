@@ -26,15 +26,6 @@ class SessionUserChanged extends SessionEvent {
 
 class SessionSignOutRequested extends SessionEvent {}
 
-class SessionDevBypassRequested extends SessionEvent {
-  final String identifier;
-  final String password;
-  SessionDevBypassRequested(this.identifier, this.password);
-
-  @override
-  List<Object?> get props => [identifier, password];
-}
-
 class SessionTimeoutOccurred extends SessionEvent {}
 
 class SessionActivityRecorded extends SessionEvent {}
@@ -100,7 +91,6 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     on<SessionStarted>(_onStarted);
     on<SessionUserChanged>(_onUserChanged);
     on<SessionSignOutRequested>(_onSignOutRequested);
-    on<SessionDevBypassRequested>(_onDevBypassRequested);
     on<SessionTimeoutOccurred>(_onSessionTimeout);
     on<SessionActivityRecorded>(_onActivityRecorded);
   }
@@ -231,43 +221,6 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   ) {
     // Record user activity to reset inactivity timer
     _sessionManager.recordActivity();
-  }
-
-  Future<void> _onDevBypassRequested(
-    SessionDevBypassRequested event,
-    Emitter<SessionState> emit,
-  ) async {
-    emit(state.copyWith(
-      status: SessionStatus.authenticating,
-      isLoading: true,
-      clearError: true,
-    ));
-
-    final result = await Result.guard(
-      () => authRepository.devLoginBypass(
-        identifier: event.identifier,
-        password: event.password,
-      ),
-      logLabel: 'SessionBloc.devBypass',
-      fallbackError: 'Dev bypass failed.',
-    );
-
-    final user = result.data;
-    if (user == null) {
-      emit(state.copyWith(
-        status: SessionStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage ?? 'Dev bypass not available.',
-      ));
-      return;
-    }
-
-    emit(state.copyWith(
-      status: SessionStatus.authenticated,
-      user: user,
-      isLoading: false,
-      clearError: true,
-    ));
   }
 
   @override

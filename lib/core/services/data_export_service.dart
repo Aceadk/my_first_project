@@ -131,6 +131,7 @@ class DataExportService {
   Map<String, dynamic> _sanitizeProfileData(Profile profile) {
     return {
       'name': profile.name,
+      'lastName': profile.lastName,
       'age': profile.age,
       'gender': profile.gender,
       'sexualOrientation': profile.sexualOrientation,

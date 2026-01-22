@@ -36,10 +36,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+        leading: GlassIconButton(
+          icon: Icons.arrow_back,
+          tooltip: 'Back',
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -106,34 +107,48 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         DsGap.xxl,
         // Send button
-        SizedBox(
-          width: double.infinity,
-          child: GlassPrimaryButton(
-            onPressed: _isLoading ? null : _requestPasswordReset,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+        Semantics(
+          button: true,
+          label: 'Send Reset Link',
+          child: SizedBox(
+            width: double.infinity,
+            child: GlassPrimaryButton(
+              onPressed: _isLoading ? null : _requestPasswordReset,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: DsColors.backgroundLight,
+                      ),
+                    )
+                  : const Text(
+                      'Send Reset Link',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  )
-                : const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+            ),
           ),
         ),
         DsGap.xl,
         // Back to login
-        TextButton.icon(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, size: 18),
-          label: const Text('Back to Sign In'),
+        Semantics(
+          button: true,
+          label: 'Back to Sign In',
+          child: GlassSmallButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_back, size: 18),
+                SizedBox(width: 8),
+                Text('Back to Sign In'),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -149,7 +164,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           height: 80,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [DsColors.success, Color(0xFF4CAF50)],
+              colors: [DsColors.success, DsColors.success],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -165,7 +180,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: const Icon(
             Icons.mark_email_read_outlined,
             size: 40,
-            color: Colors.white,
+            color: DsColors.backgroundLight,
           ),
         ),
         DsGap.xxl,
@@ -331,37 +346,45 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         DsGap.xxxl,
         // Open email app button
-        SizedBox(
-          width: double.infinity,
-          child: GlassOutlinedButton(
-            onPressed: _openEmailApp,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.open_in_new, size: 18),
-                SizedBox(width: 8),
-                Text(
-                  'Open Email App',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+        Semantics(
+          button: true,
+          label: 'Open Email App',
+          child: SizedBox(
+            width: double.infinity,
+            child: GlassOutlinedButton(
+              onPressed: _openEmailApp,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.open_in_new, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Open Email App',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         DsGap.md,
         // Back to login button
-        SizedBox(
-          width: double.infinity,
-          child: GlassPrimaryButton(
-            onPressed: () => context.go(CrushRoutes.login),
-            child: const Text(
-              'Back to Sign In',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+        Semantics(
+          button: true,
+          label: 'Back to Sign In',
+          child: SizedBox(
+            width: double.infinity,
+            child: GlassPrimaryButton(
+              onPressed: () => context.go(CrushRoutes.login),
+              child: const Text(
+                'Back to Sign In',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -377,12 +400,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
             ),
-            TextButton(
-              onPressed: _isLoading ? null : _resendEmail,
-              child: Text(
-                _isLoading ? 'Sending...' : 'Resend',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
+            Semantics(
+              button: true,
+              label: _isLoading ? 'Sending email' : 'Resend email',
+              child: GlassSmallButton(
+                onPressed: _isLoading ? null : _resendEmail,
+                child: Text(
+                  _isLoading ? 'Sending...' : 'Resend',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

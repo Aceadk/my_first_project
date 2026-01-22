@@ -137,6 +137,10 @@ class WeeklyPicksService {
     return allInterests.take(Random().nextInt(3) + 2).toList();
   }
 
+  void clearUserData() {
+    _currentPicks = null;
+  }
+
   void dispose() {
     _picksController.close();
   }

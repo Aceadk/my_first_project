@@ -32,11 +32,326 @@ Manual flow:
 
 ## Active Tasks
 
-(None currently)
+## Completed Tasks
+
+### Task: Move auth screens into auth feature folder
+ID: T-024
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Relocate auth/onboarding account screens from `lib/presentation/screens` into `lib/features/auth/presentation/screens` and update imports/barrels.
+
+Scope (in/out):
+In:
+- Splash, Basic Info, Email/Phone protection, Change Email, New Device, ID verification, Logout screens
+- Router imports and profile barrel exports
+- Auth system documentation paths
+Out:
+- Home, safety, privacy/terms, and other non-auth screens
+- Routing behavior changes
+
+Files changed:
+- lib/features/auth/presentation/screens/splash_screen.dart
+- lib/features/auth/presentation/screens/basic_info_screen.dart
+- lib/features/auth/presentation/screens/email_protection_screen.dart
+- lib/features/auth/presentation/screens/phone_protection_screen.dart
+- lib/features/auth/presentation/screens/change_email_screen.dart
+- lib/features/auth/presentation/screens/new_device_screen.dart
+- lib/features/auth/presentation/screens/id_verification_screen.dart
+- lib/features/auth/presentation/screens/logout_screen.dart
+- lib/core/router.dart
+- lib/features/profile/profile.dart
+- docs/auth_system.md
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- Missed import update after moving screens could break builds.
+
+Acceptance criteria:
+- ✅ Screens live under `lib/features/auth/presentation/screens`
+- ✅ No runtime references to old `lib/presentation/screens` paths
+
+Verification:
+Commands: Not run (not requested)
+Manual flow:
+1. Launch app -> splash -> auth gateway
+2. Navigate to email/phone protection, change email, new device
+3. Complete Basic Info -> ID verification
+4. Open logout screen from settings
+
+Completed: 2026-01-23
+
+### Task: UI/UX polish for auth flow
+ID: T-023
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Replace hard-coded colors with DsColors, swap Material buttons to Glass variants, and add accessibility labels in auth screens.
+
+Scope (in/out):
+In:
+- Auth gateway, login, sign up, email auth, phone auth, OTP, forgot password, email verification, terms
+Out:
+- Discovery, chat, profile, settings screens (follow-up)
+
+Files changed:
+- lib/features/auth/presentation/screens/auth_gateway_screen.dart
+- lib/features/auth/presentation/screens/login_screen.dart
+- lib/features/auth/presentation/screens/sign_up_screen.dart
+- lib/features/auth/presentation/screens/email_auth_screen.dart
+- lib/features/auth/presentation/screens/phone_auth_screen.dart
+- lib/features/auth/presentation/screens/otp_screen.dart
+- lib/features/auth/presentation/screens/forgot_password_screen.dart
+- lib/features/auth/presentation/screens/email_verification_screen.dart
+- lib/features/auth/presentation/screens/terms_conditions_screen.dart
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- Glass buttons replace link-style actions; could reduce visual affordance
+
+Acceptance criteria:
+- ✅ Auth screens use DsColors and Glass button variants
+- ✅ Key actions have Semantics labels
+
+Verification:
+Commands: Not run (not requested)
+Manual flow:
+1. Auth gateway -> create account/sign in
+2. Login -> forgot password -> back
+3. Email/phone auth -> OTP -> resend
+4. Email verification -> resend/check/sign out
+
+Completed: 2026-01-23
+
+### Task: Add missing routes for call/video/media/story screens
+ID: T-022
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Add GoRouter entries for CallScreen, VideoCallScreen, ProfileMediaScreen, and StoryViewerScreen, and wire entry points.
+
+Scope (in/out):
+In:
+- Router constants and GoRoute definitions
+- Navigation updates from chat and swipe card
+- Story badge entry from discovery cards
+Out:
+- Deep link handling or backend call setup
+
+Files changed:
+- lib/core/router.dart
+- lib/features/calls/presentation/screens/call_screen.dart
+- lib/features/calls/presentation/screens/video_call_screen.dart
+- lib/features/chat/presentation/screens/chat_screen.dart
+- lib/features/discovery/presentation/widgets/swipe_card.dart
+- lib/features/discovery/presentation/screens/story_viewer_screen.dart
+- lib/features/profile/presentation/screens/profile_media_screen.dart
+- docs/project_flowchart.md
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- Call screen uses stub caller ID; now reachable from chat
+
+Acceptance criteria:
+- ✅ Routes exist for call/video/profile media/story viewer
+- ✅ Video call + profile media use GoRouter navigation
+- ✅ Story badge opens story viewer when stories exist
+
+Verification:
+Commands: Not run (not requested)
+Manual flow:
+1. Chat -> tap video call -> video call screen opens
+2. Chat -> tap audio call -> call screen opens after confirm
+3. Discovery card -> tap story badge -> story viewer opens
+4. Discovery card -> tap media -> profile media screen opens
+
+Completed: 2026-01-23
+
+### Task: Fix Boost timer + add auth cleanup for feature cubits
+ID: T-021
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Resolve BoostCubit timer recursion and ensure feature cubits reset on logout.
+
+Scope (in/out):
+In:
+- BoostCubit refresh/timer behavior
+- Auth cleanup for WeeklyPicksCubit, DateIdeasCubit, CompatibilityQuizCubit, ProfileInsightsCubit
+- Clear in-memory service caches on logout
+Out:
+- Routing, DI, or UI changes
+
+Files changed:
+- lib/features/discovery/presentation/bloc/boost_cubit.dart
+- lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart
+- lib/features/discovery/data/services/weekly_picks_service.dart
+- lib/features/social/presentation/bloc/date_ideas_cubit.dart
+- lib/features/social/data/services/date_idea_service.dart
+- lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart
+- lib/features/social/data/services/compatibility_quiz_service.dart
+- lib/features/analytics/presentation/bloc/profile_insights_cubit.dart
+- lib/features/analytics/data/services/profile_insights_service.dart
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- Resetting cubit state on logout could clear in-flight UI state
+
+Acceptance criteria:
+- ✅ BoostCubit does not spawn recursive timers during refresh
+- ✅ WeeklyPicks/DateIdeas/CompatibilityQuiz/ProfileInsights clear state on logout
+- ✅ In-memory service caches cleared on logout to reduce data leakage
+
+Verification:
+Commands: Not run (not requested)
+Manual flow:
+1. Activate boost -> wait for expiry -> verify refresh happens once
+2. Log out -> verify Weekly Picks/Date Ideas/Quiz/Insights reset
+
+Completed: 2026-01-23
+
+### Task: Project-wide audit + repo hygiene scan
+ID: T-020
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Perform a cross-cutting audit of architecture, flows, Firebase alignment, and repo hygiene; document findings.
+
+Scope (in/out):
+In:
+- Static review of routing, DI, discovery, chat, profile completeness, and Firebase config/rules
+- Platform parity check (iOS/Android manifests)
+- Repo hygiene scan (ignored/unmanaged artifacts)
+Out:
+- Code fixes or deletions (requires follow-up approval)
+
+Files changed:
+- AUDIT_REPORT.md
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+- docs/risk_notes.md
+
+Risks:
+- Audit is static-only (no builds/device tests run)
+
+Acceptance criteria:
+- ✅ Audit addendum recorded with severity-ranked findings and next steps
+- ✅ Repo hygiene observations documented
+
+Verification:
+Commands: None (static review)
+Manual flow:
+1. Read AUDIT_REPORT.md for findings and recommendations
+
+Completed: 2026-01-22
 
 ---
 
-## Completed Tasks
+### Task: Match celebration heart animation polish
+ID: T-019
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Move the heart above the matched photos and add smooth pulsing rings around each avatar.
+
+Scope (in/out):
+In:
+- Match celebration modal layout/animation
+Out:
+- BLoC, routing, or data changes
+
+Files changed:
+- lib/features/discovery/presentation/widgets/match_celebration_modal.dart
+- docs/ai_collab_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+
+Risks:
+- Animation layering could impact performance on low-end devices
+
+Acceptance criteria:
+- ✅ Heart icon no longer sits between the two photos
+- ✅ Smooth heart pulse appears above the photos
+- ✅ Two ring pulses appear around the photos
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Trigger a match and observe the celebration modal
+2. Confirm heart animates above photos and rings pulse smoothly
+
+Completed: 2026-01-21
+
+---
+
+### Task: Add skeleton loaders across core screens
+ID: T-018
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Replace spinners with skeleton loaders on discovery, matches, chat, and profile screens.
+
+Scope (in/out):
+In:
+- Deck (discovery) loading state
+- Matches screen loading states
+- Chat screen initial load
+- Profile view loading state
+Out:
+- BLoC logic changes
+- Navigation or routing changes
+
+Files changed:
+- lib/features/discovery/presentation/widgets/deck_skeleton.dart
+- lib/features/chat/presentation/screens/matches_screen.dart
+- lib/features/chat/presentation/screens/chat_screen.dart
+- lib/features/profile/presentation/screens/profile_view_screen.dart
+
+Risks:
+- Shimmer animations could affect performance on low-end devices
+
+Acceptance criteria:
+- ✅ Skeleton loaders appear during initial loads on the four screens
+- ✅ No layout regressions or scroll conflicts
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Launch app -> Discovery shows skeleton before deck loads
+2. Open Matches -> skeletons show while matches load
+3. Open Chat -> skeletons show while messages load
+4. Open Profile -> skeleton shows while profile loads
+
+Completed: 2026-01-20
+
+---
 
 ### Task: CRITICAL - Fix user data leakage on logout
 ID: T-001
@@ -173,6 +488,57 @@ Manual flow:
 2. Open Matches -> Likes You section shows blurred cards
 3. Tap blurred card -> upgrade prompt appears
 4. Tap matched user -> chat opens
+
+Completed: 2026-01-20
+
+---
+
+### Task: Add last name + name privacy controls
+ID: T-013
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Capture first/last name during Basic Info, store in Firestore, and respect name privacy defaults when showing other users.
+
+Scope (in/out):
+In:
+- Profile model + privacy settings
+- Firestore/saveBasicInfo/load paths
+- Basic Info + Profile Edit UI
+- Public profile name rendering (discovery/matches)
+Out:
+- Backend migration scripts
+- Auth/session flow changes
+
+Files changed:
+- lib/data/models/profile.dart
+- lib/data/models/privacy_settings.dart
+- lib/presentation/screens/basic_info_screen.dart
+- lib/features/profile/presentation/screens/profile_edit_screen.dart
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+- lib/features/discovery/presentation/widgets/swipe_card.dart
+- docs/project_flowchart.md
+- docs/project_dfd.md
+- docs/project_er_diagram.md
+
+Risks:
+- Name privacy defaults may hide names in UI unexpectedly
+- Incomplete persistence if last name not saved in all repo paths
+
+Acceptance criteria:
+- ✅ Basic Info saves first + last name to profile
+- ✅ Name visibility defaults to private and can be changed in profile
+- ✅ Other users see placeholder when name is private
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. New account -> Basic Info -> enter first/last name -> continue
+2. View another user's profile/cards: name hidden by default
+3. Toggle name visibility in Profile Edit -> verify display updates
 
 Completed: 2026-01-20
 
@@ -446,6 +812,173 @@ Manual flow:
 - Render Mermaid diagrams in a Markdown viewer
 
 Completed: 2026-01-20
+
+---
+
+### Task: Chat screen comprehensive improvements
+ID: T-014
+Owner AI: Claude
+Critic AI: N/A
+Status: Done
+
+Goal:
+Improve chat screen UX with expandable input, voice preview, profile viewing, mute indicators, and visual polish.
+
+Scope (in/out):
+In:
+- Message input field expansion
+- Voice message preview before sending
+- View Profile from avatar/name/menu
+- Mute indicators next to user name
+- Fade-away mute notifications
+- Bottom bar glass styling
+Out:
+- Message persistence changes
+- Voice message storage changes
+
+Files changed:
+- lib/features/chat/presentation/screens/chat_screen.dart
+- lib/features/chat/presentation/widgets/voice_note_recorder.dart
+
+Risks:
+- AudioPlayer conflicts → Mitigated: separate instances
+- Profile navigation failure → Mitigated: fallback to minimal profile
+
+Acceptance criteria:
+- ✅ Message input expands to 4 lines max
+- ✅ Voice recording shows preview with play/pause/re-record
+- ✅ Avatar/name tap opens profile
+- ✅ View Profile in menu opens profile
+- ✅ Mute indicators visible when muted
+- ✅ Fade notifications on mute actions
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Open chat, type long message, verify input expands
+2. Record voice, verify preview UI appears
+3. Tap avatar or View Profile, verify navigation
+4. Mute messages, verify icon appears and notification fades
+
+Completed: 2026-01-21
+
+---
+
+### Task: Verify block user and three-dot menu functionality
+ID: T-015
+Owner AI: Claude
+Critic AI: N/A
+Status: Done
+
+Goal:
+Verify all three-dot menu actions work correctly in chat screen.
+
+Scope (in/out):
+In:
+- Block/unblock verification
+- Report verification
+- Unmatch verification
+- Mute messages/calls verification
+Out:
+- Code changes (verification only)
+
+Files changed:
+- None (verification task)
+
+Risks:
+- None identified
+
+Acceptance criteria:
+- ✅ Block creates Firestore record and shows blocked banner
+- ✅ Unblock removes block and enables chat
+- ✅ Report creates Firestore record
+- ✅ Unmatch removes match from both users
+- ✅ Mute states persist locally
+
+Verification:
+Commands: Code review only
+Manual flow:
+- Traced code paths from UI to Cloud Functions
+
+Completed: 2026-01-21
+
+---
+
+### Task: Add mandatory documentation workflow to CLAUDE.md
+ID: T-016
+Owner AI: Claude
+Critic AI: N/A
+Status: Done
+
+Goal:
+Ensure all AI assistants (Claude, Codex, others) read docs before changes and update docs after every task.
+
+Scope (in/out):
+In:
+- CLAUDE.md instructions update
+- Quick reference checklist
+Out:
+- Actual documentation content (handled separately)
+
+Files changed:
+- CLAUDE.md
+
+Risks:
+- Added overhead → Mitigated: benefits outweigh costs
+
+Acceptance criteria:
+- ✅ Rule added to read docs BEFORE making changes
+- ✅ Rule added to update docs AFTER completing tasks
+- ✅ Quick reference checklist added
+- ✅ Both Claude and Codex covered
+
+Verification:
+Commands: Review CLAUDE.md
+Manual flow:
+- Verify new sections present and clear
+
+Completed: 2026-01-21
+
+---
+
+### Task: Deck screen UI adjustments
+ID: T-017
+Owner AI: Claude
+Critic AI: N/A
+Status: Done
+
+Goal:
+Move verification badge to after name/age, fix bio going behind bottom nav, make description minimal.
+
+Scope (in/out):
+In:
+- Verification badge position change
+- Bottom positioning of info panel
+- Bio/prompt display simplification
+Out:
+- No functional changes to swipe behavior
+
+Files changed:
+- lib/features/discovery/presentation/widgets/swipe_card.dart
+
+Risks:
+- Content overlap → Mitigated: used Flexible + ellipsis for truncation
+
+Acceptance criteria:
+- ✅ Verification badge appears after "Name, Age" (not top-right)
+- ✅ Bio/prompt does not go behind bottom navigation
+- ✅ Description is minimal (single line)
+- ✅ Unused _GlassVerificationPill removed
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. View deck screen with verified user
+2. Confirm badge is next to name/age
+3. Confirm bio stays above bottom nav
+4. Confirm deck looks cleaner/less cluttered
+
+Completed: 2026-01-21
 
 ---
 

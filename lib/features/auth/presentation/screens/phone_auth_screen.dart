@@ -6,6 +6,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
 import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
 
@@ -189,22 +190,26 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               },
                         nextLoading: isLoading,
                       ),
-                      TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => context.go(CrushRoutes.emailAuth),
-                        child: const Text('Use email instead'),
+                      Semantics(
+                        button: true,
+                        label: 'Use email instead',
+                        child: GlassSmallButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => context.go(CrushRoutes.emailAuth),
+                          child: const Text('Use email instead'),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 if (isLoading)
-                  Positioned.fill(
+                  const Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: DsColors.overlayLight,
                       ),
-                      child: const Center(
+                      child: Center(
                         child: CircularProgressIndicator(),
                       ),
                     ),

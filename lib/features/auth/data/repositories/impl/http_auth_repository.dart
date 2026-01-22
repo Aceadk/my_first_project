@@ -8,7 +8,6 @@ import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/auth_dto.dart';
 import 'package:crushhour/core/network/mappers/auth_mapper.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
 
 /// HTTP-based implementation of AuthRepository.
@@ -428,35 +427,6 @@ class HttpAuthRepository implements AuthRepository {
       }
     }
     return null;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // DEV BYPASS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async {
-    if (!isVerificationBypassEnabled) return null;
-    if (identifier != 'admin123' || password != 'admin123') return null;
-
-    // Create a mock user for development
-    _currentUser = const CrushUser(
-      id: 'dev_user_001',
-      phoneNumber: '+1234567890',
-      email: 'admin@crushhour.dev',
-      username: 'Admin',
-      isEmailVerified: true,
-      isPhoneVerified: true,
-      isIdVerified: true,
-      plan: SubscriptionPlan.plus,
-      hasAcceptedTerms: true,
-    );
-
-    _emitAuthState(_currentUser);
-    return _currentUser;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -177,16 +177,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onBasicInfoSubmitted(
       ProfileBasicInfoSubmitted event, Emitter<ProfileState> emit) async {
-    AppLogger.logInfo('[ProfileBloc] _onBasicInfoSubmitted: name=${event.name}, age=${event.age}, gender=${event.gender}');
+    AppLogger.logInfo('[ProfileBloc] _onBasicInfoSubmitted: firstName=${event.name}, lastName=${event.lastName}, age=${event.age}, gender=${event.gender}');
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final result = await Result.guard(
       () => profileRepository.saveBasicInfo(
         username: event.username,
         name: event.name,
+        lastName: event.lastName,
         age: event.age,
         gender: event.gender,
         sexualOrientation: event.sexualOrientation,
         dateOfBirth: event.dateOfBirth,
+        showFirstName: event.showFirstName,
+        showLastName: event.showLastName,
       ),
       logLabel: 'ProfileRepository.saveBasicInfo',
       fallbackError: 'Could not save basic info. Please try again.',
@@ -197,14 +200,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // Track profile update
     if (result.isSuccess) {
       AnalyticsService.instance.logProfileUpdated(
-        fieldsUpdated: ['name', 'age', 'gender', 'sexualOrientation'],
+        fieldsUpdated: ['firstName', 'lastName', 'age', 'gender', 'sexualOrientation'],
       );
     }
 
     final user = result.data;
     AppLogger.logInfo('[ProfileBloc] After save: hasUser=${user != null}, hasProfile=${user?.profile != null}');
     if (user != null) {
-      AppLogger.logInfo('[ProfileBloc] User profile: name=${user.profile?.name}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}');
+      AppLogger.logInfo('[ProfileBloc] User profile: firstName=${user.profile?.name}, lastName=${user.profile?.lastName}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}');
     }
 
     emit(state.copyWith(

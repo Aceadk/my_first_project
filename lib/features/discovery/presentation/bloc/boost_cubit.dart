@@ -62,32 +62,12 @@ class BoostCubit extends Cubit<BoostState> {
   final BoostRepository _boostRepository;
   Timer? _countdownTimer;
   String? _userId;
+  bool _isRefreshing = false;
 
   /// Initialize boost status for a user.
   Future<void> initialize(String userId) async {
     _userId = userId;
-    emit(state.copyWith(isLoading: true));
-
-    final result = await Result.guard(
-      () => _boostRepository.getBoostStatus(userId),
-      logLabel: 'BoostRepository.getBoostStatus',
-      fallbackError: 'Could not load boost status.',
-    );
-
-    if (result.isSuccess && result.data != null) {
-      emit(state.copyWith(
-        status: result.data,
-        isLoading: false,
-      ));
-
-      // Start countdown timer if boost is active or on cooldown
-      _startCountdownTimer();
-    } else {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
-    }
+    await _refreshStatus(showLoading: true);
   }
 
   /// Activate a boost for the current user.
@@ -118,7 +98,7 @@ class BoostCubit extends Cubit<BoostState> {
       AnalyticsService.instance.logBoostActivated();
 
       // Start countdown timer
-      _startCountdownTimer();
+      _startCountdownTimer(state.status);
     } else {
       emit(state.copyWith(
         isLoading: false,
@@ -127,23 +107,63 @@ class BoostCubit extends Cubit<BoostState> {
     }
   }
 
+  Future<void> _refreshStatus({bool showLoading = false}) async {
+    if (_userId == null || _isRefreshing) return;
+    _isRefreshing = true;
+
+    if (showLoading) {
+      emit(state.copyWith(isLoading: true, errorMessage: null));
+    }
+
+    try {
+      final result = await Result.guard(
+        () => _boostRepository.getBoostStatus(_userId!),
+        logLabel: 'BoostRepository.getBoostStatus',
+        fallbackError: 'Could not load boost status.',
+      );
+
+      if (isClosed) return;
+
+      if (result.isSuccess && result.data != null) {
+        final status = result.data!;
+        emit(state.copyWith(
+          status: status,
+          isLoading: false,
+          errorMessage: null,
+        ));
+
+        _startCountdownTimer(status);
+      } else {
+        _countdownTimer?.cancel();
+        emit(state.copyWith(
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ));
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
   /// Start a timer to update the countdown.
-  void _startCountdownTimer() {
+  void _startCountdownTimer(BoostStatus status) {
     _countdownTimer?.cancel();
+
+    if (!_shouldStartCountdown(status)) {
+      return;
+    }
 
     // Update every second while boost is active or on cooldown
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (isClosed) return;
+      if (isClosed || _isRefreshing) return;
 
       final currentStatus = state.status;
 
       // Check if boost just ended
       if (currentStatus.activeSession != null &&
           currentStatus.activeSession!.hasExpired) {
-        // Boost ended - refresh status
-        if (_userId != null) {
-          initialize(_userId!);
-        }
+        _countdownTimer?.cancel();
+        _refreshStatus();
         return;
       }
 
@@ -151,10 +171,8 @@ class BoostCubit extends Cubit<BoostState> {
       if (!currentStatus.canBoost &&
           currentStatus.cooldownRemaining == Duration.zero &&
           currentStatus.activeSession == null) {
-        // Cooldown ended - refresh status
-        if (_userId != null) {
-          initialize(_userId!);
-        }
+        _countdownTimer?.cancel();
+        _refreshStatus();
         return;
       }
 
@@ -163,6 +181,13 @@ class BoostCubit extends Cubit<BoostState> {
       // not the dynamic getter values like remainingDuration
       emit(state.copyWith(tick: state.tick + 1));
     });
+  }
+
+  bool _shouldStartCountdown(BoostStatus status) {
+    if (status.activeSession != null && !status.activeSession!.hasExpired) {
+      return true;
+    }
+    return !status.canBoost && status.cooldownRemaining > Duration.zero;
   }
 
   @override

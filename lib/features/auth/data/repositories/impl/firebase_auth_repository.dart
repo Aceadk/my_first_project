@@ -28,7 +28,6 @@ class FirebaseAuthRepository implements AuthRepository {
 
   CrushUser? _currentUser;
   StreamSubscription<fb.User?>? _firebaseAuthSubscription;
-  bool _devBypassInProgress = false;
 
   // ActionCodeSettings for Email Link Authentication
   static final _actionCodeSettings = fb.ActionCodeSettings(
@@ -37,11 +36,11 @@ class FirebaseAuthRepository implements AuthRepository {
     // This must be true for email link sign-in
     handleCodeInApp: true,
     // Android settings
-    androidPackageName: 'com.example.crushhour',
+    androidPackageName: 'com.ace.crush',
     androidInstallApp: true,
     androidMinimumVersion: '21',
     // iOS settings
-    iOSBundleId: 'com.crushhour.app',
+    iOSBundleId: 'com.ace.crush',
   );
 
   FirebaseAuthRepository({fb.FirebaseAuth? firebaseAuth})
@@ -52,12 +51,6 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   Future<void> _onFirebaseAuthStateChanged(fb.User? firebaseUser) async {
-    // Skip processing during dev bypass to prevent overwriting verified status
-    if (_devBypassInProgress) {
-      AppLogger.logInfo('[FirebaseAuthRepo] Skipping auth state change during dev bypass');
-      return;
-    }
-
     if (firebaseUser == null) {
       _currentUser = null;
       _authStateController.add(null);
@@ -83,8 +76,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
-      final isDeveloper = userData['isDeveloper'] as bool? ?? false;
-      // Read phone verification status from Firestore - don't assume from isDeveloper
+      // Read phone verification status from Firestore
       final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
       final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
       await _cacheTermsAccepted(firebaseUser.uid, hasAcceptedTerms);
@@ -97,7 +89,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       // Determine if we need to update email verification status
       final needsEmailVerificationUpdate = !firebaseUser.emailVerified &&
-          (firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper);
+          (firestoreEmailVerified || emailVerifiedViaOtp);
 
       // Check if any state differs from current user
       final currentTermsStatus = _currentUser?.hasAcceptedTerms ?? false;
@@ -118,7 +110,7 @@ class FirebaseAuthRepository implements AuthRepository {
           email: firebaseUser.email,
           username: firebaseUser.displayName,
           // Use Firestore verification if not verified via Firebase SDK
-          isEmailVerified: firebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper,
+          isEmailVerified: firebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp,
           // Phone verification should come from Firestore or Firebase Auth
           isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
@@ -195,6 +187,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'plan': 'free',
           'profile': {
             'name': displayName,
+            'lastName': '',
             'age': 0,
             'gender': '',
             'bio': '',
@@ -206,6 +199,7 @@ class FirebaseAuthRepository implements AuthRepository {
             'city': '',
             'isVerified': false,
             'languages': <String>[],
+            'privacySettings': const ProfilePrivacySettings().toJson(),
           },
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -1013,97 +1007,6 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // DEV BYPASS (creates test account for development)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async {
-    // Only allow in debug mode with specific credentials
-    if (identifier != 'admin123' || password != 'admin123') {
-      return null;
-    }
-
-    // Set flag to prevent Firebase auth listener from overwriting our state
-    _devBypassInProgress = true;
-
-    const testEmail = 'dev@crushhour.test';
-    const testPassword = 'DevTest123!@#';
-
-    fb.User? firebaseUser;
-
-    try {
-      // Try to sign in with existing test account
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: testEmail,
-        password: testPassword,
-      );
-      firebaseUser = credential.user;
-    } on fb.FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
-        // Create the test account
-        try {
-          final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-            email: testEmail,
-            password: testPassword,
-          );
-          firebaseUser = credential.user;
-        } catch (createError) {
-          AppLogger.logError('Dev bypass create account', createError);
-          _devBypassInProgress = false;
-          return null;
-        }
-      } else {
-        _devBypassInProgress = false;
-        return null;
-      }
-    }
-
-    if (firebaseUser == null) {
-      _devBypassInProgress = false;
-      return null;
-    }
-
-    await _ensureUserDocumentExists(firebaseUser);
-
-    // Mark as verified in Firestore for dev purposes
-    await _firestore.collection('users').doc(firebaseUser.uid).set({
-      'isEmailVerified': true,
-      'isDeveloper': true,
-    }, SetOptions(merge: true));
-
-    // Read existing terms acceptance (if dev user has previously accepted)
-    final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
-    final hasAcceptedTerms = userDoc.data()?['hasAcceptedTerms'] as bool? ?? false;
-
-    // Return a dev user with email verified = true (bypass Firebase Auth check)
-    final devUser = CrushUser(
-      id: firebaseUser.uid,
-      phoneNumber: firebaseUser.phoneNumber ?? '',
-      email: firebaseUser.email,
-      username: 'DevUser',
-      isEmailVerified: true, // Force verified for dev bypass
-      isPhoneVerified: true, // Force verified for dev bypass
-      isIdVerified: false,
-      plan: SubscriptionPlan.free,
-      profile: null,
-      hasAcceptedTerms: hasAcceptedTerms,
-    );
-
-    _currentUser = devUser;
-    _authStateController.add(devUser);
-
-    // Clear flag after a short delay to allow any pending auth state changes to be skipped
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _devBypassInProgress = false;
-    });
-
-    return devUser;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // EMAIL EXISTENCE CHECK
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1146,6 +1049,7 @@ class FirebaseAuthRepository implements AuthRepository {
     return Profile(
       id: userId,
       name: profileData['name'] ?? '',
+      lastName: profileData['lastName'],
       age: profileData['age'] ?? 0,
       gender: profileData['gender'] ?? '',
       sexualOrientation: profileData['sexualOrientation'],
@@ -1307,7 +1211,6 @@ class FirebaseAuthRepository implements AuthRepository {
       if (userData != null) {
         final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
         final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
-        final isDeveloper = userData['isDeveloper'] as bool? ?? false;
         final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
         final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
         await _cacheTermsAccepted(updatedFirebaseUser.uid, hasAcceptedTerms);
@@ -1322,7 +1225,7 @@ class FirebaseAuthRepository implements AuthRepository {
           phoneNumber: updatedFirebaseUser.phoneNumber ?? '',
           email: updatedFirebaseUser.email,
           username: updatedFirebaseUser.displayName,
-          isEmailVerified: updatedFirebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp || isDeveloper,
+          isEmailVerified: updatedFirebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp,
           isPhoneVerified: firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,

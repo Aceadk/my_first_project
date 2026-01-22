@@ -170,6 +170,10 @@ class ProfileInsightsService {
     });
   }
 
+  void clearUserData() {
+    _currentInsights = null;
+  }
+
   void dispose() {
     _insightsController.close();
   }

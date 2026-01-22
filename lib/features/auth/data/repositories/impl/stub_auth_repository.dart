@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/data/models/user.dart';
@@ -425,65 +424,6 @@ class StubAuthRepository implements AuthRepository {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // DEV BYPASS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async {
-    // SECURITY: Dev bypass ONLY available in debug builds
-    // This is completely disabled in release/production builds
-    if (!kDebugMode) {
-      return null;
-    }
-
-    // Dev bypass for testing - admin123/admin123
-    if (identifier == 'admin123' && password == 'admin123') {
-      const user = CrushUser(
-        id: 'dev-admin-user',
-        phoneNumber: '+1234567890',
-        email: 'admin@crushhour.dev',
-        username: 'admin123',
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        isIdVerified: true,
-        plan: SubscriptionPlan.plus,
-        hasAcceptedTerms: true,
-        profile: Profile(
-          id: 'dev-admin-profile',
-          name: 'Dev Admin',
-          age: 25,
-          gender: 'Other',
-          bio: 'Development test account',
-          photoUrls: [],
-          videoUrls: [],
-          interests: ['Development', 'Testing'],
-          country: 'United States',
-          city: 'San Francisco',
-          isVerified: true,
-          preferences: DiscoveryPreferences(
-            minAge: 18,
-            maxAge: 50,
-            maxDistanceKm: 100,
-            showMeGenders: ['All'],
-            showMyDistance: true,
-            showMyAge: true,
-            hideFromDiscovery: false,
-            incognitoMode: false,
-            country: 'United States',
-            city: 'San Francisco',
-          ),
-        ),
-      );
-      await _setCurrentUser(user);
-      return user;
-    }
-    return null;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // EMAIL EXISTENCE CHECK
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -604,6 +544,7 @@ class StubAuthRepository implements AuthRepository {
       profile = Profile(
         id: p['id'] ?? '',
         name: p['name'] ?? '',
+        lastName: p['lastName'],
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
@@ -687,6 +628,7 @@ class StubAuthRepository implements AuthRepository {
       profileJson = {
         'id': p.id,
         'name': p.name,
+        'lastName': p.lastName,
         'age': p.age,
         'gender': p.gender,
         'sexualOrientation': p.sexualOrientation,

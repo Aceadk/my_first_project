@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
 import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
 
@@ -46,10 +48,21 @@ class WeeklyPicksState extends Equatable {
 
 /// Cubit for managing weekly picks state.
 class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
-  WeeklyPicksCubit() : super(const WeeklyPicksState());
+  WeeklyPicksCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(const WeeklyPicksState()) {
+    _authSubscription = _authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        _resetState();
+      }
+    });
+  }
 
+  final AuthRepository _authRepository;
   final _service = WeeklyPicksService.instance;
   StreamSubscription<WeeklyPicks>? _subscription;
+  StreamSubscription<CrushUser?>? _authSubscription;
 
   /// Load weekly picks for user.
   Future<void> loadPicks(String userId) async {
@@ -118,9 +131,19 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
   /// Check if a pick has been liked.
   bool isPickLiked(String pickId) => _service.isPickLiked(pickId);
 
+  void _resetState() {
+    _subscription?.cancel();
+    _subscription = null;
+    _service.clearUserData();
+    if (!isClosed) {
+      emit(const WeeklyPicksState());
+    }
+  }
+
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

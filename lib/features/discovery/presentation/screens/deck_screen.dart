@@ -137,7 +137,7 @@ class _DeckScreenState extends State<DeckScreen> {
                   matchId: newMatch.matchId,
                   currentUserId: userId ?? '',
                   otherUserId: matchedProfile.id,
-                  otherName: matchedProfile.name,
+                  otherName: matchedProfile.publicDisplayName,
                   otherPhotoUrl: matchedProfile.photoUrls.isNotEmpty
                       ? matchedProfile.photoUrls.first
                       : null,
@@ -1273,7 +1273,7 @@ class _DeckScreenState extends State<DeckScreen> {
   }) async {
     final safety = context.read<SafetyCubit>();
     final currentProfileId = currentProfile.id;
-    final currentProfileName = currentProfile.name;
+    final currentProfileName = currentProfile.publicDisplayName;
     switch (action) {
       case _DeckSafetyAction.viewProfile:
         context.push(

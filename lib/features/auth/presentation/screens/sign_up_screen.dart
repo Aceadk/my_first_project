@@ -104,10 +104,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+          leading: GlassIconButton(
+            icon: Icons.arrow_back,
+            tooltip: 'Back',
             onPressed: _handleBack,
           ),
         ),
@@ -616,7 +617,7 @@ class _UsernameStep extends StatelessWidget {
             'Welcome to Crush',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: DsColors.backgroundLight,
             ),
           ),
         ),
@@ -725,38 +726,31 @@ class _AltSignUpOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+    return Semantics(
+      button: true,
+      label: label,
+      child: GlassOutlinedButton(
+        onPressed: onTap,
+        isExpanded: true,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: DsColors.primary,
             ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: DsColors.primary,
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color:
+                    isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
               ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1214,9 +1208,13 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
         DsGap.lg,
         // Resend link
         Center(
-          child: TextButton(
-            onPressed: widget.isLoading ? null : widget.onResend,
-            child: const Text('Didn\'t receive email? Resend'),
+          child: Semantics(
+            button: true,
+            label: 'Resend verification email',
+            child: GlassSmallButton(
+              onPressed: widget.isLoading ? null : widget.onResend,
+              child: const Text('Didn\'t receive email? Resend'),
+            ),
           ),
         ),
         DsGap.md,
@@ -1351,24 +1349,28 @@ class _LoginLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: TextButton(
-        onPressed: () => context.go(CrushRoutes.login),
-        child: RichText(
-          text: TextSpan(
-            style: Theme.of(context).textTheme.bodyMedium,
-            children: const [
-              TextSpan(
-                text: 'Already have an account? ',
-                style: TextStyle(color: DsColors.textMutedLight),
-              ),
-              TextSpan(
-                text: 'Sign in',
-                style: TextStyle(
-                  color: DsColors.primary,
-                  fontWeight: FontWeight.w600,
+      child: Semantics(
+        button: true,
+        label: 'Sign in',
+        child: GlassSmallButton(
+          onPressed: () => context.go(CrushRoutes.login),
+          child: RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.bodyMedium,
+              children: const [
+                TextSpan(
+                  text: 'Already have an account? ',
+                  style: TextStyle(color: DsColors.textMutedLight),
                 ),
-              ),
-            ],
+                TextSpan(
+                  text: 'Sign in',
+                  style: TextStyle(
+                    color: DsColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1519,10 +1521,20 @@ class _PhoneStep extends StatelessWidget {
         _LoginLink(),
         DsGap.md,
         Center(
-          child: TextButton.icon(
-            onPressed: isLoading ? null : onSwitchToEmail,
-            icon: const Icon(Icons.email_outlined, size: 18),
-            label: const Text('Sign up with email instead'),
+          child: Semantics(
+            button: true,
+            label: 'Sign up with email instead',
+            child: GlassSmallButton(
+              onPressed: isLoading ? null : onSwitchToEmail,
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.email_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Sign up with email instead'),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -1616,9 +1628,13 @@ class _PhoneOtpStep extends StatelessWidget {
         ),
         DsGap.md,
         Center(
-          child: TextButton(
-            onPressed: isLoading ? null : onResend,
-            child: const Text('Didn\'t receive code? Resend'),
+          child: Semantics(
+            button: true,
+            label: 'Resend code',
+            child: GlassSmallButton(
+              onPressed: isLoading ? null : onResend,
+              child: const Text('Didn\'t receive code? Resend'),
+            ),
           ),
         ),
       ],

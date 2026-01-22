@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/widgets/skeleton_loader.dart';
 
 /// Skeleton loading state for the discovery deck.
 class DeckSkeletonList extends StatelessWidget {
@@ -7,23 +8,25 @@ class DeckSkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        SizedBox(height: 16),
-        SkeletonCard(height: 18, widthFactor: 0.6),
-        SizedBox(height: 12),
-        SkeletonCard(height: 250),
-        SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            SkeletonCircle(size: 60),
-            SkeletonCircle(size: 60),
-            SkeletonCircle(size: 60),
-          ],
-        ),
-        SizedBox(height: 16),
-      ],
+    return const DsShimmer(
+      child: Column(
+        children: [
+          SizedBox(height: 16),
+          SkeletonCard(height: 18, widthFactor: 0.6),
+          SizedBox(height: 12),
+          SkeletonCard(height: 250),
+          SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SkeletonCircle(size: 60),
+              SkeletonCircle(size: 60),
+              SkeletonCircle(size: 60),
+            ],
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }
@@ -41,12 +44,13 @@ class SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FractionallySizedBox(
       widthFactor: widthFactor ?? 0.9,
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: DsColors.skeletonLight,
+          color: isDark ? DsColors.skeletonDark : DsColors.skeletonLight,
           borderRadius: BorderRadius.circular(12),
         ),
       ),
@@ -62,11 +66,12 @@ class SkeletonCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        color: DsColors.skeletonLight,
+      decoration: BoxDecoration(
+        color: isDark ? DsColors.skeletonDark : DsColors.skeletonLight,
         shape: BoxShape.circle,
       ),
     );

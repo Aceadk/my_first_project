@@ -8,6 +8,20 @@ import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_state.dart' as bloc_state;
 import 'package:crushhour/design_system/design_system.dart';
 
+class CallScreenArgs {
+  final String matchId;
+  final bool isVideoCall;
+  final String? matchName;
+  final String? matchPhotoUrl;
+
+  const CallScreenArgs({
+    required this.matchId,
+    required this.isVideoCall,
+    this.matchName,
+    this.matchPhotoUrl,
+  });
+}
+
 /// Full-featured call screen with CallService integration.
 class CallScreen extends StatefulWidget {
   final String matchId;

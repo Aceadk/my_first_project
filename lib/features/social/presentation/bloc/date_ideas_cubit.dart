@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 import 'package:crushhour/features/social/data/models/date_idea.dart';
 
@@ -74,10 +76,21 @@ class DateIdeasState extends Equatable {
 
 /// Cubit for managing date ideas state.
 class DateIdeasCubit extends Cubit<DateIdeasState> {
-  DateIdeasCubit() : super(const DateIdeasState());
+  DateIdeasCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(const DateIdeasState()) {
+    _authSubscription = _authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        _resetState();
+      }
+    });
+  }
 
+  final AuthRepository _authRepository;
   final _service = DateIdeaService.instance;
   StreamSubscription<List<DateIdea>>? _ideasSubscription;
+  StreamSubscription<CrushUser?>? _authSubscription;
 
   /// Load all date ideas.
   Future<void> loadIdeas() async {
@@ -238,9 +251,19 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
     );
   }
 
+  void _resetState() {
+    _ideasSubscription?.cancel();
+    _ideasSubscription = null;
+    _service.clearUserData();
+    if (!isClosed) {
+      emit(const DateIdeasState());
+    }
+  }
+
   @override
   Future<void> close() {
     _ideasSubscription?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

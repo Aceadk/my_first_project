@@ -28,8 +28,8 @@ export 'presentation/screens/profile_edit_screen.dart';
 export 'presentation/screens/profile_setup_screen.dart';
 export 'presentation/screens/other_user_profile_screen.dart';
 export 'presentation/screens/profile_media_screen.dart';
-export 'package:crushhour/presentation/screens/basic_info_screen.dart';
-export 'package:crushhour/presentation/screens/id_verification_screen.dart';
+export 'package:crushhour/features/auth/presentation/screens/basic_info_screen.dart';
+export 'package:crushhour/features/auth/presentation/screens/id_verification_screen.dart';
 
 // Presentation (Widgets)
 export 'presentation/widgets/profile_completeness_meter.dart';

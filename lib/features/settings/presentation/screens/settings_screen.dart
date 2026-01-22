@@ -160,6 +160,15 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(CrushRoutes.privacySettings),
               ),
               const Divider(height: 1),
+              // Chat Settings
+              _SettingsTile(
+                icon: Icons.chat_bubble_outline,
+                iconColor: Colors.teal,
+                title: 'Chat Settings',
+                subtitle: 'Message retention & auto-delete',
+                onTap: () => context.push(CrushRoutes.chatSettings),
+              ),
+              const Divider(height: 1),
               // Incognito Mode
               StreamBuilder<IncognitoSettings>(
                 stream: IncognitoService.instance.settingsStream,

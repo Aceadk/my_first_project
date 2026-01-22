@@ -129,13 +129,6 @@ abstract class AuthRepository {
     required String reason,
   });
 
-  /// Dev-only: bypass authentication with admin123/admin123 credentials.
-  /// Returns null if bypass is disabled or credentials don't match.
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  });
-
   /// Check if an email is already registered.
   /// Returns true if the email is already in use.
   Future<bool> isEmailRegistered(String email);

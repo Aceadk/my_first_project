@@ -1,0 +1,145 @@
+{
+  "rules": {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PREMIUM STATUS (synced from Firestore via Cloud Functions)
+    // Backend sets this when user subscribes to Crush Plus
+    // ═══════════════════════════════════════════════════════════════════════════
+    "premium_users": {
+      ".read": false,
+      ".write": false
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PRESENCE / ONLINE STATUS
+    // - Everyone can write their own presence (for onDisconnect cleanup)
+    // - Only PREMIUM users can read others' presence (cost savings)
+    // - Users can always read their own presence
+    // ═══════════════════════════════════════════════════════════════════════════
+    "presence": {
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        ".read": "auth != null && (auth.uid == $uid || root.child('premium_users').child(auth.uid).val() == true)",
+        ".validate": "newData.hasChildren(['isOnline', 'lastSeen'])",
+        "isOnline": {
+          ".validate": "newData.isBoolean()"
+        },
+        "lastSeen": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TYPING INDICATORS (PREMIUM ONLY)
+    // - Only premium users can read/write typing indicators
+    // - Non-premium users don't see typing, saving bandwidth + cost
+    // ═══════════════════════════════════════════════════════════════════════════
+    "typing": {
+      "$matchId": {
+        "$uid": {
+          ".write": "auth != null && auth.uid == $uid && root.child('premium_users').child(auth.uid).val() == true",
+          ".read": "auth != null && root.child('premium_users').child(auth.uid).val() == true",
+          ".validate": "newData.hasChildren(['isTyping', 'timestamp'])",
+          "isTyping": {
+            ".validate": "newData.isBoolean()"
+          },
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // READ RECEIPTS (PREMIUM ONLY)
+    // - Only premium users can see when messages are read
+    // - Reduces real-time listeners for non-premium
+    // ═══════════════════════════════════════════════════════════════════════════
+    "read_receipts": {
+      "$matchId": {
+        "$messageId": {
+          ".write": "auth != null",
+          ".read": "auth != null && root.child('premium_users').child(auth.uid).val() == true",
+          ".validate": "newData.hasChildren(['readBy', 'readAt'])",
+          "readBy": {
+            ".validate": "newData.isString()"
+          },
+          "readAt": {
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LAST SEEN (PREMIUM ONLY)
+    // - Users can write their own last seen
+    // - Only premium users can view others' last seen
+    // ═══════════════════════════════════════════════════════════════════════════
+    "last_seen": {
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        ".read": "auth != null && (auth.uid == $uid || root.child('premium_users').child(auth.uid).val() == true)",
+        ".validate": "newData.isNumber()"
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONNECTION STATUS (for onDisconnect handlers)
+    // - Everyone can manage their own connection
+    // - Used internally for presence cleanup
+    // ═══════════════════════════════════════════════════════════════════════════
+    "connections": {
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        ".read": "auth != null && auth.uid == $uid"
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MESSAGE DELETION QUEUE (Server-only)
+    // - Tracks scheduled message deletions based on user retention settings
+    // - Managed by Cloud Functions only
+    // - Structure: /message_deletion_queue/{queueId}
+    //   - matchId: string
+    //   - messageId: string
+    //   - userId: string (user to remove from visibleTo)
+    //   - deleteAt: timestamp (when to execute)
+    //   - retentionHours: number (1, 24, or 168 for Plus)
+    // ═══════════════════════════════════════════════════════════════════════════
+    "message_deletion_queue": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": ["deleteAt"]
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // USER CHAT SETTINGS CACHE (Synced from Firestore)
+    // - Caches user's chat retention settings for quick access
+    // - Updated by Cloud Functions when user changes settings
+    // ═══════════════════════════════════════════════════════════════════════════
+    "chat_settings": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": false,
+        "extendedRetention": {
+          ".validate": "newData.isBoolean()"
+        },
+        "isPremium": {
+          ".validate": "newData.isBoolean()"
+        },
+        "retentionHours": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DEFAULT: DENY ALL OTHER ACCESS
+    // ═══════════════════════════════════════════════════════════════════════════
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

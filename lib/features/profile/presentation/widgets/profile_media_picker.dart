@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
@@ -45,6 +46,7 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
   late List<String> _videos;
   late int _primaryPhotoIndex;
   final _picker = ImagePicker();
+  bool _isPickingMedia = false; // Prevent concurrent picker operations
 
   @override
   void initState() {
@@ -95,45 +97,63 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
   }
 
   Future<void> _addPhotos() async {
-    if (!widget.enabled) return;
+    if (!widget.enabled || _isPickingMedia) return;
     final remaining = ProfileMediaLimits.maxPhotos - _photos.length;
     if (remaining <= 0) {
       _showError('You can add up to ${ProfileMediaLimits.maxPhotos} photos.');
       return;
     }
-    final files = await _picker.pickMultiImage(
-      imageQuality: 72,
-      maxWidth: 1440,
-    );
-    if (files.isEmpty) return;
 
-    final selected = files.take(remaining).toList();
-    setState(() {
-      _photos.addAll(selected.map((x) => x.path));
-    });
-    _notify();
+    _isPickingMedia = true;
+    try {
+      final files = await _picker.pickMultiImage(
+        imageQuality: 72,
+        maxWidth: 1440,
+      );
+      if (files.isEmpty) return;
 
-    if (files.length > selected.length) {
-      _showError('Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.');
+      final selected = files.take(remaining).toList();
+      setState(() {
+        _photos.addAll(selected.map((x) => x.path));
+      });
+      _notify();
+
+      if (files.length > selected.length) {
+        _showError('Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.');
+      }
+    } on PlatformException catch (e) {
+      // Handle "already_active" error gracefully
+      debugPrint('Image picker error: ${e.code} - ${e.message}');
+    } finally {
+      _isPickingMedia = false;
     }
   }
 
   Future<void> _addVideo() async {
-    if (!widget.enabled) return;
+    if (!widget.enabled || _isPickingMedia) return;
     final remaining = ProfileMediaLimits.maxVideos - _videos.length;
     if (remaining <= 0) {
       _showError('You can only add ${ProfileMediaLimits.maxVideos} video.');
       return;
     }
-    final picked = await _picker.pickVideo(
-      source: ImageSource.gallery,
-      maxDuration: ProfileMediaLimits.maxVideoDuration,
-    );
-    if (picked == null) return;
-    setState(() {
-      _videos.add(picked.path);
-    });
-    _notify();
+
+    _isPickingMedia = true;
+    try {
+      final picked = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: ProfileMediaLimits.maxVideoDuration,
+      );
+      if (picked == null) return;
+      setState(() {
+        _videos.add(picked.path);
+      });
+      _notify();
+    } on PlatformException catch (e) {
+      // Handle "already_active" error gracefully
+      debugPrint('Video picker error: ${e.code} - ${e.message}');
+    } finally {
+      _isPickingMedia = false;
+    }
   }
 
   void _removePhoto(int index) {

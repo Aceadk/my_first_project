@@ -332,7 +332,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
         // It's a match! Show celebration
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("It's a match with ${profile.name}!"),
+            content: Text("It's a match with ${profile.publicDisplayName}!"),
             backgroundColor: DsColors.success,
           ),
         );
@@ -502,7 +502,7 @@ class _LikeCard extends StatelessWidget {
     return Semantics(
       label: isBlurred
           ? 'Someone likes you. Upgrade to see who.'
-          : '${profile.name}, ${profile.age} years old',
+          : '${profile.publicDisplayName}, ${profile.age} years old',
       hint: isBlurred ? 'Double tap to upgrade' : 'Double tap to view profile',
       image: !isBlurred && photoUrl != null,
       child: GestureDetector(
@@ -563,7 +563,7 @@ class _LikeCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    isBlurred ? '???' : profile.name,
+                    isBlurred ? '???' : profile.publicDisplayName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -683,7 +683,7 @@ class _ProfileDetailSheet extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              '${profile.name}, ${profile.age}',
+                              '${profile.publicDisplayName}, ${profile.age}',
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineSmall

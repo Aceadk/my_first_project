@@ -7,7 +7,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/validators.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
 class EmailAuthScreen extends StatefulWidget {
@@ -120,12 +120,22 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: TextButton.icon(
-                    onPressed: state.isLoading
-                        ? null
-                        : () => context.go(CrushRoutes.phoneAuth),
-                    icon: const Icon(Icons.phone_outlined, size: 18),
-                    label: const Text('Use phone number instead'),
+                  child: Semantics(
+                    button: true,
+                    label: 'Use phone number instead',
+                    child: GlassSmallButton(
+                      onPressed: state.isLoading
+                          ? null
+                          : () => context.go(CrushRoutes.phoneAuth),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.phone_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Use phone number instead'),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -249,32 +259,31 @@ class _EmailLinkTab extends StatelessWidget {
           DsGap.xl,
 
           // Action button
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              onPressed: isLoading ? null : () => _sendLink(context),
-              style: FilledButton.styleFrom(
-                backgroundColor: DsColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+          Semantics(
+            button: true,
+            label: linkSent ? 'Resend link' : 'Send magic link',
+            child: SizedBox(
+              width: double.infinity,
+              child: GlassPrimaryButton(
+                onPressed: isLoading ? null : () => _sendLink(context),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(DsColors.backgroundLight),
+                        ),
+                      )
+                    : Text(
+                        linkSent ? 'Resend link' : 'Send magic link',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      linkSent ? 'Resend link' : 'Send magic link',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
             ),
           ),
 
@@ -284,19 +293,19 @@ class _EmailLinkTab extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: DsColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                border: Border.all(color: DsColors.success.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.green),
+                  const Icon(Icons.check_circle, color: DsColors.success),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Link sent! Check your inbox and spam folder.',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.green.shade700,
+                        color: DsColors.success,
                       ),
                     ),
                   ),
@@ -425,11 +434,15 @@ class _EmailPasswordTab extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscurePassword ? Icons.visibility : Icons.visibility_off,
+              suffixIcon: Semantics(
+                button: true,
+                label: obscurePassword ? 'Show password' : 'Hide password',
+                child: GestureDetector(
+                  onTap: onToggleObscure,
+                  child: Icon(
+                    obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
                 ),
-                onPressed: onToggleObscure,
               ),
             ),
             onTap: onPasswordTouched,
@@ -443,42 +456,46 @@ class _EmailPasswordTab extends StatelessWidget {
           DsGap.xl,
 
           // Sign in button
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              onPressed: isLoading ? null : () => _signIn(context),
-              style: FilledButton.styleFrom(
-                backgroundColor: DsColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+          Semantics(
+            button: true,
+            label: 'Sign in',
+            child: SizedBox(
+              width: double.infinity,
+              child: GlassPrimaryButton(
+                onPressed: isLoading ? null : () => _signIn(context),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(DsColors.backgroundLight),
+                        ),
+                      )
+                    : const Text(
+                        'Sign in',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Sign in',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
             ),
           ),
           DsGap.lg,
 
           // Forgot password
           Center(
-            child: TextButton(
-              onPressed:
-                  isLoading ? null : () => context.push(CrushRoutes.forgotPassword),
-              child: const Text('Forgot password?'),
+            child: Semantics(
+              button: true,
+              label: 'Forgot password',
+              child: GlassSmallButton(
+                onPressed: isLoading
+                    ? null
+                    : () => context.push(CrushRoutes.forgotPassword),
+                child: const Text('Forgot password?'),
+              ),
             ),
           ),
 

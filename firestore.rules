@@ -10,10 +10,47 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    // Check if viewer is blocked by target user
+    function isBlockedBy(targetUid) {
+      return exists(/databases/$(database)/documents/blocks/$(targetUid + '_' + request.auth.uid));
+    }
+
+    // Check if viewer has blocked target user
+    function hasBlocked(targetUid) {
+      return exists(/databases/$(database)/documents/blocks/$(request.auth.uid + '_' + targetUid));
+    }
+
+    // Check if either user has blocked the other
+    function hasBlockRelationship(uid) {
+      return isBlockedBy(uid) || hasBlocked(uid);
+    }
+
+    // Check if current user has Crush Plus subscription
+    function isPremium() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'plus';
+    }
+
+    // Check if user is female (for stories posting)
+    function isFemale() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.gender == 'female';
+    }
+
     // USERS
     match /users/{uid} {
-      // Allow signed-in users to read basic profiles.
-      allow read: if isSignedIn();
+      // Owner can always read their own profile
+      // Other users can read if:
+      // 1. They are signed in
+      // 2. Neither party has blocked the other
+      // 3. Target user's privacy settings allow visibility (or they are matched)
+      allow read: if isOwner(uid)
+        || (isSignedIn()
+            && !hasBlockRelationship(uid)
+            && (
+              // Profile is visible (not hidden)
+              resource.data.profile.privacySettings.isProfileVisible != false
+              // OR viewer is a match (check if match exists between users)
+              || exists(/databases/$(database)/documents/matches/$(request.auth.uid < uid ? request.auth.uid + '_' + uid : uid + '_' + request.auth.uid))
+            ));
 
       // Allow owner to create their own document during onboarding
       allow create: if isOwner(uid);
@@ -47,39 +84,90 @@ service cloud.firestore {
 
     // MATCHES
     match /matches/{matchId} {
-      // Only participants can read.
+      // Only participants can read if match is active and no blocks exist.
       allow read: if isSignedIn()
-        && resource.data.userIds.hasAny([request.auth.uid]);
+        && resource.data.userIds.hasAny([request.auth.uid])
+        && resource.data.status == 'active';
 
       // Created/updated/deleted only via backend (Cloud Functions/Admin).
       allow create, update, delete: if false;
 
       // MESSAGES subcollection
+      // Messages auto-delete based on user retention settings:
+      // - Free users: 1 hour after read (default) or 24 hours (if extended enabled)
+      // - Plus users: 7 days after read
+      // Each user sees messages based on their own retention, enforced via visibleTo array
       match /messages/{messageId} {
-        // Only participants can read.
-        allow read: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-            .data.userIds.hasAny([request.auth.uid]);
+        // Helper to get the other user in the match
+        function getMatchData() {
+          return get(/databases/$(database)/documents/matches/$(matchId)).data;
+        }
 
-        // Allow create if both participants are verified and match contains both.
+        function getOtherUserId() {
+          let matchData = getMatchData();
+          return matchData.userIds[0] == request.auth.uid
+            ? matchData.userIds[1]
+            : matchData.userIds[0];
+        }
+
+        // Validate participant can access chat:
+        // 1. User is a participant
+        // 2. Match is active (not unmatched)
+        // 3. Neither user has blocked the other
+        function canAccessChat() {
+          let matchData = getMatchData();
+          let otherUid = matchData.userIds[0] == request.auth.uid
+            ? matchData.userIds[1]
+            : matchData.userIds[0];
+          return matchData.userIds.hasAny([request.auth.uid])
+            && matchData.status == 'active'
+            && !hasBlockRelationship(otherUid);
+        }
+
+        // Check if message is still visible to current user
+        // Messages have visibleTo array managed by Cloud Functions based on retention
+        function isMessageVisible() {
+          // If visibleTo doesn't exist (legacy), allow access
+          // Otherwise, user must be in the visibleTo array
+          return !('visibleTo' in resource.data) || resource.data.visibleTo.hasAny([request.auth.uid]);
+        }
+
+        // Only participants can read if:
+        // 1. Match is active and no blocks
+        // 2. Message is still visible to this user (not expired based on their retention)
+        allow read: if isSignedIn() && canAccessChat() && isMessageVisible();
+
+        // Allow create if:
+        // 1. Both participants are in the match
+        // 2. Match is active
+        // 3. Neither user has blocked the other
+        // 4. Both users are ID verified
+        // 5. Video messages require Crush Plus (premium)
+        // 6. Must include visibleTo array with both participants
         allow create: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-            .data.userIds.hasAll(
+          && canAccessChat()
+          && getMatchData().userIds.hasAll(
               [request.auth.uid, request.resource.data.toUserId]
             )
           && get(/databases/$(database)/documents/users/$(request.auth.uid))
             .data.isIdVerified == true
           && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
-            .data.isIdVerified == true;
+            .data.isIdVerified == true
+          // Video messages are premium-only (cost savings)
+          && (request.resource.data.type != 'video' || isPremium())
+          // Must include visibleTo with both participants for retention tracking
+          && request.resource.data.visibleTo.hasAll(getMatchData().userIds);
 
-        // Allow receiver to mark isRead=true only.
+        // Allow receiver to mark message as read.
+        // This triggers retention countdown via Cloud Function.
         allow update: if isSignedIn()
+          && canAccessChat()
           && resource.data.toUserId == request.auth.uid
           && request.resource.data.diff(resource.data).changedKeys()
-            .hasOnly(['isRead'])
+            .hasOnly(['isRead', 'readAt'])
           && request.resource.data.isRead == true;
 
-        // No client deletes; unsend is handled via Cloud Function (admin).
+        // No client deletes; handled via Cloud Function based on retention.
         allow delete: if false;
       }
     }
@@ -106,6 +194,50 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.blockerId == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // STORIES (Premium + Female users only can post)
+    match /stories/{storyId} {
+      // Anyone signed in can read stories (with privacy checks handled in queries)
+      allow read: if isSignedIn();
+
+      // Only premium users OR female users can create stories
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && (isPremium() || isFemale());
+
+      // Owner can delete their own stories
+      allow delete: if isOwner(resource.data.userId);
+
+      // No updates (stories are immutable)
+      allow update: if false;
+    }
+
+    // CALLS (Premium only)
+    match /calls/{callId} {
+      // Participants can read their calls
+      allow read: if isSignedIn()
+        && resource.data.participants.hasAny([request.auth.uid]);
+
+      // Only premium users can initiate calls
+      allow create: if isSignedIn()
+        && request.resource.data.callerId == request.auth.uid
+        && isPremium();
+
+      // Participants can update call status (answer, end)
+      allow update: if isSignedIn()
+        && resource.data.participants.hasAny([request.auth.uid]);
+
+      allow delete: if false;
+    }
+
+    // PRESENCE (Firestore fallback - RTDB is preferred for cost)
+    match /presence/{uid} {
+      // Owner can always read/write their own presence
+      allow read, write: if isOwner(uid);
+
+      // Others can only read if they are premium
+      allow read: if isSignedIn() && isPremium();
     }
   }
 }

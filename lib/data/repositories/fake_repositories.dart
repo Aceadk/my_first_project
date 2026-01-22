@@ -7,6 +7,7 @@ import '../../core/security/secure_logger.dart';
 import '../models/user.dart';
 import '../models/profile.dart';
 import '../models/preferences.dart';
+import '../models/privacy_settings.dart';
 import '../models/match.dart';
 import '../models/message.dart';
 import '../models/subscription.dart';
@@ -324,29 +325,6 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async {
-    if (identifier != 'admin123' || password != 'admin123') return null;
-    final user = CrushUser(
-      id: _uuid.v4(),
-      phoneNumber: '',
-      email: 'admin@dev.local',
-      username: 'admin123',
-      isEmailVerified: true,
-      profile: null,
-      isPhoneVerified: false,
-      isIdVerified: true,
-      plan: SubscriptionPlan.free,
-      hasAcceptedTerms: true,
-    );
-    _current = user;
-    _controller.add(_current);
-    return user;
-  }
-
-  @override
   Future<CrushUser> acceptTermsAndConditions() async {
     if (_current == null) {
       throw Exception('No user logged in');
@@ -580,10 +558,13 @@ class FakeProfileRepository implements ProfileRepository {
   Future<CrushUser> saveBasicInfo({
     String? username,
     required String name,
+    String? lastName,
     required int age,
     required String gender,
     String? sexualOrientation,
     DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
   }) async {
     if (age < CrushConstants.minAge) {
       throw Exception('User must be at least ${CrushConstants.minAge}.');
@@ -602,9 +583,14 @@ class FakeProfileRepository implements ProfileRepository {
       city: 'Unknown',
     );
 
+    final privacy = const ProfilePrivacySettings().copyWith(
+      showFirstName: showFirstName ?? false,
+      showLastName: showLastName ?? false,
+    );
     final profile = Profile(
       id: _uuid.v4(),
       name: name,
+      lastName: lastName,
       age: age,
       gender: gender,
       sexualOrientation: sexualOrientation,
@@ -622,6 +608,7 @@ class FakeProfileRepository implements ProfileRepository {
       latitude: null,
       longitude: null,
       preferences: prefs,
+      privacySettings: privacy,
     );
 
     _user = (_user ??

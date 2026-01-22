@@ -107,7 +107,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
       appBar: AppBar(
         title: const Text('Terms & Conditions'),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
@@ -301,7 +301,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                             ? (isDark
                                 ? DsColors.surfaceDark.withValues(alpha: 0.5)
                                 : DsColors.inputFillLight)
-                            : Colors.grey.withValues(alpha: 0.1),
+                            : DsColors.textMutedLight.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _isAgreed
@@ -315,28 +315,30 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                           Container(
                             width: 24,
                             height: 24,
-                            decoration: BoxDecoration(
+                          decoration: BoxDecoration(
+                            color: _isAgreed
+                                ? DsColors.primary
+                                : DsColors.backgroundLight.withValues(alpha: 0),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
                               color: _isAgreed
                                   ? DsColors.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: _isAgreed
-                                    ? DsColors.primary
-                                    : (_hasScrolledToEnd
-                                        ? DsColors.primary
-                                        : Colors.grey),
-                                width: 2,
-                              ),
+                                  : (_hasScrolledToEnd
+                                      ? DsColors.primary
+                                      : (isDark
+                                          ? DsColors.borderDark
+                                          : DsColors.borderLight)),
+                              width: 2,
                             ),
-                            child: _isAgreed
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: Colors.white,
-                                  )
-                                : null,
                           ),
+                          child: _isAgreed
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: DsColors.backgroundLight,
+                                )
+                              : null,
+                        ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -344,7 +346,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: _hasScrolledToEnd
                                     ? (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)
-                                    : Colors.grey,
+                                    : (isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight),
                               ),
                             ),
                           ),
@@ -354,28 +358,32 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                   ),
                   DsGap.lg,
                   // Continue button
-                  SizedBox(
-                    width: double.infinity,
-                    child: GlassPrimaryButton(
-                      onPressed: (_hasScrolledToEnd && _isAgreed && !_isLoading)
-                          ? _acceptTerms
-                          : null,
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                  Semantics(
+                    button: true,
+                    label: 'Continue',
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: GlassPrimaryButton(
+                        onPressed: (_hasScrolledToEnd && _isAgreed && !_isLoading)
+                            ? _acceptTerms
+                            : null,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: DsColors.backgroundLight,
+                                ),
+                              )
+                            : const Text(
+                                'Continue',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            )
-                          : const Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      ),
                     ),
                   ),
                   DsGap.md,

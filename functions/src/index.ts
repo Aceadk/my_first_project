@@ -31,6 +31,7 @@ async function logInteractionEvent(eventData: Record<string, unknown>): Promise<
 
 admin.initializeApp();
 const db = admin.firestore();
+const rtdb = admin.database();
 const fieldValue = (admin.firestore as unknown as { FieldValue?: { serverTimestamp?: () => unknown; increment?: (n: number) => unknown; delete?: () => unknown } })
   ?.FieldValue;
 const serverTimestamp = () =>
@@ -2369,7 +2370,14 @@ async function setUserPlan(
   if (extra?.stripeSubscriptionId) {
     payload.stripeSubscriptionId = extra.stripeSubscriptionId;
   }
+
+  // Update Firestore
   await db.collection("users").doc(uid).set(payload, { merge: true });
+
+  // Sync premium status to RTDB for real-time feature access control
+  // Premium users get: presence visibility, typing indicators, read receipts, last seen
+  const isPremium = plan === "plus";
+  await rtdb.ref(`premium_users/${uid}`).set(isPremium ? true : null);
 }
 
 async function ensureUserExists(uid: string): Promise<UserDoc> {
@@ -5048,3 +5056,325 @@ app.post("/v1/users/report", authMiddleware, async (req: AuthRequest, res: Respo
 
 // Export the Express app as a Cloud Function
 export const api = functions.https.onRequest(app);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MESSAGE RETENTION & AUTO-DELETE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Retention durations in hours
+const RETENTION_FREE_DEFAULT = 1; // 1 hour after read
+const RETENTION_FREE_EXTENDED = 24; // 24 hours if user enables extended retention
+const RETENTION_PLUS = 168; // 7 days for Plus users
+
+/**
+ * Get user's message retention hours based on their settings and plan.
+ */
+async function getUserRetentionHours(uid: string): Promise<number> {
+  const userDoc = await db.collection("users").doc(uid).get();
+  const userData = userDoc.data();
+  if (!userData) return RETENTION_FREE_DEFAULT;
+
+  const isPremium = userData.plan === "plus";
+  if (isPremium) return RETENTION_PLUS;
+
+  const chatSettings = userData.profile?.chatSettings;
+  const extendedRetention = chatSettings?.extendedRetention === true;
+  return extendedRetention ? RETENTION_FREE_EXTENDED : RETENTION_FREE_DEFAULT;
+}
+
+/**
+ * Sync user's chat settings to RTDB for quick access.
+ */
+async function syncChatSettingsToRtdb(uid: string): Promise<void> {
+  const retentionHours = await getUserRetentionHours(uid);
+  const userDoc = await db.collection("users").doc(uid).get();
+  const userData = userDoc.data();
+  const isPremium = userData?.plan === "plus";
+  const extendedRetention = userData?.profile?.chatSettings?.extendedRetention === true;
+
+  await rtdb.ref(`chat_settings/${uid}`).set({
+    extendedRetention,
+    isPremium,
+    retentionHours,
+  });
+}
+
+/**
+ * Schedule a message for deletion for a specific user.
+ */
+async function scheduleMessageDeletion(
+  matchId: string,
+  messageId: string,
+  userId: string,
+  readAt: Date
+): Promise<void> {
+  const retentionHours = await getUserRetentionHours(userId);
+  const deleteAt = new Date(readAt.getTime() + retentionHours * 60 * 60 * 1000);
+
+  const queueId = `${matchId}_${messageId}_${userId}`;
+  await rtdb.ref(`message_deletion_queue/${queueId}`).set({
+    matchId,
+    messageId,
+    userId,
+    deleteAt: deleteAt.getTime(),
+    retentionHours,
+    createdAt: Date.now(),
+  });
+}
+
+/**
+ * Trigger when a message is marked as read.
+ * Schedules deletion based on the reader's retention settings.
+ */
+export const onMessageRead = functions.firestore
+  .document("matches/{matchId}/messages/{messageId}")
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    const { matchId, messageId } = context.params;
+
+    // Check if message was just marked as read
+    if (before.isRead === after.isRead) return;
+    if (!after.isRead) return;
+
+    const readerId = after.toUserId;
+    const readAt = after.readAt?.toDate?.() || new Date();
+
+    try {
+      // Schedule deletion for the reader based on their retention settings
+      await scheduleMessageDeletion(matchId, messageId, readerId, readAt);
+
+      // Also schedule for the sender (they see it based on their settings too)
+      const senderId = after.fromUserId;
+      await scheduleMessageDeletion(matchId, messageId, senderId, readAt);
+
+      console.log(`Scheduled message deletion: ${matchId}/${messageId}`);
+    } catch (error) {
+      console.error("Failed to schedule message deletion:", error);
+    }
+  });
+
+/**
+ * Scheduled function to process the message deletion queue.
+ * Runs every 15 minutes to remove expired messages from users' visibility.
+ */
+export const processMessageDeletionQueue = functions.pubsub
+  .schedule("every 15 minutes")
+  .onRun(async () => {
+    const now = Date.now();
+
+    try {
+      // Get all deletion entries that are due
+      const snapshot = await rtdb
+        .ref("message_deletion_queue")
+        .orderByChild("deleteAt")
+        .endAt(now)
+        .once("value");
+
+      if (!snapshot.exists()) {
+        console.log("No messages to delete");
+        return null;
+      }
+
+      const deletions: Record<string, unknown> = snapshot.val();
+      const batch = db.batch();
+      const rtdbUpdates: Record<string, null> = {};
+
+      for (const [queueId, data] of Object.entries(deletions)) {
+        const { matchId, messageId, userId } = data as {
+          matchId: string;
+          messageId: string;
+          userId: string;
+        };
+
+        try {
+          // Remove user from visibleTo array in Firestore
+          const messageRef = db
+            .collection("matches")
+            .doc(matchId)
+            .collection("messages")
+            .doc(messageId);
+
+          const messageDoc = await messageRef.get();
+          if (messageDoc.exists) {
+            const visibleTo: string[] = messageDoc.data()?.visibleTo || [];
+            const newVisibleTo = visibleTo.filter((uid) => uid !== userId);
+
+            if (newVisibleTo.length === 0) {
+              // No one can see it anymore, delete the message entirely
+              batch.delete(messageRef);
+            } else {
+              // Update visibleTo to remove this user
+              batch.update(messageRef, { visibleTo: newVisibleTo });
+            }
+          }
+
+          // Mark for removal from queue
+          rtdbUpdates[`message_deletion_queue/${queueId}`] = null;
+        } catch (err) {
+          console.error(`Failed to process deletion ${queueId}:`, err);
+        }
+      }
+
+      // Execute Firestore batch
+      await batch.commit();
+
+      // Remove processed entries from RTDB queue
+      if (Object.keys(rtdbUpdates).length > 0) {
+        await rtdb.ref().update(rtdbUpdates);
+      }
+
+      console.log(`Processed ${Object.keys(deletions).length} message deletions`);
+      return null;
+    } catch (error) {
+      console.error("Error processing deletion queue:", error);
+      return null;
+    }
+  });
+
+/**
+ * Callable function for users to update their chat settings.
+ */
+export const updateChatSettings = callable<{ extendedRetention: boolean }>(
+  async (request, context) => {
+    const uid = requireAuth(context, "update chat settings");
+    const { extendedRetention } = request;
+
+    if (typeof extendedRetention !== "boolean") {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "extendedRetention must be a boolean"
+      );
+    }
+
+    // Update Firestore
+    await db.collection("users").doc(uid).set(
+      {
+        profile: {
+          chatSettings: {
+            extendedRetention,
+          },
+        },
+      },
+      { merge: true }
+    );
+
+    // Sync to RTDB
+    await syncChatSettingsToRtdb(uid);
+
+    const retentionHours = extendedRetention
+      ? RETENTION_FREE_EXTENDED
+      : RETENTION_FREE_DEFAULT;
+
+    return {
+      success: true,
+      extendedRetention,
+      retentionHours,
+      message: extendedRetention
+        ? "Messages will be deleted 24 hours after being read"
+        : "Messages will be deleted 1 hour after being read",
+    };
+  }
+);
+
+/**
+ * Trigger when user's plan changes to sync chat settings.
+ * Plus users automatically get 7-day retention.
+ */
+export const onPlanChangeUpdateChatSettings = functions.firestore
+  .document("users/{userId}")
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    const { userId } = context.params;
+
+    // Check if plan changed
+    if (before.plan === after.plan) return;
+
+    // Sync chat settings to RTDB
+    await syncChatSettingsToRtdb(userId);
+    console.log(`Synced chat settings for ${userId} after plan change`);
+  });
+
+// Chat settings HTTP endpoint
+app.put(
+  "/v1/chat/settings",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { extended_retention } = req.body;
+
+      if (typeof extended_retention !== "boolean") {
+        return res.status(400).json({ error: "extended_retention must be a boolean" });
+      }
+
+      // Update Firestore
+      await db.collection("users").doc(req.uid!).set(
+        {
+          profile: {
+            chatSettings: {
+              extendedRetention: extended_retention,
+            },
+          },
+        },
+        { merge: true }
+      );
+
+      // Sync to RTDB
+      await syncChatSettingsToRtdb(req.uid!);
+
+      // Get user's actual retention hours (considers Plus status)
+      const retentionHours = await getUserRetentionHours(req.uid!);
+
+      res.json({
+        success: true,
+        extended_retention,
+        retention_hours: retentionHours,
+        message: extended_retention
+          ? "Messages will be deleted 24 hours after being read"
+          : "Messages will be deleted 1 hour after being read",
+      });
+    } catch (err) {
+      console.error("Update chat settings error:", err);
+      return res.status(500).json({ error: "Failed to update chat settings" });
+    }
+  }
+);
+
+// Get chat settings
+app.get(
+  "/v1/chat/settings",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data();
+      const isPremium = userData?.plan === "plus";
+      const extendedRetention =
+        userData?.profile?.chatSettings?.extendedRetention === true;
+
+      let retentionHours: number;
+      if (isPremium) {
+        retentionHours = RETENTION_PLUS;
+      } else {
+        retentionHours = extendedRetention
+          ? RETENTION_FREE_EXTENDED
+          : RETENTION_FREE_DEFAULT;
+      }
+
+      res.json({
+        extended_retention: extendedRetention,
+        is_premium: isPremium,
+        retention_hours: retentionHours,
+        retention_description: isPremium
+          ? "Messages are kept for 7 days after being read (Plus benefit)"
+          : extendedRetention
+          ? "Messages are deleted 24 hours after being read"
+          : "Messages are deleted 1 hour after being read",
+      });
+    } catch (err) {
+      console.error("Get chat settings error:", err);
+      return res.status(500).json({ error: "Failed to get chat settings" });
+    }
+  }
+);

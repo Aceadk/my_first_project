@@ -14,10 +14,12 @@ import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
+import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
@@ -29,11 +31,14 @@ import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_player.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
 import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -64,6 +69,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Timer? _typingTimer;
   bool _isTyping = false;
   bool _isRecordingVoice = false;
+  bool _isPickingMedia = false; // Prevent concurrent image picker operations
+  bool _hasInputText = false; // Track if input has text to show/hide media buttons
   List<IceBreakerSuggestion> _iceBreakerSuggestions = [];
   RemoteProfileCompleteness? _backendCompleteness;
   bool _checkingCompleteness = false;
@@ -139,6 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
         return BlocBuilder<ChatBloc, ChatState>(
           builder: (context, state) {
             final messages = state.allMessages;
+            final showSkeleton = state.isInitialLoading && messages.isEmpty;
             final canMessage = completeness.meetsMessagingMinimum &&
                 completeness.meetsRequiredFields &&
                 backendMessageAllowed &&
@@ -401,341 +409,344 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   Expanded(
-                    child: messages.isEmpty
-                        ? _EmptyChatState(
-                            onRefresh: _refreshIceBreakers,
-                            suggestions: _iceBreakerSuggestions,
-                            onSuggestionTap: _onIceBreakerTap,
-                            otherName: widget.args.otherName,
-                          )
-                        : ListView.builder(
-                            reverse: true,
-                            padding: const EdgeInsets.all(12),
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) {
-                              final msg = messages[messages.length - 1 - index];
-                              final isMe =
-                                  msg.fromUserId == widget.args.currentUserId;
-                              final isHeld = msg.moderationAction == 'hold' ||
-                                  msg.moderationStatus == 'held';
-                              final pendingScan =
-                                  msg.moderationStatus == 'pending_scan';
-                              final isFlagged = msg.isFlagged || isHeld;
-                              final text = msg.isDeletedForSender && isMe
-                                  ? '(You unsent this message)'
-                                  : isHeld
-                                      ? 'Message held for safety review'
-                                      : msg.content;
-                              final reactionCounts = _reactionCounts(msg);
-                              final alignment =
-                                  isMe ? Alignment.centerRight : Alignment.centerLeft;
+                    child: showSkeleton
+                        ? _buildMessageSkeletonList()
+                        : messages.isEmpty
+                            ? _EmptyChatState(
+                                onRefresh: _refreshIceBreakers,
+                                suggestions: _iceBreakerSuggestions,
+                                onSuggestionTap: _onIceBreakerTap,
+                                otherName: widget.args.otherName,
+                              )
+                            : ListView.builder(
+                                reverse: true,
+                                padding: const EdgeInsets.all(12),
+                                itemCount: messages.length,
+                                itemBuilder: (context, index) {
+                                  final msg = messages[messages.length - 1 - index];
+                                  final isMe =
+                                      msg.fromUserId == widget.args.currentUserId;
+                                  final isHeld = msg.moderationAction == 'hold' ||
+                                      msg.moderationStatus == 'held';
+                                  final pendingScan =
+                                      msg.moderationStatus == 'pending_scan';
+                                  final isFlagged = msg.isFlagged || isHeld;
+                                  final text = msg.isDeletedForSender && isMe
+                                      ? '(You unsent this message)'
+                                      : isHeld
+                                          ? 'Message held for safety review'
+                                          : msg.content;
+                                  final reactionCounts = _reactionCounts(msg);
+                                  final alignment = isMe
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft;
 
-                              // Check if we need a date separator
-                              final showDateSeparator = _shouldShowDateSeparator(
-                                messages,
-                                messages.length - 1 - index,
-                              );
+                                  // Check if we need a date separator
+                                  final showDateSeparator = _shouldShowDateSeparator(
+                                    messages,
+                                    messages.length - 1 - index,
+                                  );
 
-                              return Column(
-                                children: [
-                                  // Date separator (shown above the message in reversed list)
-                                  if (showDateSeparator)
-                                    _DateSeparator(date: msg.sentAt),
-                                  Align(
-                                alignment: alignment,
-                                child: GestureDetector(
-                                  onLongPress: () => _showMessageActions(
-                                    context: context,
-                                    state: state,
-                                    message: msg,
-                                    isMe: isMe,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: isMe
-                                        ? CrossAxisAlignment.end
-                                        : CrossAxisAlignment.start,
+                                  return Column(
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(18),
-                                        child: BackdropFilter(
-                                          filter: ImageFilter.blur(
-                                            sigmaX: DsBlur.subtle,
-                                            sigmaY: DsBlur.subtle,
+                                      // Date separator (shown above the message in reversed list)
+                                      if (showDateSeparator)
+                                        _DateSeparator(date: msg.sentAt),
+                                      Align(
+                                        alignment: alignment,
+                                        child: GestureDetector(
+                                          onLongPress: () => _showMessageActions(
+                                            context: context,
+                                            state: state,
+                                            message: msg,
+                                            isMe: isMe,
                                           ),
-                                          child: Container(
-                                            margin: const EdgeInsets.symmetric(
-                                                vertical: DsSpacing.xs,
-                                                horizontal: DsSpacing.sm),
-                                            padding: const EdgeInsets.all(DsSpacing.sm + 2),
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: isMe
-                                                    ? [
-                                                        DsColors.primary
-                                                            .withValues(alpha: 0.85),
-                                                        DsColors.secondary
-                                                            .withValues(alpha: 0.7),
-                                                      ]
-                                                    : [
-                                                        DsGlassColors.surfaceDark
-                                                            .withValues(alpha: 0.6),
-                                                        DsGlassColors.surfaceDark
-                                                            .withValues(alpha: 0.4),
+                                          child: Column(
+                                            crossAxisAlignment: isMe
+                                                ? CrossAxisAlignment.end
+                                                : CrossAxisAlignment.start,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(18),
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                    sigmaX: DsBlur.subtle,
+                                                    sigmaY: DsBlur.subtle,
+                                                  ),
+                                                  child: Container(
+                                                    margin: const EdgeInsets.symmetric(
+                                                        vertical: DsSpacing.xs,
+                                                        horizontal: DsSpacing.sm),
+                                                    padding: const EdgeInsets.all(DsSpacing.sm + 2),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        begin: Alignment.topLeft,
+                                                        end: Alignment.bottomRight,
+                                                        colors: isMe
+                                                            ? [
+                                                                DsColors.primary
+                                                                    .withValues(alpha: 0.85),
+                                                                DsColors.secondary
+                                                                    .withValues(alpha: 0.7),
+                                                              ]
+                                                            : [
+                                                                DsGlassColors.surfaceDark
+                                                                    .withValues(alpha: 0.6),
+                                                                DsGlassColors.surfaceDark
+                                                                    .withValues(alpha: 0.4),
+                                                              ],
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(18),
+                                                      border: Border.all(
+                                                        color: isMe
+                                                            ? DsColors.primary
+                                                                .withValues(alpha: 0.3)
+                                                            : DsGlassColors.borderLight,
+                                                        width: 1,
+                                                      ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: (isMe
+                                                                  ? DsColors.primary
+                                                                  : Colors.black)
+                                                              .withValues(alpha: 0.15),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(0, 2),
+                                                        ),
                                                       ],
-                                              ),
-                                              borderRadius: BorderRadius.circular(18),
-                                              border: Border.all(
-                                                color: isMe
-                                                    ? DsColors.primary
-                                                        .withValues(alpha: 0.3)
-                                                    : DsGlassColors.borderLight,
-                                                width: 1,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: (isMe
-                                                          ? DsColors.primary
-                                                          : Colors.black)
-                                                      .withValues(alpha: 0.15),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
+                                                    ),
+                                                    child: _buildMessageContent(
+                                                      msg,
+                                                      text,
+                                                      isHeld: isHeld,
+                                                      pendingScan: pendingScan,
+                                                      isMe: isMe,
+                                                    ),
+                                                  ),
                                                 ),
+                                              ),
+                                              // Message status indicators
+                                              if (isMe) ...[
+                                                if (msg.sendStatus == MessageSendStatus.sending)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(
+                                                      right: 12,
+                                                      bottom: 2,
+                                                      top: 2,
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 10,
+                                                          height: 10,
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 1.5,
+                                                            valueColor: AlwaysStoppedAnimation(
+                                                              Colors.white.withValues(alpha: 0.5),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          'Sending...',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                else if (msg.sendStatus == MessageSendStatus.sent)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(
+                                                      right: 12,
+                                                      bottom: 2,
+                                                      top: 2,
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          _formatTime(msg.sentAt),
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        // Read status icon
+                                                        Icon(
+                                                          msg.isRead
+                                                              ? Icons.done_all
+                                                              : Icons.done,
+                                                          size: 14,
+                                                          color: msg.isRead
+                                                              ? Colors.blue
+                                                              : Colors.white.withValues(alpha: 0.5),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                               ],
-                                            ),
-                                            child: _buildMessageContent(
-                                              msg,
-                                              text,
-                                              isHeld: isHeld,
-                                              pendingScan: pendingScan,
-                                              isMe: isMe,
-                                            ),
+                                              if (isFlagged || pendingScan)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(
+                                                    left: 12,
+                                                    right: 12,
+                                                    bottom: 2,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        isHeld
+                                                            ? Icons.shield
+                                                            : Icons.shield_outlined,
+                                                        size: 14,
+                                                        color: isHeld
+                                                            ? Colors.redAccent
+                                                            : Colors.amber,
+                                                      ),
+                                                      DsGap.xsH,
+                                                      Flexible(
+                                                        child: Text(
+                                                          _moderationLabel(
+                                                            msg,
+                                                            isHeld: isHeld,
+                                                            pendingScan: pendingScan,
+                                                          ),
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: isHeld
+                                                                ? Colors.redAccent
+                                                                : Colors.amber.shade200,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              if (reactionCounts.isNotEmpty)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(
+                                                    left: 12,
+                                                    right: 12,
+                                                    bottom: 2,
+                                                  ),
+                                                  child: Wrap(
+                                                    spacing: 6,
+                                                    children: reactionCounts.entries
+                                                        .map(
+                                                          (entry) => Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                    horizontal: 8,
+                                                                    vertical: 4),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.black54,
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                      12),
+                                                            ),
+                                                            child: Text(
+                                                              entry.value > 1
+                                                                  ? '${entry.key} ${entry.value}'
+                                                                  : entry.key,
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                  ),
+                                                ),
+                                              // Retry button for failed messages
+                                              if (isMe && msg.sendStatus == MessageSendStatus.failed)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(
+                                                    left: 12,
+                                                    right: 12,
+                                                    bottom: 4,
+                                                    top: 2,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.error_outline,
+                                                        size: 14,
+                                                        color: Colors.redAccent,
+                                                      ),
+                                                      DsGap.xsH,
+                                                      const Text(
+                                                        'Failed to send',
+                                                        style: TextStyle(
+                                                          fontSize: 11,
+                                                          color: Colors.redAccent,
+                                                        ),
+                                                      ),
+                                                      DsGap.smH,
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          context.read<ChatBloc>().add(
+                                                            ChatMessageRetryRequested(
+                                                              matchId: widget.args.matchId,
+                                                              messageId: msg.id,
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: const Text(
+                                                          'Retry',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.blue,
+                                                            fontWeight: FontWeight.w600,
+                                                            decoration: TextDecoration.underline,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              // Sending indicator
+                                              if (isMe && msg.sendStatus == MessageSendStatus.sending)
+                                                const Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: 12,
+                                                    right: 12,
+                                                    bottom: 4,
+                                                    top: 2,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 12,
+                                                        height: 12,
+                                                        child: CircularProgressIndicator(
+                                                          strokeWidth: 1.5,
+                                                          valueColor: AlwaysStoppedAnimation(Colors.grey),
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text(
+                                                        'Sending...',
+                                                        style: TextStyle(
+                                                          fontSize: 11,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),
-                                      // Message status indicators
-                                      if (isMe) ...[
-                                        if (msg.sendStatus == MessageSendStatus.sending)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 12,
-                                              bottom: 2,
-                                              top: 2,
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                SizedBox(
-                                                  width: 10,
-                                                  height: 10,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 1.5,
-                                                    valueColor: AlwaysStoppedAnimation(
-                                                      Colors.white.withValues(alpha: 0.5),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Sending...',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.white.withValues(alpha: 0.5),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        else if (msg.sendStatus == MessageSendStatus.sent)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 12,
-                                              bottom: 2,
-                                              top: 2,
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  _formatTime(msg.sentAt),
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.white.withValues(alpha: 0.5),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                // Read status icon
-                                                Icon(
-                                                  msg.isRead
-                                                      ? Icons.done_all
-                                                      : Icons.done,
-                                                  size: 14,
-                                                  color: msg.isRead
-                                                      ? Colors.blue
-                                                      : Colors.white.withValues(alpha: 0.5),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                      if (isFlagged || pendingScan)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 12,
-                                            right: 12,
-                                            bottom: 2,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                isHeld
-                                                    ? Icons.shield
-                                                    : Icons.shield_outlined,
-                                                size: 14,
-                                                color: isHeld
-                                                    ? Colors.redAccent
-                                                    : Colors.amber,
-                                              ),
-                                              DsGap.xsH,
-                                              Flexible(
-                                                child: Text(
-                                                  _moderationLabel(
-                                                    msg,
-                                                    isHeld: isHeld,
-                                                    pendingScan: pendingScan,
-                                                  ),
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: isHeld
-                                                        ? Colors.redAccent
-                                                        : Colors.amber.shade200,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (reactionCounts.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 12,
-                                            right: 12,
-                                            bottom: 2,
-                                          ),
-                                          child: Wrap(
-                                            spacing: 6,
-                                            children: reactionCounts.entries
-                                                .map(
-                                                  (entry) => Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                            horizontal: 8,
-                                                            vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.black54,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    child: Text(
-                                                      entry.value > 1
-                                                          ? '${entry.key} ${entry.value}'
-                                                          : entry.key,
-                                                    ),
-                                                  ),
-                                                )
-                                                .toList(),
-                                          ),
-                                        ),
-                                      // Retry button for failed messages
-                                      if (isMe && msg.sendStatus == MessageSendStatus.failed)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 12,
-                                            right: 12,
-                                            bottom: 4,
-                                            top: 2,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.error_outline,
-                                                size: 14,
-                                                color: Colors.redAccent,
-                                              ),
-                                              DsGap.xsH,
-                                              const Text(
-                                                'Failed to send',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.redAccent,
-                                                ),
-                                              ),
-                                              DsGap.smH,
-                                              GestureDetector(
-                                                onTap: () {
-                                                  context.read<ChatBloc>().add(
-                                                    ChatMessageRetryRequested(
-                                                      matchId: widget.args.matchId,
-                                                      messageId: msg.id,
-                                                    ),
-                                                  );
-                                                },
-                                                child: const Text(
-                                                  'Retry',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.blue,
-                                                    fontWeight: FontWeight.w600,
-                                                    decoration: TextDecoration.underline,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      // Sending indicator
-                                      if (isMe && msg.sendStatus == MessageSendStatus.sending)
-                                        const Padding(
-                                          padding: EdgeInsets.only(
-                                            left: 12,
-                                            right: 12,
-                                            bottom: 4,
-                                            top: 2,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SizedBox(
-                                                width: 12,
-                                                height: 12,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 1.5,
-                                                  valueColor: AlwaysStoppedAnimation(Colors.grey),
-                                                ),
-                                              ),
-                                              SizedBox(width: 6),
-                                              Text(
-                                                'Sending...',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                     ],
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
-                                ],
-                              );
-                            },
-                          ),
                   ),
                   if (state.isUnsendInProgress)
                     const Padding(
@@ -820,112 +831,157 @@ class _ChatScreenState extends State<ChatScreen> {
                       icon: const Icon(Icons.arrow_back),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
-                    // User avatar with online indicator
-                    Stack(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: state.otherUserOnline
-                                  ? DsColors.onlineIndicator
-                                  : (isDark
-                                      ? DsGlassColors.borderDark
-                                      : DsGlassColors.borderLight),
-                              width: 2,
+                    // User avatar with online indicator - tappable to view profile
+                    GestureDetector(
+                      onTap: _navigateToProfile,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: state.otherUserOnline
+                                    ? DsColors.onlineIndicator
+                                    : (isDark
+                                        ? DsGlassColors.borderDark
+                                        : DsGlassColors.borderLight),
+                                width: 2,
+                              ),
+                              boxShadow: state.otherUserOnline
+                                  ? [
+                                      BoxShadow(
+                                        color: DsColors.onlineIndicator
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
                             ),
-                            boxShadow: state.otherUserOnline
-                                ? [
+                            child: ClipOval(
+                              child: state.otherUserPhotoUrl != null
+                                  ? CachedImage(
+                                      imageUrl: state.otherUserPhotoUrl!,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: isDark
+                                          ? DsGlassColors.surfaceDark
+                                          : DsGlassColors.surfaceLight,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 20,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.black38,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          if (state.otherUserOnline)
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: DsColors.onlineIndicator,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark ? Colors.black : Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
                                     BoxShadow(
                                       color: DsColors.onlineIndicator
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 8,
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 4,
                                       spreadRadius: 1,
                                     ),
-                                  ]
-                                : null,
-                          ),
-                          child: ClipOval(
-                            child: state.otherUserPhotoUrl != null
-                                ? CachedImage(
-                                    imageUrl: state.otherUserPhotoUrl!,
-                                    width: 36,
-                                    height: 36,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: isDark
-                                        ? DsGlassColors.surfaceDark
-                                        : DsGlassColors.surfaceLight,
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 20,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black38,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        if (state.otherUserOnline)
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: DsColors.onlineIndicator,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark ? Colors.black : Colors.white,
-                                  width: 2,
+                                  ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: DsColors.onlineIndicator
-                                        .withValues(alpha: 0.5),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: DsSpacing.sm),
+                    // User info - tappable to view profile
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _navigateToProfile,
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.args.otherName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    state.otherUserOnline ? 'Online now' : 'Offline',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: state.otherUserOnline
+                                              ? DsColors.onlineIndicator
+                                              : DsColors.textMutedLight,
+                                          fontWeight: state.otherUserOnline
+                                              ? FontWeight.w500
+                                              : FontWeight.normal,
+                                        ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: DsSpacing.sm),
-                    // User info
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.args.otherName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            state.otherUserOnline ? 'Online now' : 'Offline',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: state.otherUserOnline
-                                      ? DsColors.onlineIndicator
-                                      : DsColors.textMutedLight,
-                                  fontWeight: state.otherUserOnline
-                                      ? FontWeight.w500
-                                      : FontWeight.normal,
+                            // Mute indicators
+                            if (messagesMuted || callsMuted) ...[
+                              const SizedBox(width: 4),
+                              if (messagesMuted)
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.warning.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_off,
+                                    size: 14,
+                                    color: DsColors.warning,
+                                  ),
                                 ),
-                          ),
-                        ],
+                              if (messagesMuted && callsMuted)
+                                const SizedBox(width: 4),
+                              if (callsMuted)
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.warning.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Icon(
+                                    Icons.call_end,
+                                    size: 14,
+                                    color: DsColors.warning,
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                     // Action buttons
@@ -942,13 +998,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: (isBlocked || state.isUnmatched)
                           ? () {}
                           : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => VideoCallScreen(
-                                    currentUserId: widget.args.currentUserId,
-                                    otherUserId: widget.args.otherUserId,
-                                    otherName: widget.args.otherName,
-                                  ),
+                              context.push(
+                                CrushRoutes.videoCall,
+                                extra: VideoCallArgs(
+                                  currentUserId: widget.args.currentUserId,
+                                  otherUserId: widget.args.otherUserId,
+                                  otherName: widget.args.otherName,
                                 ),
                               );
                             },
@@ -982,6 +1037,17 @@ class _ChatScreenState extends State<ChatScreen> {
                         action: action,
                       ),
                       itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: _ChatSafetyAction.viewProfile,
+                          child: Row(
+                            children: [
+                              Icon(Icons.person_outline, size: 20),
+                              SizedBox(width: 12),
+                              Text('View Profile'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
                         const PopupMenuItem(
                           value: _ChatSafetyAction.report,
                           child: Text('Report user'),
@@ -1299,8 +1365,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (!mounted) return;
     if (confirmed == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Calling ${widget.args.otherName}...')),
+      context.push(
+        CrushRoutes.call,
+        extra: CallScreenArgs(
+          matchId: widget.args.otherUserId,
+          isVideoCall: false,
+          matchName: widget.args.otherName,
+          matchPhotoUrl: widget.args.otherPhotoUrl,
+        ),
       );
     }
   }
@@ -1350,21 +1422,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
+        filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
         child: Container(
           decoration: BoxDecoration(
+            // Match the app bar gradient style (topLeft to bottomRight)
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: isDark
-                  ? [
-                      DsGlassColors.surfaceDark.withValues(alpha: 0.7),
-                      DsGlassColors.surfaceDark.withValues(alpha: 0.9),
-                    ]
-                  : [
-                      DsGlassColors.surfaceLight.withValues(alpha: 0.8),
-                      DsGlassColors.surfaceLight.withValues(alpha: 0.95),
-                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                (isDark
+                        ? DsGlassColors.surfaceDark
+                        : DsGlassColors.surfaceLight)
+                    .withValues(alpha: 0.85),
+                (isDark
+                        ? DsGlassColors.surfaceDark
+                        : DsGlassColors.surfaceLight)
+                    .withValues(alpha: 0.7),
+              ],
             ),
             border: Border(
               top: BorderSide(
@@ -1378,67 +1452,93 @@ class _ChatScreenState extends State<ChatScreen> {
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: DsSpacing.xs,
-                vertical: DsSpacing.xs,
+                horizontal: DsSpacing.sm,
+                vertical: DsSpacing.sm,
               ),
               child: Row(
                 children: [
-                  // Media action buttons in a glass container
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: state.mediaSendingEnabled
-                              ? 'Disable media'
-                              : 'Enable media',
-                          icon: Icon(
-                            state.mediaSendingEnabled
-                                ? Icons.photo_camera_back
-                                : Icons.no_photography,
-                            size: 20,
+                  // Media action buttons - hide when user is typing
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: _hasInputText
+                        ? const SizedBox.shrink()
+                        : Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isDark
+                                    ? [
+                                        Colors.white.withValues(alpha: 0.08),
+                                        Colors.white.withValues(alpha: 0.04),
+                                      ]
+                                    : [
+                                        Colors.black.withValues(alpha: 0.04),
+                                        Colors.black.withValues(alpha: 0.02),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isDark
+                                    ? DsGlassColors.borderDark.withValues(alpha: 0.5)
+                                    : DsGlassColors.borderLight.withValues(alpha: 0.5),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Gallery button (photo/video picker)
+                                _buildMediaButton(
+                                  icon: Icons.photo_library_rounded,
+                                  tooltip: 'Send photo or video',
+                                  onPressed: canSendMedia
+                                      ? () => _showMediaPickerOptions(canMessage, completeness, isDark)
+                                      : null,
+                                  isDark: isDark,
+                                ),
+                                // Voice note button
+                                _buildMediaButton(
+                                  icon: Icons.mic_rounded,
+                                  tooltip: 'Voice note',
+                                  onPressed: canSendMedia
+                                      ? () =>
+                                          _startVoiceRecording(canMessage, completeness)
+                                      : null,
+                                  isDark: isDark,
+                                ),
+                              ],
+                            ),
                           ),
-                          onPressed: isBlocked || isUnmatched
-                              ? null
-                              : () => _toggleMedia(state),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.photo, size: 20),
-                          onPressed: canSendMedia
-                              ? () => _pickAndSendImage(canMessage, completeness)
-                              : null,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.videocam, size: 20),
-                          onPressed: canSendMedia
-                              ? () => _pickAndSendVideo(canMessage, completeness)
-                              : null,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.mic, size: 20),
-                          onPressed: canSendMedia
-                              ? () =>
-                                  _startVoiceRecording(canMessage, completeness)
-                              : null,
-                        ),
-                      ],
-                    ),
                   ),
-                  DsGap.smH,
-                  // Glass text input
+                  // Spacing between media buttons and text field
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: _hasInputText
+                        ? const SizedBox.shrink()
+                        : const SizedBox(width: DsSpacing.sm),
+                  ),
+                  // Enhanced glass text input
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.04),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  Colors.white.withValues(alpha: 0.1),
+                                  Colors.white.withValues(alpha: 0.05),
+                                ]
+                              : [
+                                  Colors.black.withValues(alpha: 0.05),
+                                  Colors.black.withValues(alpha: 0.02),
+                                ],
+                        ),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: isDark
@@ -1446,16 +1546,26 @@ class _ChatScreenState extends State<ChatScreen> {
                               : DsGlassColors.borderLight,
                           width: 0.5,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: TextField(
                         controller: _controller,
                         enabled: canSendText,
                         onChanged: _onTextChanged,
+                        maxLines: 1, // Single line only
+                        keyboardType: TextInputType.text,
+                        textInputAction: TextInputAction.send,
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Message...',
+                          hintText: 'Type a message...',
                           hintStyle: TextStyle(
                             color: isDark
                                 ? Colors.white38
@@ -1463,17 +1573,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
+                            vertical: 12,
                           ),
+                          isDense: true,
                         ),
                       ),
                     ),
                   ),
-                  DsGap.smH,
-                  // Glass send button
+                  const SizedBox(width: DsSpacing.sm),
+                  // Enhanced glass send button with glow effect
                   Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
                           DsColors.primary,
                           DsColors.secondary,
@@ -1482,9 +1595,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: DsColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 8,
+                          color: DsColors.primary.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          spreadRadius: 1,
                           offset: const Offset(0, 2),
+                        ),
+                        BoxShadow(
+                          color: DsColors.secondary.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -1499,7 +1619,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     AlwaysStoppedAnimation(Colors.white),
                               ),
                             )
-                          : const Icon(Icons.send, color: Colors.white),
+                          : const Icon(Icons.send_rounded, color: Colors.white),
                       onPressed: isSendingText
                           ? null
                           : () async {
@@ -1543,6 +1663,70 @@ class _ChatScreenState extends State<ChatScreen> {
                   DsGap.xsH,
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageSkeletonList() {
+    return ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.all(12),
+      itemCount: 8,
+      itemBuilder: (context, index) {
+        final isFromMe = index.isEven;
+        final baseWidth = isFromMe ? 150.0 : 200.0;
+        final width = baseWidth + (index % 3) * 18;
+        return GlassSkeletonMessage(
+          isFromMe: isFromMe,
+          width: width,
+        );
+      },
+    );
+  }
+
+  /// Helper to build styled media buttons for the input bar.
+  Widget _buildMediaButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+    required bool isDark,
+    bool isActive = false,
+  }) {
+    final isEnabled = onPressed != null;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: isActive
+                ? BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        DsColors.primary.withValues(alpha: 0.2),
+                        DsColors.secondary.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  )
+                : null,
+            child: Icon(
+              icon,
+              size: 20,
+              color: isEnabled
+                  ? (isActive
+                      ? DsColors.primary
+                      : (isDark ? Colors.white70 : Colors.black54))
+                  : (isDark ? Colors.white24 : Colors.black26),
             ),
           ),
         ),
@@ -1730,6 +1914,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _onTextChanged(String value) {
     final shouldType = value.trim().isNotEmpty;
+
+    // Update UI state for showing/hiding media buttons
+    if (shouldType != _hasInputText) {
+      setState(() {
+        _hasInputText = shouldType;
+      });
+    }
+
     if (shouldType != _isTyping) {
       _isTyping = shouldType;
       context.read<ChatBloc>().add(
@@ -1877,6 +2069,62 @@ class _ChatScreenState extends State<ChatScreen> {
     return 'Could not verify profile completeness. Check your connection.';
   }
 
+  void _showMediaPickerOptions(
+    bool canMessage,
+    ProfileCompletenessSummary completeness,
+    bool isDark,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_rounded,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                title: Text(
+                  'Photo',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndSendImage(canMessage, completeness);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.videocam_rounded,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                title: Text(
+                  'Video',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndSendVideo(canMessage, completeness);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickAndSendImage(
     bool canMessage,
     ProfileCompletenessSummary completeness,
@@ -1885,20 +2133,31 @@ class _ChatScreenState extends State<ChatScreen> {
       _showMessagingIncomplete(completeness);
       return;
     }
+    // Prevent concurrent image picker operations
+    if (_isPickingMedia) return;
     final allowed = await _ensureBackendAllowsMessaging(completeness);
     if (!allowed || !mounted) return;
-    final result = await _picker.pickImage(source: ImageSource.gallery);
-    if (!mounted || result == null) return;
-    HapticService.messageSent();
-    context.read<ChatBloc>().add(
-          ChatMediaSendRequested(
-            matchId: widget.args.matchId,
-            fromUserId: widget.args.currentUserId,
-            toUserId: widget.args.otherUserId,
-            filePath: result.path,
-            type: MessageType.image,
-          ),
-        );
+
+    _isPickingMedia = true;
+    try {
+      final result = await _picker.pickImage(source: ImageSource.gallery);
+      if (!mounted || result == null) return;
+      HapticService.messageSent();
+      context.read<ChatBloc>().add(
+            ChatMediaSendRequested(
+              matchId: widget.args.matchId,
+              fromUserId: widget.args.currentUserId,
+              toUserId: widget.args.otherUserId,
+              filePath: result.path,
+              type: MessageType.image,
+            ),
+          );
+    } on PlatformException catch (e) {
+      // Handle "already_active" error gracefully - picker from another screen may still be active
+      debugPrint('Image picker error: ${e.code} - ${e.message}');
+    } finally {
+      _isPickingMedia = false;
+    }
   }
 
   Future<void> _pickAndSendVideo(
@@ -1909,23 +2168,34 @@ class _ChatScreenState extends State<ChatScreen> {
       _showMessagingIncomplete(completeness);
       return;
     }
+    // Prevent concurrent image picker operations
+    if (_isPickingMedia) return;
     final allowed = await _ensureBackendAllowsMessaging(completeness);
     if (!allowed || !mounted) return;
-    final result = await _picker.pickVideo(
-      source: ImageSource.gallery,
-      maxDuration: const Duration(seconds: 20),
-    );
-    if (!mounted || result == null) return;
-    HapticService.messageSent();
-    context.read<ChatBloc>().add(
-          ChatMediaSendRequested(
-            matchId: widget.args.matchId,
-            fromUserId: widget.args.currentUserId,
-            toUserId: widget.args.otherUserId,
-            filePath: result.path,
-            type: MessageType.video,
-          ),
-        );
+
+    _isPickingMedia = true;
+    try {
+      final result = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(seconds: 20),
+      );
+      if (!mounted || result == null) return;
+      HapticService.messageSent();
+      context.read<ChatBloc>().add(
+            ChatMediaSendRequested(
+              matchId: widget.args.matchId,
+              fromUserId: widget.args.currentUserId,
+              toUserId: widget.args.otherUserId,
+              filePath: result.path,
+              type: MessageType.video,
+            ),
+          );
+    } on PlatformException catch (e) {
+      // Handle "already_active" error gracefully - picker from another screen may still be active
+      debugPrint('Video picker error: ${e.code} - ${e.message}');
+    } finally {
+      _isPickingMedia = false;
+    }
   }
 
   Future<void> _startVoiceRecording(
@@ -1990,6 +2260,9 @@ class _ChatScreenState extends State<ChatScreen> {
     required _ChatSafetyAction action,
   }) async {
     switch (action) {
+      case _ChatSafetyAction.viewProfile:
+        _navigateToProfile();
+        break;
       case _ChatSafetyAction.report:
         _showReportSheet(context, cubit);
         break;
@@ -2037,11 +2310,19 @@ class _ChatScreenState extends State<ChatScreen> {
           widget.args.otherUserId,
           mute: !messagesMuted,
         );
+        _showTemporaryMuteNotification(
+          messagesMuted ? 'Messages unmuted' : 'Messages muted',
+          messagesMuted ? Icons.notifications_active : Icons.notifications_off,
+        );
         break;
       case _ChatSafetyAction.muteCalls:
         cubit.toggleMuteCalls(
           widget.args.otherUserId,
           mute: !callsMuted,
+        );
+        _showTemporaryMuteNotification(
+          callsMuted ? 'Calls unmuted' : 'Calls muted',
+          callsMuted ? Icons.call : Icons.call_end,
         );
         break;
       case _ChatSafetyAction.safetyCenter:
@@ -2049,6 +2330,76 @@ class _ChatScreenState extends State<ChatScreen> {
         context.push(CrushRoutes.safety);
         break;
     }
+  }
+
+  void _navigateToProfile() async {
+    // Fetch the profile for the other user
+    final discoveryRepo = context.read<DiscoveryRepository>();
+    final profile = await discoveryRepo.fetchProfileById(widget.args.otherUserId);
+
+    if (!mounted) return;
+
+    if (profile != null) {
+      context.push(
+        CrushRoutes.userProfile,
+        extra: OtherUserProfileArgs(
+          profile: profile,
+          isMatch: true,
+        ),
+      );
+    } else {
+      // If profile fetch fails, create a minimal profile from available data
+      final minimalProfile = Profile(
+        id: widget.args.otherUserId,
+        name: widget.args.otherName,
+        age: 0,
+        gender: '',
+        bio: '',
+        photoUrls: widget.args.otherPhotoUrl != null
+            ? [widget.args.otherPhotoUrl!]
+            : [],
+        videoUrls: const [],
+        interests: const [],
+        city: '',
+        country: '',
+        isVerified: false,
+        preferences: const DiscoveryPreferences(
+          minAge: 18,
+          maxAge: 100,
+          maxDistanceKm: 100,
+          showMeGenders: [],
+          showMyDistance: true,
+          showMyAge: true,
+          hideFromDiscovery: false,
+          incognitoMode: false,
+          country: '',
+          city: '',
+        ),
+      );
+      context.push(
+        CrushRoutes.userProfile,
+        extra: OtherUserProfileArgs(
+          profile: minimalProfile,
+          isMatch: true,
+        ),
+      );
+    }
+  }
+
+  void _showTemporaryMuteNotification(String message, IconData icon) {
+    // Show a temporary overlay notification that fades away
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => _FadeAwayNotification(
+        message: message,
+        icon: icon,
+        onDismiss: () => overlayEntry.remove(),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
   }
 
   Future<void> _toggleBlock(
@@ -2274,6 +2625,7 @@ class _AttachmentTile extends StatelessWidget {
 }
 
 enum _ChatSafetyAction {
+  viewProfile,
   report,
   block,
   unmatch,
@@ -2881,6 +3233,181 @@ class _ReactionButtonState extends State<_ReactionButton>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// A temporary notification that fades away on its own.
+class _FadeAwayNotification extends StatefulWidget {
+  const _FadeAwayNotification({
+    required this.message,
+    required this.icon,
+    required this.onDismiss,
+  });
+
+  final String message;
+  final IconData icon;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_FadeAwayNotification> createState() => _FadeAwayNotificationState();
+}
+
+class _FadeAwayNotificationState extends State<_FadeAwayNotification>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    );
+
+    _fadeAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 15,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween<double>(1.0),
+        weight: 55,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 30,
+      ),
+    ]).animate(_controller);
+
+    _slideAnimation = TweenSequence<Offset>([
+      TweenSequenceItem(
+        tween: Tween<Offset>(
+          begin: const Offset(0, -0.5),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 15,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween<Offset>(Offset.zero),
+        weight: 55,
+      ),
+      TweenSequenceItem(
+        tween: Tween<Offset>(
+          begin: Offset.zero,
+          end: const Offset(0, -0.3),
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 30,
+      ),
+    ]).animate(_controller);
+
+    _controller.forward().then((_) {
+      widget.onDismiss();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 100,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: child,
+              ),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DsSpacing.lg,
+                  vertical: DsSpacing.md,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      (isDark
+                              ? DsGlassColors.surfaceDark
+                              : DsGlassColors.surfaceLight)
+                          .withValues(alpha: 0.9),
+                      (isDark
+                              ? DsGlassColors.surfaceDark
+                              : DsGlassColors.surfaceLight)
+                          .withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(DsRadius.round),
+                  border: Border.all(
+                    color: isDark
+                        ? DsGlassColors.borderDark
+                        : DsGlassColors.borderLight,
+                    width: 0.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        gradient: DsGradients.primaryHorizontal,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: DsSpacing.md),
+                    Text(
+                      widget.message,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

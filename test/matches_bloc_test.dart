@@ -345,12 +345,6 @@ class _StubAuthRepository implements AuthRepository {
   }) async {}
 
   @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async => null;
-
-  @override
   Future<bool> isEmailRegistered(String email) async => false;
 
   @override

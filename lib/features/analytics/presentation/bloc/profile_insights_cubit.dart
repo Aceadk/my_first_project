@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
 import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
 
@@ -60,10 +62,21 @@ class ProfileInsightsState extends Equatable {
 
 /// Cubit for managing profile insights state.
 class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
-  ProfileInsightsCubit() : super(const ProfileInsightsState());
+  ProfileInsightsCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(const ProfileInsightsState()) {
+    _authSubscription = _authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        _resetState();
+      }
+    });
+  }
 
+  final AuthRepository _authRepository;
   final _service = ProfileInsightsService.instance;
   StreamSubscription<ProfileInsights>? _subscription;
+  StreamSubscription<CrushUser?>? _authSubscription;
 
   /// Load insights for user.
   Future<void> loadInsights(String userId) async {
@@ -162,9 +175,19 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
   /// Get best time to be active.
   String getBestTimeToBeActive() => _service.getBestTimeToBeActive();
 
+  void _resetState() {
+    _subscription?.cancel();
+    _subscription = null;
+    _service.clearUserData();
+    if (!isClosed) {
+      emit(const ProfileInsightsState());
+    }
+  }
+
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

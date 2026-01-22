@@ -19,7 +19,6 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/design_system/widgets/skeleton_loader.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
@@ -209,7 +208,9 @@ class _MatchesViewState extends State<_MatchesView> {
         final showEmpty = matched.isEmpty &&
             !_isLoadingLikes &&
             _likesError == null &&
-            _likesYouProfiles.isEmpty;
+            _likesYouProfiles.isEmpty &&
+            !state.isLoading;
+        final showMatchesSkeleton = state.isLoading && matched.isEmpty;
 
         final emptyView = showEmpty
             ? Center(
@@ -296,6 +297,7 @@ class _MatchesViewState extends State<_MatchesView> {
           ),
           isLoading: state.isLoading && matched.isEmpty,
           errorMessage: state.errorMessage,
+          showBodyOnLoading: true,
           showErrorSnackBar: true,
           empty: emptyView,
           body: NotificationListener<ScrollNotification>(
@@ -335,7 +337,21 @@ class _MatchesViewState extends State<_MatchesView> {
                     subtitle: '${matched.length} matches',
                   ),
                 ),
-                if (matched.isEmpty)
+                if (showMatchesSkeleton)
+                  SliverPadding(
+                    padding: DsEdgeInsets.horizontalLg,
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          return const DsShimmer(
+                            child: SkeletonMatchCard(),
+                          );
+                        },
+                        childCount: 6,
+                      ),
+                    ),
+                  )
+                else if (matched.isEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: DsEdgeInsets.allLg,
@@ -398,12 +414,12 @@ class _MatchesViewState extends State<_MatchesView> {
                           );
                         },
                         childCount: matched.length +
-                            (matched.length > 0 ? matched.length - 1 : 0) +
+                            (matched.isNotEmpty ? matched.length - 1 : 0) +
                             (state.isLoadingMore ? 1 : 0),
                       ),
                     ),
                   ),
-                SliverToBoxAdapter(child: DsGap.lg),
+                const SliverToBoxAdapter(child: DsGap.lg),
               ],
             ),
           ),
@@ -625,18 +641,20 @@ class _LikesYouSection extends StatelessWidget {
           if (isLoading)
             SizedBox(
               height: 210,
-              child: ListView.separated(
-                padding: DsEdgeInsets.horizontalLg,
-                scrollDirection: Axis.horizontal,
-                itemCount: 3,
-                separatorBuilder: (_, __) => DsGap.mdH,
-                itemBuilder: (context, index) {
-                  return const SkeletonBox(
-                    width: 150,
-                    height: 210,
-                    borderRadius: DsRadius.lg,
-                  );
-                },
+              child: DsShimmer(
+                child: ListView.separated(
+                  padding: DsEdgeInsets.horizontalLg,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 3,
+                  separatorBuilder: (_, __) => DsGap.mdH,
+                  itemBuilder: (context, index) {
+                    return const SkeletonBox(
+                      width: 150,
+                      height: 210,
+                      borderRadius: DsRadius.lg,
+                    );
+                  },
+                ),
               ),
             )
           else if (errorMessage != null)
@@ -796,7 +814,7 @@ class _LikesYouCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isBlurred ? 'Likes You' : profile.name,
+                      isBlurred ? 'Likes You' : profile.publicDisplayName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

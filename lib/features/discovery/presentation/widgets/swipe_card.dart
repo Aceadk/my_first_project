@@ -2,10 +2,14 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
+import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/story_ring.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/content_reaction_button.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
@@ -14,6 +18,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/core/accessibility/semantics_helper.dart';
+import 'package:crushhour/core/router.dart';
 
 /// A swipeable card showing a profile with photos and videos.
 class SwipeCard extends StatefulWidget {
@@ -253,8 +258,7 @@ class _SwipeCardState extends State<SwipeCard> {
     final profile = widget.profile;
     final media = _allMedia;
     final currentMedia = _currentMedia;
-    final displayName =
-        profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
+    final displayName = profile.publicDisplayName;
     final bio = profile.bio.trim().isEmpty
         ? 'This member has not added a bio yet.'
         : profile.bio;
@@ -264,6 +268,8 @@ class _SwipeCardState extends State<SwipeCard> {
       if (city.isNotEmpty) city,
       if (country.isNotEmpty) country,
     ].join(city.isNotEmpty && country.isNotEmpty ? ', ' : '');
+    final stories = profile.id.activeStories;
+    final hasStories = stories.isNotEmpty;
 
     // Build semantic label for screen readers
     final semanticLabel = SemanticsHelper.profileCardLabel(
@@ -336,10 +342,9 @@ class _SwipeCardState extends State<SwipeCard> {
                         if (currentMedia?.isVideo == true) {
                           _toggleVideoPlayPause();
                         } else {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ProfileMediaScreen(profile: profile),
-                            ),
+                          context.push(
+                            CrushRoutes.profileMedia,
+                            extra: ProfileMediaArgs(profile: profile),
                           );
                         }
                       },
@@ -409,25 +414,39 @@ class _SwipeCardState extends State<SwipeCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top row: For You badge + Verification
+                  // Top row: For You badge + Video count (verification badge moved to name area)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Left side: For You badge + Video count
-                      Row(
-                        children: [
-                          const _ForYouBadge(),
-                          if (profile.videoUrls.isNotEmpty) ...[
-                            const SizedBox(width: DsSpacing.xs),
-                            _GlassMediaBadge(
-                              icon: Icons.videocam_rounded,
-                              label: '${profile.videoUrls.length}',
+                      const _ForYouBadge(),
+                      if (profile.videoUrls.isNotEmpty) ...[
+                        const SizedBox(width: DsSpacing.xs),
+                        _GlassMediaBadge(
+                          icon: Icons.videocam_rounded,
+                          label: '${profile.videoUrls.length}',
+                        ),
+                      ],
+                      if (hasStories) ...[
+                        const SizedBox(width: DsSpacing.xs),
+                        Semantics(
+                          button: true,
+                          label: 'View stories',
+                          child: GestureDetector(
+                            onTap: () {
+                              context.push(
+                                CrushRoutes.storyViewer,
+                                extra: StoryViewerArgs(
+                                  stories: stories,
+                                  profile: profile,
+                                ),
+                              );
+                            },
+                            child: StoryBadge(
+                              storyCount: stories.length,
+                              hasUnseen: false,
                             ),
-                          ],
-                        ],
-                      ),
-                      // Right side: Verification badge
-                      _GlassVerificationPill(isVerified: profile.isVerified),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   // Media progress indicators (below badges)
@@ -465,7 +484,7 @@ class _SwipeCardState extends State<SwipeCard> {
             if (widget.onReaction != null)
               Positioned(
                 left: DsSpacing.md,
-                bottom: 140, // Above the profile identity overlay
+                bottom: 240, // Above the profile identity overlay
                 child: ContentReactionButton(
                   onReaction: _handleReaction,
                   onComment: _handleCommentReaction,
@@ -486,25 +505,24 @@ class _SwipeCardState extends State<SwipeCard> {
                 ),
               ),
 
-            // Profile identity overlay (name, age, status badge, traits) - positioned above info panel
+            // Profile identity overlay (name, age, verification, traits) - positioned above info panel
             Positioned(
               left: 0,
               right: 70, // Leave space for action buttons on right
-              bottom: 100, // Above the info panel
+              bottom: 140, // Above the info panel, clear of bottom nav
               child: _ProfileIdentityOverlay(profile: profile),
             ),
 
-            // Info panel (prompt + location) - no background, just text with shadows
+            // Info panel (minimal prompt/bio + location) - no background, above bottom nav
             Positioned(
               left: 0,
               right: 70, // Leave space for action buttons on right
-              bottom: 16, // Near the bottom, above navigation
+              bottom: 90, // Above bottom navigation bar
               child: GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ProfileMediaScreen(profile: profile),
-                    ),
+                  context.push(
+                    CrushRoutes.profileMedia,
+                    extra: ProfileMediaArgs(profile: profile),
                   );
                 },
                 child: Padding(
@@ -513,7 +531,7 @@ class _SwipeCardState extends State<SwipeCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Bio or first prompt - no background
+                      // Minimal bio or first prompt - single line for cleaner look
                       if (profile.profilePrompts.isNotEmpty)
                         _CompactPromptDisplayClean(
                           prompt: profile.profilePrompts.first,
@@ -521,11 +539,11 @@ class _SwipeCardState extends State<SwipeCard> {
                       else if (bio.isNotEmpty && bio != 'This member has not added a bio yet.')
                         Text(
                           bio,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.95),
-                            fontSize: 14,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 13,
                             shadows: [
                               Shadow(
                                 color: Colors.black.withValues(alpha: 0.8),
@@ -535,7 +553,7 @@ class _SwipeCardState extends State<SwipeCard> {
                             ],
                           ),
                         ),
-                      const SizedBox(height: DsSpacing.sm),
+                      const SizedBox(height: DsSpacing.xs),
                       // Location and distance row
                       Row(
                         children: [
@@ -824,7 +842,7 @@ class _GlassPlayButton extends StatelessWidget {
   }
 }
 
-/// Compact prompt display without background - uses text shadows for readability.
+/// Minimal prompt display - single line answer for cleaner deck view.
 class _CompactPromptDisplayClean extends StatelessWidget {
   const _CompactPromptDisplayClean({required this.prompt});
 
@@ -840,49 +858,29 @@ class _CompactPromptDisplayClean extends StatelessWidget {
       ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    // Minimal single-line display: "emoji answer"
+    return Row(
       children: [
-        // Question with emoji
-        Row(
-          children: [
-            Text(
-              prompt.emoji,
-              style: TextStyle(
-                fontSize: 14,
-                shadows: textShadows,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                prompt.question,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  shadows: textShadows,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        // Answer
         Text(
-          prompt.answer,
+          prompt.emoji,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.95),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            height: 1.3,
+            fontSize: 13,
             shadows: textShadows,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            prompt.answer,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              shadows: textShadows,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -900,7 +898,7 @@ class _ProfileIdentityOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = profile.name.trim().isEmpty ? 'Someone new' : profile.name.trim();
+    final displayName = profile.publicDisplayName;
     final ageText = profile.age > 0 ? '${profile.age}' : '';
 
     // Collect trait chips (limit to 3-4 for clean layout)
@@ -921,24 +919,47 @@ class _ProfileIdentityOverlay extends StatelessWidget {
                 isNewUser: profile.isNewUser,
               ),
             ),
-          // Name and age
-          Text(
-            ageText.isNotEmpty ? '$displayName, $ageText' : displayName,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          // Name, age, and verification badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  ageText.isNotEmpty ? '$displayName, $ageText' : displayName,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 16,
+                          ),
+                        ],
+                      ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Verification badge after name/age
+              if (profile.isVerified) ...[
+                const SizedBox(width: DsSpacing.sm),
+                const Icon(
+                  Icons.verified,
+                  size: 22,
+                  color: Colors.lightBlueAccent,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 16,
+                      color: Colors.black,
+                      blurRadius: 4,
                     ),
                   ],
                 ),
+              ],
+            ],
           ),
           // Trait chips below name
           if (traits.isNotEmpty)
@@ -1202,33 +1223,3 @@ class _ProfileStatusBadge extends StatelessWidget {
     );
   }
 }
-
-/// A simple verified badge icon for profile cards.
-/// Only shows when user is verified - no text, just the icon.
-class _GlassVerificationPill extends StatelessWidget {
-  const _GlassVerificationPill({required this.isVerified});
-
-  final bool isVerified;
-
-  @override
-  Widget build(BuildContext context) {
-    // Only show badge for verified users - clean, distraction-free for unverified
-    if (!isVerified) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
-        shape: BoxShape.circle,
-      ),
-      child: const Icon(
-        Icons.verified,
-        size: 18,
-        color: Colors.lightBlueAccent,
-      ),
-    );
-  }
-}
-

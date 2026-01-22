@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'chat_settings.dart';
 import 'preferences.dart';
 import 'privacy_settings.dart';
 import 'profile_prompt.dart';
@@ -10,6 +11,7 @@ class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
   final String id; // Firestore user document ID
   final String name;
+  final String? lastName;
   final int age;
   final String gender;
   final String? sexualOrientation;
@@ -58,6 +60,33 @@ class Profile extends Equatable {
     final daysSinceLastChange = DateTime.now().difference(lastDobChangeAt!).inDays;
     return (30 - daysSinceLastChange).clamp(0, 30);
   }
+
+  /// Full name (first + last) for self views.
+  String get fullName {
+    final first = name.trim();
+    final last = lastName?.trim() ?? '';
+    final parts = [first, last].where((part) => part.isNotEmpty).toList();
+    if (parts.isEmpty) return '';
+    return parts.join(' ');
+  }
+
+  /// Public-facing display name that respects privacy settings.
+  String publicDisplayNameOr(String fallback) {
+    final parts = <String>[];
+    final first = name.trim();
+    final last = lastName?.trim() ?? '';
+    if (privacySettings.showFirstName && first.isNotEmpty) {
+      parts.add(first);
+    }
+    if (privacySettings.showLastName && last.isNotEmpty) {
+      parts.add(last);
+    }
+    if (parts.isEmpty) return fallback;
+    return parts.join(' ');
+  }
+
+  /// Public-facing display name with a sensible fallback.
+  String get publicDisplayName => publicDisplayNameOr('Someone new');
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BIO & INTERESTS
@@ -179,9 +208,15 @@ class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
   final ProfileFavourites favourites;
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CHAT SETTINGS
+  // ═══════════════════════════════════════════════════════════════════════════
+  final ChatSettings chatSettings;
+
   const Profile({
     required this.id,
     required this.name,
+    this.lastName,
     required this.age,
     required this.gender,
     this.sexualOrientation,
@@ -230,6 +265,7 @@ class Profile extends Equatable {
     required this.preferences,
     this.privacySettings = const ProfilePrivacySettings(),
     this.favourites = const ProfileFavourites(),
+    this.chatSettings = const ChatSettings(),
   });
 
   /// Sentinel object for copyWith null handling
@@ -238,6 +274,7 @@ class Profile extends Equatable {
   Profile copyWith({
     String? id,
     String? name,
+    Object? lastName = _unset,
     int? age,
     String? gender,
     Object? sexualOrientation = _unset,
@@ -286,10 +323,12 @@ class Profile extends Equatable {
     DiscoveryPreferences? preferences,
     ProfilePrivacySettings? privacySettings,
     ProfileFavourites? favourites,
+    ChatSettings? chatSettings,
   }) {
     return Profile(
       id: id ?? this.id,
       name: name ?? this.name,
+      lastName: identical(lastName, _unset) ? this.lastName : lastName as String?,
       age: age ?? this.age,
       gender: gender ?? this.gender,
       sexualOrientation: identical(sexualOrientation, _unset)
@@ -382,6 +421,7 @@ class Profile extends Equatable {
       preferences: preferences ?? this.preferences,
       privacySettings: privacySettings ?? this.privacySettings,
       favourites: favourites ?? this.favourites,
+      chatSettings: chatSettings ?? this.chatSettings,
     );
   }
 
@@ -389,6 +429,7 @@ class Profile extends Equatable {
   List<Object?> get props => [
         id,
         name,
+        lastName,
         age,
         gender,
         sexualOrientation,
@@ -438,5 +479,6 @@ class Profile extends Equatable {
         preferences,
         privacySettings,
         favourites,
+        chatSettings,
       ];
 }

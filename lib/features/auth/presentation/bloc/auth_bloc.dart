@@ -27,7 +27,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEmailOtpResendRequested>(_onEmailOtpResendRequested);
     on<AuthEmailOtpCancelled>(_onEmailOtpCancelled);
     on<AuthSignedOut>(_onSignedOut);
-    on<AuthDevBypassRequested>(_onDevBypassRequested);
     on<AuthUserRefreshRequested>(_onUserRefreshRequested);
   }
 
@@ -356,38 +355,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> close() {
     _sub?.cancel();
     return super.close();
-  }
-
-  Future<void> _onDevBypassRequested(
-      AuthDevBypassRequested event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      isLoading: true,
-      errorMessage: null,
-    ));
-    final result = await Result.guard(
-      () => authRepository.devLoginBypass(
-        identifier: event.identifier,
-        password: event.password,
-      ),
-      logLabel: 'AuthRepository.devLoginBypass',
-      fallbackError: 'Dev bypass failed.',
-    );
-    final user = result.data;
-    if (user == null) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage ?? 'Dev bypass not available.',
-      ));
-      return;
-    }
-    emit(state.copyWith(
-      status: AuthStatus.authenticated,
-      user: user,
-      isLoading: false,
-      errorMessage: null,
-    ));
   }
 
   Future<void> _sendOtp({

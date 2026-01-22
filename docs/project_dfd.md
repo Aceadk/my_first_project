@@ -933,7 +933,8 @@ flowchart TB
 | hasCompletedBasicInfo | boolean | Basic info complete |
 | hasCompletedProfileSetup | boolean | Profile complete |
 | profile | object | Nested profile data |
-| profile.name | string | Display name |
+| profile.name | string | First name (private by default) |
+| profile.lastName | string? | Last name (private by default) |
 | profile.dateOfBirth | timestamp | Date of birth |
 | profile.gender | enum | "female" \| "male" \| "non-binary" |
 | profile.orientation | enum | Sexual orientation |
@@ -947,6 +948,9 @@ flowchart TB
 | profile.country | string? | Country |
 | profile.latitude | number? | GPS latitude |
 | profile.longitude | number? | GPS longitude |
+| profile.privacySettings | object | Privacy flags for profile fields |
+| profile.privacySettings.showFirstName | boolean | Show first name publicly |
+| profile.privacySettings.showLastName | boolean | Show last name publicly |
 | notificationPrefs | object | Notification settings |
 | notificationPrefs.push | boolean | Push enabled |
 | notificationPrefs.email | boolean | Email enabled |

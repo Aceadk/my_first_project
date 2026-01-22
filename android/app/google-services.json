@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:72015170328:android:c7ad7f26450e2ed717ec6d",
+        "mobilesdk_app_id": "1:72015170328:android:2d9554cc4d9596ad17ec6d",
         "android_client_info": {
-          "package_name": "com.example.crushhour"
+          "package_name": "com.ace.crush"
         }
       },
       "oauth_client": [],

@@ -8,10 +8,13 @@ abstract class ProfileRepository {
   Future<CrushUser> saveBasicInfo({
     String? username,
     required String name,
+    String? lastName,
     required int age,
     required String gender,
     String? sexualOrientation,
     DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
   });
 
   Future<CrushUser> saveProfileDetails({

@@ -34,6 +34,7 @@ class OtherUserProfileScreen extends StatelessWidget {
     final profile = args.profile;
     final privacy = profile.privacySettings;
     final isMatch = args.isMatch;
+    final displayName = profile.publicDisplayName;
 
     return Scaffold(
       body: CustomScrollView(
@@ -88,10 +89,10 @@ class OtherUserProfileScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Text(
+                                  Text(
                                   privacy.showAge
-                                      ? '${profile.name}, ${profile.age}'
-                                      : profile.name,
+                                      ? '$displayName, ${profile.age}'
+                                      : displayName,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -872,4 +873,3 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
-

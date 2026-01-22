@@ -5,8 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/app_logger.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -292,43 +291,44 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
               ],
 
               // Resend button
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: (_isSending || _resendCooldown > 0)
-                      ? null
-                      : _sendVerificationEmail,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: DsColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isSending
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+              Semantics(
+                button: true,
+                label: 'Resend verification email',
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassPrimaryButton(
+                    onPressed: (_isSending || _resendCooldown > 0)
+                        ? null
+                        : _sendVerificationEmail,
+                    child: _isSending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: DsColors.backgroundLight,
+                            ),
+                          )
+                        : Text(
+                            _resendCooldown > 0
+                                ? 'Resend in ${_resendCooldown}s'
+                                : 'Resend Verification Email',
                           ),
-                        )
-                      : Text(
-                          _resendCooldown > 0
-                              ? 'Resend in ${_resendCooldown}s'
-                              : 'Resend Verification Email',
-                        ),
+                  ),
                 ),
               ),
               DsGap.md,
 
               // Check now button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _isChecking ? null : _checkVerification,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              Semantics(
+                button: true,
+                label: 'I have verified, check now',
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassOutlinedButton(
+                    onPressed: _isChecking ? null : _checkVerification,
+                    child: const Text('I\'ve Verified - Check Now'),
                   ),
-                  child: const Text('I\'ve Verified - Check Now'),
                 ),
               ),
 
@@ -338,15 +338,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextButton(
+                  GlassSmallButton(
                     onPressed: _signOut,
                     child: const Text('Sign Out'),
                   ),
                   const Text(' • '),
-                  TextButton(
-                    onPressed: () {
-                      _signOut();
-                    },
+                  GlassSmallButton(
+                    onPressed: _signOut,
                     child: const Text('Use Different Email'),
                   ),
                 ],

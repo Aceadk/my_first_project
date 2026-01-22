@@ -11,7 +11,6 @@ import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -61,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       child: Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
         elevation: 0,
       ),
       body: SafeArea(
@@ -92,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Icon(
                   Icons.favorite_rounded,
                   size: 36,
-                  color: Colors.white,
+                  color: DsColors.backgroundLight,
                 ),
               ),
               DsGap.xxl,
@@ -152,38 +151,43 @@ class _LoginScreenState extends State<LoginScreen> {
               // Forgot password link
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => context.push(CrushRoutes.forgotPassword),
-                  child: Text(
-                    context.l10n.authForgotPassword,
-                    style: const TextStyle(color: DsColors.primary),
+                child: Semantics(
+                  button: true,
+                  label: context.l10n.authForgotPassword,
+                  child: GlassSmallButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () => context.push(CrushRoutes.forgotPassword),
+                    child: Text(context.l10n.authForgotPassword),
                   ),
                 ),
               ),
               DsGap.xl,
               // Login button
-              SizedBox(
-                width: double.infinity,
-                child: GlassPrimaryButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+              Semantics(
+                button: true,
+                label: context.l10n.authSignIn,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassPrimaryButton(
+                    onPressed: _isLoading ? null : _submit,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: DsColors.backgroundLight,
+                            ),
+                          )
+                        : Text(
+                            context.l10n.authSignIn,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        )
-                      : Text(
-                          context.l10n.authSignIn,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  ),
                 ),
               ),
               DsGap.xxl,
@@ -205,54 +209,30 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               DsGap.xxl,
               // Create account button with gradient border
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [DsColors.primary, DsColors.secondary],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.all(2),
-                child: Material(
-                  color: isDark ? DsColors.surfaceDark : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    onTap: _isLoading ? null : () => context.push(CrushRoutes.signUp),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [DsColors.primary, DsColors.secondary],
-                            ).createShader(bounds),
-                            child: const Icon(
-                              Icons.person_add_alt_1_outlined,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+              Semantics(
+                button: true,
+                label: context.l10n.authCreateAccount,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GlassOutlinedButton(
+                    onPressed:
+                        _isLoading ? null : () => context.push(CrushRoutes.signUp),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.person_add_alt_1_outlined,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          context.l10n.authCreateAccount,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 10),
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [DsColors.primary, DsColors.secondary],
-                            ).createShader(bounds),
-                            child: Text(
-                              context.l10n.authCreateAccount,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -260,16 +240,19 @@ class _LoginScreenState extends State<LoginScreen> {
               DsGap.xl,
               // Dev mode indicator - tap to auto-fill admin123 credentials
               if (!kReleaseMode)
-                GestureDetector(
-                  onTap: () {
-                    _identifierController.text = 'admin123';
-                    _passwordController.text = 'admin123';
-                    setState(() {
-                      _identifierError = null;
-                      _passwordError = null;
-                    });
-                  },
-                  child: Container(
+                Semantics(
+                  button: true,
+                  label: 'Fill test credentials',
+                  child: GestureDetector(
+                    onTap: () {
+                      _identifierController.text = 'admin123';
+                      _passwordController.text = 'admin123';
+                      setState(() {
+                        _identifierError = null;
+                        _passwordError = null;
+                      });
+                    },
+                    child: Container(
                     padding: DsEdgeInsets.allMd,
                     decoration: BoxDecoration(
                       color: DsColors.info.withValues(alpha: 0.1),
@@ -314,6 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
+                ),
                 ),
             ],
           ),
@@ -382,19 +366,6 @@ class _LoginScreenState extends State<LoginScreen> {
         : normalizeEmail(rawIdentifier);
 
     setState(() => _isLoading = true);
-
-    // Try dev admin bypass first (only in debug mode with admin123 credentials)
-    if (!kReleaseMode &&
-        identifier == 'admin123' &&
-        _passwordController.text == 'admin123') {
-      context.read<AuthBloc>().add(
-            AuthDevBypassRequested(identifier, _passwordController.text),
-          );
-      // The router will handle navigation when auth state changes
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      return;
-    }
 
     final authRepo = context.read<AuthRepository>();
     final result = await Result.guard(

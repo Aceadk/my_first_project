@@ -12,6 +12,21 @@
 .swiftpm/
 migrate_working_dir/
 
+# Duplicate/numbered directories (accidental copies from macOS)
+**/* 2/
+**/* 3/
+**/* 2
+**/* 3
+**/*(2)/
+**/*(3)/
+
+# Firebase debug logs
+firestore-debug.log
+ui-debug.log
+firebase-debug.log
+pubsub-debug.log
+database-debug.log
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -69,8 +84,20 @@ crushhour-recommendation-service/node_modules/
 ios/Pods/
 macos/Pods/
 
+# Android Gradle cache
+android/.gradle/
+android/.kotlin/
+
+# Android signing keys (contains sensitive credentials)
+android/key.properties
+*.keystore
+*.jks
+
 # Generated dataconnect
 lib/dataconnect_generated/
 
 # Email credentials (contains sensitive SMTP credentials)
 lib/core/services/email_service.dart
+
+# Empty/test files to exclude
+web_entrypoint.dart

@@ -21,22 +21,29 @@ class ProfileSaveRequested extends ProfileEvent {
 class ProfileBasicInfoSubmitted extends ProfileEvent {
   final String? username;
   final String name;
+  final String? lastName;
   final int age;
   final String gender;
   final String? sexualOrientation;
   final DateTime? dateOfBirth;
+  final bool? showFirstName;
+  final bool? showLastName;
 
   ProfileBasicInfoSubmitted({
     this.username,
     required this.name,
+    this.lastName,
     required this.age,
     required this.gender,
     this.sexualOrientation,
     this.dateOfBirth,
+    this.showFirstName,
+    this.showLastName,
   });
 
   @override
-  List<Object?> get props => [username, name, age, gender, sexualOrientation, dateOfBirth];
+  List<Object?> get props =>
+      [username, name, lastName, age, gender, sexualOrientation, dateOfBirth, showFirstName, showLastName];
 }
 
 class ProfileDetailsSubmitted extends ProfileEvent {

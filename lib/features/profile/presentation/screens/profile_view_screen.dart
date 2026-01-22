@@ -36,9 +36,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         AppLogger.logInfo('[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
 
         if (state.isLoading && state.profile == null) {
-          AppLogger.logInfo('[ProfileViewScreen] Showing loading indicator');
+          AppLogger.logInfo('[ProfileViewScreen] Showing loading skeleton');
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: GlassSkeletonProfile(),
           );
         }
 
@@ -149,7 +149,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  hasBasicInfo ? '${profile.name}, ${profile.age}' : profile.name,
+                                  hasBasicInfo ? '${profile.fullName}, ${profile.age}' : profile.fullName,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -759,4 +759,3 @@ class _PhotosGrid extends StatelessWidget {
     );
   }
 }
-

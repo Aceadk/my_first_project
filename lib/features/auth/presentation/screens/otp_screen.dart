@@ -6,6 +6,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
 import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
 
@@ -94,13 +95,17 @@ class _OtpScreenState extends State<OtpScreen> {
                         },
                   nextLoading: state.isLoading,
                 ),
-                TextButton(
-                  onPressed: state.isLoading
-                      ? null
-                      : () => context
-                          .read<AuthBloc>()
-                          .add(AuthOtpResendRequested(currentPhone)),
-                  child: const Text('Resend code'),
+                Semantics(
+                  button: true,
+                  label: 'Resend code',
+                  child: GlassSmallButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () => context
+                            .read<AuthBloc>()
+                            .add(AuthOtpResendRequested(currentPhone)),
+                    child: const Text('Resend code'),
+                  ),
                 ),
               ],
             );

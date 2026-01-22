@@ -4,6 +4,8 @@ import 'package:equatable/equatable.dart';
 /// By default, most fields are public (true), but sensitive fields are private (false).
 class ProfilePrivacySettings extends Equatable {
   // Sensitive fields - private by default
+  final bool showFirstName;
+  final bool showLastName;
   final bool showAge;
   final bool showDateOfBirth;
   final bool showEmail;
@@ -46,6 +48,8 @@ class ProfilePrivacySettings extends Equatable {
 
   const ProfilePrivacySettings({
     // Sensitive - private by default
+    this.showFirstName = false, // Real name privacy
+    this.showLastName = false, // Last name is sensitive
     this.showAge = true, // Age is usually shown on dating apps
     this.showDateOfBirth = false, // Exact DOB is sensitive
     this.showEmail = false, // Email is sensitive
@@ -90,6 +94,8 @@ class ProfilePrivacySettings extends Equatable {
   /// Create settings where everything is public
   factory ProfilePrivacySettings.allPublic() {
     return const ProfilePrivacySettings(
+      showFirstName: true,
+      showLastName: true,
       showAge: true,
       showDateOfBirth: true,
       showEmail: true,
@@ -123,6 +129,8 @@ class ProfilePrivacySettings extends Equatable {
   /// Create settings where everything is private
   factory ProfilePrivacySettings.allPrivate() {
     return const ProfilePrivacySettings(
+      showFirstName: false,
+      showLastName: false,
       showAge: false,
       showDateOfBirth: false,
       showEmail: false,
@@ -154,6 +162,8 @@ class ProfilePrivacySettings extends Equatable {
   }
 
   ProfilePrivacySettings copyWith({
+    bool? showFirstName,
+    bool? showLastName,
     bool? showAge,
     bool? showDateOfBirth,
     bool? showEmail,
@@ -183,6 +193,8 @@ class ProfilePrivacySettings extends Equatable {
     bool? showLastActive,
   }) {
     return ProfilePrivacySettings(
+      showFirstName: showFirstName ?? this.showFirstName,
+      showLastName: showLastName ?? this.showLastName,
       showAge: showAge ?? this.showAge,
       showDateOfBirth: showDateOfBirth ?? this.showDateOfBirth,
       showEmail: showEmail ?? this.showEmail,
@@ -215,6 +227,8 @@ class ProfilePrivacySettings extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
+      'showFirstName': showFirstName,
+      'showLastName': showLastName,
       'showAge': showAge,
       'showDateOfBirth': showDateOfBirth,
       'showEmail': showEmail,
@@ -248,6 +262,8 @@ class ProfilePrivacySettings extends Equatable {
   factory ProfilePrivacySettings.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const ProfilePrivacySettings();
     return ProfilePrivacySettings(
+      showFirstName: json['showFirstName'] ?? false,
+      showLastName: json['showLastName'] ?? false,
       showAge: json['showAge'] ?? true,
       showDateOfBirth: json['showDateOfBirth'] ?? false,
       showEmail: json['showEmail'] ?? false,
@@ -280,6 +296,8 @@ class ProfilePrivacySettings extends Equatable {
 
   @override
   List<Object?> get props => [
+    showFirstName,
+    showLastName,
     showAge,
     showDateOfBirth,
     showEmail,

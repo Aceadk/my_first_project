@@ -198,6 +198,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     return Profile(
       id: data['id'] ?? data['userId'] ?? '',
       name: data['name'] ?? '',
+      lastName: data['lastName'],
       age: data['age'] ?? 0,
       gender: data['gender'] ?? '',
       sexualOrientation: data['sexualOrientation'],

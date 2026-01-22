@@ -357,3 +357,9 @@ static const BackendMode backendMode = BackendMode.firebase;  // Current
 | Audio | just_audio | ^0.9.42 |
 | Animations | lottie | ^3.1.3 |
 | Permissions | permission_handler | ^11.3.0 |
+
+---
+
+## 13. Recent AI Notes
+
+- 2026-01-20: Added first/last name capture with privacy defaults; public name rendering now respects name visibility.

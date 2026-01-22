@@ -119,13 +119,13 @@ Response:
 - NewDeviceScreen (OTP for new device)
 
 Flutter implementations:
-- lib/presentation/screens/auth_gateway_screen.dart
-- lib/presentation/screens/login_screen.dart
-- lib/presentation/screens/sign_up_screen.dart
-- lib/presentation/screens/forgot_password_screen.dart
-- lib/presentation/screens/email_protection_screen.dart
-- lib/presentation/screens/change_email_screen.dart
-- lib/presentation/screens/new_device_screen.dart
+- lib/features/auth/presentation/screens/auth_gateway_screen.dart
+- lib/features/auth/presentation/screens/login_screen.dart
+- lib/features/auth/presentation/screens/sign_up_screen.dart
+- lib/features/auth/presentation/screens/forgot_password_screen.dart
+- lib/features/auth/presentation/screens/email_protection_screen.dart
+- lib/features/auth/presentation/screens/change_email_screen.dart
+- lib/features/auth/presentation/screens/new_device_screen.dart
 
 ## Web parity
 - Web uses the same Flutter routes and screens as mobile, so auth flows are identical.
@@ -160,12 +160,12 @@ CrushHour Security
 - lib/data/repositories/
   - Add loginWithPassword + signUpWithPassword.
   - Update FirebaseAuthRepository + FakeAuthRepository.
-- lib/presentation/screens/
+- lib/features/auth/presentation/screens/
   - Add AuthGatewayScreen, LoginScreen, SignUpScreen.
   - Update ForgotPasswordScreen to email-only reset.
 - lib/core/router.dart
   - Add routes for Auth Gateway, Login, Sign Up.
-- lib/presentation/screens/splash_screen.dart
+- lib/features/auth/presentation/screens/splash_screen.dart
   - Route unauthenticated users to Auth Gateway.
 
 ## Option B: Custom backend implementation (overview)

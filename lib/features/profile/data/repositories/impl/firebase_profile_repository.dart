@@ -105,16 +105,20 @@ class FirebaseProfileRepository implements ProfileRepository {
   Future<CrushUser> saveBasicInfo({
     String? username,
     required String name,
+    String? lastName,
     required int age,
     required String gender,
     String? sexualOrientation,
     DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
   }) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
 
     // Sanitize input
     final sanitizedName = InputSanitizer.sanitizeName(name);
+    final sanitizedLastName = InputSanitizer.sanitizeName(lastName);
     final sanitizedUsername =
         username != null ? InputSanitizer.sanitizeUsername(username) : null;
     final sanitizedAge = InputSanitizer.sanitizeAge(age);
@@ -125,13 +129,24 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     if (sanitizedAge == null) throw Exception('Invalid age');
 
+    final existingUser = await getCurrentUser();
+    final existingPrivacy = existingUser?.profile?.privacySettings ?? const ProfilePrivacySettings();
+    final updatedPrivacy = existingPrivacy.copyWith(
+      showFirstName: showFirstName ?? existingPrivacy.showFirstName,
+      showLastName: showLastName ?? existingPrivacy.showLastName,
+    );
+
     // Build the profile data to save
     final profileData = <String, dynamic>{
       'name': sanitizedName,
       'age': sanitizedAge,
       'gender': sanitizedGender,
+      'privacySettings': updatedPrivacy.toJson(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+    if (sanitizedLastName.isNotEmpty) {
+      profileData['lastName'] = sanitizedLastName;
+    }
 
     // Add optional fields
     if (sanitizedOrientation != null) {
@@ -159,7 +174,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     final user = await getCurrentUser();
     AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: getCurrentUser returned user=${user != null}, profile=${user?.profile != null}');
     if (user?.profile != null) {
-      AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: profile name=${user!.profile!.name}, age=${user.profile!.age}, gender=${user.profile!.gender}');
+      AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: profile firstName=${user!.profile!.name}, lastName=${user.profile!.lastName}, age=${user.profile!.age}, gender=${user.profile!.gender}');
     }
     return user!;
   }
@@ -352,6 +367,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       profile = Profile(
         id: id,
         name: profileData['name'] ?? '',
+        lastName: profileData['lastName'],
         age: profileData['age'] ?? 0,
         gender: profileData['gender'] ?? '',
         sexualOrientation: profileData['sexualOrientation'],
@@ -449,6 +465,7 @@ class FirebaseProfileRepository implements ProfileRepository {
   Map<String, dynamic> _profileToFirestore(Profile p) {
     return {
       'name': p.name,
+      'lastName': p.lastName,
       'age': p.age,
       'gender': p.gender,
       'sexualOrientation': p.sexualOrientation,

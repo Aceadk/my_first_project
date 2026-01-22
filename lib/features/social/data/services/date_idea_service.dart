@@ -140,6 +140,12 @@ class DateIdeaService {
     }).toList();
   }
 
+  void clearUserData() {
+    _savedIdeas.clear();
+    _suggestedIdeas = [];
+    _ideasController.add(_suggestedIdeas);
+  }
+
   void dispose() {
     _ideasController.close();
   }

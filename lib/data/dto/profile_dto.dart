@@ -8,6 +8,7 @@ class ProfileDto {
   // Core identity
   final String id;
   final String name;
+  final String? lastName;
   final int age;
   final String gender;
   final String? sexualOrientation;
@@ -72,6 +73,7 @@ class ProfileDto {
   const ProfileDto({
     required this.id,
     required this.name,
+    this.lastName,
     required this.age,
     required this.gender,
     this.sexualOrientation,
@@ -120,6 +122,7 @@ class ProfileDto {
     return ProfileDto(
       id: json['id'] as String? ?? json['profile_id'] as String? ?? '',
       name: json['name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? json['lastName'] as String?,
       age: json['age'] as int? ?? 0,
       gender: json['gender'] as String? ?? '',
       sexualOrientation: json['sexual_orientation'] as String? ??
@@ -183,6 +186,7 @@ class ProfileDto {
     return {
       'id': id,
       'name': name,
+      if (lastName != null) 'last_name': lastName,
       'age': age,
       'gender': gender,
       if (sexualOrientation != null) 'sexual_orientation': sexualOrientation,
@@ -231,6 +235,7 @@ class ProfileDto {
     return Profile(
       id: id,
       name: name,
+      lastName: lastName,
       age: age,
       gender: gender,
       sexualOrientation: sexualOrientation,
@@ -279,6 +284,7 @@ class ProfileDto {
     return ProfileDto(
       id: profile.id,
       name: profile.name,
+      lastName: profile.lastName,
       age: profile.age,
       gender: profile.gender,
       sexualOrientation: profile.sexualOrientation,

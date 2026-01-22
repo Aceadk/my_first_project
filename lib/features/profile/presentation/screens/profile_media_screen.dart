@@ -4,6 +4,12 @@ import 'package:video_player/video_player.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
+class ProfileMediaArgs {
+  final Profile profile;
+
+  const ProfileMediaArgs({required this.profile});
+}
+
 class ProfileMediaScreen extends StatefulWidget {
   const ProfileMediaScreen({super.key, required this.profile});
 
@@ -50,9 +56,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
   Widget build(BuildContext context) {
     final photos = widget.profile.photoUrls;
     final videos = _validVideoUrls;
-    final displayName = widget.profile.name.trim().isEmpty
-        ? 'This member'
-        : widget.profile.name.trim();
+    final displayName = widget.profile.publicDisplayNameOr('This member');
 
     return DefaultTabController(
       length: 2,

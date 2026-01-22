@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/features/chat/data/services/voice_recorder_service.dart';
 
-/// A widget for recording voice notes in chat.
+/// A widget for recording voice notes in chat with preview functionality.
 class VoiceNoteRecorder extends StatefulWidget {
   const VoiceNoteRecorder({
     super.key,
@@ -16,7 +17,7 @@ class VoiceNoteRecorder extends StatefulWidget {
     this.maxDuration = const Duration(seconds: 60),
   });
 
-  /// Called when recording is complete with the file path.
+  /// Called when recording is complete and user confirms sending.
   final ValueChanged<String> onRecordingComplete;
 
   /// Called when recording is cancelled.
@@ -29,15 +30,27 @@ class VoiceNoteRecorder extends StatefulWidget {
   State<VoiceNoteRecorder> createState() => _VoiceNoteRecorderState();
 }
 
+enum _RecorderState { requestingPermission, recording, previewing }
+
 class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     with TickerProviderStateMixin {
   final _recorderService = VoiceRecorderService();
-  bool _isRecording = false;
+  _RecorderState _state = _RecorderState.requestingPermission;
   bool _hasPermission = false;
   Duration _recordingDuration = Duration.zero;
   StreamSubscription? _durationSub;
   late AnimationController _pulseController;
   late AnimationController _waveController;
+
+  // Preview state
+  String? _recordedFilePath;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  Duration _playbackPosition = Duration.zero;
+  Duration _playbackDuration = Duration.zero;
+  StreamSubscription? _positionSub;
+  StreamSubscription? _playerStateSub;
+  StreamSubscription? _playbackDurationSub;
 
   @override
   void initState() {
@@ -58,9 +71,13 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
   @override
   void dispose() {
     _durationSub?.cancel();
+    _positionSub?.cancel();
+    _playerStateSub?.cancel();
+    _playbackDurationSub?.cancel();
     _pulseController.dispose();
     _waveController.dispose();
     _recorderService.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -104,16 +121,20 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     });
 
     if (mounted) {
-      setState(() => _isRecording = true);
+      setState(() => _state = _RecorderState.recording);
     }
   }
 
-  Future<void> _stopRecording() async {
+  Future<void> _stopRecordingAndPreview() async {
     HapticFeedback.mediumImpact();
 
     final path = await _recorderService.stopRecording();
     if (path != null && mounted) {
-      widget.onRecordingComplete(path);
+      setState(() {
+        _recordedFilePath = path;
+        _state = _RecorderState.previewing;
+      });
+      await _initializePreviewPlayer(path);
     } else if (mounted) {
       // Recording was too short
       ScaffoldMessenger.of(context).showSnackBar(
@@ -126,9 +147,78 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     }
   }
 
+  Future<void> _initializePreviewPlayer(String filePath) async {
+    try {
+      await _audioPlayer.setFilePath(filePath);
+
+      _playbackDurationSub = _audioPlayer.durationStream.listen((duration) {
+        if (duration != null && mounted) {
+          setState(() => _playbackDuration = duration);
+        }
+      });
+
+      _positionSub = _audioPlayer.positionStream.listen((position) {
+        if (mounted) {
+          setState(() => _playbackPosition = position);
+        }
+      });
+
+      _playerStateSub = _audioPlayer.playerStateStream.listen((state) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = state.playing;
+            if (state.processingState == ProcessingState.completed) {
+              _playbackPosition = Duration.zero;
+              _audioPlayer.seek(Duration.zero);
+              _audioPlayer.pause();
+            }
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error initializing preview player: $e');
+    }
+  }
+
+  void _togglePlayPause() {
+    if (_isPlaying) {
+      _audioPlayer.pause();
+    } else {
+      _audioPlayer.play();
+    }
+  }
+
+  Future<void> _reRecord() async {
+    HapticFeedback.lightImpact();
+    await _audioPlayer.stop();
+    _positionSub?.cancel();
+    _playerStateSub?.cancel();
+    _playbackDurationSub?.cancel();
+    setState(() {
+      _recordedFilePath = null;
+      _playbackPosition = Duration.zero;
+      _playbackDuration = Duration.zero;
+      _recordingDuration = Duration.zero;
+      _isPlaying = false;
+    });
+    _startRecording();
+  }
+
+  Future<void> _sendRecording() async {
+    HapticFeedback.mediumImpact();
+    await _audioPlayer.stop();
+    if (_recordedFilePath != null) {
+      widget.onRecordingComplete(_recordedFilePath!);
+    }
+  }
+
   Future<void> _cancelRecording() async {
     HapticFeedback.lightImpact();
-    await _recorderService.cancelRecording();
+    if (_state == _RecorderState.recording) {
+      await _recorderService.cancelRecording();
+    } else if (_state == _RecorderState.previewing) {
+      await _audioPlayer.stop();
+    }
     widget.onCancel();
   }
 
@@ -140,10 +230,18 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasPermission && !_isRecording) {
+    if (!_hasPermission && _state == _RecorderState.requestingPermission) {
       return _buildPermissionRequest();
     }
 
+    if (_state == _RecorderState.previewing) {
+      return _buildPreviewUI();
+    }
+
+    return _buildRecordingUI();
+  }
+
+  Widget _buildRecordingUI() {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: DsSpacing.md,
@@ -209,7 +307,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                     builder: (context, child) {
                       return _RecordingWaveform(
                         animation: _waveController.value,
-                        isRecording: _isRecording,
+                        isRecording: _state == _RecorderState.recording,
                       );
                     },
                   ),
@@ -228,9 +326,11 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
             ),
           ),
           const SizedBox(width: DsSpacing.sm),
-          // Send button
+          // Stop button (to preview)
           GestureDetector(
-            onTap: _isRecording ? _stopRecording : null,
+            onTap: _state == _RecorderState.recording
+                ? _stopRecordingAndPreview
+                : null,
             child: Container(
               width: 48,
               height: 48,
@@ -248,11 +348,197 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                 ],
               ),
               child: const Icon(
-                Icons.send,
+                Icons.stop_rounded,
                 color: Colors.white,
-                size: 22,
+                size: 26,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreviewUI() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final progress = _playbackDuration.inMilliseconds > 0
+        ? _playbackPosition.inMilliseconds / _playbackDuration.inMilliseconds
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DsSpacing.md,
+        vertical: DsSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            DsColors.success.withValues(alpha: 0.1),
+            DsColors.primary.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(DsRadius.xl),
+        border: Border.all(
+          color: DsColors.success.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Preview label
+          Row(
+            children: [
+              Icon(
+                Icons.headphones_rounded,
+                size: 16,
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Preview your voice message',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DsSpacing.sm),
+          // Playback controls
+          Row(
+            children: [
+              // Re-record button
+              IconButton(
+                onPressed: _reRecord,
+                icon: const Icon(Icons.refresh_rounded),
+                color: Colors.orange,
+                tooltip: 'Re-record',
+              ),
+              // Play/Pause button
+              GestureDetector(
+                onTap: _togglePlayPause,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: DsColors.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(width: DsSpacing.sm),
+              // Progress slider
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SliderTheme(
+                      data: SliderThemeData(
+                        trackHeight: 4,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 6,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 12,
+                        ),
+                        activeTrackColor: DsColors.primary,
+                        inactiveTrackColor:
+                            DsColors.primary.withValues(alpha: 0.3),
+                        thumbColor: DsColors.primary,
+                        overlayColor: DsColors.primary.withValues(alpha: 0.2),
+                      ),
+                      child: Slider(
+                        value: progress,
+                        onChanged: (value) {
+                          final newPosition = Duration(
+                            milliseconds:
+                                (value * _playbackDuration.inMilliseconds)
+                                    .toInt(),
+                          );
+                          _audioPlayer.seek(newPosition);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: DsSpacing.xs),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDuration(_playbackPosition),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                            ),
+                          ),
+                          Text(
+                            _formatDuration(_playbackDuration),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white54 : Colors.black38,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: DsSpacing.sm),
+              // Cancel button
+              IconButton(
+                onPressed: _cancelRecording,
+                icon: const Icon(Icons.close_rounded),
+                color: Colors.red.withValues(alpha: 0.8),
+                tooltip: 'Cancel',
+              ),
+              // Send button
+              GestureDetector(
+                onTap: _sendRecording,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [DsColors.success, DsColors.primary],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.success.withValues(alpha: 0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.send_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

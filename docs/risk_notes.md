@@ -4,6 +4,291 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-111 — Auth screen moves could leave stale import paths
+
+Category: Build / Architecture
+
+Description:
+Auth/onboarding screens were moved into `lib/features/auth/presentation/screens`. Any missed imports or stale references could break builds or routing.
+
+Impact: Low
+
+Likelihood: Low
+
+Affected Areas:
+* lib/core/router.dart
+* lib/features/profile/profile.dart
+* lib/features/auth/presentation/screens/*.dart
+
+Mitigation:
+* Search for old `lib/presentation/screens/...` paths and update imports.
+* Run `flutter analyze` or build to confirm.
+
+Status: Monitoring
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
+### R-102 — Name privacy defaults hide public names
+
+Category: UX / Privacy
+
+Description:
+First/last name visibility now defaults to private. If users do not opt in, public cards and matches may show placeholder names, which could reduce clarity or engagement.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/auth/presentation/screens/basic_info_screen.dart
+* lib/features/profile/presentation/screens/profile_edit_screen.dart
+* lib/features/discovery/presentation/widgets/swipe_card.dart
+
+Mitigation:
+* Onboarding prompt explains privacy default and toggle.
+* Profile Edit exposes name visibility controls.
+* Stub profiles opt-in to show first name for demo UX.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-20
+
+---
+
+### R-103 — Skeleton shimmer performance on low-end devices
+
+Category: Performance / UX
+
+Description:
+Animated skeletons during loading could increase GPU/CPU usage and cause jank on lower-end devices if too many are visible at once.
+
+Impact: Low
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/discovery/presentation/widgets/deck_skeleton.dart
+* lib/features/chat/presentation/screens/matches_screen.dart
+* lib/features/chat/presentation/screens/chat_screen.dart
+* lib/features/profile/presentation/screens/profile_view_screen.dart
+
+Mitigation:
+* Keep skeleton counts modest.
+* Prefer a single shimmer wrapper where possible.
+* Revisit animation duration and density if jank is observed.
+
+Status: Monitoring
+
+Owner: AI
+
+Created: 2026-01-20
+
+---
+
+### R-104 — Discovery payload mismatch blocks real users
+
+Category: Backend dependencies
+
+Description:
+`fetchDiscoveryCandidates` returns `profiles` with nested `profile` objects, while the client expects `candidates` and flattens fields.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* functions/src/index.ts
+* lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+
+Mitigation:
+* Align Cloud Function response shape with client expectation.
+* Update client mapping to handle `profiles` if kept.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-22
+
+---
+
+### R-105 — Missing chat callables in Firebase Functions
+
+Category: Backend dependencies
+
+Description:
+Client calls `sendMessage`, `markMessagesRead`, and `editMessage` callables that are not defined in Functions.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* functions/src/index.ts
+* lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+
+Mitigation:
+* Implement the missing callables or switch the client to Firestore writes with matching rules.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-22
+
+---
+
+### R-106 — Storage rules mismatch for profile/chat media
+
+Category: Backend dependencies
+
+Description:
+Storage rules allow `users/{uid}/media` and `chats/{matchId}/{messageId}`, but the app uploads to `users/{uid}/photos|videos` and `chat_media/...`.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* storage.rules
+* lib/features/profile/data/services/profile_media_service.dart
+* lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+
+Mitigation:
+* Align storage paths in code with rules (or update rules to allow current paths).
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-22
+
+---
+
+### R-107 — Android permissions missing for camera/microphone
+
+Category: Build & deployment
+
+Description:
+Android manifest does not declare `CAMERA` or `RECORD_AUDIO`, risking failures for video calls and voice notes.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* android/app/src/main/AndroidManifest.xml
+
+Mitigation:
+* Add required permissions and verify runtime requests on Android 13+.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-22
+
+---
+
+### R-108 — Feature cubit data persists after logout (mitigated)
+
+Category: Security & privacy
+
+Description:
+Weekly Picks, Date Ideas, Compatibility Quiz, and Profile Insights retained cached state without auth cleanup, risking cross-user leakage.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart
+* lib/features/social/presentation/bloc/date_ideas_cubit.dart
+* lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart
+* lib/features/analytics/presentation/bloc/profile_insights_cubit.dart
+* lib/features/discovery/data/services/weekly_picks_service.dart
+* lib/features/social/data/services/date_idea_service.dart
+* lib/features/social/data/services/compatibility_quiz_service.dart
+* lib/features/analytics/data/services/profile_insights_service.dart
+
+Mitigation:
+* Added auth state listeners to reset cubit state on logout.
+* Cleared in-memory service caches when auth becomes null.
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
+### R-109 — Call screen uses placeholder caller ID (now reachable)
+
+Category: Backend dependencies
+
+Description:
+CallScreen initiates calls with a hardcoded `callerId: 'current_user'`. Now that the call route is reachable from chat, this may break call identity tracking.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/calls/presentation/screens/call_screen.dart
+* lib/features/chat/presentation/screens/chat_screen.dart
+
+Mitigation:
+* Pass the authenticated user ID into CallScreen and wire to CallService.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
+### R-110 — Glass buttons reduce link affordance in auth flow
+
+Category: UX
+
+Description:
+Replacing TextButton/OutlinedButton with Glass variants in the auth flow may reduce perceived affordance for secondary actions (e.g., "Forgot password", "Resend").
+
+Impact: Low
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/auth/presentation/screens/auth_gateway_screen.dart
+* lib/features/auth/presentation/screens/login_screen.dart
+* lib/features/auth/presentation/screens/sign_up_screen.dart
+* lib/features/auth/presentation/screens/email_auth_screen.dart
+* lib/features/auth/presentation/screens/phone_auth_screen.dart
+* lib/features/auth/presentation/screens/otp_screen.dart
+* lib/features/auth/presentation/screens/forgot_password_screen.dart
+* lib/features/auth/presentation/screens/email_verification_screen.dart
+* lib/features/auth/presentation/screens/terms_conditions_screen.dart
+
+Mitigation:
+* Keep labels explicit and ensure proper spacing for tap targets.
+* Add Semantics labels for screen readers.
+
+Status: Monitoring
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
 ## Risk Categories
 
 * Architecture
@@ -179,7 +464,7 @@ Likelihood: Medium
 Affected Areas:
 * lib/core/router.dart
 * lib/features/profile/presentation/screens/profile_setup_screen.dart
-* lib/presentation/screens/basic_info_screen.dart
+* lib/features/auth/presentation/screens/basic_info_screen.dart
 
 Mitigation Plan:
 * Ensure AuthUserRefreshRequested is fired after onboarding saves (already in place)

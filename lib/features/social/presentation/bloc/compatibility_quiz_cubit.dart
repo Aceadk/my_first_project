@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
 import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
 
@@ -70,10 +72,21 @@ class CompatibilityQuizState extends Equatable {
 
 /// Cubit for managing compatibility quiz state.
 class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
-  CompatibilityQuizCubit() : super(const CompatibilityQuizState());
+  CompatibilityQuizCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(const CompatibilityQuizState()) {
+    _authSubscription = _authRepository.authStateChanges().listen((user) {
+      if (user == null) {
+        _resetState();
+      }
+    });
+  }
 
+  final AuthRepository _authRepository;
   final _service = CompatibilityQuizService.instance;
   String? _currentMatchId;
+  StreamSubscription<CrushUser?>? _authSubscription;
 
   /// Get all available quizzes.
   List<CompatibilityQuiz> getAllQuizzes() => _service.getAllQuizzes();
@@ -168,5 +181,19 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   void reset() {
     _currentMatchId = null;
     emit(const CompatibilityQuizState());
+  }
+
+  void _resetState() {
+    _service.clearUserData();
+    _currentMatchId = null;
+    if (!isClosed) {
+      emit(const CompatibilityQuizState());
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
   }
 }

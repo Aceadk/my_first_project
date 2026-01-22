@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+class VideoCallArgs {
+  final String currentUserId;
+  final String otherUserId;
+  final String otherName;
+
+  const VideoCallArgs({
+    required this.currentUserId,
+    required this.otherUserId,
+    required this.otherName,
+  });
+}
+
 /// Stub implementation of VideoCallScreen.
 /// Video calling requires a backend service (WebRTC, Agora, Twilio, etc.).
 /// Replace this with your actual video calling implementation.

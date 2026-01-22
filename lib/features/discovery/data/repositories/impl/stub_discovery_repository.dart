@@ -32,12 +32,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       dateOfBirth: DateTime(1998, 4, 12),
       bio:
           'Coffee entwhen husiast ☕ | Travel addict ✈️ | Dog mom 🐕\n\nLooking for someone to explore the city with!',
-      photoUrls: [
+      photoUrls: const [
         'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'
       ],
-      videoUrls: [],
-      interests: ['Travel', 'Photography', 'Coffee', 'Hiking', 'Dogs'],
-      profilePrompts: [
+      videoUrls: const [],
+      interests: const ['Travel', 'Photography', 'Coffee', 'Hiking', 'Dogs'],
+      profilePrompts: const [
         ProfilePrompt(
             questionId: 'perfect_date',
             answer:
@@ -59,12 +59,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       relationshipGoals: 'Long-term relationship',
       smoking: 'Never',
       drinking: 'Socially',
-      languages: ['English', 'Spanish'],
+      languages: const ['English', 'Spanish'],
       zodiacSign: 'Leo',
       educationLevel: 'Bachelor\'s degree',
       jobTitle: 'Product Designer',
       company: 'Tech Startup',
-      preferences: DiscoveryPreferences(
+      preferences: const DiscoveryPreferences(
           minAge: 24,
           maxAge: 35,
           maxDistanceKm: 50,
@@ -84,12 +84,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       dateOfBirth: DateTime(2001, 1, 9),
       bio:
           'Software engineer by day, musician by night 🎸\n\nLet\'s grab tacos and talk about life.',
-      photoUrls: [
+      photoUrls: const [
         'https://www.instagram.com/p/DO0vpy8DxHr/?igsh=NjcyOXlqYzU1NGdu'
       ],
-      videoUrls: [],
-      interests: ['Music', 'Coding', 'Tacos', 'Gaming', 'Fitness'],
-      profilePrompts: [
+      videoUrls: const [],
+      interests: const ['Music', 'Coding', 'Tacos', 'Gaming', 'Fitness'],
+      profilePrompts: const [
         ProfilePrompt(
             questionId: 'go_to_karaoke',
             answer: 'Bohemian Rhapsody - yes, I do all the parts'),
@@ -110,12 +110,12 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       isVerified: true,
       heightCm: 183,
       relationshipGoals: 'Long-term relationship',
-      languages: ['English'],
+      languages: const ['English'],
       zodiacSign: 'Virgo',
       educationLevel: 'Master\'s degree',
       jobTitle: 'Software Engineer',
       company: 'Google',
-      preferences: DiscoveryPreferences(
+      preferences: const DiscoveryPreferences(
           minAge: 23,
           maxAge: 32,
           maxDistanceKm: 50,
@@ -603,7 +603,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     const Profile(
       id: 'mock_14',
       name: 'Mandip',
-      age: 2,
+      age: 22,
       gender: 'Man',
       bio:
           'Investment banker 💼 | Pilot on weekends ✈️ | Wine enthusiast 🍷\n\nWork hard, fly harder.',
@@ -935,7 +935,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
           country: 'United States',
           city: 'San Francisco'),
     ),
-  ];
+  ].map((profile) {
+    return profile.copyWith(
+      privacySettings: profile.privacySettings.copyWith(
+        showFirstName: true,
+      ),
+    );
+  }).toList();
 
   @override
   Future<List<Profile>> fetchDeck(
@@ -1033,7 +1039,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       status: MatchStatus.mutual,
       preMatchMessageRequestsCount: 0,
       pinnedForUser: false,
-      otherUserName: matchedProfile.name,
+      otherUserName: matchedProfile.publicDisplayName,
       otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
           ? matchedProfile.photoUrls.first
           : null,
@@ -1103,7 +1109,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
               !matchedIds.contains(profile.id) &&
               !likesYou.any((liked) => liked.id == profile.id))
           .toList();
-      final preferred = candidates.where((profile) => profile.dateOfBirth != null).toList();
+      final preferred =
+          candidates.where((profile) => profile.dateOfBirth != null).toList();
       final pool = preferred.isNotEmpty ? preferred : candidates;
       pool.shuffle(_random);
       final needed = (3 - likesYou.length).clamp(0, pool.length);
@@ -1245,7 +1252,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       status: MatchStatus.mutual,
       preMatchMessageRequestsCount: 0,
       pinnedForUser: false,
-      otherUserName: matchedProfile.name,
+      otherUserName: matchedProfile.publicDisplayName,
       otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
           ? matchedProfile.photoUrls.first
           : null,

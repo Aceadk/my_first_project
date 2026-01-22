@@ -348,13 +348,6 @@ class _FakeAuthRepository implements AuthRepository {
       throw UnimplementedError();
 
   @override
-  Future<CrushUser?> devLoginBypass({
-    required String identifier,
-    required String password,
-  }) async =>
-      throw UnimplementedError();
-
-  @override
   Future<bool> isEmailRegistered(String email) async =>
       throw UnimplementedError();
 

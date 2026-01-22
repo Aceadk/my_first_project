@@ -6,6 +6,7 @@ import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart'
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
@@ -28,7 +29,8 @@ class ProfileEditScreen extends StatefulWidget {
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _bioController = TextEditingController();
   final _jobTitleController = TextEditingController();
   final _companyController = TextEditingController();
@@ -46,6 +48,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   int _primaryPhotoIndex = 0;
   bool _uploading = false;
   bool _hasLoadedProfile = false;
+  bool _showFirstName = false;
+  bool _showLastName = false;
 
   // New profile fields
   int? _heightCm;
@@ -75,6 +79,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     return Profile(
       id: state.user?.id ?? authUserId ?? 'TEMP',
       name: '',
+      lastName: state.user?.profile?.lastName,
       age: state.user?.profile?.age ?? 18,
       gender: _gender ?? state.user?.profile?.gender ?? '',
       sexualOrientation: _sexualOrientation ?? state.user?.profile?.sexualOrientation,
@@ -125,6 +130,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             country: 'Unknown',
             city: 'Unknown',
           ),
+      privacySettings:
+          state.user?.profile?.privacySettings ?? const ProfilePrivacySettings(),
     );
   }
 
@@ -167,11 +174,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     final uploads = uploadResult.data!;
-    final newName = _nameController.text.trim();
-    final nameChanged = newName != base.name;
+    final newFirstName = _firstNameController.text.trim();
+    final newLastName = _lastNameController.text.trim();
+    final baseLastName = base.lastName?.trim() ?? '';
+    final nameChanged =
+        newFirstName != base.name || newLastName != baseLastName;
     final dobChanged = _dateOfBirth != base.dateOfBirth;
+    final updatedPrivacy = base.privacySettings.copyWith(
+      showFirstName: _showFirstName,
+      showLastName: _showLastName,
+    );
     final updated = base.copyWith(
-      name: newName,
+      name: newFirstName,
+      lastName: newLastName.isEmpty ? null : newLastName,
       bio: _bioController.text.trim(),
       photoUrls: uploads.photoUrls,
       videoUrls: uploads.videoUrls,
@@ -206,6 +221,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       dateOfBirth: _dateOfBirth,
       gender: _gender,
       sexualOrientation: _sexualOrientation,
+      privacySettings: updatedPrivacy,
       // Location fields
       country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : base.country,
       city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : base.city,
@@ -224,7 +240,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _bioController.dispose();
     _jobTitleController.dispose();
     _companyController.dispose();
@@ -841,7 +858,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         if (profile != null && profile.id != _lastProfileId) {
           _hasLoadedProfile = true;
           _lastProfileId = profile.id;
-          _nameController.text = profile.name;
+          _firstNameController.text = profile.name;
+          _lastNameController.text = profile.lastName ?? '';
           _bioController.text = profile.bio;
           _photos = List.of(profile.photoUrls);
           _videos = List.of(profile.videoUrls);
@@ -875,6 +893,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _gender = profile.gender.isNotEmpty ? profile.gender : null;
           _sexualOrientation = profile.sexualOrientation;
           _profilePrompts = List.of(profile.profilePrompts);
+          _showFirstName = profile.privacySettings.showFirstName;
+          _showLastName = profile.privacySettings.showLastName;
         }
 
         final saving = state.isSaving || _uploading;
@@ -938,14 +958,33 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     DsGap.md,
                     _StyledTextField(
-                      controller: _nameController,
-                      label: 'Display Name',
-                      hint: 'What should we call you?',
+                      controller: _firstNameController,
+                      label: 'First Name',
+                      hint: 'Enter your first name',
                       icon: Icons.badge_outlined,
                       enabled: profile?.canChangeName ?? true,
                       helperText: profile != null && !profile.canChangeName
                           ? 'You can change your name again in ${profile.daysUntilNameChange} days'
                           : 'You can change your name once per month',
+                    ),
+                    DsGap.md,
+                    _StyledTextField(
+                      controller: _lastNameController,
+                      label: 'Last Name',
+                      hint: 'Enter your last name (optional)',
+                      icon: Icons.person_outline,
+                      enabled: profile?.canChangeName ?? true,
+                    ),
+                    DsGap.md,
+                    _NameVisibilityCard(
+                      showFirstName: _showFirstName,
+                      showLastName: _showLastName,
+                      onFirstNameChanged: (value) {
+                        setState(() => _showFirstName = value);
+                      },
+                      onLastNameChanged: (value) {
+                        setState(() => _showLastName = value);
+                      },
                     ),
                     DsGap.md,
                     _StyledTextField(
@@ -1486,6 +1525,90 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _NameVisibilityCard extends StatelessWidget {
+  const _NameVisibilityCard({
+    required this.showFirstName,
+    required this.showLastName,
+    required this.onFirstNameChanged,
+    required this.onLastNameChanged,
+  });
+
+  final bool showFirstName;
+  final bool showLastName;
+  final ValueChanged<bool> onFirstNameChanged;
+  final ValueChanged<bool> onLastNameChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Name Visibility',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Control what name details others can see.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: textMuted,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Show first name',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: textPrimary,
+                      ),
+                ),
+              ),
+              Switch(
+                value: showFirstName,
+                onChanged: onFirstNameChanged,
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Show last name',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: textPrimary,
+                      ),
+                ),
+              ),
+              Switch(
+                value: showLastName,
+                onChanged: onLastNameChanged,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

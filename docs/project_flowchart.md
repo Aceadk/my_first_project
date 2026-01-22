@@ -78,10 +78,12 @@ flowchart TD
 
   subgraph "Basic Info Fields"
     BI1[Username]
-    BI2[Display Name]
-    BI3[Date of Birth]
-    BI4[Gender]
-    BI5[Sexual Orientation]
+    BI2[First Name]
+    BI3[Last Name]
+    BI4[Name Visibility (private by default)]
+    BI5[Date of Birth]
+    BI6[Gender]
+    BI7[Sexual Orientation]
   end
 
   subgraph "Profile Setup Fields"
@@ -117,6 +119,8 @@ flowchart TD
 
   T3 --> C1[Conversations List]
   C1 --> C2[Chat Screen]
+  C2 --> C3[Audio Call]
+  C2 --> C4[Video Call]
 
   T4 --> P1[Profile View]
   P1 --> P2[Profile Edit]
@@ -133,6 +137,7 @@ flowchart LR
   D[Discovery Deck] -->|Swipe Left| PASS[Pass/Dislike]
   D -->|Swipe Right| LIKE[Like]
   D -->|Super Like| SUPER[Super Like ⭐]
+  D -->|Tap Story Badge| STORY[Story Viewer]
 
   LIKE --> M{Mutual Match?}
   SUPER --> M

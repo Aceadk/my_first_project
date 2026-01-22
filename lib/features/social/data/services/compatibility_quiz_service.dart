@@ -230,6 +230,11 @@ class CompatibilityQuizService {
     return insights;
   }
 
+  void clearUserData() {
+    _results.clear();
+    _pendingAnswers.clear();
+  }
+
   void dispose() {
     _quizController.close();
     _resultController.close();

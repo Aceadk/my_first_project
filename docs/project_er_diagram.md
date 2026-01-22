@@ -277,6 +277,7 @@ erDiagram
     Profile {
         string id PK "Same as CrushUser.id"
         string name "NOT NULL"
+        string lastName "nullable"
         int age "NOT NULL, MIN 18"
         string gender "NOT NULL"
         string sexualOrientation "nullable"
@@ -354,6 +355,8 @@ erDiagram
 ```mermaid
 erDiagram
     ProfilePrivacySettings {
+        boolean showFirstName "DEFAULT false"
+        boolean showLastName "DEFAULT false"
         boolean showAge "DEFAULT true"
         boolean showDateOfBirth "DEFAULT false"
         boolean showEmail "DEFAULT false"
@@ -1430,7 +1433,8 @@ service cloud.firestore {
 | `isIdVerified` | boolean | SERVER-ONLY | ID/photo verification |
 | `plan` | enum | SERVER-ONLY, free/plus | Subscription tier |
 | `hasAcceptedTerms` | boolean | DEFAULT false | T&C acceptance |
-| `profile.name` | string | NOT NULL | Display name |
+| `profile.name` | string | NOT NULL | First name (private by default) |
+| `profile.lastName` | string | nullable | Last name (private by default) |
 | `profile.age` | int | MIN 18 | User's age |
 | `profile.gender` | string | NOT NULL | Gender identity |
 | `profile.bio` | string | MAX 500 | Profile bio |
@@ -1440,6 +1444,8 @@ service cloud.firestore {
 | `profile.profilePrompts` | array | MAX 3 | Q&A prompts |
 | `profile.latitude` | double | nullable | Location latitude |
 | `profile.longitude` | double | nullable | Location longitude |
+| `profile.privacySettings.showFirstName` | boolean | DEFAULT false | Show first name publicly |
+| `profile.privacySettings.showLastName` | boolean | DEFAULT false | Show last name publicly |
 
 ### 7.2 Match & Message Fields
 

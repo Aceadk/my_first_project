@@ -255,14 +255,14 @@ class _SwipeableCardState extends State<SwipeableCard>
                             angle: -0.3,
                           ),
                         ),
-                      // Pass indicator (left side) - Black X icon
+                      // Pass indicator (left side) - Bold red X icon
                       if (dragX < -_indicatorVisibilityThreshold)
-                        const Positioned(
+                        Positioned(
                           right: 30.0,
                           top: 30.0,
                           child: _SwipeIconIndicator(
                             icon: Icons.close_rounded,
-                            color: Colors.black,
+                            color: Colors.red.shade400,
                             angle: 0.3,
                           ),
                         ),
