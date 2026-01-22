@@ -242,6 +242,10 @@ class FirebaseAuthRepository implements AuthRepository {
 
         await _checkAndUpdateFirestoreVerification(firebaseUser);
         _authStateController.add(_currentUser);
+      } else {
+        // No user logged in - emit null to trigger unauthenticated state
+        _currentUser = null;
+        _authStateController.add(null);
       }
     });
   }

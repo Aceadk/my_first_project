@@ -46,7 +46,6 @@ import 'package:crushhour/features/settings/presentation/screens/chat_settings_s
 import 'package:crushhour/features/settings/presentation/bloc/chat_settings_cubit.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/chat_settings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
