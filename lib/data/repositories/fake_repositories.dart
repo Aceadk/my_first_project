@@ -10,6 +10,7 @@ import '../models/preferences.dart';
 import '../models/privacy_settings.dart';
 import '../models/match.dart';
 import '../models/message.dart';
+import '../models/message_request.dart';
 import '../models/subscription.dart';
 import '../models/favourites.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
@@ -1057,6 +1058,7 @@ class FakeChatRepository implements ChatRepository {
   final _presenceStreams = <String, StreamController<bool>>{};
   final Map<String, bool> _mediaEnabledByMatch = {};
   final _mediaStreams = <String, StreamController<bool>>{};
+  final Map<String, MessageRequest> _messageRequestsByPair = {};
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -1420,6 +1422,109 @@ class FakeChatRepository implements ChatRepository {
       items: items,
       total: total,
       hasMore: end < total,
+    );
+  }
+
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async {
+    final pairKey = _pairKey(fromUserId, toUserId);
+    final existing = _messageRequestsByPair[pairKey];
+    if (existing != null && !existing.isExpired) {
+      return null;
+    }
+    final now = DateTime.now();
+    final request = MessageRequest(
+      id: pairKey,
+      fromUserId: fromUserId,
+      toUserId: toUserId,
+      content: content,
+      type: type,
+      sentAt: now,
+      expiresAt: now.add(const Duration(hours: 48)),
+      fromUserName: fromUserName,
+      fromUserPhotoUrl: fromUserPhotoUrl,
+      toUserName: toUserName,
+      toUserPhotoUrl: toUserPhotoUrl,
+    );
+    _messageRequestsByPair[pairKey] = request;
+    return request;
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
+    _pruneExpiredRequests();
+    final requests = _messageRequestsByPair.values
+        .where((r) => r.fromUserId == userId || r.toUserId == userId)
+        .toList()
+      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    return requests;
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async {
+    _pruneExpiredRequests();
+    final pairKey = _pairKey(userId, otherUserId);
+    final request = _messageRequestsByPair[pairKey];
+    return request != null && !request.isExpired;
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async {
+    if (matches.isEmpty) return 0;
+    _pruneExpiredRequests();
+    var migrated = 0;
+
+    for (final match in matches) {
+      final pairKey = _pairKey(userId, match.otherUserId);
+      final request = _messageRequestsByPair[pairKey];
+      if (request == null || request.isExpired) continue;
+
+      final message = Message(
+        id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+        matchId: match.id,
+        fromUserId: request.fromUserId,
+        toUserId: request.toUserId,
+        content: request.content,
+        type: request.type,
+        sentAt: request.sentAt,
+        isRead: false,
+        isDeletedForSender: false,
+        reactions: const {},
+      );
+
+      final list = _messagesByMatch.putIfAbsent(match.id, () => []);
+      list.add(message);
+      _streams[match.id]?.add(List<Message>.from(list));
+      _messageRequestsByPair.remove(pairKey);
+      migrated++;
+    }
+
+    return migrated;
+  }
+
+  String _pairKey(String userA, String userB) {
+    return userA.compareTo(userB) <= 0 ? '$userA|$userB' : '$userB|$userA';
+  }
+
+  void _pruneExpiredRequests() {
+    final now = DateTime.now();
+    _messageRequestsByPair.removeWhere(
+      (_, request) => request.expiresAt.isBefore(now),
     );
   }
 

@@ -22,24 +22,28 @@ class CachedNetworkImage extends StatefulWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
     this.placeholder,
     this.errorWidget,
     this.fadeInDuration = const Duration(milliseconds: 200),
     this.borderRadius,
     this.semanticLabel,
     this.excludeFromSemantics = false,
+    this.onRetry,
   });
 
   final String imageUrl;
   final double? width;
   final double? height;
   final BoxFit fit;
+  final Alignment alignment;
   final Widget? placeholder;
   final Widget? errorWidget;
   final Duration fadeInDuration;
   final BorderRadius? borderRadius;
   final String? semanticLabel;
   final bool excludeFromSemantics;
+  final VoidCallback? onRetry;
 
   @override
   State<CachedNetworkImage> createState() => _CachedNetworkImageState();
@@ -139,6 +143,7 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
           width: widget.width,
           height: widget.height,
           fit: widget.fit,
+          alignment: widget.alignment,
           errorBuilder: (_, __, ___) =>
               widget.errorWidget ?? _buildErrorWidget(),
         ),
@@ -196,10 +201,44 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
   Widget _buildErrorWidget() {
     return Container(
       color: Colors.grey.shade200,
-      child: const Center(
-        child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.broken_image_outlined, color: Colors.grey, size: 32),
+            if (widget.onRetry != null) ...[
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {
+                  widget.onRetry?.call();
+                  _loadImage();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.refresh, size: 14, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text('Retry', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
+  }
+
+  /// Manually retry loading the image
+  void retry() {
+    _loadImage();
   }
 }
 

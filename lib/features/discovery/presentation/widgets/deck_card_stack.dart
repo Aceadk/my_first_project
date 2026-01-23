@@ -38,9 +38,9 @@ class _DeckCardStackState extends State<DeckCardStack> {
     final deck = state.deck;
     final currentIndex = state.currentIndex;
 
-    // Preload next 3 images
+    // Preload next 4 images
     final urlsToPreload = <String>[];
-    for (var i = currentIndex; i < currentIndex + 3 && i < deck.length; i++) {
+    for (var i = currentIndex; i < currentIndex + 4 && i < deck.length; i++) {
       final url = deck[i].displayPhotoUrl;
       if (url != null) {
         urlsToPreload.add(url);
@@ -91,44 +91,54 @@ class DeckPreviewStack extends StatelessWidget {
     super.key,
     required this.currentProfile,
     required this.child,
+    this.upcomingProfiles,
   });
 
   final Profile currentProfile;
   final Widget child;
+  final List<Profile>? upcomingProfiles;
+
+  Widget _buildStack(List<Profile> profiles) {
+    return Stack(
+      children: [
+        // Background cards (upcoming)
+        for (var i = profiles.length - 1; i >= 0; i--)
+          Positioned.fill(
+            child: Transform.translate(
+              offset: Offset(0, (i + 1) * 8.0),
+              child: Transform.scale(
+                scale: 1 - ((i + 1) * 0.03),
+                child: RepaintBoundary(
+                  child: _PreviewCard(
+                    profile: profiles[i],
+                    opacity: 0.4 - (i * 0.08),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        // Current card on top
+        child,
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provided = upcomingProfiles;
+    if (provided != null) {
+      return _buildStack(provided);
+    }
     return BlocSelector<DiscoveryBloc, DiscoveryState, List<Profile>>(
       selector: (state) {
         if (state.deck.isEmpty) return [];
         final start = state.currentIndex + 1;
-        final end = (state.currentIndex + 3).clamp(0, state.deck.length);
+        final end = (state.currentIndex + 5).clamp(0, state.deck.length);
         if (start >= state.deck.length) return [];
         return state.deck.sublist(start, end);
       },
       builder: (context, upcomingProfiles) {
-        return Stack(
-          children: [
-            // Background cards (upcoming)
-            for (var i = upcomingProfiles.length - 1; i >= 0; i--)
-              Positioned.fill(
-                child: Transform.translate(
-                  offset: Offset(0, (i + 1) * 8.0),
-                  child: Transform.scale(
-                    scale: 1 - ((i + 1) * 0.03),
-                    child: RepaintBoundary(
-                      child: _PreviewCard(
-                        profile: upcomingProfiles[i],
-                        opacity: 0.3 - (i * 0.1),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            // Current card on top
-            child,
-          ],
-        );
+        return _buildStack(upcomingProfiles);
       },
     );
   }

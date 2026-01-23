@@ -156,6 +156,16 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
         errorMessage: null,
         nextRetrySeconds: null,
       ));
+
+      // Best-effort migration of message requests into chats for new matches.
+      try {
+        await chatRepository.migrateMessageRequestsForMatches(
+          userId: userId,
+          matches: paginated.items,
+        );
+      } catch (_) {
+        // Ignore migration errors to avoid blocking matches view.
+      }
     } else {
       _retryCount++;
       final errorMsg = result.errorMessage;

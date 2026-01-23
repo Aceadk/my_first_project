@@ -11,6 +11,7 @@ import 'package:crushhour/core/network/mappers/chat_mapper.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
 import 'package:crushhour/core/network/realtime/realtime_connection.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
 import '../chat_repository.dart';
 
@@ -542,6 +543,41 @@ class HttpChatRepository implements ChatRepository {
       total: response.totalCount ?? matches.length,
       hasMore: matches.length >= limit,
     );
+  }
+
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async {
+    throw UnsupportedError('Message requests are not supported in HTTP backend.');
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
+    return [];
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async {
+    return false;
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async {
+    return 0;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -125,6 +125,24 @@ interface UnsendRequest {
   messageId?: string;
 }
 
+interface SendMessageRequest {
+  matchId?: string;
+  toUserId?: string;
+  content?: string;
+  type?: string;
+  mediaUrl?: string;
+}
+
+interface MarkMessagesReadRequest {
+  matchId?: string;
+}
+
+interface EditMessageRequest {
+  matchId?: string;
+  messageId?: string;
+  content?: string;
+}
+
 interface ReportRequest {
   reporterId?: string;
   reportedId?: string;
@@ -3125,10 +3143,11 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const blockedIds = await blockedUserIds(uid);
 
+    // Build query - don't filter by hideFromDiscovery/incognitoMode in query
+    // because new users may not have these fields set yet.
+    // We'll filter them out in the candidate processing loop instead.
     let query: FirebaseFirestore.Query = db
       .collection("users")
-      .where("profile.preferences.hideFromDiscovery", "==", false)
-      .where("profile.preferences.incognitoMode", "==", false)
       .limit(DISCOVERY_PAGE_SIZE);
 
     if (showMeGenders.length > 0 && showMeGenders.length <= 10) {
@@ -3142,10 +3161,9 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     try {
       snap = await query.get();
     } catch (err) {
-      // Fallback to broader query if index/gender filters fail
+      // Fallback to broader query if filters fail
       snap = await db
         .collection("users")
-        .where("profile.preferences.hideFromDiscovery", "==", false)
         .limit(DISCOVERY_PAGE_SIZE)
         .get();
     }
@@ -3163,9 +3181,17 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       const data = doc.data() as Record<string, unknown>;
       const candidateProfile = (data.profile as ProfileData | undefined) ?? null;
       if (!candidateProfile) return;
-      if (candidateProfile.preferences && (candidateProfile.preferences as any).hideFromDiscovery) {
-        return;
-      }
+
+      // Filter out users who have explicitly opted out of discovery
+      const prefs = candidateProfile.preferences as Record<string, unknown> | undefined;
+      if (prefs?.hideFromDiscovery === true) return;
+      if (prefs?.incognitoMode === true) return;
+
+      // Filter out incomplete profiles (must have at least 1 photo and a name)
+      const photos = toStringArray(candidateProfile.photoUrls);
+      const name = typeof candidateProfile.name === "string" ? candidateProfile.name : "";
+      if (photos.length < 1 || !name) return;
+
       const age = toNumber((candidateProfile as any).age);
       if (age && (age < minAge || age > maxAge)) return;
       const lat = toNumber(candidateProfile.latitude);
@@ -3205,9 +3231,11 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const limited = candidates.slice(0, limit);
     return {
-      profiles: limited.map((c) => ({
+      // Return as 'candidates' with flattened profile data (client expects this format)
+      candidates: limited.map((c) => ({
         id: c.id,
-        profile: c.profile,
+        userId: c.id, // Alternative key for compatibility
+        ...c.profile, // Flatten profile fields to top level
         distanceKm: c.distanceKm,
         score: c.score,
       })),
@@ -3300,6 +3328,38 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     });
     existing = await matchRef.get();
     matchId = matchRef.id;
+
+    // Get profiles for real-time notification data
+    const [myProfile, theirProfile] = await Promise.all([
+      getUser(uid),
+      getUser(targetUserId),
+    ]);
+    const myData = myProfile.profile as ProfileData | null;
+    const theirData = theirProfile.profile as ProfileData | null;
+
+    // Write to RTDB for real-time match notifications
+    // Both users get notified instantly
+    const matchNotification = {
+      matchId: matchRef.id,
+      createdAt: Date.now(),
+      status: "mutual",
+    };
+
+    // Notify target user (they just got matched!)
+    await rtdb.ref(`users/${targetUserId}/newMatches/${matchRef.id}`).set({
+      ...matchNotification,
+      otherUserId: uid,
+      otherUserName: myData?.name ?? "Someone",
+      otherUserPhotoUrl: toStringArray(myData?.photoUrls)[0] ?? null,
+    });
+
+    // Notify current user (immediate feedback in case they navigate away)
+    await rtdb.ref(`users/${uid}/newMatches/${matchRef.id}`).set({
+      ...matchNotification,
+      otherUserId: targetUserId,
+      otherUserName: theirData?.name ?? "Someone",
+      otherUserPhotoUrl: toStringArray(theirData?.photoUrls)[0] ?? null,
+    });
   } else {
     matchId = existing.id;
   }
@@ -3479,6 +3539,199 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   await msgRef.update({
     isDeletedForSender: true,
     unsentAt: serverTimestamp(),
+  });
+
+  return { ok: true };
+});
+
+// Send message (for matched users)
+export const sendMessage = callable<SendMessageRequest>(async (data, context) => {
+  const uid = requireAuth(context, "send messages");
+  const matchId = requireString(data?.matchId, "matchId");
+  const toUserId = requireString(data?.toUserId, "toUserId");
+  const content = optionalString(data?.content);
+  const type = optionalString(data?.type) ?? "text";
+  const mediaUrl = optionalString(data?.mediaUrl);
+
+  // Validate content - must have content or mediaUrl
+  if (!content && !mediaUrl) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Message must have content or media."
+    );
+  }
+
+  // Validate user is part of the match
+  const matchSnap = await db.collection("matches").doc(matchId).get();
+  if (!matchSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Match not found.");
+  }
+
+  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+  const userIds = (matchData.userIds || []) as string[];
+  if (!userIds.includes(uid)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You are not part of this match."
+    );
+  }
+
+  // Verify toUserId is the other participant
+  if (!userIds.includes(toUserId)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Recipient is not part of this match."
+    );
+  }
+
+  if (toUserId === uid) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Cannot send message to yourself."
+    );
+  }
+
+  // Check if blocked
+  await ensureNotBlocked(uid, toUserId);
+
+  // Create the message document
+  const messageRef = await db
+    .collection("matches")
+    .doc(matchId)
+    .collection("messages")
+    .add({
+      matchId,
+      fromUserId: uid,
+      toUserId,
+      content: content ?? null,
+      type,
+      mediaUrl: mediaUrl ?? null,
+      sentAt: serverTimestamp(),
+      isRead: false,
+      isDeletedForSender: false,
+      isDeletedForRecipient: false,
+      reactions: {},
+      visibleTo: [uid, toUserId],
+    });
+
+  // Update match with last message info
+  await db.collection("matches").doc(matchId).update({
+    lastMessageAt: serverTimestamp(),
+    lastMessageContent: content ? truncateString(content, 100) : null,
+    lastMessageType: type,
+    lastMessageFromUserId: uid,
+  });
+
+  return {
+    ok: true,
+    messageId: messageRef.id,
+  };
+});
+
+// Mark messages as read
+export const markMessagesRead = callable<MarkMessagesReadRequest>(async (data, context) => {
+  const uid = requireAuth(context, "mark messages as read");
+  const matchId = requireString(data?.matchId, "matchId");
+
+  // Validate user is part of the match
+  const matchSnap = await db.collection("matches").doc(matchId).get();
+  if (!matchSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Match not found.");
+  }
+
+  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+  const userIds = (matchData.userIds || []) as string[];
+  if (!userIds.includes(uid)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You are not part of this match."
+    );
+  }
+
+  // Get unread messages sent TO this user
+  const unreadMessagesSnap = await db
+    .collection("matches")
+    .doc(matchId)
+    .collection("messages")
+    .where("toUserId", "==", uid)
+    .where("isRead", "==", false)
+    .get();
+
+  if (unreadMessagesSnap.empty) {
+    return { ok: true, markedCount: 0 };
+  }
+
+  // Batch update to mark as read
+  const batch = db.batch();
+  const readAt = serverTimestamp();
+
+  unreadMessagesSnap.docs.forEach((doc) => {
+    batch.update(doc.ref, {
+      isRead: true,
+      readAt,
+      readBy: uid,
+    });
+  });
+
+  await batch.commit();
+
+  // Update match read status
+  await db.collection("matches").doc(matchId).update({
+    [`readBy.${uid}`]: readAt,
+  });
+
+  return { ok: true, markedCount: unreadMessagesSnap.size };
+});
+
+// Edit message (sender only)
+export const editMessage = callable<EditMessageRequest>(async (data, context) => {
+  const uid = requireAuth(context, "edit messages");
+  const matchId = requireString(data?.matchId, "matchId");
+  const messageId = requireString(data?.messageId, "messageId");
+  const content = requireString(data?.content, "content");
+
+  // Validate user is part of the match
+  const matchSnap = await db.collection("matches").doc(matchId).get();
+  if (!matchSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Match not found.");
+  }
+
+  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+  const userIds = (matchData.userIds || []) as string[];
+  if (!userIds.includes(uid)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You are not part of this match."
+    );
+  }
+
+  // Load message
+  const msgRef = db
+    .collection("matches")
+    .doc(matchId)
+    .collection("messages")
+    .doc(messageId);
+  const msgSnap = await msgRef.get();
+
+  if (!msgSnap.exists) {
+    throw new functions.https.HttpsError("not-found", "Message not found.");
+  }
+
+  const msgData = msgSnap.data() as FirebaseFirestore.DocumentData;
+
+  // Ownership check - only sender can edit
+  if (msgData.fromUserId !== uid) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You can only edit your own messages."
+    );
+  }
+
+  // Update the message
+  await msgRef.update({
+    content,
+    isEdited: true,
+    editedAt: serverTimestamp(),
   });
 
   return { ok: true };
@@ -5276,6 +5529,81 @@ export const updateChatSettings = callable<{ extendedRetention: boolean }>(
     };
   }
 );
+
+/**
+ * Callable function for users to update chat settings for a specific match.
+ * This allows per-conversation message retention settings.
+ */
+export const updateMatchChatSettings = callable<{
+  matchId: string;
+  extendedRetention: boolean;
+}>(async (request, context) => {
+  const uid = requireAuth(context, "update match chat settings");
+  const { matchId, extendedRetention } = request;
+
+  if (typeof matchId !== "string" || !matchId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "matchId is required"
+    );
+  }
+
+  if (typeof extendedRetention !== "boolean") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "extendedRetention must be a boolean"
+    );
+  }
+
+  // Verify user is part of this match
+  const matchDoc = await db.collection("matches").doc(matchId).get();
+  if (!matchDoc.exists) {
+    throw new functions.https.HttpsError("not-found", "Match not found");
+  }
+
+  const matchData = matchDoc.data();
+  const userIds: string[] = matchData?.userIds || [];
+  if (!userIds.includes(uid)) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "You are not part of this match"
+    );
+  }
+
+  // Store per-user chat settings for this match
+  // Each user in the match can have their own retention settings
+  await db.collection("matches").doc(matchId).set(
+    {
+      chatSettings: {
+        [uid]: {
+          extendedRetention,
+          updatedAt: Date.now(),
+        },
+      },
+    },
+    { merge: true }
+  );
+
+  // Also sync to RTDB for real-time access
+  await rtdb.ref(`matches/${matchId}/chatSettings/${uid}`).set({
+    extendedRetention,
+    updatedAt: Date.now(),
+  });
+
+  const retentionHours = extendedRetention
+    ? RETENTION_FREE_EXTENDED
+    : RETENTION_FREE_DEFAULT;
+
+  return {
+    success: true,
+    matchId,
+    extendedRetention,
+    retentionHours,
+    message: extendedRetention
+      ? "Messages in this chat will be deleted 24 hours after being read"
+      : "Messages in this chat will be deleted 1 hour after being read",
+  };
+});
 
 /**
  * Trigger when user's plan changes to sync chat settings.

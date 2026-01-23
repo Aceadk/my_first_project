@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,9 @@ import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
@@ -48,7 +52,15 @@ class MatchesScreen extends StatelessWidget {
         authRepository: context.read<AuthRepository>(),
         userId: userId,
       )..add(const MatchesLoadRequested()),
-      child: _MatchesView(currentUserId: userId, onBackToDeck: onBackToDeck),
+      child: BlocListener<DiscoveryBloc, DiscoveryState>(
+        listenWhen: (previous, current) =>
+            previous.newMatch != current.newMatch &&
+            current.newMatch != null,
+        listener: (context, state) {
+          context.read<MatchesBloc>().add(const MatchesRefreshRequested());
+        },
+        child: _MatchesView(currentUserId: userId, onBackToDeck: onBackToDeck),
+      ),
     );
   }
 }
@@ -67,11 +79,24 @@ class _MatchesViewState extends State<_MatchesView> {
   List<Profile> _likesYouProfiles = [];
   bool _isLoadingLikes = true;
   String? _likesError;
+  StreamSubscription? _matchSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadLikes();
+    _matchSubscription = RealtimeMatchService.instance.onNewMatch.listen(
+      (_) {
+        if (!mounted) return;
+        context.read<MatchesBloc>().add(const MatchesRefreshRequested());
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _matchSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadLikes() async {

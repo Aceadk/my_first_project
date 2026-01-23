@@ -30,6 +30,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_s
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_skeleton.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_ui_helpers.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/deck_card_stack.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/swipeable_card.dart';
 import 'package:crushhour/presentation/widgets/upsell_widgets.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
@@ -51,6 +52,7 @@ class DeckScreen extends StatefulWidget {
 }
 
 class _DeckScreenState extends State<DeckScreen> {
+  static const int _previewCount = 4;
   RemoteProfileCompleteness? _backendCompleteness;
   bool _checkingCompleteness = false;
   String? _completenessError;
@@ -62,15 +64,15 @@ class _DeckScreenState extends State<DeckScreen> {
   ProfileValidationService get _validationService =>
       widget.validationService ?? ProfileValidationService();
 
-  /// Preload images for the next 2 profiles in the deck for smoother transitions.
+  /// Preload images for the next few profiles in the deck for smoother transitions.
   void _preloadUpcomingProfiles(List<Profile> deck, int currentIndex) {
     if (currentIndex == _lastPreloadedIndex) return;
     _lastPreloadedIndex = currentIndex;
 
     final urlsToPreload = <String>[];
 
-    // Preload next 2 profiles' first photos
-    for (int i = 1; i <= 2; i++) {
+    // Preload next profiles' first photos
+    for (int i = 1; i <= _previewCount; i++) {
       final nextIndex = currentIndex + i;
       if (nextIndex < deck.length) {
         final profile = deck[nextIndex];
@@ -83,6 +85,14 @@ class _DeckScreenState extends State<DeckScreen> {
     if (urlsToPreload.isNotEmpty) {
       NetworkImageCache.instance.preload(urlsToPreload);
     }
+  }
+
+  List<Profile> _buildUpcomingProfiles(List<Profile> deck, int currentIndex) {
+    if (deck.isEmpty) return const [];
+    final start = currentIndex + 1;
+    final end = (currentIndex + 1 + _previewCount).clamp(0, deck.length);
+    if (start >= deck.length) return const [];
+    return deck.sublist(start, end);
   }
 
   @override
@@ -175,8 +185,12 @@ class _DeckScreenState extends State<DeckScreen> {
             filteredDeck.isEmpty ||
             state.currentIndex >= filteredDeck.length;
 
-        final currentProfile =
-            isEmptyDeck ? null : filteredDeck[state.currentIndex.clamp(0, filteredDeck.length - 1)];
+        final currentProfile = isEmptyDeck
+            ? null
+            : filteredDeck[state.currentIndex.clamp(0, filteredDeck.length - 1)];
+        final upcomingProfiles = isEmptyDeck
+            ? const <Profile>[]
+            : _buildUpcomingProfiles(filteredDeck, state.currentIndex);
 
         // Preload images for upcoming profiles
         if (!isEmptyDeck && filteredDeck.isNotEmpty) {
@@ -220,118 +234,122 @@ class _DeckScreenState extends State<DeckScreen> {
                   children: [
                     // Full-screen immersive card - edge to edge
                     Positioned.fill(
-                      child: SwipeableCard(
-                        profile: currentProfile,
-                        superLikeEnabled: state.superLikesRemaining > 0,
-                        onTap: () => context.push(
-                          CrushRoutes.userProfile,
-                          extra: OtherUserProfileArgs(profile: currentProfile),
+                      child: DeckPreviewStack(
+                        currentProfile: currentProfile,
+                        upcomingProfiles: upcomingProfiles,
+                        child: SwipeableCard(
+                          profile: currentProfile,
+                          superLikeEnabled: state.superLikesRemaining > 0,
+                          onTap: () => context.push(
+                            CrushRoutes.userProfile,
+                            extra: OtherUserProfileArgs(profile: currentProfile),
+                          ),
+                          onSwipeLeft: () async {
+                            // Pass action (swipe right to left)
+                            if (userId == null) return;
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                              _showProfileIncompleteDialog(
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'swipe',
+                                isAccountVerified: isAccountVerified,
+                              );
+                              return;
+                            }
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'swipe',
+                              local: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'swipe',
+                              completeness: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!allowed) return;
+                            discoveryBloc.add(
+                              DiscoverySwipedLeft(
+                                userId: userId,
+                                targetUserId: currentProfile.id,
+                              ),
+                            );
+                          },
+                          onSwipeRight: () async {
+                            // Like action (swipe left to right)
+                            if (userId == null) return;
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                              _showProfileIncompleteDialog(
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'swipe',
+                                isAccountVerified: isAccountVerified,
+                              );
+                              return;
+                            }
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'swipe',
+                              local: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'swipe',
+                              completeness: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!allowed) return;
+                            discoveryBloc.add(
+                              DiscoverySwipedRight(
+                                userId: userId,
+                                targetUserId: currentProfile.id,
+                              ),
+                            );
+                          },
+                          onSwipeUp: () async {
+                            // SuperLike action (swipe up)
+                            if (userId == null) return;
+                            final discoveryBloc = context.read<DiscoveryBloc>();
+                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                              _showProfileIncompleteDialog(
+                                context,
+                                completeness,
+                                remote: _backendCompleteness,
+                                minimum: 'swipe',
+                                isAccountVerified: isAccountVerified,
+                              );
+                              return;
+                            }
+                            final outcome = await _evaluateBackendAllowance(
+                              minimum: 'swipe',
+                              local: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!context.mounted) return;
+                            final allowed = _handleBackendOutcome(
+                              context,
+                              outcome,
+                              minimum: 'swipe',
+                              completeness: completeness,
+                              isAccountVerified: isAccountVerified,
+                            );
+                            if (!allowed) return;
+                            discoveryBloc.add(
+                              DiscoverySuperLiked(
+                                userId: userId,
+                                targetUserId: currentProfile.id,
+                              ),
+                            );
+                          },
                         ),
-                        onSwipeLeft: () async {
-                          // Pass action (swipe right to left)
-                          if (userId == null) return;
-                          final discoveryBloc = context.read<DiscoveryBloc>();
-                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                            _showProfileIncompleteDialog(
-                              context,
-                              completeness,
-                              remote: _backendCompleteness,
-                              minimum: 'swipe',
-                              isAccountVerified: isAccountVerified,
-                            );
-                            return;
-                          }
-                          final outcome = await _evaluateBackendAllowance(
-                            minimum: 'swipe',
-                            local: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!context.mounted) return;
-                          final allowed = _handleBackendOutcome(
-                            context,
-                            outcome,
-                            minimum: 'swipe',
-                            completeness: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!allowed) return;
-                          discoveryBloc.add(
-                            DiscoverySwipedLeft(
-                              userId: userId,
-                              targetUserId: currentProfile.id,
-                            ),
-                          );
-                        },
-                        onSwipeRight: () async {
-                          // Like action (swipe left to right)
-                          if (userId == null) return;
-                          final discoveryBloc = context.read<DiscoveryBloc>();
-                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                            _showProfileIncompleteDialog(
-                              context,
-                              completeness,
-                              remote: _backendCompleteness,
-                              minimum: 'swipe',
-                              isAccountVerified: isAccountVerified,
-                            );
-                            return;
-                          }
-                          final outcome = await _evaluateBackendAllowance(
-                            minimum: 'swipe',
-                            local: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!context.mounted) return;
-                          final allowed = _handleBackendOutcome(
-                            context,
-                            outcome,
-                            minimum: 'swipe',
-                            completeness: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!allowed) return;
-                          discoveryBloc.add(
-                            DiscoverySwipedRight(
-                              userId: userId,
-                              targetUserId: currentProfile.id,
-                            ),
-                          );
-                        },
-                        onSwipeUp: () async {
-                          // SuperLike action (swipe up)
-                          if (userId == null) return;
-                          final discoveryBloc = context.read<DiscoveryBloc>();
-                          if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
-                            _showProfileIncompleteDialog(
-                              context,
-                              completeness,
-                              remote: _backendCompleteness,
-                              minimum: 'swipe',
-                              isAccountVerified: isAccountVerified,
-                            );
-                            return;
-                          }
-                          final outcome = await _evaluateBackendAllowance(
-                            minimum: 'swipe',
-                            local: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!context.mounted) return;
-                          final allowed = _handleBackendOutcome(
-                            context,
-                            outcome,
-                            minimum: 'swipe',
-                            completeness: completeness,
-                            isAccountVerified: isAccountVerified,
-                          );
-                          if (!allowed) return;
-                          discoveryBloc.add(
-                            DiscoverySuperLiked(
-                              userId: userId,
-                              targetUserId: currentProfile.id,
-                            ),
-                          );
-                        },
                       ),
                     ),
 

@@ -112,7 +112,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         .listen((enabled) {
       add(ChatMediaStatusUpdated(enabled));
     });
-    emit(state.copyWith(canUnsend: plan.isPlus, canEdit: plan.isPlus, errorMessage: null));
+    emit(state.copyWith(
+      canUnsend: plan.isPlus,
+      canEdit: plan.isPlus,
+      canSeeReadReceipts: plan.isPlus,
+      errorMessage: null,
+    ));
 
     // Track conversation opened
     AnalyticsService.instance.logConversationOpened(matchId: event.matchId);
@@ -546,6 +551,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       messages: event.messages,
       canUnsend: event.plan.isPlus,
       canEdit: event.plan.isPlus,
+      canSeeReadReceipts: event.plan.isPlus,
       failedMessages: updatedFailedMessages,
     ));
   }

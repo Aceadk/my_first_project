@@ -155,6 +155,24 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                // Username display
+                                if (state.user?.username != null && state.user!.username!.isNotEmpty) ...[
+                                  DsGap.xs,
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.alternate_email, size: 16, color: DsColors.primary),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        state.user!.username!,
+                                        style: const TextStyle(
+                                          color: DsColors.primary,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 if (profile.livingIn != null && profile.livingIn!.isNotEmpty) ...[
                                   DsGap.xs,
                                   Row(
@@ -441,25 +459,34 @@ class _ProfileHeader extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        // Hero photo - displayed clearly without blur
+        // Uses top-center alignment to prioritize showing face/head area
         if (displayPhoto != null)
           CachedNetworkImage(
             imageUrl: displayPhoto,
             fit: BoxFit.cover,
+            alignment: Alignment.topCenter, // Prioritize upper portion (face)
             errorWidget: _buildPlaceholder(),
           )
         else
           _buildPlaceholder(),
-        // Gradient overlay
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withValues(alpha: 0.7),
-              ],
-              stops: const [0.5, 1.0],
+        // Subtle gradient overlay at bottom only (for text readability)
+        // Does NOT blur or obscure the photo - only adds subtle shadow at bottom
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 100,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.5),
+                ],
+              ),
             ),
           ),
         ),
@@ -699,6 +726,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 /// Grid of photos for user's own profile (no blur/overlay effects)
+/// Photos are displayed at full quality with top-center alignment to prioritize faces
 class _PhotosGrid extends StatelessWidget {
   final List<String> photos;
 
@@ -715,7 +743,7 @@ class _PhotosGrid extends StatelessWidget {
         crossAxisCount: 2, // Larger photos (2 columns instead of 3)
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.8, // Slightly wider aspect ratio
+        childAspectRatio: 0.8, // Slightly taller aspect ratio for portraits
       ),
       itemCount: photos.length,
       itemBuilder: (context, index) {
@@ -724,23 +752,51 @@ class _PhotosGrid extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Photo - displayed clearly without blur
+              // Photo - displayed clearly without blur at full quality
+              // Uses top-center alignment to prioritize showing face/head area
               CachedNetworkImage(
                 imageUrl: photos[index],
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter, // Prioritize face area
+                placeholder: Container(
+                  color: isDark
+                      ? DsGlassColors.surfaceDark
+                      : DsGlassColors.surfaceLight,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: DsColors.primary,
+                    ),
+                  ),
+                ),
                 errorWidget: Container(
                   color: isDark
                       ? DsGlassColors.surfaceDark
                       : DsGlassColors.surfaceLight,
-                  child: Icon(
-                    Icons.image_not_supported_outlined,
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported_outlined,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap to retry',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              // Subtle border overlay (no gradient/blur)
+              // Subtle border overlay (no gradient/blur - photos remain clear)
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DsRadius.md),

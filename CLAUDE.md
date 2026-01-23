@@ -13,11 +13,22 @@ Your job is to understand the entire codebase, preserve intent, improve quality,
      - `/docs/ai_tasks_board.md` — to see current task status and ownership
      - `/docs/ai_collab_chat.md` — to understand ongoing discussions and decisions
      - `/docs/risk_notes.md` — to be aware of known risks and constraints
-   - **AFTER every edit session**, you MUST re-read the same four files and:
+     - `/docs/Developer_agent_chat.md` — to see previous developer requests and refined prompts
+   - **AFTER every edit session**, you MUST re-read the same files and:
      - update them with what changed, what to do next, and any new risks
      - add suggestions or issues for other agents in `/docs/ai_collab_chat.md`
    - This applies to BOTH Claude AND Codex (and any other AI assistant)
    - Failure to read these docs first may result in duplicate work, conflicts, or regressions
+
+2. **LOG ALL DEVELOPER TASKS (MANDATORY)**
+   - **When the developer gives you ANY task**, you MUST:
+     - Log it immediately to `/docs/Developer_agent_chat.md`
+     - Record the original request exactly as given
+     - Create a refined prompt with clear goal, scope, constraints, and expected outcome
+     - Update status as you progress (Received → In Progress → Completed)
+     - Document the outcome with files changed and results
+   - This creates a searchable history of all work requested by the developer
+   - Helps other agents understand context and avoid duplicate work
 
 2. **Read the project structure**
    - Before proposing changes, scan the repository structure and key files.
@@ -69,12 +80,20 @@ When you start any task, do this (briefly but thoroughly):
 ### 0. READ AI COLLABORATION DOCS (MANDATORY FIRST STEP)
 Before doing ANYTHING else, read:
 ```
-/docs/ai_change_log.md      # What changed recently?
-/docs/ai_tasks_board.md     # What tasks are in progress?
-/docs/ai_collab_chat.md     # Any ongoing AI discussions?
-/docs/risk_notes.md         # Any known risks to avoid?
+/docs/ai_change_log.md        # What changed recently?
+/docs/ai_tasks_board.md       # What tasks are in progress?
+/docs/ai_collab_chat.md       # Any ongoing AI discussions?
+/docs/risk_notes.md           # Any known risks to avoid?
+/docs/Developer_agent_chat.md # Previous developer requests and refined prompts
 ```
 This prevents duplicate work, conflicts, and regressions.
+
+### 0.1 LOG DEVELOPER TASK (MANDATORY)
+When the developer gives you a task:
+1. Log it to `/docs/Developer_agent_chat.md` with the original request
+2. Create a refined prompt with: Goal, Scope, Constraints, Expected Outcome
+3. Update status as you work (Received → In Progress → Completed)
+4. Document outcome with files changed and results
 
 ### A. Repository Map
 - List major folders and what they do (e.g., `lib/`, `src/`, `features/`, `core/`, `data/`, `domain/`, `presentation/`, `routes/`, `di/`, `assets/`, `test/`).
@@ -629,18 +648,29 @@ Make the best grounded assumption from existing code and document it, then proce
 ### ⚠️ BEFORE Starting Any Task:
 ```
 READ THESE FILES FIRST:
-├── /docs/ai_change_log.md      ← Recent changes (avoid conflicts)
-├── /docs/ai_tasks_board.md     ← Current task status
-├── /docs/ai_collab_chat.md     ← AI discussion history
-└── /docs/risk_notes.md         ← Known risks to avoid
+├── /docs/ai_change_log.md        ← Recent changes (avoid conflicts)
+├── /docs/ai_tasks_board.md       ← Current task status
+├── /docs/ai_collab_chat.md       ← AI discussion history
+├── /docs/risk_notes.md           ← Known risks to avoid
+└── /docs/Developer_agent_chat.md ← Previous developer requests
+```
+
+### ⚠️ WHEN Developer Gives a Task:
+```
+LOG TO /docs/Developer_agent_chat.md:
+1. Original request (exact text from developer)
+2. Refined prompt (Goal, Scope, Constraints, Expected Outcome)
+3. Status updates (Received → In Progress → Completed)
+4. Outcome (files changed, results, notes)
 ```
 
 ### ⚠️ AFTER Completing Any Task:
 ```
 UPDATE THESE FILES:
-├── /docs/ai_change_log.md      ← Log your changes
-├── /docs/ai_tasks_board.md     ← Mark task completed
-├── /docs/risk_notes.md         ← Add any new risks
+├── /docs/ai_change_log.md        ← Log your changes
+├── /docs/ai_tasks_board.md       ← Mark task completed
+├── /docs/risk_notes.md           ← Add any new risks
+├── /docs/Developer_agent_chat.md ← Update task outcome
 │
 └── IF architecture/flows/data changed, ALSO update:
     ├── /docs/project_flowchart.md
@@ -649,11 +679,13 @@ UPDATE THESE FILES:
 ```
 
 ### Task Completion Checklist:
+- [ ] Task logged to `/docs/Developer_agent_chat.md`
 - [ ] Code changes implemented
 - [ ] Build succeeds
 - [ ] Core flows tested
 - [ ] `/docs/ai_change_log.md` updated
 - [ ] `/docs/ai_tasks_board.md` updated
+- [ ] `/docs/Developer_agent_chat.md` outcome updated
 - [ ] `/docs/risk_notes.md` updated (if applicable)
 - [ ] Diagrams updated (if architecture/flow/data changed)
 

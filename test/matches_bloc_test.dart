@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
@@ -210,6 +211,41 @@ class _ThrowingChatRepository implements ChatRepository {
   Stream<List<Message>> watchNewMessages(
     String matchId, {
     required DateTime afterTimestamp,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
   }) {
     throw UnimplementedError();
   }

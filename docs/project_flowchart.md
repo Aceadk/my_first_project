@@ -1,6 +1,6 @@
 # Project Flowchart — CrushHour Dating App
 
-*Last updated: 2026-01-20*
+*Last updated: 2026-01-23*
 
 ---
 
@@ -118,7 +118,10 @@ flowchart TD
   M2 --> M4[Upgrade to Plus]
 
   T3 --> C1[Conversations List]
+  C1 --> MR[Message Requests]
+  MR --> MRS[Message Requests Screen]
   C1 --> C2[Chat Screen]
+  MRS --> C2
   C2 --> C3[Audio Call]
   C2 --> C4[Video Call]
 

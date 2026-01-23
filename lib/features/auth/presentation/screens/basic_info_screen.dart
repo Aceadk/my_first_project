@@ -29,6 +29,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   bool _birthdateTouched = false;
   bool _hasShownAgeWarning = false;
   bool _isSubmitting = false; // Track if we initiated a save
+  bool _hasPrefilledUsername = false; // Track if username was pre-filled
 
   /// Calculate age from date of birth
   int? get _calculatedAge {
@@ -124,6 +125,20 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               }
             },
             builder: (context, state) {
+              // Pre-fill username from signup if available and not yet pre-filled
+              if (!_hasPrefilledUsername) {
+                final existingUsername = state.user?.username;
+                if (existingUsername != null && existingUsername.isNotEmpty) {
+                  // Use addPostFrameCallback to avoid setting state during build
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && !_hasPrefilledUsername) {
+                      _usernameController.text = existingUsername;
+                      _hasPrefilledUsername = true;
+                    }
+                  });
+                }
+              }
+
               final isBusy = state.isSaving;
               return Stack(
                 children: [

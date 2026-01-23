@@ -4,6 +4,61 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-114 — Aggressive deck preloading may increase memory/network usage
+
+Category: Performance / UX
+
+Description:
+Preloading multiple upcoming profile images and rendering background cards can increase memory usage and network bandwidth, especially on low-end devices or slow networks.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/discovery/presentation/screens/deck_screen.dart
+* lib/features/discovery/presentation/widgets/deck_card_stack.dart
+
+Mitigation:
+* Cap preloading to the first image of the next 4 profiles.
+* Keep background card count limited and lightweight.
+
+Status: Monitoring
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
+### R-113 — Message request migration/expiration is client-driven
+
+Category: UX / Data Integrity
+
+Description:
+Message requests are migrated into chats and expired via client-side fetch/cleanup. If the sender doesn't sync after a match (or neither user opens Message Requests), the request may linger in the Message Requests list after a match or past the 48-hour window.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+* lib/features/chat/presentation/bloc/matches_bloc.dart
+* lib/features/chat/presentation/bloc/message_requests_cubit.dart
+
+Mitigation:
+* Add backend migration/expiration via Cloud Functions or Firestore TTL.
+* Trigger request refresh after match creation events.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-01-23
+
+---
+
 ### R-112 — AI collaboration docs may drift without after-edit sync
 
 Category: Process / Quality

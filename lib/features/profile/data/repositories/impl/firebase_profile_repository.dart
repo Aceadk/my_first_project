@@ -7,6 +7,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/data/models/chat_settings.dart';
 import '../profile_repository.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/app_logger.dart';
@@ -231,6 +232,17 @@ class FirebaseProfileRepository implements ProfileRepository {
       'profile.interests': sanitizedInterests,
       'profile.updatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+      // Set default discovery preferences to make user discoverable
+      // hideFromDiscovery: false means user appears in other users' discovery feed
+      // incognitoMode: false means user is visible to others
+      'profile.preferences.hideFromDiscovery': false,
+      'profile.preferences.incognitoMode': false,
+      'profile.preferences.minAge': 18,
+      'profile.preferences.maxAge': 50,
+      'profile.preferences.maxDistanceKm': 100,
+      'profile.preferences.showMeGenders': ['All'],
+      'profile.preferences.showMyDistance': true,
+      'profile.preferences.showMyAge': true,
     };
 
     // Add optional fields with dot notation
@@ -413,6 +425,9 @@ class FirebaseProfileRepository implements ProfileRepository {
             ? ProfileFavourites.fromJson(
                 profileData['favourites'] as Map<String, dynamic>)
             : const ProfileFavourites(),
+        chatSettings: ChatSettings.fromJson(
+          profileData['chatSettings'] as Map<String, dynamic>?,
+        ),
       );
     }
 

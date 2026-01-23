@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
 import '../chat_repository.dart';
 
@@ -12,6 +13,7 @@ class StubChatRepository implements ChatRepository {
   static const _blockedKeyPrefix = 'mock_blocked_';
   static const _matchesKey = 'mock_matches_';
   static const _deletedMessagesKeyPrefix = 'mock_deleted_';
+  static const _messageRequestsKey = 'mock_message_requests';
 
   // Stream controllers for real-time updates
   final Map<String, StreamController<List<Message>>> _messageControllers = {};
@@ -499,6 +501,122 @@ class StubChatRepository implements ChatRepository {
     );
   }
 
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    final requests = await _loadMessageRequests();
+    final activeRequests = _pruneExpiredRequests(requests);
+
+    final pairKey = _pairKey(fromUserId, toUserId);
+    final hasPending = activeRequests.any(
+      (r) => _pairKey(r.fromUserId, r.toUserId) == pairKey,
+    );
+    if (hasPending) {
+      await _saveMessageRequests(activeRequests);
+      return null;
+    }
+
+    final now = DateTime.now();
+    final request = MessageRequest(
+      id: 'request_${now.millisecondsSinceEpoch}',
+      fromUserId: fromUserId,
+      toUserId: toUserId,
+      content: content,
+      type: type,
+      sentAt: now,
+      expiresAt: now.add(const Duration(hours: 48)),
+      fromUserName: fromUserName,
+      fromUserPhotoUrl: fromUserPhotoUrl,
+      toUserName: toUserName,
+      toUserPhotoUrl: toUserPhotoUrl,
+    );
+
+    activeRequests.add(request);
+    await _saveMessageRequests(activeRequests);
+    return request;
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
+    final requests = await _loadMessageRequests();
+    final activeRequests = _pruneExpiredRequests(requests);
+    await _saveMessageRequests(activeRequests);
+
+    final visible = activeRequests
+        .where((r) => r.fromUserId == userId || r.toUserId == userId)
+        .toList()
+      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    return visible;
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async {
+    final requests = await _loadMessageRequests();
+    final activeRequests = _pruneExpiredRequests(requests);
+    await _saveMessageRequests(activeRequests);
+
+    final pairKey = _pairKey(userId, otherUserId);
+    return activeRequests.any(
+      (r) => _pairKey(r.fromUserId, r.toUserId) == pairKey,
+    );
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async {
+    if (matches.isEmpty) return 0;
+
+    final requests = await _loadMessageRequests();
+    final activeRequests = _pruneExpiredRequests(requests);
+    var migrated = 0;
+
+    for (final match in matches) {
+      final pairKey = _pairKey(userId, match.otherUserId);
+      final requestIndex = activeRequests.indexWhere(
+        (r) => _pairKey(r.fromUserId, r.toUserId) == pairKey,
+      );
+      if (requestIndex == -1) continue;
+
+      final request = activeRequests[requestIndex];
+
+      final message = Message(
+        id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+        matchId: match.id,
+        fromUserId: request.fromUserId,
+        toUserId: request.toUserId,
+        content: request.content,
+        type: request.type,
+        sentAt: request.sentAt,
+        isRead: false,
+        isDeletedForSender: false,
+        reactions: const {},
+      );
+
+      await _saveMessage(match.id, message);
+      await _notifyMessageUpdate(match.id);
+      activeRequests.removeAt(requestIndex);
+      migrated++;
+    }
+
+    await _saveMessageRequests(activeRequests);
+    return migrated;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -563,6 +681,62 @@ class StubChatRepository implements ChatRepository {
       final messages = await _loadMessages(matchId);
       _messageControllers[matchId]!.add(messages);
     }
+  }
+
+  String _pairKey(String userA, String userB) {
+    return userA.compareTo(userB) <= 0 ? '$userA|$userB' : '$userB|$userA';
+  }
+
+  Future<List<MessageRequest>> _loadMessageRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final requestsJson = prefs.getString(_messageRequestsKey);
+    if (requestsJson == null) return [];
+
+    final requestsList =
+        List<Map<String, dynamic>>.from(jsonDecode(requestsJson));
+    return requestsList.map((r) {
+      return MessageRequest(
+        id: r['id'],
+        fromUserId: r['fromUserId'],
+        toUserId: r['toUserId'],
+        content: r['content'],
+        type: MessageType.values.firstWhere(
+          (t) => t.name == r['type'],
+          orElse: () => MessageType.text,
+        ),
+        sentAt: DateTime.parse(r['sentAt']),
+        expiresAt: DateTime.parse(r['expiresAt']),
+        fromUserName: r['fromUserName'],
+        fromUserPhotoUrl: r['fromUserPhotoUrl'],
+        toUserName: r['toUserName'],
+        toUserPhotoUrl: r['toUserPhotoUrl'],
+      );
+    }).toList();
+  }
+
+  List<MessageRequest> _pruneExpiredRequests(List<MessageRequest> requests) {
+    final now = DateTime.now();
+    return requests.where((r) => r.expiresAt.isAfter(now)).toList();
+  }
+
+  Future<void> _saveMessageRequests(List<MessageRequest> requests) async {
+    final prefs = await SharedPreferences.getInstance();
+    final requestsList = requests.map((r) {
+      return {
+        'id': r.id,
+        'fromUserId': r.fromUserId,
+        'toUserId': r.toUserId,
+        'content': r.content,
+        'type': r.type.name,
+        'sentAt': r.sentAt.toIso8601String(),
+        'expiresAt': r.expiresAt.toIso8601String(),
+        'fromUserName': r.fromUserName,
+        'fromUserPhotoUrl': r.fromUserPhotoUrl,
+        'toUserName': r.toUserName,
+        'toUserPhotoUrl': r.toUserPhotoUrl,
+      };
+    }).toList();
+    await prefs.setString(_messageRequestsKey, jsonEncode(requestsList));
   }
 
   /// Clean up stream controllers when done

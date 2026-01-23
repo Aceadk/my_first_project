@@ -27,6 +27,237 @@ What changed from the original plan:
 
 ## Logs
 
+T-031 - Implement Bidirectional Chat Messaging - 2026-01-23
+Planner AI:
+Summary of repo context:
+- Flutter client calls `sendMessage` Cloud Function but it doesn't exist
+- `markMessagesRead` Cloud Function also missing
+- Real-time listening already works via Firestore snapshots in `watchMessages`
+- `onMessageCreated` trigger exists for push notifications
+- Message format expected by Flutter: matchId, fromUserId, toUserId, content, type, sentAt, isRead, reactions (Map)
+
+Proposed approach:
+- Add three callable Cloud Functions: sendMessage, markMessagesRead, editMessage
+- sendMessage validates match membership, creates message document, updates match lastMessage
+- markMessagesRead batch updates all unread messages from other user
+- editMessage allows sender to modify their own message (Plus plan only)
+- No changes needed in Flutter - ChatBloc already uses watchMessages for real-time updates
+
+File impact list:
+- functions/src/index.ts (add interfaces + 3 callable functions)
+
+Risks + mitigations:
+- Risk: Functions need deployment to Firebase
+  - Mitigation: Document deployment command in verification steps
+- Risk: Message format mismatch with Flutter
+  - Mitigation: Verified _messageFromFirestore expectations; included matchId, reactions as Map
+
+Critic AI:
+Concerns / edge cases:
+- Reactions should be {} not [] since Flutter expects Map<String, String>
+- matchId should be included in message document for consistency
+Better alternatives:
+- Could use direct Firestore writes instead of Cloud Functions for lower latency
+  - Rejected: Cloud Functions provide better security/validation
+Required tests:
+- Two-device test: User A sends, User B receives
+- Verify markMessagesRead updates isRead flag
+UX notes:
+- Real-time updates should work seamlessly
+
+Resolution:
+Final agreed plan:
+- Added SendMessageRequest, MarkMessagesReadRequest, EditMessageRequest interfaces
+- Added sendMessage callable with match validation, blocked user check
+- Added markMessagesRead callable with batch update
+- Added editMessage callable with ownership check
+- Changed reactions from [] to {} in message document
+- Added matchId field to message document
+
+What changed from the original plan:
+- Added matchId field to message (discovered via _messageFromFirestore)
+- Changed reactions from array to object
+
+---
+
+T-034 - Message Requests for non-matched users - 2026-01-23
+Planner AI:
+Summary of repo context:
+- ChatRepository handles matched conversations only; no message request model exists.
+- OtherUserProfileScreen already has Pass/Like actions and match-aware routing.
+- MatchesBloc loads matches and is a natural place to trigger request migration.
+Proposed approach:
+- Add MessageRequest model + repository methods for send/fetch/expire/migrate.
+- Add MessageRequestsCubit + MessageRequestsScreen; add a Chats entry and route.
+- Update OtherUserProfileScreen: show Send Message between Pass/Like; matched shows only Send Message.
+- Migrate eligible requests into chats when matches load.
+File impact list:
+- lib/data/models/message_request.dart
+- lib/features/chat/data/repositories/chat_repository.dart
+- lib/features/chat/data/repositories/impl/stub_chat_repository.dart
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+- lib/features/chat/data/repositories/impl/http_chat_repository.dart
+- lib/features/chat/presentation/bloc/message_requests_cubit.dart
+- lib/features/chat/presentation/bloc/message_requests_state.dart
+- lib/features/chat/presentation/screens/message_requests_screen.dart
+- lib/features/chat/presentation/screens/chat_list_screen.dart
+- lib/features/chat/presentation/bloc/matches_bloc.dart
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- lib/core/router.dart
+Risks + mitigations:
+- Risk: Migration may only succeed on sender device due to auth constraints.
+  - Mitigation: Attempt migration only when current user is sender; document limitation.
+Critic AI:
+Concerns / edge cases:
+- Recipient device may still see request after match if sender hasn't synced.
+- Single-request-per-pair vs per-user needs a clear rule.
+Better alternatives:
+- Backend-driven migration via Cloud Functions or Firestore trigger.
+Required tests:
+- Manual: send request, prevent duplicate, match migration, expiration cleanup.
+UX notes:
+- Clearly label requests as “Message Request” and show expiration countdown.
+Resolution:
+Final agreed plan:
+- Implement client-side request storage + migration (best-effort), with expiration cleanup on fetch.
+What changed from the original plan:
+- Added explicit migration limitation note and guard for sender-only migration.
+- Added Firestore rules + docs updates; corrected task ID to avoid duplicate T-032.
+Execution notes:
+- Implemented message request model, repositories, cubit, screen, chat list entry, profile send flow, and match migration hook.
+- Added Firestore `message_requests` rules and updated flow/DFD/ER docs.
+
+---
+
+T-036 - Deck preload + background stack in swipe deck - 2026-01-23
+Planner AI:
+Summary of repo context:
+- DeckScreen renders only the active SwipeableCard; a DeckPreviewStack widget exists but is unused.
+- DeckScreen preloads only the next 2 profile images via NetworkImageCache.
+Proposed approach:
+- Wrap SwipeableCard with DeckPreviewStack to show upcoming profiles behind the current card.
+- Increase prefetch count to 4 and align DeckPreviewStack to render up to 4 background cards.
+- Keep match celebration listener unchanged.
+File impact list:
+- lib/features/discovery/presentation/screens/deck_screen.dart
+- lib/features/discovery/presentation/widgets/deck_card_stack.dart
+Risks + mitigations:
+- Risk: Extra prefetching increases memory/network usage.
+  - Mitigation: Preload only the first photo and cap background cards to 4.
+Critic AI:
+Concerns / edge cases:
+- Deck length < 2 should not crash; background stack should handle empty states.
+- Too-low opacity for deeper cards could make them invisible.
+Better alternatives:
+- Use PageView with cacheExtent; rejected to avoid architecture change.
+Required tests:
+- Manual: drag card to see background, swipe quickly to confirm no delay, verify match celebration still triggers.
+UX notes:
+- Keep background cards subtle but visible to imply depth.
+Resolution:
+Final agreed plan:
+- Use DeckPreviewStack behind SwipeableCard and bump prefetch count to 4 with safer opacity scaling.
+What changed from the original plan:
+- Add opacity adjustment so 4th card remains faintly visible.
+Execution notes:
+- Wrapped SwipeableCard with DeckPreviewStack and passed filtered upcoming profiles.
+- Increased prefetch and preview counts to 4 and adjusted opacity scaling.
+
+---
+
+T-037 - Matched users appear + chat redirect - 2026-01-23
+Planner AI:
+Summary of repo context:
+- MatchesScreen uses MatchesBloc with caching; new matches may not appear immediately if no refresh is triggered.
+- Match tiles already navigate to chat via matchId.
+Proposed approach:
+- Listen to RealtimeMatchService notifications and refresh MatchesBloc.
+- Keep existing match tile routing intact.
+File impact list:
+- lib/features/chat/presentation/screens/matches_screen.dart
+Risks + mitigations:
+- Risk: Additional refresh calls increase network usage.
+  - Mitigation: Refresh only on match notifications.
+Critic AI:
+Concerns / edge cases:
+- Ensure subscription is disposed to avoid leaks.
+Better alternatives:
+- Invalidate cache from a global event bus; skipped to keep scope small.
+Required tests:
+- Manual: create match → matches screen updates; tap match → chat opens.
+UX notes:
+- No UI change needed; just keep list current.
+Resolution:
+Final agreed plan:
+- Subscribe to RealtimeMatchService in MatchesScreen and trigger MatchesRefreshRequested.
+What changed from the original plan:
+- Added listener in MatchesScreen instead of global refresh.
+Execution notes:
+- Added match notification subscription and refresh in MatchesScreen state.
+T-027 - Hide pass/like for matched profiles + wire profile actions - 2026-01-23
+Planner AI:
+Summary of repo context:
+- OtherUserProfileScreen always shows Pass/Like buttons and only uses isMatch for contact info.
+- DiscoveryBloc owns deck state and swipe actions; DiscoveryRepository can swipe directly when deck context is unknown.
+Proposed approach:
+- Hide the bottom Pass/Like bar when args.isMatch is true.
+- Wire pass/like buttons to swipe: use DiscoveryBloc when the viewed profile matches the current deck card; otherwise call DiscoveryRepository directly.
+- After a pass/like, return to the deck (pop when coming from deck; go to Home when not).
+File impact list:
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+Risks + mitigations:
+- Risk: DiscoveryBloc swipe could act on the wrong card if the viewed profile isn't current.
+  - Mitigation: guard by checking current deck card ID; fallback to repository and refresh deck.
+Critic AI:
+Concerns / edge cases:
+- If navigation replaces Home, deck match celebration might be missed.
+Better alternatives:
+- Prefer pop to keep deck state/celebration when possible; only go Home when needed.
+Required tests:
+- Manual: open profile from deck and from chat; verify actions and button visibility.
+UX notes:
+- Keep feedback via snack bars for likes and matches.
+Resolution:
+Final agreed plan:
+- Implement match-aware bottom bar and swipe handlers with deck-aware dispatch + repo fallback + deck navigation.
+What changed from the original plan:
+- Added deck/profile identity guard before dispatching DiscoveryBloc swipe events.
+Execution notes:
+- Implemented in other_user_profile_screen.dart; no additional risks observed.
+
+T-026 - Fix ID verification notification in chat screen - 2026-01-23
+Planner AI:
+Summary of repo context:
+- Chat screen has an ID verification notification banner at the top.
+- Clicking "Verify" navigates to Safety & Blocking instead of ID verification screen.
+- Banner shows permanently when user is not verified.
+Proposed approach:
+- Change navigation from `CrushRoutes.safety` to `CrushRoutes.idVerification`.
+- Add 10-second auto-dismiss timer using Timer.
+- Add 3-hour cooldown using SharedPreferences timestamp.
+- Only show banner when `!selfVerified && _showVerificationBanner`.
+File impact list:
+- lib/features/chat/presentation/screens/chat_screen.dart
+Risks + mitigations:
+- SharedPreferences key may persist across accounts -> minor UX impact, consider adding to clearance service.
+Critic AI:
+Concerns / edge cases:
+- No external critic available; self-critique applied.
+- Cooldown resets on banner dismiss, not on chat open.
+Better alternatives:
+- Could track "ID submitted" status from PhotoVerification model to hide banner after submission.
+Required tests:
+- Manual: Open chat, verify banner shows and auto-dismisses.
+UX notes:
+- 10 seconds may feel short; 3 hours is reasonable cooldown.
+Resolution:
+Final agreed plan:
+- Implement timer-based auto-dismiss and SharedPreferences cooldown.
+What changed from the original plan:
+- None.
+
+---
+
 T-025 - Enforce before/after AI doc sync - 2026-01-23
 Planner AI:
 Summary of repo context:

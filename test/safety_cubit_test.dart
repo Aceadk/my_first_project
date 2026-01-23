@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
@@ -286,6 +287,45 @@ class _StubChatRepository implements ChatRepository {
     required DateTime afterTimestamp,
   }) =>
       const Stream.empty();
+
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async {
+    _maybeThrow();
+    return null;
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
+    _maybeThrow();
+    return const [];
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async {
+    _maybeThrow();
+    return false;
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async {
+    _maybeThrow();
+    return 0;
+  }
 }
 
 class _StubDiscoveryRepository implements DiscoveryRepository {

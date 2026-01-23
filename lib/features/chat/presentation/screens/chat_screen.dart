@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
@@ -36,6 +37,10 @@ import 'package:crushhour/features/profile/presentation/screens/profile_edit_scr
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_player.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
 import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
+import 'package:crushhour/features/chat/presentation/bloc/match_chat_settings_cubit.dart';
+import 'package:crushhour/data/models/chat_settings.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
@@ -83,10 +88,19 @@ class _ChatScreenState extends State<ChatScreen> {
   // Store reference to ChatBloc to safely use in dispose()
   ChatBloc? _chatBloc;
 
+  // ID verification banner state
+  bool _showVerificationBanner = false;
+  Timer? _verificationBannerTimer;
+  static const String _verificationBannerCooldownKey =
+      'last_verification_banner_shown';
+  static const Duration _verificationBannerCooldown = Duration(hours: 3);
+  static const Duration _verificationBannerDuration = Duration(seconds: 10);
+
   @override
   void initState() {
     super.initState();
     _refreshIceBreakers();
+    _checkVerificationBannerVisibility();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _chatBloc = context.read<ChatBloc>();
@@ -97,6 +111,47 @@ class _ChatScreenState extends State<ChatScreen> {
               otherUserPhotoUrl: widget.args.otherPhotoUrl,
             ));
       }
+    });
+  }
+
+  /// Check if the verification banner should be shown based on 3-hour cooldown
+  Future<void> _checkVerificationBannerVisibility() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastShown = prefs.getInt(_verificationBannerCooldownKey) ?? 0;
+    final lastShownTime = DateTime.fromMillisecondsSinceEpoch(lastShown);
+    final now = DateTime.now();
+
+    // Show banner if cooldown has passed (3 hours since last shown)
+    if (now.difference(lastShownTime) >= _verificationBannerCooldown) {
+      if (mounted) {
+        setState(() {
+          _showVerificationBanner = true;
+        });
+        _startVerificationBannerTimer();
+        // Save current time as last shown
+        await prefs.setInt(
+            _verificationBannerCooldownKey, now.millisecondsSinceEpoch);
+      }
+    }
+  }
+
+  /// Start 10-second auto-dismiss timer for verification banner
+  void _startVerificationBannerTimer() {
+    _verificationBannerTimer?.cancel();
+    _verificationBannerTimer = Timer(_verificationBannerDuration, () {
+      if (mounted) {
+        setState(() {
+          _showVerificationBanner = false;
+        });
+      }
+    });
+  }
+
+  /// Dismiss verification banner manually (e.g., when user taps Verify)
+  void _dismissVerificationBanner() {
+    _verificationBannerTimer?.cancel();
+    setState(() {
+      _showVerificationBanner = false;
     });
   }
 
@@ -117,6 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ChatClosed(widget.args.matchId, widget.args.currentUserId),
         );
     _typingTimer?.cancel();
+    _verificationBannerTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -169,36 +225,37 @@ class _ChatScreenState extends State<ChatScreen> {
               showBodyOnLoading: true,
               body: Column(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    color: selfVerified
-                        ? Colors.green.withAlpha((0.12 * 255).round())
-                        : Colors.orange.withAlpha((0.12 * 255).round()),
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Icon(
-                          selfVerified
-                              ? Icons.verified_user
-                              : Icons.privacy_tip_outlined,
-                          color: selfVerified ? Colors.green : Colors.orange,
-                        ),
-                        DsGap.smH,
-                        Expanded(
-                          child: Text(
-                            selfVerified
-                                ? 'You are verified. Profiles see your badge as a trust signal.'
-                                : 'Verify your ID to add a trust badge to your messages and matches.',
+                  // ID Verification banner - shown only when:
+                  // 1. User is NOT verified
+                  // 2. Banner cooldown has passed (3 hours)
+                  // 3. Auto-dismisses after 10 seconds
+                  if (!selfVerified && _showVerificationBanner)
+                    Container(
+                      width: double.infinity,
+                      color: Colors.orange.withAlpha((0.12 * 255).round()),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.privacy_tip_outlined,
+                            color: Colors.orange,
                           ),
-                        ),
-                        if (!selfVerified)
+                          DsGap.smH,
+                          const Expanded(
+                            child: Text(
+                              'Verify your ID to add a trust badge to your messages and matches.',
+                            ),
+                          ),
                           TextButton(
-                            onPressed: () => context.push(CrushRoutes.safety),
+                            onPressed: () {
+                              _dismissVerificationBanner();
+                              context.push(CrushRoutes.idVerification);
+                            },
                             child: const Text('Verify'),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                   if (_checkingCompleteness)
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -576,16 +633,30 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           ),
                                                         ),
                                                         const SizedBox(width: 4),
-                                                        // Read status icon
-                                                        Icon(
-                                                          msg.isRead
-                                                              ? Icons.done_all
-                                                              : Icons.done,
-                                                          size: 14,
-                                                          color: msg.isRead
-                                                              ? Colors.blue
-                                                              : Colors.white.withValues(alpha: 0.5),
-                                                        ),
+                                                        // Read status - only show "Seen" for Plus users
+                                                        if (state.canSeeReadReceipts && msg.isRead) ...[
+                                                          const Icon(
+                                                            Icons.done_all,
+                                                            size: 14,
+                                                            color: Colors.blue,
+                                                          ),
+                                                          const SizedBox(width: 2),
+                                                          const Text(
+                                                            'Seen',
+                                                            style: TextStyle(
+                                                              fontSize: 10,
+                                                              color: Colors.blue,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                        ] else ...[
+                                                          // Non-Plus users just see single checkmark
+                                                          Icon(
+                                                            Icons.done,
+                                                            size: 14,
+                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                          ),
+                                                        ],
                                                       ],
                                                     ),
                                                   ),
@@ -1044,6 +1115,16 @@ class _ChatScreenState extends State<ChatScreen> {
                               Icon(Icons.person_outline, size: 20),
                               SizedBox(width: 12),
                               Text('View Profile'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: _ChatSafetyAction.chatSettings,
+                          child: Row(
+                            children: [
+                              Icon(Icons.timer_outlined, size: 20),
+                              SizedBox(width: 12),
+                              Text('Chat Settings'),
                             ],
                           ),
                         ),
@@ -2263,6 +2344,9 @@ class _ChatScreenState extends State<ChatScreen> {
       case _ChatSafetyAction.viewProfile:
         _navigateToProfile();
         break;
+      case _ChatSafetyAction.chatSettings:
+        _showMatchChatSettings(context);
+        break;
       case _ChatSafetyAction.report:
         _showReportSheet(context, cubit);
         break;
@@ -2345,6 +2429,7 @@ class _ChatScreenState extends State<ChatScreen> {
         extra: OtherUserProfileArgs(
           profile: profile,
           isMatch: true,
+          matchId: widget.args.matchId,
         ),
       );
     } else {
@@ -2381,6 +2466,7 @@ class _ChatScreenState extends State<ChatScreen> {
         extra: OtherUserProfileArgs(
           profile: minimalProfile,
           isMatch: true,
+          matchId: widget.args.matchId,
         ),
       );
     }
@@ -2425,6 +2511,221 @@ class _ChatScreenState extends State<ChatScreen> {
           block
               ? 'Blocked ${widget.args.otherName}.'
               : 'Unblocked ${widget.args.otherName}.',
+        ),
+      ),
+    );
+  }
+
+  void _showMatchChatSettings(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Get current user's premium status from auth
+    final authState = context.read<AuthBloc>().state;
+    final isPremium = authState.user?.plan.isPlus ?? false;
+
+    // Get existing match chat settings (default to false if not set)
+    // In production, you'd fetch this from Firestore via a repository
+    const initialSettings = ChatSettings();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => BlocProvider(
+        create: (_) => MatchChatSettingsCubit(
+          matchId: widget.args.matchId,
+          initialSettings: initialSettings,
+          isPremium: isPremium,
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? DsGlassColors.surfaceDark.withValues(alpha: 0.95)
+                    : DsGlassColors.surfaceLight.withValues(alpha: 0.98),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(
+                  color: isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+                  width: 0.5,
+                ),
+              ),
+              child: SafeArea(
+                child: BlocConsumer<MatchChatSettingsCubit, MatchChatSettingsState>(
+                  listenWhen: (prev, curr) =>
+                      prev.errorMessage != curr.errorMessage && curr.errorMessage != null,
+                  listener: (ctx, state) {
+                    if (state.errorMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage!),
+                          backgroundColor: DsColors.error,
+                        ),
+                      );
+                      ctx.read<MatchChatSettingsCubit>().clearError();
+                    }
+                  },
+                  builder: (ctx, state) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Handle bar
+                        Center(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 12, bottom: 8),
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white24 : Colors.black12,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: DsColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.timer_outlined,
+                                  color: DsColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Chat Settings',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Settings for this conversation with ${widget.args.otherName}',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        // Current retention display
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.access_time, color: DsColors.primary, size: 20),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Message retention',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                        ),
+                                      ),
+                                      Text(
+                                        state.retentionDisplay,
+                                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: DsColors.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Settings
+                        if (state.isPremium)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.amber.withValues(alpha: 0.1),
+                                    Colors.orange.withValues(alpha: 0.1),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.workspace_premium, color: Colors.amber, size: 20),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Plus Benefit: Messages kept for 7 days',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          SwitchListTile(
+                            secondary: Icon(
+                              Icons.access_time,
+                              color: state.settings.extendedRetention ? DsColors.primary : Colors.grey,
+                            ),
+                            title: const Text('Keep messages for 24 hours'),
+                            subtitle: Text(
+                              state.settings.extendedRetention
+                                  ? 'Messages deleted 24 hours after being read'
+                                  : 'Messages deleted 1 hour after being read',
+                            ),
+                            value: state.settings.extendedRetention,
+                            onChanged: state.isLoading
+                                ? null
+                                : (value) => ctx.read<MatchChatSettingsCubit>().toggleExtendedRetention(value),
+                            activeTrackColor: DsColors.primary.withValues(alpha: 0.5),
+                            thumbColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) return DsColors.primary;
+                              return null;
+                            }),
+                          ),
+                        if (state.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -2626,6 +2927,7 @@ class _AttachmentTile extends StatelessWidget {
 
 enum _ChatSafetyAction {
   viewProfile,
+  chatSettings,
   report,
   block,
   unmatch,

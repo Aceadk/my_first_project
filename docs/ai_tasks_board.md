@@ -31,8 +31,594 @@ Manual flow:
 ---
 
 ## Active Tasks
+None.
 
 ## Completed Tasks
+
+### Task: Per-Chat Settings (Individual Message Retention)
+ID: T-038
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Fix chat settings update failure and implement per-match chat settings, allowing users to customize message retention for each individual conversation.
+
+Scope (in/out):
+In:
+- Fix ChatSettings parsing from Firestore
+- Create MatchChatSettingsCubit for per-match settings
+- Add Cloud Function for per-match settings storage
+- Add chat settings access from chat screen popup menu
+Out:
+- Backend infrastructure changes beyond Cloud Functions
+- UI redesigns
+
+Files changed:
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- lib/features/chat/presentation/bloc/match_chat_settings_cubit.dart (new)
+- functions/src/index.ts
+- lib/features/chat/presentation/screens/chat_screen.dart
+- docs/Developer_agent_chat.md
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- Requires Cloud Functions deployment to work
+- Per-match settings require fetching existing settings when opening bottom sheet
+
+Acceptance criteria:
+- ChatSettings parsed correctly from Firestore
+- Per-match settings can be toggled from chat menu
+- Settings stored at match level, not global user level
+- Flutter analyze passes
+
+Verification:
+Commands: `flutter analyze`, `firebase deploy --only functions`
+Manual flow:
+1. Open a chat with a match
+2. Tap menu icon, select "Chat Settings"
+3. Toggle 24-hour retention
+4. Verify setting is saved without error
+
+Completed: 2026-01-23
+
+---
+
+### Task: Ensure matched users appear + chat redirect from matches list
+ID: T-037
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Ensure newly matched users appear under “Matched with you” and tap navigates to the correct chat.
+
+Scope (in/out):
+In:
+- Matches screen list shows newly created matches
+- Tap handler routes to chat with correct matchId/user data
+Out:
+- Backend changes
+- UI redesigns
+
+Files changed:
+- lib/features/chat/presentation/screens/matches_screen.dart
+- docs/Developer_agent_chat.md
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Risks:
+- Match list may not refresh immediately after match creation without a trigger.
+
+Acceptance criteria:
+- New matches appear under “Matched with you”
+- Tapping a match opens the correct chat
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Create a match via swipes.
+2. Go to Matches screen and verify it appears under “Matched with you.”
+3. Tap the match and confirm chat opens for the correct user.
+
+Completed: 2026-01-23
+
+### Task: Deck preload + background stack in swipe deck
+ID: T-036
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Show upcoming swipe profiles behind the current card and preload several next profiles for instant transitions.
+
+Scope (in/out):
+In:
+- Deck UI shows visible background cards while dragging
+- Preload next 4 profiles' lead images
+- Keep match celebration behavior unchanged
+Out:
+- Backend changes
+- New data models
+
+Files changed:
+- lib/features/discovery/presentation/screens/deck_screen.dart
+- lib/features/discovery/presentation/widgets/deck_card_stack.dart
+- docs/Developer_agent_chat.md
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/risk_notes.md
+
+Risks:
+- Increased image preloading could raise memory/network usage on low-end devices.
+
+Acceptance criteria:
+- Next profile is visible in background while dragging
+- Swipes show the next card immediately with no visible delay
+- At least 4 upcoming profiles are preloaded
+- Match celebration still appears on match
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Open deck and drag a card left/right; confirm next card visible behind.
+2. Swipe several cards; verify instant transition.
+3. Trigger a match; verify match celebration appears.
+
+Completed: 2026-01-23
+
+### Task: Complete Discovery & Matching System with Real-time RTDB
+ID: T-035
+Owner AI: Claude
+Critic AI: N/A (self-reviewed)
+Status: Done
+
+Goal:
+Fix critical bugs in discovery flow and implement real-time match notifications via RTDB.
+
+Scope (in/out):
+In:
+- Fix Cloud Function response format (profiles → candidates)
+- Fix discovery query to include new users
+- Add default discovery preferences on profile save
+- Implement RTDB real-time match notifications
+- Integrate match notifications with app lifecycle
+Out:
+- Push notification changes (separate task)
+- Match celebration animation changes
+
+Files changed:
+- functions/src/index.ts (response format, query, RTDB write)
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart (default prefs)
+- lib/features/discovery/data/services/realtime_match_service.dart (new)
+- lib/app.dart (RTDB listener integration)
+- docs/Developer_agent_chat.md (Task #007)
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- R-110: RTDB write failure → mitigated by non-blocking write
+- R-111: Auth sync issues → mitigated by BlocListener
+
+Acceptance criteria:
+- [x] Discovery returns candidates (not profiles)
+- [x] New users appear in discovery
+- [x] Real-time match notifications work
+- [x] Match → chat flow complete
+
+Verification:
+Commands:
+- flutter analyze lib/app.dart
+- firebase deploy --only functions
+Manual flow:
+- Complete profile → appear in discovery
+- Swipe right on user who liked you → match created
+- See match celebration → navigate to chat
+
+---
+
+### Task: Message Requests for non-matched users
+ID: T-034
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Add Message Requests for non-matched users, with send limits, expiration, and migration into chats on match.
+
+Scope (in/out):
+In:
+- Message request model + repository methods
+- Profile screen send message UI and limits
+- Chats list entry + Message Requests screen
+- Match migration hook
+- Firestore rules and docs for message requests
+Out:
+- Backend Cloud Functions changes
+- Push notification changes
+
+Files changed:
+- lib/data/models/message_request.dart
+- lib/features/chat/data/repositories/chat_repository.dart
+- lib/features/chat/data/repositories/impl/stub_chat_repository.dart
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+- lib/features/chat/data/repositories/impl/http_chat_repository.dart
+- lib/features/chat/presentation/bloc/message_requests_cubit.dart
+- lib/features/chat/presentation/bloc/message_requests_state.dart
+- lib/features/chat/presentation/screens/message_requests_screen.dart
+- lib/features/chat/presentation/screens/chat_list_screen.dart
+- lib/features/chat/presentation/bloc/matches_bloc.dart
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- lib/features/chat/presentation/screens/chat_screen.dart
+- lib/core/router.dart
+- lib/data/repositories/fake_repositories.dart
+- firestore.rules
+- docs/project_flowchart.md
+- docs/project_dfd.md
+- docs/project_er_diagram.md
+- docs/Developer_agent_chat.md
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/risk_notes.md
+
+Risks:
+- Message request migration may only succeed on the sender’s device (auth constraints).
+
+Acceptance criteria:
+- Send Message appears on profiles; pass/like hidden when matched
+- Non-matched users can send only one message request
+- Message Requests entry appears in Chats screen
+- Requests expire after 48 hours
+- When matched, request moves into chats as the first message (when possible)
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Open a non-matched profile → Send Message → request appears in Message Requests
+2. Attempt to send again → blocked
+3. Match occurs → request migrates into chat (sender device)
+4. Requests older than 48 hours disappear
+
+Completed: 2026-01-23
+
+### Task: Improve Prompt Refinement Workflow
+ID: T-033
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Enhance Developer_agent_chat.md to require very specific, very detailed refined prompts with comprehensive templates.
+
+Scope (in/out):
+In:
+- Update template with Developer Intent Analysis section
+- Add detailed Refined Prompt structure (Objective, Technical Requirements, Implementation Plan, Files, Success Criteria, Edge Cases)
+- Add Agent Workflow section
+- Update Notes for Agents with stricter guidelines
+Out:
+- Code changes
+
+Files changed:
+- docs/Developer_agent_chat.md (enhanced template and workflow)
+
+Risks:
+- None
+
+Acceptance criteria:
+- Template includes all required sections
+- Task #004 serves as example of new format
+- Workflow clearly documented
+
+Verification:
+Commands: N/A (documentation only)
+Manual flow: Review Developer_agent_chat.md for completeness
+
+Completed: 2026-01-23
+
+---
+
+### Task: Create Developer Agent Chat Document
+ID: T-032
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Create a task logging system for developer-to-agent communications to track all tasks given by the developer.
+
+Scope (in/out):
+In:
+- Create `/docs/Developer_agent_chat.md` document
+- Add template for logging developer tasks
+- Log original requests and refined prompts
+- Update CLAUDE.md to reference the new document
+- Update workflow to include task logging
+Out:
+- Changes to existing code
+
+Files changed:
+- docs/Developer_agent_chat.md (new file)
+- CLAUDE.md (updated workflow and quick reference)
+- docs/ai_tasks_board.md
+- docs/ai_change_log.md
+
+Risks:
+- None
+
+Acceptance criteria:
+- Document created with clear template
+- Previous tasks logged with refined prompts
+- CLAUDE.md updated with mandatory logging rules
+- Quick reference section updated
+
+Verification:
+Commands: N/A (documentation only)
+Manual flow:
+1. Developer gives task → Agent logs to Developer_agent_chat.md
+2. Original request preserved, refined prompt created
+3. Status and outcome tracked
+
+Completed: 2026-01-23
+
+---
+
+### Task: Implement Bidirectional Chat Messaging
+ID: T-031
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Implement missing Cloud Functions for chat messaging so User A can send messages to User B and vice versa with real-time updates.
+
+Scope (in/out):
+In:
+- sendMessage Cloud Function
+- markMessagesRead Cloud Function
+- editMessage Cloud Function
+- Verify real-time listening in ChatBloc
+Out:
+- Flutter UI changes (already working)
+- Push notification changes (already handled by onMessageCreated trigger)
+
+Files changed:
+- functions/src/index.ts (added 3 callable functions + 3 interfaces)
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- Functions need deployment to Firebase
+
+Acceptance criteria:
+- TypeScript builds successfully
+- sendMessage validates match membership
+- markMessagesRead batch updates unread messages
+- editMessage allows sender to modify their message
+- Real-time updates work via watchMessages stream
+
+Verification:
+Commands:
+- `cd functions && npm run build` ✅
+- `firebase deploy --only functions` (pending)
+Manual flow:
+1. User A sends message to User B
+2. User B sees message in real-time
+3. User B replies
+4. User A receives reply
+
+---
+
+### Task: Profile Photo Rendering and Display Fix
+ID: T-030
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Fix profile photo rendering to display user-uploaded photos clearly without blur, with proper alignment and quality.
+
+Scope (in/out):
+In:
+- Top-center alignment for hero image and photo grid
+- Alignment support in CachedNetworkImage
+- Retry functionality for failed loads
+- Reduced gradient overlay
+Out:
+- Firebase Storage changes
+- Image upload changes
+
+Files changed:
+- lib/shared/widgets/cached_network_image.dart
+- lib/features/profile/presentation/screens/profile_view_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- None
+
+Acceptance criteria:
+- ✅ Hero image uses top-center alignment (face visible)
+- ✅ Photo grid uses top-center alignment
+- ✅ No blur on user-uploaded photos
+- ✅ Gradient overlay only at bottom for text readability
+- ✅ Retry button on error states
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Go to Profile screen -> hero image shows face at top
+2. Scroll to "My Photos" -> photos display clearly without blur
+3. Verify gradient only at bottom of hero image
+
+Completed: 2026-01-23
+
+### Task: Display username in Profile and Complete Your Profile screens
+ID: T-029
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Display username in Profile View screen and add Basic Info summary section to Complete Your Profile screen.
+
+Scope (in/out):
+In:
+- Add username display to Profile View screen
+- Add Basic Info summary (username, name, age, gender) to Complete Your Profile screen
+- Allow navigation to edit Basic Info
+Out:
+- Changes to BasicInfoScreen itself
+- Profile data storage changes
+
+Files changed:
+- lib/features/profile/presentation/screens/profile_view_screen.dart
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- None
+
+Acceptance criteria:
+- ✅ Username displayed in Profile View screen below name
+- ✅ Basic Info summary shown in Complete Your Profile screen
+- ✅ Edit button navigates to BasicInfoScreen
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Go to Profile screen -> see username below name
+2. Go to Complete Your Profile -> see Basic Info summary at top
+3. Tap Edit on Basic Info -> navigate to BasicInfoScreen
+
+Completed: 2026-01-23
+
+### Task: Pre-fill username in Basic Info from signup
+ID: T-028
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Pre-fill the username entered during signup in the Basic Info screen.
+
+Scope (in/out):
+In:
+- Pre-fill username from CrushUser.username in Basic Info screen
+- Allow user to edit pre-filled username
+Out:
+- Changes to signup flow or username storage
+
+Files changed:
+- lib/features/auth/presentation/screens/basic_info_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- None
+
+Acceptance criteria:
+- Username from signup is pre-filled in Basic Info screen
+- User can still edit the pre-filled username
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Create new account -> enter username in step 1
+2. Proceed to Basic Info screen
+3. Verify username field is pre-filled
+
+Completed: 2026-01-23
+
+### Task: Hide pass/like for matched profiles + wire profile actions
+ID: T-027
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Hide Pass/Like buttons on other-user profiles when users are already matched; ensure pass/like sends swipe actions and returns to the deck.
+
+Scope (in/out):
+In:
+- OtherUserProfileScreen pass/like UI visibility and actions
+- Swipe handling with deck-aware fallback
+Out:
+- Routing changes or new flows
+- Match celebration UI changes
+
+Files changed:
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Risks:
+- DiscoveryBloc swipe could act on the wrong card if the viewed profile is not the current deck profile.
+
+Acceptance criteria:
+- ✅ Pass/Like hidden when isMatch == true
+- ✅ Pass/Like triggers swipe actions for non-matched profiles
+- ✅ After pass/like, user returns to the deck screen
+- ✅ Mutual like creates a match (repository returns match)
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. From deck, open profile, tap Pass -> returns to deck, card advances
+2. From deck, open profile, tap Like -> returns to deck, like sent
+3. From chat (matched), open profile -> no Pass/Like buttons
+
+Completed: 2026-01-23
+
+### Task: Fix ID verification notification in chat screen
+ID: T-026
+Owner AI: Claude
+Critic AI: Claude (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Fix the "Verify your ID" notification in chat screen to navigate to ID verification screen, add 10-second auto-dismiss, and 3-hour cooldown.
+
+Scope (in/out):
+In:
+- Navigation from Verify button to ID verification screen
+- 10-second auto-dismiss timer
+- 3-hour cooldown using SharedPreferences
+- Hide notification if user is verified
+Out:
+- ID verification screen changes
+- Backend verification status changes
+
+Files changed:
+- lib/features/chat/presentation/screens/chat_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Risks:
+- SharedPreferences cooldown key may persist across accounts
+
+Acceptance criteria:
+- ✅ Verify button navigates to ID verification screen (not Safety)
+- ✅ Notification auto-dismisses after 10 seconds
+- ✅ Notification only shows once every 3 hours
+- ✅ Notification hidden if user is verified
+
+Verification:
+Commands: `flutter run`
+Manual flow:
+1. Open a chat screen as unverified user
+2. Verify notification appears and auto-dismisses in 10 seconds
+3. Tap Verify -> navigates to ID verification screen
+4. Re-open chat -> notification doesn't appear (3-hour cooldown)
+
+Completed: 2026-01-23
 
 ### Task: Enforce before/after AI doc sync
 ID: T-025

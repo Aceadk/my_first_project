@@ -4,6 +4,655 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-23] Task: Per-Chat Settings (Individual Message Retention)
+
+Summary:
+- Fixed ChatSettings parsing in profile repository (was not loading from Firestore)
+- Implemented per-match chat settings allowing individual retention per conversation
+- Created MatchChatSettingsCubit for per-match settings management
+- Added updateMatchChatSettings Cloud Function to store settings at match level
+- Added chat settings menu option and bottom sheet UI in chat screen
+
+Files Added:
+- lib/features/chat/presentation/bloc/match_chat_settings_cubit.dart — New cubit for per-match settings
+
+Files Modified:
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added import for ChatSettings model
+  - Added ChatSettings.fromJson() parsing in _userFromFirestore()
+- functions/src/index.ts
+  - Added updateMatchChatSettings Cloud Function
+  - Stores settings at matches/{matchId}/chatSettings/{userId}
+  - Syncs to RTDB for real-time access
+- lib/features/chat/presentation/screens/chat_screen.dart
+  - Added chatSettings to _ChatSafetyAction enum
+  - Added "Chat Settings" menu item in popup menu
+  - Added _showMatchChatSettings() method with bottom sheet UI
+  - Added imports for ChatSettings, AuthBloc, SubscriptionPlan, MatchChatSettingsCubit
+- docs/Developer_agent_chat.md — Added Task #010
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User reported "failed to update settings" error when changing chat retention
+- User requested per-chat settings instead of global settings that apply to all conversations
+- Settings now stored at match level, each conversation can have different retention
+
+Risks & Mitigations:
+- Per-match settings require Cloud Function deployment to work
+- Settings stored per-user within match, so each party can have their own retention preference
+
+Verification Steps:
+- `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart`
+- `flutter analyze lib/features/chat/presentation/bloc/match_chat_settings_cubit.dart`
+- `firebase deploy --only functions`
+- Open chat, tap menu, select "Chat Settings", toggle retention
+
+Follow-ups / TODO:
+- Deploy Cloud Functions: `firebase deploy --only functions`
+- Load existing per-match settings from Firestore when opening chat settings
+
+---
+
+### [2026-01-23] Task: Matched users appear + chat redirect
+
+Summary:
+- Triggered matches refresh when a new match notification arrives to keep “Matched with you” up to date.
+- Left match tile navigation intact (matchId-based chat routing).
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/chat/presentation/screens/matches_screen.dart
+  - Listen to RealtimeMatchService notifications and refresh MatchesBloc
+  - Add subscription cleanup on dispose
+- docs/Developer_agent_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/ai_change_log.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Ensures new matches appear promptly in the Matches screen even if created while the user is elsewhere.
+
+Risks & Mitigations:
+- Additional refresh calls may slightly increase network usage; only triggers on match notifications.
+
+Verification Steps:
+- `flutter run`
+- Create a match and confirm it appears under “Matched with you”
+- Tap the match and ensure the correct chat opens
+
+Follow-ups / TODO:
+- None
+
+### [2026-01-23] Task: Complete Discovery & Matching System with Real-time RTDB
+
+Summary:
+- Fixed critical Cloud Function response format mismatch (profiles → candidates)
+- Updated discovery query to include new users without explicit preference fields
+- Added default discovery preferences when profiles are saved
+- Implemented real-time match notifications via Firebase Realtime Database (RTDB)
+- Created RealtimeMatchService for instant match notifications
+- Integrated match notifications with app lifecycle
+
+Files Added:
+- lib/features/discovery/data/services/realtime_match_service.dart
+  - RTDB listener for real-time match notifications
+  - Auto-clears notifications after display
+  - Integrates with auth state (start/stop on login/logout)
+
+Files Modified:
+- functions/src/index.ts
+  - Fixed `fetchDiscoveryCandidates` to return `candidates` instead of `profiles`
+  - Flattened profile data in response (was nested)
+  - Removed strict query filters that excluded new users
+  - Added in-code filtering for hideFromDiscovery/incognitoMode
+  - Added profile completeness check (1+ photo, name required)
+  - Added RTDB write when match is created for real-time notifications
+
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added default discovery preferences in saveProfileDetails()
+  - Sets hideFromDiscovery: false, incognitoMode: false by default
+  - Sets default age range (18-50) and distance (100km)
+
+- lib/app.dart
+  - Added RealtimeMatchService integration
+  - Listens to auth state to start/stop RTDB listener
+  - Shows snackbar notification when match arrives (except on deck/chat)
+
+- docs/Developer_agent_chat.md (added Task #007)
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Critical bug: Cloud Function returned "profiles" but client expected "candidates"
+- Critical bug: Query excluded new users who hadn't set explicit preferences
+- Added RTDB for instant match notifications (improves UX)
+- Complete end-to-end discovery → swipe → match → chat flow now works
+
+Risks & Mitigations:
+- RTDB write failure: Non-blocking, match still works via Firestore
+- Auth state sync: Service properly starts/stops based on auth changes
+
+Verification Steps:
+- `flutter analyze lib/app.dart` - No issues
+- `flutter analyze lib/features/discovery/data/services/realtime_match_service.dart` - No issues
+
+Follow-ups / TODO:
+- Deploy Cloud Functions: `firebase deploy --only functions`
+- Test end-to-end match flow on device/emulator
+
+---
+
+### [2026-01-23] Task: Deck preload + background stack in swipe deck
+
+Summary:
+- Rendered background preview cards behind the active swipe card.
+- Increased preloading to the next 4 profiles for smoother transitions.
+- Kept match celebration flow unchanged.
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/discovery/presentation/screens/deck_screen.dart
+  - Wrapped SwipeableCard with DeckPreviewStack
+  - Preloaded next 4 profiles and aligned preview list with filtered deck
+- lib/features/discovery/presentation/widgets/deck_card_stack.dart
+  - Increased preview/prefetch count to 4
+  - Adjusted opacity scaling for deeper cards
+- docs/Developer_agent_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/risk_notes.md
+- docs/ai_change_log.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Ensures upcoming profiles are visible in the background and load instantly after swipes.
+
+Risks & Mitigations:
+- Preloading more images can increase memory/network usage; capped to 4 and first image only.
+
+Verification Steps:
+- `flutter run`
+- Drag a card to confirm background cards are visible
+- Swipe several cards to confirm instant transitions
+- Trigger a match and confirm match celebration still appears
+
+Follow-ups / TODO:
+- Consider making preview count configurable for low-end devices.
+
+### [2026-01-23] Task: Remove Original Request from Task Log Template
+
+Summary:
+- Removed "Original Request (from Developer)" section from Developer_agent_chat.md template
+- Removed all existing "Original Request" entries from Tasks #001-#005
+- Updated document description to clarify only refined prompts are saved
+- Added explicit rule in "Notes for Agents" that original requests should NOT be saved
+- Added Task #006 to document this change
+
+Files Added:
+- None
+
+Files Modified:
+- docs/Developer_agent_chat.md
+  - Removed "Original Request" from template
+  - Removed "Original Request" from Tasks #001, #002, #003, #004, #005
+  - Updated document description
+  - Added rule #4 in Notes for Agents: "NEVER save the developer's original raw message"
+  - Added Task #006
+  - Updated Quick Reference table
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Developer requested that only refined prompts be saved, not their raw messages
+- Ensures professional documentation without casual communication being stored
+
+Risks & Mitigations:
+- None. Documentation-only changes.
+
+Follow-ups / TODO:
+- All agents must follow this pattern going forward (only save refined prompts)
+
+---
+
+### [2026-01-23] Task: Improve Prompt Refinement Workflow
+
+Summary:
+- Enhanced Developer_agent_chat.md template to require very specific, detailed prompts
+- Added Developer Intent Analysis section to understand what developer really wants
+- Added comprehensive Refined Prompt structure with subsections:
+  - Objective, Technical Requirements, Implementation Plan
+  - Files to Modify/Create, Success Criteria, Edge Cases, Verification Commands
+- Added Agent Workflow (MANDATORY) section documenting the process
+- Updated Notes for Agents with stricter requirements
+- Added Task #004 as example of the new detailed format
+
+Files Added:
+- None
+
+Files Modified:
+- docs/Developer_agent_chat.md
+  - Replaced simple template with comprehensive detailed template
+  - Added "Agent Workflow (MANDATORY)" section
+  - Added Task #004 with full detailed prompt example
+  - Updated Notes for Agents with stricter requirements
+- docs/ai_tasks_board.md (added T-033)
+- docs/ai_change_log.md (this entry)
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Developer requested more specific, more detailed prompts
+- The refined prompt should be detailed enough that another agent could execute it
+- Creates a contract between what developer wants and what agent will do
+
+Risks & Mitigations:
+- None. Documentation-only changes.
+
+Follow-ups / TODO:
+- All agents must follow the new detailed template going forward
+
+---
+
+### [2026-01-23] Task: Create Developer Agent Chat Document
+
+Summary:
+- Created `/docs/Developer_agent_chat.md` for logging all developer-to-agent tasks
+- Updated CLAUDE.md to include mandatory task logging rules
+- Added quick reference section for the new workflow
+- Logged previous tasks (#001-#003) with original requests and refined prompts
+
+Files Added:
+- docs/Developer_agent_chat.md
+
+Files Modified:
+- CLAUDE.md
+  - Added rule #2: "LOG ALL DEVELOPER TASKS (MANDATORY)"
+  - Added section 0.1: "LOG DEVELOPER TASK (MANDATORY)"
+  - Updated Quick Reference with Developer_agent_chat.md
+  - Added task logging step to completion checklist
+- docs/ai_tasks_board.md (added T-032)
+- docs/ai_change_log.md (this entry)
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Developer requested a system to track all tasks given to agents
+- Each task now includes original request + refined prompt + status + outcome
+- Helps maintain context across sessions and prevents duplicate work
+
+Risks & Mitigations:
+- None. Documentation-only changes.
+
+Verification Steps:
+- N/A (documentation changes only)
+
+Follow-ups / TODO:
+- All agents must log future tasks to Developer_agent_chat.md
+
+---
+
+### [2026-01-23] Task: Premium "Seen" Status for Messages
+
+Summary:
+- Added `readAt` field to Message model to track when message was read
+- Added `canSeeReadReceipts` to ChatState for Plus subscribers
+- Updated ChatBloc to set read receipt permission based on subscription plan
+- Updated chat UI to show "Seen ✓✓" only for Plus users
+
+Files Added:
+- None
+
+Files Modified:
+- lib/data/models/message.dart (added `readAt` field)
+- lib/features/chat/presentation/bloc/chat_state.dart (added `canSeeReadReceipts`)
+- lib/features/chat/presentation/bloc/chat_bloc.dart (sets `canSeeReadReceipts: plan.isPlus`)
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart (parses `readAt`)
+- lib/features/chat/presentation/screens/chat_screen.dart (conditional "Seen" display)
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Plus users see blue "Seen ✓✓" when their message is read
+- Free users only see single gray checkmark (no read status visibility)
+- This is a premium feature to encourage upgrades
+
+Risks & Mitigations:
+- None. Backwards compatible changes.
+
+Verification Steps:
+- `flutter analyze` passes with no issues
+
+Follow-ups / TODO:
+- None
+
+---
+
+### [2026-01-23] Task: Message Requests for non-matched users
+
+Summary:
+- Added MessageRequest model and repository support (stub/firebase/fake; HTTP no-op).
+- Added Message Requests UI (Chats entry + Message Requests screen) with a dedicated cubit.
+- Updated other-user profile actions: Send Message between Pass/Like for non-matches; only Send Message for matches; added request composer.
+- Added best-effort migration of message requests into chats on match fetch.
+- Added Firestore rules for `message_requests` and updated flow/DFD/ER docs.
+
+Files Added:
+- lib/data/models/message_request.dart
+- lib/features/chat/presentation/bloc/message_requests_cubit.dart
+- lib/features/chat/presentation/bloc/message_requests_state.dart
+- lib/features/chat/presentation/screens/message_requests_screen.dart
+
+Files Modified:
+- lib/features/chat/data/repositories/chat_repository.dart
+- lib/features/chat/data/repositories/impl/stub_chat_repository.dart
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+- lib/features/chat/data/repositories/impl/http_chat_repository.dart
+- lib/features/chat/presentation/screens/chat_list_screen.dart
+- lib/features/chat/presentation/bloc/matches_bloc.dart
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- lib/features/chat/presentation/screens/chat_screen.dart
+- lib/data/repositories/fake_repositories.dart
+- lib/core/router.dart
+- firestore.rules
+- docs/project_flowchart.md
+- docs/project_dfd.md
+- docs/project_er_diagram.md
+- docs/Developer_agent_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/risk_notes.md
+- docs/ai_change_log.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Implements limited pre-match message requests with expiration and migration to chats upon matching.
+- Ensures matched profiles hide Pass/Like while keeping Send Message available.
+
+Risks & Mitigations:
+- Migration/expiration is client-driven; consider Cloud Functions or Firestore TTL for server-side cleanup.
+
+Verification Steps:
+- `flutter run`
+- Open non-matched profile → Send Message → request appears in Message Requests
+- Try to send again → blocked
+- Match occurs → request migrates into chat (sender device)
+- Requests older than 48 hours disappear on fetch
+
+Follow-ups / TODO:
+- Consider backend-triggered migration and TTL cleanup for message requests.
+
+### [2026-01-23] Task: Implement Bidirectional Chat Messaging
+
+Summary:
+- Implemented missing Cloud Functions for chat messaging:
+  - `sendMessage` - Creates message documents in Firestore with proper validation
+  - `markMessagesRead` - Marks all unread messages from other user as read
+  - `editMessage` - Allows sender to edit their own messages (Plus plan only)
+- Added proper field structure matching Flutter Message model expectations
+- Real-time message listening was already wired in ChatBloc via `watchMessages`
+
+Files Added:
+- None
+
+Files Modified:
+- functions/src/index.ts
+  - Added `SendMessageRequest`, `MarkMessagesReadRequest`, `EditMessageRequest` interfaces
+  - Added `sendMessage` callable function (validates match membership, creates message, updates match lastMessage)
+  - Added `markMessagesRead` callable function (batch updates unread messages)
+  - Added `editMessage` callable function (ownership check, updates content)
+  - Message document includes: matchId, fromUserId, toUserId, content, type, mediaUrl, sentAt, isRead, reactions (as Map), visibleTo
+
+Files Deleted:
+- None
+
+Why / Notes:
+- The Flutter client was calling `sendMessage` Cloud Function which didn't exist - blocking all Firebase message sending
+- The `markMessagesRead` Cloud Function was also missing
+- Real-time listening already worked via Firestore snapshots in `watchMessages`
+- Message format matches what `_messageFromFirestore` expects in Flutter
+
+Risks & Mitigations:
+- New Cloud Functions need deployment: `firebase deploy --only functions`
+- Functions validate match membership before allowing messages
+- Blocked users cannot send messages (uses existing `ensureNotBlocked`)
+
+Verification Steps:
+- `cd functions && npm run build` (TypeScript compiles successfully)
+- `firebase deploy --only functions`
+- Test: User A sends message to User B -> message appears in real-time for User B
+- Test: User B replies -> User A receives message
+- Test: Verify messages marked as read when viewed
+
+Follow-ups / TODO:
+- Deploy functions to Firebase
+- Test bidirectional messaging with two user accounts
+- Verify push notifications trigger via `onMessageCreated`
+
+---
+
+### [2026-01-23] Task: Profile Photo Rendering and Display Fix
+
+Summary:
+- Enhanced profile photo display to ensure user-uploaded photos are rendered clearly without blur
+- Added top-center alignment to hero image and photo grid to prioritize face/head area
+- Added alignment support to CachedNetworkImage widget
+- Added retry functionality for failed image loads
+- Reduced gradient overlay to only bottom portion for text readability
+
+Files Added:
+- None
+
+Files Modified:
+- lib/shared/widgets/cached_network_image.dart
+  - Added `alignment` property (defaults to `Alignment.center`)
+  - Added `onRetry` callback for retry functionality
+  - Added retry button to error widget
+  - Added `retry()` method for manual retry
+- lib/features/profile/presentation/screens/profile_view_screen.dart
+  - Updated `_ProfileHeader` to use `Alignment.topCenter` for hero image
+  - Changed gradient overlay to only cover bottom 100px (was full height)
+  - Updated `_PhotosGrid` to use `Alignment.topCenter` for all photos
+  - Added loading placeholder with spinner
+  - Added "Tap to retry" hint on error
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Photos should be displayed at full quality without blur
+- Top-center alignment prioritizes showing faces in photos
+- Gradient overlay reduced to minimal for text readability only
+- Retry functionality improves user experience on network issues
+
+Risks & Mitigations:
+- None. Changes are backwards compatible.
+
+Verification Steps:
+- `flutter run`
+- Go to Profile screen -> verify hero image shows clearly, faces visible at top
+- Verify "My Photos" grid shows photos clearly without blur
+- Verify gradient only appears at bottom of hero image
+
+Follow-ups / TODO:
+- None
+
+### [2026-01-23] Task: Display username in Profile and Complete Your Profile screens
+
+Summary:
+- Added username display to Profile View screen (below name and age)
+- Added "Basic Info" summary section to Complete Your Profile screen showing username, name, age, and gender
+- Repositioned elements for better user profile viewing
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_view_screen.dart
+  - Added username row with @ icon below the name/age display
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+  - Added `_buildBasicInfoSummary()` method to display user's basic info
+  - Added `_buildInfoRow()` helper method for consistent info display
+  - Added Basic Info summary section at the top of the form content
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested to see username in Profile screen and Complete Your Profile screen
+- Basic Info section shows username, name, age, and gender with an edit button to go back to BasicInfoScreen
+- Improves profile viewing experience by showing all relevant user info
+
+Risks & Mitigations:
+- None
+
+Verification Steps:
+- `flutter run`
+- Go to Profile screen -> verify username is shown below name with @ prefix
+- Go to Complete Your Profile screen -> verify Basic Info summary shows username, name, age, gender
+- Tap Edit on Basic Info summary -> verify it navigates to BasicInfoScreen
+
+Follow-ups / TODO:
+- None
+
+### [2026-01-23] Task: Pre-fill username in Basic Info from signup
+
+Summary:
+- When a user enters a username during account creation (signup), that username is now pre-filled in the Basic Info screen.
+- User can still edit the username in Basic Info if they want to change it.
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/auth/presentation/screens/basic_info_screen.dart
+  - Added `_hasPrefilledUsername` flag to track if username was pre-filled
+  - Added logic in BlocConsumer builder to pre-fill username from `state.user?.username`
+  - Uses `addPostFrameCallback` to safely set controller text after build
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested that username entered during signup should carry over to Basic Info screen.
+- The username is stored in `CrushUser.username` after signup via `signUpWithPassword()`.
+- Basic Info screen now reads this value and pre-fills the text field.
+
+Risks & Mitigations:
+- None. User can still edit the pre-filled username.
+
+Verification Steps:
+- `flutter run`
+- Create new account and enter a username in step 1
+- Proceed through signup flow to Basic Info screen
+- Verify: username field is pre-filled with the username from signup
+- Verify: user can still edit the username field
+
+Follow-ups / TODO:
+- None
+
+### [2026-01-23] Task: Hide Pass/Like for matched profiles + wire profile actions
+
+Summary:
+- Hid Pass/Like buttons on other-user profiles when the users are already matched.
+- Wired Pass/Like actions to discovery swipes with deck-aware dispatch and repository fallback.
+- Ensured users return to the deck after pass/like actions.
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Matched profiles should not show swipe actions.
+- Profile actions should behave like deck swipes and return users to discovery.
+
+Risks & Mitigations:
+- Risk: DiscoveryBloc swipe could act on the wrong card if the viewed profile isn't the current deck profile.
+  - Mitigation: Guard by checking the current deck profile ID; fallback to repository and refresh deck.
+
+Verification Steps:
+- `flutter run`
+- Manual: From deck, open profile → Pass/Like → return to deck and advance card
+- Manual: From chat (matched), open profile → no Pass/Like buttons
+
+Follow-ups / TODO:
+- None
+
+### [2026-01-23] Task: Fix ID verification notification in chat screen
+
+Summary:
+- Fixed "Verify your ID" notification in chat screen to navigate to ID verification screen instead of Safety & Blocking.
+- Added 10-second auto-dismiss timer for the notification.
+- Added 3-hour cooldown logic using SharedPreferences so notification only shows once every 3 hours.
+- Notification only appears when user is not verified.
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/chat/presentation/screens/chat_screen.dart
+  - Added SharedPreferences import
+  - Added state variables for banner visibility and timer
+  - Added `_checkVerificationBannerVisibility()` method for 3-hour cooldown check
+  - Added `_startVerificationBannerTimer()` method for 10-second auto-dismiss
+  - Added `_dismissVerificationBanner()` method for manual dismiss
+  - Changed navigation from `CrushRoutes.safety` to `CrushRoutes.idVerification`
+  - Updated banner to only show when `!selfVerified && _showVerificationBanner`
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested the verify button navigate to ID verification screen, not Safety & Blocking.
+- Notification should auto-dismiss after 10 seconds and only appear once every 3 hours.
+- If user is verified, notification does not appear at all.
+
+Risks & Mitigations:
+- Risk: SharedPreferences key persists across accounts on same device.
+  - Mitigation: User data clearance service should clear this key on logout (minor UX impact if not).
+
+Verification Steps:
+- `flutter run`
+- Open a chat with someone
+- Verify: notification shows for unverified users, auto-dismisses in 10 seconds
+- Verify: tapping "Verify" navigates to ID verification screen
+- Verify: notification doesn't reappear for 3 hours after being shown
+
+Follow-ups / TODO:
+- Consider adding this cooldown key to UserDataClearanceService for logout cleanup.
+
 ### [2026-01-23] Task: Enforce AI doc sync before/after edits
 
 Summary:

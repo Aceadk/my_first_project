@@ -172,6 +172,34 @@ service cloud.firestore {
       }
     }
 
+    // MESSAGE REQUESTS (pre-match)
+    match /message_requests/{requestId} {
+      function otherUserId() {
+        return resource.data.fromUserId == request.auth.uid
+          ? resource.data.toUserId
+          : resource.data.fromUserId;
+      }
+
+      // Participants can read their own requests if no blocks exist.
+      allow read: if isSignedIn()
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid)
+        && !hasBlockRelationship(otherUserId());
+
+      // Only sender can create, with block checks.
+      allow create: if isSignedIn()
+        && request.resource.data.fromUserId == request.auth.uid
+        && request.resource.data.toUserId != request.auth.uid
+        && !hasBlockRelationship(request.resource.data.toUserId);
+
+      // Allow participants to delete (migration/expiration cleanup).
+      allow delete: if isSignedIn()
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid);
+
+      allow update: if false;
+    }
+
     // Likes: only creator can write; everyone signed-in can read (adjust as needed).
     match /likes/{likeId} {
       allow read: if isSignedIn();

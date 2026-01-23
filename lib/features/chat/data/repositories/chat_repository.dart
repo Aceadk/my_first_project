@@ -1,5 +1,6 @@
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/message_request.dart';
 
 abstract class ChatRepository {
   /// Watch all messages in a match (legacy - loads all at once).
@@ -135,6 +136,35 @@ abstract class ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
+  });
+
+  /// Send a pre-match message request to another user.
+  /// Returns null if a pending request already exists between the pair.
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  });
+
+  /// Fetch message requests involving the user (sent or received).
+  Future<List<MessageRequest>> fetchMessageRequests(String userId);
+
+  /// Check if a pending message request already exists between two users.
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  });
+
+  /// Migrate eligible message requests into chats when matches exist.
+  /// Returns the number of requests migrated.
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
   });
 }
 

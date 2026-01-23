@@ -11,6 +11,8 @@ class ChatState extends Equatable {
   final String? errorMessage;
   final bool canUnsend;
   final bool canEdit;
+  /// Whether the user can see read receipts (Plus feature).
+  final bool canSeeReadReceipts;
   final String? uploadingAttachmentName;
   final Set<String> typingUserIds;
   final bool otherUserOnline;
@@ -35,6 +37,7 @@ class ChatState extends Equatable {
     this.errorMessage,
     this.canUnsend = false,
     this.canEdit = false,
+    this.canSeeReadReceipts = false,
     this.uploadingAttachmentName,
     this.typingUserIds = const {},
     this.otherUserOnline = false,
@@ -64,6 +67,7 @@ class ChatState extends Equatable {
     String? errorMessage,
     bool? canUnsend,
     bool? canEdit,
+    bool? canSeeReadReceipts,
     String? uploadingAttachmentName,
     Set<String>? typingUserIds,
     bool? otherUserOnline,
@@ -84,6 +88,7 @@ class ChatState extends Equatable {
       errorMessage: errorMessage,
       canUnsend: canUnsend ?? this.canUnsend,
       canEdit: canEdit ?? this.canEdit,
+      canSeeReadReceipts: canSeeReadReceipts ?? this.canSeeReadReceipts,
       uploadingAttachmentName:
           uploadingAttachmentName ?? this.uploadingAttachmentName,
       typingUserIds: typingUserIds ?? this.typingUserIds,
@@ -108,6 +113,7 @@ class ChatState extends Equatable {
         errorMessage,
         canUnsend,
         canEdit,
+        canSeeReadReceipts,
         uploadingAttachmentName,
         typingUserIds,
         otherUserOnline,

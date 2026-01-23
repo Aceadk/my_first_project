@@ -13,6 +13,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
+import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
@@ -41,12 +42,22 @@ class ChatListScreen extends StatelessWidget {
       );
     }
 
-    return BlocProvider(
-      create: (context) => MatchesBloc(
-        chatRepository: context.read<ChatRepository>(),
-        authRepository: context.read<AuthRepository>(),
-        userId: userId,
-      )..add(const MatchesLoadRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MatchesBloc(
+            chatRepository: context.read<ChatRepository>(),
+            authRepository: context.read<AuthRepository>(),
+            userId: userId,
+          )..add(const MatchesLoadRequested()),
+        ),
+        BlocProvider(
+          create: (context) => MessageRequestsCubit(
+            chatRepository: context.read<ChatRepository>(),
+            userId: userId,
+          )..load(),
+        ),
+      ],
       child: _ChatListView(currentUserId: userId),
     );
   }
@@ -223,25 +234,38 @@ class _ChatListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MatchesBloc, MatchesState>(
       builder: (context, state) {
+        final requestState = context.watch<MessageRequestsCubit>().state;
+        final requestsCount = requestState.requests.length;
         return AsyncStateScaffold(
           appBar: _buildGlassAppBar(context),
           isLoading: state.isLoading && state.matches.isEmpty,
           errorMessage: state.errorMessage,
           showErrorSnackBar: true,
-          empty: state.matches.isEmpty
+          empty: state.matches.isEmpty &&
+                  requestsCount == 0 &&
+                  !requestState.isLoading
               ? _buildEmptyState(context)
               : null,
           body: RefreshIndicator(
             onRefresh: () async {
               context.read<MatchesBloc>().add(const MatchesRefreshRequested());
+              context.read<MessageRequestsCubit>().refresh();
               await Future.delayed(const Duration(milliseconds: 500));
             },
             child: ListView.separated(
               padding: DsEdgeInsets.allLg,
-              itemCount: state.matches.length,
+              itemCount: state.matches.length + 1,
               separatorBuilder: (_, __) => DsGap.sm,
               itemBuilder: (context, index) {
-                final match = state.matches[index];
+                if (index == 0) {
+                  return _MessageRequestsTile(
+                    count: requestsCount,
+                    isLoading: requestState.isLoading,
+                    onTap: () => context.push(CrushRoutes.messageRequests),
+                  );
+                }
+
+                final match = state.matches[index - 1];
                 return _ChatTile(
                   match: match,
                   currentUserId: currentUserId,
@@ -270,6 +294,121 @@ class _ChatListView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _MessageRequestsTile extends StatelessWidget {
+  const _MessageRequestsTile({
+    required this.count,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  final int count;
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(DsRadius.lg),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: DsBlur.light,
+          sigmaY: DsBlur.light,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            child: Container(
+              padding: const EdgeInsets.all(DsSpacing.md),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: 0.6),
+                    (isDark
+                            ? DsGlassColors.surfaceDark
+                            : DsGlassColors.surfaceLight)
+                        .withValues(alpha: 0.4),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(DsRadius.lg),
+                border: Border.all(
+                  color: isDark
+                      ? DsGlassColors.borderDark
+                      : DsGlassColors.borderLight,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      gradient: DsGradients.primaryHorizontal,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mail_outline_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: DsSpacing.md),
+                  Expanded(
+                    child: Text(
+                      'Message Requests',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  if (isLoading)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else if (count > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: DsColors.primary.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(color: DsColors.primary),
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.chevron_right,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

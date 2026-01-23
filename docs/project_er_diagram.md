@@ -1,6 +1,6 @@
 # Project ER Diagram — CrushHour Dating App
 
-*Last updated: 2026-01-20*
+*Last updated: 2026-01-23*
 
 ---
 
@@ -18,13 +18,13 @@
 
 ## 1) Overview
 
-CrushHour is a dating application built with Flutter and Firebase Firestore. The data model consists of **25 main entities** organized into the following domains:
+CrushHour is a dating application built with Flutter and Firebase Firestore. The data model consists of **26 main entities** organized into the following domains:
 
 | Domain | Entities | Description |
 |--------|----------|-------------|
 | **Auth & Users** | 6 | User accounts, profiles, preferences, privacy |
 | **Discovery** | 6 | Likes, swipes, matches, weekly picks |
-| **Messaging** | 2 | Chat messages, online presence |
+| **Messaging** | 3 | Chat messages, message requests, online presence |
 | **Safety** | 4 | Reports, blocks, date plans, emergency contacts |
 | **Verification & Calls** | 2 | Photo verification, audio/video calls |
 | **Social** | 4 | Reactions, stories, quizzes |
@@ -33,13 +33,13 @@ CrushHour is a dating application built with Flutter and Firebase Firestore. The
 ### Entity Summary
 
 ```
-Total Entities: 25
+Total Entities: 26
 ├── Core Domain: 6
 │   └── CrushUser, Profile, DiscoveryPreferences, ProfilePrivacySettings, ProfileFavourites, ProfilePrompt
 ├── Discovery Domain: 6
 │   └── CrushMatch, Like, Swipe, WeeklyPicks, DailyLikesLimit, LikePriority
-├── Messaging Domain: 2
-│   └── Message, Presence
+├── Messaging Domain: 3
+│   └── Message, MessageRequest, Presence
 ├── Safety Domain: 4
 │   └── Block, Report, DatePlan, EmergencyContact
 ├── Verification & Calls: 2
@@ -87,6 +87,8 @@ erDiagram
     %% ═══════════════════════════════════════════════════════════════
     CrushMatch ||--o{ Message : "contains"
     CrushUser ||--o{ Message : "sends"
+    CrushUser ||--o{ MessageRequest : "sends"
+    CrushUser ||--o{ MessageRequest : "receives"
     CrushUser ||--|| Presence : "has"
 
     %% ═══════════════════════════════════════════════════════════════
@@ -154,6 +156,12 @@ erDiagram
 │                              MESSAGING                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  CrushMatch ─────────── Message (1:N subcollection)                         │
+│      │                     │                                                 │
+│      └─────────────────────┼───── fromUser (FK to CrushUser)               │
+│                            │                                                 │
+│                            └───── toUser (FK to CrushUser)                  │
+│                                                                              │
+│  CrushUser ─────────── MessageRequest (1:N, pre-match)                      │
 │      │                     │                                                 │
 │      └─────────────────────┼───── fromUser (FK to CrushUser)               │
 │                            │                                                 │
@@ -460,7 +468,26 @@ erDiagram
     }
 ```
 
-### 3.9 Like Entity
+### 3.9 MessageRequest Entity (Pre-match)
+
+```mermaid
+erDiagram
+    MessageRequest {
+        string id PK "pairKey (sorted user IDs)"
+        string fromUserId FK "NOT NULL"
+        string toUserId FK "NOT NULL"
+        string content "NOT NULL"
+        enum type "text|image|video|voice"
+        timestamp sentAt "NOT NULL"
+        timestamp expiresAt "NOT NULL"
+        string fromUserName "nullable"
+        string fromUserPhotoUrl "nullable"
+        string toUserName "nullable"
+        string toUserPhotoUrl "nullable"
+    }
+```
+
+### 3.10 Like Entity
 
 ```mermaid
 erDiagram
@@ -474,7 +501,7 @@ erDiagram
     }
 ```
 
-### 3.10 Swipe Entity
+### 3.11 Swipe Entity
 
 ```mermaid
 erDiagram
@@ -488,7 +515,7 @@ erDiagram
     }
 ```
 
-### 3.11 Block Entity
+### 3.12 Block Entity
 
 ```mermaid
 erDiagram
@@ -500,7 +527,7 @@ erDiagram
     }
 ```
 
-### 3.12 Report Entity
+### 3.13 Report Entity
 
 ```mermaid
 erDiagram
@@ -518,7 +545,7 @@ erDiagram
     }
 ```
 
-### 3.13 PhotoVerification Entity
+### 3.14 PhotoVerification Entity
 
 ```mermaid
 erDiagram
@@ -535,7 +562,7 @@ erDiagram
     }
 ```
 
-### 3.14 Call Entity
+### 3.15 Call Entity
 
 ```mermaid
 erDiagram
@@ -557,7 +584,7 @@ erDiagram
     }
 ```
 
-### 3.15 ProfileInsights Entity
+### 3.16 ProfileInsights Entity
 
 ```mermaid
 erDiagram
@@ -579,7 +606,7 @@ erDiagram
     }
 ```
 
-### 3.16 WeeklyPicks Entity
+### 3.17 WeeklyPicks Entity
 
 ```mermaid
 erDiagram
@@ -603,7 +630,7 @@ erDiagram
     }
 ```
 
-### 3.17 DailyLikesLimit Entity
+### 3.18 DailyLikesLimit Entity
 
 ```mermaid
 erDiagram
@@ -618,7 +645,7 @@ erDiagram
     }
 ```
 
-### 3.18 LikePriority Entity
+### 3.19 LikePriority Entity
 
 ```mermaid
 erDiagram
@@ -634,7 +661,7 @@ erDiagram
     }
 ```
 
-### 3.19 DatePlan Entity
+### 3.20 DatePlan Entity
 
 ```mermaid
 erDiagram
@@ -658,7 +685,7 @@ erDiagram
     }
 ```
 
-### 3.20 EmergencyContact Entity (Nested)
+### 3.21 EmergencyContact Entity (Nested)
 
 ```mermaid
 erDiagram
@@ -672,7 +699,7 @@ erDiagram
     }
 ```
 
-### 3.21 CompatibilityQuiz Entity
+### 3.22 CompatibilityQuiz Entity
 
 ```mermaid
 erDiagram
@@ -702,7 +729,7 @@ erDiagram
     }
 ```
 
-### 3.22 QuizResult Entity
+### 3.23 QuizResult Entity
 
 ```mermaid
 erDiagram
@@ -720,7 +747,7 @@ erDiagram
     }
 ```
 
-### 3.23 ProfileReaction Entity
+### 3.24 ProfileReaction Entity
 
 ```mermaid
 erDiagram
@@ -738,7 +765,7 @@ erDiagram
     }
 ```
 
-### 3.24 ProfileStory Entity
+### 3.25 ProfileStory Entity
 
 ```mermaid
 erDiagram
@@ -754,7 +781,7 @@ erDiagram
     }
 ```
 
-### 3.25 Presence Entity
+### 3.26 Presence Entity
 
 ```mermaid
 erDiagram
@@ -774,7 +801,7 @@ erDiagram
 ```
 firestore/
 │
-├── users/{uid}                           # Main user document (25 collections total)
+├── users/{uid}                           # Main user document (26 collections total)
 │   ├── id: string
 │   ├── phoneNumber: string
 │   ├── email: string | null
@@ -984,15 +1011,17 @@ firestore/
 │   ├── isOnline: boolean
 │   └── lastSeen: timestamp
 │
-├── preMatchPairs/{pairId}               # Pre-Match Messages
-│   ├── users: array<string>
-│   ├── requests: map<string, number>
-│   ├── lastRequestAt: timestamp
-│   └── requests/{requestId}              # SUBCOLLECTION
-│       ├── fromUserId: string
-│       ├── toUserId: string
-│       ├── content: string
-│       └── createdAt: timestamp
+├── message_requests/{pairKey}           # Pre-Match Message Requests
+│   ├── fromUserId: string
+│   ├── toUserId: string
+│   ├── content: string
+│   ├── type: string
+│   ├── sentAt: timestamp
+│   ├── expiresAt: timestamp
+│   ├── fromUserName: string | null
+│   ├── fromUserPhotoUrl: string | null
+│   ├── toUserName: string | null
+│   └── toUserPhotoUrl: string | null
 │
 ├── notifications/{notificationId}        # Push Notification Queue
 │   ├── userId: string
@@ -1251,6 +1280,8 @@ erDiagram
 | `users` | profile.longitude | Geo queries |
 | `users` | plan | Subscription filtering |
 | `likes` | toUserId | Fast lookup of received likes |
+| `message_requests` | fromUserId | Sent request lookup |
+| `message_requests` | toUserId | Received request lookup |
 
 ### 5.3 Index Configuration (firestore.indexes.json)
 
@@ -1321,6 +1352,7 @@ erDiagram
 | `usernames` | No | No | No | No |
 | `matches` | Participants | No (Cloud Functions) | No | No |
 | `messages` | Participants | Verified users | Receiver (mark read) | No |
+| `message_requests` | Participants | Sender only | No | Participants |
 | `likes` | Signed-in | Owner (fromUserId) | No | No |
 | `swipes` | No | Owner | No | No |
 | `blocks` | No | Owner (blockerId) | No | No |
@@ -1460,6 +1492,12 @@ service cloud.firestore {
 | `message.sentAt` | timestamp | NOT NULL | Send timestamp |
 | `message.isRead` | boolean | DEFAULT false | Read receipt |
 | `message.reactions` | map | userId→emoji | Message reactions |
+| `messageRequest.fromUserId` | string | NOT NULL | Request sender |
+| `messageRequest.toUserId` | string | NOT NULL | Request recipient |
+| `messageRequest.content` | string | NOT NULL | Request message content |
+| `messageRequest.type` | enum | text/image/video/voice | Request message type |
+| `messageRequest.sentAt` | timestamp | NOT NULL | Request sent time |
+| `messageRequest.expiresAt` | timestamp | NOT NULL | Request expiration |
 
 ### 7.3 Discovery Fields
 
@@ -1500,6 +1538,8 @@ service cloud.firestore {
 | CrushMatch | Message | contains | 1:N | Subcollection |
 | CrushUser | Message | sends | 1:N | fromUserId FK |
 | CrushUser | Message | receives | 1:N | toUserId FK |
+| CrushUser | MessageRequest | sends | 1:N | fromUserId FK |
+| CrushUser | MessageRequest | receives | 1:N | toUserId FK |
 | CrushUser | Like | sends | 1:N | fromUserId FK |
 | CrushUser | Like | receives | 1:N | toUserId FK |
 | Like | LikePriority | has | 1:1 | Separate doc, same ID |

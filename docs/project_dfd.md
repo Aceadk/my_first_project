@@ -1,6 +1,6 @@
 # Data Flow Diagram (DFD) — CrushHour Dating App
 
-*Last updated: 2026-01-20*
+*Last updated: 2026-01-23*
 
 ---
 
@@ -87,6 +87,7 @@ flowchart TB
         DS1[("D1: Users")]
         DS2[("D2: Matches")]
         DS3[("D3: Messages")]
+        DS8[("D8: Message Requests")]
         DS4[("D4: Likes")]
         DS5[("D5: Local Cache")]
         DS6[("D6: Subscriptions")]
@@ -113,6 +114,7 @@ flowchart TB
     P4 -->|"Chat History"| U
     P4 <--> DS2
     P4 <--> DS3
+    P4 <--> DS8
 
     P1 -->|"Auth Events"| P5
     P3 -->|"Match Events"| P5
@@ -143,7 +145,7 @@ flowchart TB
 | 1.0 | Authentication & Identity | User registration, login, password management, verification |
 | 2.0 | Profile Management | Create, update, media upload, completeness tracking |
 | 3.0 | Discovery & Matching | Deck loading, swiping, match creation, ML recommendations |
-| 4.0 | Messaging & Chat | Send/receive messages, reactions, read status |
+| 4.0 | Messaging & Chat | Send/receive messages, message requests, reactions, read status |
 | 5.0 | Notifications | Push notifications, email alerts, event triggers |
 | 6.0 | Subscription & Payments | Stripe checkout, webhook handling, plan management |
 | 7.0 | Safety & Moderation | Reporting, blocking, content moderation |
@@ -408,11 +410,14 @@ flowchart TB
         P4_7["4.7<br/>Add<br/>Reaction"]
         P4_8["4.8<br/>Content<br/>Moderation"]
         P4_9["4.9<br/>Typing<br/>Indicator"]
+        P4_10["4.10<br/>Send<br/>Message Request"]
+        P4_11["4.11<br/>Fetch<br/>Message Requests"]
     end
 
     subgraph "Data Stores"
         DS2[("D2: Matches")]
         DS3[("D3: Messages")]
+        DS8[("D8: Message Requests")]
         DS_MEDIA[("D3.1: Chat<br/>Media")]
         DS_FLAGS[("D7.1: Moderation<br/>Flags")]
     end
@@ -447,6 +452,13 @@ flowchart TB
 
     U -->|"matchId,<br/>isTyping"| P4_9
     P4_9 --> DS2
+
+    U -->|"toUserId,<br/>content"| P4_10
+    P4_10 --> DS8
+
+    U -->|"userId"| P4_11
+    P4_11 <--> DS8
+    P4_11 -->|"Request[]"| U
 ```
 
 #### Data Flows - Messaging
@@ -460,6 +472,11 @@ flowchart TB
 | DF4.5 | D3 | 4.2 | Message[] with pagination |
 | DF4.6 | 4.3 | User | Real-time message stream |
 | DF4.7 | User | 4.7 React | messageId, emoji (❤️ 😂 😮 😢 😡 👍) |
+| DF4.8 | User | 4.10 Send Request | toUserId, content |
+| DF4.9 | 4.10 | D8 Message Requests | {id, fromUserId, toUserId, content, expiresAt} |
+| DF4.10 | User | 4.11 Fetch Requests | userId |
+| DF4.11 | D8 | 4.11 | MessageRequest[] |
+| DF4.12 | 4.11 | User | MessageRequest list |
 
 ---
 
@@ -994,6 +1011,22 @@ flowchart TB
 | createdAt | timestamp | Send timestamp |
 | editedAt | timestamp? | Last edit timestamp |
 
+### Message Request Entity (D8)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Message request document ID (pair key) |
+| fromUserId | string | Sender UID |
+| toUserId | string | Recipient UID |
+| content | string | Request message content |
+| type | enum | "text" \| "image" \| "video" \| "voice" |
+| sentAt | timestamp | Sent timestamp |
+| expiresAt | timestamp | Auto-expire after 48 hours |
+| fromUserName | string? | Denormalized sender name |
+| fromUserPhotoUrl | string? | Denormalized sender photo |
+| toUserName | string? | Denormalized recipient name |
+| toUserPhotoUrl | string? | Denormalized recipient photo |
+
 ### Like Entity (D4)
 
 | Field | Type | Description |
@@ -1031,6 +1064,7 @@ flowchart TB
 | D1.3 | `/auth_audit_logs/{id}` | Auth audit trail | Server only |
 | D2 | `/matches/{id}` | Match records | Participants only |
 | D3 | `/matches/{id}/messages/{id}` | Chat messages | Participants only |
+| D8 | `/message_requests/{id}` | Pre-match message requests | Participants only |
 | D4 | `/likes/{id}` | Like records | Server managed |
 | D4.1 | `/like_limits/{uid}` | Daily like limits | Server only |
 | D5.1 | `/users/{uid}/fcmTokens/{token}` | FCM tokens | Owner only |
@@ -1064,11 +1098,11 @@ flowchart TB
 | Level | Processes | Data Stores | External Entities |
 |-------|-----------|-------------|-------------------|
 | 0 | 1 (System) | - | 7 |
-| 1 | 8 | 7 | 5 |
+| 1 | 8 | 8 | 5 |
 | 2 | 50+ | 15+ | 6 |
 | 3 | 25+ detailed | - | - |
 | 4 | 4 sub-processes | - | - |
 
 **Total Data Flows Documented:** 60+
 **Total Processes:** 80+
-**Total Data Stores:** 20+
+**Total Data Stores:** 21+

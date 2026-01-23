@@ -21,6 +21,7 @@ class Message extends Equatable {
   final MessageType type;
   final DateTime sentAt;
   final bool isRead;
+  final DateTime? readAt;
   final bool isDeletedForSender;
   final Map<String, String> reactions; // userId -> emoji
   final String? moderationStatus;
@@ -38,6 +39,7 @@ class Message extends Equatable {
     required this.type,
     required this.sentAt,
     required this.isRead,
+    this.readAt,
     required this.isDeletedForSender,
     this.moderationStatus,
     this.moderationReason,
@@ -49,6 +51,7 @@ class Message extends Equatable {
 
   Message copyWith({
     bool? isRead,
+    DateTime? readAt,
     bool? isDeletedForSender,
     Map<String, String>? reactions,
     String? moderationStatus,
@@ -66,6 +69,7 @@ class Message extends Equatable {
       type: type,
       sentAt: sentAt,
       isRead: isRead ?? this.isRead,
+      readAt: readAt ?? this.readAt,
       isDeletedForSender: isDeletedForSender ?? this.isDeletedForSender,
       moderationStatus: moderationStatus ?? this.moderationStatus,
       moderationReason: moderationReason ?? this.moderationReason,
@@ -87,6 +91,7 @@ class Message extends Equatable {
         type,
         sentAt,
         isRead,
+        readAt,
         isDeletedForSender,
         reactions,
         moderationStatus,

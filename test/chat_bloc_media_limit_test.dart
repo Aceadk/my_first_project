@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
@@ -186,6 +187,37 @@ class _FakeChatRepository implements ChatRepository {
   }) async* {
     yield const [];
   }
+
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async =>
+      null;
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async =>
+      const [];
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async =>
+      false;
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async =>
+      0;
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {

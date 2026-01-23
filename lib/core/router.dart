@@ -24,6 +24,7 @@ import 'package:crushhour/features/auth/presentation/screens/basic_info_screen.d
 import 'package:crushhour/features/auth/presentation/screens/id_verification_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
+import 'package:crushhour/features/chat/presentation/screens/message_requests_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/logout_screen.dart';
@@ -82,6 +83,7 @@ class CrushRoutes {
   static const termsConditions = '/terms-conditions';
   static const home = '/home';
   static const chat = '/chat';
+  static const messageRequests = '/message-requests';
   static const call = '/call';
   static const videoCall = '/video-call';
   static const logout = '/logout';
@@ -434,6 +436,11 @@ GoRouter createRouter(AuthBloc authBloc) {
           // Fallback if no args provided - go back home
           return _buildPage(state, const HomeScreen());
         },
+      ),
+      GoRoute(
+        path: CrushRoutes.messageRequests,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const MessageRequestsScreen()),
       ),
       GoRoute(
         path: CrushRoutes.call,

@@ -258,6 +258,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                   ),
                                 ),
                                 DsGap.lg,
+                                // Basic Info Summary (from previous step)
+                                _buildBasicInfoSummary(context, isDark, state),
+                                DsGap.xl,
                                 // Username Section
                                 _buildUsernameSection(context, isDark, state),
                                 DsGap.xl,
@@ -476,6 +479,172 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBasicInfoSummary(BuildContext context, bool isDark, ProfileState state) {
+    final profile = state.user?.profile;
+    final username = state.user?.username ?? '';
+    final name = profile?.name ?? '';
+    final age = profile?.age ?? 0;
+    final gender = profile?.gender ?? '';
+
+    // Format gender for display
+    String genderDisplay = '';
+    if (gender.isNotEmpty) {
+      genderDisplay = gender[0].toUpperCase() + gender.substring(1);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? DsColors.surfaceDark.withValues(alpha: 0.5)
+            : DsColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: DsColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.person_rounded, color: DsColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Basic Info',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                      ),
+                    ),
+                    Text(
+                      'From your profile setup',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GlassSmallButton(
+                onPressed: () => context.push(CrushRoutes.basicInfo),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.edit_rounded, size: 14),
+                    SizedBox(width: 4),
+                    Text('Edit'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          DsGap.md,
+          // Username row
+          if (username.isNotEmpty) ...[
+            _buildInfoRow(
+              context,
+              isDark,
+              icon: Icons.alternate_email_rounded,
+              label: 'Username',
+              value: '@$username',
+              isPrimary: true,
+            ),
+            DsGap.sm,
+          ],
+          // Name row
+          if (name.isNotEmpty) ...[
+            _buildInfoRow(
+              context,
+              isDark,
+              icon: Icons.badge_outlined,
+              label: 'Name',
+              value: name,
+            ),
+            DsGap.sm,
+          ],
+          // Age and Gender row
+          Row(
+            children: [
+              if (age > 0)
+                Expanded(
+                  child: _buildInfoRow(
+                    context,
+                    isDark,
+                    icon: Icons.cake_outlined,
+                    label: 'Age',
+                    value: '$age years',
+                  ),
+                ),
+              if (age > 0 && genderDisplay.isNotEmpty)
+                const SizedBox(width: 16),
+              if (genderDisplay.isNotEmpty)
+                Expanded(
+                  child: _buildInfoRow(
+                    context,
+                    isDark,
+                    icon: Icons.wc_rounded,
+                    label: 'Gender',
+                    value: genderDisplay,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    bool isDark, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isPrimary = false,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: isPrimary ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                fontSize: 10,
+              ),
+            ),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isPrimary ? DsColors.primary : (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight),
+                fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -5,6 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
 import '../chat_repository.dart';
 
@@ -467,6 +468,148 @@ class FirebaseChatRepository implements ChatRepository {
     );
   }
 
+  @override
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  }) async {
+    final now = DateTime.now();
+    final pairKey = _pairKey(fromUserId, toUserId);
+    final docRef = _firestore.collection('message_requests').doc(pairKey);
+    final existingDoc = await docRef.get();
+
+    if (existingDoc.exists) {
+      final existing = _messageRequestFromFirestore(
+        existingDoc.id,
+        existingDoc.data() ?? {},
+      );
+      if (!existing.isExpired) {
+        return null;
+      }
+      await docRef.delete();
+    }
+
+    final request = MessageRequest(
+      id: pairKey,
+      fromUserId: fromUserId,
+      toUserId: toUserId,
+      content: content,
+      type: type,
+      sentAt: now,
+      expiresAt: now.add(const Duration(hours: 48)),
+      fromUserName: fromUserName,
+      fromUserPhotoUrl: fromUserPhotoUrl,
+      toUserName: toUserName,
+      toUserPhotoUrl: toUserPhotoUrl,
+    );
+
+    await docRef.set(_messageRequestToFirestore(request));
+    return request;
+  }
+
+  @override
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
+    final fromQuery = await _firestore
+        .collection('message_requests')
+        .where('fromUserId', isEqualTo: userId)
+        .get();
+    final toQuery = await _firestore
+        .collection('message_requests')
+        .where('toUserId', isEqualTo: userId)
+        .get();
+
+    final docs = [...fromQuery.docs, ...toQuery.docs];
+    final requests = docs
+        .map((doc) => _messageRequestFromFirestore(doc.id, doc.data()))
+        .toList();
+
+    final activeRequests = requests.where((r) => !r.isExpired).toList()
+      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+
+    final expiredDocs = docs.where((doc) {
+      final req = _messageRequestFromFirestore(doc.id, doc.data());
+      return req.isExpired;
+    }).toList();
+
+    if (expiredDocs.isNotEmpty) {
+      final batch = _firestore.batch();
+      for (final doc in expiredDocs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+
+    return activeRequests;
+  }
+
+  @override
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  }) async {
+    final pairKey = _pairKey(userId, otherUserId);
+    final docRef = _firestore.collection('message_requests').doc(pairKey);
+    final doc = await docRef.get();
+    if (!doc.exists) return false;
+
+    final request = _messageRequestFromFirestore(doc.id, doc.data() ?? {});
+    if (request.isExpired) {
+      await docRef.delete();
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  }) async {
+    if (matches.isEmpty) return 0;
+
+    final requests = await fetchMessageRequests(userId);
+    if (requests.isEmpty) return 0;
+
+    var migrated = 0;
+
+    for (final match in matches) {
+      final pairKey = _pairKey(userId, match.otherUserId);
+      MessageRequest? request;
+      for (final candidate in requests) {
+        if (_pairKey(candidate.fromUserId, candidate.toUserId) == pairKey) {
+          request = candidate;
+          break;
+        }
+      }
+      if (request == null) continue;
+
+      // Only migrate when current user is the sender (auth constraints).
+      if (request.fromUserId != userId) continue;
+
+      try {
+        await sendMessage(
+          matchId: match.id,
+          fromUserId: request.fromUserId,
+          toUserId: request.toUserId,
+          content: request.content,
+          type: request.type,
+        );
+        await _firestore.collection('message_requests').doc(pairKey).delete();
+        migrated++;
+      } catch (_) {
+        // Ignore failures; keep request for retry.
+      }
+    }
+
+    return migrated;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -481,6 +624,7 @@ class FirebaseChatRepository implements ChatRepository {
       type: _parseMessageType(data['type']),
       sentAt: _parseTimestamp(data['sentAt']) ?? DateTime.now(),
       isRead: data['isRead'] ?? false,
+      readAt: _parseTimestamp(data['readAt']),
       isDeletedForSender: data['isDeletedForSender'] ?? false,
       reactions: Map<String, String>.from(data['reactions'] ?? {}),
       moderationStatus: data['moderationStatus'],
@@ -535,5 +679,46 @@ class FirebaseChatRepository implements ChatRepository {
     if (value is String) return DateTime.tryParse(value);
     if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
     return null;
+  }
+
+  String _pairKey(String userA, String userB) {
+    return userA.compareTo(userB) <= 0 ? '$userA|$userB' : '$userB|$userA';
+  }
+
+  MessageRequest _messageRequestFromFirestore(
+    String id,
+    Map<String, dynamic> data,
+  ) {
+    return MessageRequest(
+      id: id,
+      fromUserId: data['fromUserId'] ?? '',
+      toUserId: data['toUserId'] ?? '',
+      content: data['content'] ?? '',
+      type: _parseMessageType(data['type']),
+      sentAt: _parseTimestamp(data['sentAt']) ?? DateTime.now(),
+      expiresAt: _parseTimestamp(data['expiresAt']) ??
+          DateTime.now().add(const Duration(hours: 48)),
+      fromUserName: data['fromUserName'] as String?,
+      fromUserPhotoUrl: data['fromUserPhotoUrl'] as String?,
+      toUserName: data['toUserName'] as String?,
+      toUserPhotoUrl: data['toUserPhotoUrl'] as String?,
+    );
+  }
+
+  Map<String, dynamic> _messageRequestToFirestore(MessageRequest request) {
+    return {
+      'fromUserId': request.fromUserId,
+      'toUserId': request.toUserId,
+      'content': request.content,
+      'type': request.type.name,
+      'sentAt': Timestamp.fromDate(request.sentAt),
+      'expiresAt': Timestamp.fromDate(request.expiresAt),
+      if (request.fromUserName != null) 'fromUserName': request.fromUserName,
+      if (request.fromUserPhotoUrl != null)
+        'fromUserPhotoUrl': request.fromUserPhotoUrl,
+      if (request.toUserName != null) 'toUserName': request.toUserName,
+      if (request.toUserPhotoUrl != null)
+        'toUserPhotoUrl': request.toUserPhotoUrl,
+    };
   }
 }
