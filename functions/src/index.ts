@@ -3171,6 +3171,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     const candidates: Array<{
       id: string;
       profile: ProfileData;
+      username?: string;
       score: number;
       distanceKm?: number;
     }> = [];
@@ -3219,9 +3220,13 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
       const baseScore = 1 + verifiedBoost + distanceBoost + interestBoost;
 
+      // Get username from user document level (not nested in profile)
+      const username = typeof data.username === "string" ? data.username : undefined;
+
       candidates.push({
         id: doc.id,
         profile: candidateProfile,
+        username,
         score: baseScore,
         distanceKm,
       });
@@ -3236,6 +3241,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
         id: c.id,
         userId: c.id, // Alternative key for compatibility
         ...c.profile, // Flatten profile fields to top level
+        username: c.username, // Username from user document level
         distanceKm: c.distanceKm,
         score: c.score,
       })),

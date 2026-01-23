@@ -162,8 +162,27 @@ class FirebaseProfileRepository implements ProfileRepository {
       'profile': profileData,
       'updatedAt': FieldValue.serverTimestamp(),
     };
+
+    // Handle username changes with 28-day cooldown
     if (sanitizedUsername != null) {
-      docData['username'] = sanitizedUsername;
+      final existingUsername = existingUser?.username;
+      final usernameChanged = existingUsername != sanitizedUsername;
+
+      if (usernameChanged) {
+        // Check cooldown - if they had a username before, enforce 28-day wait
+        if (existingUsername != null && existingUsername.isNotEmpty) {
+          if (!existingUser!.canChangeUsername) {
+            throw Exception('You can change your username again in ${existingUser.daysUntilUsernameChange} days');
+          }
+        }
+        // Set the new username and update the change timestamp
+        docData['username'] = sanitizedUsername;
+        docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
+        AppLogger.logInfo('[FirebaseProfileRepo] saveBasicInfo: Username changed from "$existingUsername" to "$sanitizedUsername"');
+      } else {
+        // Username unchanged, just include it without updating timestamp
+        docData['username'] = sanitizedUsername;
+      }
     }
 
     // Always use set with merge to ensure nested structure is created properly
@@ -337,15 +356,31 @@ class FirebaseProfileRepository implements ProfileRepository {
       throw Exception('Username is required');
     }
 
-    final docRef = _firestore.collection('users').doc(userId);
+    // Check if user already has a username and enforce cooldown
+    final existingUser = await getCurrentUser();
+    final existingUsername = existingUser?.username;
+    final usernameChanged = existingUsername != sanitizedUsername;
 
-    await docRef.set({
+    final docData = <String, dynamic>{
       'username': sanitizedUsername,
       'hasSkippedBasicInfo': true,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
 
-    AppLogger.logInfo('[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername');
+    // Only update lastUsernameChangeAt if username actually changed
+    if (usernameChanged) {
+      if (existingUsername != null && existingUsername.isNotEmpty) {
+        if (!existingUser!.canChangeUsername) {
+          throw Exception('You can change your username again in ${existingUser.daysUntilUsernameChange} days');
+        }
+      }
+      docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
+    }
+
+    final docRef = _firestore.collection('users').doc(userId);
+    await docRef.set(docData, SetOptions(merge: true));
+
+    AppLogger.logInfo('[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername, changed=$usernameChanged');
 
     return (await getCurrentUser())!;
   }
@@ -378,6 +413,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     if (profileData != null) {
       profile = Profile(
         id: id,
+        username: data['username'], // Username is stored at user document level
         name: profileData['name'] ?? '',
         lastName: profileData['lastName'],
         age: profileData['age'] ?? 0,
@@ -436,6 +472,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       phoneNumber: data['phoneNumber'] ?? '',
       email: data['email'],
       username: data['username'],
+      lastUsernameChangeAt: _parseTimestamp(data['lastUsernameChangeAt']),
       isEmailVerified: data['isEmailVerified'] ?? false,
       isPhoneVerified: data['isPhoneVerified'] ?? false,
       isIdVerified: data['isIdVerified'] ?? false,

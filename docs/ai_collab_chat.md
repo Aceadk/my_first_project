@@ -194,6 +194,36 @@ What changed from the original plan:
 - Added listener in MatchesScreen instead of global refresh.
 Execution notes:
 - Added match notification subscription and refresh in MatchesScreen state.
+
+---
+
+T-039 - Fix Flutter SDK path for VS Code - 2026-01-23
+Planner AI:
+Summary of repo context:
+- IDE error indicates `dart.flutterSdkPath` points to `/Users/ace/Developmentflutter` (missing slash).
+Proposed approach:
+- Add workspace `.vscode/settings.json` with `dart.flutterSdkPath` set to `/Users/ace/Development/flutter`.
+File impact list:
+- .vscode/settings.json
+Risks + mitigations:
+- Risk: Path is machine-specific.
+  - Mitigation: Document in task log; update if SDK moves.
+Critic AI:
+Concerns / edge cases:
+- If user uses a different SDK location, this will need adjustment.
+Better alternatives:
+- Set via user settings; skipped to keep fix in repo.
+Required tests:
+- Reload VS Code and confirm SDK detected.
+UX notes:
+- None.
+Resolution:
+Final agreed plan:
+- Commit workspace settings with correct path.
+What changed from the original plan:
+- None.
+Execution notes:
+- Added `.vscode/settings.json` with corrected Flutter SDK path.
 T-027 - Hide pass/like for matched profiles + wire profile actions - 2026-01-23
 Planner AI:
 Summary of repo context:

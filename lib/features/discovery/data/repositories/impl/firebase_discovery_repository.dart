@@ -197,6 +197,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
   Profile _profileFromFirestore(Map<String, dynamic> data) {
     return Profile(
       id: data['id'] ?? data['userId'] ?? '',
+      username: data['username'], // Username for deck display
       name: data['name'] ?? '',
       lastName: data['lastName'],
       age: data['age'] ?? 0,
@@ -266,11 +267,13 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     final userDoc = await _firestore.collection('users').doc(profileId).get();
     if (!userDoc.exists) return null;
 
-    final profileData = userDoc.data()?['profile'] as Map<String, dynamic>?;
+    final userData = userDoc.data();
+    final profileData = userData?['profile'] as Map<String, dynamic>?;
     if (profileData == null) return null;
 
     return _profileFromFirestore({
       'id': profileId,
+      'username': userData?['username'], // Username is at user doc level
       ...profileData,
     });
   }

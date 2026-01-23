@@ -14,6 +14,7 @@ import 'package:crushhour/features/profile/data/services/profile_media_service.d
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/features/discovery/data/services/passport_locations_service.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
 import '../widgets/profile_media_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -82,6 +83,139 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return 'Use 3-20 letters, numbers, or underscore';
     }
     return null;
+  }
+
+  /// Calculate current form completion percentage based on filled fields
+  /// Returns a map with 'percentage', 'filledCount', 'totalCount', and 'missingFields'
+  Map<String, dynamic> _calculateFormCompleteness(ProfileState state) {
+    final profile = state.user?.profile;
+    final hasBasicInfo = profile != null &&
+        profile.name.isNotEmpty &&
+        profile.age > 0 &&
+        profile.gender.isNotEmpty;
+
+    // Total optional fields that enhance the profile
+    // Photos, Bio, Location (city+country), Job, Company, School, Interests, 8 favourites = 16 fields
+    const totalOptionalFields = 16;
+    int filledCount = 0;
+    final missingFields = <String>[];
+
+    // Photos (counts as filled if at least 1)
+    if (_photoPaths.isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('Photos');
+    }
+
+    // Bio
+    if (_bioController.text.trim().length >= kMinBioLength) {
+      filledCount++;
+    } else {
+      missingFields.add('Bio');
+    }
+
+    // Location (city)
+    if (_cityController.text.trim().isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('City');
+    }
+
+    // Location (country)
+    if (_countryController.text.trim().isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('Country');
+    }
+
+    // Job title
+    if (_jobController.text.trim().isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('Job title');
+    }
+
+    // Company
+    if (_companyController.text.trim().isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('Company');
+    }
+
+    // School
+    if (_schoolController.text.trim().isNotEmpty) {
+      filledCount++;
+    } else {
+      missingFields.add('School');
+    }
+
+    // Interests (counts as filled if at least 3)
+    if (_selectedInterests.length >= kMinInterests) {
+      filledCount++;
+    } else {
+      missingFields.add('Interests (${kMinInterests - _selectedInterests.length} more needed)');
+    }
+
+    // Favourites (8 fields)
+    if (_favouriteAthlete != null && _favouriteAthlete != 'Cristiano Ronaldo') {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Athlete');
+    }
+
+    if (_favouriteFood != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Food');
+    }
+
+    if (_favouriteSport != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Sport');
+    }
+
+    if (_favouriteTvShow != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite TV Show');
+    }
+
+    if (_favouriteActor != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Actor');
+    }
+
+    if (_favouriteSinger != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Singer');
+    }
+
+    if (_favouriteMovie != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Movie');
+    }
+
+    if (_favouriteHobby != null) {
+      filledCount++;
+    } else {
+      missingFields.add('Favourite Hobby');
+    }
+
+    final percentage = filledCount / totalOptionalFields;
+
+    return {
+      'percentage': percentage,
+      'filledCount': filledCount,
+      'totalCount': totalOptionalFields,
+      'missingFields': missingFields,
+      'hasBasicInfo': hasBasicInfo,
+      'isEligibleToSwipe': hasBasicInfo, // Basic info is enough to start swiping
+      'isFullyComplete': filledCount == totalOptionalFields,
+    };
   }
 
   final List<String> _interestOptions = [
@@ -225,7 +359,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       children: [
                         _buildAppBar(context, isDark),
                         DsGap.lg,
-                        _buildProgressIndicator(context, isDark),
+                        _buildProgressIndicator(context, isDark, state),
                         DsGap.lg,
                         Expanded(
                           child: SingleChildScrollView(
@@ -408,26 +542,121 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  Widget _buildProgressIndicator(BuildContext context, bool isDark) {
+  Widget _buildProgressIndicator(BuildContext context, bool isDark, ProfileState state) {
+    final completeness = _calculateFormCompleteness(state);
+    final percentage = completeness['percentage'] as double;
+    final filledCount = completeness['filledCount'] as int;
+    final totalCount = completeness['totalCount'] as int;
+    final isEligible = completeness['isEligibleToSwipe'] as bool;
+    final isFullyComplete = completeness['isFullyComplete'] as bool;
+    final percentDisplay = (percentage * 100).round();
+
     return Padding(
       padding: DsEdgeInsets.horizontalXxl,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Eligibility Status Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isEligible
+                    ? [DsColors.success.withValues(alpha: 0.15), DsColors.success.withValues(alpha: 0.05)]
+                    : [DsColors.warning.withValues(alpha: 0.15), DsColors.warning.withValues(alpha: 0.05)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isEligible ? DsColors.success.withValues(alpha: 0.3) : DsColors.warning.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isEligible ? DsColors.success.withValues(alpha: 0.2) : DsColors.warning.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isEligible ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                        color: isEligible ? DsColors.success : DsColors.warning,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isFullyComplete ? 'Profile Complete!' : 'Basic Profile Complete',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isEligible ? DsColors.success : DsColors.warning,
+                            ),
+                          ),
+                          if (isEligible)
+                            Text(
+                              "You're eligible to start matching!",
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: DsColors.success,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (!isFullyComplete) ...[
+                  DsGap.md,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.tips_and_updates_rounded, color: DsColors.primary, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'We recommend completing all fields to get more matches and build trust with other users.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          DsGap.lg,
+          // Progress bar section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Step 5 of 5',
+                'Profile Completion',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: DsColors.primary,
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
-                'Almost done!',
+                '$filledCount/$totalCount fields ($percentDisplay%)',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: DsColors.success,
+                  color: isFullyComplete ? DsColors.success : DsColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -435,12 +664,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           DsGap.sm,
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: 1.0,
-              minHeight: 6,
+              value: percentage,
+              minHeight: 8,
               backgroundColor: isDark ? DsColors.surfaceDark : DsColors.skeletonLight,
-              valueColor: const AlwaysStoppedAnimation<Color>(DsColors.success),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isFullyComplete ? DsColors.success : DsColors.primary,
+              ),
             ),
           ),
         ],
@@ -659,9 +890,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _usernameInitialized = true;
     }
 
-    final profile = state.user?.profile;
-    final canChangeName = profile?.canChangeName ?? true;
-    final daysUntilChange = profile?.daysUntilNameChange ?? 0;
+    // Use CrushUser's username cooldown helpers (28-day restriction)
+    final user = state.user;
+    final canChangeUsername = user?.canChangeUsername ?? true;
+    final daysUntilChange = user?.daysUntilUsernameChange ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,7 +902,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           context,
           isDark,
           'Your Username',
-          canChangeName ? 'You can change this once per month' : 'Can change in $daysUntilChange days',
+          canChangeUsername ? 'You can change this once every 28 days' : 'Locked for $daysUntilChange more days',
           Icons.alternate_email_rounded,
         ),
         DsGap.md,
@@ -680,7 +912,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             hintText: 'Enter username',
             prefixIcon: Icons.alternate_email_rounded,
             errorText: _usernameErrorText(),
-            enabled: canChangeName,
+            enabled: canChangeUsername,
             onChanged: (value) {
               setState(() => _usernameTouched = true);
             },
@@ -729,9 +961,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
         ] else ...[
           GestureDetector(
-            onTap: canChangeName ? () {
-              setState(() => _isEditingUsername = true);
-            } : null,
+            onTap: () {
+              if (canChangeUsername) {
+                setState(() => _isEditingUsername = true);
+              } else {
+                // Show message that username is locked
+                showErrorSnackBar(
+                  context,
+                  'You can change your username again in $daysUntilChange days',
+                );
+              }
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
@@ -740,16 +980,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     : DsColors.inputFillLight,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: DsColors.primary,
+                  color: canChangeUsername ? DsColors.primary : Colors.orange,
                   width: 2,
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.alternate_email_rounded,
+                  Icon(
+                    canChangeUsername ? Icons.alternate_email_rounded : Icons.lock_rounded,
                     size: 22,
-                    color: DsColors.primary,
+                    color: canChangeUsername ? DsColors.primary : Colors.orange,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -775,7 +1015,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ],
                     ),
                   ),
-                  if (canChangeName)
+                  if (canChangeUsername)
                     const Icon(
                       Icons.edit_rounded,
                       size: 20,
@@ -788,20 +1028,27 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         color: Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        '$daysUntilChange days',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.timer_outlined, size: 12, color: Colors.orange),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$daysUntilChange days',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],
               ),
             ),
           ),
-          if (!canChangeName)
+          if (!canChangeUsername)
             Padding(
               padding: const EdgeInsets.only(top: 8, left: 4),
               child: Row(
@@ -812,11 +1059,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     color: Colors.orange,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'You can change your username again in $daysUntilChange days',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.orange,
-                      fontSize: 11,
+                  Expanded(
+                    child: Text(
+                      'Username changes are limited to once every 28 days. You can change it again in $daysUntilChange days.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.orange,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
@@ -1015,6 +1264,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildBottomButton(BuildContext context, bool isDark, bool saving, ProfileState state) {
+    final completeness = _calculateFormCompleteness(state);
+    final isFullyComplete = completeness['isFullyComplete'] as bool;
+    final percentDisplay = ((completeness['percentage'] as double) * 100).round();
+
+    // Button text based on completion
+    final buttonText = isFullyComplete
+        ? 'Start Matching'
+        : 'Start Matching ($percentDisplay% complete)';
+
     return Container(
       padding: DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
       decoration: BoxDecoration(
@@ -1024,21 +1282,37 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           colors: [(isDark ? DsColors.backgroundDark : DsColors.backgroundLight).withValues(alpha: 0), isDark ? DsColors.backgroundDark : DsColors.backgroundLight],
         ),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: GlassPrimaryButton(
-          onPressed: saving ? null : () => _submit(state),
-          child: saving
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Finish & Start Swiping', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isFullyComplete)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'You can always complete your profile later in Settings',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
-        ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            child: GlassPrimaryButton(
+              onPressed: saving ? null : () => _submit(state),
+              child: saving
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(isFullyComplete ? Icons.favorite_rounded : Icons.play_arrow_rounded, size: 20),
+                        const SizedBox(width: 8),
+                        Text(buttonText, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

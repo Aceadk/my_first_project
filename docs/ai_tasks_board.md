@@ -35,6 +35,89 @@ None.
 
 ## Completed Tasks
 
+### Task: Username Display and 28-Day Change Restriction
+ID: T-040
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Implement username display on deck cards, 28-day change restriction, and show real name on profile view.
+
+Scope (in/out):
+In:
+- Change name/username change restriction from 30 to 28 days
+- Add username field to Profile model
+- Update SwipeCard to show @username on deck
+- Update OtherUserProfileScreen to show full name
+Out:
+- Cloud Function updates (need separate deployment)
+- UI redesigns beyond name display
+
+Files changed:
+- lib/data/models/profile.dart
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+- lib/features/discovery/presentation/widgets/swipe_card.dart
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- Cloud Function must return username for discovery profiles
+- Existing profiles without username will fallback to name
+
+Acceptance criteria:
+- Deck cards show @username instead of real name
+- Profile view shows full name (first + last)
+- Username can only be changed every 28 days
+
+Verification:
+Commands: `flutter analyze lib/`
+Manual flow:
+1. Open app, go to deck, see @username on cards
+2. Tap profile, see full real name
+3. Go to profile setup, verify 28-day restriction text
+
+Completed: 2026-01-23
+
+### Task: Fix Flutter SDK path for VS Code
+ID: T-039
+Owner AI: Codex
+Critic AI: Codex (self-critique; no external critic available)
+Status: Done
+
+Goal:
+Fix invalid `dart.flutterSdkPath` so the workspace uses a valid Flutter SDK directory.
+
+Scope (in/out):
+In:
+- Add workspace `.vscode/settings.json` with valid SDK path
+Out:
+- Global user settings changes
+
+Files changed:
+- .vscode/settings.json
+- docs/Developer_agent_chat.md
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+
+Risks:
+- Path is machine-specific; if SDK moves, path must be updated.
+
+Acceptance criteria:
+- IDE no longer reports invalid Flutter SDK path
+
+Verification:
+Commands: `ls /Users/ace/Development/flutter`
+Manual flow:
+1. Reload VS Code window
+2. Confirm Dart/Flutter tools detect the SDK
+
+Completed: 2026-01-23
+
 ### Task: Per-Chat Settings (Individual Message Retention)
 ID: T-038
 Owner AI: Claude

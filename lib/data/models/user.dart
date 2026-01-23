@@ -7,6 +7,7 @@ class CrushUser extends Equatable {
   final String phoneNumber;
   final String? email;
   final String? username;
+  final DateTime? lastUsernameChangeAt;
   final bool isEmailVerified;
   final Profile? profile;
   final bool isPhoneVerified;
@@ -18,11 +19,26 @@ class CrushUser extends Equatable {
   /// Flag indicating user skipped profile setup (can still complete later in settings)
   final bool hasSkippedProfileSetup;
 
+  /// Check if user can change their username (once every 28 days)
+  bool get canChangeUsername {
+    if (lastUsernameChangeAt == null) return true;
+    final daysSinceLastChange = DateTime.now().difference(lastUsernameChangeAt!).inDays;
+    return daysSinceLastChange >= 28;
+  }
+
+  /// Days remaining until username can be changed again
+  int get daysUntilUsernameChange {
+    if (lastUsernameChangeAt == null) return 0;
+    final daysSinceLastChange = DateTime.now().difference(lastUsernameChangeAt!).inDays;
+    return (28 - daysSinceLastChange).clamp(0, 28);
+  }
+
   const CrushUser({
     required this.id,
     required this.phoneNumber,
     this.email,
     this.username,
+    this.lastUsernameChangeAt,
     required this.isEmailVerified,
     this.profile,
     required this.isPhoneVerified,
@@ -57,11 +73,15 @@ class CrushUser extends Equatable {
     return hasAcceptedTerms && hasCompletedBasicInfo && hasCompletedProfileSetup;
   }
 
+  /// Sentinel object for copyWith null handling
+  static const _unset = Object();
+
   CrushUser copyWith({
     String? id,
     String? phoneNumber,
     String? email,
     String? username,
+    Object? lastUsernameChangeAt = _unset,
     bool? isEmailVerified,
     Profile? profile,
     bool? isPhoneVerified,
@@ -76,6 +96,9 @@ class CrushUser extends Equatable {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       email: email ?? this.email,
       username: username ?? this.username,
+      lastUsernameChangeAt: identical(lastUsernameChangeAt, _unset)
+          ? this.lastUsernameChangeAt
+          : lastUsernameChangeAt as DateTime?,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       profile: profile ?? this.profile,
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
@@ -93,6 +116,7 @@ class CrushUser extends Equatable {
         phoneNumber,
         email,
         username,
+        lastUsernameChangeAt,
         isEmailVerified,
         profile,
         isPhoneVerified,

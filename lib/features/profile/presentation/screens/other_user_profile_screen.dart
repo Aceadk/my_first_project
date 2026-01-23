@@ -45,7 +45,8 @@ class OtherUserProfileScreen extends StatelessWidget {
     final privacy = profile.privacySettings;
     final isMatch = args.isMatch;
     final matchId = args.matchId;
-    final displayName = profile.publicDisplayName;
+    // Show full real name when viewing someone's profile (first + last name)
+    final displayName = profile.fullName.isNotEmpty ? profile.fullName : 'Someone new';
 
     return Scaffold(
       body: CustomScrollView(

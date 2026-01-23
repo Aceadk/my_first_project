@@ -10,6 +10,7 @@ class Profile extends Equatable {
   // CORE IDENTITY
   // ═══════════════════════════════════════════════════════════════════════════
   final String id; // Firestore user document ID
+  final String? username; // Unique username for display (e.g., @johndoe)
   final String name;
   final String? lastName;
   final int age;
@@ -33,18 +34,18 @@ class Profile extends Equatable {
     return photoUrls[index];
   }
 
-  /// Check if user can change their display name (once per month)
+  /// Check if user can change their display name (once every 28 days)
   bool get canChangeName {
     if (lastNameChangeAt == null) return true;
     final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
-    return daysSinceLastChange >= 30;
+    return daysSinceLastChange >= 28;
   }
 
   /// Days remaining until name can be changed again
   int get daysUntilNameChange {
     if (lastNameChangeAt == null) return 0;
     final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
-    return (30 - daysSinceLastChange).clamp(0, 30);
+    return (28 - daysSinceLastChange).clamp(0, 28);
   }
 
   /// Check if user can change their date of birth (once per month)
@@ -215,6 +216,7 @@ class Profile extends Equatable {
 
   const Profile({
     required this.id,
+    this.username,
     required this.name,
     this.lastName,
     required this.age,
@@ -273,6 +275,7 @@ class Profile extends Equatable {
 
   Profile copyWith({
     String? id,
+    Object? username = _unset,
     String? name,
     Object? lastName = _unset,
     int? age,
@@ -327,6 +330,7 @@ class Profile extends Equatable {
   }) {
     return Profile(
       id: id ?? this.id,
+      username: identical(username, _unset) ? this.username : username as String?,
       name: name ?? this.name,
       lastName: identical(lastName, _unset) ? this.lastName : lastName as String?,
       age: age ?? this.age,
@@ -428,6 +432,7 @@ class Profile extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        username,
         name,
         lastName,
         age,

@@ -258,7 +258,10 @@ class _SwipeCardState extends State<SwipeCard> {
     final profile = widget.profile;
     final media = _allMedia;
     final currentMedia = _currentMedia;
-    final displayName = profile.publicDisplayName;
+    // Show username on deck cards, fall back to first name if no username
+    final displayName = profile.username != null && profile.username!.isNotEmpty
+        ? '@${profile.username}'
+        : profile.name.isNotEmpty ? profile.name : 'Someone new';
     final bio = profile.bio.trim().isEmpty
         ? 'This member has not added a bio yet.'
         : profile.bio;
@@ -898,7 +901,10 @@ class _ProfileIdentityOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = profile.publicDisplayName;
+    // Show username on deck cards, fall back to first name if no username
+    final displayName = profile.username != null && profile.username!.isNotEmpty
+        ? '@${profile.username}'
+        : profile.name.isNotEmpty ? profile.name : 'Someone new';
     final ageText = profile.age > 0 ? '${profile.age}' : '';
 
     // Collect trait chips (limit to 3-4 for clean layout)

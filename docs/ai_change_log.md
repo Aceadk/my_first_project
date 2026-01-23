@@ -4,6 +4,93 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-23] Task: Username Display and 28-Day Change Restriction
+
+Summary:
+- Changed username/name change restriction from 30 days to 28 days
+- Added username field to Profile model for display on deck cards
+- Updated SwipeCard to show @username instead of name on deck
+- Updated OtherUserProfileScreen to show full real name (first + last)
+- Updated profile repositories to parse and include username
+
+Files Added:
+- None
+
+Files Modified:
+- lib/data/models/profile.dart
+  - Changed canChangeName from 30 days to 28 days
+  - Changed daysUntilNameChange calculation from 30 to 28 days
+  - Added username field to Profile model
+  - Added username to constructor, copyWith, and props
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added username parsing in _userFromFirestore (from user doc level)
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+  - Added username parsing in _profileFromFirestore
+  - Updated fetchProfileById to include username from user doc
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+  - Added username to Profile constructor in saveBasicInfo
+  - Added username parsing in _userFromJson
+- lib/features/discovery/presentation/widgets/swipe_card.dart
+  - Changed displayName to show @username on deck cards (falls back to name)
+  - Updated _ProfileIdentityOverlay to show @username
+- lib/features/profile/presentation/screens/other_user_profile_screen.dart
+  - Changed displayName to show fullName (first + last) when viewing profiles
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested username to be shown on deck cards instead of real name for privacy
+- User requested 28-day restriction for username changes (was 30 days)
+- Real name (first + last) should be visible when viewing someone's full profile
+- Username editing already exists in profile setup under Basic Info section
+
+Risks & Mitigations:
+- Cloud Function (fetchDeck) needs to return username field for other profiles
+- Existing profiles may not have username set - fallback to name implemented
+
+Verification Steps:
+- `flutter analyze lib/`
+- Check profile setup screen shows username editing
+- Check deck cards show @username
+- Check other user profile shows full name
+
+Follow-ups / TODO:
+- Ensure Cloud Function includes username in fetchDeck response
+- Backend may need update to store/return username for discovery profiles
+
+---
+
+### [2026-01-23] Task: Fix Flutter SDK path for VS Code
+
+Summary:
+- Added workspace VS Code settings to point Dart/Flutter tools at the valid SDK directory.
+
+Files Added:
+- .vscode/settings.json
+
+Files Modified:
+- docs/Developer_agent_chat.md
+- docs/ai_tasks_board.md
+- docs/ai_collab_chat.md
+- docs/ai_change_log.md
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Resolves IDE error: invalid `dart.flutterSdkPath` pointing to a non-existent folder.
+
+Risks & Mitigations:
+- Path is machine-specific; update if the SDK location changes.
+
+Verification Steps:
+- `ls /Users/ace/Development/flutter`
+- Reload VS Code window
+
+Follow-ups / TODO:
+- None
+
 ### [2026-01-23] Task: Per-Chat Settings (Individual Message Retention)
 
 Summary:

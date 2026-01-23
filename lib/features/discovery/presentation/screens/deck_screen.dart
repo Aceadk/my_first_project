@@ -41,6 +41,7 @@ import 'package:crushhour/features/discovery/presentation/widgets/boost_button.d
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/empty_deck_animations.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.validationService});
@@ -63,6 +64,17 @@ class _DeckScreenState extends State<DeckScreen> {
 
   ProfileValidationService get _validationService =>
       widget.validationService ?? ProfileValidationService();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize boost cubit when user ID is available (moved from build to avoid side effects)
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId != null && userId != _lastBoostUserId) {
+      _lastBoostUserId = userId;
+      context.read<BoostCubit>().initialize(userId);
+    }
+  }
 
   /// Preload images for the next few profiles in the deck for smoother transitions.
   void _preloadUpcomingProfiles(List<Profile> deck, int currentIndex) {
@@ -102,12 +114,6 @@ class _DeckScreenState extends State<DeckScreen> {
     );
     final userId = user?.id as String?;
     final isAccountVerified = user?.isAccountVerified ?? false;
-
-    // Initialize boost cubit when user ID is available
-    if (userId != null && userId != _lastBoostUserId) {
-      _lastBoostUserId = userId;
-      context.read<BoostCubit>().initialize(userId);
-    }
 
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listenWhen: (previous, current) =>
@@ -218,6 +224,7 @@ class _DeckScreenState extends State<DeckScreen> {
               ? _buildOutOfPeople(
                   context,
                   userId,
+                  discoveryState: state,
                   isPlus: isPlus,
                   locationLabel: locationLabel,
                   radiusKm: radiusKm,
@@ -937,11 +944,11 @@ class _DeckScreenState extends State<DeckScreen> {
   Widget _buildOutOfPeople(
     BuildContext context,
     String? userId, {
+    required DiscoveryState discoveryState,
     required bool isPlus,
     String? locationLabel,
     double? radiusKm,
   }) {
-    final discoveryState = context.watch<DiscoveryBloc>().state;
     final localDeckExhausted = discoveryState.localDeckExhausted;
     final passportModeActive = discoveryState.passportModeActive;
     final currentDistanceKm = discoveryState.currentDistanceLimitKm;
@@ -984,27 +991,11 @@ class _DeckScreenState extends State<DeckScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: iconColor != null
-                          ? LinearGradient(
-                              colors: [
-                                iconColor.withValues(alpha: 0.2),
-                                iconColor.withValues(alpha: 0.1),
-                              ],
-                            )
-                          : null,
-                      color: iconColor == null
-                          ? (isDark ? DsColors.surfaceDark : DsColors.surfaceLight)
-                          : null,
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 56,
-                      color: iconColor ?? (isDark ? Colors.white70 : Colors.black54),
-                    ),
+                  // Animated pulsing icon container
+                  PulsingIconContainer(
+                    icon: icon,
+                    iconSize: 56,
+                    iconColor: iconColor ?? (isDark ? Colors.white70 : Colors.black54),
                   ),
                   DsGap.lg,
                   Text(
@@ -1080,16 +1071,13 @@ class _DeckScreenState extends State<DeckScreen> {
                   ),
                   if (!passportModeActive) ...[
                     DsGap.md,
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.flight_takeoff, size: 18),
+                    // Animated passport button with plane takeoff effect
+                    AnimatedPassportButton(
                       onPressed: isPlus
                           ? () => context.push(CrushRoutes.discoverySettings)
                           : () => _showPassportUpsell(context),
-                      label: Text(isPlus ? 'Enable Passport mode' : 'Try Passport with Plus'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.cyan,
-                        side: BorderSide(color: Colors.cyan.withValues(alpha: 0.5)),
-                      ),
+                      label: isPlus ? 'Enable Passport mode' : 'Try Passport with Plus',
+                      isPlus: isPlus,
                     ),
                   ],
                   if (!isPlus) ...[

@@ -18,6 +18,8 @@ When the developer gives you a task:
    - Files to be modified/created
    - Success criteria
    - Edge cases to handle
+   - Quality code
+   - Understand and learn what could be done from prevoius tasks and internet search
 4. **SAVE** the refined prompt to this document
 5. **EXECUTE** the task based on the refined prompt
 6. **UPDATE** the outcome section when complete
@@ -705,6 +707,138 @@ flutter analyze lib/features/chat/presentation/bloc/match_chat_settings_cubit.da
 
 ---
 
+### Task #011 — Fix Flutter SDK Path in VS Code
+**Date:** 2026-01-23
+**Agent:** Codex
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- **Primary goal:** Fix invalid `dart.flutterSdkPath` so the IDE recognizes the Flutter SDK.
+- **Secondary goal:** Ensure the path points to the actual Flutter SDK directory.
+- **Implicit requirements:** Update workspace settings to avoid manual per-user changes.
+- **Quality expectations:** Valid SDK path, no IDE warnings.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Set a valid Flutter SDK path for the workspace so Dart/Flutter tools resolve correctly.
+
+### Technical Requirements
+1. Create or update `.vscode/settings.json`.
+2. Set `dart.flutterSdkPath` to the correct absolute SDK directory.
+
+### Implementation Plan
+**Step 1:** Verify the SDK folder exists at `/Users/ace/Development/flutter`.  
+**Step 2:** Add `.vscode/settings.json` with `dart.flutterSdkPath` set to that location.  
+
+### Files to Modify/Create
+- `.vscode/settings.json` — add `dart.flutterSdkPath`.
+
+### Success Criteria
+- [x] VS Code recognizes the Flutter SDK without path errors.
+
+### Edge Cases & Error Handling
+- If the SDK is moved, update the path accordingly.
+
+### Verification Commands
+```
+ls /Users/ace/Development/flutter
+```
+
+**Related Task ID:** T-039
+
+**Outcome:**
+- Files changed:
+  - `.vscode/settings.json` — added `dart.flutterSdkPath`
+- Result: Workspace uses valid Flutter SDK path
+- Notes: None
+
+---
+
+### Task #012 — Username Cooldown + Deck Username + Public Names
+**Date:** 2026-01-23
+**Agent:** Codex
+**Status:** In Progress
+
+**Developer Intent Analysis:**
+- **Primary goal:** Show usernames in the swipe deck and enforce a 28-day username change cooldown.
+- **Secondary goals:** Ensure the Complete Profile screen shows username in Basic Info, and other users’ profiles reveal real first/last names.
+- **Implicit requirements:**
+  - Username change lock must be enforced at data layer (not just UI).
+  - UI should clearly communicate remaining days before username can be changed.
+  - Deck display should prefer username but avoid blanks if missing.
+- **Quality expectations:** Smooth UX, clear prompts, no regressions in profile editing or discovery.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Implement a 28-day username change cooldown, show usernames on the deck, show real names on other users’ profile screens, and surface username in the Complete Profile Basic Info summary.
+
+### Technical Requirements
+1. Add `lastUsernameChangeAt` to `CrushUser` and derived getters `canChangeUsername` / `daysUntilUsernameChange` (28-day window).
+2. Persist `lastUsernameChangeAt` in Firestore (top-level user doc), stub storage, and fake repos; set on initial username creation and when username changes.
+3. Enforce username change cooldown in `saveBasicInfo` and `skipBasicInfo` (block if changed before 28 days, allow if unchanged).
+4. Add optional `username` to `Profile` for discovery/deck use; map from discovery payloads where available.
+5. Update Firebase discovery Cloud Function payload to include `username` for candidates.
+6. Deck UI must display `@username` (fallback to public display name if missing).
+7. Other user profile screen must show real first + last name (ignore name privacy for this screen).
+8. Complete Profile screen Basic Info summary must always show username row (use “Not set” if empty).
+9. Show a clear cooldown prompt in Basic Info screen and Profile Setup username section when locked.
+
+### Implementation Plan
+**Step 1:** Update `CrushUser` model to include `lastUsernameChangeAt` and cooldown helpers.  
+**Step 2:** Update Firebase/Stub/Fake repositories to parse/store `lastUsernameChangeAt`; set on initial username and on change; enforce cooldown in `saveBasicInfo` and `skipBasicInfo`.  
+**Step 3:** Add `username` to `Profile` model and map from discovery sources; update discovery cloud function to return username.  
+**Step 4:** Update deck UI (`SwipeCard`) to show `@username` with fallback.  
+**Step 5:** Update `OtherUserProfileScreen` to use full name for display (and all name-based copy on that screen).  
+**Step 6:** Update profile setup Basic Info summary to always show username; update username section to use cooldown helpers.  
+**Step 7:** Update Basic Info screen username field to disable when locked and show remaining days prompt.  
+**Step 8:** Update AI docs (tasks board, change log, collab log).
+
+### Files to Modify/Create
+- `lib/data/models/user.dart` — add `lastUsernameChangeAt`, cooldown helpers.
+- `lib/data/models/profile.dart` — add optional `username`.
+- `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` — store/parse `lastUsernameChangeAt`, enforce cooldown.
+- `lib/features/profile/data/repositories/impl/stub_profile_repository.dart` — store/parse cooldown field and enforce.
+- `lib/data/repositories/fake_repositories.dart` — mirror cooldown logic in fake repo.
+- `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` — set `lastUsernameChangeAt` on new user doc creation.
+- `functions/src/index.ts` — include `username` in discovery candidates payload.
+- `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart` — map `username` into Profile.
+- `lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart` — provide usernames for sample profiles.
+- `lib/features/discovery/presentation/widgets/swipe_card.dart` — show username on deck.
+- `lib/features/profile/presentation/screens/profile_setup_screen.dart` — always show username row + cooldown prompt.
+- `lib/features/auth/presentation/screens/basic_info_screen.dart` — disable username field + cooldown prompt.
+- `lib/features/profile/presentation/screens/other_user_profile_screen.dart` — show full name.
+- `docs/Developer_agent_chat.md`, `docs/ai_tasks_board.md`, `docs/ai_change_log.md`, `docs/ai_collab_chat.md` — log changes.
+
+### Success Criteria
+- [ ] Username changes are blocked until 28 days have elapsed since last change.
+- [ ] Basic Info and Profile Setup show clear cooldown messaging.
+- [ ] Deck displays `@username` (fallback to display name when missing).
+- [ ] Other user profile shows full real name.
+- [ ] Username is visible in Complete Profile Basic Info summary even if empty.
+- [ ] Discovery candidate payload includes username and UI reflects it.
+
+### Edge Cases & Error Handling
+- Username unchanged → do not reset cooldown timestamp.
+- Username missing in discovery payload → deck falls back to public display name.
+- Existing users without `lastUsernameChangeAt` → allow one change, then lock.
+- Missing last name → show first name only on profile screen.
+
+### Verification Commands
+```
+flutter analyze
+```
+
+**Related Task ID:** T-040
+
+**Outcome:**
+- Files changed: TBD
+- Result: TBD
+- Notes: TBD
+
+---
+
 ## Quick Reference
 
 | Task # | Title | Date | Agent | Status |
@@ -719,6 +853,8 @@ flutter analyze lib/features/chat/presentation/bloc/match_chat_settings_cubit.da
 | 008 | Deck Preload + Background Stack | 2026-01-23 | Codex | Completed |
 | 009 | Matched Users Appear + Chat Redirect | 2026-01-23 | Codex | Completed |
 | 010 | Per-Chat Settings (Individual Message Retention) | 2026-01-23 | Claude | Completed |
+| 011 | Fix Flutter SDK Path in VS Code | 2026-01-23 | Codex | Completed |
+| 012 | Username Cooldown + Deck Username + Public Names | 2026-01-23 | Codex | In Progress |
 
 ---
 

@@ -80,6 +80,7 @@ class StubProfileRepository implements ProfileRepository {
 
     final newProfile = Profile(
       id: existingProfile?.id ?? 'profile_${currentUser.id}',
+      username: username ?? existingProfile?.username ?? currentUser.username,
       name: sanitizedName,
       lastName: sanitizedLastName.isNotEmpty ? sanitizedLastName : existingProfile?.lastName,
       age: sanitizedAge,
@@ -125,8 +126,27 @@ class StubProfileRepository implements ProfileRepository {
       ),
     );
 
+    // Handle username changes with 28-day cooldown
+    final existingUsername = currentUser.username;
+    final usernameChanged = sanitizedUsername != null && existingUsername != sanitizedUsername;
+
+    DateTime? newLastUsernameChangeAt = currentUser.lastUsernameChangeAt;
+    String? newUsername = sanitizedUsername ?? currentUser.username;
+
+    if (usernameChanged) {
+      // Check cooldown - if they had a username before, enforce 28-day wait
+      if (existingUsername != null && existingUsername.isNotEmpty) {
+        if (!currentUser.canChangeUsername) {
+          throw Exception('You can change your username again in ${currentUser.daysUntilUsernameChange} days');
+        }
+      }
+      // Update the change timestamp
+      newLastUsernameChangeAt = DateTime.now();
+    }
+
     final updatedUser = currentUser.copyWith(
-      username: sanitizedUsername ?? currentUser.username,
+      username: newUsername,
+      lastUsernameChangeAt: newLastUsernameChangeAt,
       profile: newProfile,
     );
 
@@ -249,8 +269,24 @@ class StubProfileRepository implements ProfileRepository {
       throw Exception('Username is required');
     }
 
+    // Check if username is changing and enforce cooldown
+    final existingUsername = currentUser.username;
+    final usernameChanged = existingUsername != sanitizedUsername;
+
+    DateTime? newLastUsernameChangeAt = currentUser.lastUsernameChangeAt;
+
+    if (usernameChanged) {
+      if (existingUsername != null && existingUsername.isNotEmpty) {
+        if (!currentUser.canChangeUsername) {
+          throw Exception('You can change your username again in ${currentUser.daysUntilUsernameChange} days');
+        }
+      }
+      newLastUsernameChangeAt = DateTime.now();
+    }
+
     final updatedUser = currentUser.copyWith(
       username: sanitizedUsername,
+      lastUsernameChangeAt: newLastUsernameChangeAt,
       hasSkippedBasicInfo: true,
     );
 
@@ -296,6 +332,7 @@ class StubProfileRepository implements ProfileRepository {
       final p = json['profile'] as Map<String, dynamic>;
       profile = Profile(
         id: p['id'] ?? '',
+        username: json['username'], // Username is at user level
         name: p['name'] ?? '',
         lastName: p['lastName'],
         age: p['age'] ?? 0,
@@ -360,6 +397,9 @@ class StubProfileRepository implements ProfileRepository {
       phoneNumber: json['phoneNumber'] ?? '',
       email: json['email'],
       username: json['username'],
+      lastUsernameChangeAt: json['lastUsernameChangeAt'] != null
+          ? DateTime.parse(json['lastUsernameChangeAt'])
+          : null,
       isEmailVerified: json['isEmailVerified'] ?? false,
       isPhoneVerified: json['isPhoneVerified'] ?? false,
       isIdVerified: json['isIdVerified'] ?? false,
@@ -431,6 +471,7 @@ class StubProfileRepository implements ProfileRepository {
       'phoneNumber': user.phoneNumber,
       'email': user.email,
       'username': user.username,
+      'lastUsernameChangeAt': user.lastUsernameChangeAt?.toIso8601String(),
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
