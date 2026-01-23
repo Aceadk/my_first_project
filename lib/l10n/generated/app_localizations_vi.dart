@@ -1357,4 +1357,2632 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get emptyCheckBackLater => 'Quay lại sau';
+
+  @override
+  String get wordHome => 'Trang chủ';
+
+  @override
+  String get wordExplore => 'Khám phá';
+
+  @override
+  String get wordHelp => 'Trợ giúp';
+
+  @override
+  String get wordMenu => 'Menu';
+
+  @override
+  String get wordFeed => 'Bảng tin';
+
+  @override
+  String get wordActivity => 'Hoạt động';
+
+  @override
+  String get wordNotifications => 'Thông báo';
+
+  @override
+  String get wordInbox => 'Hộp thư đến';
+
+  @override
+  String get wordFavorites => 'Yêu thích';
+
+  @override
+  String get wordHistory => 'Lịch sử';
+
+  @override
+  String get wordCopy => 'Sao chép';
+
+  @override
+  String get wordPaste => 'Dán';
+
+  @override
+  String get wordUndo => 'Hoàn tác';
+
+  @override
+  String get wordRedo => 'Làm lại';
+
+  @override
+  String get wordDownload => 'Tải xuống';
+
+  @override
+  String get wordUpload => 'Tải lên';
+
+  @override
+  String get wordSelect => 'Chọn';
+
+  @override
+  String get wordDeselect => 'Bỏ chọn';
+
+  @override
+  String get wordOpen => 'Mở';
+
+  @override
+  String get wordCreate => 'Tạo';
+
+  @override
+  String get wordConnect => 'Kết nối';
+
+  @override
+  String get wordDisconnect => 'Ngắt kết nối';
+
+  @override
+  String get wordStart => 'Bắt đầu';
+
+  @override
+  String get wordStop => 'Dừng';
+
+  @override
+  String get wordPlay => 'Phát';
+
+  @override
+  String get wordPause => 'Tạm dừng';
+
+  @override
+  String get wordRecord => 'Ghi';
+
+  @override
+  String get wordCall => 'Gọi';
+
+  @override
+  String get wordEnd => 'Kết thúc';
+
+  @override
+  String get wordAnswer => 'Trả lời';
+
+  @override
+  String get wordDecline => 'Từ chối';
+
+  @override
+  String get wordAccept => 'Chấp nhận';
+
+  @override
+  String get wordReject => 'Từ chối';
+
+  @override
+  String get wordApprove => 'Phê duyệt';
+
+  @override
+  String get wordDeny => 'Từ chối';
+
+  @override
+  String get wordAllow => 'Cho phép';
+
+  @override
+  String get wordEnable => 'Bật';
+
+  @override
+  String get wordDisable => 'Tắt';
+
+  @override
+  String get wordShow => 'Hiện';
+
+  @override
+  String get wordHide => 'Ẩn';
+
+  @override
+  String get wordExpand => 'Mở rộng';
+
+  @override
+  String get wordCollapse => 'Thu gọn';
+
+  @override
+  String get wordSort => 'Sắp xếp';
+
+  @override
+  String get wordFilter => 'Lọc';
+
+  @override
+  String get wordPin => 'Ghim';
+
+  @override
+  String get wordUnpin => 'Bỏ ghim';
+
+  @override
+  String get wordArchive => 'Lưu trữ';
+
+  @override
+  String get wordRestore => 'Khôi phục';
+
+  @override
+  String get wordForward => 'Chuyển tiếp';
+
+  @override
+  String get wordFollow => 'Theo dõi';
+
+  @override
+  String get wordUnfollow => 'Bỏ theo dõi';
+
+  @override
+  String get wordSubscribe => 'Đăng ký';
+
+  @override
+  String get wordUnsubscribe => 'Hủy đăng ký';
+
+  @override
+  String get wordInvite => 'Mời';
+
+  @override
+  String get wordJoin => 'Tham gia';
+
+  @override
+  String get wordLeave => 'Rời đi';
+
+  @override
+  String get wordLogin => 'Đăng nhập';
+
+  @override
+  String get wordLogout => 'Đăng xuất';
+
+  @override
+  String get wordSignup => 'Đăng ký';
+
+  @override
+  String get wordRegister => 'Đăng ký';
+
+  @override
+  String get wordVerify => 'Xác minh';
+
+  @override
+  String get wordConfirmed => 'Đã xác nhận';
+
+  @override
+  String get wordPending => 'Đang chờ';
+
+  @override
+  String get wordComplete => 'Hoàn thành';
+
+  @override
+  String get wordFinish => 'Kết thúc';
+
+  @override
+  String get wordCancel => 'Hủy';
+
+  @override
+  String get wordTry => 'Thử';
+
+  @override
+  String get wordAgain => 'Lại';
+
+  @override
+  String get wordGo => 'Đi';
+
+  @override
+  String get wordSee => 'Xem';
+
+  @override
+  String get wordLook => 'Nhìn';
+
+  @override
+  String get wordFind => 'Tìm';
+
+  @override
+  String get wordGet => 'Lấy';
+
+  @override
+  String get wordSet => 'Đặt';
+
+  @override
+  String get wordPut => 'Đặt';
+
+  @override
+  String get wordTake => 'Lấy';
+
+  @override
+  String get wordGive => 'Cho';
+
+  @override
+  String get wordMake => 'Làm';
+
+  @override
+  String get wordKeep => 'Giữ';
+
+  @override
+  String get wordLet => 'Để';
+
+  @override
+  String get wordKnow => 'Biết';
+
+  @override
+  String get wordThink => 'Nghĩ';
+
+  @override
+  String get wordFeel => 'Cảm thấy';
+
+  @override
+  String get wordWant => 'Muốn';
+
+  @override
+  String get wordNeed => 'Cần';
+
+  @override
+  String get wordLike => 'Thích';
+
+  @override
+  String get wordLove => 'Yêu';
+
+  @override
+  String get wordHate => 'Ghét';
+
+  @override
+  String get wordTalk => 'Nói chuyện';
+
+  @override
+  String get wordSay => 'Nói';
+
+  @override
+  String get wordTell => 'Kể';
+
+  @override
+  String get wordAsk => 'Hỏi';
+
+  @override
+  String get wordHelpVerb => 'Giúp';
+
+  @override
+  String get wordWait => 'Chờ';
+
+  @override
+  String get wordStay => 'Ở lại';
+
+  @override
+  String get wordCome => 'Đến';
+
+  @override
+  String get wordMove => 'Di chuyển';
+
+  @override
+  String get wordRun => 'Chạy';
+
+  @override
+  String get wordWalk => 'Đi bộ';
+
+  @override
+  String get wordMeet => 'Gặp';
+
+  @override
+  String get wordWork => 'Làm việc';
+
+  @override
+  String get wordLive => 'Sống';
+
+  @override
+  String get wordChange => 'Thay đổi';
+
+  @override
+  String get wordTurn => 'Quay';
+
+  @override
+  String get wordRead => 'Đọc';
+
+  @override
+  String get wordWrite => 'Viết';
+
+  @override
+  String get wordLearn => 'Học';
+
+  @override
+  String get wordStudy => 'Học';
+
+  @override
+  String get wordWatch => 'Xem';
+
+  @override
+  String get wordListen => 'Nghe';
+
+  @override
+  String get wordSpeak => 'Nói';
+
+  @override
+  String get wordEat => 'Ăn';
+
+  @override
+  String get wordDrink => 'Uống';
+
+  @override
+  String get wordSleep => 'Ngủ';
+
+  @override
+  String get wordBuy => 'Mua';
+
+  @override
+  String get wordSell => 'Bán';
+
+  @override
+  String get wordPay => 'Thanh toán';
+
+  @override
+  String get wordSpend => 'Chi tiêu';
+
+  @override
+  String get wordSave => 'Lưu';
+
+  @override
+  String get wordWin => 'Thắng';
+
+  @override
+  String get wordLose => 'Thua';
+
+  @override
+  String get wordCheck => 'Kiểm tra';
+
+  @override
+  String get wordPick => 'Chọn';
+
+  @override
+  String get wordChoose => 'Chọn';
+
+  @override
+  String get wordDecide => 'Quyết định';
+
+  @override
+  String get wordAgree => 'Đồng ý';
+
+  @override
+  String get wordDisagree => 'Không đồng ý';
+
+  @override
+  String get wordActive => 'Hoạt động';
+
+  @override
+  String get wordInactive => 'Không hoạt động';
+
+  @override
+  String get wordAvailable => 'Có sẵn';
+
+  @override
+  String get wordUnavailable => 'Không có sẵn';
+
+  @override
+  String get wordBusy => 'Bận';
+
+  @override
+  String get wordAway => 'Vắng mặt';
+
+  @override
+  String get wordInvisible => 'Ẩn';
+
+  @override
+  String get wordOnline => 'Trực tuyến';
+
+  @override
+  String get wordOffline => 'Ngoại tuyến';
+
+  @override
+  String get wordConnected => 'Đã kết nối';
+
+  @override
+  String get wordDisconnected => 'Đã ngắt kết nối';
+
+  @override
+  String get wordVerified => 'Đã xác minh';
+
+  @override
+  String get wordUnverified => 'Chưa xác minh';
+
+  @override
+  String get wordApproved => 'Đã phê duyệt';
+
+  @override
+  String get wordDenied => 'Bị từ chối';
+
+  @override
+  String get wordBlocked => 'Đã chặn';
+
+  @override
+  String get wordUnblocked => 'Đã bỏ chặn';
+
+  @override
+  String get wordSuspended => 'Bị đình chỉ';
+
+  @override
+  String get wordBanned => 'Bị cấm';
+
+  @override
+  String get wordRestricted => 'Bị hạn chế';
+
+  @override
+  String get wordPremium => 'Cao cấp';
+
+  @override
+  String get wordStandard => 'Tiêu chuẩn';
+
+  @override
+  String get wordBasic => 'Cơ bản';
+
+  @override
+  String get wordNew => 'Mới';
+
+  @override
+  String get wordUpdated => 'Đã cập nhật';
+
+  @override
+  String get wordRecent => 'Gần đây';
+
+  @override
+  String get wordPopular => 'Phổ biến';
+
+  @override
+  String get wordTrending => 'Xu hướng';
+
+  @override
+  String get wordFeatured => 'Nổi bật';
+
+  @override
+  String get wordRecommended => 'Đề xuất';
+
+  @override
+  String get wordSuggested => 'Gợi ý';
+
+  @override
+  String get wordRequired => 'Bắt buộc';
+
+  @override
+  String get wordOptional => 'Tùy chọn';
+
+  @override
+  String get wordEnabled => 'Đã bật';
+
+  @override
+  String get wordDisabled => 'Đã tắt';
+
+  @override
+  String get wordLocked => 'Đã khóa';
+
+  @override
+  String get wordUnlocked => 'Đã mở khóa';
+
+  @override
+  String get wordHidden => 'Ẩn';
+
+  @override
+  String get wordVisible => 'Hiển thị';
+
+  @override
+  String get wordPublic => 'Công khai';
+
+  @override
+  String get wordPrivate => 'Riêng tư';
+
+  @override
+  String get wordSecure => 'An toàn';
+
+  @override
+  String get wordSafe => 'An toàn';
+
+  @override
+  String get wordReal => 'Thật';
+
+  @override
+  String get wordFake => 'Giả';
+
+  @override
+  String get wordTrue => 'Đúng';
+
+  @override
+  String get wordFalse => 'Sai';
+
+  @override
+  String get wordValid => 'Hợp lệ';
+
+  @override
+  String get wordInvalid => 'Không hợp lệ';
+
+  @override
+  String get wordCorrect => 'Chính xác';
+
+  @override
+  String get wordIncorrect => 'Không chính xác';
+
+  @override
+  String get wordEmpty => 'Trống';
+
+  @override
+  String get wordFull => 'Đầy';
+
+  @override
+  String get wordReady => 'Sẵn sàng';
+
+  @override
+  String get wordNotReady => 'Chưa sẵn sàng';
+
+  @override
+  String get wordDone => 'Xong';
+
+  @override
+  String get wordNotDone => 'Chưa xong';
+
+  @override
+  String get wordSent => 'Đã gửi';
+
+  @override
+  String get wordReceived => 'Đã nhận';
+
+  @override
+  String get wordReadStatus => 'Đã đọc';
+
+  @override
+  String get wordUnread => 'Chưa đọc';
+
+  @override
+  String get wordSeen => 'Đã xem';
+
+  @override
+  String get wordUnseen => 'Chưa xem';
+
+  @override
+  String get wordOpenStatus => 'Đang mở';
+
+  @override
+  String get wordClosed => 'Đã đóng';
+
+  @override
+  String get wordNow => 'Bây giờ';
+
+  @override
+  String get wordLater => 'Sau';
+
+  @override
+  String get wordSoon => 'Sớm';
+
+  @override
+  String get wordToday => 'Hôm nay';
+
+  @override
+  String get wordTomorrow => 'Ngày mai';
+
+  @override
+  String get wordYesterday => 'Hôm qua';
+
+  @override
+  String get wordMorning => 'Sáng';
+
+  @override
+  String get wordAfternoon => 'Chiều';
+
+  @override
+  String get wordEvening => 'Tối';
+
+  @override
+  String get wordNight => 'Đêm';
+
+  @override
+  String get wordWeek => 'Tuần';
+
+  @override
+  String get wordMonth => 'Tháng';
+
+  @override
+  String get wordYear => 'Năm';
+
+  @override
+  String get wordDaily => 'Hàng ngày';
+
+  @override
+  String get wordWeekly => 'Hàng tuần';
+
+  @override
+  String get wordMonthly => 'Hàng tháng';
+
+  @override
+  String get wordYearly => 'Hàng năm';
+
+  @override
+  String get wordAlways => 'Luôn luôn';
+
+  @override
+  String get wordNever => 'Không bao giờ';
+
+  @override
+  String get wordSometimes => 'Thỉnh thoảng';
+
+  @override
+  String get wordOften => 'Thường xuyên';
+
+  @override
+  String get wordRarely => 'Hiếm khi';
+
+  @override
+  String get wordRecently => 'Gần đây';
+
+  @override
+  String get wordBefore => 'Trước';
+
+  @override
+  String get wordAfter => 'Sau';
+
+  @override
+  String get wordDuring => 'Trong khi';
+
+  @override
+  String get wordUntil => 'Cho đến';
+
+  @override
+  String get wordSince => 'Từ';
+
+  @override
+  String get wordAgo => 'Trước';
+
+  @override
+  String get wordMinute => 'Phút';
+
+  @override
+  String get wordMinutes => 'Phút';
+
+  @override
+  String get wordHour => 'Giờ';
+
+  @override
+  String get wordHours => 'Giờ';
+
+  @override
+  String get wordDay => 'Ngày';
+
+  @override
+  String get wordDays => 'Ngày';
+
+  @override
+  String get wordWeeks => 'Tuần';
+
+  @override
+  String get wordMonths => 'Tháng';
+
+  @override
+  String get wordYears => 'Năm';
+
+  @override
+  String get wordSecond => 'Giây';
+
+  @override
+  String get wordSeconds => 'Giây';
+
+  @override
+  String get wordGood => 'Tốt';
+
+  @override
+  String get wordBad => 'Xấu';
+
+  @override
+  String get wordGreat => 'Tuyệt vời';
+
+  @override
+  String get wordExcellent => 'Xuất sắc';
+
+  @override
+  String get wordBest => 'Tốt nhất';
+
+  @override
+  String get wordWorst => 'Tệ nhất';
+
+  @override
+  String get wordOld => 'Cũ';
+
+  @override
+  String get wordYoung => 'Trẻ';
+
+  @override
+  String get wordHot => 'Nóng';
+
+  @override
+  String get wordCold => 'Lạnh';
+
+  @override
+  String get wordFast => 'Nhanh';
+
+  @override
+  String get wordSlow => 'Chậm';
+
+  @override
+  String get wordEasy => 'Dễ';
+
+  @override
+  String get wordHard => 'Khó';
+
+  @override
+  String get wordSimple => 'Đơn giản';
+
+  @override
+  String get wordComplex => 'Phức tạp';
+
+  @override
+  String get wordSmall => 'Nhỏ';
+
+  @override
+  String get wordBig => 'Lớn';
+
+  @override
+  String get wordLarge => 'Lớn';
+
+  @override
+  String get wordTiny => 'Rất nhỏ';
+
+  @override
+  String get wordHuge => 'Rất lớn';
+
+  @override
+  String get wordLong => 'Dài';
+
+  @override
+  String get wordShort => 'Ngắn';
+
+  @override
+  String get wordHigh => 'Cao';
+
+  @override
+  String get wordLow => 'Thấp';
+
+  @override
+  String get wordWide => 'Rộng';
+
+  @override
+  String get wordNarrow => 'Hẹp';
+
+  @override
+  String get wordThick => 'Dày';
+
+  @override
+  String get wordThin => 'Mỏng';
+
+  @override
+  String get wordDeep => 'Sâu';
+
+  @override
+  String get wordShallow => 'Nông';
+
+  @override
+  String get wordBright => 'Sáng';
+
+  @override
+  String get wordDark => 'Tối';
+
+  @override
+  String get wordLight => 'Nhẹ';
+
+  @override
+  String get wordHeavy => 'Nặng';
+
+  @override
+  String get wordSoft => 'Mềm';
+
+  @override
+  String get wordLoud => 'To';
+
+  @override
+  String get wordQuiet => 'Im lặng';
+
+  @override
+  String get wordClean => 'Sạch';
+
+  @override
+  String get wordDirty => 'Bẩn';
+
+  @override
+  String get wordRich => 'Giàu';
+
+  @override
+  String get wordPoor => 'Nghèo';
+
+  @override
+  String get wordFree => 'Miễn phí';
+
+  @override
+  String get wordPaid => 'Trả phí';
+
+  @override
+  String get wordCheap => 'Rẻ';
+
+  @override
+  String get wordExpensive => 'Đắt';
+
+  @override
+  String get wordBeautiful => 'Đẹp';
+
+  @override
+  String get wordUgly => 'Xấu';
+
+  @override
+  String get wordPretty => 'Xinh';
+
+  @override
+  String get wordHandsome => 'Đẹp trai';
+
+  @override
+  String get wordCute => 'Dễ thương';
+
+  @override
+  String get wordSexy => 'Gợi cảm';
+
+  @override
+  String get wordAttractive => 'Hấp dẫn';
+
+  @override
+  String get wordHappy => 'Vui vẻ';
+
+  @override
+  String get wordSad => 'Buồn';
+
+  @override
+  String get wordAngry => 'Tức giận';
+
+  @override
+  String get wordScared => 'Sợ hãi';
+
+  @override
+  String get wordExcited => 'Phấn khích';
+
+  @override
+  String get wordBored => 'Chán';
+
+  @override
+  String get wordTired => 'Mệt';
+
+  @override
+  String get wordSick => 'Ốm';
+
+  @override
+  String get wordHealthy => 'Khỏe mạnh';
+
+  @override
+  String get wordStrong => 'Mạnh';
+
+  @override
+  String get wordWeak => 'Yếu';
+
+  @override
+  String get wordSmart => 'Thông minh';
+
+  @override
+  String get wordStupid => 'Ngu ngốc';
+
+  @override
+  String get wordFunny => 'Vui nhộn';
+
+  @override
+  String get wordSerious => 'Nghiêm túc';
+
+  @override
+  String get wordNice => 'Tốt bụng';
+
+  @override
+  String get wordMean => 'Ác ý';
+
+  @override
+  String get wordKind => 'Tử tế';
+
+  @override
+  String get wordCruel => 'Tàn nhẫn';
+
+  @override
+  String get wordFriendly => 'Thân thiện';
+
+  @override
+  String get wordRude => 'Thô lỗ';
+
+  @override
+  String get wordPolite => 'Lịch sự';
+
+  @override
+  String get wordHonest => 'Thật thà';
+
+  @override
+  String get wordLazy => 'Lười biếng';
+
+  @override
+  String get wordBrave => 'Dũng cảm';
+
+  @override
+  String get wordCurious => 'Tò mò';
+
+  @override
+  String get wordPatient => 'Kiên nhẫn';
+
+  @override
+  String get wordImpatient => 'Thiếu kiên nhẫn';
+
+  @override
+  String get wordCareful => 'Cẩn thận';
+
+  @override
+  String get wordCareless => 'Bất cẩn';
+
+  @override
+  String get wordGenerous => 'Hào phóng';
+
+  @override
+  String get wordSelfish => 'Ích kỷ';
+
+  @override
+  String get wordRomantic => 'Lãng mạn';
+
+  @override
+  String get wordPassionate => 'Đam mê';
+
+  @override
+  String get wordLoyal => 'Trung thành';
+
+  @override
+  String get wordFaithful => 'Chung thủy';
+
+  @override
+  String get wordTrustworthy => 'Đáng tin cậy';
+
+  @override
+  String get wordReliable => 'Đáng tin cậy';
+
+  @override
+  String get wordResponsible => 'Có trách nhiệm';
+
+  @override
+  String get wordMature => 'Trưởng thành';
+
+  @override
+  String get wordImmature => 'Chưa trưởng thành';
+
+  @override
+  String get wordIndependent => 'Độc lập';
+
+  @override
+  String get wordConfident => 'Tự tin';
+
+  @override
+  String get wordShy => 'Nhút nhát';
+
+  @override
+  String get wordOutgoing => 'Hướng ngoại';
+
+  @override
+  String get wordIntroverted => 'Hướng nội';
+
+  @override
+  String get wordExtroverted => 'Hướng ngoại';
+
+  @override
+  String get wordAmbitious => 'Tham vọng';
+
+  @override
+  String get wordCreative => 'Sáng tạo';
+
+  @override
+  String get wordIntelligent => 'Thông minh';
+
+  @override
+  String get wordWise => 'Khôn ngoan';
+
+  @override
+  String get wordTalented => 'Tài năng';
+
+  @override
+  String get wordSuccessful => 'Thành công';
+
+  @override
+  String get wordFamous => 'Nổi tiếng';
+
+  @override
+  String get wordImportant => 'Quan trọng';
+
+  @override
+  String get wordSpecial => 'Đặc biệt';
+
+  @override
+  String get wordPerfect => 'Hoàn hảo';
+
+  @override
+  String get wordAmazing => 'Tuyệt vời';
+
+  @override
+  String get wordWonderful => 'Tuyệt vời';
+
+  @override
+  String get wordFantastic => 'Tuyệt vời';
+
+  @override
+  String get wordIncredible => 'Không thể tin được';
+
+  @override
+  String get wordAwesome => 'Tuyệt vời';
+
+  @override
+  String get wordTerrific => 'Tuyệt vời';
+
+  @override
+  String get wordMarvelous => 'Tuyệt vời';
+
+  @override
+  String get wordSuperb => 'Tuyệt vời';
+
+  @override
+  String get wordOutstanding => 'Xuất sắc';
+
+  @override
+  String get wordBrilliant => 'Xuất sắc';
+
+  @override
+  String get wordFabulous => 'Tuyệt vời';
+
+  @override
+  String get wordMagnificent => 'Tráng lệ';
+
+  @override
+  String get wordSpectacular => 'Ngoạn mục';
+
+  @override
+  String get wordPlease => 'Xin vui lòng';
+
+  @override
+  String get wordThanks => 'Cảm ơn';
+
+  @override
+  String get wordThankYou => 'Cảm ơn bạn';
+
+  @override
+  String get wordSorry => 'Xin lỗi';
+
+  @override
+  String get wordExcuseMe => 'Xin lỗi';
+
+  @override
+  String get wordWelcome => 'Chào mừng';
+
+  @override
+  String get wordHello => 'Xin chào';
+
+  @override
+  String get wordHi => 'Chào';
+
+  @override
+  String get wordHey => 'Này';
+
+  @override
+  String get wordGoodbye => 'Tạm biệt';
+
+  @override
+  String get wordBye => 'Tạm biệt';
+
+  @override
+  String get wordCongratulations => 'Chúc mừng';
+
+  @override
+  String get wordCongrats => 'Chúc mừng';
+
+  @override
+  String get wordGoodMorning => 'Chào buổi sáng';
+
+  @override
+  String get wordGoodAfternoon => 'Chào buổi chiều';
+
+  @override
+  String get wordGoodEvening => 'Chào buổi tối';
+
+  @override
+  String get wordGoodNight => 'Chúc ngủ ngon';
+
+  @override
+  String get wordHowAreYou => 'Bạn khỏe không?';
+
+  @override
+  String get wordImFine => 'Tôi khỏe';
+
+  @override
+  String get wordNiceMeetYou => 'Rất vui được gặp bạn';
+
+  @override
+  String get wordSeeLater => 'Hẹn gặp lại';
+
+  @override
+  String get wordTakeCare => 'Bảo trọng';
+
+  @override
+  String get wordMissYou => 'Nhớ bạn';
+
+  @override
+  String get wordLoveYou => 'Yêu bạn';
+
+  @override
+  String get wordThinkingOfYou => 'Đang nghĩ về bạn';
+
+  @override
+  String get wordGoodLuck => 'Chúc may mắn';
+
+  @override
+  String get wordHaveFun => 'Chúc vui vẻ';
+
+  @override
+  String get wordEnjoy => 'Tận hưởng';
+
+  @override
+  String get wordCheers => 'Chúc mừng';
+
+  @override
+  String get wordWho => 'Ai';
+
+  @override
+  String get wordWhat => 'Cái gì';
+
+  @override
+  String get wordWhen => 'Khi nào';
+
+  @override
+  String get wordWhere => 'Ở đâu';
+
+  @override
+  String get wordWhy => 'Tại sao';
+
+  @override
+  String get wordHow => 'Như thế nào';
+
+  @override
+  String get wordWhich => 'Cái nào';
+
+  @override
+  String get wordWhose => 'Của ai';
+
+  @override
+  String get wordHowMany => 'Bao nhiêu';
+
+  @override
+  String get wordHowMuch => 'Bao nhiêu';
+
+  @override
+  String get wordHowLong => 'Bao lâu';
+
+  @override
+  String get wordHowFar => 'Bao xa';
+
+  @override
+  String get wordHowOld => 'Bao nhiêu tuổi';
+
+  @override
+  String get wordHowOften => 'Thường xuyên như thế nào';
+
+  @override
+  String get wordWith => 'Với';
+
+  @override
+  String get wordWithout => 'Không có';
+
+  @override
+  String get wordIn => 'Trong';
+
+  @override
+  String get wordOut => 'Ngoài';
+
+  @override
+  String get wordUp => 'Lên';
+
+  @override
+  String get wordDown => 'Xuống';
+
+  @override
+  String get wordLeft => 'Trái';
+
+  @override
+  String get wordRight => 'Phải';
+
+  @override
+  String get wordNear => 'Gần';
+
+  @override
+  String get wordFar => 'Xa';
+
+  @override
+  String get wordHere => 'Ở đây';
+
+  @override
+  String get wordThere => 'Ở đó';
+
+  @override
+  String get wordInside => 'Bên trong';
+
+  @override
+  String get wordOutside => 'Bên ngoài';
+
+  @override
+  String get wordAbove => 'Phía trên';
+
+  @override
+  String get wordBelow => 'Phía dưới';
+
+  @override
+  String get wordBetween => 'Giữa';
+
+  @override
+  String get wordAround => 'Xung quanh';
+
+  @override
+  String get wordAcross => 'Qua';
+
+  @override
+  String get wordThrough => 'Xuyên qua';
+
+  @override
+  String get wordAlong => 'Dọc theo';
+
+  @override
+  String get wordToward => 'Về phía';
+
+  @override
+  String get wordAwayFrom => 'Xa khỏi';
+
+  @override
+  String get wordBehind => 'Phía sau';
+
+  @override
+  String get wordAhead => 'Phía trước';
+
+  @override
+  String get wordFront => 'Phía trước';
+
+  @override
+  String get wordBack => 'Phía sau';
+
+  @override
+  String get wordSide => 'Bên cạnh';
+
+  @override
+  String get wordTop => 'Trên cùng';
+
+  @override
+  String get wordBottom => 'Dưới cùng';
+
+  @override
+  String get wordMiddle => 'Giữa';
+
+  @override
+  String get wordCenter => 'Trung tâm';
+
+  @override
+  String get wordCorner => 'Góc';
+
+  @override
+  String get wordEdge => 'Cạnh';
+
+  @override
+  String get wordCrush => 'Crush';
+
+  @override
+  String get wordMatch => 'Kết đôi';
+
+  @override
+  String get wordMatches => 'Các kết đôi';
+
+  @override
+  String get wordMatched => 'Đã kết đôi';
+
+  @override
+  String get wordMatching => 'Đang kết đôi';
+
+  @override
+  String get wordUnmatched => 'Đã hủy kết đôi';
+
+  @override
+  String get wordConnection => 'Kết nối';
+
+  @override
+  String get wordConnections => 'Các kết nối';
+
+  @override
+  String get wordChemistry => 'Chemistry';
+
+  @override
+  String get wordSpark => 'Tia lửa';
+
+  @override
+  String get wordDate => 'Hẹn hò';
+
+  @override
+  String get wordDates => 'Các buổi hẹn hò';
+
+  @override
+  String get wordDating => 'Đang hẹn hò';
+
+  @override
+  String get wordRomance => 'Lãng mạn';
+
+  @override
+  String get wordSingle => 'Độc thân';
+
+  @override
+  String get wordCouple => 'Cặp đôi';
+
+  @override
+  String get wordRelationship => 'Mối quan hệ';
+
+  @override
+  String get wordRelationships => 'Các mối quan hệ';
+
+  @override
+  String get wordPartner => 'Bạn đời';
+
+  @override
+  String get wordSoulmate => 'Tri kỷ';
+
+  @override
+  String get wordInterested => 'Quan tâm';
+
+  @override
+  String get wordInterest => 'Sự quan tâm';
+
+  @override
+  String get wordInterests => 'Sở thích';
+
+  @override
+  String get wordMutual => 'Chung';
+
+  @override
+  String get wordCompatible => 'Hợp nhau';
+
+  @override
+  String get wordCompatibility => 'Sự hợp nhau';
+
+  @override
+  String get wordAttraction => 'Sự hấp dẫn';
+
+  @override
+  String get wordFlirt => 'Tán tỉnh';
+
+  @override
+  String get wordFlirting => 'Đang tán tỉnh';
+
+  @override
+  String get wordFlirty => 'Hay tán tỉnh';
+
+  @override
+  String get wordSwipe => 'Vuốt';
+
+  @override
+  String get wordSwiped => 'Đã vuốt';
+
+  @override
+  String get wordSwiping => 'Đang vuốt';
+
+  @override
+  String get wordLiked => 'Đã thích';
+
+  @override
+  String get wordLikes => 'Lượt thích';
+
+  @override
+  String get wordLiking => 'Đang thích';
+
+  @override
+  String get wordPassed => 'Đã bỏ qua';
+
+  @override
+  String get wordPassing => 'Đang bỏ qua';
+
+  @override
+  String get wordSuperLike => 'Siêu thích';
+
+  @override
+  String get wordSuperLiked => 'Đã siêu thích';
+
+  @override
+  String get wordBoost => 'Tăng cường';
+
+  @override
+  String get wordBoosted => 'Đã tăng cường';
+
+  @override
+  String get wordBoosting => 'Đang tăng cường';
+
+  @override
+  String get wordRewind => 'Tua lại';
+
+  @override
+  String get wordRewinded => 'Đã tua lại';
+
+  @override
+  String get wordChat => 'Trò chuyện';
+
+  @override
+  String get wordChats => 'Các cuộc trò chuyện';
+
+  @override
+  String get wordChatting => 'Đang trò chuyện';
+
+  @override
+  String get wordMessage => 'Tin nhắn';
+
+  @override
+  String get wordMessages => 'Các tin nhắn';
+
+  @override
+  String get wordMessaging => 'Đang nhắn tin';
+
+  @override
+  String get wordConversation => 'Cuộc trò chuyện';
+
+  @override
+  String get wordConversations => 'Các cuộc trò chuyện';
+
+  @override
+  String get wordProfile => 'Hồ sơ';
+
+  @override
+  String get wordProfiles => 'Các hồ sơ';
+
+  @override
+  String get wordBio => 'Tiểu sử';
+
+  @override
+  String get wordPhoto => 'Ảnh';
+
+  @override
+  String get wordPhotos => 'Các ảnh';
+
+  @override
+  String get wordVideo => 'Video';
+
+  @override
+  String get wordVideos => 'Các video';
+
+  @override
+  String get wordGallery => 'Thư viện';
+
+  @override
+  String get wordAlbum => 'Album';
+
+  @override
+  String get wordVoice => 'Giọng nói';
+
+  @override
+  String get wordAudio => 'Âm thanh';
+
+  @override
+  String get wordCamera => 'Camera';
+
+  @override
+  String get wordImage => 'Hình ảnh';
+
+  @override
+  String get wordImages => 'Các hình ảnh';
+
+  @override
+  String get wordPicture => 'Hình';
+
+  @override
+  String get wordPictures => 'Các hình';
+
+  @override
+  String get wordHeartbeat => 'Nhịp tim';
+
+  @override
+  String get wordHeart => 'Trái tim';
+
+  @override
+  String get wordHearts => 'Các trái tim';
+
+  @override
+  String get wordStar => 'Ngôi sao';
+
+  @override
+  String get wordStars => 'Các ngôi sao';
+
+  @override
+  String get wordDiamond => 'Kim cương';
+
+  @override
+  String get wordFlame => 'Ngọn lửa';
+
+  @override
+  String get wordFire => 'Lửa';
+
+  @override
+  String get wordHotness => 'Sự nóng bỏng';
+
+  @override
+  String get wordVibes => 'Vibes';
+
+  @override
+  String get wordVibe => 'Vibe';
+
+  @override
+  String get wordMood => 'Tâm trạng';
+
+  @override
+  String get wordEnergy => 'Năng lượng';
+
+  @override
+  String get wordAura => 'Hào quang';
+
+  @override
+  String get wordPersonality => 'Tính cách';
+
+  @override
+  String get wordCharacter => 'Nhân cách';
+
+  @override
+  String get wordValues => 'Giá trị';
+
+  @override
+  String get wordGoals => 'Mục tiêu';
+
+  @override
+  String get wordDreams => 'Ước mơ';
+
+  @override
+  String get wordHobbies => 'Sở thích';
+
+  @override
+  String get wordPassion => 'Đam mê';
+
+  @override
+  String get wordAdventure => 'Phiêu lưu';
+
+  @override
+  String get wordTravel => 'Du lịch';
+
+  @override
+  String get wordTraveling => 'Đang du lịch';
+
+  @override
+  String get wordExploring => 'Đang khám phá';
+
+  @override
+  String get wordFun => 'Vui vẻ';
+
+  @override
+  String get wordLaughter => 'Tiếng cười';
+
+  @override
+  String get wordSmile => 'Nụ cười';
+
+  @override
+  String get wordSmiles => 'Các nụ cười';
+
+  @override
+  String get wordSmiling => 'Đang mỉm cười';
+
+  @override
+  String get wordKiss => 'Nụ hôn';
+
+  @override
+  String get wordKisses => 'Các nụ hôn';
+
+  @override
+  String get wordHug => 'Cái ôm';
+
+  @override
+  String get wordHugs => 'Các cái ôm';
+
+  @override
+  String get wordCuddle => 'Ôm ấp';
+
+  @override
+  String get wordCuddling => 'Đang ôm ấp';
+
+  @override
+  String get wordIntimate => 'Thân mật';
+
+  @override
+  String get wordIntimacy => 'Sự thân mật';
+
+  @override
+  String get wordAffection => 'Tình cảm';
+
+  @override
+  String get wordAffectionate => 'Ân cần';
+
+  @override
+  String get wordCaring => 'Quan tâm';
+
+  @override
+  String get wordLoving => 'Yêu thương';
+
+  @override
+  String get wordDevoted => 'Tận tụy';
+
+  @override
+  String get wordCommitted => 'Cam kết';
+
+  @override
+  String get wordCommitment => 'Sự cam kết';
+
+  @override
+  String get wordSeriousRel => 'Nghiêm túc';
+
+  @override
+  String get wordCasual => 'Thoải mái';
+
+  @override
+  String get wordFriendship => 'Tình bạn';
+
+  @override
+  String get wordFriend => 'Bạn bè';
+
+  @override
+  String get wordFriends => 'Các bạn';
+
+  @override
+  String get wordBestFriend => 'Bạn thân';
+
+  @override
+  String get wordSomethingSerious => 'Mối quan hệ nghiêm túc';
+
+  @override
+  String get wordLongTerm => 'Dài hạn';
+
+  @override
+  String get wordShortTerm => 'Ngắn hạn';
+
+  @override
+  String get wordOpenTo => 'Sẵn sàng';
+
+  @override
+  String get wordLookingFor => 'Đang tìm kiếm';
+
+  @override
+  String get wordSeekingFor => 'Đang tìm kiếm';
+
+  @override
+  String get wordWaiting => 'Đang chờ';
+
+  @override
+  String get wordSearching => 'Đang tìm kiếm';
+
+  @override
+  String get wordNotification => 'Thông báo';
+
+  @override
+  String get wordAlert => 'Cảnh báo';
+
+  @override
+  String get wordWarning => 'Cảnh báo';
+
+  @override
+  String get wordInfo => 'Thông tin';
+
+  @override
+  String get wordInformation => 'Thông tin';
+
+  @override
+  String get wordDetails => 'Chi tiết';
+
+  @override
+  String get wordData => 'Dữ liệu';
+
+  @override
+  String get wordContent => 'Nội dung';
+
+  @override
+  String get wordMedia => 'Phương tiện';
+
+  @override
+  String get wordLink => 'Liên kết';
+
+  @override
+  String get wordLinks => 'Các liên kết';
+
+  @override
+  String get wordURL => 'URL';
+
+  @override
+  String get wordAddress => 'Địa chỉ';
+
+  @override
+  String get wordName => 'Tên';
+
+  @override
+  String get wordUsername => 'Tên người dùng';
+
+  @override
+  String get wordNickname => 'Biệt danh';
+
+  @override
+  String get wordAccount => 'Tài khoản';
+
+  @override
+  String get wordUser => 'Người dùng';
+
+  @override
+  String get wordUsers => 'Người dùng';
+
+  @override
+  String get wordPeople => 'Mọi người';
+
+  @override
+  String get wordPerson => 'Người';
+
+  @override
+  String get wordGroup => 'Nhóm';
+
+  @override
+  String get wordGroups => 'Các nhóm';
+
+  @override
+  String get wordTeam => 'Đội';
+
+  @override
+  String get wordCommunity => 'Cộng đồng';
+
+  @override
+  String get wordMember => 'Thành viên';
+
+  @override
+  String get wordMembers => 'Các thành viên';
+
+  @override
+  String get wordAdmin => 'Quản trị viên';
+
+  @override
+  String get wordModerator => 'Người điều hành';
+
+  @override
+  String get wordGuest => 'Khách';
+
+  @override
+  String get wordVisitor => 'Khách truy cập';
+
+  @override
+  String get wordFollower => 'Người theo dõi';
+
+  @override
+  String get wordFollowers => 'Người theo dõi';
+
+  @override
+  String get wordFollowing => 'Đang theo dõi';
+
+  @override
+  String get wordFan => 'Fan';
+
+  @override
+  String get wordFans => 'Các fan';
+
+  @override
+  String get wordSubscriber => 'Người đăng ký';
+
+  @override
+  String get wordSubscribers => 'Người đăng ký';
+
+  @override
+  String get wordFile => 'Tệp';
+
+  @override
+  String get wordFiles => 'Các tệp';
+
+  @override
+  String get wordFolder => 'Thư mục';
+
+  @override
+  String get wordFolders => 'Các thư mục';
+
+  @override
+  String get wordDocument => 'Tài liệu';
+
+  @override
+  String get wordDocuments => 'Các tài liệu';
+
+  @override
+  String get wordText => 'Văn bản';
+
+  @override
+  String get wordEmail => 'Email';
+
+  @override
+  String get wordPhone => 'Điện thoại';
+
+  @override
+  String get wordNumber => 'Số';
+
+  @override
+  String get wordCode => 'Mã';
+
+  @override
+  String get wordPassword => 'Mật khẩu';
+
+  @override
+  String get wordPasscode => 'Mã pin';
+
+  @override
+  String get wordPIN => 'PIN';
+
+  @override
+  String get wordKey => 'Khóa';
+
+  @override
+  String get wordToken => 'Token';
+
+  @override
+  String get wordSession => 'Phiên';
+
+  @override
+  String get wordApp => 'Ứng dụng';
+
+  @override
+  String get wordApplication => 'Ứng dụng';
+
+  @override
+  String get wordWebsite => 'Trang web';
+
+  @override
+  String get wordPage => 'Trang';
+
+  @override
+  String get wordPages => 'Các trang';
+
+  @override
+  String get wordScreen => 'Màn hình';
+
+  @override
+  String get wordScreens => 'Các màn hình';
+
+  @override
+  String get wordSection => 'Phần';
+
+  @override
+  String get wordSections => 'Các phần';
+
+  @override
+  String get wordCategory => 'Danh mục';
+
+  @override
+  String get wordCategories => 'Các danh mục';
+
+  @override
+  String get wordTag => 'Thẻ';
+
+  @override
+  String get wordTags => 'Các thẻ';
+
+  @override
+  String get wordLabel => 'Nhãn';
+
+  @override
+  String get wordLabels => 'Các nhãn';
+
+  @override
+  String get wordTitle => 'Tiêu đề';
+
+  @override
+  String get wordSubtitle => 'Phụ đề';
+
+  @override
+  String get wordDescription => 'Mô tả';
+
+  @override
+  String get wordSummary => 'Tóm tắt';
+
+  @override
+  String get wordOverview => 'Tổng quan';
+
+  @override
+  String get wordPreview => 'Xem trước';
+
+  @override
+  String get wordReview => 'Đánh giá';
+
+  @override
+  String get wordReviews => 'Các đánh giá';
+
+  @override
+  String get wordRating => 'Xếp hạng';
+
+  @override
+  String get wordRatings => 'Các xếp hạng';
+
+  @override
+  String get wordFeedback => 'Phản hồi';
+
+  @override
+  String get wordComment => 'Bình luận';
+
+  @override
+  String get wordComments => 'Các bình luận';
+
+  @override
+  String get wordReply => 'Trả lời';
+
+  @override
+  String get wordReplies => 'Các trả lời';
+
+  @override
+  String get wordPost => 'Bài đăng';
+
+  @override
+  String get wordPosts => 'Các bài đăng';
+
+  @override
+  String get wordStory => 'Câu chuyện';
+
+  @override
+  String get wordStories => 'Các câu chuyện';
+
+  @override
+  String get wordEvent => 'Sự kiện';
+
+  @override
+  String get wordEvents => 'Các sự kiện';
+
+  @override
+  String get wordNews => 'Tin tức';
+
+  @override
+  String get wordUpdate => 'Cập nhật';
+
+  @override
+  String get wordUpdates => 'Các cập nhật';
+
+  @override
+  String get wordVersion => 'Phiên bản';
+
+  @override
+  String get wordRelease => 'Phát hành';
+
+  @override
+  String get wordFeature => 'Tính năng';
+
+  @override
+  String get wordFeatures => 'Các tính năng';
+
+  @override
+  String get wordOption => 'Tùy chọn';
+
+  @override
+  String get wordOptions => 'Các tùy chọn';
+
+  @override
+  String get wordChoice => 'Lựa chọn';
+
+  @override
+  String get wordChoices => 'Các lựa chọn';
+
+  @override
+  String get wordPreference => 'Sở thích';
+
+  @override
+  String get wordPreferences => 'Các sở thích';
+
+  @override
+  String get wordSetting => 'Cài đặt';
+
+  @override
+  String get wordSettingsNoun => 'Các cài đặt';
+
+  @override
+  String get wordConfig => 'Cấu hình';
+
+  @override
+  String get wordConfiguration => 'Cấu hình';
+
+  @override
+  String get wordPermission => 'Quyền';
+
+  @override
+  String get wordPermissions => 'Các quyền';
+
+  @override
+  String get wordAccess => 'Truy cập';
+
+  @override
+  String get wordPrivacy => 'Quyền riêng tư';
+
+  @override
+  String get wordSecurity => 'Bảo mật';
+
+  @override
+  String get wordSupport => 'Hỗ trợ';
+
+  @override
+  String get wordService => 'Dịch vụ';
+
+  @override
+  String get wordServices => 'Các dịch vụ';
+
+  @override
+  String get wordTerms => 'Điều khoản';
+
+  @override
+  String get wordPolicy => 'Chính sách';
+
+  @override
+  String get wordAgreement => 'Thỏa thuận';
+
+  @override
+  String get wordContract => 'Hợp đồng';
+
+  @override
+  String get wordPlan => 'Gói';
+
+  @override
+  String get wordPlans => 'Các gói';
+
+  @override
+  String get wordPrice => 'Giá';
+
+  @override
+  String get wordPrices => 'Các giá';
+
+  @override
+  String get wordCost => 'Chi phí';
+
+  @override
+  String get wordFee => 'Phí';
+
+  @override
+  String get wordFees => 'Các phí';
+
+  @override
+  String get wordDiscount => 'Giảm giá';
+
+  @override
+  String get wordOffer => 'Ưu đãi';
+
+  @override
+  String get wordOffers => 'Các ưu đãi';
+
+  @override
+  String get wordDeal => 'Thỏa thuận';
+
+  @override
+  String get wordDeals => 'Các thỏa thuận';
+
+  @override
+  String get wordPromotion => 'Khuyến mãi';
+
+  @override
+  String get wordPromotions => 'Các khuyến mãi';
+
+  @override
+  String get wordCoupon => 'Phiếu giảm giá';
+
+  @override
+  String get wordGift => 'Quà tặng';
+
+  @override
+  String get wordGifts => 'Các quà tặng';
+
+  @override
+  String get wordReward => 'Phần thưởng';
+
+  @override
+  String get wordRewards => 'Các phần thưởng';
+
+  @override
+  String get wordBonus => 'Thưởng';
+
+  @override
+  String get wordBonuses => 'Các khoản thưởng';
+
+  @override
+  String get wordCredit => 'Tín dụng';
+
+  @override
+  String get wordCredits => 'Các tín dụng';
+
+  @override
+  String get wordCoin => 'Xu';
+
+  @override
+  String get wordCoins => 'Các xu';
+
+  @override
+  String get wordPoint => 'Điểm';
+
+  @override
+  String get wordPoints => 'Các điểm';
+
+  @override
+  String get wordLevel => 'Cấp độ';
+
+  @override
+  String get wordLevels => 'Các cấp độ';
+
+  @override
+  String get wordRank => 'Xếp hạng';
+
+  @override
+  String get wordBadge => 'Huy hiệu';
+
+  @override
+  String get wordBadges => 'Các huy hiệu';
+
+  @override
+  String get wordAchievement => 'Thành tựu';
+
+  @override
+  String get wordAchievements => 'Các thành tựu';
+
+  @override
+  String get wordMilestone => 'Cột mốc';
+
+  @override
+  String get wordProgress => 'Tiến trình';
+
+  @override
+  String get wordGoal => 'Mục tiêu';
+
+  @override
+  String get wordTarget => 'Mục tiêu';
+
+  @override
+  String get wordResult => 'Kết quả';
+
+  @override
+  String get wordResults => 'Các kết quả';
+
+  @override
+  String get wordStats => 'Thống kê';
+
+  @override
+  String get wordStatistics => 'Thống kê';
+
+  @override
+  String get wordAnalytics => 'Phân tích';
+
+  @override
+  String get wordInsight => 'Thông tin chi tiết';
+
+  @override
+  String get wordInsights => 'Các thông tin chi tiết';
+
+  @override
+  String get wordReport => 'Báo cáo';
+
+  @override
+  String get wordReports => 'Các báo cáo';
+
+  @override
+  String get wordDashboard => 'Bảng điều khiển';
+
+  @override
+  String get wordWorld => 'Thế giới';
+
+  @override
+  String get wordCountry => 'Quốc gia';
+
+  @override
+  String get wordCity => 'Thành phố';
+
+  @override
+  String get wordTown => 'Thị trấn';
+
+  @override
+  String get wordState => 'Bang';
+
+  @override
+  String get wordProvince => 'Tỉnh';
+
+  @override
+  String get wordRegion => 'Khu vực';
+
+  @override
+  String get wordArea => 'Khu vực';
+
+  @override
+  String get wordPlace => 'Địa điểm';
+
+  @override
+  String get wordLocation => 'Vị trí';
+
+  @override
+  String get wordDistance => 'Khoảng cách';
+
+  @override
+  String get wordDirection => 'Hướng';
+
+  @override
+  String get wordMap => 'Bản đồ';
+
+  @override
+  String get wordRoute => 'Tuyến đường';
+
+  @override
+  String get wordWay => 'Đường';
+
+  @override
+  String get wordPath => 'Con đường';
+
+  @override
+  String get wordRoad => 'Đường';
+
+  @override
+  String get wordStreet => 'Phố';
+
+  @override
+  String get wordPark => 'Công viên';
+
+  @override
+  String get wordBeach => 'Bãi biển';
+
+  @override
+  String get wordMountain => 'Núi';
+
+  @override
+  String get wordLake => 'Hồ';
+
+  @override
+  String get wordRiver => 'Sông';
+
+  @override
+  String get wordSea => 'Biển';
+
+  @override
+  String get wordOcean => 'Đại dương';
+
+  @override
+  String get wordSky => 'Bầu trời';
+
+  @override
+  String get wordSun => 'Mặt trời';
+
+  @override
+  String get wordMoon => 'Mặt trăng';
+
+  @override
+  String get wordWeather => 'Thời tiết';
+
+  @override
+  String get wordSeason => 'Mùa';
+
+  @override
+  String get wordSpring => 'Mùa xuân';
+
+  @override
+  String get wordSummer => 'Mùa hè';
+
+  @override
+  String get wordAutumn => 'Mùa thu';
+
+  @override
+  String get wordFall => 'Mùa thu';
+
+  @override
+  String get wordWinter => 'Mùa đông';
+
+  @override
+  String get wordFamily => 'Gia đình';
+
+  @override
+  String get wordParent => 'Phụ huynh';
+
+  @override
+  String get wordParents => 'Bố mẹ';
+
+  @override
+  String get wordMother => 'Mẹ';
+
+  @override
+  String get wordFather => 'Bố';
+
+  @override
+  String get wordMom => 'Mẹ';
+
+  @override
+  String get wordDad => 'Bố';
+
+  @override
+  String get wordChild => 'Con';
+
+  @override
+  String get wordChildren => 'Các con';
+
+  @override
+  String get wordKid => 'Trẻ em';
+
+  @override
+  String get wordKids => 'Các trẻ em';
+
+  @override
+  String get wordBaby => 'Em bé';
+
+  @override
+  String get wordSon => 'Con trai';
+
+  @override
+  String get wordDaughter => 'Con gái';
+
+  @override
+  String get wordBrother => 'Anh/Em trai';
+
+  @override
+  String get wordSister => 'Chị/Em gái';
+
+  @override
+  String get wordGrandparent => 'Ông bà';
+
+  @override
+  String get wordGrandparents => 'Ông bà';
+
+  @override
+  String get wordAunt => 'Cô/Dì';
+
+  @override
+  String get wordUncle => 'Chú/Bác';
+
+  @override
+  String get wordCousin => 'Anh chị em họ';
+
+  @override
+  String get wordPet => 'Thú cưng';
+
+  @override
+  String get wordPets => 'Các thú cưng';
+
+  @override
+  String get wordDog => 'Chó';
+
+  @override
+  String get wordCat => 'Mèo';
+
+  @override
+  String get wordAnimal => 'Động vật';
+
+  @override
+  String get wordAnimals => 'Các động vật';
+
+  @override
+  String get wordFood => 'Thức ăn';
+
+  @override
+  String get wordDinner => 'Bữa tối';
+
+  @override
+  String get wordLunch => 'Bữa trưa';
+
+  @override
+  String get wordBreakfast => 'Bữa sáng';
+
+  @override
+  String get wordSnack => 'Đồ ăn nhẹ';
+
+  @override
+  String get wordDessert => 'Tráng miệng';
+
+  @override
+  String get wordCoffee => 'Cà phê';
+
+  @override
+  String get wordTea => 'Trà';
+
+  @override
+  String get wordWater => 'Nước';
+
+  @override
+  String get wordWine => 'Rượu vang';
+
+  @override
+  String get wordBeer => 'Bia';
+
+  @override
+  String get wordCocktail => 'Cocktail';
+
+  @override
+  String get wordMusic => 'Âm nhạc';
+
+  @override
+  String get wordSong => 'Bài hát';
+
+  @override
+  String get wordSongs => 'Các bài hát';
+
+  @override
+  String get wordMovie => 'Phim';
+
+  @override
+  String get wordMovies => 'Các phim';
+
+  @override
+  String get wordFilm => 'Phim';
+
+  @override
+  String get wordFilms => 'Các phim';
+
+  @override
+  String get wordShowNoun => 'Chương trình';
+
+  @override
+  String get wordShows => 'Các chương trình';
+
+  @override
+  String get wordSeries => 'Series';
+
+  @override
+  String get wordBook => 'Sách';
+
+  @override
+  String get wordBooks => 'Các sách';
+
+  @override
+  String get wordGame => 'Trò chơi';
+
+  @override
+  String get wordGames => 'Các trò chơi';
+
+  @override
+  String get wordSport => 'Thể thao';
+
+  @override
+  String get wordSports => 'Các môn thể thao';
+
+  @override
+  String get wordExercise => 'Tập luyện';
+
+  @override
+  String get wordFitness => 'Thể hình';
+
+  @override
+  String get wordGym => 'Phòng gym';
+
+  @override
+  String get wordYoga => 'Yoga';
+
+  @override
+  String get wordRunning => 'Chạy bộ';
+
+  @override
+  String get wordSwimming => 'Bơi lội';
+
+  @override
+  String get wordDancing => 'Nhảy múa';
+
+  @override
+  String get wordCooking => 'Nấu ăn';
+
+  @override
+  String get wordReading => 'Đọc sách';
+
+  @override
+  String get wordWriting => 'Viết';
+
+  @override
+  String get wordPainting => 'Vẽ tranh';
+
+  @override
+  String get wordDrawing => 'Vẽ';
+
+  @override
+  String get wordPhotography => 'Nhiếp ảnh';
+
+  @override
+  String get wordArt => 'Nghệ thuật';
+
+  @override
+  String get wordDesign => 'Thiết kế';
+
+  @override
+  String get wordFashion => 'Thời trang';
+
+  @override
+  String get wordStyle => 'Phong cách';
+
+  @override
+  String get wordClothing => 'Quần áo';
+
+  @override
+  String get wordClothes => 'Quần áo';
+
+  @override
+  String get wordShoes => 'Giày';
+
+  @override
+  String get wordAccessories => 'Phụ kiện';
+
+  @override
+  String get wordJewelry => 'Trang sức';
+
+  @override
+  String get wordMakeup => 'Trang điểm';
+
+  @override
+  String get wordBeauty => 'Sắc đẹp';
+
+  @override
+  String get wordHealth => 'Sức khỏe';
+
+  @override
+  String get wordWellness => 'Sức khỏe tổng thể';
+
+  @override
+  String get wordMind => 'Tâm trí';
+
+  @override
+  String get wordBody => 'Cơ thể';
+
+  @override
+  String get wordSoul => 'Linh hồn';
+
+  @override
+  String get wordSpirit => 'Tinh thần';
+
+  @override
+  String get wordLife => 'Cuộc sống';
+
+  @override
+  String get wordDeath => 'Cái chết';
+
+  @override
+  String get wordBirth => 'Sinh';
+
+  @override
+  String get wordAge => 'Tuổi';
+
+  @override
+  String get wordGender => 'Giới tính';
+
+  @override
+  String get wordMale => 'Nam';
+
+  @override
+  String get wordFemale => 'Nữ';
+
+  @override
+  String get wordMan => 'Đàn ông';
+
+  @override
+  String get wordWoman => 'Phụ nữ';
+
+  @override
+  String get wordBoy => 'Con trai';
+
+  @override
+  String get wordGirl => 'Con gái';
+
+  @override
+  String get wordGuy => 'Anh chàng';
+
+  @override
+  String get wordLady => 'Quý cô';
+
+  @override
+  String get wordGentleman => 'Quý ông';
+
+  @override
+  String get wordHuman => 'Con người';
+
+  @override
+  String get wordHumans => 'Con người';
+
+  @override
+  String get wordEveryone => 'Mọi người';
+
+  @override
+  String get wordEverybody => 'Mọi người';
+
+  @override
+  String get wordSomeone => 'Ai đó';
+
+  @override
+  String get wordSomebody => 'Ai đó';
+
+  @override
+  String get wordNoone => 'Không ai';
+
+  @override
+  String get wordNobody => 'Không ai';
+
+  @override
+  String get wordAnyone => 'Bất kỳ ai';
+
+  @override
+  String get wordAnybody => 'Bất kỳ ai';
+
+  @override
+  String get wordEverything => 'Mọi thứ';
+
+  @override
+  String get wordSomething => 'Điều gì đó';
+
+  @override
+  String get wordNothing => 'Không có gì';
+
+  @override
+  String get wordAnything => 'Bất cứ điều gì';
 }

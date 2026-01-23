@@ -1388,4 +1388,2632 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get emptyCheckBackLater => 'பின்னர் மீண்டும் சரிபார்க்கவும்';
+
+  @override
+  String get wordHome => 'முகப்பு';
+
+  @override
+  String get wordExplore => 'ஆராய்';
+
+  @override
+  String get wordHelp => 'உதவி';
+
+  @override
+  String get wordMenu => 'மெனு';
+
+  @override
+  String get wordFeed => 'ஊட்டம்';
+
+  @override
+  String get wordActivity => 'செயல்பாடு';
+
+  @override
+  String get wordNotifications => 'அறிவிப்புகள்';
+
+  @override
+  String get wordInbox => 'இன்பாக்ஸ்';
+
+  @override
+  String get wordFavorites => 'பிடித்தவை';
+
+  @override
+  String get wordHistory => 'வரலாறு';
+
+  @override
+  String get wordCopy => 'நகலெடு';
+
+  @override
+  String get wordPaste => 'ஒட்டு';
+
+  @override
+  String get wordUndo => 'செயல்தவிர்';
+
+  @override
+  String get wordRedo => 'மீண்டும் செய்';
+
+  @override
+  String get wordDownload => 'பதிவிறக்கு';
+
+  @override
+  String get wordUpload => 'பதிவேற்று';
+
+  @override
+  String get wordSelect => 'தேர்ந்தெடு';
+
+  @override
+  String get wordDeselect => 'தேர்வுநீக்கு';
+
+  @override
+  String get wordOpen => 'திற';
+
+  @override
+  String get wordCreate => 'உருவாக்கு';
+
+  @override
+  String get wordConnect => 'இணை';
+
+  @override
+  String get wordDisconnect => 'துண்டி';
+
+  @override
+  String get wordStart => 'தொடங்கு';
+
+  @override
+  String get wordStop => 'நிறுத்து';
+
+  @override
+  String get wordPlay => 'இயக்கு';
+
+  @override
+  String get wordPause => 'இடைநிறுத்து';
+
+  @override
+  String get wordRecord => 'பதிவுசெய்';
+
+  @override
+  String get wordCall => 'அழை';
+
+  @override
+  String get wordEnd => 'முடி';
+
+  @override
+  String get wordAnswer => 'பதில்';
+
+  @override
+  String get wordDecline => 'மறு';
+
+  @override
+  String get wordAccept => 'ஏற்றுக்கொள்';
+
+  @override
+  String get wordReject => 'நிராகரி';
+
+  @override
+  String get wordApprove => 'அங்கீகரி';
+
+  @override
+  String get wordDeny => 'மறு';
+
+  @override
+  String get wordAllow => 'அனுமதி';
+
+  @override
+  String get wordEnable => 'இயக்கு';
+
+  @override
+  String get wordDisable => 'முடக்கு';
+
+  @override
+  String get wordShow => 'காட்டு';
+
+  @override
+  String get wordHide => 'மறை';
+
+  @override
+  String get wordExpand => 'விரிவாக்கு';
+
+  @override
+  String get wordCollapse => 'சுருக்கு';
+
+  @override
+  String get wordSort => 'வரிசைப்படுத்து';
+
+  @override
+  String get wordFilter => 'வடிகட்டு';
+
+  @override
+  String get wordPin => 'பின்செய்';
+
+  @override
+  String get wordUnpin => 'பின்நீக்கு';
+
+  @override
+  String get wordArchive => 'காப்பகப்படுத்து';
+
+  @override
+  String get wordRestore => 'மீட்டெடு';
+
+  @override
+  String get wordForward => 'முன்செலுத்து';
+
+  @override
+  String get wordFollow => 'பின்தொடர்';
+
+  @override
+  String get wordUnfollow => 'பின்தொடர்வதை நிறுத்து';
+
+  @override
+  String get wordSubscribe => 'சந்தா சேர்';
+
+  @override
+  String get wordUnsubscribe => 'சந்தா நீக்கு';
+
+  @override
+  String get wordInvite => 'அழை';
+
+  @override
+  String get wordJoin => 'சேர்';
+
+  @override
+  String get wordLeave => 'விடு';
+
+  @override
+  String get wordLogin => 'உள்நுழை';
+
+  @override
+  String get wordLogout => 'வெளியேறு';
+
+  @override
+  String get wordSignup => 'பதிவுசெய்';
+
+  @override
+  String get wordRegister => 'பதிவுசெய்';
+
+  @override
+  String get wordVerify => 'சரிபார்';
+
+  @override
+  String get wordConfirmed => 'உறுதிப்படுத்தப்பட்டது';
+
+  @override
+  String get wordPending => 'நிலுவையில்';
+
+  @override
+  String get wordComplete => 'முடி';
+
+  @override
+  String get wordFinish => 'முடி';
+
+  @override
+  String get wordCancel => 'ரத்துசெய்';
+
+  @override
+  String get wordTry => 'முயற்சி';
+
+  @override
+  String get wordAgain => 'மீண்டும்';
+
+  @override
+  String get wordGo => 'செல்';
+
+  @override
+  String get wordSee => 'பார்';
+
+  @override
+  String get wordLook => 'பார்';
+
+  @override
+  String get wordFind => 'கண்டுபிடி';
+
+  @override
+  String get wordGet => 'பெறு';
+
+  @override
+  String get wordSet => 'அமை';
+
+  @override
+  String get wordPut => 'வை';
+
+  @override
+  String get wordTake => 'எடு';
+
+  @override
+  String get wordGive => 'கொடு';
+
+  @override
+  String get wordMake => 'செய்';
+
+  @override
+  String get wordKeep => 'வை';
+
+  @override
+  String get wordLet => 'அனுமதி';
+
+  @override
+  String get wordKnow => 'தெரி';
+
+  @override
+  String get wordThink => 'நினை';
+
+  @override
+  String get wordFeel => 'உணர்';
+
+  @override
+  String get wordWant => 'வேண்டும்';
+
+  @override
+  String get wordNeed => 'தேவை';
+
+  @override
+  String get wordLike => 'விரும்பு';
+
+  @override
+  String get wordLove => 'நேசி';
+
+  @override
+  String get wordHate => 'வெறு';
+
+  @override
+  String get wordTalk => 'பேசு';
+
+  @override
+  String get wordSay => 'சொல்';
+
+  @override
+  String get wordTell => 'கூறு';
+
+  @override
+  String get wordAsk => 'கேள்';
+
+  @override
+  String get wordHelpVerb => 'உதவு';
+
+  @override
+  String get wordWait => 'காத்திரு';
+
+  @override
+  String get wordStay => 'இரு';
+
+  @override
+  String get wordCome => 'வா';
+
+  @override
+  String get wordMove => 'நகர்';
+
+  @override
+  String get wordRun => 'ஓடு';
+
+  @override
+  String get wordWalk => 'நட';
+
+  @override
+  String get wordMeet => 'சந்தி';
+
+  @override
+  String get wordWork => 'வேலைசெய்';
+
+  @override
+  String get wordLive => 'வாழ்';
+
+  @override
+  String get wordChange => 'மாற்று';
+
+  @override
+  String get wordTurn => 'திரும்பு';
+
+  @override
+  String get wordRead => 'படி';
+
+  @override
+  String get wordWrite => 'எழுது';
+
+  @override
+  String get wordLearn => 'கற்றுக்கொள்';
+
+  @override
+  String get wordStudy => 'படி';
+
+  @override
+  String get wordWatch => 'பார்';
+
+  @override
+  String get wordListen => 'கேள்';
+
+  @override
+  String get wordSpeak => 'பேசு';
+
+  @override
+  String get wordEat => 'சாப்பிடு';
+
+  @override
+  String get wordDrink => 'குடி';
+
+  @override
+  String get wordSleep => 'தூங்கு';
+
+  @override
+  String get wordBuy => 'வாங்கு';
+
+  @override
+  String get wordSell => 'விற்கு';
+
+  @override
+  String get wordPay => 'செலுத்து';
+
+  @override
+  String get wordSpend => 'செலவழி';
+
+  @override
+  String get wordSave => 'சேமி';
+
+  @override
+  String get wordWin => 'வெற்றிபெறு';
+
+  @override
+  String get wordLose => 'தோல்வியடை';
+
+  @override
+  String get wordCheck => 'சரிபார்';
+
+  @override
+  String get wordPick => 'எடு';
+
+  @override
+  String get wordChoose => 'தேர்ந்தெடு';
+
+  @override
+  String get wordDecide => 'முடிவுசெய்';
+
+  @override
+  String get wordAgree => 'ஒப்புக்கொள்';
+
+  @override
+  String get wordDisagree => 'மறு';
+
+  @override
+  String get wordActive => 'செயலில்';
+
+  @override
+  String get wordInactive => 'செயலற்ற';
+
+  @override
+  String get wordAvailable => 'கிடைக்கும்';
+
+  @override
+  String get wordUnavailable => 'கிடைக்காது';
+
+  @override
+  String get wordBusy => 'பிஸியாக';
+
+  @override
+  String get wordAway => 'விலகி';
+
+  @override
+  String get wordInvisible => 'கண்ணுக்கு தெரியாத';
+
+  @override
+  String get wordOnline => 'ஆன்லைன்';
+
+  @override
+  String get wordOffline => 'ஆஃப்லைன்';
+
+  @override
+  String get wordConnected => 'இணைக்கப்பட்டது';
+
+  @override
+  String get wordDisconnected => 'துண்டிக்கப்பட்டது';
+
+  @override
+  String get wordVerified => 'சரிபார்க்கப்பட்டது';
+
+  @override
+  String get wordUnverified => 'சரிபார்க்கப்படாதது';
+
+  @override
+  String get wordApproved => 'அங்கீகரிக்கப்பட்டது';
+
+  @override
+  String get wordDenied => 'மறுக்கப்பட்டது';
+
+  @override
+  String get wordBlocked => 'தடுக்கப்பட்டது';
+
+  @override
+  String get wordUnblocked => 'தடை நீக்கப்பட்டது';
+
+  @override
+  String get wordSuspended => 'இடைநிறுத்தப்பட்டது';
+
+  @override
+  String get wordBanned => 'தடைசெய்யப்பட்டது';
+
+  @override
+  String get wordRestricted => 'கட்டுப்படுத்தப்பட்டது';
+
+  @override
+  String get wordPremium => 'பிரீமியம்';
+
+  @override
+  String get wordStandard => 'நிலையான';
+
+  @override
+  String get wordBasic => 'அடிப்படை';
+
+  @override
+  String get wordNew => 'புதிய';
+
+  @override
+  String get wordUpdated => 'புதுப்பிக்கப்பட்டது';
+
+  @override
+  String get wordRecent => 'சமீபத்திய';
+
+  @override
+  String get wordPopular => 'பிரபலமான';
+
+  @override
+  String get wordTrending => 'ட்ரெண்டிங்';
+
+  @override
+  String get wordFeatured => 'சிறப்பு';
+
+  @override
+  String get wordRecommended => 'பரிந்துரைக்கப்பட்டது';
+
+  @override
+  String get wordSuggested => 'பரிந்துரைக்கப்பட்டது';
+
+  @override
+  String get wordRequired => 'தேவை';
+
+  @override
+  String get wordOptional => 'விருப்பமான';
+
+  @override
+  String get wordEnabled => 'இயக்கப்பட்டது';
+
+  @override
+  String get wordDisabled => 'முடக்கப்பட்டது';
+
+  @override
+  String get wordLocked => 'பூட்டப்பட்டது';
+
+  @override
+  String get wordUnlocked => 'திறக்கப்பட்டது';
+
+  @override
+  String get wordHidden => 'மறைக்கப்பட்டது';
+
+  @override
+  String get wordVisible => 'தெரியும்';
+
+  @override
+  String get wordPublic => 'பொது';
+
+  @override
+  String get wordPrivate => 'தனிப்பட்ட';
+
+  @override
+  String get wordSecure => 'பாதுகாப்பான';
+
+  @override
+  String get wordSafe => 'பாதுகாப்பான';
+
+  @override
+  String get wordReal => 'உண்மையான';
+
+  @override
+  String get wordFake => 'போலி';
+
+  @override
+  String get wordTrue => 'உண்மை';
+
+  @override
+  String get wordFalse => 'தவறு';
+
+  @override
+  String get wordValid => 'செல்லுபடியாகும்';
+
+  @override
+  String get wordInvalid => 'செல்லாது';
+
+  @override
+  String get wordCorrect => 'சரியான';
+
+  @override
+  String get wordIncorrect => 'தவறான';
+
+  @override
+  String get wordEmpty => 'காலி';
+
+  @override
+  String get wordFull => 'நிரம்பிய';
+
+  @override
+  String get wordReady => 'தயார்';
+
+  @override
+  String get wordNotReady => 'தயாராக இல்லை';
+
+  @override
+  String get wordDone => 'முடிந்தது';
+
+  @override
+  String get wordNotDone => 'முடியவில்லை';
+
+  @override
+  String get wordSent => 'அனுப்பப்பட்டது';
+
+  @override
+  String get wordReceived => 'பெறப்பட்டது';
+
+  @override
+  String get wordReadStatus => 'படிக்கப்பட்டது';
+
+  @override
+  String get wordUnread => 'படிக்காத';
+
+  @override
+  String get wordSeen => 'பார்க்கப்பட்டது';
+
+  @override
+  String get wordUnseen => 'பார்க்கப்படாத';
+
+  @override
+  String get wordOpenStatus => 'திறந்த';
+
+  @override
+  String get wordClosed => 'மூடப்பட்ட';
+
+  @override
+  String get wordNow => 'இப்போது';
+
+  @override
+  String get wordLater => 'பின்னர்';
+
+  @override
+  String get wordSoon => 'விரைவில்';
+
+  @override
+  String get wordToday => 'இன்று';
+
+  @override
+  String get wordTomorrow => 'நாளை';
+
+  @override
+  String get wordYesterday => 'நேற்று';
+
+  @override
+  String get wordMorning => 'காலை';
+
+  @override
+  String get wordAfternoon => 'மதியம்';
+
+  @override
+  String get wordEvening => 'மாலை';
+
+  @override
+  String get wordNight => 'இரவு';
+
+  @override
+  String get wordWeek => 'வாரம்';
+
+  @override
+  String get wordMonth => 'மாதம்';
+
+  @override
+  String get wordYear => 'வருடம்';
+
+  @override
+  String get wordDaily => 'தினசரி';
+
+  @override
+  String get wordWeekly => 'வாராந்திர';
+
+  @override
+  String get wordMonthly => 'மாதாந்திர';
+
+  @override
+  String get wordYearly => 'வருடாந்திர';
+
+  @override
+  String get wordAlways => 'எப்போதும்';
+
+  @override
+  String get wordNever => 'ஒருபோதும் இல்லை';
+
+  @override
+  String get wordSometimes => 'சில நேரங்களில்';
+
+  @override
+  String get wordOften => 'அடிக்கடி';
+
+  @override
+  String get wordRarely => 'அரிதாக';
+
+  @override
+  String get wordRecently => 'சமீபத்தில்';
+
+  @override
+  String get wordBefore => 'முன்';
+
+  @override
+  String get wordAfter => 'பின்';
+
+  @override
+  String get wordDuring => 'போது';
+
+  @override
+  String get wordUntil => 'வரை';
+
+  @override
+  String get wordSince => 'முதல்';
+
+  @override
+  String get wordAgo => 'முன்பு';
+
+  @override
+  String get wordMinute => 'நிமிடம்';
+
+  @override
+  String get wordMinutes => 'நிமிடங்கள்';
+
+  @override
+  String get wordHour => 'மணி நேரம்';
+
+  @override
+  String get wordHours => 'மணி நேரங்கள்';
+
+  @override
+  String get wordDay => 'நாள்';
+
+  @override
+  String get wordDays => 'நாட்கள்';
+
+  @override
+  String get wordWeeks => 'வாரங்கள்';
+
+  @override
+  String get wordMonths => 'மாதங்கள்';
+
+  @override
+  String get wordYears => 'வருடங்கள்';
+
+  @override
+  String get wordSecond => 'விநாடி';
+
+  @override
+  String get wordSeconds => 'விநாடிகள்';
+
+  @override
+  String get wordGood => 'நல்ல';
+
+  @override
+  String get wordBad => 'கெட்ட';
+
+  @override
+  String get wordGreat => 'பெரிய';
+
+  @override
+  String get wordExcellent => 'சிறந்த';
+
+  @override
+  String get wordBest => 'சிறந்த';
+
+  @override
+  String get wordWorst => 'மோசமான';
+
+  @override
+  String get wordOld => 'பழைய';
+
+  @override
+  String get wordYoung => 'இளம்';
+
+  @override
+  String get wordHot => 'சூடான';
+
+  @override
+  String get wordCold => 'குளிர்ந்த';
+
+  @override
+  String get wordFast => 'வேகமான';
+
+  @override
+  String get wordSlow => 'மெதுவான';
+
+  @override
+  String get wordEasy => 'எளிதான';
+
+  @override
+  String get wordHard => 'கடினமான';
+
+  @override
+  String get wordSimple => 'எளிமையான';
+
+  @override
+  String get wordComplex => 'சிக்கலான';
+
+  @override
+  String get wordSmall => 'சிறிய';
+
+  @override
+  String get wordBig => 'பெரிய';
+
+  @override
+  String get wordLarge => 'பெரிய';
+
+  @override
+  String get wordTiny => 'மிகச்சிறிய';
+
+  @override
+  String get wordHuge => 'மிகப்பெரிய';
+
+  @override
+  String get wordLong => 'நீண்ட';
+
+  @override
+  String get wordShort => 'குறுகிய';
+
+  @override
+  String get wordHigh => 'உயர்ந்த';
+
+  @override
+  String get wordLow => 'தாழ்ந்த';
+
+  @override
+  String get wordWide => 'அகலமான';
+
+  @override
+  String get wordNarrow => 'குறுகிய';
+
+  @override
+  String get wordThick => 'தடிமனான';
+
+  @override
+  String get wordThin => 'மெல்லிய';
+
+  @override
+  String get wordDeep => 'ஆழமான';
+
+  @override
+  String get wordShallow => 'ஆழமற்ற';
+
+  @override
+  String get wordBright => 'பிரகாசமான';
+
+  @override
+  String get wordDark => 'இருண்ட';
+
+  @override
+  String get wordLight => 'இலகுவான';
+
+  @override
+  String get wordHeavy => 'கனமான';
+
+  @override
+  String get wordSoft => 'மென்மையான';
+
+  @override
+  String get wordLoud => 'சத்தமான';
+
+  @override
+  String get wordQuiet => 'அமைதியான';
+
+  @override
+  String get wordClean => 'சுத்தமான';
+
+  @override
+  String get wordDirty => 'அழுக்கான';
+
+  @override
+  String get wordRich => 'பணக்கார';
+
+  @override
+  String get wordPoor => 'ஏழை';
+
+  @override
+  String get wordFree => 'இலவச';
+
+  @override
+  String get wordPaid => 'பணம் செலுத்திய';
+
+  @override
+  String get wordCheap => 'மலிவான';
+
+  @override
+  String get wordExpensive => 'விலையுயர்ந்த';
+
+  @override
+  String get wordBeautiful => 'அழகான';
+
+  @override
+  String get wordUgly => 'அசிங்கமான';
+
+  @override
+  String get wordPretty => 'அழகான';
+
+  @override
+  String get wordHandsome => 'அழகான';
+
+  @override
+  String get wordCute => 'அழகான';
+
+  @override
+  String get wordSexy => 'கவர்ச்சியான';
+
+  @override
+  String get wordAttractive => 'ஈர்க்கும்';
+
+  @override
+  String get wordHappy => 'மகிழ்ச்சியான';
+
+  @override
+  String get wordSad => 'சோகமான';
+
+  @override
+  String get wordAngry => 'கோபமான';
+
+  @override
+  String get wordScared => 'பயமான';
+
+  @override
+  String get wordExcited => 'உற்சாகமான';
+
+  @override
+  String get wordBored => 'சலிப்பான';
+
+  @override
+  String get wordTired => 'களைப்பான';
+
+  @override
+  String get wordSick => 'நோயுற்ற';
+
+  @override
+  String get wordHealthy => 'ஆரோக்கியமான';
+
+  @override
+  String get wordStrong => 'வலிமையான';
+
+  @override
+  String get wordWeak => 'பலவீனமான';
+
+  @override
+  String get wordSmart => 'புத்திசாலி';
+
+  @override
+  String get wordStupid => 'முட்டாள்';
+
+  @override
+  String get wordFunny => 'வேடிக்கையான';
+
+  @override
+  String get wordSerious => 'தீவிரமான';
+
+  @override
+  String get wordNice => 'நல்ல';
+
+  @override
+  String get wordMean => 'கொடுமையான';
+
+  @override
+  String get wordKind => 'இரக்கமுள்ள';
+
+  @override
+  String get wordCruel => 'கொடூரமான';
+
+  @override
+  String get wordFriendly => 'நட்புள்ள';
+
+  @override
+  String get wordRude => 'முரட்டுத்தனமான';
+
+  @override
+  String get wordPolite => 'கண்ணியமான';
+
+  @override
+  String get wordHonest => 'நேர்மையான';
+
+  @override
+  String get wordLazy => 'சோம்பேறி';
+
+  @override
+  String get wordBrave => 'தைரியமான';
+
+  @override
+  String get wordCurious => 'ஆர்வமுள்ள';
+
+  @override
+  String get wordPatient => 'பொறுமையான';
+
+  @override
+  String get wordImpatient => 'பொறுமையற்ற';
+
+  @override
+  String get wordCareful => 'கவனமான';
+
+  @override
+  String get wordCareless => 'கவனக்குறைவான';
+
+  @override
+  String get wordGenerous => 'தாராளமான';
+
+  @override
+  String get wordSelfish => 'சுயநலமான';
+
+  @override
+  String get wordRomantic => 'காதல்';
+
+  @override
+  String get wordPassionate => 'ஆர்வமுள்ள';
+
+  @override
+  String get wordLoyal => 'விசுவாசமான';
+
+  @override
+  String get wordFaithful => 'நம்பிக்கையான';
+
+  @override
+  String get wordTrustworthy => 'நம்பகமான';
+
+  @override
+  String get wordReliable => 'நம்பகமான';
+
+  @override
+  String get wordResponsible => 'பொறுப்பான';
+
+  @override
+  String get wordMature => 'முதிர்ந்த';
+
+  @override
+  String get wordImmature => 'முதிர்ச்சியற்ற';
+
+  @override
+  String get wordIndependent => 'சுதந்திரமான';
+
+  @override
+  String get wordConfident => 'நம்பிக்கையான';
+
+  @override
+  String get wordShy => 'கூச்சமான';
+
+  @override
+  String get wordOutgoing => 'சமூகமான';
+
+  @override
+  String get wordIntroverted => 'உள்முக';
+
+  @override
+  String get wordExtroverted => 'வெளிமுக';
+
+  @override
+  String get wordAmbitious => 'லட்சியமுள்ள';
+
+  @override
+  String get wordCreative => 'படைப்பாற்றல்';
+
+  @override
+  String get wordIntelligent => 'புத்திசாலி';
+
+  @override
+  String get wordWise => 'ஞானமுள்ள';
+
+  @override
+  String get wordTalented => 'திறமையான';
+
+  @override
+  String get wordSuccessful => 'வெற்றிகரமான';
+
+  @override
+  String get wordFamous => 'புகழ்பெற்ற';
+
+  @override
+  String get wordImportant => 'முக்கியமான';
+
+  @override
+  String get wordSpecial => 'சிறப்பான';
+
+  @override
+  String get wordPerfect => 'சரியான';
+
+  @override
+  String get wordAmazing => 'அற்புதமான';
+
+  @override
+  String get wordWonderful => 'அற்புதமான';
+
+  @override
+  String get wordFantastic => 'அற்புதமான';
+
+  @override
+  String get wordIncredible => 'நம்பமுடியாத';
+
+  @override
+  String get wordAwesome => 'அற்புதமான';
+
+  @override
+  String get wordTerrific => 'அற்புதமான';
+
+  @override
+  String get wordMarvelous => 'அற்புதமான';
+
+  @override
+  String get wordSuperb => 'சிறந்த';
+
+  @override
+  String get wordOutstanding => 'சிறந்த';
+
+  @override
+  String get wordBrilliant => 'பிரகாசமான';
+
+  @override
+  String get wordFabulous => 'அற்புதமான';
+
+  @override
+  String get wordMagnificent => 'மகத்தான';
+
+  @override
+  String get wordSpectacular => 'கண்கவர்';
+
+  @override
+  String get wordPlease => 'தயவுசெய்து';
+
+  @override
+  String get wordThanks => 'நன்றி';
+
+  @override
+  String get wordThankYou => 'நன்றி';
+
+  @override
+  String get wordSorry => 'மன்னிக்கவும்';
+
+  @override
+  String get wordExcuseMe => 'மன்னிக்கவும்';
+
+  @override
+  String get wordWelcome => 'வரவேற்கிறோம்';
+
+  @override
+  String get wordHello => 'வணக்கம்';
+
+  @override
+  String get wordHi => 'ஹாய்';
+
+  @override
+  String get wordHey => 'ஹே';
+
+  @override
+  String get wordGoodbye => 'விடைபெறுகிறேன்';
+
+  @override
+  String get wordBye => 'பை';
+
+  @override
+  String get wordCongratulations => 'வாழ்த்துக்கள்';
+
+  @override
+  String get wordCongrats => 'வாழ்த்துக்கள்';
+
+  @override
+  String get wordGoodMorning => 'காலை வணக்கம்';
+
+  @override
+  String get wordGoodAfternoon => 'மதிய வணக்கம்';
+
+  @override
+  String get wordGoodEvening => 'மாலை வணக்கம்';
+
+  @override
+  String get wordGoodNight => 'இரவு வணக்கம்';
+
+  @override
+  String get wordHowAreYou => 'எப்படி இருக்கிறீர்கள்?';
+
+  @override
+  String get wordImFine => 'நான் நன்றாக இருக்கிறேன்';
+
+  @override
+  String get wordNiceMeetYou => 'உங்களை சந்தித்ததில் மகிழ்ச்சி';
+
+  @override
+  String get wordSeeLater => 'பின்னர் சந்திப்போம்';
+
+  @override
+  String get wordTakeCare => 'கவனமாக இருங்கள்';
+
+  @override
+  String get wordMissYou => 'உங்களை நினைக்கிறேன்';
+
+  @override
+  String get wordLoveYou => 'உன்னை நேசிக்கிறேன்';
+
+  @override
+  String get wordThinkingOfYou => 'உன்னை நினைக்கிறேன்';
+
+  @override
+  String get wordGoodLuck => 'வாழ்த்துக்கள்';
+
+  @override
+  String get wordHaveFun => 'மகிழுங்கள்';
+
+  @override
+  String get wordEnjoy => 'மகிழுங்கள்';
+
+  @override
+  String get wordCheers => 'சியர்ஸ்';
+
+  @override
+  String get wordWho => 'யார்';
+
+  @override
+  String get wordWhat => 'என்ன';
+
+  @override
+  String get wordWhen => 'எப்போது';
+
+  @override
+  String get wordWhere => 'எங்கே';
+
+  @override
+  String get wordWhy => 'ஏன்';
+
+  @override
+  String get wordHow => 'எப்படி';
+
+  @override
+  String get wordWhich => 'எது';
+
+  @override
+  String get wordWhose => 'யாருடைய';
+
+  @override
+  String get wordHowMany => 'எத்தனை';
+
+  @override
+  String get wordHowMuch => 'எவ்வளவு';
+
+  @override
+  String get wordHowLong => 'எவ்வளவு நேரம்';
+
+  @override
+  String get wordHowFar => 'எவ்வளவு தூரம்';
+
+  @override
+  String get wordHowOld => 'எத்தனை வயது';
+
+  @override
+  String get wordHowOften => 'எவ்வளவு அடிக்கடி';
+
+  @override
+  String get wordWith => 'உடன்';
+
+  @override
+  String get wordWithout => 'இல்லாமல்';
+
+  @override
+  String get wordIn => 'உள்ளே';
+
+  @override
+  String get wordOut => 'வெளியே';
+
+  @override
+  String get wordUp => 'மேலே';
+
+  @override
+  String get wordDown => 'கீழே';
+
+  @override
+  String get wordLeft => 'இடது';
+
+  @override
+  String get wordRight => 'வலது';
+
+  @override
+  String get wordNear => 'அருகில்';
+
+  @override
+  String get wordFar => 'தொலைவில்';
+
+  @override
+  String get wordHere => 'இங்கே';
+
+  @override
+  String get wordThere => 'அங்கே';
+
+  @override
+  String get wordInside => 'உள்ளே';
+
+  @override
+  String get wordOutside => 'வெளியே';
+
+  @override
+  String get wordAbove => 'மேலே';
+
+  @override
+  String get wordBelow => 'கீழே';
+
+  @override
+  String get wordBetween => 'இடையே';
+
+  @override
+  String get wordAround => 'சுற்றி';
+
+  @override
+  String get wordAcross => 'குறுக்கே';
+
+  @override
+  String get wordThrough => 'வழியாக';
+
+  @override
+  String get wordAlong => 'வழியாக';
+
+  @override
+  String get wordToward => 'நோக்கி';
+
+  @override
+  String get wordAwayFrom => 'விலகி';
+
+  @override
+  String get wordBehind => 'பின்னால்';
+
+  @override
+  String get wordAhead => 'முன்னால்';
+
+  @override
+  String get wordFront => 'முன்';
+
+  @override
+  String get wordBack => 'பின்';
+
+  @override
+  String get wordSide => 'பக்கம்';
+
+  @override
+  String get wordTop => 'மேல்';
+
+  @override
+  String get wordBottom => 'அடி';
+
+  @override
+  String get wordMiddle => 'நடு';
+
+  @override
+  String get wordCenter => 'மையம்';
+
+  @override
+  String get wordCorner => 'மூலை';
+
+  @override
+  String get wordEdge => 'விளிம்பு';
+
+  @override
+  String get wordCrush => 'க்ரஷ்';
+
+  @override
+  String get wordMatch => 'பொருத்தம்';
+
+  @override
+  String get wordMatches => 'பொருத்தங்கள்';
+
+  @override
+  String get wordMatched => 'பொருந்தியது';
+
+  @override
+  String get wordMatching => 'பொருத்துகிறது';
+
+  @override
+  String get wordUnmatched => 'பொருத்தம் நீக்கப்பட்டது';
+
+  @override
+  String get wordConnection => 'தொடர்பு';
+
+  @override
+  String get wordConnections => 'தொடர்புகள்';
+
+  @override
+  String get wordChemistry => 'கெமிஸ்ட்ரி';
+
+  @override
+  String get wordSpark => 'தீப்பொறி';
+
+  @override
+  String get wordDate => 'தேதி';
+
+  @override
+  String get wordDates => 'தேதிகள்';
+
+  @override
+  String get wordDating => 'டேட்டிங்';
+
+  @override
+  String get wordRomance => 'காதல்';
+
+  @override
+  String get wordSingle => 'தனிமையான';
+
+  @override
+  String get wordCouple => 'ஜோடி';
+
+  @override
+  String get wordRelationship => 'உறவு';
+
+  @override
+  String get wordRelationships => 'உறவுகள்';
+
+  @override
+  String get wordPartner => 'துணை';
+
+  @override
+  String get wordSoulmate => 'ஆன்ம துணை';
+
+  @override
+  String get wordInterested => 'ஆர்வமுள்ள';
+
+  @override
+  String get wordInterest => 'ஆர்வம்';
+
+  @override
+  String get wordInterests => 'ஆர்வங்கள்';
+
+  @override
+  String get wordMutual => 'பரஸ்பர';
+
+  @override
+  String get wordCompatible => 'பொருத்தமான';
+
+  @override
+  String get wordCompatibility => 'பொருத்தம்';
+
+  @override
+  String get wordAttraction => 'ஈர்ப்பு';
+
+  @override
+  String get wordFlirt => 'ஊடல்';
+
+  @override
+  String get wordFlirting => 'ஊடல் செய்கிறது';
+
+  @override
+  String get wordFlirty => 'ஊடல்';
+
+  @override
+  String get wordSwipe => 'ஸ்வைப்';
+
+  @override
+  String get wordSwiped => 'ஸ்வைப் செய்யப்பட்டது';
+
+  @override
+  String get wordSwiping => 'ஸ்வைப் செய்கிறது';
+
+  @override
+  String get wordLiked => 'லைக் செய்யப்பட்டது';
+
+  @override
+  String get wordLikes => 'லைக்குகள்';
+
+  @override
+  String get wordLiking => 'லைக் செய்கிறது';
+
+  @override
+  String get wordPassed => 'பாஸ் செய்யப்பட்டது';
+
+  @override
+  String get wordPassing => 'பாஸ் செய்கிறது';
+
+  @override
+  String get wordSuperLike => 'சூப்பர் லைக்';
+
+  @override
+  String get wordSuperLiked => 'சூப்பர் லைக் செய்யப்பட்டது';
+
+  @override
+  String get wordBoost => 'பூஸ்ட்';
+
+  @override
+  String get wordBoosted => 'பூஸ்ட் செய்யப்பட்டது';
+
+  @override
+  String get wordBoosting => 'பூஸ்ட் செய்கிறது';
+
+  @override
+  String get wordRewind => 'ரீவைண்ட்';
+
+  @override
+  String get wordRewinded => 'ரீவைண்ட் செய்யப்பட்டது';
+
+  @override
+  String get wordChat => 'அரட்டை';
+
+  @override
+  String get wordChats => 'அரட்டைகள்';
+
+  @override
+  String get wordChatting => 'அரட்டை அடிக்கிறது';
+
+  @override
+  String get wordMessage => 'செய்தி';
+
+  @override
+  String get wordMessages => 'செய்திகள்';
+
+  @override
+  String get wordMessaging => 'செய்தி அனுப்புகிறது';
+
+  @override
+  String get wordConversation => 'உரையாடல்';
+
+  @override
+  String get wordConversations => 'உரையாடல்கள்';
+
+  @override
+  String get wordProfile => 'சுயவிவரம்';
+
+  @override
+  String get wordProfiles => 'சுயவிவரங்கள்';
+
+  @override
+  String get wordBio => 'பயோ';
+
+  @override
+  String get wordPhoto => 'புகைப்படம்';
+
+  @override
+  String get wordPhotos => 'புகைப்படங்கள்';
+
+  @override
+  String get wordVideo => 'வீடியோ';
+
+  @override
+  String get wordVideos => 'வீடியோக்கள்';
+
+  @override
+  String get wordGallery => 'கேலரி';
+
+  @override
+  String get wordAlbum => 'ஆல்பம்';
+
+  @override
+  String get wordVoice => 'குரல்';
+
+  @override
+  String get wordAudio => 'ஆடியோ';
+
+  @override
+  String get wordCamera => 'கேமரா';
+
+  @override
+  String get wordImage => 'படம்';
+
+  @override
+  String get wordImages => 'படங்கள்';
+
+  @override
+  String get wordPicture => 'படம்';
+
+  @override
+  String get wordPictures => 'படங்கள்';
+
+  @override
+  String get wordHeartbeat => 'இதயத்துடிப்பு';
+
+  @override
+  String get wordHeart => 'இதயம்';
+
+  @override
+  String get wordHearts => 'இதயங்கள்';
+
+  @override
+  String get wordStar => 'நட்சத்திரம்';
+
+  @override
+  String get wordStars => 'நட்சத்திரங்கள்';
+
+  @override
+  String get wordDiamond => 'வைரம்';
+
+  @override
+  String get wordFlame => 'தீ';
+
+  @override
+  String get wordFire => 'நெருப்பு';
+
+  @override
+  String get wordHotness => 'வெப்பம்';
+
+  @override
+  String get wordVibes => 'வைப்ஸ்';
+
+  @override
+  String get wordVibe => 'வைப்';
+
+  @override
+  String get wordMood => 'மனநிலை';
+
+  @override
+  String get wordEnergy => 'ஆற்றல்';
+
+  @override
+  String get wordAura => 'ஒளி';
+
+  @override
+  String get wordPersonality => 'ஆளுமை';
+
+  @override
+  String get wordCharacter => 'குணம்';
+
+  @override
+  String get wordValues => 'மதிப்புகள்';
+
+  @override
+  String get wordGoals => 'இலக்குகள்';
+
+  @override
+  String get wordDreams => 'கனவுகள்';
+
+  @override
+  String get wordHobbies => 'பொழுதுபோக்குகள்';
+
+  @override
+  String get wordPassion => 'ஆர்வம்';
+
+  @override
+  String get wordAdventure => 'சாகசம்';
+
+  @override
+  String get wordTravel => 'பயணம்';
+
+  @override
+  String get wordTraveling => 'பயணிக்கிறது';
+
+  @override
+  String get wordExploring => 'ஆராய்கிறது';
+
+  @override
+  String get wordFun => 'வேடிக்கை';
+
+  @override
+  String get wordLaughter => 'சிரிப்பு';
+
+  @override
+  String get wordSmile => 'புன்னகை';
+
+  @override
+  String get wordSmiles => 'புன்னகைகள்';
+
+  @override
+  String get wordSmiling => 'புன்னகைக்கிறது';
+
+  @override
+  String get wordKiss => 'முத்தம்';
+
+  @override
+  String get wordKisses => 'முத்தங்கள்';
+
+  @override
+  String get wordHug => 'கட்டிப்பிடி';
+
+  @override
+  String get wordHugs => 'கட்டிப்பிடிப்புகள்';
+
+  @override
+  String get wordCuddle => 'அணைப்பு';
+
+  @override
+  String get wordCuddling => 'அணைத்துக்கொள்கிறது';
+
+  @override
+  String get wordIntimate => 'நெருக்கமான';
+
+  @override
+  String get wordIntimacy => 'நெருக்கம்';
+
+  @override
+  String get wordAffection => 'பாசம்';
+
+  @override
+  String get wordAffectionate => 'பாசமுள்ள';
+
+  @override
+  String get wordCaring => 'அக்கறையுள்ள';
+
+  @override
+  String get wordLoving => 'அன்பான';
+
+  @override
+  String get wordDevoted => 'அர்ப்பணிப்புள்ள';
+
+  @override
+  String get wordCommitted => 'உறுதியான';
+
+  @override
+  String get wordCommitment => 'உறுதிப்பாடு';
+
+  @override
+  String get wordSeriousRel => 'தீவிரமான';
+
+  @override
+  String get wordCasual => 'சாதாரணமான';
+
+  @override
+  String get wordFriendship => 'நட்பு';
+
+  @override
+  String get wordFriend => 'நண்பர்';
+
+  @override
+  String get wordFriends => 'நண்பர்கள்';
+
+  @override
+  String get wordBestFriend => 'சிறந்த நண்பர்';
+
+  @override
+  String get wordSomethingSerious => 'தீவிரமான உறவு';
+
+  @override
+  String get wordLongTerm => 'நீண்டகால';
+
+  @override
+  String get wordShortTerm => 'குறுகியகால';
+
+  @override
+  String get wordOpenTo => 'தயார்';
+
+  @override
+  String get wordLookingFor => 'தேடுகிறது';
+
+  @override
+  String get wordSeekingFor => 'தேடுகிறது';
+
+  @override
+  String get wordWaiting => 'காத்திருக்கிறது';
+
+  @override
+  String get wordSearching => 'தேடுகிறது';
+
+  @override
+  String get wordNotification => 'அறிவிப்பு';
+
+  @override
+  String get wordAlert => 'எச்சரிக்கை';
+
+  @override
+  String get wordWarning => 'எச்சரிக்கை';
+
+  @override
+  String get wordInfo => 'தகவல்';
+
+  @override
+  String get wordInformation => 'தகவல்';
+
+  @override
+  String get wordDetails => 'விவரங்கள்';
+
+  @override
+  String get wordData => 'தரவு';
+
+  @override
+  String get wordContent => 'உள்ளடக்கம்';
+
+  @override
+  String get wordMedia => 'மீடியா';
+
+  @override
+  String get wordLink => 'இணைப்பு';
+
+  @override
+  String get wordLinks => 'இணைப்புகள்';
+
+  @override
+  String get wordURL => 'URL';
+
+  @override
+  String get wordAddress => 'முகவரி';
+
+  @override
+  String get wordName => 'பெயர்';
+
+  @override
+  String get wordUsername => 'பயனர்பெயர்';
+
+  @override
+  String get wordNickname => 'புனைப்பெயர்';
+
+  @override
+  String get wordAccount => 'கணக்கு';
+
+  @override
+  String get wordUser => 'பயனர்';
+
+  @override
+  String get wordUsers => 'பயனர்கள்';
+
+  @override
+  String get wordPeople => 'மக்கள்';
+
+  @override
+  String get wordPerson => 'நபர்';
+
+  @override
+  String get wordGroup => 'குழு';
+
+  @override
+  String get wordGroups => 'குழுக்கள்';
+
+  @override
+  String get wordTeam => 'அணி';
+
+  @override
+  String get wordCommunity => 'சமூகம்';
+
+  @override
+  String get wordMember => 'உறுப்பினர்';
+
+  @override
+  String get wordMembers => 'உறுப்பினர்கள்';
+
+  @override
+  String get wordAdmin => 'நிர்வாகி';
+
+  @override
+  String get wordModerator => 'மதிப்பாய்வாளர்';
+
+  @override
+  String get wordGuest => 'விருந்தினர்';
+
+  @override
+  String get wordVisitor => 'பார்வையாளர்';
+
+  @override
+  String get wordFollower => 'பின்தொடர்பவர்';
+
+  @override
+  String get wordFollowers => 'பின்தொடர்பவர்கள்';
+
+  @override
+  String get wordFollowing => 'பின்தொடர்கிறது';
+
+  @override
+  String get wordFan => 'ரசிகர்';
+
+  @override
+  String get wordFans => 'ரசிகர்கள்';
+
+  @override
+  String get wordSubscriber => 'சந்தாதாரர்';
+
+  @override
+  String get wordSubscribers => 'சந்தாதாரர்கள்';
+
+  @override
+  String get wordFile => 'கோப்பு';
+
+  @override
+  String get wordFiles => 'கோப்புகள்';
+
+  @override
+  String get wordFolder => 'கோப்புறை';
+
+  @override
+  String get wordFolders => 'கோப்புறைகள்';
+
+  @override
+  String get wordDocument => 'ஆவணம்';
+
+  @override
+  String get wordDocuments => 'ஆவணங்கள்';
+
+  @override
+  String get wordText => 'உரை';
+
+  @override
+  String get wordEmail => 'மின்னஞ்சல்';
+
+  @override
+  String get wordPhone => 'தொலைபேசி';
+
+  @override
+  String get wordNumber => 'எண்';
+
+  @override
+  String get wordCode => 'குறியீடு';
+
+  @override
+  String get wordPassword => 'கடவுச்சொல்';
+
+  @override
+  String get wordPasscode => 'கடவுக்குறியீடு';
+
+  @override
+  String get wordPIN => 'PIN';
+
+  @override
+  String get wordKey => 'சாவி';
+
+  @override
+  String get wordToken => 'டோக்கன்';
+
+  @override
+  String get wordSession => 'அமர்வு';
+
+  @override
+  String get wordApp => 'செயலி';
+
+  @override
+  String get wordApplication => 'பயன்பாடு';
+
+  @override
+  String get wordWebsite => 'வலைத்தளம்';
+
+  @override
+  String get wordPage => 'பக்கம்';
+
+  @override
+  String get wordPages => 'பக்கங்கள்';
+
+  @override
+  String get wordScreen => 'திரை';
+
+  @override
+  String get wordScreens => 'திரைகள்';
+
+  @override
+  String get wordSection => 'பிரிவு';
+
+  @override
+  String get wordSections => 'பிரிவுகள்';
+
+  @override
+  String get wordCategory => 'வகை';
+
+  @override
+  String get wordCategories => 'வகைகள்';
+
+  @override
+  String get wordTag => 'குறிச்சொல்';
+
+  @override
+  String get wordTags => 'குறிச்சொற்கள்';
+
+  @override
+  String get wordLabel => 'லேபிள்';
+
+  @override
+  String get wordLabels => 'லேபிள்கள்';
+
+  @override
+  String get wordTitle => 'தலைப்பு';
+
+  @override
+  String get wordSubtitle => 'உபதலைப்பு';
+
+  @override
+  String get wordDescription => 'விளக்கம்';
+
+  @override
+  String get wordSummary => 'சுருக்கம்';
+
+  @override
+  String get wordOverview => 'கண்ணோட்டம்';
+
+  @override
+  String get wordPreview => 'முன்னோட்டம்';
+
+  @override
+  String get wordReview => 'மதிப்பாய்வு';
+
+  @override
+  String get wordReviews => 'மதிப்பாய்வுகள்';
+
+  @override
+  String get wordRating => 'மதிப்பீடு';
+
+  @override
+  String get wordRatings => 'மதிப்பீடுகள்';
+
+  @override
+  String get wordFeedback => 'கருத்து';
+
+  @override
+  String get wordComment => 'கருத்து';
+
+  @override
+  String get wordComments => 'கருத்துகள்';
+
+  @override
+  String get wordReply => 'பதில்';
+
+  @override
+  String get wordReplies => 'பதில்கள்';
+
+  @override
+  String get wordPost => 'இடுகை';
+
+  @override
+  String get wordPosts => 'இடுகைகள்';
+
+  @override
+  String get wordStory => 'கதை';
+
+  @override
+  String get wordStories => 'கதைகள்';
+
+  @override
+  String get wordEvent => 'நிகழ்வு';
+
+  @override
+  String get wordEvents => 'நிகழ்வுகள்';
+
+  @override
+  String get wordNews => 'செய்திகள்';
+
+  @override
+  String get wordUpdate => 'புதுப்பிப்பு';
+
+  @override
+  String get wordUpdates => 'புதுப்பிப்புகள்';
+
+  @override
+  String get wordVersion => 'பதிப்பு';
+
+  @override
+  String get wordRelease => 'வெளியீடு';
+
+  @override
+  String get wordFeature => 'அம்சம்';
+
+  @override
+  String get wordFeatures => 'அம்சங்கள்';
+
+  @override
+  String get wordOption => 'விருப்பம்';
+
+  @override
+  String get wordOptions => 'விருப்பங்கள்';
+
+  @override
+  String get wordChoice => 'தேர்வு';
+
+  @override
+  String get wordChoices => 'தேர்வுகள்';
+
+  @override
+  String get wordPreference => 'விருப்பம்';
+
+  @override
+  String get wordPreferences => 'விருப்பங்கள்';
+
+  @override
+  String get wordSetting => 'அமைப்பு';
+
+  @override
+  String get wordSettingsNoun => 'அமைப்புகள்';
+
+  @override
+  String get wordConfig => 'கட்டமைப்பு';
+
+  @override
+  String get wordConfiguration => 'கட்டமைப்பு';
+
+  @override
+  String get wordPermission => 'அனுமதி';
+
+  @override
+  String get wordPermissions => 'அனுமதிகள்';
+
+  @override
+  String get wordAccess => 'அணுகல்';
+
+  @override
+  String get wordPrivacy => 'தனியுரிமை';
+
+  @override
+  String get wordSecurity => 'பாதுகாப்பு';
+
+  @override
+  String get wordSupport => 'ஆதரவு';
+
+  @override
+  String get wordService => 'சேவை';
+
+  @override
+  String get wordServices => 'சேவைகள்';
+
+  @override
+  String get wordTerms => 'விதிமுறைகள்';
+
+  @override
+  String get wordPolicy => 'கொள்கை';
+
+  @override
+  String get wordAgreement => 'ஒப்பந்தம்';
+
+  @override
+  String get wordContract => 'ஒப்பந்தம்';
+
+  @override
+  String get wordPlan => 'திட்டம்';
+
+  @override
+  String get wordPlans => 'திட்டங்கள்';
+
+  @override
+  String get wordPrice => 'விலை';
+
+  @override
+  String get wordPrices => 'விலைகள்';
+
+  @override
+  String get wordCost => 'செலவு';
+
+  @override
+  String get wordFee => 'கட்டணம்';
+
+  @override
+  String get wordFees => 'கட்டணங்கள்';
+
+  @override
+  String get wordDiscount => 'தள்ளுபடி';
+
+  @override
+  String get wordOffer => 'சலுகை';
+
+  @override
+  String get wordOffers => 'சலுகைகள்';
+
+  @override
+  String get wordDeal => 'ஒப்பந்தம்';
+
+  @override
+  String get wordDeals => 'ஒப்பந்தங்கள்';
+
+  @override
+  String get wordPromotion => 'விளம்பரம்';
+
+  @override
+  String get wordPromotions => 'விளம்பரங்கள்';
+
+  @override
+  String get wordCoupon => 'கூப்பன்';
+
+  @override
+  String get wordGift => 'பரிசு';
+
+  @override
+  String get wordGifts => 'பரிசுகள்';
+
+  @override
+  String get wordReward => 'வெகுமதி';
+
+  @override
+  String get wordRewards => 'வெகுமதிகள்';
+
+  @override
+  String get wordBonus => 'போனஸ்';
+
+  @override
+  String get wordBonuses => 'போனஸ்கள்';
+
+  @override
+  String get wordCredit => 'கிரெடிட்';
+
+  @override
+  String get wordCredits => 'கிரெடிட்கள்';
+
+  @override
+  String get wordCoin => 'நாணயம்';
+
+  @override
+  String get wordCoins => 'நாணயங்கள்';
+
+  @override
+  String get wordPoint => 'புள்ளி';
+
+  @override
+  String get wordPoints => 'புள்ளிகள்';
+
+  @override
+  String get wordLevel => 'நிலை';
+
+  @override
+  String get wordLevels => 'நிலைகள்';
+
+  @override
+  String get wordRank => 'தரம்';
+
+  @override
+  String get wordBadge => 'பேட்ஜ்';
+
+  @override
+  String get wordBadges => 'பேட்ஜ்கள்';
+
+  @override
+  String get wordAchievement => 'சாதனை';
+
+  @override
+  String get wordAchievements => 'சாதனைகள்';
+
+  @override
+  String get wordMilestone => 'மைல்கல்';
+
+  @override
+  String get wordProgress => 'முன்னேற்றம்';
+
+  @override
+  String get wordGoal => 'இலக்கு';
+
+  @override
+  String get wordTarget => 'இலக்கு';
+
+  @override
+  String get wordResult => 'முடிவு';
+
+  @override
+  String get wordResults => 'முடிவுகள்';
+
+  @override
+  String get wordStats => 'புள்ளிவிவரங்கள்';
+
+  @override
+  String get wordStatistics => 'புள்ளிவிவரங்கள்';
+
+  @override
+  String get wordAnalytics => 'பகுப்பாய்வு';
+
+  @override
+  String get wordInsight => 'நுண்ணறிவு';
+
+  @override
+  String get wordInsights => 'நுண்ணறிவுகள்';
+
+  @override
+  String get wordReport => 'அறிக்கை';
+
+  @override
+  String get wordReports => 'அறிக்கைகள்';
+
+  @override
+  String get wordDashboard => 'டாஷ்போர்டு';
+
+  @override
+  String get wordWorld => 'உலகம்';
+
+  @override
+  String get wordCountry => 'நாடு';
+
+  @override
+  String get wordCity => 'நகரம்';
+
+  @override
+  String get wordTown => 'நகரம்';
+
+  @override
+  String get wordState => 'மாநிலம்';
+
+  @override
+  String get wordProvince => 'மாகாணம்';
+
+  @override
+  String get wordRegion => 'பிராந்தியம்';
+
+  @override
+  String get wordArea => 'பகுதி';
+
+  @override
+  String get wordPlace => 'இடம்';
+
+  @override
+  String get wordLocation => 'இருப்பிடம்';
+
+  @override
+  String get wordDistance => 'தூரம்';
+
+  @override
+  String get wordDirection => 'திசை';
+
+  @override
+  String get wordMap => 'வரைபடம்';
+
+  @override
+  String get wordRoute => 'வழி';
+
+  @override
+  String get wordWay => 'வழி';
+
+  @override
+  String get wordPath => 'பாதை';
+
+  @override
+  String get wordRoad => 'சாலை';
+
+  @override
+  String get wordStreet => 'தெரு';
+
+  @override
+  String get wordPark => 'பூங்கா';
+
+  @override
+  String get wordBeach => 'கடற்கரை';
+
+  @override
+  String get wordMountain => 'மலை';
+
+  @override
+  String get wordLake => 'ஏரி';
+
+  @override
+  String get wordRiver => 'நதி';
+
+  @override
+  String get wordSea => 'கடல்';
+
+  @override
+  String get wordOcean => 'பெருங்கடல்';
+
+  @override
+  String get wordSky => 'வானம்';
+
+  @override
+  String get wordSun => 'சூரியன்';
+
+  @override
+  String get wordMoon => 'நிலா';
+
+  @override
+  String get wordWeather => 'வானிலை';
+
+  @override
+  String get wordSeason => 'பருவம்';
+
+  @override
+  String get wordSpring => 'வசந்தம்';
+
+  @override
+  String get wordSummer => 'கோடை';
+
+  @override
+  String get wordAutumn => 'இலையுதிர்காலம்';
+
+  @override
+  String get wordFall => 'இலையுதிர்காலம்';
+
+  @override
+  String get wordWinter => 'குளிர்காலம்';
+
+  @override
+  String get wordFamily => 'குடும்பம்';
+
+  @override
+  String get wordParent => 'பெற்றோர்';
+
+  @override
+  String get wordParents => 'பெற்றோர்கள்';
+
+  @override
+  String get wordMother => 'தாய்';
+
+  @override
+  String get wordFather => 'தந்தை';
+
+  @override
+  String get wordMom => 'அம்மா';
+
+  @override
+  String get wordDad => 'அப்பா';
+
+  @override
+  String get wordChild => 'குழந்தை';
+
+  @override
+  String get wordChildren => 'குழந்தைகள்';
+
+  @override
+  String get wordKid => 'குழந்தை';
+
+  @override
+  String get wordKids => 'குழந்தைகள்';
+
+  @override
+  String get wordBaby => 'குழந்தை';
+
+  @override
+  String get wordSon => 'மகன்';
+
+  @override
+  String get wordDaughter => 'மகள்';
+
+  @override
+  String get wordBrother => 'சகோதரன்';
+
+  @override
+  String get wordSister => 'சகோதரி';
+
+  @override
+  String get wordGrandparent => 'தாத்தா/பாட்டி';
+
+  @override
+  String get wordGrandparents => 'தாத்தா பாட்டி';
+
+  @override
+  String get wordAunt => 'அத்தை/சித்தி';
+
+  @override
+  String get wordUncle => 'மாமா/சித்தப்பா';
+
+  @override
+  String get wordCousin => 'உறவினர்';
+
+  @override
+  String get wordPet => 'செல்லப்பிராணி';
+
+  @override
+  String get wordPets => 'செல்லப்பிராணிகள்';
+
+  @override
+  String get wordDog => 'நாய்';
+
+  @override
+  String get wordCat => 'பூனை';
+
+  @override
+  String get wordAnimal => 'விலங்கு';
+
+  @override
+  String get wordAnimals => 'விலங்குகள்';
+
+  @override
+  String get wordFood => 'உணவு';
+
+  @override
+  String get wordDinner => 'இரவு உணவு';
+
+  @override
+  String get wordLunch => 'மதிய உணவு';
+
+  @override
+  String get wordBreakfast => 'காலை உணவு';
+
+  @override
+  String get wordSnack => 'சிற்றுண்டி';
+
+  @override
+  String get wordDessert => 'இனிப்பு';
+
+  @override
+  String get wordCoffee => 'காபி';
+
+  @override
+  String get wordTea => 'தேநீர்';
+
+  @override
+  String get wordWater => 'நீர்';
+
+  @override
+  String get wordWine => 'ஒயின்';
+
+  @override
+  String get wordBeer => 'பீர்';
+
+  @override
+  String get wordCocktail => 'காக்டெய்ல்';
+
+  @override
+  String get wordMusic => 'இசை';
+
+  @override
+  String get wordSong => 'பாடல்';
+
+  @override
+  String get wordSongs => 'பாடல்கள்';
+
+  @override
+  String get wordMovie => 'திரைப்படம்';
+
+  @override
+  String get wordMovies => 'திரைப்படங்கள்';
+
+  @override
+  String get wordFilm => 'படம்';
+
+  @override
+  String get wordFilms => 'படங்கள்';
+
+  @override
+  String get wordShowNoun => 'நிகழ்ச்சி';
+
+  @override
+  String get wordShows => 'நிகழ்ச்சிகள்';
+
+  @override
+  String get wordSeries => 'தொடர்';
+
+  @override
+  String get wordBook => 'புத்தகம்';
+
+  @override
+  String get wordBooks => 'புத்தகங்கள்';
+
+  @override
+  String get wordGame => 'விளையாட்டு';
+
+  @override
+  String get wordGames => 'விளையாட்டுகள்';
+
+  @override
+  String get wordSport => 'விளையாட்டு';
+
+  @override
+  String get wordSports => 'விளையாட்டுகள்';
+
+  @override
+  String get wordExercise => 'உடற்பயிற்சி';
+
+  @override
+  String get wordFitness => 'உடற்தகுதி';
+
+  @override
+  String get wordGym => 'ஜிம்';
+
+  @override
+  String get wordYoga => 'யோகா';
+
+  @override
+  String get wordRunning => 'ஓடுதல்';
+
+  @override
+  String get wordSwimming => 'நீச்சல்';
+
+  @override
+  String get wordDancing => 'நடனம்';
+
+  @override
+  String get wordCooking => 'சமையல்';
+
+  @override
+  String get wordReading => 'படித்தல்';
+
+  @override
+  String get wordWriting => 'எழுதுதல்';
+
+  @override
+  String get wordPainting => 'ஓவியம்';
+
+  @override
+  String get wordDrawing => 'வரைதல்';
+
+  @override
+  String get wordPhotography => 'புகைப்படக்கலை';
+
+  @override
+  String get wordArt => 'கலை';
+
+  @override
+  String get wordDesign => 'வடிவமைப்பு';
+
+  @override
+  String get wordFashion => 'பேஷன்';
+
+  @override
+  String get wordStyle => 'பாணி';
+
+  @override
+  String get wordClothing => 'உடை';
+
+  @override
+  String get wordClothes => 'ஆடைகள்';
+
+  @override
+  String get wordShoes => 'காலணிகள்';
+
+  @override
+  String get wordAccessories => 'துணைப்பொருட்கள்';
+
+  @override
+  String get wordJewelry => 'நகைகள்';
+
+  @override
+  String get wordMakeup => 'மேக்கப்';
+
+  @override
+  String get wordBeauty => 'அழகு';
+
+  @override
+  String get wordHealth => 'ஆரோக்கியம்';
+
+  @override
+  String get wordWellness => 'நலம்';
+
+  @override
+  String get wordMind => 'மனம்';
+
+  @override
+  String get wordBody => 'உடல்';
+
+  @override
+  String get wordSoul => 'ஆன்மா';
+
+  @override
+  String get wordSpirit => 'ஆவி';
+
+  @override
+  String get wordLife => 'வாழ்க்கை';
+
+  @override
+  String get wordDeath => 'மரணம்';
+
+  @override
+  String get wordBirth => 'பிறப்பு';
+
+  @override
+  String get wordAge => 'வயது';
+
+  @override
+  String get wordGender => 'பாலினம்';
+
+  @override
+  String get wordMale => 'ஆண்';
+
+  @override
+  String get wordFemale => 'பெண்';
+
+  @override
+  String get wordMan => 'மனிதன்';
+
+  @override
+  String get wordWoman => 'பெண்';
+
+  @override
+  String get wordBoy => 'பையன்';
+
+  @override
+  String get wordGirl => 'பெண்';
+
+  @override
+  String get wordGuy => 'நபர்';
+
+  @override
+  String get wordLady => 'பெண்மணி';
+
+  @override
+  String get wordGentleman => 'நாகரீகமான மனிதர்';
+
+  @override
+  String get wordHuman => 'மனிதன்';
+
+  @override
+  String get wordHumans => 'மனிதர்கள்';
+
+  @override
+  String get wordEveryone => 'அனைவரும்';
+
+  @override
+  String get wordEverybody => 'அனைவரும்';
+
+  @override
+  String get wordSomeone => 'யாரோ';
+
+  @override
+  String get wordSomebody => 'யாரோ';
+
+  @override
+  String get wordNoone => 'யாரும் இல்லை';
+
+  @override
+  String get wordNobody => 'யாரும் இல்லை';
+
+  @override
+  String get wordAnyone => 'எவரும்';
+
+  @override
+  String get wordAnybody => 'எவரும்';
+
+  @override
+  String get wordEverything => 'எல்லாம்';
+
+  @override
+  String get wordSomething => 'ஏதோ';
+
+  @override
+  String get wordNothing => 'எதுவும் இல்லை';
+
+  @override
+  String get wordAnything => 'எதுவும்';
 }

@@ -1383,4 +1383,2632 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get emptyCheckBackLater => 'Загляните позже';
+
+  @override
+  String get wordHome => 'Главная';
+
+  @override
+  String get wordExplore => 'Обзор';
+
+  @override
+  String get wordHelp => 'Помочь';
+
+  @override
+  String get wordMenu => 'Меню';
+
+  @override
+  String get wordFeed => 'Лента';
+
+  @override
+  String get wordActivity => 'Активность';
+
+  @override
+  String get wordNotifications => 'Уведомления';
+
+  @override
+  String get wordInbox => 'Входящие';
+
+  @override
+  String get wordFavorites => 'Избранное';
+
+  @override
+  String get wordHistory => 'История';
+
+  @override
+  String get wordCopy => 'Копировать';
+
+  @override
+  String get wordPaste => 'Вставить';
+
+  @override
+  String get wordUndo => 'Отменить';
+
+  @override
+  String get wordRedo => 'Повторить';
+
+  @override
+  String get wordDownload => 'Скачать';
+
+  @override
+  String get wordUpload => 'Загрузить';
+
+  @override
+  String get wordSelect => 'Выбрать';
+
+  @override
+  String get wordDeselect => 'Снять выбор';
+
+  @override
+  String get wordOpen => 'Открыто';
+
+  @override
+  String get wordCreate => 'Создать';
+
+  @override
+  String get wordConnect => 'Подключить';
+
+  @override
+  String get wordDisconnect => 'Отключить';
+
+  @override
+  String get wordStart => 'Начать';
+
+  @override
+  String get wordStop => 'Остановить';
+
+  @override
+  String get wordPlay => 'Воспроизвести';
+
+  @override
+  String get wordPause => 'Пауза';
+
+  @override
+  String get wordRecord => 'Запись';
+
+  @override
+  String get wordCall => 'Позвонить';
+
+  @override
+  String get wordEnd => 'Завершить';
+
+  @override
+  String get wordAnswer => 'Ответить';
+
+  @override
+  String get wordDecline => 'Отклонить';
+
+  @override
+  String get wordAccept => 'Принять';
+
+  @override
+  String get wordReject => 'Отклонить';
+
+  @override
+  String get wordApprove => 'Одобрить';
+
+  @override
+  String get wordDeny => 'Отказать';
+
+  @override
+  String get wordAllow => 'Разрешить';
+
+  @override
+  String get wordEnable => 'Включить';
+
+  @override
+  String get wordDisable => 'Отключить';
+
+  @override
+  String get wordShow => 'Шоу';
+
+  @override
+  String get wordHide => 'Скрыть';
+
+  @override
+  String get wordExpand => 'Развернуть';
+
+  @override
+  String get wordCollapse => 'Свернуть';
+
+  @override
+  String get wordSort => 'Сортировать';
+
+  @override
+  String get wordFilter => 'Фильтр';
+
+  @override
+  String get wordPin => 'Закрепить';
+
+  @override
+  String get wordUnpin => 'Открепить';
+
+  @override
+  String get wordArchive => 'Архивировать';
+
+  @override
+  String get wordRestore => 'Восстановить';
+
+  @override
+  String get wordForward => 'Переслать';
+
+  @override
+  String get wordFollow => 'Подписаться';
+
+  @override
+  String get wordUnfollow => 'Отписаться';
+
+  @override
+  String get wordSubscribe => 'Подписаться';
+
+  @override
+  String get wordUnsubscribe => 'Отписаться';
+
+  @override
+  String get wordInvite => 'Пригласить';
+
+  @override
+  String get wordJoin => 'Присоединиться';
+
+  @override
+  String get wordLeave => 'Покинуть';
+
+  @override
+  String get wordLogin => 'Войти';
+
+  @override
+  String get wordLogout => 'Выйти';
+
+  @override
+  String get wordSignup => 'Регистрация';
+
+  @override
+  String get wordRegister => 'Зарегистрироваться';
+
+  @override
+  String get wordVerify => 'Подтвердить';
+
+  @override
+  String get wordConfirmed => 'Подтверждено';
+
+  @override
+  String get wordPending => 'Ожидает';
+
+  @override
+  String get wordComplete => 'Завершить';
+
+  @override
+  String get wordFinish => 'Закончить';
+
+  @override
+  String get wordCancel => 'Отмена';
+
+  @override
+  String get wordTry => 'Попробовать';
+
+  @override
+  String get wordAgain => 'Снова';
+
+  @override
+  String get wordGo => 'Перейти';
+
+  @override
+  String get wordSee => 'Смотреть';
+
+  @override
+  String get wordLook => 'Смотреть';
+
+  @override
+  String get wordFind => 'Найти';
+
+  @override
+  String get wordGet => 'Получить';
+
+  @override
+  String get wordSet => 'Установить';
+
+  @override
+  String get wordPut => 'Положить';
+
+  @override
+  String get wordTake => 'Взять';
+
+  @override
+  String get wordGive => 'Дать';
+
+  @override
+  String get wordMake => 'Сделать';
+
+  @override
+  String get wordKeep => 'Сохранить';
+
+  @override
+  String get wordLet => 'Позволить';
+
+  @override
+  String get wordKnow => 'Знать';
+
+  @override
+  String get wordThink => 'Думать';
+
+  @override
+  String get wordFeel => 'Чувствовать';
+
+  @override
+  String get wordWant => 'Хотеть';
+
+  @override
+  String get wordNeed => 'Нуждаться';
+
+  @override
+  String get wordLike => 'Нравится';
+
+  @override
+  String get wordLove => 'Любить';
+
+  @override
+  String get wordHate => 'Ненавидеть';
+
+  @override
+  String get wordTalk => 'Говорить';
+
+  @override
+  String get wordSay => 'Сказать';
+
+  @override
+  String get wordTell => 'Рассказать';
+
+  @override
+  String get wordAsk => 'Спросить';
+
+  @override
+  String get wordHelpVerb => 'Помочь';
+
+  @override
+  String get wordWait => 'Ждать';
+
+  @override
+  String get wordStay => 'Остаться';
+
+  @override
+  String get wordCome => 'Прийти';
+
+  @override
+  String get wordMove => 'Двигаться';
+
+  @override
+  String get wordRun => 'Бежать';
+
+  @override
+  String get wordWalk => 'Идти';
+
+  @override
+  String get wordMeet => 'Встретить';
+
+  @override
+  String get wordWork => 'Работать';
+
+  @override
+  String get wordLive => 'Жить';
+
+  @override
+  String get wordChange => 'Изменить';
+
+  @override
+  String get wordTurn => 'Повернуть';
+
+  @override
+  String get wordRead => 'Прочитано';
+
+  @override
+  String get wordWrite => 'Писать';
+
+  @override
+  String get wordLearn => 'Учиться';
+
+  @override
+  String get wordStudy => 'Изучать';
+
+  @override
+  String get wordWatch => 'Смотреть';
+
+  @override
+  String get wordListen => 'Слушать';
+
+  @override
+  String get wordSpeak => 'Говорить';
+
+  @override
+  String get wordEat => 'Есть';
+
+  @override
+  String get wordDrink => 'Пить';
+
+  @override
+  String get wordSleep => 'Спать';
+
+  @override
+  String get wordBuy => 'Купить';
+
+  @override
+  String get wordSell => 'Продать';
+
+  @override
+  String get wordPay => 'Оплатить';
+
+  @override
+  String get wordSpend => 'Тратить';
+
+  @override
+  String get wordSave => 'Сохранить';
+
+  @override
+  String get wordWin => 'Победить';
+
+  @override
+  String get wordLose => 'Проиграть';
+
+  @override
+  String get wordCheck => 'Проверить';
+
+  @override
+  String get wordPick => 'Выбрать';
+
+  @override
+  String get wordChoose => 'Выбрать';
+
+  @override
+  String get wordDecide => 'Решить';
+
+  @override
+  String get wordAgree => 'Согласиться';
+
+  @override
+  String get wordDisagree => 'Не согласиться';
+
+  @override
+  String get wordActive => 'Активный';
+
+  @override
+  String get wordInactive => 'Неактивный';
+
+  @override
+  String get wordAvailable => 'Доступен';
+
+  @override
+  String get wordUnavailable => 'Недоступен';
+
+  @override
+  String get wordBusy => 'Занят';
+
+  @override
+  String get wordAway => 'Прочь';
+
+  @override
+  String get wordInvisible => 'Невидимый';
+
+  @override
+  String get wordOnline => 'Онлайн';
+
+  @override
+  String get wordOffline => 'Офлайн';
+
+  @override
+  String get wordConnected => 'Подключён';
+
+  @override
+  String get wordDisconnected => 'Отключён';
+
+  @override
+  String get wordVerified => 'Подтверждён';
+
+  @override
+  String get wordUnverified => 'Не подтверждён';
+
+  @override
+  String get wordApproved => 'Одобрен';
+
+  @override
+  String get wordDenied => 'Отказано';
+
+  @override
+  String get wordBlocked => 'Заблокирован';
+
+  @override
+  String get wordUnblocked => 'Разблокирован';
+
+  @override
+  String get wordSuspended => 'Приостановлен';
+
+  @override
+  String get wordBanned => 'Заблокирован';
+
+  @override
+  String get wordRestricted => 'Ограничен';
+
+  @override
+  String get wordPremium => 'Премиум';
+
+  @override
+  String get wordStandard => 'Стандарт';
+
+  @override
+  String get wordBasic => 'Базовый';
+
+  @override
+  String get wordNew => 'Новый';
+
+  @override
+  String get wordUpdated => 'Обновлён';
+
+  @override
+  String get wordRecent => 'Недавний';
+
+  @override
+  String get wordPopular => 'Популярный';
+
+  @override
+  String get wordTrending => 'В тренде';
+
+  @override
+  String get wordFeatured => 'Рекомендованный';
+
+  @override
+  String get wordRecommended => 'Рекомендуемый';
+
+  @override
+  String get wordSuggested => 'Предложенный';
+
+  @override
+  String get wordRequired => 'Обязательно';
+
+  @override
+  String get wordOptional => 'Необязательно';
+
+  @override
+  String get wordEnabled => 'Включено';
+
+  @override
+  String get wordDisabled => 'Отключено';
+
+  @override
+  String get wordLocked => 'Заблокировано';
+
+  @override
+  String get wordUnlocked => 'Разблокировано';
+
+  @override
+  String get wordHidden => 'Скрыто';
+
+  @override
+  String get wordVisible => 'Видимо';
+
+  @override
+  String get wordPublic => 'Публичный';
+
+  @override
+  String get wordPrivate => 'Приватный';
+
+  @override
+  String get wordSecure => 'Безопасный';
+
+  @override
+  String get wordSafe => 'Безопасный';
+
+  @override
+  String get wordReal => 'Настоящий';
+
+  @override
+  String get wordFake => 'Поддельный';
+
+  @override
+  String get wordTrue => 'Правда';
+
+  @override
+  String get wordFalse => 'Ложь';
+
+  @override
+  String get wordValid => 'Действительный';
+
+  @override
+  String get wordInvalid => 'Недействительный';
+
+  @override
+  String get wordCorrect => 'Правильно';
+
+  @override
+  String get wordIncorrect => 'Неправильно';
+
+  @override
+  String get wordEmpty => 'Пусто';
+
+  @override
+  String get wordFull => 'Полный';
+
+  @override
+  String get wordReady => 'Готово';
+
+  @override
+  String get wordNotReady => 'Не готово';
+
+  @override
+  String get wordDone => 'Готово';
+
+  @override
+  String get wordNotDone => 'Не готово';
+
+  @override
+  String get wordSent => 'Отправлено';
+
+  @override
+  String get wordReceived => 'Получено';
+
+  @override
+  String get wordReadStatus => 'Прочитано';
+
+  @override
+  String get wordUnread => 'Непрочитано';
+
+  @override
+  String get wordSeen => 'Просмотрено';
+
+  @override
+  String get wordUnseen => 'Не просмотрено';
+
+  @override
+  String get wordOpenStatus => 'Открыто';
+
+  @override
+  String get wordClosed => 'Закрыто';
+
+  @override
+  String get wordNow => 'Сейчас';
+
+  @override
+  String get wordLater => 'Позже';
+
+  @override
+  String get wordSoon => 'Скоро';
+
+  @override
+  String get wordToday => 'Сегодня';
+
+  @override
+  String get wordTomorrow => 'Завтра';
+
+  @override
+  String get wordYesterday => 'Вчера';
+
+  @override
+  String get wordMorning => 'Утро';
+
+  @override
+  String get wordAfternoon => 'День';
+
+  @override
+  String get wordEvening => 'Вечер';
+
+  @override
+  String get wordNight => 'Ночь';
+
+  @override
+  String get wordWeek => 'Неделя';
+
+  @override
+  String get wordMonth => 'Месяц';
+
+  @override
+  String get wordYear => 'Год';
+
+  @override
+  String get wordDaily => 'Ежедневно';
+
+  @override
+  String get wordWeekly => 'Еженедельно';
+
+  @override
+  String get wordMonthly => 'Ежемесячно';
+
+  @override
+  String get wordYearly => 'Ежегодно';
+
+  @override
+  String get wordAlways => 'Всегда';
+
+  @override
+  String get wordNever => 'Никогда';
+
+  @override
+  String get wordSometimes => 'Иногда';
+
+  @override
+  String get wordOften => 'Часто';
+
+  @override
+  String get wordRarely => 'Редко';
+
+  @override
+  String get wordRecently => 'Недавно';
+
+  @override
+  String get wordBefore => 'До';
+
+  @override
+  String get wordAfter => 'После';
+
+  @override
+  String get wordDuring => 'Во время';
+
+  @override
+  String get wordUntil => 'До';
+
+  @override
+  String get wordSince => 'С';
+
+  @override
+  String get wordAgo => 'Назад';
+
+  @override
+  String get wordMinute => 'Минута';
+
+  @override
+  String get wordMinutes => 'Минуты';
+
+  @override
+  String get wordHour => 'Час';
+
+  @override
+  String get wordHours => 'Часы';
+
+  @override
+  String get wordDay => 'День';
+
+  @override
+  String get wordDays => 'Дни';
+
+  @override
+  String get wordWeeks => 'Недели';
+
+  @override
+  String get wordMonths => 'Месяцы';
+
+  @override
+  String get wordYears => 'Годы';
+
+  @override
+  String get wordSecond => 'Секунда';
+
+  @override
+  String get wordSeconds => 'Секунды';
+
+  @override
+  String get wordGood => 'Хороший';
+
+  @override
+  String get wordBad => 'Плохой';
+
+  @override
+  String get wordGreat => 'Отличный';
+
+  @override
+  String get wordExcellent => 'Превосходный';
+
+  @override
+  String get wordBest => 'Лучший';
+
+  @override
+  String get wordWorst => 'Худший';
+
+  @override
+  String get wordOld => 'Старый';
+
+  @override
+  String get wordYoung => 'Молодой';
+
+  @override
+  String get wordHot => 'Горячий';
+
+  @override
+  String get wordCold => 'Холодный';
+
+  @override
+  String get wordFast => 'Быстрый';
+
+  @override
+  String get wordSlow => 'Медленный';
+
+  @override
+  String get wordEasy => 'Лёгкий';
+
+  @override
+  String get wordHard => 'Трудный';
+
+  @override
+  String get wordSimple => 'Простой';
+
+  @override
+  String get wordComplex => 'Сложный';
+
+  @override
+  String get wordSmall => 'Маленький';
+
+  @override
+  String get wordBig => 'Большой';
+
+  @override
+  String get wordLarge => 'Большой';
+
+  @override
+  String get wordTiny => 'Крошечный';
+
+  @override
+  String get wordHuge => 'Огромный';
+
+  @override
+  String get wordLong => 'Длинный';
+
+  @override
+  String get wordShort => 'Короткий';
+
+  @override
+  String get wordHigh => 'Высокий';
+
+  @override
+  String get wordLow => 'Низкий';
+
+  @override
+  String get wordWide => 'Широкий';
+
+  @override
+  String get wordNarrow => 'Узкий';
+
+  @override
+  String get wordThick => 'Толстый';
+
+  @override
+  String get wordThin => 'Тонкий';
+
+  @override
+  String get wordDeep => 'Глубокий';
+
+  @override
+  String get wordShallow => 'Мелкий';
+
+  @override
+  String get wordBright => 'Яркий';
+
+  @override
+  String get wordDark => 'Тёмный';
+
+  @override
+  String get wordLight => 'Лёгкий';
+
+  @override
+  String get wordHeavy => 'Тяжёлый';
+
+  @override
+  String get wordSoft => 'Мягкий';
+
+  @override
+  String get wordLoud => 'Громкий';
+
+  @override
+  String get wordQuiet => 'Тихий';
+
+  @override
+  String get wordClean => 'Чистый';
+
+  @override
+  String get wordDirty => 'Грязный';
+
+  @override
+  String get wordRich => 'Богатый';
+
+  @override
+  String get wordPoor => 'Бедный';
+
+  @override
+  String get wordFree => 'Бесплатный';
+
+  @override
+  String get wordPaid => 'Платный';
+
+  @override
+  String get wordCheap => 'Дешёвый';
+
+  @override
+  String get wordExpensive => 'Дорогой';
+
+  @override
+  String get wordBeautiful => 'Красивый';
+
+  @override
+  String get wordUgly => 'Некрасивый';
+
+  @override
+  String get wordPretty => 'Симпатичный';
+
+  @override
+  String get wordHandsome => 'Красивый';
+
+  @override
+  String get wordCute => 'Милый';
+
+  @override
+  String get wordSexy => 'Сексуальный';
+
+  @override
+  String get wordAttractive => 'Привлекательный';
+
+  @override
+  String get wordHappy => 'Счастливый';
+
+  @override
+  String get wordSad => 'Грустный';
+
+  @override
+  String get wordAngry => 'Злой';
+
+  @override
+  String get wordScared => 'Напуганный';
+
+  @override
+  String get wordExcited => 'Взволнованный';
+
+  @override
+  String get wordBored => 'Скучающий';
+
+  @override
+  String get wordTired => 'Уставший';
+
+  @override
+  String get wordSick => 'Больной';
+
+  @override
+  String get wordHealthy => 'Здоровый';
+
+  @override
+  String get wordStrong => 'Сильный';
+
+  @override
+  String get wordWeak => 'Слабый';
+
+  @override
+  String get wordSmart => 'Умный';
+
+  @override
+  String get wordStupid => 'Глупый';
+
+  @override
+  String get wordFunny => 'Смешной';
+
+  @override
+  String get wordSerious => 'Серьёзный';
+
+  @override
+  String get wordNice => 'Милый';
+
+  @override
+  String get wordMean => 'Злой';
+
+  @override
+  String get wordKind => 'Добрый';
+
+  @override
+  String get wordCruel => 'Жестокий';
+
+  @override
+  String get wordFriendly => 'Дружелюбный';
+
+  @override
+  String get wordRude => 'Грубый';
+
+  @override
+  String get wordPolite => 'Вежливый';
+
+  @override
+  String get wordHonest => 'Честный';
+
+  @override
+  String get wordLazy => 'Ленивый';
+
+  @override
+  String get wordBrave => 'Храбрый';
+
+  @override
+  String get wordCurious => 'Любопытный';
+
+  @override
+  String get wordPatient => 'Терпеливый';
+
+  @override
+  String get wordImpatient => 'Нетерпеливый';
+
+  @override
+  String get wordCareful => 'Осторожный';
+
+  @override
+  String get wordCareless => 'Беспечный';
+
+  @override
+  String get wordGenerous => 'Щедрый';
+
+  @override
+  String get wordSelfish => 'Эгоистичный';
+
+  @override
+  String get wordRomantic => 'Романтичный';
+
+  @override
+  String get wordPassionate => 'Страстный';
+
+  @override
+  String get wordLoyal => 'Верный';
+
+  @override
+  String get wordFaithful => 'Преданный';
+
+  @override
+  String get wordTrustworthy => 'Надёжный';
+
+  @override
+  String get wordReliable => 'Надёжный';
+
+  @override
+  String get wordResponsible => 'Ответственный';
+
+  @override
+  String get wordMature => 'Зрелый';
+
+  @override
+  String get wordImmature => 'Незрелый';
+
+  @override
+  String get wordIndependent => 'Независимый';
+
+  @override
+  String get wordConfident => 'Уверенный';
+
+  @override
+  String get wordShy => 'Застенчивый';
+
+  @override
+  String get wordOutgoing => 'Общительный';
+
+  @override
+  String get wordIntroverted => 'Интровертный';
+
+  @override
+  String get wordExtroverted => 'Экстравертный';
+
+  @override
+  String get wordAmbitious => 'Амбициозный';
+
+  @override
+  String get wordCreative => 'Творческий';
+
+  @override
+  String get wordIntelligent => 'Умный';
+
+  @override
+  String get wordWise => 'Мудрый';
+
+  @override
+  String get wordTalented => 'Талантливый';
+
+  @override
+  String get wordSuccessful => 'Успешный';
+
+  @override
+  String get wordFamous => 'Известный';
+
+  @override
+  String get wordImportant => 'Важный';
+
+  @override
+  String get wordSpecial => 'Особенный';
+
+  @override
+  String get wordPerfect => 'Идеальный';
+
+  @override
+  String get wordAmazing => 'Удивительный';
+
+  @override
+  String get wordWonderful => 'Чудесный';
+
+  @override
+  String get wordFantastic => 'Фантастический';
+
+  @override
+  String get wordIncredible => 'Невероятный';
+
+  @override
+  String get wordAwesome => 'Потрясающий';
+
+  @override
+  String get wordTerrific => 'Потрясающий';
+
+  @override
+  String get wordMarvelous => 'Изумительный';
+
+  @override
+  String get wordSuperb => 'Превосходный';
+
+  @override
+  String get wordOutstanding => 'Выдающийся';
+
+  @override
+  String get wordBrilliant => 'Блестящий';
+
+  @override
+  String get wordFabulous => 'Сказочный';
+
+  @override
+  String get wordMagnificent => 'Великолепный';
+
+  @override
+  String get wordSpectacular => 'Впечатляющий';
+
+  @override
+  String get wordPlease => 'Пожалуйста';
+
+  @override
+  String get wordThanks => 'Спасибо';
+
+  @override
+  String get wordThankYou => 'Спасибо';
+
+  @override
+  String get wordSorry => 'Извините';
+
+  @override
+  String get wordExcuseMe => 'Простите';
+
+  @override
+  String get wordWelcome => 'Добро пожаловать';
+
+  @override
+  String get wordHello => 'Привет';
+
+  @override
+  String get wordHi => 'Привет';
+
+  @override
+  String get wordHey => 'Эй';
+
+  @override
+  String get wordGoodbye => 'До свидания';
+
+  @override
+  String get wordBye => 'Пока';
+
+  @override
+  String get wordCongratulations => 'Поздравляем';
+
+  @override
+  String get wordCongrats => 'Поздравляю';
+
+  @override
+  String get wordGoodMorning => 'Доброе утро';
+
+  @override
+  String get wordGoodAfternoon => 'Добрый день';
+
+  @override
+  String get wordGoodEvening => 'Добрый вечер';
+
+  @override
+  String get wordGoodNight => 'Спокойной ночи';
+
+  @override
+  String get wordHowAreYou => 'Как дела?';
+
+  @override
+  String get wordImFine => 'Я в порядке';
+
+  @override
+  String get wordNiceMeetYou => 'Приятно познакомиться';
+
+  @override
+  String get wordSeeLater => 'До встречи';
+
+  @override
+  String get wordTakeCare => 'Береги себя';
+
+  @override
+  String get wordMissYou => 'Скучаю по тебе';
+
+  @override
+  String get wordLoveYou => 'Люблю тебя';
+
+  @override
+  String get wordThinkingOfYou => 'Думаю о тебе';
+
+  @override
+  String get wordGoodLuck => 'Удачи';
+
+  @override
+  String get wordHaveFun => 'Веселись';
+
+  @override
+  String get wordEnjoy => 'Наслаждайся';
+
+  @override
+  String get wordCheers => 'За здоровье';
+
+  @override
+  String get wordWho => 'Кто';
+
+  @override
+  String get wordWhat => 'Что';
+
+  @override
+  String get wordWhen => 'Когда';
+
+  @override
+  String get wordWhere => 'Где';
+
+  @override
+  String get wordWhy => 'Почему';
+
+  @override
+  String get wordHow => 'Как';
+
+  @override
+  String get wordWhich => 'Какой';
+
+  @override
+  String get wordWhose => 'Чей';
+
+  @override
+  String get wordHowMany => 'Сколько';
+
+  @override
+  String get wordHowMuch => 'Сколько';
+
+  @override
+  String get wordHowLong => 'Как долго';
+
+  @override
+  String get wordHowFar => 'Как далеко';
+
+  @override
+  String get wordHowOld => 'Сколько лет';
+
+  @override
+  String get wordHowOften => 'Как часто';
+
+  @override
+  String get wordWith => 'С';
+
+  @override
+  String get wordWithout => 'Без';
+
+  @override
+  String get wordIn => 'В';
+
+  @override
+  String get wordOut => 'Снаружи';
+
+  @override
+  String get wordUp => 'Вверх';
+
+  @override
+  String get wordDown => 'Вниз';
+
+  @override
+  String get wordLeft => 'Влево';
+
+  @override
+  String get wordRight => 'Вправо';
+
+  @override
+  String get wordNear => 'Рядом';
+
+  @override
+  String get wordFar => 'Далеко';
+
+  @override
+  String get wordHere => 'Здесь';
+
+  @override
+  String get wordThere => 'Там';
+
+  @override
+  String get wordInside => 'Внутри';
+
+  @override
+  String get wordOutside => 'Снаружи';
+
+  @override
+  String get wordAbove => 'Над';
+
+  @override
+  String get wordBelow => 'Под';
+
+  @override
+  String get wordBetween => 'Между';
+
+  @override
+  String get wordAround => 'Вокруг';
+
+  @override
+  String get wordAcross => 'Через';
+
+  @override
+  String get wordThrough => 'Сквозь';
+
+  @override
+  String get wordAlong => 'Вдоль';
+
+  @override
+  String get wordToward => 'К';
+
+  @override
+  String get wordAwayFrom => 'Далеко';
+
+  @override
+  String get wordBehind => 'Позади';
+
+  @override
+  String get wordAhead => 'Впереди';
+
+  @override
+  String get wordFront => 'Спереди';
+
+  @override
+  String get wordBack => 'Сзади';
+
+  @override
+  String get wordSide => 'Сбоку';
+
+  @override
+  String get wordTop => 'Сверху';
+
+  @override
+  String get wordBottom => 'Снизу';
+
+  @override
+  String get wordMiddle => 'Посередине';
+
+  @override
+  String get wordCenter => 'Центр';
+
+  @override
+  String get wordCorner => 'Угол';
+
+  @override
+  String get wordEdge => 'Край';
+
+  @override
+  String get wordCrush => 'Увлечение';
+
+  @override
+  String get wordMatch => 'Совпадение';
+
+  @override
+  String get wordMatches => 'Совпадения';
+
+  @override
+  String get wordMatched => 'Совпал';
+
+  @override
+  String get wordMatching => 'Совпадает';
+
+  @override
+  String get wordUnmatched => 'Не совпал';
+
+  @override
+  String get wordConnection => 'Связь';
+
+  @override
+  String get wordConnections => 'Связи';
+
+  @override
+  String get wordChemistry => 'Химия';
+
+  @override
+  String get wordSpark => 'Искра';
+
+  @override
+  String get wordDate => 'Свидание';
+
+  @override
+  String get wordDates => 'Свидания';
+
+  @override
+  String get wordDating => 'Знакомства';
+
+  @override
+  String get wordRomance => 'Романтика';
+
+  @override
+  String get wordSingle => 'Одинокий';
+
+  @override
+  String get wordCouple => 'Пара';
+
+  @override
+  String get wordRelationship => 'Отношения';
+
+  @override
+  String get wordRelationships => 'Отношения';
+
+  @override
+  String get wordPartner => 'Партнёр';
+
+  @override
+  String get wordSoulmate => 'Родственная душа';
+
+  @override
+  String get wordInterested => 'Заинтересован';
+
+  @override
+  String get wordInterest => 'Интерес';
+
+  @override
+  String get wordInterests => 'Интересы';
+
+  @override
+  String get wordMutual => 'Взаимный';
+
+  @override
+  String get wordCompatible => 'Совместимый';
+
+  @override
+  String get wordCompatibility => 'Совместимость';
+
+  @override
+  String get wordAttraction => 'Притяжение';
+
+  @override
+  String get wordFlirt => 'Флирт';
+
+  @override
+  String get wordFlirting => 'Флирт';
+
+  @override
+  String get wordFlirty => 'Кокетливый';
+
+  @override
+  String get wordSwipe => 'Свайп';
+
+  @override
+  String get wordSwiped => 'Свайпнул';
+
+  @override
+  String get wordSwiping => 'Свайпает';
+
+  @override
+  String get wordLiked => 'Понравился';
+
+  @override
+  String get wordLikes => 'Лайки';
+
+  @override
+  String get wordLiking => 'Нравится';
+
+  @override
+  String get wordPassed => 'Пропустил';
+
+  @override
+  String get wordPassing => 'Пропускает';
+
+  @override
+  String get wordSuperLike => 'Суперлайк';
+
+  @override
+  String get wordSuperLiked => 'Суперлайкнул';
+
+  @override
+  String get wordBoost => 'Буст';
+
+  @override
+  String get wordBoosted => 'Продвинут';
+
+  @override
+  String get wordBoosting => 'Продвигает';
+
+  @override
+  String get wordRewind => 'Отмена';
+
+  @override
+  String get wordRewinded => 'Отменено';
+
+  @override
+  String get wordChat => 'Чат';
+
+  @override
+  String get wordChats => 'Чаты';
+
+  @override
+  String get wordChatting => 'Общение';
+
+  @override
+  String get wordMessage => 'Сообщение';
+
+  @override
+  String get wordMessages => 'Сообщения';
+
+  @override
+  String get wordMessaging => 'Переписка';
+
+  @override
+  String get wordConversation => 'Беседа';
+
+  @override
+  String get wordConversations => 'Беседы';
+
+  @override
+  String get wordProfile => 'Профиль';
+
+  @override
+  String get wordProfiles => 'Профили';
+
+  @override
+  String get wordBio => 'О себе';
+
+  @override
+  String get wordPhoto => 'Фото';
+
+  @override
+  String get wordPhotos => 'Фотографии';
+
+  @override
+  String get wordVideo => 'Видео';
+
+  @override
+  String get wordVideos => 'Видео';
+
+  @override
+  String get wordGallery => 'Галерея';
+
+  @override
+  String get wordAlbum => 'Альбом';
+
+  @override
+  String get wordVoice => 'Голос';
+
+  @override
+  String get wordAudio => 'Аудио';
+
+  @override
+  String get wordCamera => 'Камера';
+
+  @override
+  String get wordImage => 'Изображение';
+
+  @override
+  String get wordImages => 'Изображения';
+
+  @override
+  String get wordPicture => 'Фотография';
+
+  @override
+  String get wordPictures => 'Фотографии';
+
+  @override
+  String get wordHeartbeat => 'Сердцебиение';
+
+  @override
+  String get wordHeart => 'Сердце';
+
+  @override
+  String get wordHearts => 'Сердца';
+
+  @override
+  String get wordStar => 'Звезда';
+
+  @override
+  String get wordStars => 'Звёзды';
+
+  @override
+  String get wordDiamond => 'Бриллиант';
+
+  @override
+  String get wordFlame => 'Пламя';
+
+  @override
+  String get wordFire => 'Огонь';
+
+  @override
+  String get wordHotness => 'Привлекательность';
+
+  @override
+  String get wordVibes => 'Вайбы';
+
+  @override
+  String get wordVibe => 'Вайб';
+
+  @override
+  String get wordMood => 'Настроение';
+
+  @override
+  String get wordEnergy => 'Энергия';
+
+  @override
+  String get wordAura => 'Аура';
+
+  @override
+  String get wordPersonality => 'Личность';
+
+  @override
+  String get wordCharacter => 'Характер';
+
+  @override
+  String get wordValues => 'Ценности';
+
+  @override
+  String get wordGoals => 'Цели';
+
+  @override
+  String get wordDreams => 'Мечты';
+
+  @override
+  String get wordHobbies => 'Хобби';
+
+  @override
+  String get wordPassion => 'Страсть';
+
+  @override
+  String get wordAdventure => 'Приключение';
+
+  @override
+  String get wordTravel => 'Путешествие';
+
+  @override
+  String get wordTraveling => 'Путешествует';
+
+  @override
+  String get wordExploring => 'Исследует';
+
+  @override
+  String get wordFun => 'Веселье';
+
+  @override
+  String get wordLaughter => 'Смех';
+
+  @override
+  String get wordSmile => 'Улыбка';
+
+  @override
+  String get wordSmiles => 'Улыбки';
+
+  @override
+  String get wordSmiling => 'Улыбается';
+
+  @override
+  String get wordKiss => 'Поцелуй';
+
+  @override
+  String get wordKisses => 'Поцелуи';
+
+  @override
+  String get wordHug => 'Объятие';
+
+  @override
+  String get wordHugs => 'Объятия';
+
+  @override
+  String get wordCuddle => 'Обниматься';
+
+  @override
+  String get wordCuddling => 'Обнимается';
+
+  @override
+  String get wordIntimate => 'Интимный';
+
+  @override
+  String get wordIntimacy => 'Близость';
+
+  @override
+  String get wordAffection => 'Привязанность';
+
+  @override
+  String get wordAffectionate => 'Ласковый';
+
+  @override
+  String get wordCaring => 'Заботливый';
+
+  @override
+  String get wordLoving => 'Любящий';
+
+  @override
+  String get wordDevoted => 'Преданный';
+
+  @override
+  String get wordCommitted => 'Преданный';
+
+  @override
+  String get wordCommitment => 'Обязательство';
+
+  @override
+  String get wordSeriousRel => 'Серьёзный';
+
+  @override
+  String get wordCasual => 'Непринуждённый';
+
+  @override
+  String get wordFriendship => 'Дружба';
+
+  @override
+  String get wordFriend => 'Друг';
+
+  @override
+  String get wordFriends => 'Друзья';
+
+  @override
+  String get wordBestFriend => 'Лучший друг';
+
+  @override
+  String get wordSomethingSerious => 'Что-то серьёзное';
+
+  @override
+  String get wordLongTerm => 'Долгосрочный';
+
+  @override
+  String get wordShortTerm => 'Краткосрочный';
+
+  @override
+  String get wordOpenTo => 'Открыт к';
+
+  @override
+  String get wordLookingFor => 'Ищу';
+
+  @override
+  String get wordSeekingFor => 'В поиске';
+
+  @override
+  String get wordWaiting => 'Жду';
+
+  @override
+  String get wordSearching => 'Ищу';
+
+  @override
+  String get wordNotification => 'Уведомление';
+
+  @override
+  String get wordAlert => 'Оповещение';
+
+  @override
+  String get wordWarning => 'Предупреждение';
+
+  @override
+  String get wordInfo => 'Инфо';
+
+  @override
+  String get wordInformation => 'Информация';
+
+  @override
+  String get wordDetails => 'Подробности';
+
+  @override
+  String get wordData => 'Данные';
+
+  @override
+  String get wordContent => 'Контент';
+
+  @override
+  String get wordMedia => 'Медиа';
+
+  @override
+  String get wordLink => 'Ссылка';
+
+  @override
+  String get wordLinks => 'Ссылки';
+
+  @override
+  String get wordURL => 'URL';
+
+  @override
+  String get wordAddress => 'Адрес';
+
+  @override
+  String get wordName => 'Имя';
+
+  @override
+  String get wordUsername => 'Имя пользователя';
+
+  @override
+  String get wordNickname => 'Никнейм';
+
+  @override
+  String get wordAccount => 'Аккаунт';
+
+  @override
+  String get wordUser => 'Пользователь';
+
+  @override
+  String get wordUsers => 'Пользователи';
+
+  @override
+  String get wordPeople => 'Люди';
+
+  @override
+  String get wordPerson => 'Человек';
+
+  @override
+  String get wordGroup => 'Группа';
+
+  @override
+  String get wordGroups => 'Группы';
+
+  @override
+  String get wordTeam => 'Команда';
+
+  @override
+  String get wordCommunity => 'Сообщество';
+
+  @override
+  String get wordMember => 'Участник';
+
+  @override
+  String get wordMembers => 'Участники';
+
+  @override
+  String get wordAdmin => 'Админ';
+
+  @override
+  String get wordModerator => 'Модератор';
+
+  @override
+  String get wordGuest => 'Гость';
+
+  @override
+  String get wordVisitor => 'Посетитель';
+
+  @override
+  String get wordFollower => 'Подписчик';
+
+  @override
+  String get wordFollowers => 'Подписчики';
+
+  @override
+  String get wordFollowing => 'Подписки';
+
+  @override
+  String get wordFan => 'Фанат';
+
+  @override
+  String get wordFans => 'Фанаты';
+
+  @override
+  String get wordSubscriber => 'Подписчик';
+
+  @override
+  String get wordSubscribers => 'Подписчики';
+
+  @override
+  String get wordFile => 'Файл';
+
+  @override
+  String get wordFiles => 'Файлы';
+
+  @override
+  String get wordFolder => 'Папка';
+
+  @override
+  String get wordFolders => 'Папки';
+
+  @override
+  String get wordDocument => 'Документ';
+
+  @override
+  String get wordDocuments => 'Документы';
+
+  @override
+  String get wordText => 'Текст';
+
+  @override
+  String get wordEmail => 'Email';
+
+  @override
+  String get wordPhone => 'Телефон';
+
+  @override
+  String get wordNumber => 'Номер';
+
+  @override
+  String get wordCode => 'Код';
+
+  @override
+  String get wordPassword => 'Пароль';
+
+  @override
+  String get wordPasscode => 'Код доступа';
+
+  @override
+  String get wordPIN => 'PIN';
+
+  @override
+  String get wordKey => 'Ключ';
+
+  @override
+  String get wordToken => 'Токен';
+
+  @override
+  String get wordSession => 'Сессия';
+
+  @override
+  String get wordApp => 'Приложение';
+
+  @override
+  String get wordApplication => 'Приложение';
+
+  @override
+  String get wordWebsite => 'Сайт';
+
+  @override
+  String get wordPage => 'Страница';
+
+  @override
+  String get wordPages => 'Страницы';
+
+  @override
+  String get wordScreen => 'Экран';
+
+  @override
+  String get wordScreens => 'Экраны';
+
+  @override
+  String get wordSection => 'Раздел';
+
+  @override
+  String get wordSections => 'Разделы';
+
+  @override
+  String get wordCategory => 'Категория';
+
+  @override
+  String get wordCategories => 'Категории';
+
+  @override
+  String get wordTag => 'Тег';
+
+  @override
+  String get wordTags => 'Теги';
+
+  @override
+  String get wordLabel => 'Метка';
+
+  @override
+  String get wordLabels => 'Метки';
+
+  @override
+  String get wordTitle => 'Заголовок';
+
+  @override
+  String get wordSubtitle => 'Подзаголовок';
+
+  @override
+  String get wordDescription => 'Описание';
+
+  @override
+  String get wordSummary => 'Резюме';
+
+  @override
+  String get wordOverview => 'Обзор';
+
+  @override
+  String get wordPreview => 'Предпросмотр';
+
+  @override
+  String get wordReview => 'Отзыв';
+
+  @override
+  String get wordReviews => 'Отзывы';
+
+  @override
+  String get wordRating => 'Рейтинг';
+
+  @override
+  String get wordRatings => 'Рейтинги';
+
+  @override
+  String get wordFeedback => 'Обратная связь';
+
+  @override
+  String get wordComment => 'Комментарий';
+
+  @override
+  String get wordComments => 'Комментарии';
+
+  @override
+  String get wordReply => 'Ответ';
+
+  @override
+  String get wordReplies => 'Ответы';
+
+  @override
+  String get wordPost => 'Публикация';
+
+  @override
+  String get wordPosts => 'Публикации';
+
+  @override
+  String get wordStory => 'История';
+
+  @override
+  String get wordStories => 'Истории';
+
+  @override
+  String get wordEvent => 'Событие';
+
+  @override
+  String get wordEvents => 'События';
+
+  @override
+  String get wordNews => 'Новости';
+
+  @override
+  String get wordUpdate => 'Обновление';
+
+  @override
+  String get wordUpdates => 'Обновления';
+
+  @override
+  String get wordVersion => 'Версия';
+
+  @override
+  String get wordRelease => 'Релиз';
+
+  @override
+  String get wordFeature => 'Функция';
+
+  @override
+  String get wordFeatures => 'Функции';
+
+  @override
+  String get wordOption => 'Опция';
+
+  @override
+  String get wordOptions => 'Опции';
+
+  @override
+  String get wordChoice => 'Выбор';
+
+  @override
+  String get wordChoices => 'Выборы';
+
+  @override
+  String get wordPreference => 'Предпочтение';
+
+  @override
+  String get wordPreferences => 'Предпочтения';
+
+  @override
+  String get wordSetting => 'Настройка';
+
+  @override
+  String get wordSettingsNoun => 'Настройки';
+
+  @override
+  String get wordConfig => 'Конфигурация';
+
+  @override
+  String get wordConfiguration => 'Конфигурация';
+
+  @override
+  String get wordPermission => 'Разрешение';
+
+  @override
+  String get wordPermissions => 'Разрешения';
+
+  @override
+  String get wordAccess => 'Доступ';
+
+  @override
+  String get wordPrivacy => 'Конфиденциальность';
+
+  @override
+  String get wordSecurity => 'Безопасность';
+
+  @override
+  String get wordSupport => 'Поддержка';
+
+  @override
+  String get wordService => 'Сервис';
+
+  @override
+  String get wordServices => 'Сервисы';
+
+  @override
+  String get wordTerms => 'Условия';
+
+  @override
+  String get wordPolicy => 'Политика';
+
+  @override
+  String get wordAgreement => 'Соглашение';
+
+  @override
+  String get wordContract => 'Контракт';
+
+  @override
+  String get wordPlan => 'План';
+
+  @override
+  String get wordPlans => 'Планы';
+
+  @override
+  String get wordPrice => 'Цена';
+
+  @override
+  String get wordPrices => 'Цены';
+
+  @override
+  String get wordCost => 'Стоимость';
+
+  @override
+  String get wordFee => 'Плата';
+
+  @override
+  String get wordFees => 'Платы';
+
+  @override
+  String get wordDiscount => 'Скидка';
+
+  @override
+  String get wordOffer => 'Предложение';
+
+  @override
+  String get wordOffers => 'Предложения';
+
+  @override
+  String get wordDeal => 'Сделка';
+
+  @override
+  String get wordDeals => 'Сделки';
+
+  @override
+  String get wordPromotion => 'Акция';
+
+  @override
+  String get wordPromotions => 'Акции';
+
+  @override
+  String get wordCoupon => 'Купон';
+
+  @override
+  String get wordGift => 'Подарок';
+
+  @override
+  String get wordGifts => 'Подарки';
+
+  @override
+  String get wordReward => 'Награда';
+
+  @override
+  String get wordRewards => 'Награды';
+
+  @override
+  String get wordBonus => 'Бонус';
+
+  @override
+  String get wordBonuses => 'Бонусы';
+
+  @override
+  String get wordCredit => 'Кредит';
+
+  @override
+  String get wordCredits => 'Кредиты';
+
+  @override
+  String get wordCoin => 'Монета';
+
+  @override
+  String get wordCoins => 'Монеты';
+
+  @override
+  String get wordPoint => 'Очко';
+
+  @override
+  String get wordPoints => 'Очки';
+
+  @override
+  String get wordLevel => 'Уровень';
+
+  @override
+  String get wordLevels => 'Уровни';
+
+  @override
+  String get wordRank => 'Ранг';
+
+  @override
+  String get wordBadge => 'Значок';
+
+  @override
+  String get wordBadges => 'Значки';
+
+  @override
+  String get wordAchievement => 'Достижение';
+
+  @override
+  String get wordAchievements => 'Достижения';
+
+  @override
+  String get wordMilestone => 'Веха';
+
+  @override
+  String get wordProgress => 'Прогресс';
+
+  @override
+  String get wordGoal => 'Цель';
+
+  @override
+  String get wordTarget => 'Цель';
+
+  @override
+  String get wordResult => 'Результат';
+
+  @override
+  String get wordResults => 'Результаты';
+
+  @override
+  String get wordStats => 'Статистика';
+
+  @override
+  String get wordStatistics => 'Статистика';
+
+  @override
+  String get wordAnalytics => 'Аналитика';
+
+  @override
+  String get wordInsight => 'Инсайт';
+
+  @override
+  String get wordInsights => 'Инсайты';
+
+  @override
+  String get wordReport => 'Отчёт';
+
+  @override
+  String get wordReports => 'Отчёты';
+
+  @override
+  String get wordDashboard => 'Панель';
+
+  @override
+  String get wordWorld => 'Мир';
+
+  @override
+  String get wordCountry => 'Страна';
+
+  @override
+  String get wordCity => 'Город';
+
+  @override
+  String get wordTown => 'Городок';
+
+  @override
+  String get wordState => 'Штат';
+
+  @override
+  String get wordProvince => 'Провинция';
+
+  @override
+  String get wordRegion => 'Регион';
+
+  @override
+  String get wordArea => 'Область';
+
+  @override
+  String get wordPlace => 'Место';
+
+  @override
+  String get wordLocation => 'Местоположение';
+
+  @override
+  String get wordDistance => 'Расстояние';
+
+  @override
+  String get wordDirection => 'Направление';
+
+  @override
+  String get wordMap => 'Карта';
+
+  @override
+  String get wordRoute => 'Маршрут';
+
+  @override
+  String get wordWay => 'Путь';
+
+  @override
+  String get wordPath => 'Тропа';
+
+  @override
+  String get wordRoad => 'Дорога';
+
+  @override
+  String get wordStreet => 'Улица';
+
+  @override
+  String get wordPark => 'Парк';
+
+  @override
+  String get wordBeach => 'Пляж';
+
+  @override
+  String get wordMountain => 'Гора';
+
+  @override
+  String get wordLake => 'Озеро';
+
+  @override
+  String get wordRiver => 'Река';
+
+  @override
+  String get wordSea => 'Море';
+
+  @override
+  String get wordOcean => 'Океан';
+
+  @override
+  String get wordSky => 'Небо';
+
+  @override
+  String get wordSun => 'Солнце';
+
+  @override
+  String get wordMoon => 'Луна';
+
+  @override
+  String get wordWeather => 'Погода';
+
+  @override
+  String get wordSeason => 'Сезон';
+
+  @override
+  String get wordSpring => 'Весна';
+
+  @override
+  String get wordSummer => 'Лето';
+
+  @override
+  String get wordAutumn => 'Осень';
+
+  @override
+  String get wordFall => 'Осень';
+
+  @override
+  String get wordWinter => 'Зима';
+
+  @override
+  String get wordFamily => 'Семья';
+
+  @override
+  String get wordParent => 'Родитель';
+
+  @override
+  String get wordParents => 'Родители';
+
+  @override
+  String get wordMother => 'Мать';
+
+  @override
+  String get wordFather => 'Отец';
+
+  @override
+  String get wordMom => 'Мама';
+
+  @override
+  String get wordDad => 'Папа';
+
+  @override
+  String get wordChild => 'Ребёнок';
+
+  @override
+  String get wordChildren => 'Дети';
+
+  @override
+  String get wordKid => 'Ребёнок';
+
+  @override
+  String get wordKids => 'Дети';
+
+  @override
+  String get wordBaby => 'Малыш';
+
+  @override
+  String get wordSon => 'Сын';
+
+  @override
+  String get wordDaughter => 'Дочь';
+
+  @override
+  String get wordBrother => 'Брат';
+
+  @override
+  String get wordSister => 'Сестра';
+
+  @override
+  String get wordGrandparent => 'Бабушка/дедушка';
+
+  @override
+  String get wordGrandparents => 'Бабушки и дедушки';
+
+  @override
+  String get wordAunt => 'Тётя';
+
+  @override
+  String get wordUncle => 'Дядя';
+
+  @override
+  String get wordCousin => 'Двоюродный брат/сестра';
+
+  @override
+  String get wordPet => 'Питомец';
+
+  @override
+  String get wordPets => 'Питомцы';
+
+  @override
+  String get wordDog => 'Собака';
+
+  @override
+  String get wordCat => 'Кошка';
+
+  @override
+  String get wordAnimal => 'Животное';
+
+  @override
+  String get wordAnimals => 'Животные';
+
+  @override
+  String get wordFood => 'Еда';
+
+  @override
+  String get wordDinner => 'Ужин';
+
+  @override
+  String get wordLunch => 'Обед';
+
+  @override
+  String get wordBreakfast => 'Завтрак';
+
+  @override
+  String get wordSnack => 'Перекус';
+
+  @override
+  String get wordDessert => 'Десерт';
+
+  @override
+  String get wordCoffee => 'Кофе';
+
+  @override
+  String get wordTea => 'Чай';
+
+  @override
+  String get wordWater => 'Вода';
+
+  @override
+  String get wordWine => 'Вино';
+
+  @override
+  String get wordBeer => 'Пиво';
+
+  @override
+  String get wordCocktail => 'Коктейль';
+
+  @override
+  String get wordMusic => 'Музыка';
+
+  @override
+  String get wordSong => 'Песня';
+
+  @override
+  String get wordSongs => 'Песни';
+
+  @override
+  String get wordMovie => 'Фильм';
+
+  @override
+  String get wordMovies => 'Фильмы';
+
+  @override
+  String get wordFilm => 'Кино';
+
+  @override
+  String get wordFilms => 'Фильмы';
+
+  @override
+  String get wordShowNoun => 'Шоу';
+
+  @override
+  String get wordShows => 'Шоу';
+
+  @override
+  String get wordSeries => 'Сериал';
+
+  @override
+  String get wordBook => 'Книга';
+
+  @override
+  String get wordBooks => 'Книги';
+
+  @override
+  String get wordGame => 'Игра';
+
+  @override
+  String get wordGames => 'Игры';
+
+  @override
+  String get wordSport => 'Спорт';
+
+  @override
+  String get wordSports => 'Спорт';
+
+  @override
+  String get wordExercise => 'Упражнение';
+
+  @override
+  String get wordFitness => 'Фитнес';
+
+  @override
+  String get wordGym => 'Спортзал';
+
+  @override
+  String get wordYoga => 'Йога';
+
+  @override
+  String get wordRunning => 'Бег';
+
+  @override
+  String get wordSwimming => 'Плавание';
+
+  @override
+  String get wordDancing => 'Танцы';
+
+  @override
+  String get wordCooking => 'Готовка';
+
+  @override
+  String get wordReading => 'Чтение';
+
+  @override
+  String get wordWriting => 'Письмо';
+
+  @override
+  String get wordPainting => 'Живопись';
+
+  @override
+  String get wordDrawing => 'Рисование';
+
+  @override
+  String get wordPhotography => 'Фотография';
+
+  @override
+  String get wordArt => 'Искусство';
+
+  @override
+  String get wordDesign => 'Дизайн';
+
+  @override
+  String get wordFashion => 'Мода';
+
+  @override
+  String get wordStyle => 'Стиль';
+
+  @override
+  String get wordClothing => 'Одежда';
+
+  @override
+  String get wordClothes => 'Одежда';
+
+  @override
+  String get wordShoes => 'Обувь';
+
+  @override
+  String get wordAccessories => 'Аксессуары';
+
+  @override
+  String get wordJewelry => 'Украшения';
+
+  @override
+  String get wordMakeup => 'Макияж';
+
+  @override
+  String get wordBeauty => 'Красота';
+
+  @override
+  String get wordHealth => 'Здоровье';
+
+  @override
+  String get wordWellness => 'Благополучие';
+
+  @override
+  String get wordMind => 'Разум';
+
+  @override
+  String get wordBody => 'Тело';
+
+  @override
+  String get wordSoul => 'Душа';
+
+  @override
+  String get wordSpirit => 'Дух';
+
+  @override
+  String get wordLife => 'Жизнь';
+
+  @override
+  String get wordDeath => 'Смерть';
+
+  @override
+  String get wordBirth => 'Рождение';
+
+  @override
+  String get wordAge => 'Возраст';
+
+  @override
+  String get wordGender => 'Пол';
+
+  @override
+  String get wordMale => 'Мужской';
+
+  @override
+  String get wordFemale => 'Женский';
+
+  @override
+  String get wordMan => 'Мужчина';
+
+  @override
+  String get wordWoman => 'Женщина';
+
+  @override
+  String get wordBoy => 'Мальчик';
+
+  @override
+  String get wordGirl => 'Девочка';
+
+  @override
+  String get wordGuy => 'Парень';
+
+  @override
+  String get wordLady => 'Леди';
+
+  @override
+  String get wordGentleman => 'Джентльмен';
+
+  @override
+  String get wordHuman => 'Человек';
+
+  @override
+  String get wordHumans => 'Люди';
+
+  @override
+  String get wordEveryone => 'Все';
+
+  @override
+  String get wordEverybody => 'Каждый';
+
+  @override
+  String get wordSomeone => 'Кто-то';
+
+  @override
+  String get wordSomebody => 'Кто-нибудь';
+
+  @override
+  String get wordNoone => 'Никто';
+
+  @override
+  String get wordNobody => 'Никто';
+
+  @override
+  String get wordAnyone => 'Любой';
+
+  @override
+  String get wordAnybody => 'Кто угодно';
+
+  @override
+  String get wordEverything => 'Всё';
+
+  @override
+  String get wordSomething => 'Что-то';
+
+  @override
+  String get wordNothing => 'Ничего';
+
+  @override
+  String get wordAnything => 'Что угодно';
 }

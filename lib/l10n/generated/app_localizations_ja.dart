@@ -1328,4 +1328,2632 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get emptyCheckBackLater => '後でまた確認してください';
+
+  @override
+  String get wordHome => 'ホーム';
+
+  @override
+  String get wordExplore => '探索';
+
+  @override
+  String get wordHelp => '助ける';
+
+  @override
+  String get wordMenu => 'メニュー';
+
+  @override
+  String get wordFeed => 'フィード';
+
+  @override
+  String get wordActivity => 'アクティビティ';
+
+  @override
+  String get wordNotifications => '通知';
+
+  @override
+  String get wordInbox => '受信箱';
+
+  @override
+  String get wordFavorites => 'お気に入り';
+
+  @override
+  String get wordHistory => '履歴';
+
+  @override
+  String get wordCopy => 'コピー';
+
+  @override
+  String get wordPaste => '貼り付け';
+
+  @override
+  String get wordUndo => '元に戻す';
+
+  @override
+  String get wordRedo => 'やり直す';
+
+  @override
+  String get wordDownload => 'ダウンロード';
+
+  @override
+  String get wordUpload => 'アップロード';
+
+  @override
+  String get wordSelect => '選択';
+
+  @override
+  String get wordDeselect => '選択解除';
+
+  @override
+  String get wordOpen => '開いている';
+
+  @override
+  String get wordCreate => '作成';
+
+  @override
+  String get wordConnect => '接続';
+
+  @override
+  String get wordDisconnect => '切断';
+
+  @override
+  String get wordStart => '開始';
+
+  @override
+  String get wordStop => '停止';
+
+  @override
+  String get wordPlay => '再生';
+
+  @override
+  String get wordPause => '一時停止';
+
+  @override
+  String get wordRecord => '録音';
+
+  @override
+  String get wordCall => '電話';
+
+  @override
+  String get wordEnd => '終了';
+
+  @override
+  String get wordAnswer => '応答';
+
+  @override
+  String get wordDecline => '拒否';
+
+  @override
+  String get wordAccept => '承諾';
+
+  @override
+  String get wordReject => '却下';
+
+  @override
+  String get wordApprove => '承認';
+
+  @override
+  String get wordDeny => '拒否';
+
+  @override
+  String get wordAllow => '許可';
+
+  @override
+  String get wordEnable => '有効化';
+
+  @override
+  String get wordDisable => '無効化';
+
+  @override
+  String get wordShow => '番組';
+
+  @override
+  String get wordHide => '非表示';
+
+  @override
+  String get wordExpand => '展開';
+
+  @override
+  String get wordCollapse => '折りたたむ';
+
+  @override
+  String get wordSort => '並べ替え';
+
+  @override
+  String get wordFilter => 'フィルター';
+
+  @override
+  String get wordPin => 'ピン留め';
+
+  @override
+  String get wordUnpin => 'ピン解除';
+
+  @override
+  String get wordArchive => 'アーカイブ';
+
+  @override
+  String get wordRestore => '復元';
+
+  @override
+  String get wordForward => '転送';
+
+  @override
+  String get wordFollow => 'フォロー';
+
+  @override
+  String get wordUnfollow => 'フォロー解除';
+
+  @override
+  String get wordSubscribe => '登録';
+
+  @override
+  String get wordUnsubscribe => '登録解除';
+
+  @override
+  String get wordInvite => '招待';
+
+  @override
+  String get wordJoin => '参加';
+
+  @override
+  String get wordLeave => '退出';
+
+  @override
+  String get wordLogin => 'ログイン';
+
+  @override
+  String get wordLogout => 'ログアウト';
+
+  @override
+  String get wordSignup => 'サインアップ';
+
+  @override
+  String get wordRegister => '登録';
+
+  @override
+  String get wordVerify => '認証';
+
+  @override
+  String get wordConfirmed => '確認済み';
+
+  @override
+  String get wordPending => '保留中';
+
+  @override
+  String get wordComplete => '完了';
+
+  @override
+  String get wordFinish => '終了';
+
+  @override
+  String get wordCancel => 'キャンセル';
+
+  @override
+  String get wordTry => '試す';
+
+  @override
+  String get wordAgain => 'もう一度';
+
+  @override
+  String get wordGo => '行く';
+
+  @override
+  String get wordSee => '見る';
+
+  @override
+  String get wordLook => '見る';
+
+  @override
+  String get wordFind => '探す';
+
+  @override
+  String get wordGet => '取得';
+
+  @override
+  String get wordSet => '設定';
+
+  @override
+  String get wordPut => '置く';
+
+  @override
+  String get wordTake => '取る';
+
+  @override
+  String get wordGive => '与える';
+
+  @override
+  String get wordMake => '作る';
+
+  @override
+  String get wordKeep => '保つ';
+
+  @override
+  String get wordLet => 'させる';
+
+  @override
+  String get wordKnow => '知る';
+
+  @override
+  String get wordThink => '思う';
+
+  @override
+  String get wordFeel => '感じる';
+
+  @override
+  String get wordWant => '欲しい';
+
+  @override
+  String get wordNeed => '必要';
+
+  @override
+  String get wordLike => '好き';
+
+  @override
+  String get wordLove => '愛する';
+
+  @override
+  String get wordHate => '嫌う';
+
+  @override
+  String get wordTalk => '話す';
+
+  @override
+  String get wordSay => '言う';
+
+  @override
+  String get wordTell => '伝える';
+
+  @override
+  String get wordAsk => '尋ねる';
+
+  @override
+  String get wordHelpVerb => '助ける';
+
+  @override
+  String get wordWait => '待つ';
+
+  @override
+  String get wordStay => '滞在';
+
+  @override
+  String get wordCome => '来る';
+
+  @override
+  String get wordMove => '動く';
+
+  @override
+  String get wordRun => '走る';
+
+  @override
+  String get wordWalk => '歩く';
+
+  @override
+  String get wordMeet => '会う';
+
+  @override
+  String get wordWork => '働く';
+
+  @override
+  String get wordLive => '住む';
+
+  @override
+  String get wordChange => '変える';
+
+  @override
+  String get wordTurn => '回る';
+
+  @override
+  String get wordRead => '既読';
+
+  @override
+  String get wordWrite => '書く';
+
+  @override
+  String get wordLearn => '学ぶ';
+
+  @override
+  String get wordStudy => '勉強する';
+
+  @override
+  String get wordWatch => '見る';
+
+  @override
+  String get wordListen => '聴く';
+
+  @override
+  String get wordSpeak => '話す';
+
+  @override
+  String get wordEat => '食べる';
+
+  @override
+  String get wordDrink => '飲む';
+
+  @override
+  String get wordSleep => '眠る';
+
+  @override
+  String get wordBuy => '買う';
+
+  @override
+  String get wordSell => '売る';
+
+  @override
+  String get wordPay => '払う';
+
+  @override
+  String get wordSpend => '使う';
+
+  @override
+  String get wordSave => '保存';
+
+  @override
+  String get wordWin => '勝つ';
+
+  @override
+  String get wordLose => '負ける';
+
+  @override
+  String get wordCheck => '確認';
+
+  @override
+  String get wordPick => '選ぶ';
+
+  @override
+  String get wordChoose => '選択';
+
+  @override
+  String get wordDecide => '決める';
+
+  @override
+  String get wordAgree => '同意';
+
+  @override
+  String get wordDisagree => '反対';
+
+  @override
+  String get wordActive => 'アクティブ';
+
+  @override
+  String get wordInactive => '非アクティブ';
+
+  @override
+  String get wordAvailable => '利用可能';
+
+  @override
+  String get wordUnavailable => '利用不可';
+
+  @override
+  String get wordBusy => '取り込み中';
+
+  @override
+  String get wordAway => '離れて';
+
+  @override
+  String get wordInvisible => '非表示';
+
+  @override
+  String get wordOnline => 'オンライン';
+
+  @override
+  String get wordOffline => 'オフライン';
+
+  @override
+  String get wordConnected => '接続済み';
+
+  @override
+  String get wordDisconnected => '切断済み';
+
+  @override
+  String get wordVerified => '認証済み';
+
+  @override
+  String get wordUnverified => '未認証';
+
+  @override
+  String get wordApproved => '承認済み';
+
+  @override
+  String get wordDenied => '拒否済み';
+
+  @override
+  String get wordBlocked => 'ブロック済み';
+
+  @override
+  String get wordUnblocked => 'ブロック解除';
+
+  @override
+  String get wordSuspended => '停止中';
+
+  @override
+  String get wordBanned => '禁止';
+
+  @override
+  String get wordRestricted => '制限あり';
+
+  @override
+  String get wordPremium => 'プレミアム';
+
+  @override
+  String get wordStandard => 'スタンダード';
+
+  @override
+  String get wordBasic => 'ベーシック';
+
+  @override
+  String get wordNew => '新規';
+
+  @override
+  String get wordUpdated => '更新済み';
+
+  @override
+  String get wordRecent => '最近';
+
+  @override
+  String get wordPopular => '人気';
+
+  @override
+  String get wordTrending => 'トレンド';
+
+  @override
+  String get wordFeatured => '注目';
+
+  @override
+  String get wordRecommended => 'おすすめ';
+
+  @override
+  String get wordSuggested => '提案';
+
+  @override
+  String get wordRequired => '必須';
+
+  @override
+  String get wordOptional => '任意';
+
+  @override
+  String get wordEnabled => '有効';
+
+  @override
+  String get wordDisabled => '無効';
+
+  @override
+  String get wordLocked => 'ロック済み';
+
+  @override
+  String get wordUnlocked => 'ロック解除';
+
+  @override
+  String get wordHidden => '非表示';
+
+  @override
+  String get wordVisible => '表示';
+
+  @override
+  String get wordPublic => '公開';
+
+  @override
+  String get wordPrivate => '非公開';
+
+  @override
+  String get wordSecure => '安全';
+
+  @override
+  String get wordSafe => '安全';
+
+  @override
+  String get wordReal => '本物';
+
+  @override
+  String get wordFake => '偽物';
+
+  @override
+  String get wordTrue => '真';
+
+  @override
+  String get wordFalse => '偽';
+
+  @override
+  String get wordValid => '有効';
+
+  @override
+  String get wordInvalid => '無効';
+
+  @override
+  String get wordCorrect => '正しい';
+
+  @override
+  String get wordIncorrect => '間違い';
+
+  @override
+  String get wordEmpty => '空';
+
+  @override
+  String get wordFull => '満杯';
+
+  @override
+  String get wordReady => '準備完了';
+
+  @override
+  String get wordNotReady => '準備中';
+
+  @override
+  String get wordDone => '完了';
+
+  @override
+  String get wordNotDone => '未完了';
+
+  @override
+  String get wordSent => '送信済み';
+
+  @override
+  String get wordReceived => '受信済み';
+
+  @override
+  String get wordReadStatus => '既読';
+
+  @override
+  String get wordUnread => '未読';
+
+  @override
+  String get wordSeen => '閲覧済み';
+
+  @override
+  String get wordUnseen => '未閲覧';
+
+  @override
+  String get wordOpenStatus => 'オープン';
+
+  @override
+  String get wordClosed => '閉じている';
+
+  @override
+  String get wordNow => '今';
+
+  @override
+  String get wordLater => '後で';
+
+  @override
+  String get wordSoon => 'まもなく';
+
+  @override
+  String get wordToday => '今日';
+
+  @override
+  String get wordTomorrow => '明日';
+
+  @override
+  String get wordYesterday => '昨日';
+
+  @override
+  String get wordMorning => '朝';
+
+  @override
+  String get wordAfternoon => '午後';
+
+  @override
+  String get wordEvening => '夕方';
+
+  @override
+  String get wordNight => '夜';
+
+  @override
+  String get wordWeek => '週';
+
+  @override
+  String get wordMonth => '月';
+
+  @override
+  String get wordYear => '年';
+
+  @override
+  String get wordDaily => '毎日';
+
+  @override
+  String get wordWeekly => '毎週';
+
+  @override
+  String get wordMonthly => '毎月';
+
+  @override
+  String get wordYearly => '毎年';
+
+  @override
+  String get wordAlways => 'いつも';
+
+  @override
+  String get wordNever => '決して';
+
+  @override
+  String get wordSometimes => '時々';
+
+  @override
+  String get wordOften => 'よく';
+
+  @override
+  String get wordRarely => 'まれに';
+
+  @override
+  String get wordRecently => '最近';
+
+  @override
+  String get wordBefore => '前';
+
+  @override
+  String get wordAfter => '後';
+
+  @override
+  String get wordDuring => '間';
+
+  @override
+  String get wordUntil => 'まで';
+
+  @override
+  String get wordSince => '以来';
+
+  @override
+  String get wordAgo => '前';
+
+  @override
+  String get wordMinute => '分';
+
+  @override
+  String get wordMinutes => '分';
+
+  @override
+  String get wordHour => '時間';
+
+  @override
+  String get wordHours => '時間';
+
+  @override
+  String get wordDay => '日';
+
+  @override
+  String get wordDays => '日';
+
+  @override
+  String get wordWeeks => '週間';
+
+  @override
+  String get wordMonths => 'ヶ月';
+
+  @override
+  String get wordYears => '年';
+
+  @override
+  String get wordSecond => '秒';
+
+  @override
+  String get wordSeconds => '秒';
+
+  @override
+  String get wordGood => '良い';
+
+  @override
+  String get wordBad => '悪い';
+
+  @override
+  String get wordGreat => '素晴らしい';
+
+  @override
+  String get wordExcellent => '優秀';
+
+  @override
+  String get wordBest => '最高';
+
+  @override
+  String get wordWorst => '最悪';
+
+  @override
+  String get wordOld => '古い';
+
+  @override
+  String get wordYoung => '若い';
+
+  @override
+  String get wordHot => '熱い';
+
+  @override
+  String get wordCold => '寒い';
+
+  @override
+  String get wordFast => '速い';
+
+  @override
+  String get wordSlow => '遅い';
+
+  @override
+  String get wordEasy => '簡単';
+
+  @override
+  String get wordHard => '難しい';
+
+  @override
+  String get wordSimple => 'シンプル';
+
+  @override
+  String get wordComplex => '複雑';
+
+  @override
+  String get wordSmall => '小さい';
+
+  @override
+  String get wordBig => '大きい';
+
+  @override
+  String get wordLarge => '大きい';
+
+  @override
+  String get wordTiny => 'とても小さい';
+
+  @override
+  String get wordHuge => '巨大';
+
+  @override
+  String get wordLong => '長い';
+
+  @override
+  String get wordShort => '短い';
+
+  @override
+  String get wordHigh => '高い';
+
+  @override
+  String get wordLow => '低い';
+
+  @override
+  String get wordWide => '広い';
+
+  @override
+  String get wordNarrow => '狭い';
+
+  @override
+  String get wordThick => '厚い';
+
+  @override
+  String get wordThin => '薄い';
+
+  @override
+  String get wordDeep => '深い';
+
+  @override
+  String get wordShallow => '浅い';
+
+  @override
+  String get wordBright => '明るい';
+
+  @override
+  String get wordDark => '暗い';
+
+  @override
+  String get wordLight => '軽い';
+
+  @override
+  String get wordHeavy => '重い';
+
+  @override
+  String get wordSoft => '柔らかい';
+
+  @override
+  String get wordLoud => 'うるさい';
+
+  @override
+  String get wordQuiet => '静か';
+
+  @override
+  String get wordClean => 'きれい';
+
+  @override
+  String get wordDirty => '汚い';
+
+  @override
+  String get wordRich => '裕福';
+
+  @override
+  String get wordPoor => '貧しい';
+
+  @override
+  String get wordFree => '無料';
+
+  @override
+  String get wordPaid => '有料';
+
+  @override
+  String get wordCheap => '安い';
+
+  @override
+  String get wordExpensive => '高価';
+
+  @override
+  String get wordBeautiful => '美しい';
+
+  @override
+  String get wordUgly => '醜い';
+
+  @override
+  String get wordPretty => 'かわいい';
+
+  @override
+  String get wordHandsome => 'ハンサム';
+
+  @override
+  String get wordCute => 'かわいい';
+
+  @override
+  String get wordSexy => 'セクシー';
+
+  @override
+  String get wordAttractive => '魅力的';
+
+  @override
+  String get wordHappy => '幸せ';
+
+  @override
+  String get wordSad => '悲しい';
+
+  @override
+  String get wordAngry => '怒り';
+
+  @override
+  String get wordScared => '怖い';
+
+  @override
+  String get wordExcited => '興奮';
+
+  @override
+  String get wordBored => '退屈';
+
+  @override
+  String get wordTired => '疲れた';
+
+  @override
+  String get wordSick => '病気';
+
+  @override
+  String get wordHealthy => '健康';
+
+  @override
+  String get wordStrong => '強い';
+
+  @override
+  String get wordWeak => '弱い';
+
+  @override
+  String get wordSmart => '頭が良い';
+
+  @override
+  String get wordStupid => '愚か';
+
+  @override
+  String get wordFunny => '面白い';
+
+  @override
+  String get wordSerious => '真剣';
+
+  @override
+  String get wordNice => '素敵';
+
+  @override
+  String get wordMean => '意地悪';
+
+  @override
+  String get wordKind => '優しい';
+
+  @override
+  String get wordCruel => '残酷';
+
+  @override
+  String get wordFriendly => 'フレンドリー';
+
+  @override
+  String get wordRude => '失礼';
+
+  @override
+  String get wordPolite => '礼儀正しい';
+
+  @override
+  String get wordHonest => '正直';
+
+  @override
+  String get wordLazy => '怠け者';
+
+  @override
+  String get wordBrave => '勇敢';
+
+  @override
+  String get wordCurious => '好奇心旺盛';
+
+  @override
+  String get wordPatient => '忍耐強い';
+
+  @override
+  String get wordImpatient => 'せっかち';
+
+  @override
+  String get wordCareful => '注意深い';
+
+  @override
+  String get wordCareless => '不注意';
+
+  @override
+  String get wordGenerous => '寛大';
+
+  @override
+  String get wordSelfish => 'わがまま';
+
+  @override
+  String get wordRomantic => 'ロマンチック';
+
+  @override
+  String get wordPassionate => '情熱的';
+
+  @override
+  String get wordLoyal => '忠実';
+
+  @override
+  String get wordFaithful => '誠実';
+
+  @override
+  String get wordTrustworthy => '信頼できる';
+
+  @override
+  String get wordReliable => '頼りになる';
+
+  @override
+  String get wordResponsible => '責任感がある';
+
+  @override
+  String get wordMature => '成熟した';
+
+  @override
+  String get wordImmature => '未熟';
+
+  @override
+  String get wordIndependent => '独立した';
+
+  @override
+  String get wordConfident => '自信がある';
+
+  @override
+  String get wordShy => '恥ずかしがり';
+
+  @override
+  String get wordOutgoing => '外向的';
+
+  @override
+  String get wordIntroverted => '内向的';
+
+  @override
+  String get wordExtroverted => '外向的';
+
+  @override
+  String get wordAmbitious => '野心的';
+
+  @override
+  String get wordCreative => '創造的';
+
+  @override
+  String get wordIntelligent => '知的';
+
+  @override
+  String get wordWise => '賢い';
+
+  @override
+  String get wordTalented => '才能がある';
+
+  @override
+  String get wordSuccessful => '成功した';
+
+  @override
+  String get wordFamous => '有名';
+
+  @override
+  String get wordImportant => '重要';
+
+  @override
+  String get wordSpecial => '特別';
+
+  @override
+  String get wordPerfect => '完璧';
+
+  @override
+  String get wordAmazing => '素晴らしい';
+
+  @override
+  String get wordWonderful => '素晴らしい';
+
+  @override
+  String get wordFantastic => '素晴らしい';
+
+  @override
+  String get wordIncredible => '信じられない';
+
+  @override
+  String get wordAwesome => '最高';
+
+  @override
+  String get wordTerrific => '素晴らしい';
+
+  @override
+  String get wordMarvelous => '驚くべき';
+
+  @override
+  String get wordSuperb => '見事';
+
+  @override
+  String get wordOutstanding => '傑出した';
+
+  @override
+  String get wordBrilliant => '輝かしい';
+
+  @override
+  String get wordFabulous => '素晴らしい';
+
+  @override
+  String get wordMagnificent => '壮大';
+
+  @override
+  String get wordSpectacular => '壮観';
+
+  @override
+  String get wordPlease => 'お願いします';
+
+  @override
+  String get wordThanks => 'ありがとう';
+
+  @override
+  String get wordThankYou => 'ありがとうございます';
+
+  @override
+  String get wordSorry => 'ごめんなさい';
+
+  @override
+  String get wordExcuseMe => 'すみません';
+
+  @override
+  String get wordWelcome => 'ようこそ';
+
+  @override
+  String get wordHello => 'こんにちは';
+
+  @override
+  String get wordHi => 'やあ';
+
+  @override
+  String get wordHey => 'ねえ';
+
+  @override
+  String get wordGoodbye => 'さようなら';
+
+  @override
+  String get wordBye => 'じゃあね';
+
+  @override
+  String get wordCongratulations => 'おめでとうございます';
+
+  @override
+  String get wordCongrats => 'おめでとう';
+
+  @override
+  String get wordGoodMorning => 'おはようございます';
+
+  @override
+  String get wordGoodAfternoon => 'こんにちは';
+
+  @override
+  String get wordGoodEvening => 'こんばんは';
+
+  @override
+  String get wordGoodNight => 'おやすみなさい';
+
+  @override
+  String get wordHowAreYou => 'お元気ですか？';
+
+  @override
+  String get wordImFine => '元気です';
+
+  @override
+  String get wordNiceMeetYou => 'はじめまして';
+
+  @override
+  String get wordSeeLater => 'また後で';
+
+  @override
+  String get wordTakeCare => 'お気をつけて';
+
+  @override
+  String get wordMissYou => '会いたい';
+
+  @override
+  String get wordLoveYou => '愛してる';
+
+  @override
+  String get wordThinkingOfYou => 'あなたのことを思っている';
+
+  @override
+  String get wordGoodLuck => '頑張って';
+
+  @override
+  String get wordHaveFun => '楽しんで';
+
+  @override
+  String get wordEnjoy => '楽しんでね';
+
+  @override
+  String get wordCheers => '乾杯';
+
+  @override
+  String get wordWho => '誰';
+
+  @override
+  String get wordWhat => '何';
+
+  @override
+  String get wordWhen => 'いつ';
+
+  @override
+  String get wordWhere => 'どこ';
+
+  @override
+  String get wordWhy => 'なぜ';
+
+  @override
+  String get wordHow => 'どうやって';
+
+  @override
+  String get wordWhich => 'どれ';
+
+  @override
+  String get wordWhose => '誰の';
+
+  @override
+  String get wordHowMany => 'いくつ';
+
+  @override
+  String get wordHowMuch => 'いくら';
+
+  @override
+  String get wordHowLong => 'どのくらい';
+
+  @override
+  String get wordHowFar => 'どのくらい遠い';
+
+  @override
+  String get wordHowOld => '何歳';
+
+  @override
+  String get wordHowOften => 'どのくらいの頻度';
+
+  @override
+  String get wordWith => 'と一緒に';
+
+  @override
+  String get wordWithout => 'なしで';
+
+  @override
+  String get wordIn => '中に';
+
+  @override
+  String get wordOut => '外に';
+
+  @override
+  String get wordUp => '上に';
+
+  @override
+  String get wordDown => '下に';
+
+  @override
+  String get wordLeft => '左';
+
+  @override
+  String get wordRight => '右';
+
+  @override
+  String get wordNear => '近く';
+
+  @override
+  String get wordFar => '遠く';
+
+  @override
+  String get wordHere => 'ここ';
+
+  @override
+  String get wordThere => 'そこ';
+
+  @override
+  String get wordInside => '内側';
+
+  @override
+  String get wordOutside => '外側';
+
+  @override
+  String get wordAbove => '上方';
+
+  @override
+  String get wordBelow => '下方';
+
+  @override
+  String get wordBetween => '間';
+
+  @override
+  String get wordAround => '周り';
+
+  @override
+  String get wordAcross => '向こう側';
+
+  @override
+  String get wordThrough => '通して';
+
+  @override
+  String get wordAlong => '沿って';
+
+  @override
+  String get wordToward => '方へ';
+
+  @override
+  String get wordAwayFrom => '離れて';
+
+  @override
+  String get wordBehind => '後ろ';
+
+  @override
+  String get wordAhead => '前方';
+
+  @override
+  String get wordFront => '前';
+
+  @override
+  String get wordBack => '後ろ';
+
+  @override
+  String get wordSide => '側';
+
+  @override
+  String get wordTop => '上部';
+
+  @override
+  String get wordBottom => '下部';
+
+  @override
+  String get wordMiddle => '中央';
+
+  @override
+  String get wordCenter => '中心';
+
+  @override
+  String get wordCorner => '角';
+
+  @override
+  String get wordEdge => '端';
+
+  @override
+  String get wordCrush => '好きな人';
+
+  @override
+  String get wordMatch => 'マッチ';
+
+  @override
+  String get wordMatches => 'マッチ';
+
+  @override
+  String get wordMatched => 'マッチした';
+
+  @override
+  String get wordMatching => 'マッチング中';
+
+  @override
+  String get wordUnmatched => 'マッチ解除';
+
+  @override
+  String get wordConnection => 'つながり';
+
+  @override
+  String get wordConnections => 'つながり';
+
+  @override
+  String get wordChemistry => '相性';
+
+  @override
+  String get wordSpark => 'ときめき';
+
+  @override
+  String get wordDate => 'デート';
+
+  @override
+  String get wordDates => 'デート';
+
+  @override
+  String get wordDating => '交際';
+
+  @override
+  String get wordRomance => 'ロマンス';
+
+  @override
+  String get wordSingle => '独身';
+
+  @override
+  String get wordCouple => 'カップル';
+
+  @override
+  String get wordRelationship => '関係';
+
+  @override
+  String get wordRelationships => '関係';
+
+  @override
+  String get wordPartner => 'パートナー';
+
+  @override
+  String get wordSoulmate => '運命の人';
+
+  @override
+  String get wordInterested => '興味がある';
+
+  @override
+  String get wordInterest => '興味';
+
+  @override
+  String get wordInterests => '興味';
+
+  @override
+  String get wordMutual => '相互';
+
+  @override
+  String get wordCompatible => '相性が良い';
+
+  @override
+  String get wordCompatibility => '相性';
+
+  @override
+  String get wordAttraction => '魅力';
+
+  @override
+  String get wordFlirt => 'イチャイチャ';
+
+  @override
+  String get wordFlirting => 'イチャイチャ';
+
+  @override
+  String get wordFlirty => 'イチャイチャな';
+
+  @override
+  String get wordSwipe => 'スワイプ';
+
+  @override
+  String get wordSwiped => 'スワイプした';
+
+  @override
+  String get wordSwiping => 'スワイプ中';
+
+  @override
+  String get wordLiked => 'いいねした';
+
+  @override
+  String get wordLikes => 'いいね';
+
+  @override
+  String get wordLiking => 'いいね中';
+
+  @override
+  String get wordPassed => 'パスした';
+
+  @override
+  String get wordPassing => 'パス中';
+
+  @override
+  String get wordSuperLike => 'スーパーライク';
+
+  @override
+  String get wordSuperLiked => 'スーパーライクした';
+
+  @override
+  String get wordBoost => 'ブースト';
+
+  @override
+  String get wordBoosted => 'ブーストした';
+
+  @override
+  String get wordBoosting => 'ブースト中';
+
+  @override
+  String get wordRewind => '巻き戻し';
+
+  @override
+  String get wordRewinded => '巻き戻した';
+
+  @override
+  String get wordChat => 'チャット';
+
+  @override
+  String get wordChats => 'チャット';
+
+  @override
+  String get wordChatting => 'チャット中';
+
+  @override
+  String get wordMessage => 'メッセージ';
+
+  @override
+  String get wordMessages => 'メッセージ';
+
+  @override
+  String get wordMessaging => 'メッセージ中';
+
+  @override
+  String get wordConversation => '会話';
+
+  @override
+  String get wordConversations => '会話';
+
+  @override
+  String get wordProfile => 'プロフィール';
+
+  @override
+  String get wordProfiles => 'プロフィール';
+
+  @override
+  String get wordBio => '自己紹介';
+
+  @override
+  String get wordPhoto => '写真';
+
+  @override
+  String get wordPhotos => '写真';
+
+  @override
+  String get wordVideo => '動画';
+
+  @override
+  String get wordVideos => '動画';
+
+  @override
+  String get wordGallery => 'ギャラリー';
+
+  @override
+  String get wordAlbum => 'アルバム';
+
+  @override
+  String get wordVoice => '音声';
+
+  @override
+  String get wordAudio => 'オーディオ';
+
+  @override
+  String get wordCamera => 'カメラ';
+
+  @override
+  String get wordImage => '画像';
+
+  @override
+  String get wordImages => '画像';
+
+  @override
+  String get wordPicture => '写真';
+
+  @override
+  String get wordPictures => '写真';
+
+  @override
+  String get wordHeartbeat => '鼓動';
+
+  @override
+  String get wordHeart => 'ハート';
+
+  @override
+  String get wordHearts => 'ハート';
+
+  @override
+  String get wordStar => '星';
+
+  @override
+  String get wordStars => '星';
+
+  @override
+  String get wordDiamond => 'ダイヤモンド';
+
+  @override
+  String get wordFlame => '炎';
+
+  @override
+  String get wordFire => '火';
+
+  @override
+  String get wordHotness => '魅力度';
+
+  @override
+  String get wordVibes => '雰囲気';
+
+  @override
+  String get wordVibe => '雰囲気';
+
+  @override
+  String get wordMood => '気分';
+
+  @override
+  String get wordEnergy => 'エネルギー';
+
+  @override
+  String get wordAura => 'オーラ';
+
+  @override
+  String get wordPersonality => '性格';
+
+  @override
+  String get wordCharacter => '人格';
+
+  @override
+  String get wordValues => '価値観';
+
+  @override
+  String get wordGoals => '目標';
+
+  @override
+  String get wordDreams => '夢';
+
+  @override
+  String get wordHobbies => '趣味';
+
+  @override
+  String get wordPassion => '情熱';
+
+  @override
+  String get wordAdventure => '冒険';
+
+  @override
+  String get wordTravel => '旅行';
+
+  @override
+  String get wordTraveling => '旅行中';
+
+  @override
+  String get wordExploring => '探索中';
+
+  @override
+  String get wordFun => '楽しみ';
+
+  @override
+  String get wordLaughter => '笑い';
+
+  @override
+  String get wordSmile => '笑顔';
+
+  @override
+  String get wordSmiles => '笑顔';
+
+  @override
+  String get wordSmiling => '笑っている';
+
+  @override
+  String get wordKiss => 'キス';
+
+  @override
+  String get wordKisses => 'キス';
+
+  @override
+  String get wordHug => 'ハグ';
+
+  @override
+  String get wordHugs => 'ハグ';
+
+  @override
+  String get wordCuddle => '抱きしめる';
+
+  @override
+  String get wordCuddling => '抱きしめている';
+
+  @override
+  String get wordIntimate => '親密な';
+
+  @override
+  String get wordIntimacy => '親密さ';
+
+  @override
+  String get wordAffection => '愛情';
+
+  @override
+  String get wordAffectionate => '愛情深い';
+
+  @override
+  String get wordCaring => '思いやりのある';
+
+  @override
+  String get wordLoving => '愛情のある';
+
+  @override
+  String get wordDevoted => '献身的';
+
+  @override
+  String get wordCommitted => '真剣';
+
+  @override
+  String get wordCommitment => 'コミットメント';
+
+  @override
+  String get wordSeriousRel => '真剣';
+
+  @override
+  String get wordCasual => 'カジュアル';
+
+  @override
+  String get wordFriendship => '友情';
+
+  @override
+  String get wordFriend => '友達';
+
+  @override
+  String get wordFriends => '友達';
+
+  @override
+  String get wordBestFriend => '親友';
+
+  @override
+  String get wordSomethingSerious => '真剣な関係';
+
+  @override
+  String get wordLongTerm => '長期的';
+
+  @override
+  String get wordShortTerm => '短期的';
+
+  @override
+  String get wordOpenTo => 'オープン';
+
+  @override
+  String get wordLookingFor => '探している';
+
+  @override
+  String get wordSeekingFor => '求めている';
+
+  @override
+  String get wordWaiting => '待っている';
+
+  @override
+  String get wordSearching => '探索中';
+
+  @override
+  String get wordNotification => '通知';
+
+  @override
+  String get wordAlert => 'アラート';
+
+  @override
+  String get wordWarning => '警告';
+
+  @override
+  String get wordInfo => '情報';
+
+  @override
+  String get wordInformation => '情報';
+
+  @override
+  String get wordDetails => '詳細';
+
+  @override
+  String get wordData => 'データ';
+
+  @override
+  String get wordContent => 'コンテンツ';
+
+  @override
+  String get wordMedia => 'メディア';
+
+  @override
+  String get wordLink => 'リンク';
+
+  @override
+  String get wordLinks => 'リンク';
+
+  @override
+  String get wordURL => 'URL';
+
+  @override
+  String get wordAddress => '住所';
+
+  @override
+  String get wordName => '名前';
+
+  @override
+  String get wordUsername => 'ユーザー名';
+
+  @override
+  String get wordNickname => 'ニックネーム';
+
+  @override
+  String get wordAccount => 'アカウント';
+
+  @override
+  String get wordUser => 'ユーザー';
+
+  @override
+  String get wordUsers => 'ユーザー';
+
+  @override
+  String get wordPeople => '人々';
+
+  @override
+  String get wordPerson => '人';
+
+  @override
+  String get wordGroup => 'グループ';
+
+  @override
+  String get wordGroups => 'グループ';
+
+  @override
+  String get wordTeam => 'チーム';
+
+  @override
+  String get wordCommunity => 'コミュニティ';
+
+  @override
+  String get wordMember => 'メンバー';
+
+  @override
+  String get wordMembers => 'メンバー';
+
+  @override
+  String get wordAdmin => '管理者';
+
+  @override
+  String get wordModerator => 'モデレーター';
+
+  @override
+  String get wordGuest => 'ゲスト';
+
+  @override
+  String get wordVisitor => '訪問者';
+
+  @override
+  String get wordFollower => 'フォロワー';
+
+  @override
+  String get wordFollowers => 'フォロワー';
+
+  @override
+  String get wordFollowing => 'フォロー中';
+
+  @override
+  String get wordFan => 'ファン';
+
+  @override
+  String get wordFans => 'ファン';
+
+  @override
+  String get wordSubscriber => '購読者';
+
+  @override
+  String get wordSubscribers => '購読者';
+
+  @override
+  String get wordFile => 'ファイル';
+
+  @override
+  String get wordFiles => 'ファイル';
+
+  @override
+  String get wordFolder => 'フォルダー';
+
+  @override
+  String get wordFolders => 'フォルダー';
+
+  @override
+  String get wordDocument => 'ドキュメント';
+
+  @override
+  String get wordDocuments => 'ドキュメント';
+
+  @override
+  String get wordText => 'テキスト';
+
+  @override
+  String get wordEmail => 'メール';
+
+  @override
+  String get wordPhone => '電話';
+
+  @override
+  String get wordNumber => '番号';
+
+  @override
+  String get wordCode => 'コード';
+
+  @override
+  String get wordPassword => 'パスワード';
+
+  @override
+  String get wordPasscode => 'パスコード';
+
+  @override
+  String get wordPIN => '暗証番号';
+
+  @override
+  String get wordKey => 'キー';
+
+  @override
+  String get wordToken => 'トークン';
+
+  @override
+  String get wordSession => 'セッション';
+
+  @override
+  String get wordApp => 'アプリ';
+
+  @override
+  String get wordApplication => 'アプリケーション';
+
+  @override
+  String get wordWebsite => 'ウェブサイト';
+
+  @override
+  String get wordPage => 'ページ';
+
+  @override
+  String get wordPages => 'ページ';
+
+  @override
+  String get wordScreen => '画面';
+
+  @override
+  String get wordScreens => '画面';
+
+  @override
+  String get wordSection => 'セクション';
+
+  @override
+  String get wordSections => 'セクション';
+
+  @override
+  String get wordCategory => 'カテゴリー';
+
+  @override
+  String get wordCategories => 'カテゴリー';
+
+  @override
+  String get wordTag => 'タグ';
+
+  @override
+  String get wordTags => 'タグ';
+
+  @override
+  String get wordLabel => 'ラベル';
+
+  @override
+  String get wordLabels => 'ラベル';
+
+  @override
+  String get wordTitle => 'タイトル';
+
+  @override
+  String get wordSubtitle => 'サブタイトル';
+
+  @override
+  String get wordDescription => '説明';
+
+  @override
+  String get wordSummary => '概要';
+
+  @override
+  String get wordOverview => '概観';
+
+  @override
+  String get wordPreview => 'プレビュー';
+
+  @override
+  String get wordReview => 'レビュー';
+
+  @override
+  String get wordReviews => 'レビュー';
+
+  @override
+  String get wordRating => '評価';
+
+  @override
+  String get wordRatings => '評価';
+
+  @override
+  String get wordFeedback => 'フィードバック';
+
+  @override
+  String get wordComment => 'コメント';
+
+  @override
+  String get wordComments => 'コメント';
+
+  @override
+  String get wordReply => '返信';
+
+  @override
+  String get wordReplies => '返信';
+
+  @override
+  String get wordPost => '投稿';
+
+  @override
+  String get wordPosts => '投稿';
+
+  @override
+  String get wordStory => 'ストーリー';
+
+  @override
+  String get wordStories => 'ストーリー';
+
+  @override
+  String get wordEvent => 'イベント';
+
+  @override
+  String get wordEvents => 'イベント';
+
+  @override
+  String get wordNews => 'ニュース';
+
+  @override
+  String get wordUpdate => '更新';
+
+  @override
+  String get wordUpdates => '更新';
+
+  @override
+  String get wordVersion => 'バージョン';
+
+  @override
+  String get wordRelease => 'リリース';
+
+  @override
+  String get wordFeature => '機能';
+
+  @override
+  String get wordFeatures => '機能';
+
+  @override
+  String get wordOption => 'オプション';
+
+  @override
+  String get wordOptions => 'オプション';
+
+  @override
+  String get wordChoice => '選択';
+
+  @override
+  String get wordChoices => '選択';
+
+  @override
+  String get wordPreference => '設定';
+
+  @override
+  String get wordPreferences => '設定';
+
+  @override
+  String get wordSetting => '設定';
+
+  @override
+  String get wordSettingsNoun => '設定';
+
+  @override
+  String get wordConfig => '設定';
+
+  @override
+  String get wordConfiguration => '設定';
+
+  @override
+  String get wordPermission => '許可';
+
+  @override
+  String get wordPermissions => '許可';
+
+  @override
+  String get wordAccess => 'アクセス';
+
+  @override
+  String get wordPrivacy => 'プライバシー';
+
+  @override
+  String get wordSecurity => 'セキュリティ';
+
+  @override
+  String get wordSupport => 'サポート';
+
+  @override
+  String get wordService => 'サービス';
+
+  @override
+  String get wordServices => 'サービス';
+
+  @override
+  String get wordTerms => '規約';
+
+  @override
+  String get wordPolicy => 'ポリシー';
+
+  @override
+  String get wordAgreement => '契約';
+
+  @override
+  String get wordContract => '契約';
+
+  @override
+  String get wordPlan => 'プラン';
+
+  @override
+  String get wordPlans => 'プラン';
+
+  @override
+  String get wordPrice => '価格';
+
+  @override
+  String get wordPrices => '価格';
+
+  @override
+  String get wordCost => '費用';
+
+  @override
+  String get wordFee => '料金';
+
+  @override
+  String get wordFees => '料金';
+
+  @override
+  String get wordDiscount => '割引';
+
+  @override
+  String get wordOffer => 'オファー';
+
+  @override
+  String get wordOffers => 'オファー';
+
+  @override
+  String get wordDeal => 'お得';
+
+  @override
+  String get wordDeals => 'お得';
+
+  @override
+  String get wordPromotion => 'プロモーション';
+
+  @override
+  String get wordPromotions => 'プロモーション';
+
+  @override
+  String get wordCoupon => 'クーポン';
+
+  @override
+  String get wordGift => 'ギフト';
+
+  @override
+  String get wordGifts => 'ギフト';
+
+  @override
+  String get wordReward => '報酬';
+
+  @override
+  String get wordRewards => '報酬';
+
+  @override
+  String get wordBonus => 'ボーナス';
+
+  @override
+  String get wordBonuses => 'ボーナス';
+
+  @override
+  String get wordCredit => 'クレジット';
+
+  @override
+  String get wordCredits => 'クレジット';
+
+  @override
+  String get wordCoin => 'コイン';
+
+  @override
+  String get wordCoins => 'コイン';
+
+  @override
+  String get wordPoint => 'ポイント';
+
+  @override
+  String get wordPoints => 'ポイント';
+
+  @override
+  String get wordLevel => 'レベル';
+
+  @override
+  String get wordLevels => 'レベル';
+
+  @override
+  String get wordRank => 'ランク';
+
+  @override
+  String get wordBadge => 'バッジ';
+
+  @override
+  String get wordBadges => 'バッジ';
+
+  @override
+  String get wordAchievement => '実績';
+
+  @override
+  String get wordAchievements => '実績';
+
+  @override
+  String get wordMilestone => 'マイルストーン';
+
+  @override
+  String get wordProgress => '進捗';
+
+  @override
+  String get wordGoal => '目標';
+
+  @override
+  String get wordTarget => 'ターゲット';
+
+  @override
+  String get wordResult => '結果';
+
+  @override
+  String get wordResults => '結果';
+
+  @override
+  String get wordStats => '統計';
+
+  @override
+  String get wordStatistics => '統計';
+
+  @override
+  String get wordAnalytics => '分析';
+
+  @override
+  String get wordInsight => 'インサイト';
+
+  @override
+  String get wordInsights => 'インサイト';
+
+  @override
+  String get wordReport => 'レポート';
+
+  @override
+  String get wordReports => 'レポート';
+
+  @override
+  String get wordDashboard => 'ダッシュボード';
+
+  @override
+  String get wordWorld => '世界';
+
+  @override
+  String get wordCountry => '国';
+
+  @override
+  String get wordCity => '都市';
+
+  @override
+  String get wordTown => '町';
+
+  @override
+  String get wordState => '州';
+
+  @override
+  String get wordProvince => '県';
+
+  @override
+  String get wordRegion => '地域';
+
+  @override
+  String get wordArea => 'エリア';
+
+  @override
+  String get wordPlace => '場所';
+
+  @override
+  String get wordLocation => '位置';
+
+  @override
+  String get wordDistance => '距離';
+
+  @override
+  String get wordDirection => '方向';
+
+  @override
+  String get wordMap => '地図';
+
+  @override
+  String get wordRoute => 'ルート';
+
+  @override
+  String get wordWay => '道';
+
+  @override
+  String get wordPath => 'パス';
+
+  @override
+  String get wordRoad => '道路';
+
+  @override
+  String get wordStreet => '通り';
+
+  @override
+  String get wordPark => '公園';
+
+  @override
+  String get wordBeach => 'ビーチ';
+
+  @override
+  String get wordMountain => '山';
+
+  @override
+  String get wordLake => '湖';
+
+  @override
+  String get wordRiver => '川';
+
+  @override
+  String get wordSea => '海';
+
+  @override
+  String get wordOcean => '大洋';
+
+  @override
+  String get wordSky => '空';
+
+  @override
+  String get wordSun => '太陽';
+
+  @override
+  String get wordMoon => '月';
+
+  @override
+  String get wordWeather => '天気';
+
+  @override
+  String get wordSeason => '季節';
+
+  @override
+  String get wordSpring => '春';
+
+  @override
+  String get wordSummer => '夏';
+
+  @override
+  String get wordAutumn => '秋';
+
+  @override
+  String get wordFall => '秋';
+
+  @override
+  String get wordWinter => '冬';
+
+  @override
+  String get wordFamily => '家族';
+
+  @override
+  String get wordParent => '親';
+
+  @override
+  String get wordParents => '両親';
+
+  @override
+  String get wordMother => '母';
+
+  @override
+  String get wordFather => '父';
+
+  @override
+  String get wordMom => 'お母さん';
+
+  @override
+  String get wordDad => 'お父さん';
+
+  @override
+  String get wordChild => '子供';
+
+  @override
+  String get wordChildren => '子供たち';
+
+  @override
+  String get wordKid => '子供';
+
+  @override
+  String get wordKids => '子供たち';
+
+  @override
+  String get wordBaby => '赤ちゃん';
+
+  @override
+  String get wordSon => '息子';
+
+  @override
+  String get wordDaughter => '娘';
+
+  @override
+  String get wordBrother => '兄弟';
+
+  @override
+  String get wordSister => '姉妹';
+
+  @override
+  String get wordGrandparent => '祖父母';
+
+  @override
+  String get wordGrandparents => '祖父母';
+
+  @override
+  String get wordAunt => '叔母';
+
+  @override
+  String get wordUncle => '叔父';
+
+  @override
+  String get wordCousin => 'いとこ';
+
+  @override
+  String get wordPet => 'ペット';
+
+  @override
+  String get wordPets => 'ペット';
+
+  @override
+  String get wordDog => '犬';
+
+  @override
+  String get wordCat => '猫';
+
+  @override
+  String get wordAnimal => '動物';
+
+  @override
+  String get wordAnimals => '動物';
+
+  @override
+  String get wordFood => '食べ物';
+
+  @override
+  String get wordDinner => '夕食';
+
+  @override
+  String get wordLunch => '昼食';
+
+  @override
+  String get wordBreakfast => '朝食';
+
+  @override
+  String get wordSnack => 'おやつ';
+
+  @override
+  String get wordDessert => 'デザート';
+
+  @override
+  String get wordCoffee => 'コーヒー';
+
+  @override
+  String get wordTea => 'お茶';
+
+  @override
+  String get wordWater => '水';
+
+  @override
+  String get wordWine => 'ワイン';
+
+  @override
+  String get wordBeer => 'ビール';
+
+  @override
+  String get wordCocktail => 'カクテル';
+
+  @override
+  String get wordMusic => '音楽';
+
+  @override
+  String get wordSong => '曲';
+
+  @override
+  String get wordSongs => '曲';
+
+  @override
+  String get wordMovie => '映画';
+
+  @override
+  String get wordMovies => '映画';
+
+  @override
+  String get wordFilm => '映画';
+
+  @override
+  String get wordFilms => '映画';
+
+  @override
+  String get wordShowNoun => 'ショー';
+
+  @override
+  String get wordShows => '番組';
+
+  @override
+  String get wordSeries => 'シリーズ';
+
+  @override
+  String get wordBook => '本';
+
+  @override
+  String get wordBooks => '本';
+
+  @override
+  String get wordGame => 'ゲーム';
+
+  @override
+  String get wordGames => 'ゲーム';
+
+  @override
+  String get wordSport => 'スポーツ';
+
+  @override
+  String get wordSports => 'スポーツ';
+
+  @override
+  String get wordExercise => '運動';
+
+  @override
+  String get wordFitness => 'フィットネス';
+
+  @override
+  String get wordGym => 'ジム';
+
+  @override
+  String get wordYoga => 'ヨガ';
+
+  @override
+  String get wordRunning => 'ランニング';
+
+  @override
+  String get wordSwimming => '水泳';
+
+  @override
+  String get wordDancing => 'ダンス';
+
+  @override
+  String get wordCooking => '料理';
+
+  @override
+  String get wordReading => '読書';
+
+  @override
+  String get wordWriting => '執筆';
+
+  @override
+  String get wordPainting => '絵画';
+
+  @override
+  String get wordDrawing => '描画';
+
+  @override
+  String get wordPhotography => '写真撮影';
+
+  @override
+  String get wordArt => 'アート';
+
+  @override
+  String get wordDesign => 'デザイン';
+
+  @override
+  String get wordFashion => 'ファッション';
+
+  @override
+  String get wordStyle => 'スタイル';
+
+  @override
+  String get wordClothing => '衣類';
+
+  @override
+  String get wordClothes => '服';
+
+  @override
+  String get wordShoes => '靴';
+
+  @override
+  String get wordAccessories => 'アクセサリー';
+
+  @override
+  String get wordJewelry => 'ジュエリー';
+
+  @override
+  String get wordMakeup => 'メイクアップ';
+
+  @override
+  String get wordBeauty => '美容';
+
+  @override
+  String get wordHealth => '健康';
+
+  @override
+  String get wordWellness => 'ウェルネス';
+
+  @override
+  String get wordMind => '心';
+
+  @override
+  String get wordBody => '体';
+
+  @override
+  String get wordSoul => '魂';
+
+  @override
+  String get wordSpirit => '精神';
+
+  @override
+  String get wordLife => '人生';
+
+  @override
+  String get wordDeath => '死';
+
+  @override
+  String get wordBirth => '誕生';
+
+  @override
+  String get wordAge => '年齢';
+
+  @override
+  String get wordGender => '性別';
+
+  @override
+  String get wordMale => '男性';
+
+  @override
+  String get wordFemale => '女性';
+
+  @override
+  String get wordMan => '男';
+
+  @override
+  String get wordWoman => '女';
+
+  @override
+  String get wordBoy => '男の子';
+
+  @override
+  String get wordGirl => '女の子';
+
+  @override
+  String get wordGuy => '男';
+
+  @override
+  String get wordLady => '女性';
+
+  @override
+  String get wordGentleman => '紳士';
+
+  @override
+  String get wordHuman => '人間';
+
+  @override
+  String get wordHumans => '人間';
+
+  @override
+  String get wordEveryone => 'みんな';
+
+  @override
+  String get wordEverybody => 'みんな';
+
+  @override
+  String get wordSomeone => '誰か';
+
+  @override
+  String get wordSomebody => '誰か';
+
+  @override
+  String get wordNoone => '誰もいない';
+
+  @override
+  String get wordNobody => '誰もいない';
+
+  @override
+  String get wordAnyone => '誰でも';
+
+  @override
+  String get wordAnybody => '誰でも';
+
+  @override
+  String get wordEverything => 'すべて';
+
+  @override
+  String get wordSomething => '何か';
+
+  @override
+  String get wordNothing => '何もない';
+
+  @override
+  String get wordAnything => '何でも';
 }

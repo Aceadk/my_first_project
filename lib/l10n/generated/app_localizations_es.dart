@@ -1378,4 +1378,2632 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get emptyCheckBackLater => 'Vuelve más tarde';
+
+  @override
+  String get wordHome => 'Inicio';
+
+  @override
+  String get wordExplore => 'Explorar';
+
+  @override
+  String get wordHelp => 'Ayudar';
+
+  @override
+  String get wordMenu => 'Menú';
+
+  @override
+  String get wordFeed => 'Feed';
+
+  @override
+  String get wordActivity => 'Actividad';
+
+  @override
+  String get wordNotifications => 'Notificaciones';
+
+  @override
+  String get wordInbox => 'Bandeja de entrada';
+
+  @override
+  String get wordFavorites => 'Favoritos';
+
+  @override
+  String get wordHistory => 'Historial';
+
+  @override
+  String get wordCopy => 'Copiar';
+
+  @override
+  String get wordPaste => 'Pegar';
+
+  @override
+  String get wordUndo => 'Deshacer';
+
+  @override
+  String get wordRedo => 'Rehacer';
+
+  @override
+  String get wordDownload => 'Descargar';
+
+  @override
+  String get wordUpload => 'Subir';
+
+  @override
+  String get wordSelect => 'Seleccionar';
+
+  @override
+  String get wordDeselect => 'Deseleccionar';
+
+  @override
+  String get wordOpen => 'Abierto';
+
+  @override
+  String get wordCreate => 'Crear';
+
+  @override
+  String get wordConnect => 'Conectar';
+
+  @override
+  String get wordDisconnect => 'Desconectar';
+
+  @override
+  String get wordStart => 'Iniciar';
+
+  @override
+  String get wordStop => 'Detener';
+
+  @override
+  String get wordPlay => 'Reproducir';
+
+  @override
+  String get wordPause => 'Pausar';
+
+  @override
+  String get wordRecord => 'Grabar';
+
+  @override
+  String get wordCall => 'Llamar';
+
+  @override
+  String get wordEnd => 'Finalizar';
+
+  @override
+  String get wordAnswer => 'Responder';
+
+  @override
+  String get wordDecline => 'Rechazar';
+
+  @override
+  String get wordAccept => 'Aceptar';
+
+  @override
+  String get wordReject => 'Rechazar';
+
+  @override
+  String get wordApprove => 'Aprobar';
+
+  @override
+  String get wordDeny => 'Denegar';
+
+  @override
+  String get wordAllow => 'Permitir';
+
+  @override
+  String get wordEnable => 'Habilitar';
+
+  @override
+  String get wordDisable => 'Deshabilitar';
+
+  @override
+  String get wordShow => 'Programa';
+
+  @override
+  String get wordHide => 'Ocultar';
+
+  @override
+  String get wordExpand => 'Expandir';
+
+  @override
+  String get wordCollapse => 'Contraer';
+
+  @override
+  String get wordSort => 'Ordenar';
+
+  @override
+  String get wordFilter => 'Filtrar';
+
+  @override
+  String get wordPin => 'Fijar';
+
+  @override
+  String get wordUnpin => 'Desfijar';
+
+  @override
+  String get wordArchive => 'Archivar';
+
+  @override
+  String get wordRestore => 'Restaurar';
+
+  @override
+  String get wordForward => 'Reenviar';
+
+  @override
+  String get wordFollow => 'Seguir';
+
+  @override
+  String get wordUnfollow => 'Dejar de seguir';
+
+  @override
+  String get wordSubscribe => 'Suscribirse';
+
+  @override
+  String get wordUnsubscribe => 'Cancelar suscripción';
+
+  @override
+  String get wordInvite => 'Invitar';
+
+  @override
+  String get wordJoin => 'Unirse';
+
+  @override
+  String get wordLeave => 'Salir';
+
+  @override
+  String get wordLogin => 'Iniciar sesión';
+
+  @override
+  String get wordLogout => 'Cerrar sesión';
+
+  @override
+  String get wordSignup => 'Registrarse';
+
+  @override
+  String get wordRegister => 'Registrar';
+
+  @override
+  String get wordVerify => 'Verificar';
+
+  @override
+  String get wordConfirmed => 'Confirmado';
+
+  @override
+  String get wordPending => 'Pendiente';
+
+  @override
+  String get wordComplete => 'Completar';
+
+  @override
+  String get wordFinish => 'Finalizar';
+
+  @override
+  String get wordCancel => 'Cancelar';
+
+  @override
+  String get wordTry => 'Intentar';
+
+  @override
+  String get wordAgain => 'De nuevo';
+
+  @override
+  String get wordGo => 'Ir';
+
+  @override
+  String get wordSee => 'Ver';
+
+  @override
+  String get wordLook => 'Mirar';
+
+  @override
+  String get wordFind => 'Encontrar';
+
+  @override
+  String get wordGet => 'Obtener';
+
+  @override
+  String get wordSet => 'Establecer';
+
+  @override
+  String get wordPut => 'Poner';
+
+  @override
+  String get wordTake => 'Tomar';
+
+  @override
+  String get wordGive => 'Dar';
+
+  @override
+  String get wordMake => 'Hacer';
+
+  @override
+  String get wordKeep => 'Mantener';
+
+  @override
+  String get wordLet => 'Dejar';
+
+  @override
+  String get wordKnow => 'Saber';
+
+  @override
+  String get wordThink => 'Pensar';
+
+  @override
+  String get wordFeel => 'Sentir';
+
+  @override
+  String get wordWant => 'Querer';
+
+  @override
+  String get wordNeed => 'Necesitar';
+
+  @override
+  String get wordLike => 'Gustar';
+
+  @override
+  String get wordLove => 'Amar';
+
+  @override
+  String get wordHate => 'Odiar';
+
+  @override
+  String get wordTalk => 'Hablar';
+
+  @override
+  String get wordSay => 'Decir';
+
+  @override
+  String get wordTell => 'Contar';
+
+  @override
+  String get wordAsk => 'Preguntar';
+
+  @override
+  String get wordHelpVerb => 'Ayudar';
+
+  @override
+  String get wordWait => 'Esperar';
+
+  @override
+  String get wordStay => 'Quedarse';
+
+  @override
+  String get wordCome => 'Venir';
+
+  @override
+  String get wordMove => 'Mover';
+
+  @override
+  String get wordRun => 'Correr';
+
+  @override
+  String get wordWalk => 'Caminar';
+
+  @override
+  String get wordMeet => 'Conocer';
+
+  @override
+  String get wordWork => 'Trabajar';
+
+  @override
+  String get wordLive => 'Vivir';
+
+  @override
+  String get wordChange => 'Cambiar';
+
+  @override
+  String get wordTurn => 'Girar';
+
+  @override
+  String get wordRead => 'Leído';
+
+  @override
+  String get wordWrite => 'Escribir';
+
+  @override
+  String get wordLearn => 'Aprender';
+
+  @override
+  String get wordStudy => 'Estudiar';
+
+  @override
+  String get wordWatch => 'Ver';
+
+  @override
+  String get wordListen => 'Escuchar';
+
+  @override
+  String get wordSpeak => 'Hablar';
+
+  @override
+  String get wordEat => 'Comer';
+
+  @override
+  String get wordDrink => 'Beber';
+
+  @override
+  String get wordSleep => 'Dormir';
+
+  @override
+  String get wordBuy => 'Comprar';
+
+  @override
+  String get wordSell => 'Vender';
+
+  @override
+  String get wordPay => 'Pagar';
+
+  @override
+  String get wordSpend => 'Gastar';
+
+  @override
+  String get wordSave => 'Guardar';
+
+  @override
+  String get wordWin => 'Ganar';
+
+  @override
+  String get wordLose => 'Perder';
+
+  @override
+  String get wordCheck => 'Verificar';
+
+  @override
+  String get wordPick => 'Elegir';
+
+  @override
+  String get wordChoose => 'Escoger';
+
+  @override
+  String get wordDecide => 'Decidir';
+
+  @override
+  String get wordAgree => 'Acordar';
+
+  @override
+  String get wordDisagree => 'Discrepar';
+
+  @override
+  String get wordActive => 'Activo';
+
+  @override
+  String get wordInactive => 'Inactivo';
+
+  @override
+  String get wordAvailable => 'Disponible';
+
+  @override
+  String get wordUnavailable => 'No disponible';
+
+  @override
+  String get wordBusy => 'Ocupado';
+
+  @override
+  String get wordAway => 'Lejos';
+
+  @override
+  String get wordInvisible => 'Invisible';
+
+  @override
+  String get wordOnline => 'En línea';
+
+  @override
+  String get wordOffline => 'Desconectado';
+
+  @override
+  String get wordConnected => 'Conectado';
+
+  @override
+  String get wordDisconnected => 'Desconectado';
+
+  @override
+  String get wordVerified => 'Verificado';
+
+  @override
+  String get wordUnverified => 'No verificado';
+
+  @override
+  String get wordApproved => 'Aprobado';
+
+  @override
+  String get wordDenied => 'Denegado';
+
+  @override
+  String get wordBlocked => 'Bloqueado';
+
+  @override
+  String get wordUnblocked => 'Desbloqueado';
+
+  @override
+  String get wordSuspended => 'Suspendido';
+
+  @override
+  String get wordBanned => 'Baneado';
+
+  @override
+  String get wordRestricted => 'Restringido';
+
+  @override
+  String get wordPremium => 'Premium';
+
+  @override
+  String get wordStandard => 'Estándar';
+
+  @override
+  String get wordBasic => 'Básico';
+
+  @override
+  String get wordNew => 'Nuevo';
+
+  @override
+  String get wordUpdated => 'Actualizado';
+
+  @override
+  String get wordRecent => 'Reciente';
+
+  @override
+  String get wordPopular => 'Popular';
+
+  @override
+  String get wordTrending => 'Tendencia';
+
+  @override
+  String get wordFeatured => 'Destacado';
+
+  @override
+  String get wordRecommended => 'Recomendado';
+
+  @override
+  String get wordSuggested => 'Sugerido';
+
+  @override
+  String get wordRequired => 'Requerido';
+
+  @override
+  String get wordOptional => 'Opcional';
+
+  @override
+  String get wordEnabled => 'Habilitado';
+
+  @override
+  String get wordDisabled => 'Deshabilitado';
+
+  @override
+  String get wordLocked => 'Bloqueado';
+
+  @override
+  String get wordUnlocked => 'Desbloqueado';
+
+  @override
+  String get wordHidden => 'Oculto';
+
+  @override
+  String get wordVisible => 'Visible';
+
+  @override
+  String get wordPublic => 'Público';
+
+  @override
+  String get wordPrivate => 'Privado';
+
+  @override
+  String get wordSecure => 'Seguro';
+
+  @override
+  String get wordSafe => 'Seguro';
+
+  @override
+  String get wordReal => 'Real';
+
+  @override
+  String get wordFake => 'Falso';
+
+  @override
+  String get wordTrue => 'Verdadero';
+
+  @override
+  String get wordFalse => 'Falso';
+
+  @override
+  String get wordValid => 'Válido';
+
+  @override
+  String get wordInvalid => 'Inválido';
+
+  @override
+  String get wordCorrect => 'Correcto';
+
+  @override
+  String get wordIncorrect => 'Incorrecto';
+
+  @override
+  String get wordEmpty => 'Vacío';
+
+  @override
+  String get wordFull => 'Lleno';
+
+  @override
+  String get wordReady => 'Listo';
+
+  @override
+  String get wordNotReady => 'No listo';
+
+  @override
+  String get wordDone => 'Hecho';
+
+  @override
+  String get wordNotDone => 'No hecho';
+
+  @override
+  String get wordSent => 'Enviado';
+
+  @override
+  String get wordReceived => 'Recibido';
+
+  @override
+  String get wordReadStatus => 'Leído';
+
+  @override
+  String get wordUnread => 'No leído';
+
+  @override
+  String get wordSeen => 'Visto';
+
+  @override
+  String get wordUnseen => 'No visto';
+
+  @override
+  String get wordOpenStatus => 'Abierto';
+
+  @override
+  String get wordClosed => 'Cerrado';
+
+  @override
+  String get wordNow => 'Ahora';
+
+  @override
+  String get wordLater => 'Después';
+
+  @override
+  String get wordSoon => 'Pronto';
+
+  @override
+  String get wordToday => 'Hoy';
+
+  @override
+  String get wordTomorrow => 'Mañana';
+
+  @override
+  String get wordYesterday => 'Ayer';
+
+  @override
+  String get wordMorning => 'Mañana';
+
+  @override
+  String get wordAfternoon => 'Tarde';
+
+  @override
+  String get wordEvening => 'Noche';
+
+  @override
+  String get wordNight => 'Noche';
+
+  @override
+  String get wordWeek => 'Semana';
+
+  @override
+  String get wordMonth => 'Mes';
+
+  @override
+  String get wordYear => 'Año';
+
+  @override
+  String get wordDaily => 'Diario';
+
+  @override
+  String get wordWeekly => 'Semanal';
+
+  @override
+  String get wordMonthly => 'Mensual';
+
+  @override
+  String get wordYearly => 'Anual';
+
+  @override
+  String get wordAlways => 'Siempre';
+
+  @override
+  String get wordNever => 'Nunca';
+
+  @override
+  String get wordSometimes => 'A veces';
+
+  @override
+  String get wordOften => 'A menudo';
+
+  @override
+  String get wordRarely => 'Raramente';
+
+  @override
+  String get wordRecently => 'Recientemente';
+
+  @override
+  String get wordBefore => 'Antes';
+
+  @override
+  String get wordAfter => 'Después';
+
+  @override
+  String get wordDuring => 'Durante';
+
+  @override
+  String get wordUntil => 'Hasta';
+
+  @override
+  String get wordSince => 'Desde';
+
+  @override
+  String get wordAgo => 'Hace';
+
+  @override
+  String get wordMinute => 'Minuto';
+
+  @override
+  String get wordMinutes => 'Minutos';
+
+  @override
+  String get wordHour => 'Hora';
+
+  @override
+  String get wordHours => 'Horas';
+
+  @override
+  String get wordDay => 'Día';
+
+  @override
+  String get wordDays => 'Días';
+
+  @override
+  String get wordWeeks => 'Semanas';
+
+  @override
+  String get wordMonths => 'Meses';
+
+  @override
+  String get wordYears => 'Años';
+
+  @override
+  String get wordSecond => 'Segundo';
+
+  @override
+  String get wordSeconds => 'Segundos';
+
+  @override
+  String get wordGood => 'Bueno';
+
+  @override
+  String get wordBad => 'Malo';
+
+  @override
+  String get wordGreat => 'Genial';
+
+  @override
+  String get wordExcellent => 'Excelente';
+
+  @override
+  String get wordBest => 'Mejor';
+
+  @override
+  String get wordWorst => 'Peor';
+
+  @override
+  String get wordOld => 'Viejo';
+
+  @override
+  String get wordYoung => 'Joven';
+
+  @override
+  String get wordHot => 'Caliente';
+
+  @override
+  String get wordCold => 'Frío';
+
+  @override
+  String get wordFast => 'Rápido';
+
+  @override
+  String get wordSlow => 'Lento';
+
+  @override
+  String get wordEasy => 'Fácil';
+
+  @override
+  String get wordHard => 'Difícil';
+
+  @override
+  String get wordSimple => 'Simple';
+
+  @override
+  String get wordComplex => 'Complejo';
+
+  @override
+  String get wordSmall => 'Pequeño';
+
+  @override
+  String get wordBig => 'Grande';
+
+  @override
+  String get wordLarge => 'Grande';
+
+  @override
+  String get wordTiny => 'Diminuto';
+
+  @override
+  String get wordHuge => 'Enorme';
+
+  @override
+  String get wordLong => 'Largo';
+
+  @override
+  String get wordShort => 'Corto';
+
+  @override
+  String get wordHigh => 'Alto';
+
+  @override
+  String get wordLow => 'Bajo';
+
+  @override
+  String get wordWide => 'Ancho';
+
+  @override
+  String get wordNarrow => 'Estrecho';
+
+  @override
+  String get wordThick => 'Grueso';
+
+  @override
+  String get wordThin => 'Delgado';
+
+  @override
+  String get wordDeep => 'Profundo';
+
+  @override
+  String get wordShallow => 'Superficial';
+
+  @override
+  String get wordBright => 'Brillante';
+
+  @override
+  String get wordDark => 'Oscuro';
+
+  @override
+  String get wordLight => 'Ligero';
+
+  @override
+  String get wordHeavy => 'Pesado';
+
+  @override
+  String get wordSoft => 'Suave';
+
+  @override
+  String get wordLoud => 'Fuerte';
+
+  @override
+  String get wordQuiet => 'Silencioso';
+
+  @override
+  String get wordClean => 'Limpio';
+
+  @override
+  String get wordDirty => 'Sucio';
+
+  @override
+  String get wordRich => 'Rico';
+
+  @override
+  String get wordPoor => 'Pobre';
+
+  @override
+  String get wordFree => 'Gratis';
+
+  @override
+  String get wordPaid => 'Pagado';
+
+  @override
+  String get wordCheap => 'Barato';
+
+  @override
+  String get wordExpensive => 'Caro';
+
+  @override
+  String get wordBeautiful => 'Hermoso';
+
+  @override
+  String get wordUgly => 'Feo';
+
+  @override
+  String get wordPretty => 'Bonito';
+
+  @override
+  String get wordHandsome => 'Guapo';
+
+  @override
+  String get wordCute => 'Lindo';
+
+  @override
+  String get wordSexy => 'Sexy';
+
+  @override
+  String get wordAttractive => 'Atractivo';
+
+  @override
+  String get wordHappy => 'Feliz';
+
+  @override
+  String get wordSad => 'Triste';
+
+  @override
+  String get wordAngry => 'Enojado';
+
+  @override
+  String get wordScared => 'Asustado';
+
+  @override
+  String get wordExcited => 'Emocionado';
+
+  @override
+  String get wordBored => 'Aburrido';
+
+  @override
+  String get wordTired => 'Cansado';
+
+  @override
+  String get wordSick => 'Enfermo';
+
+  @override
+  String get wordHealthy => 'Saludable';
+
+  @override
+  String get wordStrong => 'Fuerte';
+
+  @override
+  String get wordWeak => 'Débil';
+
+  @override
+  String get wordSmart => 'Inteligente';
+
+  @override
+  String get wordStupid => 'Estúpido';
+
+  @override
+  String get wordFunny => 'Gracioso';
+
+  @override
+  String get wordSerious => 'Serio';
+
+  @override
+  String get wordNice => 'Agradable';
+
+  @override
+  String get wordMean => 'Malo';
+
+  @override
+  String get wordKind => 'Amable';
+
+  @override
+  String get wordCruel => 'Cruel';
+
+  @override
+  String get wordFriendly => 'Amigable';
+
+  @override
+  String get wordRude => 'Grosero';
+
+  @override
+  String get wordPolite => 'Educado';
+
+  @override
+  String get wordHonest => 'Honesto';
+
+  @override
+  String get wordLazy => 'Perezoso';
+
+  @override
+  String get wordBrave => 'Valiente';
+
+  @override
+  String get wordCurious => 'Curioso';
+
+  @override
+  String get wordPatient => 'Paciente';
+
+  @override
+  String get wordImpatient => 'Impaciente';
+
+  @override
+  String get wordCareful => 'Cuidadoso';
+
+  @override
+  String get wordCareless => 'Descuidado';
+
+  @override
+  String get wordGenerous => 'Generoso';
+
+  @override
+  String get wordSelfish => 'Egoísta';
+
+  @override
+  String get wordRomantic => 'Romántico';
+
+  @override
+  String get wordPassionate => 'Apasionado';
+
+  @override
+  String get wordLoyal => 'Leal';
+
+  @override
+  String get wordFaithful => 'Fiel';
+
+  @override
+  String get wordTrustworthy => 'Confiable';
+
+  @override
+  String get wordReliable => 'Fiable';
+
+  @override
+  String get wordResponsible => 'Responsable';
+
+  @override
+  String get wordMature => 'Maduro';
+
+  @override
+  String get wordImmature => 'Inmaduro';
+
+  @override
+  String get wordIndependent => 'Independiente';
+
+  @override
+  String get wordConfident => 'Seguro';
+
+  @override
+  String get wordShy => 'Tímido';
+
+  @override
+  String get wordOutgoing => 'Extrovertido';
+
+  @override
+  String get wordIntroverted => 'Introvertido';
+
+  @override
+  String get wordExtroverted => 'Extrovertido';
+
+  @override
+  String get wordAmbitious => 'Ambicioso';
+
+  @override
+  String get wordCreative => 'Creativo';
+
+  @override
+  String get wordIntelligent => 'Inteligente';
+
+  @override
+  String get wordWise => 'Sabio';
+
+  @override
+  String get wordTalented => 'Talentoso';
+
+  @override
+  String get wordSuccessful => 'Exitoso';
+
+  @override
+  String get wordFamous => 'Famoso';
+
+  @override
+  String get wordImportant => 'Importante';
+
+  @override
+  String get wordSpecial => 'Especial';
+
+  @override
+  String get wordPerfect => 'Perfecto';
+
+  @override
+  String get wordAmazing => 'Increíble';
+
+  @override
+  String get wordWonderful => 'Maravilloso';
+
+  @override
+  String get wordFantastic => 'Fantástico';
+
+  @override
+  String get wordIncredible => 'Increíble';
+
+  @override
+  String get wordAwesome => 'Genial';
+
+  @override
+  String get wordTerrific => 'Estupendo';
+
+  @override
+  String get wordMarvelous => 'Maravilloso';
+
+  @override
+  String get wordSuperb => 'Soberbio';
+
+  @override
+  String get wordOutstanding => 'Destacado';
+
+  @override
+  String get wordBrilliant => 'Brillante';
+
+  @override
+  String get wordFabulous => 'Fabuloso';
+
+  @override
+  String get wordMagnificent => 'Magnífico';
+
+  @override
+  String get wordSpectacular => 'Espectacular';
+
+  @override
+  String get wordPlease => 'Por favor';
+
+  @override
+  String get wordThanks => 'Gracias';
+
+  @override
+  String get wordThankYou => 'Gracias';
+
+  @override
+  String get wordSorry => 'Lo siento';
+
+  @override
+  String get wordExcuseMe => 'Disculpa';
+
+  @override
+  String get wordWelcome => 'Bienvenido';
+
+  @override
+  String get wordHello => 'Hola';
+
+  @override
+  String get wordHi => 'Hola';
+
+  @override
+  String get wordHey => 'Hey';
+
+  @override
+  String get wordGoodbye => 'Adiós';
+
+  @override
+  String get wordBye => 'Chao';
+
+  @override
+  String get wordCongratulations => 'Felicitaciones';
+
+  @override
+  String get wordCongrats => 'Felicidades';
+
+  @override
+  String get wordGoodMorning => 'Buenos días';
+
+  @override
+  String get wordGoodAfternoon => 'Buenas tardes';
+
+  @override
+  String get wordGoodEvening => 'Buenas noches';
+
+  @override
+  String get wordGoodNight => 'Buenas noches';
+
+  @override
+  String get wordHowAreYou => '¿Cómo estás?';
+
+  @override
+  String get wordImFine => 'Estoy bien';
+
+  @override
+  String get wordNiceMeetYou => 'Mucho gusto';
+
+  @override
+  String get wordSeeLater => 'Hasta luego';
+
+  @override
+  String get wordTakeCare => 'Cuídate';
+
+  @override
+  String get wordMissYou => 'Te extraño';
+
+  @override
+  String get wordLoveYou => 'Te amo';
+
+  @override
+  String get wordThinkingOfYou => 'Pensando en ti';
+
+  @override
+  String get wordGoodLuck => 'Buena suerte';
+
+  @override
+  String get wordHaveFun => 'Diviértete';
+
+  @override
+  String get wordEnjoy => 'Disfruta';
+
+  @override
+  String get wordCheers => 'Salud';
+
+  @override
+  String get wordWho => 'Quién';
+
+  @override
+  String get wordWhat => 'Qué';
+
+  @override
+  String get wordWhen => 'Cuándo';
+
+  @override
+  String get wordWhere => 'Dónde';
+
+  @override
+  String get wordWhy => 'Por qué';
+
+  @override
+  String get wordHow => 'Cómo';
+
+  @override
+  String get wordWhich => 'Cuál';
+
+  @override
+  String get wordWhose => 'De quién';
+
+  @override
+  String get wordHowMany => 'Cuántos';
+
+  @override
+  String get wordHowMuch => 'Cuánto';
+
+  @override
+  String get wordHowLong => 'Cuánto tiempo';
+
+  @override
+  String get wordHowFar => 'Qué tan lejos';
+
+  @override
+  String get wordHowOld => 'Qué edad';
+
+  @override
+  String get wordHowOften => 'Con qué frecuencia';
+
+  @override
+  String get wordWith => 'Con';
+
+  @override
+  String get wordWithout => 'Sin';
+
+  @override
+  String get wordIn => 'En';
+
+  @override
+  String get wordOut => 'Fuera';
+
+  @override
+  String get wordUp => 'Arriba';
+
+  @override
+  String get wordDown => 'Abajo';
+
+  @override
+  String get wordLeft => 'Izquierda';
+
+  @override
+  String get wordRight => 'Derecha';
+
+  @override
+  String get wordNear => 'Cerca';
+
+  @override
+  String get wordFar => 'Lejos';
+
+  @override
+  String get wordHere => 'Aquí';
+
+  @override
+  String get wordThere => 'Allí';
+
+  @override
+  String get wordInside => 'Dentro';
+
+  @override
+  String get wordOutside => 'Afuera';
+
+  @override
+  String get wordAbove => 'Encima';
+
+  @override
+  String get wordBelow => 'Debajo';
+
+  @override
+  String get wordBetween => 'Entre';
+
+  @override
+  String get wordAround => 'Alrededor';
+
+  @override
+  String get wordAcross => 'A través';
+
+  @override
+  String get wordThrough => 'Por';
+
+  @override
+  String get wordAlong => 'A lo largo';
+
+  @override
+  String get wordToward => 'Hacia';
+
+  @override
+  String get wordAwayFrom => 'Lejos';
+
+  @override
+  String get wordBehind => 'Detrás';
+
+  @override
+  String get wordAhead => 'Adelante';
+
+  @override
+  String get wordFront => 'Frente';
+
+  @override
+  String get wordBack => 'Atrás';
+
+  @override
+  String get wordSide => 'Lado';
+
+  @override
+  String get wordTop => 'Arriba';
+
+  @override
+  String get wordBottom => 'Abajo';
+
+  @override
+  String get wordMiddle => 'Medio';
+
+  @override
+  String get wordCenter => 'Centro';
+
+  @override
+  String get wordCorner => 'Esquina';
+
+  @override
+  String get wordEdge => 'Borde';
+
+  @override
+  String get wordCrush => 'Crush';
+
+  @override
+  String get wordMatch => 'Match';
+
+  @override
+  String get wordMatches => 'Matches';
+
+  @override
+  String get wordMatched => 'Coincidido';
+
+  @override
+  String get wordMatching => 'Coincidiendo';
+
+  @override
+  String get wordUnmatched => 'Desemparejado';
+
+  @override
+  String get wordConnection => 'Conexión';
+
+  @override
+  String get wordConnections => 'Conexiones';
+
+  @override
+  String get wordChemistry => 'Química';
+
+  @override
+  String get wordSpark => 'Chispa';
+
+  @override
+  String get wordDate => 'Cita';
+
+  @override
+  String get wordDates => 'Citas';
+
+  @override
+  String get wordDating => 'Citas';
+
+  @override
+  String get wordRomance => 'Romance';
+
+  @override
+  String get wordSingle => 'Soltero';
+
+  @override
+  String get wordCouple => 'Pareja';
+
+  @override
+  String get wordRelationship => 'Relación';
+
+  @override
+  String get wordRelationships => 'Relaciones';
+
+  @override
+  String get wordPartner => 'Pareja';
+
+  @override
+  String get wordSoulmate => 'Alma gemela';
+
+  @override
+  String get wordInterested => 'Interesado';
+
+  @override
+  String get wordInterest => 'Interés';
+
+  @override
+  String get wordInterests => 'Intereses';
+
+  @override
+  String get wordMutual => 'Mutuo';
+
+  @override
+  String get wordCompatible => 'Compatible';
+
+  @override
+  String get wordCompatibility => 'Compatibilidad';
+
+  @override
+  String get wordAttraction => 'Atracción';
+
+  @override
+  String get wordFlirt => 'Coquetear';
+
+  @override
+  String get wordFlirting => 'Coqueteando';
+
+  @override
+  String get wordFlirty => 'Coqueto';
+
+  @override
+  String get wordSwipe => 'Deslizar';
+
+  @override
+  String get wordSwiped => 'Deslizado';
+
+  @override
+  String get wordSwiping => 'Deslizando';
+
+  @override
+  String get wordLiked => 'Gustado';
+
+  @override
+  String get wordLikes => 'Me gusta';
+
+  @override
+  String get wordLiking => 'Gustando';
+
+  @override
+  String get wordPassed => 'Pasado';
+
+  @override
+  String get wordPassing => 'Pasando';
+
+  @override
+  String get wordSuperLike => 'Super Like';
+
+  @override
+  String get wordSuperLiked => 'Super Like dado';
+
+  @override
+  String get wordBoost => 'Impulso';
+
+  @override
+  String get wordBoosted => 'Impulsado';
+
+  @override
+  String get wordBoosting => 'Impulsando';
+
+  @override
+  String get wordRewind => 'Rebobinar';
+
+  @override
+  String get wordRewinded => 'Rebobinado';
+
+  @override
+  String get wordChat => 'Chat';
+
+  @override
+  String get wordChats => 'Chats';
+
+  @override
+  String get wordChatting => 'Chateando';
+
+  @override
+  String get wordMessage => 'Mensaje';
+
+  @override
+  String get wordMessages => 'Mensajes';
+
+  @override
+  String get wordMessaging => 'Mensajeando';
+
+  @override
+  String get wordConversation => 'Conversación';
+
+  @override
+  String get wordConversations => 'Conversaciones';
+
+  @override
+  String get wordProfile => 'Perfil';
+
+  @override
+  String get wordProfiles => 'Perfiles';
+
+  @override
+  String get wordBio => 'Biografía';
+
+  @override
+  String get wordPhoto => 'Foto';
+
+  @override
+  String get wordPhotos => 'Fotos';
+
+  @override
+  String get wordVideo => 'Video';
+
+  @override
+  String get wordVideos => 'Videos';
+
+  @override
+  String get wordGallery => 'Galería';
+
+  @override
+  String get wordAlbum => 'Álbum';
+
+  @override
+  String get wordVoice => 'Voz';
+
+  @override
+  String get wordAudio => 'Audio';
+
+  @override
+  String get wordCamera => 'Cámara';
+
+  @override
+  String get wordImage => 'Imagen';
+
+  @override
+  String get wordImages => 'Imágenes';
+
+  @override
+  String get wordPicture => 'Foto';
+
+  @override
+  String get wordPictures => 'Fotos';
+
+  @override
+  String get wordHeartbeat => 'Latido';
+
+  @override
+  String get wordHeart => 'Corazón';
+
+  @override
+  String get wordHearts => 'Corazones';
+
+  @override
+  String get wordStar => 'Estrella';
+
+  @override
+  String get wordStars => 'Estrellas';
+
+  @override
+  String get wordDiamond => 'Diamante';
+
+  @override
+  String get wordFlame => 'Llama';
+
+  @override
+  String get wordFire => 'Fuego';
+
+  @override
+  String get wordHotness => 'Atractivo';
+
+  @override
+  String get wordVibes => 'Vibras';
+
+  @override
+  String get wordVibe => 'Vibra';
+
+  @override
+  String get wordMood => 'Estado de ánimo';
+
+  @override
+  String get wordEnergy => 'Energía';
+
+  @override
+  String get wordAura => 'Aura';
+
+  @override
+  String get wordPersonality => 'Personalidad';
+
+  @override
+  String get wordCharacter => 'Carácter';
+
+  @override
+  String get wordValues => 'Valores';
+
+  @override
+  String get wordGoals => 'Metas';
+
+  @override
+  String get wordDreams => 'Sueños';
+
+  @override
+  String get wordHobbies => 'Pasatiempos';
+
+  @override
+  String get wordPassion => 'Pasión';
+
+  @override
+  String get wordAdventure => 'Aventura';
+
+  @override
+  String get wordTravel => 'Viajar';
+
+  @override
+  String get wordTraveling => 'Viajando';
+
+  @override
+  String get wordExploring => 'Explorando';
+
+  @override
+  String get wordFun => 'Diversión';
+
+  @override
+  String get wordLaughter => 'Risa';
+
+  @override
+  String get wordSmile => 'Sonrisa';
+
+  @override
+  String get wordSmiles => 'Sonrisas';
+
+  @override
+  String get wordSmiling => 'Sonriendo';
+
+  @override
+  String get wordKiss => 'Beso';
+
+  @override
+  String get wordKisses => 'Besos';
+
+  @override
+  String get wordHug => 'Abrazo';
+
+  @override
+  String get wordHugs => 'Abrazos';
+
+  @override
+  String get wordCuddle => 'Abrazar';
+
+  @override
+  String get wordCuddling => 'Abrazando';
+
+  @override
+  String get wordIntimate => 'Íntimo';
+
+  @override
+  String get wordIntimacy => 'Intimidad';
+
+  @override
+  String get wordAffection => 'Afecto';
+
+  @override
+  String get wordAffectionate => 'Afectuoso';
+
+  @override
+  String get wordCaring => 'Cariñoso';
+
+  @override
+  String get wordLoving => 'Amoroso';
+
+  @override
+  String get wordDevoted => 'Devoto';
+
+  @override
+  String get wordCommitted => 'Comprometido';
+
+  @override
+  String get wordCommitment => 'Compromiso';
+
+  @override
+  String get wordSeriousRel => 'Serio';
+
+  @override
+  String get wordCasual => 'Casual';
+
+  @override
+  String get wordFriendship => 'Amistad';
+
+  @override
+  String get wordFriend => 'Amigo';
+
+  @override
+  String get wordFriends => 'Amigos';
+
+  @override
+  String get wordBestFriend => 'Mejor amigo';
+
+  @override
+  String get wordSomethingSerious => 'Algo serio';
+
+  @override
+  String get wordLongTerm => 'Largo plazo';
+
+  @override
+  String get wordShortTerm => 'Corto plazo';
+
+  @override
+  String get wordOpenTo => 'Abierto a';
+
+  @override
+  String get wordLookingFor => 'Buscando';
+
+  @override
+  String get wordSeekingFor => 'Buscando';
+
+  @override
+  String get wordWaiting => 'Esperando';
+
+  @override
+  String get wordSearching => 'Buscando';
+
+  @override
+  String get wordNotification => 'Notificación';
+
+  @override
+  String get wordAlert => 'Alerta';
+
+  @override
+  String get wordWarning => 'Advertencia';
+
+  @override
+  String get wordInfo => 'Info';
+
+  @override
+  String get wordInformation => 'Información';
+
+  @override
+  String get wordDetails => 'Detalles';
+
+  @override
+  String get wordData => 'Datos';
+
+  @override
+  String get wordContent => 'Contenido';
+
+  @override
+  String get wordMedia => 'Medios';
+
+  @override
+  String get wordLink => 'Enlace';
+
+  @override
+  String get wordLinks => 'Enlaces';
+
+  @override
+  String get wordURL => 'URL';
+
+  @override
+  String get wordAddress => 'Dirección';
+
+  @override
+  String get wordName => 'Nombre';
+
+  @override
+  String get wordUsername => 'Nombre de usuario';
+
+  @override
+  String get wordNickname => 'Apodo';
+
+  @override
+  String get wordAccount => 'Cuenta';
+
+  @override
+  String get wordUser => 'Usuario';
+
+  @override
+  String get wordUsers => 'Usuarios';
+
+  @override
+  String get wordPeople => 'Personas';
+
+  @override
+  String get wordPerson => 'Persona';
+
+  @override
+  String get wordGroup => 'Grupo';
+
+  @override
+  String get wordGroups => 'Grupos';
+
+  @override
+  String get wordTeam => 'Equipo';
+
+  @override
+  String get wordCommunity => 'Comunidad';
+
+  @override
+  String get wordMember => 'Miembro';
+
+  @override
+  String get wordMembers => 'Miembros';
+
+  @override
+  String get wordAdmin => 'Admin';
+
+  @override
+  String get wordModerator => 'Moderador';
+
+  @override
+  String get wordGuest => 'Invitado';
+
+  @override
+  String get wordVisitor => 'Visitante';
+
+  @override
+  String get wordFollower => 'Seguidor';
+
+  @override
+  String get wordFollowers => 'Seguidores';
+
+  @override
+  String get wordFollowing => 'Siguiendo';
+
+  @override
+  String get wordFan => 'Fan';
+
+  @override
+  String get wordFans => 'Fans';
+
+  @override
+  String get wordSubscriber => 'Suscriptor';
+
+  @override
+  String get wordSubscribers => 'Suscriptores';
+
+  @override
+  String get wordFile => 'Archivo';
+
+  @override
+  String get wordFiles => 'Archivos';
+
+  @override
+  String get wordFolder => 'Carpeta';
+
+  @override
+  String get wordFolders => 'Carpetas';
+
+  @override
+  String get wordDocument => 'Documento';
+
+  @override
+  String get wordDocuments => 'Documentos';
+
+  @override
+  String get wordText => 'Texto';
+
+  @override
+  String get wordEmail => 'Email';
+
+  @override
+  String get wordPhone => 'Teléfono';
+
+  @override
+  String get wordNumber => 'Número';
+
+  @override
+  String get wordCode => 'Código';
+
+  @override
+  String get wordPassword => 'Contraseña';
+
+  @override
+  String get wordPasscode => 'Código de acceso';
+
+  @override
+  String get wordPIN => 'PIN';
+
+  @override
+  String get wordKey => 'Clave';
+
+  @override
+  String get wordToken => 'Token';
+
+  @override
+  String get wordSession => 'Sesión';
+
+  @override
+  String get wordApp => 'App';
+
+  @override
+  String get wordApplication => 'Aplicación';
+
+  @override
+  String get wordWebsite => 'Sitio web';
+
+  @override
+  String get wordPage => 'Página';
+
+  @override
+  String get wordPages => 'Páginas';
+
+  @override
+  String get wordScreen => 'Pantalla';
+
+  @override
+  String get wordScreens => 'Pantallas';
+
+  @override
+  String get wordSection => 'Sección';
+
+  @override
+  String get wordSections => 'Secciones';
+
+  @override
+  String get wordCategory => 'Categoría';
+
+  @override
+  String get wordCategories => 'Categorías';
+
+  @override
+  String get wordTag => 'Etiqueta';
+
+  @override
+  String get wordTags => 'Etiquetas';
+
+  @override
+  String get wordLabel => 'Etiqueta';
+
+  @override
+  String get wordLabels => 'Etiquetas';
+
+  @override
+  String get wordTitle => 'Título';
+
+  @override
+  String get wordSubtitle => 'Subtítulo';
+
+  @override
+  String get wordDescription => 'Descripción';
+
+  @override
+  String get wordSummary => 'Resumen';
+
+  @override
+  String get wordOverview => 'Resumen';
+
+  @override
+  String get wordPreview => 'Vista previa';
+
+  @override
+  String get wordReview => 'Reseña';
+
+  @override
+  String get wordReviews => 'Reseñas';
+
+  @override
+  String get wordRating => 'Calificación';
+
+  @override
+  String get wordRatings => 'Calificaciones';
+
+  @override
+  String get wordFeedback => 'Comentarios';
+
+  @override
+  String get wordComment => 'Comentario';
+
+  @override
+  String get wordComments => 'Comentarios';
+
+  @override
+  String get wordReply => 'Respuesta';
+
+  @override
+  String get wordReplies => 'Respuestas';
+
+  @override
+  String get wordPost => 'Publicación';
+
+  @override
+  String get wordPosts => 'Publicaciones';
+
+  @override
+  String get wordStory => 'Historia';
+
+  @override
+  String get wordStories => 'Historias';
+
+  @override
+  String get wordEvent => 'Evento';
+
+  @override
+  String get wordEvents => 'Eventos';
+
+  @override
+  String get wordNews => 'Noticias';
+
+  @override
+  String get wordUpdate => 'Actualización';
+
+  @override
+  String get wordUpdates => 'Actualizaciones';
+
+  @override
+  String get wordVersion => 'Versión';
+
+  @override
+  String get wordRelease => 'Lanzamiento';
+
+  @override
+  String get wordFeature => 'Función';
+
+  @override
+  String get wordFeatures => 'Funciones';
+
+  @override
+  String get wordOption => 'Opción';
+
+  @override
+  String get wordOptions => 'Opciones';
+
+  @override
+  String get wordChoice => 'Elección';
+
+  @override
+  String get wordChoices => 'Elecciones';
+
+  @override
+  String get wordPreference => 'Preferencia';
+
+  @override
+  String get wordPreferences => 'Preferencias';
+
+  @override
+  String get wordSetting => 'Ajuste';
+
+  @override
+  String get wordSettingsNoun => 'Configuración';
+
+  @override
+  String get wordConfig => 'Configuración';
+
+  @override
+  String get wordConfiguration => 'Configuración';
+
+  @override
+  String get wordPermission => 'Permiso';
+
+  @override
+  String get wordPermissions => 'Permisos';
+
+  @override
+  String get wordAccess => 'Acceso';
+
+  @override
+  String get wordPrivacy => 'Privacidad';
+
+  @override
+  String get wordSecurity => 'Seguridad';
+
+  @override
+  String get wordSupport => 'Soporte';
+
+  @override
+  String get wordService => 'Servicio';
+
+  @override
+  String get wordServices => 'Servicios';
+
+  @override
+  String get wordTerms => 'Términos';
+
+  @override
+  String get wordPolicy => 'Política';
+
+  @override
+  String get wordAgreement => 'Acuerdo';
+
+  @override
+  String get wordContract => 'Contrato';
+
+  @override
+  String get wordPlan => 'Plan';
+
+  @override
+  String get wordPlans => 'Planes';
+
+  @override
+  String get wordPrice => 'Precio';
+
+  @override
+  String get wordPrices => 'Precios';
+
+  @override
+  String get wordCost => 'Costo';
+
+  @override
+  String get wordFee => 'Tarifa';
+
+  @override
+  String get wordFees => 'Tarifas';
+
+  @override
+  String get wordDiscount => 'Descuento';
+
+  @override
+  String get wordOffer => 'Oferta';
+
+  @override
+  String get wordOffers => 'Ofertas';
+
+  @override
+  String get wordDeal => 'Oferta';
+
+  @override
+  String get wordDeals => 'Ofertas';
+
+  @override
+  String get wordPromotion => 'Promoción';
+
+  @override
+  String get wordPromotions => 'Promociones';
+
+  @override
+  String get wordCoupon => 'Cupón';
+
+  @override
+  String get wordGift => 'Regalo';
+
+  @override
+  String get wordGifts => 'Regalos';
+
+  @override
+  String get wordReward => 'Recompensa';
+
+  @override
+  String get wordRewards => 'Recompensas';
+
+  @override
+  String get wordBonus => 'Bono';
+
+  @override
+  String get wordBonuses => 'Bonos';
+
+  @override
+  String get wordCredit => 'Crédito';
+
+  @override
+  String get wordCredits => 'Créditos';
+
+  @override
+  String get wordCoin => 'Moneda';
+
+  @override
+  String get wordCoins => 'Monedas';
+
+  @override
+  String get wordPoint => 'Punto';
+
+  @override
+  String get wordPoints => 'Puntos';
+
+  @override
+  String get wordLevel => 'Nivel';
+
+  @override
+  String get wordLevels => 'Niveles';
+
+  @override
+  String get wordRank => 'Rango';
+
+  @override
+  String get wordBadge => 'Insignia';
+
+  @override
+  String get wordBadges => 'Insignias';
+
+  @override
+  String get wordAchievement => 'Logro';
+
+  @override
+  String get wordAchievements => 'Logros';
+
+  @override
+  String get wordMilestone => 'Hito';
+
+  @override
+  String get wordProgress => 'Progreso';
+
+  @override
+  String get wordGoal => 'Meta';
+
+  @override
+  String get wordTarget => 'Objetivo';
+
+  @override
+  String get wordResult => 'Resultado';
+
+  @override
+  String get wordResults => 'Resultados';
+
+  @override
+  String get wordStats => 'Estadísticas';
+
+  @override
+  String get wordStatistics => 'Estadísticas';
+
+  @override
+  String get wordAnalytics => 'Analíticas';
+
+  @override
+  String get wordInsight => 'Perspectiva';
+
+  @override
+  String get wordInsights => 'Perspectivas';
+
+  @override
+  String get wordReport => 'Reporte';
+
+  @override
+  String get wordReports => 'Reportes';
+
+  @override
+  String get wordDashboard => 'Panel';
+
+  @override
+  String get wordWorld => 'Mundo';
+
+  @override
+  String get wordCountry => 'País';
+
+  @override
+  String get wordCity => 'Ciudad';
+
+  @override
+  String get wordTown => 'Pueblo';
+
+  @override
+  String get wordState => 'Estado';
+
+  @override
+  String get wordProvince => 'Provincia';
+
+  @override
+  String get wordRegion => 'Región';
+
+  @override
+  String get wordArea => 'Área';
+
+  @override
+  String get wordPlace => 'Lugar';
+
+  @override
+  String get wordLocation => 'Ubicación';
+
+  @override
+  String get wordDistance => 'Distancia';
+
+  @override
+  String get wordDirection => 'Dirección';
+
+  @override
+  String get wordMap => 'Mapa';
+
+  @override
+  String get wordRoute => 'Ruta';
+
+  @override
+  String get wordWay => 'Camino';
+
+  @override
+  String get wordPath => 'Sendero';
+
+  @override
+  String get wordRoad => 'Carretera';
+
+  @override
+  String get wordStreet => 'Calle';
+
+  @override
+  String get wordPark => 'Parque';
+
+  @override
+  String get wordBeach => 'Playa';
+
+  @override
+  String get wordMountain => 'Montaña';
+
+  @override
+  String get wordLake => 'Lago';
+
+  @override
+  String get wordRiver => 'Río';
+
+  @override
+  String get wordSea => 'Mar';
+
+  @override
+  String get wordOcean => 'Océano';
+
+  @override
+  String get wordSky => 'Cielo';
+
+  @override
+  String get wordSun => 'Sol';
+
+  @override
+  String get wordMoon => 'Luna';
+
+  @override
+  String get wordWeather => 'Clima';
+
+  @override
+  String get wordSeason => 'Temporada';
+
+  @override
+  String get wordSpring => 'Primavera';
+
+  @override
+  String get wordSummer => 'Verano';
+
+  @override
+  String get wordAutumn => 'Otoño';
+
+  @override
+  String get wordFall => 'Otoño';
+
+  @override
+  String get wordWinter => 'Invierno';
+
+  @override
+  String get wordFamily => 'Familia';
+
+  @override
+  String get wordParent => 'Padre';
+
+  @override
+  String get wordParents => 'Padres';
+
+  @override
+  String get wordMother => 'Madre';
+
+  @override
+  String get wordFather => 'Padre';
+
+  @override
+  String get wordMom => 'Mamá';
+
+  @override
+  String get wordDad => 'Papá';
+
+  @override
+  String get wordChild => 'Niño';
+
+  @override
+  String get wordChildren => 'Niños';
+
+  @override
+  String get wordKid => 'Niño';
+
+  @override
+  String get wordKids => 'Niños';
+
+  @override
+  String get wordBaby => 'Bebé';
+
+  @override
+  String get wordSon => 'Hijo';
+
+  @override
+  String get wordDaughter => 'Hija';
+
+  @override
+  String get wordBrother => 'Hermano';
+
+  @override
+  String get wordSister => 'Hermana';
+
+  @override
+  String get wordGrandparent => 'Abuelo';
+
+  @override
+  String get wordGrandparents => 'Abuelos';
+
+  @override
+  String get wordAunt => 'Tía';
+
+  @override
+  String get wordUncle => 'Tío';
+
+  @override
+  String get wordCousin => 'Primo';
+
+  @override
+  String get wordPet => 'Mascota';
+
+  @override
+  String get wordPets => 'Mascotas';
+
+  @override
+  String get wordDog => 'Perro';
+
+  @override
+  String get wordCat => 'Gato';
+
+  @override
+  String get wordAnimal => 'Animal';
+
+  @override
+  String get wordAnimals => 'Animales';
+
+  @override
+  String get wordFood => 'Comida';
+
+  @override
+  String get wordDinner => 'Cena';
+
+  @override
+  String get wordLunch => 'Almuerzo';
+
+  @override
+  String get wordBreakfast => 'Desayuno';
+
+  @override
+  String get wordSnack => 'Bocadillo';
+
+  @override
+  String get wordDessert => 'Postre';
+
+  @override
+  String get wordCoffee => 'Café';
+
+  @override
+  String get wordTea => 'Té';
+
+  @override
+  String get wordWater => 'Agua';
+
+  @override
+  String get wordWine => 'Vino';
+
+  @override
+  String get wordBeer => 'Cerveza';
+
+  @override
+  String get wordCocktail => 'Cóctel';
+
+  @override
+  String get wordMusic => 'Música';
+
+  @override
+  String get wordSong => 'Canción';
+
+  @override
+  String get wordSongs => 'Canciones';
+
+  @override
+  String get wordMovie => 'Película';
+
+  @override
+  String get wordMovies => 'Películas';
+
+  @override
+  String get wordFilm => 'Película';
+
+  @override
+  String get wordFilms => 'Películas';
+
+  @override
+  String get wordShowNoun => 'Espectáculo';
+
+  @override
+  String get wordShows => 'Programas';
+
+  @override
+  String get wordSeries => 'Series';
+
+  @override
+  String get wordBook => 'Libro';
+
+  @override
+  String get wordBooks => 'Libros';
+
+  @override
+  String get wordGame => 'Juego';
+
+  @override
+  String get wordGames => 'Juegos';
+
+  @override
+  String get wordSport => 'Deporte';
+
+  @override
+  String get wordSports => 'Deportes';
+
+  @override
+  String get wordExercise => 'Ejercicio';
+
+  @override
+  String get wordFitness => 'Fitness';
+
+  @override
+  String get wordGym => 'Gimnasio';
+
+  @override
+  String get wordYoga => 'Yoga';
+
+  @override
+  String get wordRunning => 'Correr';
+
+  @override
+  String get wordSwimming => 'Natación';
+
+  @override
+  String get wordDancing => 'Baile';
+
+  @override
+  String get wordCooking => 'Cocinar';
+
+  @override
+  String get wordReading => 'Lectura';
+
+  @override
+  String get wordWriting => 'Escritura';
+
+  @override
+  String get wordPainting => 'Pintura';
+
+  @override
+  String get wordDrawing => 'Dibujo';
+
+  @override
+  String get wordPhotography => 'Fotografía';
+
+  @override
+  String get wordArt => 'Arte';
+
+  @override
+  String get wordDesign => 'Diseño';
+
+  @override
+  String get wordFashion => 'Moda';
+
+  @override
+  String get wordStyle => 'Estilo';
+
+  @override
+  String get wordClothing => 'Ropa';
+
+  @override
+  String get wordClothes => 'Ropa';
+
+  @override
+  String get wordShoes => 'Zapatos';
+
+  @override
+  String get wordAccessories => 'Accesorios';
+
+  @override
+  String get wordJewelry => 'Joyería';
+
+  @override
+  String get wordMakeup => 'Maquillaje';
+
+  @override
+  String get wordBeauty => 'Belleza';
+
+  @override
+  String get wordHealth => 'Salud';
+
+  @override
+  String get wordWellness => 'Bienestar';
+
+  @override
+  String get wordMind => 'Mente';
+
+  @override
+  String get wordBody => 'Cuerpo';
+
+  @override
+  String get wordSoul => 'Alma';
+
+  @override
+  String get wordSpirit => 'Espíritu';
+
+  @override
+  String get wordLife => 'Vida';
+
+  @override
+  String get wordDeath => 'Muerte';
+
+  @override
+  String get wordBirth => 'Nacimiento';
+
+  @override
+  String get wordAge => 'Edad';
+
+  @override
+  String get wordGender => 'Género';
+
+  @override
+  String get wordMale => 'Masculino';
+
+  @override
+  String get wordFemale => 'Femenino';
+
+  @override
+  String get wordMan => 'Hombre';
+
+  @override
+  String get wordWoman => 'Mujer';
+
+  @override
+  String get wordBoy => 'Chico';
+
+  @override
+  String get wordGirl => 'Chica';
+
+  @override
+  String get wordGuy => 'Chico';
+
+  @override
+  String get wordLady => 'Dama';
+
+  @override
+  String get wordGentleman => 'Caballero';
+
+  @override
+  String get wordHuman => 'Humano';
+
+  @override
+  String get wordHumans => 'Humanos';
+
+  @override
+  String get wordEveryone => 'Todos';
+
+  @override
+  String get wordEverybody => 'Todos';
+
+  @override
+  String get wordSomeone => 'Alguien';
+
+  @override
+  String get wordSomebody => 'Alguien';
+
+  @override
+  String get wordNoone => 'Nadie';
+
+  @override
+  String get wordNobody => 'Nadie';
+
+  @override
+  String get wordAnyone => 'Cualquiera';
+
+  @override
+  String get wordAnybody => 'Cualquiera';
+
+  @override
+  String get wordEverything => 'Todo';
+
+  @override
+  String get wordSomething => 'Algo';
+
+  @override
+  String get wordNothing => 'Nada';
+
+  @override
+  String get wordAnything => 'Cualquier cosa';
 }
