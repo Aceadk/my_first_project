@@ -35,6 +35,60 @@ None.
 
 ## Completed Tasks
 
+### Task: Fix Discovery - New Accounts Not Appearing in Deck
+ID: T-044
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Fix critical issue where newly created accounts were not appearing in other users' discovery decks.
+
+Scope (in/out):
+In:
+- Add location capture during profile setup onboarding
+- Save latitude/longitude to Firestore profile document
+- Make Cloud Function more lenient for users without location
+- Update all profile repository implementations
+
+Out:
+- Location tracking during app usage (only captures once during setup)
+- Location-based push notifications
+
+Files changed:
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+- lib/features/profile/presentation/bloc/profile_event.dart
+- lib/features/profile/data/repositories/profile_repository.dart
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+- lib/features/profile/data/repositories/impl/http_profile_repository.dart
+- lib/data/repositories/fake_repositories.dart
+- lib/features/profile/presentation/bloc/profile_bloc.dart
+- test/deck_gating_test.dart
+- functions/src/index.ts
+
+Risks:
+- User denies location permission - mitigated by Cloud Function including users without location
+- Location capture fails - mitigated by graceful fallback in both client and server
+
+Acceptance criteria:
+- New accounts appear in other users' discovery decks
+- Location is captured during profile setup
+- Cloud Function handles missing location gracefully
+- Users with location prioritized over users without
+
+Verification:
+Commands: `flutter analyze` + `cd functions && npm run build`
+Manual flow:
+1. Create new account on Device A
+2. Complete profile setup (grant location permission)
+3. Login on Device B with existing account
+4. Open deck screen - should see new account from Device A
+
+Completed: 2026-01-24
+
+---
+
 ### Task: App State Preservation for Background/Foreground Transitions
 ID: T-043
 Owner AI: Claude

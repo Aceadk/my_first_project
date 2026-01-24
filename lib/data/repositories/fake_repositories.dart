@@ -642,6 +642,8 @@ class FakeProfileRepository implements ProfileRepository {
     String? country,
     ProfileFavourites? favourites,
     List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
   }) async {
     final profile = _user!.profile!;
     final updatedPreferences = showMeGenders != null
@@ -658,6 +660,8 @@ class FakeProfileRepository implements ProfileRepository {
       interests: interests,
       city: city,
       country: country,
+      latitude: latitude,
+      longitude: longitude,
       preferences: updatedPreferences,
     );
     _user = _user!.copyWith(profile: updated);

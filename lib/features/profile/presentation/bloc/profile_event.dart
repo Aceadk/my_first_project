@@ -58,6 +58,8 @@ class ProfileDetailsSubmitted extends ProfileEvent {
   final String? country;
   final ProfileFavourites? favourites;
   final List<String>? showMeGenders; // Who to show in deck
+  final double? latitude; // For discovery distance filtering
+  final double? longitude; // For discovery distance filtering
 
   ProfileDetailsSubmitted({
     required this.bio,
@@ -71,11 +73,13 @@ class ProfileDetailsSubmitted extends ProfileEvent {
     this.country,
     this.favourites,
     this.showMeGenders,
+    this.latitude,
+    this.longitude,
   });
 
   @override
   List<Object?> get props =>
-      [bio, photoUrls, videoUrls, jobTitle, company, school, interests, city, country, favourites, showMeGenders];
+      [bio, photoUrls, videoUrls, jobTitle, company, school, interests, city, country, favourites, showMeGenders, latitude, longitude];
 }
 
 class ProfileIdDocumentUploaded extends ProfileEvent {}

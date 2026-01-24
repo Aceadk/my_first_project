@@ -30,6 +30,8 @@ abstract class ProfileRepository {
     String? country,
     ProfileFavourites? favourites,
     List<String>? showMeGenders,
+    double? latitude, // For discovery distance filtering
+    double? longitude, // For discovery distance filtering
   });
 
   Future<void> uploadIdDocument(/* e.g. File or bytes type */);

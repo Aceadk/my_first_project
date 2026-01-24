@@ -3208,17 +3208,39 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       const lat = toNumber(candidateProfile.latitude);
       const lon = toNumber(candidateProfile.longitude);
       const distanceKm = haversineDistanceKm(myLat, myLon, lat, lon);
+
+      // Distance filtering - be lenient for users without location
+      // Users without location should still appear in discovery, just with lower priority
+      let noLocationPenalty = 0;
       if (distanceKm !== undefined && distanceKm > maxDistanceKm + 5) {
-        return;
+        // Has location but too far - only exclude if really far (2x distance)
+        if (distanceKm > maxDistanceKm * 2) {
+          return;
+        }
+        // Between maxDistance and 2x maxDistance - keep but penalize score
+        noLocationPenalty = 0.3;
       }
+
+      // For users without location: use country as soft filter, not hard filter
+      // This ensures new users appear in discovery even without location permission
+      const candCountry =
+        typeof candidateProfile.country === "string" ? candidateProfile.country : "";
       if (!lat || !lon) {
-        // Fall back to country/city match if location missing
-        const candCountry =
-          typeof candidateProfile.country === "string" ? candidateProfile.country : "";
-        if (myCountry && candCountry && candCountry !== myCountry) return;
-        const candCity = typeof candidateProfile.city === "string" ? candidateProfile.city : "";
-        if (myCity && candCity && candCity !== myCity) return;
+        // No location - apply penalty but DON'T exclude
+        // Only exclude if both have different countries AND searching user has location
+        if (myLat && myLon && myCountry && candCountry && candCountry !== myCountry) {
+          // Different country and searcher has location - exclude only if really far
+          // For now, include them with penalty to help new users get discovered
+          noLocationPenalty = 0.4;
+        } else if (!candCountry && !myCountry) {
+          // Both have no country info - include with small penalty
+          noLocationPenalty = 0.2;
+        } else {
+          // Same country or missing data - include with small penalty
+          noLocationPenalty = 0.15;
+        }
       }
+
       const interests = toStringArray(candidateProfile.interests);
       const sharedInterests = interests.filter((i) => myInterests.has(i)).length;
       const verifiedBoost =
@@ -3226,9 +3248,10 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       const distanceBoost =
         distanceKm !== undefined && maxDistanceKm > 0
           ? Math.max(0, (maxDistanceKm - distanceKm) / maxDistanceKm)
-          : 0.1;
+          : 0.1; // Give users without location a small distance boost
       const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
-      const baseScore = 1 + verifiedBoost + distanceBoost + interestBoost;
+      // Apply no-location penalty to score so users with location appear first
+      const baseScore = 1 + verifiedBoost + distanceBoost + interestBoost - noLocationPenalty;
 
       // Get username from user document level (not nested in profile)
       const username = typeof data.username === "string" ? data.username : undefined;

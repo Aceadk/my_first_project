@@ -168,6 +168,8 @@ class StubProfileRepository implements ProfileRepository {
     String? country,
     ProfileFavourites? favourites,
     List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
   }) async {
     await Future.delayed(const Duration(milliseconds: 50));
 
@@ -210,6 +212,10 @@ class StubProfileRepository implements ProfileRepository {
       school: sanitizedSchool,
       interests: sanitizedInterests,
       preferences: updatedPreferences,
+      city: city ?? existingProfile.city,
+      country: country ?? existingProfile.country,
+      latitude: latitude ?? existingProfile.latitude,
+      longitude: longitude ?? existingProfile.longitude,
     );
 
     final updatedUser = currentUser.copyWith(profile: newProfile);

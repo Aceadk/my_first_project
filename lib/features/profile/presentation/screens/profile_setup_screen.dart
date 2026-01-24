@@ -10,6 +10,7 @@ import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart'
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/services/location_service.dart';
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
@@ -58,11 +59,63 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? _lookingFor; // Who to show in deck (male, female, everyone)
   bool _lookingForInitialized = false;
 
+  // Location - CRITICAL for discovery to work
+  double? _latitude;
+  double? _longitude;
+  bool _locationRequested = false;
+
   @override
   void initState() {
     super.initState();
     // Default athlete (not shown to user that it's default)
     _favouriteAthlete = 'Cristiano Ronaldo';
+    // Request location permission and capture coordinates for discovery
+    _requestLocationForDiscovery();
+  }
+
+  /// Request location permission and capture coordinates.
+  /// This is CRITICAL for the user to appear in other users' discovery decks.
+  /// Without latitude/longitude, the Cloud Function cannot calculate distance
+  /// and the user will not be shown to others.
+  Future<void> _requestLocationForDiscovery() async {
+    if (_locationRequested) return;
+    _locationRequested = true;
+
+    try {
+      final locationService = LocationService.instance;
+
+      // Request permission first
+      final hasPermission = await locationService.requestPermission();
+      if (!hasPermission) {
+        // User denied permission - they can still complete profile but
+        // won't appear in distance-based discovery until they enable location
+        return;
+      }
+
+      // Get current location with geocoding
+      final location = await locationService.getCurrentLocation(
+        includeGeocoding: true,
+        timeout: const Duration(seconds: 20),
+      );
+
+      if (location != null && mounted) {
+        setState(() {
+          _latitude = location.latitude;
+          _longitude = location.longitude;
+          // Auto-fill city/country if empty
+          if (_cityController.text.isEmpty && location.city != null) {
+            _cityController.text = location.city!;
+          }
+          if (_countryController.text.isEmpty && location.country != null) {
+            _countryController.text = location.country!;
+          }
+        });
+      }
+    } catch (e) {
+      // Location capture failed - user can still complete profile
+      // They just won't appear in distance-based discovery
+      debugPrint('Location capture failed: $e');
+    }
   }
 
   @override
@@ -298,6 +351,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         showMeGenders: _lookingFor != null
             ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
             : null,
+        // CRITICAL: Pass location for discovery distance filtering
+        // Without these, the user won't appear in other users' discovery decks
+        latitude: _latitude,
+        longitude: _longitude,
       ),
     );
 

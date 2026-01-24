@@ -237,6 +237,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         country: event.country,
         favourites: event.favourites,
         showMeGenders: event.showMeGenders,
+        latitude: event.latitude,
+        longitude: event.longitude,
       ),
       logLabel: 'ProfileRepository.saveProfileDetails',
       fallbackError: ErrorMessages.saveProfileFailed,

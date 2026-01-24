@@ -4,6 +4,85 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-24] Task: Fix Discovery - New Accounts Not Appearing in Deck
+
+Summary:
+- CRITICAL FIX: New accounts were not appearing in other users' discovery decks
+- Root cause: Location (latitude/longitude) was never captured during profile onboarding
+- Cloud Function's distance filter excluded users without coordinates
+- Implemented automatic location capture during profile setup
+- Made Cloud Function more lenient for users without location data
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+  - Added LocationService import
+  - Added _latitude, _longitude, _locationRequested state variables
+  - Added _requestLocationForDiscovery() method to capture coordinates
+  - Location permission requested in initState
+  - Auto-fills city/country from geocoding
+  - Passes latitude/longitude when submitting ProfileDetailsSubmitted event
+
+- lib/features/profile/presentation/bloc/profile_event.dart
+  - Added latitude and longitude parameters to ProfileDetailsSubmitted event
+
+- lib/features/profile/data/repositories/profile_repository.dart
+  - Added latitude and longitude parameters to saveProfileDetails interface
+
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added latitude and longitude parameters to saveProfileDetails
+  - Saves profile.latitude and profile.longitude to Firestore
+
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+  - Added latitude and longitude parameters to saveProfileDetails
+  - Updates profile with location data
+
+- lib/features/profile/data/repositories/impl/http_profile_repository.dart
+  - Added latitude and longitude parameters to saveProfileDetails
+
+- lib/data/repositories/fake_repositories.dart
+  - Added latitude and longitude parameters to saveProfileDetails
+
+- lib/features/profile/presentation/bloc/profile_bloc.dart
+  - Passes latitude and longitude to repository in _onDetailsSubmitted
+
+- test/deck_gating_test.dart
+  - Added latitude and longitude parameters to _StubProfileRepository.saveProfileDetails
+
+- functions/src/index.ts (Cloud Function)
+  - Made distance filtering more lenient for users without location
+  - Users without location now appear with score penalty instead of being excluded
+  - Distance filter allows up to 2x maxDistance before hard exclusion
+  - Country-based fallback is now soft filter (penalty) not hard filter
+
+Why / Notes:
+- New accounts weren't appearing in discovery because latitude/longitude were never saved
+- The Cloud Function couldn't calculate distance and fell back to strict country matching
+- This fix ensures:
+  1. Location is automatically captured during profile setup (with permission)
+  2. Location is saved to Firestore profile document
+  3. Cloud Function includes users without location (with lower score priority)
+  4. Users with location appear first, followed by users without location
+
+Risks & Mitigations:
+- User denies location permission → Still completes profile, just won't appear in distance-based discovery
+- Location capture fails → Profile still saves, Cloud Function now handles missing location gracefully
+- Users without location flood deck → Score penalty ensures users with location appear first
+
+Verification:
+- `flutter analyze` - No issues found
+- `cd functions && npm run build` - Compiles successfully
+- Deploy: `firebase deploy --only functions`
+- Test: Create new account → Verify location captured → Check if appears in other users' decks
+
+Follow-ups / TODO:
+- Consider adding a location prompt in discovery if user has no location saved
+- Add location update option in settings
+
+---
+
 ### [2026-01-24] Task: App State Preservation for Background/Foreground Transitions
 
 Summary:

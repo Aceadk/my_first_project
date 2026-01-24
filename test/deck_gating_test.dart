@@ -298,6 +298,8 @@ class _StubProfileRepository implements ProfileRepository {
     String? country,
     ProfileFavourites? favourites,
     List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
   }) async =>
       user;
 

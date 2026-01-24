@@ -213,6 +213,8 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? country,
     ProfileFavourites? favourites,
     List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
   }) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
@@ -273,6 +275,10 @@ class FirebaseProfileRepository implements ProfileRepository {
     if (sanitizedCity != null) updateData['profile.city'] = sanitizedCity;
     if (sanitizedCountry != null) updateData['profile.country'] = sanitizedCountry;
     if (favourites != null) updateData['profile.favourites'] = favourites.toJson();
+    // CRITICAL: Save location for discovery distance filtering
+    // Without lat/lon, users won't appear in other users' discovery decks
+    if (latitude != null) updateData['profile.latitude'] = latitude;
+    if (longitude != null) updateData['profile.longitude'] = longitude;
 
     final docRef = _firestore.collection('users').doc(userId);
 
@@ -301,6 +307,8 @@ class FirebaseProfileRepository implements ProfileRepository {
             if (sanitizedCity != null) 'city': sanitizedCity,
             if (sanitizedCountry != null) 'country': sanitizedCountry,
             if (favourites != null) 'favourites': favourites.toJson(),
+            if (latitude != null) 'latitude': latitude,
+            if (longitude != null) 'longitude': longitude,
             'updatedAt': FieldValue.serverTimestamp(),
           },
           'updatedAt': FieldValue.serverTimestamp(),
