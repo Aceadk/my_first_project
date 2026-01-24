@@ -114,9 +114,13 @@ class CrushRoutes {
   static const termsOfService = '/terms-of-service';
 }
 
-GoRouter createRouter(AuthBloc authBloc) {
+GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
+  // Use preserved route if provided (app resuming from background with authenticated user),
+  // otherwise start at splash screen for fresh launch
+  final startLocation = initialRoute ?? CrushRoutes.splash;
+
   return GoRouter(
-    initialLocation: CrushRoutes.splash,
+    initialLocation: startLocation,
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
     observers: [
       PerformanceNavigatorObserver(

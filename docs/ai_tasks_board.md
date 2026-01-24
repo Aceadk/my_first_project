@@ -35,6 +35,50 @@ None.
 
 ## Completed Tasks
 
+### Task: App State Preservation for Background/Foreground Transitions
+ID: T-043
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Preserve app state when user backgrounds the app so it resumes instantly where they left off instead of restarting from splash.
+
+Scope (in/out):
+In:
+- Create AppStatePreserver service for route persistence
+- Add WidgetsBindingObserver lifecycle handling to app.dart
+- Modify router to accept optional initial route
+Out:
+- Splash screen optimization (not needed - route bypasses splash)
+- Deep link parameter preservation
+
+Files changed:
+- lib/core/services/app_state_preserver.dart (new)
+- lib/app.dart (modified)
+- lib/core/router.dart (modified)
+
+Risks:
+- Deep link routes with query params may not restore perfectly
+- Mitigation: Only preserves path-based routes, clears on resume
+
+Acceptance criteria:
+- User can background app and return to same screen
+- State expires after 30 minutes in background
+- Auth/onboarding routes are not preserved
+
+Verification:
+Commands: `flutter analyze` - No issues found
+Manual flow:
+1. Open app, navigate to deck/chat/settings
+2. Background the app
+3. Return from background
+4. App should resume at same location (not splash)
+
+Completed: 2026-01-24
+
+---
+
 ### Task: Critical Fixes for Discovery, Matching, Chat & Cross-Platform
 ID: T-042
 Owner AI: Claude

@@ -4,6 +4,48 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-24] Task: App State Preservation for Background/Foreground Transitions
+
+Summary:
+- Implemented app state preservation to prevent app from restarting from splash screen when returning from background
+- App now remembers the user's location and resumes instantly when coming back from background
+- State is preserved for up to 30 minutes while in background
+- Routes that shouldn't be preserved (splash, auth, onboarding) are excluded
+
+Files Added:
+- lib/core/services/app_state_preserver.dart
+  - New singleton service for route persistence using SharedPreferences
+  - Saves current route with timestamp when app goes to background
+  - Restores route on launch if authenticated and route is still valid (< 30 min)
+  - Filters out routes that shouldn't be preserved
+
+Files Modified:
+- lib/app.dart
+  - Converted _CrushAppState to use AppStatePreserver initialization
+  - Added WidgetsBindingObserver mixin to _RouterHostState
+  - Added didChangeAppLifecycleState() to save/clear preserved routes
+  - Router now checks for preserved route when initializing
+
+- lib/core/router.dart
+  - Added optional `initialRoute` parameter to createRouter function
+  - Uses preserved route as initial location when available
+
+Why:
+- User reported that app always restarted from splash screen when returning from background
+- This created a poor user experience with unnecessary delays
+- App should resume exactly where the user left off
+
+Risks & Mitigations:
+- Deep link routes with parameters may not restore perfectly → Only preserves simple path-based routes
+- Very old routes may lead to stale state → 30-minute expiration prevents this
+- Auth state may have changed while in background → Route is only used if user is still authenticated
+
+Verification:
+- `flutter analyze` - No issues found
+- Manual test: Open app → Navigate to deck → Background app → Return → Should resume at deck (not splash)
+
+---
+
 ### [2026-01-24] Task: Fix Test Stub - Missing showMeGenders Parameter
 
 Summary:

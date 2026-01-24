@@ -8,6 +8,7 @@ import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/di.dart';
 import 'core/deep_link_bootstrap.dart';
+import 'core/services/app_state_preserver.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -15,31 +16,45 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
-class CrushApp extends StatelessWidget {
+class CrushApp extends StatefulWidget {
   const CrushApp({super.key, required this.preferences});
 
   final SharedPreferences preferences;
+
+  @override
+  State<CrushApp> createState() => _CrushAppState();
+}
+
+class _CrushAppState extends State<CrushApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize AppStatePreserver with SharedPreferences
+    AppStatePreserver.instance.initialize(widget.preferences);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: CrushDI.buildRepositories(),
       child: MultiBlocProvider(
-        providers: CrushDI.buildBlocs(preferences: preferences),
-        child: const _RouterHost(),
+        providers: CrushDI.buildBlocs(preferences: widget.preferences),
+        child: _RouterHost(preferences: widget.preferences),
       ),
     );
   }
 }
 
 class _RouterHost extends StatefulWidget {
-  const _RouterHost();
+  const _RouterHost({required this.preferences});
+
+  final SharedPreferences preferences;
 
   @override
   State<_RouterHost> createState() => _RouterHostState();
 }
 
-class _RouterHostState extends State<_RouterHost> {
+class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
   late final GoRouter _router;
   StreamSubscription? _matchNotificationSub;
   String? _currentUserId;
@@ -47,8 +62,18 @@ class _RouterHostState extends State<_RouterHost> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     final authBloc = context.read<AuthBloc>();
-    _router = createRouter(authBloc);
+
+    // Check if we have a preserved route and user is authenticated
+    final preservedRoute = AppStatePreserver.instance.getPreservedRoute();
+    final isAuthenticated = authBloc.state.status == AuthStatus.authenticated;
+
+    _router = createRouter(
+      authBloc,
+      initialRoute: isAuthenticated && preservedRoute != null ? preservedRoute : null,
+    );
 
     // Listen for real-time match notifications
     _matchNotificationSub = RealtimeMatchService.instance.onNewMatch.listen(
@@ -58,9 +83,26 @@ class _RouterHostState extends State<_RouterHost> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _matchNotificationSub?.cancel();
     RealtimeMatchService.instance.stopListening();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App going to background - save current route
+      final currentPath = _router.routerDelegate.currentConfiguration.uri.path;
+      AppStatePreserver.instance.saveCurrentRoute(currentPath);
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming back to foreground - clear the preserved route
+      // (we've already restored, no need to keep it)
+      AppStatePreserver.instance.clearPreservedRoute();
+    }
   }
 
   void _onNewMatchReceived(RealtimeMatchNotification notification) {
