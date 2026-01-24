@@ -29,7 +29,7 @@ service firebase.storage {
              (isImage() && request.resource.size < 10 * 1024 * 1024);
     }
 
-    // User profile media (photos, videos)
+    // User profile media (photos, videos) - generic path
     match /users/{uid}/media/{fileName} {
       // Anyone signed in can read user media (for discovery, profiles)
       allow read: if isSignedIn();
@@ -40,6 +40,22 @@ service firebase.storage {
                    && isUnderSizeLimit();
     }
 
+    // User profile photos - actual path used by ProfileMediaService
+    match /users/{uid}/photos/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid)
+                   && isImage()
+                   && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // User profile videos - actual path used by ProfileMediaService
+    match /users/{uid}/videos/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid)
+                   && isVideo()
+                   && request.resource.size < 50 * 1024 * 1024;
+    }
+
     // User story media (24h stories)
     match /users/{uid}/stories/{storyId} {
       allow read: if isSignedIn();
@@ -48,7 +64,7 @@ service firebase.storage {
                    && isUnderSizeLimit();
     }
 
-    // Chat media (images, videos in messages)
+    // Chat media (images, videos in messages) - legacy path
     match /chats/{matchId}/{messageId}/{fileName} {
       // Only match participants can read
       // Note: Full validation requires Firestore lookup which isn't available
@@ -57,6 +73,18 @@ service firebase.storage {
 
       // Only signed-in users can upload chat media
       allow write: if isSignedIn()
+                   && isValidMediaType()
+                   && isUnderSizeLimit();
+    }
+
+    // Chat media - current path used by Firebase repository
+    // Path: chat_media/{matchId}/{userId}/{fileName}
+    match /chat_media/{matchId}/{userId}/{fileName} {
+      // Only match participants can read
+      allow read: if isSignedIn();
+
+      // Only the uploader (matching userId) can upload
+      allow write: if isOwner(userId)
                    && isValidMediaType()
                    && isUnderSizeLimit();
     }

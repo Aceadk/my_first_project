@@ -35,6 +35,103 @@ None.
 
 ## Completed Tasks
 
+### Task: Critical Fixes for Discovery, Matching, Chat & Cross-Platform
+ID: T-042
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Fix critical bugs preventing discovery, matching, and chat from working across iOS and Android.
+
+Scope (in/out):
+In:
+- Fix match status mismatch (mutual → active)
+- Add RTDB rules for real-time match notifications
+- Fix storage upload path mismatches
+- Fix ProfileData TypeScript type definition
+Out:
+- Migration script for existing matches
+- UI changes
+
+Files changed:
+- functions/src/index.ts (match status + ProfileData type)
+- database.rules.json (newMatches rules)
+- storage.rules (photos, videos, chat_media paths)
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- Existing matches with status "mutual" cannot be read
+- Mitigation: May need one-time migration
+
+Acceptance criteria:
+- Users can discover each other across iOS/Android
+- Users can match and receive real-time notifications
+- Users can chat bidirectionally
+- Media uploads work in chat and profile
+
+Verification:
+Commands: `flutter analyze lib/` and `cd functions && npm run build`
+Manual flow:
+1. Create iOS user A (Male→Female) and Android user B (Female→Male)
+2. Both see each other in deck
+3. Both swipe right → match notification appears
+4. Chat works bidirectionally
+5. Media uploads work
+
+Completed: 2026-01-23
+
+---
+
+### Task: Fix Discovery Deck Gender Filter Bug
+ID: T-041
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Fix critical bug where users weren't seeing each other in discovery deck due to incorrect showMeGenders filter.
+
+Scope (in/out):
+In:
+- Fix Cloud Function to handle 'All'/'everyone' showMeGenders values
+- Update all client-side defaults from ['All'] to ['male', 'female']
+- Handle legacy 'All' values when parsing preferences
+Out:
+- UI changes
+- New feature development
+
+Files changed:
+- functions/src/index.ts
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+- lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+- lib/features/auth/data/repositories/impl/stub_auth_repository.dart
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Risks:
+- Existing Firestore data with ['All'] handled by legacy value conversion
+- Cloud Function deployment required for server-side fix
+
+Acceptance criteria:
+- Users with opposite genders see each other in discovery deck
+- Default showMeGenders is ['male', 'female'] not ['All']
+- Legacy 'All' values are converted to proper defaults
+
+Verification:
+Commands: `flutter analyze lib/` and `cd functions && npm run build`
+Manual flow:
+1. Create two test accounts (one male, one female)
+2. Both should appear in each other's discovery deck
+3. Deploy Cloud Function and verify discovery works
+
+Completed: 2026-01-23
+
+---
+
 ### Task: Username Display and 28-Day Change Restriction
 ID: T-040
 Owner AI: Claude

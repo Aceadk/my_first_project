@@ -70,7 +70,7 @@ class FirebaseProfileRepository implements ProfileRepository {
             minAge: 18,
             maxAge: 50,
             maxDistanceKm: 100,
-            showMeGenders: ['All'],
+            showMeGenders: ['male', 'female'], // Default to show all binary genders
             showMyDistance: true,
             showMyAge: true,
             hideFromDiscovery: false,
@@ -212,6 +212,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? city,
     String? country,
     ProfileFavourites? favourites,
+    List<String>? showMeGenders,
   }) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
@@ -259,7 +260,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'profile.preferences.minAge': 18,
       'profile.preferences.maxAge': 50,
       'profile.preferences.maxDistanceKm': 100,
-      'profile.preferences.showMeGenders': ['All'],
+      'profile.preferences.showMeGenders': showMeGenders ?? ['male', 'female'],
       'profile.preferences.showMyDistance': true,
       'profile.preferences.showMyAge': true,
     };
@@ -490,7 +491,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         minAge: 18,
         maxAge: 50,
         maxDistanceKm: 100,
-        showMeGenders: ['All'],
+        showMeGenders: ['male', 'female'], // Default to show all binary genders
         showMyDistance: true,
         showMyAge: true,
         hideFromDiscovery: false,
@@ -500,11 +501,18 @@ class FirebaseProfileRepository implements ProfileRepository {
       );
     }
 
+    // Handle legacy 'All' value by converting to proper defaults
+    List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
+    if (showMeGenders.isEmpty ||
+        showMeGenders.any((g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+      showMeGenders = ['male', 'female'];
+    }
+
     return DiscoveryPreferences(
       minAge: data['minAge'] ?? 18,
       maxAge: data['maxAge'] ?? 50,
       maxDistanceKm: (data['maxDistanceKm'] ?? 100).toDouble(),
-      showMeGenders: List<String>.from(data['showMeGenders'] ?? ['All']),
+      showMeGenders: showMeGenders,
       showMyDistance: data['showMyDistance'] ?? true,
       showMyAge: data['showMyAge'] ?? true,
       hideFromDiscovery: data['hideFromDiscovery'] ?? false,

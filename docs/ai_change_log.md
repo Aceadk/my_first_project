@@ -4,6 +4,154 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-24] Task: Fix Test Stub - Missing showMeGenders Parameter
+
+Summary:
+- Fixed `invalid_override` error in deck_gating_test.dart
+- Added missing `showMeGenders` parameter to `_StubProfileRepository.saveProfileDetails`
+
+Files Modified:
+- test/deck_gating_test.dart (line 300)
+  - Added `List<String>? showMeGenders,` to saveProfileDetails method signature
+
+Why:
+- The `ProfileRepository.saveProfileDetails` interface was updated with a new `showMeGenders` parameter
+- The test stub implementation wasn't updated, causing an `invalid_override` compiler error
+
+Verification:
+- `flutter analyze test/deck_gating_test.dart` - No issues found
+
+---
+
+### [2026-01-23] Task: Critical Fixes for Discovery, Matching, Chat & Cross-Platform
+
+Summary:
+- Fixed 3 CRITICAL bugs preventing discovery, matching and chat from working
+- Match status mismatch: Cloud Function created `status: "mutual"` but Firestore rules checked for `status: "active"`
+- Missing RTDB rules: Clients couldn't read real-time match notifications
+- Storage path mismatch: Profile/chat media uploads were using different paths than rules allowed
+- Added `name` and `lastName` to ProfileData TypeScript type
+
+Files Added:
+- None
+
+Files Modified:
+- functions/src/index.ts
+  - Changed match creation status from "mutual" to "active" (line 3332)
+  - Changed RTDB notification status from "mutual" to "active" (line 3359)
+  - Added `name` and `lastName` properties to ProfileData type definition
+- database.rules.json
+  - Added `/users/{uid}/newMatches` rules for real-time match notifications
+  - Users can read their own notifications and delete (clear) them after reading
+  - Cloud Functions (Admin SDK) can still write notifications
+- storage.rules
+  - Added `/users/{uid}/photos/{fileName}` rule for profile photo uploads
+  - Added `/users/{uid}/videos/{fileName}` rule for profile video uploads
+  - Added `/chat_media/{matchId}/{userId}/{fileName}` rule for chat media uploads
+
+Files Deleted:
+- None
+
+Why / Notes:
+- CRITICAL BUG #1: Match status "mutual" vs Firestore rule expecting "active"
+  - Impact: Users could NOT read their matches or messages (permission denied)
+  - Fix: Changed Cloud Function to use status: "active"
+- CRITICAL BUG #2: Missing RTDB rules for `/users/{uid}/newMatches`
+  - Impact: Real-time match notifications never reached clients
+  - Fix: Added read rules and delete-only write rules for clients
+- CRITICAL BUG #3: Storage path mismatch
+  - Code used: `users/{uid}/photos/`, `users/{uid}/videos/`, `chat_media/...`
+  - Rules allowed: `users/{uid}/media/`, `chats/{matchId}/{messageId}/...`
+  - Impact: All media uploads would fail in production
+  - Fix: Added rules for actual paths used by code
+- TypeScript fix: ProfileData was missing `name` property causing build errors
+
+Risks & Mitigations:
+- Existing matches with status "mutual": Cannot be read until backend migration
+  - Mitigation: Existing matches may need a one-time migration script
+- RTDB write rules use `!newData.exists()` to allow only deletions
+  - Cloud Functions use Admin SDK which bypasses rules
+
+Verification Steps:
+- `flutter analyze lib/` - No issues found
+- `cd functions && npm run build` - Compiles successfully
+- Deploy all rules and functions:
+  1. `firebase deploy --only functions`
+  2. `firebase deploy --only database` (RTDB rules)
+  3. `firebase deploy --only firestore:rules`
+  4. `firebase deploy --only storage`
+
+Manual Testing:
+1. Create account A (iOS) with gender Male, looking for Female
+2. Create account B (Android) with gender Female, looking for Male
+3. A should see B in discovery deck
+4. B should see A in discovery deck
+5. A swipes right on B → no immediate match
+6. B swipes right on A → MATCH! Both get notification
+7. Both should see match in Matches screen
+8. Open chat → both can send/receive messages
+9. Upload photo in chat → should succeed
+
+Follow-ups / TODO:
+- Consider migration script for existing matches with status "mutual"
+- Monitor RTDB notification delivery in production
+
+---
+
+### [2026-01-23] Task: Fix Discovery Deck - Gender Filter Bug
+
+Summary:
+- Fixed critical bug where users weren't seeing each other in discovery deck
+- The root cause was `showMeGenders: ['All']` default which queried for `profile.gender = 'All'` (no user has this gender value)
+- Updated Cloud Function to skip gender filter for 'All', 'everyone', or 'any' values
+- Updated all client-side defaults from `['All']` to `['male', 'female']`
+- Added legacy 'All' value handling in preferences parsing
+
+Files Added:
+- None
+
+Files Modified:
+- functions/src/index.ts
+  - Modified fetchDiscoveryCandidates to skip gender filter when showMeGenders contains 'All', 'everyone', or 'any'
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Changed default showMeGenders from ['All'] to ['male', 'female']
+  - Added legacy 'All' value handling in _preferencesFromFirestore
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+  - Changed default showMeGenders from ['All'] to ['male', 'female']
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+  - Changed default showMeGenders from ['All'] to ['male', 'female']
+  - Added legacy 'All' value handling in _preferencesFromFirestore
+- lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+  - Changed default showMeGenders from ['All'] to ['male', 'female']
+  - Added legacy 'All' value handling in _preferencesFromFirestore
+- lib/features/auth/data/repositories/impl/stub_auth_repository.dart
+  - Changed default showMeGenders from ['All'] to ['male', 'female']
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Users reported not seeing each other in discovery deck even with opposite genders
+- Investigation found that default `showMeGenders: ['All']` was being passed to Cloud Function
+- Cloud Function queried `profile.gender IN ['All']` which returned 0 results
+- Fixed by: (1) Cloud Function now skips gender filter for 'All'/'everyone'/'any' values
+- Fixed by: (2) Client defaults changed to actual gender values ['male', 'female']
+- Fixed by: (3) Legacy 'All' values converted to proper defaults when parsing
+
+Risks & Mitigations:
+- Existing users with `showMeGenders: ['All']` in Firestore: Handled by Cloud Function skip logic
+- Backward compatibility: Both Cloud Function and client handle legacy values gracefully
+
+Verification Steps:
+- Deploy Cloud Function: `cd functions && npm run deploy`
+- Run Flutter app and check discovery deck loads profiles
+- Create two test accounts with opposite genders and verify they see each other
+
+Follow-ups / TODO:
+- None - this fix handles both new and existing users
+
+---
+
 ### [2026-01-23] Task: Username Display and 28-Day Change Restriction
 
 Summary:
@@ -2341,5 +2489,171 @@ Follow-ups / TODO:
 - Implement Android release signing
 - Fix BoostCubit recursive timer bug
 - Add auth state listeners to 4 cubits
+
+---
+
+### [2026-01-23] Task: Fix keyboard blocking bottom section on Profile Setup screen
+
+Summary:
+- Fixed UX issue where "You can always complete your profile later in Settings" text blocked input fields when keyboard opened
+- Added keyboard detection using MediaQuery.viewInsets.bottom
+- Bottom section now collapses when keyboard is visible (hides text, reduces padding)
+- Added smooth animation for transition
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+  - Updated `_buildBottomButton()` method
+  - Added keyboard visibility detection: `MediaQuery.of(context).viewInsets.bottom > 0`
+  - Changed Container to AnimatedContainer for smooth transitions
+  - Conditional padding: full when keyboard hidden, compact when visible
+  - Hide informational text when keyboard is visible
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User reported that the bottom section blocked input fields when keyboard opened
+- The informational text and large padding took up space needed for form input
+- Now the bottom section shrinks to just the button with minimal padding when typing
+
+Risks & Mitigations:
+- Risk: None - this is a UX improvement only
+- Mitigation: AnimatedContainer provides smooth visual transition
+
+Verification Steps:
+- `flutter analyze lib/features/profile/presentation/screens/profile_setup_screen.dart`
+- Manual: Open Profile Setup screen → tap any input field → verify bottom section shrinks
+- Manual: Dismiss keyboard → verify bottom section returns to full size with text
+
+Follow-ups / TODO:
+- None
+
+---
+
+### [2026-01-23] Task: Profile Edit screen UX improvements
+
+Summary:
+- Removed duplicate Name Visibility section from Profile Edit screen (already available in Privacy Settings)
+- Added Username display to Basic Info section showing user's @username
+- Updated Progress Card to show three states:
+  1. "Almost There!" - when missing required fields
+  2. "Eligible to Start Swiping!" - when required fields complete but not 100%
+  3. "Profile Complete!" - when 100% complete, shows "Your profile is all set up, @username!"
+- Progress card now shows actual percentage and proper messaging for each state
+
+Files Added:
+- None
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_edit_screen.dart
+  - Removed `_NameVisibilityCard` widget (moved to Privacy Settings)
+  - Added `_UsernameDisplay` widget showing @username in Basic Info section
+  - Updated `_ProgressCard` to accept `meetsRequiredFields` and `username` parameters
+  - Three-state progress messaging: incomplete → eligible → complete
+
+Files Deleted:
+- None
+
+Why / Notes:
+- Name Visibility was duplicated (already in Privacy Settings)
+- Users wanted to see their username in the Profile Edit screen
+- Progress card messaging needed to differentiate between:
+  - Not yet eligible (missing required fields)
+  - Eligible to swipe (has required fields, can improve profile)
+  - Fully complete (100%, personalized success message with username)
+
+Risks & Mitigations:
+- Risk: None - UI improvement only
+- The `_showFirstName` and `_showLastName` state variables are still preserved for the save functionality
+
+Verification Steps:
+- `flutter analyze lib/features/profile/presentation/screens/profile_edit_screen.dart`
+- Manual: Open Profile Edit screen
+- Verify username displays at top of Basic Info section
+- Verify progress card shows correct state based on profile completeness
+- Verify Name Visibility toggles are no longer shown (moved to Privacy Settings)
+
+Follow-ups / TODO:
+- None
+
+---
+
+### [2026-01-23] Task: Add "I Am Looking For" preference and change "Gender" to "My Gender"
+
+Summary:
+- Added "I Am Looking For" field to both Profile Setup (step 5/5) and Profile Edit screens
+- Changed "Gender" label to "My Gender" in Profile Edit screen
+- Default logic: Male users default to looking for Women, Female users default to looking for Men
+- Options: Women, Men, Everyone
+- Preference is saved to profile.preferences.showMeGenders in Firebase
+
+Files Added:
+- None
+
+Files Modified:
+- lib/shared/utils/profile_field_options.dart
+  - Added `lookingForOptions` list (Women, Men, Everyone)
+  - Added `getLookingForLabel()` helper method
+  - Added `getDefaultLookingFor()` - returns default based on gender
+  - Added `lookingForToShowMeGenders()` - converts to showMeGenders list
+  - Added `showMeGendersToLookingFor()` - converts from showMeGenders list
+
+- lib/features/profile/presentation/screens/profile_edit_screen.dart
+  - Added `_lookingFor` state variable
+  - Added `_showLookingForPicker()` method
+  - Changed "Gender" label to "My Gender" in picker and UI
+  - Added "I Am Looking For" field in Personal Details section
+  - Save preferences with showMeGenders on submit
+
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+  - Added `_lookingFor` and `_lookingForInitialized` state variables
+  - Added `_buildLookingForPicker()` method with animated selection chips
+  - Added "I Am Looking For" section after Bio section
+  - Pass showMeGenders when submitting ProfileDetailsSubmitted event
+
+- lib/features/profile/presentation/bloc/profile_event.dart
+  - Added `showMeGenders` parameter to ProfileDetailsSubmitted event
+
+- lib/features/profile/presentation/bloc/profile_bloc.dart
+  - Pass showMeGenders to repository in _onDetailsSubmitted handler
+
+- lib/features/profile/data/repositories/profile_repository.dart
+  - Added `showMeGenders` parameter to saveProfileDetails interface
+
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added `showMeGenders` parameter to saveProfileDetails
+  - Save showMeGenders to profile.preferences.showMeGenders
+
+- lib/features/profile/data/repositories/impl/stub_profile_repository.dart
+  - Added `showMeGenders` parameter to saveProfileDetails
+  - Update preferences when saving
+
+- lib/features/profile/data/repositories/impl/http_profile_repository.dart
+  - Added `showMeGenders` parameter to saveProfileDetails
+
+Files Deleted:
+- None
+
+Why / Notes:
+- User requested to add "I am looking for" field to control who appears in deck
+- Default logic ensures hetero-normative defaults (Male→Women, Female→Men) but users can change
+- Data is saved to profile.preferences.showMeGenders which is used by discovery algorithm
+
+Risks & Mitigations:
+- Risk: None - feature addition with clear defaults
+- The showMeGenders field is already used by the discovery system
+
+Verification Steps:
+- `flutter analyze lib/features/profile lib/shared/utils/profile_field_options.dart`
+- Manual: Open Profile Setup screen → verify "I Am Looking For" section appears
+- Manual: Open Profile Edit screen → verify "My Gender" and "I Am Looking For" fields
+- Manual: Change gender → verify default "looking for" is set appropriately
+- Manual: Save profile → verify showMeGenders is saved to Firebase
+
+Follow-ups / TODO:
+- None
 
 ---

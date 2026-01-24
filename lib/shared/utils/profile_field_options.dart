@@ -300,6 +300,16 @@ class ProfileFieldOptions {
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // LOOKING FOR OPTIONS (Who to show in deck)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static const List<({String label, String value, String emoji})> lookingForOptions = [
+    (label: 'Women', value: 'female', emoji: '👩'),
+    (label: 'Men', value: 'male', emoji: '👨'),
+    (label: 'Everyone', value: 'everyone', emoji: '👥'),
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // INTERESTS (Common dating app interests)
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -480,6 +490,40 @@ class ProfileFieldOptions {
     if (value == null) return null;
     final match = sexualOrientationOptions.where((e) => e.value == value).firstOrNull;
     return match?.label;
+  }
+
+  /// Get display label for a "looking for" value
+  static String? getLookingForLabel(String? value) {
+    if (value == null) return null;
+    final match = lookingForOptions.where((e) => e.value == value).firstOrNull;
+    return match != null ? '${match.emoji} ${match.label}' : null;
+  }
+
+  /// Get default "looking for" value based on gender
+  /// Male users default to looking for Female, Female users default to looking for Male
+  static String getDefaultLookingFor(String? gender) {
+    if (gender == 'male') return 'female';
+    if (gender == 'female') return 'male';
+    return 'everyone'; // Default for all other genders
+  }
+
+  /// Convert "looking for" value to showMeGenders list
+  static List<String> lookingForToShowMeGenders(String lookingFor) {
+    if (lookingFor == 'everyone') {
+      return ['male', 'female', 'non_binary', 'trans_woman', 'trans_man', 'genderqueer', 'genderfluid', 'agender', 'two_spirit'];
+    }
+    return [lookingFor];
+  }
+
+  /// Convert showMeGenders list to "looking for" value
+  static String showMeGendersToLookingFor(List<String> showMeGenders) {
+    if (showMeGenders.isEmpty) return 'everyone';
+    if (showMeGenders.length == 1) {
+      if (showMeGenders.contains('male')) return 'male';
+      if (showMeGenders.contains('female')) return 'female';
+    }
+    // If multiple genders selected, treat as everyone
+    return 'everyone';
   }
 
   /// Convert height in cm to feet and inches string

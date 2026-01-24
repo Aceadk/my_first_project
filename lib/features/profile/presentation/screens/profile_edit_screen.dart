@@ -71,6 +71,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   DateTime? _dateOfBirth;
   String? _gender;
   String? _sexualOrientation;
+  String? _lookingFor; // Who to show in deck (male, female, everyone)
   List<ProfilePrompt> _profilePrompts = [];
 
   Profile _fallbackProfile(ProfileState state) {
@@ -184,6 +185,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       showFirstName: _showFirstName,
       showLastName: _showLastName,
     );
+    // Update preferences with "looking for" selection
+    final updatedPreferences = base.preferences.copyWith(
+      showMeGenders: _lookingFor != null
+          ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
+          : base.preferences.showMeGenders,
+    );
     final updated = base.copyWith(
       name: newFirstName,
       lastName: newLastName.isEmpty ? null : newLastName,
@@ -222,6 +229,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       gender: _gender,
       sexualOrientation: _sexualOrientation,
       privacySettings: updatedPrivacy,
+      preferences: updatedPreferences,
       // Location fields
       country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : base.country,
       city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : base.city,
@@ -800,13 +808,32 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     const options = ProfileFieldOptions.genderOptions;
     final result = await ProfileSingleSelectSheet.show<String>(
       context: context,
-      title: 'Gender',
+      title: 'My Gender',
       options: options.map((e) => e.value).toList(),
       selectedValue: _gender,
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
     );
     if (result != null) {
-      setState(() => _gender = result);
+      setState(() {
+        _gender = result;
+        // Auto-set default "looking for" based on gender if not already set
+        _lookingFor ??= ProfileFieldOptions.getDefaultLookingFor(result);
+      });
+    }
+  }
+
+  Future<void> _showLookingForPicker(BuildContext context) async {
+    const options = ProfileFieldOptions.lookingForOptions;
+    final result = await ProfileSingleSelectSheet.show<String>(
+      context: context,
+      title: 'I Am Looking For',
+      options: options.map((e) => e.value).toList(),
+      selectedValue: _lookingFor,
+      labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
+      emojiBuilder: (v) => options.firstWhere((e) => e.value == v).emoji,
+    );
+    if (result != null) {
+      setState(() => _lookingFor = result);
     }
   }
 
@@ -895,6 +922,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _profilePrompts = List.of(profile.profilePrompts);
           _showFirstName = profile.privacySettings.showFirstName;
           _showLastName = profile.privacySettings.showLastName;
+          // Load "looking for" preference from showMeGenders
+          _lookingFor = ProfileFieldOptions.showMeGendersToLookingFor(
+            profile.preferences.showMeGenders,
+          );
         }
 
         final saving = state.isSaving || _uploading;
@@ -924,6 +955,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       percent: percent,
                       score: summary.score,
                       missing: missing,
+                      meetsRequiredFields: summary.meetsRequiredFields,
+                      username: state.user?.username,
                     ),
                     DsGap.xl,
 
@@ -957,6 +990,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       subtitle: 'Help others get to know you',
                     ),
                     DsGap.md,
+                    // Username display (read-only, managed in settings)
+                    _UsernameDisplay(
+                      username: state.user?.username,
+                    ),
+                    DsGap.md,
                     _StyledTextField(
                       controller: _firstNameController,
                       label: 'First Name',
@@ -974,17 +1012,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       hint: 'Enter your last name (optional)',
                       icon: Icons.person_outline,
                       enabled: profile?.canChangeName ?? true,
-                    ),
-                    DsGap.md,
-                    _NameVisibilityCard(
-                      showFirstName: _showFirstName,
-                      showLastName: _showLastName,
-                      onFirstNameChanged: (value) {
-                        setState(() => _showFirstName = value);
-                      },
-                      onLastNameChanged: (value) {
-                        setState(() => _showLastName = value);
-                      },
                     ),
                     DsGap.md,
                     _StyledTextField(
@@ -1279,7 +1306,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       icon: Icons.person_pin_outlined,
                       children: [
                         ProfileFieldTile(
-                          label: 'Gender',
+                          label: 'My Gender',
                           value: ProfileFieldOptions.getGenderLabel(_gender),
                           leadingIcon: Icons.wc,
                           onTap: () => _showGenderPicker(context),
@@ -1289,6 +1316,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           value: ProfileFieldOptions.getSexualOrientationLabel(_sexualOrientation),
                           leadingIcon: Icons.favorite_border,
                           onTap: () => _showOrientationPicker(context),
+                        ),
+                        ProfileFieldTile(
+                          label: 'I Am Looking For',
+                          value: ProfileFieldOptions.getLookingForLabel(_lookingFor),
+                          leadingIcon: Icons.search_rounded,
+                          onTap: () => _showLookingForPicker(context),
                           showDivider: false,
                         ),
                       ],
@@ -1318,22 +1351,53 @@ class _ProgressCard extends StatelessWidget {
     required this.percent,
     required this.score,
     required this.missing,
+    required this.meetsRequiredFields,
+    this.username,
   });
 
   final int percent;
   final double score;
   final List<String> missing;
+  final bool meetsRequiredFields;
+  final String? username;
 
   @override
   Widget build(BuildContext context) {
-    final isComplete = missing.isEmpty;
-    final progressColor = isComplete ? DsColors.success : DsColors.primary;
+    final isFullyComplete = missing.isEmpty;
+    final isEligibleToSwipe = meetsRequiredFields;
+
+    // Determine state and colors
+    Color progressColor;
+    IconData icon;
+    String title;
+    String subtitle;
+
+    if (isFullyComplete) {
+      // 100% complete
+      progressColor = DsColors.success;
+      icon = Icons.check_circle;
+      final displayName = (username != null && username!.isNotEmpty) ? '@$username' : 'You';
+      title = 'Profile Complete!';
+      subtitle = 'Your profile is all set up, $displayName!';
+    } else if (isEligibleToSwipe) {
+      // Has required fields but not 100%
+      progressColor = DsColors.success;
+      icon = Icons.check_circle_outline;
+      title = 'Eligible to Start Swiping!';
+      subtitle = 'Complete all fields to get more matches and build trust.';
+    } else {
+      // Missing required fields
+      progressColor = DsColors.primary;
+      icon = Icons.trending_up;
+      title = 'Almost There!';
+      subtitle = 'Complete the required fields to start swiping.';
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isComplete
+          colors: isEligibleToSwipe || isFullyComplete
               ? [DsColors.success.withAlpha(30), DsColors.success.withAlpha(10)]
               : [DsColors.primary.withAlpha(30), DsColors.primary.withAlpha(10)],
           begin: Alignment.topLeft,
@@ -1357,7 +1421,7 @@ class _ProgressCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isComplete ? Icons.check_circle : Icons.trending_up,
+                  icon,
                   color: progressColor,
                   size: 28,
                 ),
@@ -1368,7 +1432,7 @@ class _ProgressCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isComplete ? 'Profile Complete!' : 'Almost There!',
+                      title,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1376,9 +1440,7 @@ class _ProgressCard extends StatelessWidget {
                     ),
                     DsGap.xs,
                     Text(
-                      isComplete
-                          ? 'You\'re ready to start matching'
-                          : 'Complete your profile to unlock swiping',
+                      subtitle,
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1417,7 +1479,35 @@ class _ProgressCard extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation(progressColor),
             ),
           ),
-          if (!isComplete) ...[
+          // Show recommendation for eligible users who haven't completed all fields
+          if (isEligibleToSwipe && !isFullyComplete) ...[
+            DsGap.lg,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: DsColors.info.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: DsColors.info.withAlpha(50)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.tips_and_updates_rounded, color: DsColors.info, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'We recommend completing all fields to get more matches and build trust with other users.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: DsColors.info,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Show missing fields for non-eligible users
+          if (!isEligibleToSwipe && missing.isNotEmpty) ...[
             DsGap.lg,
             Text(
               'Still needed:',
@@ -1529,83 +1619,60 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _NameVisibilityCard extends StatelessWidget {
-  const _NameVisibilityCard({
-    required this.showFirstName,
-    required this.showLastName,
-    required this.onFirstNameChanged,
-    required this.onLastNameChanged,
+class _UsernameDisplay extends StatelessWidget {
+  const _UsernameDisplay({
+    required this.username,
   });
 
-  final bool showFirstName;
-  final bool showLastName;
-  final ValueChanged<bool> onFirstNameChanged;
-  final ValueChanged<bool> onLastNameChanged;
+  final String? username;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
-    final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final hasUsername = username != null && username!.isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+          color: hasUsername ? DsColors.primary.withAlpha(100) : (isDark ? DsColors.borderDark : DsColors.borderLight),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Name Visibility',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: textPrimary,
-                ),
+          Icon(
+            Icons.alternate_email_rounded,
+            color: hasUsername ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+            size: 22,
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Control what name details others can see.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: textMuted,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Username',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    fontSize: 11,
+                  ),
                 ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Show first name',
+                Text(
+                  hasUsername ? '@$username' : 'Not set',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: textPrimary,
-                      ),
+                    color: hasUsername ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+                    fontWeight: hasUsername ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
-              ),
-              Switch(
-                value: showFirstName,
-                onChanged: onFirstNameChanged,
-              ),
-            ],
+              ],
+            ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Show last name',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: textPrimary,
-                      ),
-                ),
-              ),
-              Switch(
-                value: showLastName,
-                onChanged: onLastNameChanged,
-              ),
-            ],
+          Icon(
+            Icons.lock_outline,
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            size: 18,
           ),
         ],
       ),

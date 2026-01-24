@@ -1109,7 +1109,7 @@ class FirebaseAuthRepository implements AuthRepository {
         minAge: 18,
         maxAge: 50,
         maxDistanceKm: 100,
-        showMeGenders: ['All'],
+        showMeGenders: ['male', 'female'], // Default to show all binary genders
         showMyDistance: true,
         showMyAge: true,
         hideFromDiscovery: false,
@@ -1119,11 +1119,18 @@ class FirebaseAuthRepository implements AuthRepository {
       );
     }
 
+    // Handle legacy 'All' value by converting to proper defaults
+    List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
+    if (showMeGenders.isEmpty ||
+        showMeGenders.any((g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+      showMeGenders = ['male', 'female'];
+    }
+
     return DiscoveryPreferences(
       minAge: data['minAge'] ?? 18,
       maxAge: data['maxAge'] ?? 50,
       maxDistanceKm: (data['maxDistanceKm'] ?? 100).toDouble(),
-      showMeGenders: List<String>.from(data['showMeGenders'] ?? ['All']),
+      showMeGenders: showMeGenders,
       showMyDistance: data['showMyDistance'] ?? true,
       showMyAge: data['showMyAge'] ?? true,
       hideFromDiscovery: data['hideFromDiscovery'] ?? false,

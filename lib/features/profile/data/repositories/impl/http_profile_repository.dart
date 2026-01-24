@@ -105,6 +105,7 @@ class HttpProfileRepository implements ProfileRepository {
     String? city,
     String? country,
     ProfileFavourites? favourites,
+    List<String>? showMeGenders,
   }) async {
     final request = UpdateProfileRequestDto(
       bio: bio,

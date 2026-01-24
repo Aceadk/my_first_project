@@ -591,7 +591,7 @@ class StubAuthRepository implements AuthRepository {
           minAge: p['preferences']?['minAge'] ?? 18,
           maxAge: p['preferences']?['maxAge'] ?? 50,
           maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
-          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['All']),
+          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['male', 'female']),
           showMyDistance: p['preferences']?['showMyDistance'] ?? true,
           showMyAge: p['preferences']?['showMyAge'] ?? true,
           hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,

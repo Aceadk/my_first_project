@@ -57,6 +57,7 @@ class ProfileDetailsSubmitted extends ProfileEvent {
   final String? city;
   final String? country;
   final ProfileFavourites? favourites;
+  final List<String>? showMeGenders; // Who to show in deck
 
   ProfileDetailsSubmitted({
     required this.bio,
@@ -69,11 +70,12 @@ class ProfileDetailsSubmitted extends ProfileEvent {
     this.city,
     this.country,
     this.favourites,
+    this.showMeGenders,
   });
 
   @override
   List<Object?> get props =>
-      [bio, photoUrls, videoUrls, jobTitle, company, school, interests, city, country, favourites];
+      [bio, photoUrls, videoUrls, jobTitle, company, school, interests, city, country, favourites, showMeGenders];
 }
 
 class ProfileIdDocumentUploaded extends ProfileEvent {}

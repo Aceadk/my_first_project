@@ -15,6 +15,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/features/discovery/data/services/passport_locations_service.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
+import 'package:crushhour/shared/utils/profile_field_options.dart';
 import '../widgets/profile_media_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -52,6 +53,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? _favouriteSinger;
   String? _favouriteMovie;
   String? _favouriteHobby;
+
+  // Preferences
+  String? _lookingFor; // Who to show in deck (male, female, everyone)
+  bool _lookingForInitialized = false;
 
   @override
   void initState() {
@@ -290,6 +295,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           movie: _favouriteMovie,
           hobby: _favouriteHobby,
         ),
+        showMeGenders: _lookingFor != null
+            ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
+            : null,
       ),
     );
 
@@ -423,6 +431,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                   maxLines: 4,
                                   maxLength: 500,
                                 ),
+                                DsGap.xl,
+                                // Looking For Section
+                                _buildSectionHeader(context, isDark, 'I Am Looking For', 'Who would you like to see?', Icons.search_rounded),
+                                DsGap.md,
+                                _buildLookingForPicker(context, isDark, state),
                                 DsGap.xl,
                                 // Location Section
                                 _buildSectionHeader(context, isDark, 'Location', 'Where are you based?', Icons.location_on_rounded),
@@ -712,6 +725,75 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLookingForPicker(BuildContext context, bool isDark, ProfileState state) {
+    // Initialize looking for based on gender if not already set
+    if (!_lookingForInitialized) {
+      final profile = state.user?.profile;
+      final gender = profile?.gender;
+      // Check if there's existing preference
+      final existingPref = profile?.preferences.showMeGenders;
+      if (existingPref != null && existingPref.isNotEmpty) {
+        _lookingFor = ProfileFieldOptions.showMeGendersToLookingFor(existingPref);
+      } else {
+        // Set default based on gender
+        _lookingFor = ProfileFieldOptions.getDefaultLookingFor(gender);
+      }
+      _lookingForInitialized = true;
+    }
+
+    const options = ProfileFieldOptions.lookingForOptions;
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: options.map((option) {
+        final isSelected = _lookingFor == option.value;
+        return GestureDetector(
+          onTap: () => setState(() => _lookingFor = option.value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? DsColors.primary.withValues(alpha: 0.15)
+                  : (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
+                    ? DsColors.primary
+                    : (isDark ? DsColors.borderDark : DsColors.borderLight),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  option.emoji,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  option.label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isSelected
+                        ? DsColors.primary
+                        : (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: DsColors.primary, size: 18),
+                ],
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -1273,8 +1355,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ? 'Start Matching'
         : 'Start Matching ($percentDisplay% complete)';
 
-    return Container(
-      padding: DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
+    // Detect if keyboard is open
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: keyboardVisible
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+          : DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -1285,7 +1373,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!isFullyComplete)
+          // Hide message when keyboard is visible
+          if (!isFullyComplete && !keyboardVisible)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(

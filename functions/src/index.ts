@@ -2276,6 +2276,8 @@ export const changePassword = callable<ChangePasswordRequest>(
 );
 
 type ProfileData = {
+  name?: string;
+  lastName?: string;
   bio?: unknown;
   photoUrls?: unknown;
   prompts?: unknown;
@@ -3150,7 +3152,15 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       .collection("users")
       .limit(DISCOVERY_PAGE_SIZE);
 
-    if (showMeGenders.length > 0 && showMeGenders.length <= 10) {
+    // Handle showMeGenders filter - skip filter for 'All', 'everyone', or empty
+    // This allows users to see all genders when they haven't set a preference
+    const skipGenderFilter =
+      showMeGenders.length === 0 ||
+      showMeGenders.some((g) =>
+        ["all", "everyone", "any"].includes(g.toLowerCase())
+      );
+
+    if (!skipGenderFilter && showMeGenders.length <= 10) {
       query = query.where("profile.gender", "in", showMeGenders);
     }
     if (myCountry) {
@@ -3321,7 +3331,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     const matchRef = db.collection("matches").doc();
     await matchRef.set({
       userIds: [uid, targetUserId],
-      status: "mutual",
+      status: "active", // Must be 'active' to match Firestore security rules
       preMatchRequests: {
         [uid]: 0,
         [targetUserId]: 0,
@@ -3348,7 +3358,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
     const matchNotification = {
       matchId: matchRef.id,
       createdAt: Date.now(),
-      status: "mutual",
+      status: "active",
     };
 
     // Notify target user (they just got matched!)

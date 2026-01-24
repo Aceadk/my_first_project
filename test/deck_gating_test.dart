@@ -297,6 +297,7 @@ class _StubProfileRepository implements ProfileRepository {
     String? city,
     String? country,
     ProfileFavourites? favourites,
+    List<String>? showMeGenders,
   }) async =>
       user;
 

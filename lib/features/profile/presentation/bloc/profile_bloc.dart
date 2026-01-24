@@ -236,6 +236,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         city: event.city,
         country: event.country,
         favourites: event.favourites,
+        showMeGenders: event.showMeGenders,
       ),
       logLabel: 'ProfileRepository.saveProfileDetails',
       fallbackError: ErrorMessages.saveProfileFailed,

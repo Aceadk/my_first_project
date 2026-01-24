@@ -29,6 +29,7 @@ abstract class ProfileRepository {
     String? city,
     String? country,
     ProfileFavourites? favourites,
+    List<String>? showMeGenders,
   });
 
   Future<void> uploadIdDocument(/* e.g. File or bytes type */);

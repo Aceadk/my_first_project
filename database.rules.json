@@ -97,6 +97,27 @@
     },
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // USER-SPECIFIC DATA (newMatches, notifications, etc.)
+    // - Used for real-time match notifications
+    // - Cloud Functions write when match is created (via Admin SDK)
+    // - Client reads to display instant match notifications
+    // - Client deletes after reading to prevent re-triggering
+    // ═══════════════════════════════════════════════════════════════════════════
+    "users": {
+      "$uid": {
+        // New match notifications - written by Cloud Functions, read/delete by client
+        "newMatches": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid && !newData.exists()",
+          "$matchId": {
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": "auth != null && auth.uid == $uid && !newData.exists()"
+          }
+        }
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // MESSAGE DELETION QUEUE (Server-only)
     // - Tracks scheduled message deletions based on user retention settings
     // - Managed by Cloud Functions only

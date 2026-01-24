@@ -116,7 +116,7 @@ class StubProfileRepository implements ProfileRepository {
         minAge: 18,
         maxAge: 50,
         maxDistanceKm: 100,
-        showMeGenders: ['All'],
+        showMeGenders: ['male', 'female'], // Default to show all binary genders
         showMyDistance: true,
         showMyAge: true,
         hideFromDiscovery: false,
@@ -167,6 +167,7 @@ class StubProfileRepository implements ProfileRepository {
     String? city,
     String? country,
     ProfileFavourites? favourites,
+    List<String>? showMeGenders,
   }) async {
     await Future.delayed(const Duration(milliseconds: 50));
 
@@ -195,6 +196,11 @@ class StubProfileRepository implements ProfileRepository {
         : null;
     final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
 
+    // Update preferences with showMeGenders if provided
+    final updatedPreferences = showMeGenders != null
+        ? existingProfile.preferences.copyWith(showMeGenders: showMeGenders)
+        : existingProfile.preferences;
+
     final newProfile = existingProfile.copyWith(
       bio: sanitizedBio,
       photoUrls: sanitizedPhotoUrls,
@@ -203,6 +209,7 @@ class StubProfileRepository implements ProfileRepository {
       company: sanitizedCompany,
       school: sanitizedSchool,
       interests: sanitizedInterests,
+      preferences: updatedPreferences,
     );
 
     final updatedUser = currentUser.copyWith(profile: newProfile);
@@ -378,7 +385,7 @@ class StubProfileRepository implements ProfileRepository {
           minAge: p['preferences']?['minAge'] ?? 18,
           maxAge: p['preferences']?['maxAge'] ?? 50,
           maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
-          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['All']),
+          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['male', 'female']),
           showMyDistance: p['preferences']?['showMyDistance'] ?? true,
           showMyAge: p['preferences']?['showMyAge'] ?? true,
           hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,
