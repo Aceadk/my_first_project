@@ -3126,13 +3126,15 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const me = await getUser(uid);
     const profile = (me.profile as ProfileData | null) ?? null;
-    ensureProfileQuality(profile, "browsing");
+    // NOTE: Don't enforce profile quality for browsing - let users discover others
+    // even if their own profile is incomplete. This encourages engagement.
+    // ensureProfileQuality(profile, "browsing");
 
     const prefs = (profile?.preferences as Record<string, unknown> | undefined) ?? {};
     const maxDistanceKm =
       toNumber(prefs.maxDistanceKm) !== undefined
         ? (toNumber(prefs.maxDistanceKm) as number)
-        : 50;
+        : 100; // Increased default from 50 to 100km
     const minAge = toNumber(prefs.minAge) ?? 18;
     const maxAge = toNumber(prefs.maxAge) ?? 100;
     const showMeGenders = toStringArray(prefs.showMeGenders);
@@ -3145,9 +3147,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const blockedIds = await blockedUserIds(uid);
 
-    // Build query - don't filter by hideFromDiscovery/incognitoMode in query
-    // because new users may not have these fields set yet.
-    // We'll filter them out in the candidate processing loop instead.
+    // Build query - don't filter by country or other strict criteria
+    // to ensure all users can see each other during early app stages
     let query: FirebaseFirestore.Query = db
       .collection("users")
       .limit(DISCOVERY_PAGE_SIZE);
@@ -3163,9 +3164,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     if (!skipGenderFilter && showMeGenders.length <= 10) {
       query = query.where("profile.gender", "in", showMeGenders);
     }
-    if (myCountry) {
-      query = query.where("profile.country", "==", myCountry);
-    }
+    // REMOVED: Country filter was too strict and prevented discovery
+    // Users from different countries can still be discovered, just with lower priority
 
     let snap: FirebaseFirestore.QuerySnapshot;
     try {
@@ -3198,10 +3198,12 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       if (prefs?.hideFromDiscovery === true) return;
       if (prefs?.incognitoMode === true) return;
 
-      // Filter out incomplete profiles (must have at least 1 photo and a name)
+      // Get profile completeness info for scoring (but don't exclude incomplete profiles)
       const photos = toStringArray(candidateProfile.photoUrls);
       const name = typeof candidateProfile.name === "string" ? candidateProfile.name : "";
-      if (photos.length < 1 || !name) return;
+      // NOTE: Don't filter out incomplete profiles - let all users appear in discovery
+      // Users without photos will just have lower priority in the sorting
+      // This helps new users see that there are people on the app
 
       const age = toNumber((candidateProfile as any).age);
       if (age && (age < minAge || age > maxAge)) return;
