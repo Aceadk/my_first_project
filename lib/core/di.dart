@@ -13,7 +13,7 @@ import 'package:crushhour/features/feature_flags/data/repositories/feature_flag_
 import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/impl/firebase_profile_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/firebase_subscription_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/firebase_discovery_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/firebase_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart';
@@ -138,11 +138,11 @@ class CrushDI {
 
       case BackendMode.firebase:
         // Firebase implementations for production
-        // Using HybridDiscoveryRepository to show dummy accounts alongside real users
+        // Using FirebaseDiscoveryRepository to show only real users
         authRepo = FirebaseAuthRepository();
         profileRepo = FirebaseProfileRepository();
         subRepo = FirebaseSubscriptionRepository();
-        discoveryRepo = HybridDiscoveryRepository();
+        discoveryRepo = FirebaseDiscoveryRepository();
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
         featureFlagRepo = FirebaseFeatureFlagRepository();
