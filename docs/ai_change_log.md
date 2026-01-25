@@ -4,6 +4,89 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-24] Task: Fix Critical Match Status Mismatch
+
+Summary:
+- CRITICAL FIX: Matches were not appearing because of status mismatch
+- Cloud Function creates matches with `status: 'active'` (for Firestore security rules)
+- Client code was querying for `status == 'mutual'` - which matched ZERO records
+- Fixed all client queries to use `status == 'active'`
+
+Files Modified:
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+  - Changed 4 occurrences of `.where('status', isEqualTo: 'mutual')` to `'active'`
+  - Lines 410, 429, 439, 448
+
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+  - Changed `.where('status', isEqualTo: 'mutual')` to `'active'` on line 128
+
+Why / Notes:
+- Firestore security rules require `status == 'active'` for match read access
+- Cloud Function correctly sets `status: 'active'` when creating matches
+- Client enum `MatchStatus.mutual` is for internal use only, not for database queries
+- This was causing all match queries to return empty results
+
+Verification:
+- `flutter analyze` - No issues found
+- Test: Create match → Should appear in matches list
+- Test: Open chat with match → Should load correctly
+
+---
+
+### [2026-01-24] Task: Dynamic Location Updates & Discovery Enhancements
+
+Summary:
+- Implemented dynamic location updates every time app opens (not just during account creation)
+- Fixed distance display on deck cards - now properly maps distanceKm from Cloud Function
+- Added location permission prompt banner that auto-dismisses after 2 seconds
+- Reviewed discovery restrictions - Cloud Function already has lenient filtering
+
+Files Added:
+- None
+
+Files Modified:
+- lib/app.dart
+  - Added LocationService, ProfileBloc, and ProfileEvent imports
+  - Added _updateUserLocationOnResume() method to update location when app comes to foreground
+  - Location is updated in background when app resumes (non-blocking)
+  - Uses ProfileLocationUpdateRequested event to save new location to backend
+
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+  - Updated _profileFromFirestore() to map distanceKm from Cloud Function response to profile.distance
+  - Added latitude, longitude, distance, and distanceUnit mapping to Profile model
+  - Added isActive field mapping
+
+- lib/features/discovery/presentation/screens/deck_screen.dart
+  - Added LocationService and ProfileEvent imports
+  - Added _showLocationBanner, _locationBannerTimer, _hasCheckedLocation state
+  - Added _checkLocationPermission() to check if user has location enabled
+  - Added _requestLocationPermission() to request and update location
+  - Added location permission banner UI that shows for users without location
+  - Banner auto-dismisses after 2 seconds
+  - Tapping banner requests location permission and updates profile
+
+Why / Notes:
+- User requested that location be updated dynamically every time app opens
+- Previously location was only captured during initial account creation
+- Distance display on deck cards was showing nothing because distanceKm wasn't being mapped
+- Location prompt banner helps users who haven't enabled location
+- Discovery restrictions reviewed - Cloud Function already lenient (includes users without location with score penalty)
+
+Risks & Mitigations:
+- Location update on every app open → Non-blocking, happens in background with 10s timeout
+- Location permission denied → Banner shows once and disappears, doesn't block user
+- Already granted location → Banner doesn't show
+
+Verification:
+- `flutter analyze` - No issues found
+- Test: Open app → Check location updates → Check distance shows on cards
+- Test: Deny location → Banner appears for 2 seconds → Disappears
+
+Follow-ups / TODO:
+- None - feature complete
+
+---
+
 ### [2026-01-24] Task: Fix Discovery - New Accounts Not Appearing in Deck
 
 Summary:

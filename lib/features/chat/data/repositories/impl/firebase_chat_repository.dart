@@ -407,7 +407,7 @@ class FirebaseChatRepository implements ChatRepository {
     final matchesQuery = await _firestore
         .collection('matches')
         .where('userIds', arrayContains: userId)
-        .where('status', isEqualTo: 'mutual')
+        .where('status', isEqualTo: 'active')
         .orderBy('matchedAt', descending: true)
         .get();
 
@@ -426,7 +426,7 @@ class FirebaseChatRepository implements ChatRepository {
     final countQuery = await _firestore
         .collection('matches')
         .where('userIds', arrayContains: userId)
-        .where('status', isEqualTo: 'mutual')
+        .where('status', isEqualTo: 'active')
         .count()
         .get();
 
@@ -436,7 +436,7 @@ class FirebaseChatRepository implements ChatRepository {
     var query = _firestore
         .collection('matches')
         .where('userIds', arrayContains: userId)
-        .where('status', isEqualTo: 'mutual')
+        .where('status', isEqualTo: 'active')
         .orderBy('matchedAt', descending: true)
         .limit(limit);
 
@@ -445,7 +445,7 @@ class FirebaseChatRepository implements ChatRepository {
       final skipQuery = await _firestore
           .collection('matches')
           .where('userIds', arrayContains: userId)
-          .where('status', isEqualTo: 'mutual')
+          .where('status', isEqualTo: 'active')
           .orderBy('matchedAt', descending: true)
           .limit(offset)
           .get();

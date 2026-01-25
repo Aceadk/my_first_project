@@ -125,7 +125,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     final matchesQuery = await _firestore
         .collection('matches')
         .where('userIds', arrayContains: userId)
-        .where('status', isEqualTo: 'mutual')
+        .where('status', isEqualTo: 'active')
         .orderBy('matchedAt', descending: true)
         .limit(100)
         .get();
@@ -195,6 +195,9 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
   // ═══════════════════════════════════════════════════════════════════════════
 
   Profile _profileFromFirestore(Map<String, dynamic> data) {
+    // Parse distance from Cloud Function response (distanceKm field)
+    final distanceKm = data['distanceKm'] as num?;
+
     return Profile(
       id: data['id'] ?? data['userId'] ?? '',
       username: data['username'], // Username for deck display
@@ -210,7 +213,12 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       interests: List<String>.from(data['interests'] ?? []),
       country: data['country'] ?? '',
       city: data['city'] ?? '',
+      latitude: (data['latitude'] as num?)?.toDouble(),
+      longitude: (data['longitude'] as num?)?.toDouble(),
+      distance: distanceKm?.toDouble(), // Distance from Cloud Function
+      distanceUnit: 'km',
       isVerified: data['isVerified'] ?? false,
+      isActive: data['isActive'] ?? false,
       heightCm: data['heightCm'],
       relationshipGoals: data['relationshipGoals'],
       languages: List<String>.from(data['languages'] ?? []),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -9,10 +10,13 @@ import 'core/router.dart';
 import 'core/di.dart';
 import 'core/deep_link_bootstrap.dart';
 import 'core/services/app_state_preserver.dart';
+import 'core/services/location_service.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
@@ -102,6 +106,53 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
       // App coming back to foreground - clear the preserved route
       // (we've already restored, no need to keep it)
       AppStatePreserver.instance.clearPreservedRoute();
+
+      // Update user location for better discovery
+      _updateUserLocationOnResume();
+    }
+  }
+
+  /// Update user's location when app comes to foreground.
+  /// This ensures discovery always uses the current location.
+  Future<void> _updateUserLocationOnResume() async {
+    // Only update if user is authenticated
+    if (_currentUserId == null) return;
+
+    try {
+      final locationService = LocationService.instance;
+
+      // Check if we have location permission
+      final hasPermission = await locationService.isLocationAvailable();
+      if (!hasPermission) {
+        developer.log('App: Location not available, skipping update');
+        return;
+      }
+
+      // Get current location (non-blocking, with short timeout)
+      final location = await locationService.getCurrentLocation(
+        includeGeocoding: true,
+        timeout: const Duration(seconds: 10),
+      );
+
+      if (location == null) {
+        developer.log('App: Could not get location');
+        return;
+      }
+
+      developer.log(
+          'App: Updating location to ${location.latitude}, ${location.longitude}');
+
+      // Update profile with new location
+      if (mounted) {
+        context.read<ProfileBloc>().add(ProfileLocationUpdateRequested(
+              latitude: location.latitude,
+              longitude: location.longitude,
+              city: location.city,
+              country: location.country,
+            ));
+      }
+    } catch (e) {
+      developer.log('App: Error updating location on resume: $e');
     }
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/services/location_service.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
@@ -62,8 +65,71 @@ class _DeckScreenState extends State<DeckScreen> {
   String? _lastBoostUserId;
   int _lastPreloadedIndex = -1; // Track last preloaded index to avoid redundant preloads
 
+  // Location prompt banner state
+  bool _showLocationBanner = false;
+  Timer? _locationBannerTimer;
+  bool _hasCheckedLocation = false;
+
   ProfileValidationService get _validationService =>
       widget.validationService ?? ProfileValidationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLocationPermission();
+  }
+
+  @override
+  void dispose() {
+    _locationBannerTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Check if user has location permission and show banner if not.
+  Future<void> _checkLocationPermission() async {
+    if (_hasCheckedLocation) return;
+    _hasCheckedLocation = true;
+
+    final locationService = LocationService.instance;
+    final hasLocation = await locationService.isLocationAvailable();
+
+    if (!hasLocation && mounted) {
+      setState(() => _showLocationBanner = true);
+
+      // Auto-dismiss after 2 seconds
+      _locationBannerTimer?.cancel();
+      _locationBannerTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() => _showLocationBanner = false);
+        }
+      });
+    }
+  }
+
+  /// Request location permission when user taps the banner.
+  Future<void> _requestLocationPermission() async {
+    final locationService = LocationService.instance;
+    final granted = await locationService.requestPermission();
+
+    if (granted && mounted) {
+      setState(() => _showLocationBanner = false);
+
+      // Update user's location
+      final location = await locationService.getCurrentLocation(
+        includeGeocoding: true,
+        timeout: const Duration(seconds: 15),
+      );
+
+      if (location != null && mounted) {
+        context.read<ProfileBloc>().add(ProfileLocationUpdateRequested(
+              latitude: location.latitude,
+              longitude: location.longitude,
+              city: location.city,
+              country: location.country,
+            ));
+      }
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -464,6 +530,76 @@ class _DeckScreenState extends State<DeckScreen> {
                                 ),
                               ),
                           ],
+                        ),
+                      ),
+
+                    // Location permission banner (auto-dismisses after 2 seconds)
+                    if (_showLocationBanner)
+                      Positioned(
+                        top: DsSpacing.md,
+                        left: DsSpacing.md,
+                        right: DsSpacing.md,
+                        child: GestureDetector(
+                          onTap: _requestLocationPermission,
+                          child: AnimatedOpacity(
+                            opacity: _showLocationBanner ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DsSpacing.md,
+                                vertical: DsSpacing.sm,
+                              ),
+                              decoration: BoxDecoration(
+                                color: DsColors.primary.withValues(alpha: 0.9),
+                                borderRadius: BorderRadius.circular(DsRadius.md),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: DsSpacing.sm),
+                                  Expanded(
+                                    child: Text(
+                                      'Enable location for better matches nearby',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: DsSpacing.sm),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: DsSpacing.sm,
+                                      vertical: DsSpacing.xs,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(DsRadius.sm),
+                                    ),
+                                    child: const Text(
+                                      'Enable',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
 

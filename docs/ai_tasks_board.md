@@ -35,6 +35,89 @@ None.
 
 ## Completed Tasks
 
+### Task: Fix Critical Match Status Mismatch
+ID: T-046
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Fix critical bug where matches were not appearing because client queried for wrong status value.
+
+Root Cause:
+- Cloud Function creates matches with `status: 'active'` (required by Firestore rules)
+- Client code was querying for `status == 'mutual'` which matched ZERO records
+- This caused all match queries to return empty, breaking matches and chat
+
+Scope (in/out):
+In:
+- Fix match status queries in firebase_chat_repository.dart
+- Fix match status queries in firebase_discovery_repository.dart
+Out:
+- No changes to Cloud Functions (already correct)
+- No changes to Firestore rules (already correct)
+
+Files changed:
+- lib/features/chat/data/repositories/impl/firebase_chat_repository.dart - 4 query fixes
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart - 1 query fix
+
+Verification:
+Commands: `flutter analyze` - No issues found
+Manual flow:
+1. Swipe right on a user who swiped right on you
+2. Match should appear in matches list
+3. Chat should be accessible
+
+Completed: 2026-01-24
+
+---
+
+### Task: Dynamic Location Updates & Discovery Enhancements
+ID: T-045
+Owner AI: Claude
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Implement dynamic location updates on every app open, fix distance display on deck cards, and add location permission prompt banner.
+
+Scope (in/out):
+In:
+- Update user location every time app opens/resumes
+- Map distanceKm from Cloud Function to Profile model for display
+- Add location permission banner for users without location
+- Review and verify discovery restrictions are lenient
+Out:
+- Background location tracking
+- Push notifications based on location
+
+Files changed:
+- lib/app.dart - Added location update on app resume
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart - Map distanceKm to Profile
+- lib/features/discovery/presentation/screens/deck_screen.dart - Location permission banner
+
+Risks:
+- Location update on every resume could be slow - mitigated by non-blocking async call with 10s timeout
+- Banner could be annoying - mitigated by auto-dismiss after 2 seconds
+
+Acceptance criteria:
+- Location updates when app comes to foreground
+- Distance displays correctly on deck cards (e.g., "5 KM")
+- Location banner shows for users without permission, auto-dismisses
+- Discovery includes users with and without location
+
+Verification:
+Commands: `flutter analyze` - No issues found
+Manual flow:
+1. Open app, check location updated
+2. View deck, verify distance shows on cards
+3. Deny location, verify banner shows and dismisses
+4. Grant location, verify banner doesn't show
+
+Completed: 2026-01-24
+
+---
+
 ### Task: Fix Discovery - New Accounts Not Appearing in Deck
 ID: T-044
 Owner AI: Claude
