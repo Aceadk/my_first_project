@@ -541,7 +541,8 @@ class ApiClient {
       final json = jsonDecode(response.body);
       message = json['error'] as String? ?? json['message'] as String?;
       errorCode = json['error_code'] as String?;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('ApiClient: Error parsing error response body: $e');
       message = response.body;
     }
 

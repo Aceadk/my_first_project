@@ -160,7 +160,8 @@ class InputSanitizer {
       }
 
       return sanitized;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('InputSanitizer: URL sanitization error: $e');
       return null;
     }
   }

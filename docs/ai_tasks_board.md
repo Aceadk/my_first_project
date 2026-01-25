@@ -35,6 +35,143 @@ None.
 
 ## Completed Tasks
 
+### Task: Refactor Oversized Screen Files
+ID: T-051
+Owner AI: Claude (Opus 4.5)
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Refactor the 5 oversized screen files identified in AUDIT_REPORT.md by extracting reusable widgets.
+
+Scope (in/out):
+In:
+- chat_screen.dart (3,716 lines) - PRIMARY TARGET
+- profile_setup_screen.dart (1,800+ lines reported)
+- deck_screen.dart (1,500+ lines reported)
+- settings_screen.dart (1,200+ lines reported)
+- profile_view_screen.dart (1,100+ lines reported)
+
+Out:
+- Logic refactoring (only widget extraction)
+- Test writing
+
+Files changed:
+- lib/features/chat/presentation/screens/chat_screen.dart (3,716→2,868 lines)
+- lib/features/chat/presentation/widgets/chat_date_separator.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_typing_indicator.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_send_status_bar.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_empty_state.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_reaction_button.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_fade_notification.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_attachment_tile.dart (NEW)
+- lib/features/chat/presentation/widgets/chat_widgets.dart (NEW - barrel file)
+- AUDIT_REPORT.md (updated status)
+- docs/ai_change_log.md
+
+Results:
+- chat_screen.dart: Reduced from 3,716 to 2,868 lines (23% reduction)
+- profile_setup_screen.dart: Actually 1,465 lines (integrated state, no extraction)
+- deck_screen.dart: Actually 1,726 lines (widgets already in separate folder)
+- settings_screen.dart: Actually 837 lines (within limits)
+- profile_view_screen.dart: Actually 817 lines (within limits)
+
+Acceptance criteria:
+- ✅ Extract reusable widgets from oversized screens
+- ✅ No flutter analyze errors
+- ✅ All functionality preserved
+- ✅ Documentation updated
+
+Verification:
+Commands: flutter analyze (0 issues)
+Manual flow: Chat screen renders correctly with extracted widgets
+
+Completed: 2026-01-25
+
+---
+
+### Task: Add Refactoring Roadmap to AUDIT_REPORT.md
+ID: T-050
+Owner AI: Claude (Opus 4.5)
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Document all identified refactoring opportunities and code quality improvements in the AUDIT_REPORT.md with a prioritized action plan.
+
+Scope (in/out):
+In:
+- Oversized screen files analysis
+- Silent catch blocks inventory
+- Deprecated patterns documentation
+- Test coverage gaps
+- Prioritized action plan
+
+Out:
+- Actual refactoring implementation (future tasks)
+- Code changes (documentation only)
+
+Files changed:
+- AUDIT_REPORT.md (added Section 11 "Refactoring Roadmap")
+- docs/ai_change_log.md
+- docs/ai_tasks_board.md
+
+Acceptance criteria:
+- ✅ All identified refactoring tasks documented
+- ✅ Tasks organized by priority (High/Medium/Low)
+- ✅ Action plan with phases included
+- ✅ Priority matrix for decision-making
+
+Verification:
+Commands: N/A (documentation task)
+Manual flow: Review AUDIT_REPORT.md Section 11
+
+Completed: 2026-01-25
+
+---
+
+### Task: Optimize Deck Preloading and Memory Management (R-114)
+ID: T-049
+Owner AI: Claude (Opus 4.5)
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Optimize deck preloading for better UX and memory management, addressing R-114 risk.
+
+Scope (in/out):
+In:
+- Priority-based image preloading
+- Memory pressure handling
+- Smart cache eviction
+- Shimmer loading placeholders
+
+Out:
+- Network connectivity detection (future enhancement)
+- Disk caching (future enhancement)
+
+Files changed:
+- lib/shared/widgets/cached_network_image.dart
+- lib/features/discovery/presentation/widgets/deck_card_stack.dart
+- lib/features/discovery/presentation/screens/deck_screen.dart
+- docs/ai_change_log.md
+- docs/risk_notes.md
+- docs/ai_tasks_board.md
+
+Acceptance criteria:
+- ✅ Priority-based preloading implemented
+- ✅ Memory pressure handling works
+- ✅ Shimmer placeholders shown during load
+- ✅ No analyzer issues
+
+Verification:
+Commands: `flutter analyze` - No issues found
+Manual flow: Swipe through deck, observe smooth transitions and loading states
+
+Completed: 2026-01-25
+
+---
+
 ### Task: Comprehensive Project Audit
 ID: T-047
 Owner AI: Claude (Opus 4.5)

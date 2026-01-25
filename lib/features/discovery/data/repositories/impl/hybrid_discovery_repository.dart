@@ -91,8 +91,8 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     List<Profile> firebaseTopPicks = [];
     try {
       firebaseTopPicks = await _firebaseRepo.fetchTopPicks(userId);
-    } catch (_) {
-      // Ignore Firebase errors
+    } catch (e) {
+      debugPrint('HybridDiscoveryRepository: Firebase fetchTopPicks error (using stub fallback): $e');
     }
     final stubTopPicks = await _stubRepo.fetchTopPicks(userId);
 
@@ -105,8 +105,8 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     List<Profile> firebaseLikes = [];
     try {
       firebaseLikes = await _firebaseRepo.fetchLikesYou(userId);
-    } catch (_) {
-      // Ignore Firebase errors
+    } catch (e) {
+      debugPrint('HybridDiscoveryRepository: Firebase fetchLikesYou error (using stub fallback): $e');
     }
     final stubLikes = await _stubRepo.fetchLikesYou(userId);
 
@@ -119,8 +119,8 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     List<CrushMatch> firebaseMatches = [];
     try {
       firebaseMatches = await _firebaseRepo.fetchMatches(userId);
-    } catch (_) {
-      // Ignore Firebase errors
+    } catch (e) {
+      debugPrint('HybridDiscoveryRepository: Firebase fetchMatches error (using stub fallback): $e');
     }
     final stubMatches = await _stubRepo.fetchMatches(userId);
 

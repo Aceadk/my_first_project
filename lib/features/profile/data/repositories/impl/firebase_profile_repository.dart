@@ -604,7 +604,8 @@ class FirebaseProfileRepository implements ProfileRepository {
         .map((json) {
           try {
             return ProfilePrompt.fromJson(json);
-          } catch (_) {
+          } catch (e) {
+            AppLogger.logError('[FirebaseProfileRepository] Error parsing prompt', e);
             return null;
           }
         })

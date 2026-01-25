@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
@@ -1223,7 +1224,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     await Future.delayed(const Duration(milliseconds: 50));
     try {
       return _mockProfiles.firstWhere((p) => p.id == profileId);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('StubDiscoveryRepository: Profile not found for id $profileId: $e');
       return null;
     }
   }
@@ -1294,7 +1296,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     // Find and return the profile
     try {
       return _mockProfiles.firstWhere((p) => p.id == lastSwipedId);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('StubDiscoveryRepository: Rewound profile not found for id $lastSwipedId: $e');
       return null;
     }
   }

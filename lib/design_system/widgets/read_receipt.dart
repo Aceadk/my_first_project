@@ -53,8 +53,8 @@ class ReadReceipt extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultColor = isDark
-        ? Colors.white.withValues(alpha: 0.5)
-        : Colors.grey.shade500;
+        ? DsColors.textMutedDark
+        : DsColors.textMutedLight;
     final readStatusColor = readColor ?? DsColors.secondary;
     final iconColor = status == MessageStatus.read ? readStatusColor : (color ?? defaultColor);
 
@@ -148,8 +148,8 @@ class ReadReceipt extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.5)
-                  : Colors.grey.shade500,
+                  ? DsColors.textMutedDark
+                  : DsColors.textMutedLight,
             ),
           ),
           const SizedBox(width: 4),
@@ -170,8 +170,8 @@ class ReadReceipt extends StatelessWidget {
               color: status == MessageStatus.read
                   ? readStatusColor
                   : (isDark
-                      ? Colors.white.withValues(alpha: 0.5)
-                      : Colors.grey.shade500),
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight),
             ),
           ),
         ],

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -191,7 +192,7 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: Colors.grey.shade200,
+      color: DsColors.skeletonLight,
       child: const Center(
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
@@ -200,12 +201,13 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
 
   Widget _buildErrorWidget() {
     return Container(
-      color: Colors.grey.shade200,
+      color: DsColors.skeletonLight,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.broken_image_outlined, color: Colors.grey, size: 32),
+            const Icon(Icons.broken_image_outlined,
+                color: DsColors.textMutedLight, size: 32),
             if (widget.onRetry != null) ...[
               const SizedBox(height: 8),
               GestureDetector(
@@ -214,17 +216,21 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
                   _loadImage();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: DsColors.dividerLight,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.refresh, size: 14, color: Colors.grey),
+                      Icon(Icons.refresh,
+                          size: 14, color: DsColors.textMutedLight),
                       SizedBox(width: 4),
-                      Text('Retry', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text('Retry',
+                          style: TextStyle(
+                              fontSize: 12, color: DsColors.textMutedLight)),
                     ],
                   ),
                 ),
@@ -242,20 +248,48 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
   }
 }
 
-/// LRU image cache with memory management.
+/// Preload priority for images.
+enum ImagePreloadPriority {
+  /// Current visible image - highest priority
+  immediate,
+
+  /// Next 1-2 images - high priority
+  high,
+
+  /// Background preview images - low priority
+  low,
+}
+
+/// LRU image cache with memory management and priority-based preloading.
 class NetworkImageCache {
   static final NetworkImageCache instance = NetworkImageCache._();
   NetworkImageCache._();
 
   static const int _maxCacheSize = 50;
   static const int _maxMemoryBytes = 50 * 1024 * 1024; // 50 MB
+  static const int _lowMemoryThreshold =
+      40 * 1024 * 1024; // 40 MB - start being conservative
+  static const int _criticalMemoryThreshold =
+      45 * 1024 * 1024; // 45 MB - aggressive eviction
 
   final LinkedHashMap<String, Uint8List> _cache = LinkedHashMap();
   final Map<String, Completer<Uint8List?>> _pending = {};
+  final Set<String> _priorityUrls = {}; // Track high-priority URLs
   int _currentMemoryBytes = 0;
+  bool _isUnderMemoryPressure = false;
+
+  /// Get current memory usage in bytes.
+  int get currentMemoryBytes => _currentMemoryBytes;
+
+  /// Get current cache entry count.
+  int get cacheSize => _cache.length;
+
+  /// Check if cache is under memory pressure.
+  bool get isUnderMemoryPressure => _isUnderMemoryPressure;
 
   /// Get an image from cache or fetch it.
-  Future<Uint8List?> get(String url) async {
+  Future<Uint8List?> get(String url,
+      {ImagePreloadPriority priority = ImagePreloadPriority.immediate}) async {
     // Check cache first
     if (_cache.containsKey(url)) {
       // Move to end (most recently used)
@@ -269,14 +303,26 @@ class NetworkImageCache {
       return _pending[url]!.future;
     }
 
+    // Under critical memory pressure, skip low priority preloads
+    if (priority == ImagePreloadPriority.low &&
+        _currentMemoryBytes > _criticalMemoryThreshold) {
+      return null;
+    }
+
     // Start fetching
     final completer = Completer<Uint8List?>();
     _pending[url] = completer;
 
+    // Track high priority URLs for smarter eviction
+    if (priority == ImagePreloadPriority.immediate ||
+        priority == ImagePreloadPriority.high) {
+      _priorityUrls.add(url);
+    }
+
     try {
       final bytes = await _fetchImage(url);
       if (bytes != null) {
-        _addToCache(url, bytes);
+        _addToCache(url, bytes, priority: priority);
       }
       completer.complete(bytes);
     } catch (e) {
@@ -304,13 +350,29 @@ class NetworkImageCache {
     }
   }
 
-  void _addToCache(String url, Uint8List bytes) {
-    // Evict old entries if needed
+  void _addToCache(String url, Uint8List bytes,
+      {ImagePreloadPriority priority = ImagePreloadPriority.immediate}) {
+    // Update memory pressure state
+    _isUnderMemoryPressure = _currentMemoryBytes > _lowMemoryThreshold;
+
+    // Evict old entries if needed - prioritize keeping high-priority images
     while (_cache.length >= _maxCacheSize ||
         _currentMemoryBytes + bytes.length > _maxMemoryBytes) {
       if (_cache.isEmpty) break;
-      final oldestKey = _cache.keys.first;
-      final oldestBytes = _cache.remove(oldestKey);
+
+      // Find best candidate for eviction (prefer non-priority URLs)
+      String? keyToEvict;
+      for (final key in _cache.keys) {
+        if (!_priorityUrls.contains(key)) {
+          keyToEvict = key;
+          break;
+        }
+      }
+      // If all are priority, evict oldest anyway
+      keyToEvict ??= _cache.keys.first;
+
+      final oldestBytes = _cache.remove(keyToEvict);
+      _priorityUrls.remove(keyToEvict);
       if (oldestBytes != null) {
         _currentMemoryBytes -= oldestBytes.length;
       }
@@ -320,26 +382,96 @@ class NetworkImageCache {
     _currentMemoryBytes += bytes.length;
   }
 
-  /// Preload images into cache.
-  Future<void> preload(List<String> urls) async {
+  /// Preload images into cache with priority support.
+  /// Images are loaded in order of priority: immediate > high > low.
+  Future<void> preload(
+    List<String> urls, {
+    ImagePreloadPriority priority = ImagePreloadPriority.high,
+  }) async {
+    if (urls.isEmpty) return;
+
+    // Under memory pressure, limit preloading
+    final effectiveUrls = _isUnderMemoryPressure ? urls.take(2).toList() : urls;
+
     await Future.wait(
-      urls.map((url) => get(url)),
+      effectiveUrls.map((url) => get(url, priority: priority)),
       eagerError: false,
     );
+  }
+
+  /// Preload with prioritized ordering - closer cards first.
+  /// [immediateUrls] - Current card (priority: immediate)
+  /// [highUrls] - Next 1-2 cards (priority: high)
+  /// [lowUrls] - Preview cards (priority: low)
+  Future<void> preloadWithPriority({
+    List<String>? immediateUrls,
+    List<String>? highUrls,
+    List<String>? lowUrls,
+  }) async {
+    // Load immediate first
+    if (immediateUrls != null && immediateUrls.isNotEmpty) {
+      await preload(immediateUrls, priority: ImagePreloadPriority.immediate);
+    }
+
+    // Then high priority (don't wait, let them load in parallel)
+    if (highUrls != null && highUrls.isNotEmpty) {
+      preload(highUrls, priority: ImagePreloadPriority.high);
+    }
+
+    // Finally low priority (background, don't wait)
+    if (lowUrls != null && lowUrls.isNotEmpty && !_isUnderMemoryPressure) {
+      preload(lowUrls, priority: ImagePreloadPriority.low);
+    }
+  }
+
+  /// Trim cache to reduce memory usage.
+  /// Call this when app receives memory warning.
+  void trimCache({int targetEntries = 20}) {
+    while (_cache.length > targetEntries) {
+      // Evict non-priority first
+      String? keyToEvict;
+      for (final key in _cache.keys) {
+        if (!_priorityUrls.contains(key)) {
+          keyToEvict = key;
+          break;
+        }
+      }
+      keyToEvict ??= _cache.keys.first;
+
+      final bytes = _cache.remove(keyToEvict);
+      _priorityUrls.remove(keyToEvict);
+      if (bytes != null) {
+        _currentMemoryBytes -= bytes.length;
+      }
+    }
+    _isUnderMemoryPressure = _currentMemoryBytes > _lowMemoryThreshold;
   }
 
   /// Clear the cache.
   void clear() {
     _cache.clear();
+    _priorityUrls.clear();
     _currentMemoryBytes = 0;
+    _isUnderMemoryPressure = false;
   }
 
   /// Evict a specific URL from cache.
   void evict(String url) {
     final bytes = _cache.remove(url);
+    _priorityUrls.remove(url);
     if (bytes != null) {
       _currentMemoryBytes -= bytes.length;
     }
+  }
+
+  /// Mark URLs as high priority (won't be evicted first).
+  void markAsPriority(List<String> urls) {
+    _priorityUrls.addAll(urls);
+  }
+
+  /// Remove priority status from URLs.
+  void removePriority(List<String> urls) {
+    _priorityUrls.removeAll(urls);
   }
 }
 
@@ -362,7 +494,8 @@ class MemoryImage extends ImageProvider<MemoryImage> {
     );
   }
 
-  Future<ui.Codec> _loadAsync(MemoryImage key, ImageDecoderCallback decode) async {
+  Future<ui.Codec> _loadAsync(
+      MemoryImage key, ImageDecoderCallback decode) async {
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
     return decode(buffer);
   }

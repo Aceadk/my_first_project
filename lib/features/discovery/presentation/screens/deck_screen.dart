@@ -55,7 +55,7 @@ class DeckScreen extends StatefulWidget {
   State<DeckScreen> createState() => _DeckScreenState();
 }
 
-class _DeckScreenState extends State<DeckScreen> {
+class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   static const int _previewCount = 4;
   RemoteProfileCompleteness? _backendCompleteness;
   bool _checkingCompleteness = false;
@@ -76,13 +76,21 @@ class _DeckScreenState extends State<DeckScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkLocationPermission();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _locationBannerTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    // Respond to memory pressure by trimming the image cache
+    NetworkImageCache.instance.trimCache(targetEntries: 15);
   }
 
   /// Check if user has location permission and show banner if not.
@@ -143,26 +151,51 @@ class _DeckScreenState extends State<DeckScreen> {
   }
 
   /// Preload images for the next few profiles in the deck for smoother transitions.
+  /// Uses priority-based preloading to optimize memory and network usage.
   void _preloadUpcomingProfiles(List<Profile> deck, int currentIndex) {
     if (currentIndex == _lastPreloadedIndex) return;
     _lastPreloadedIndex = currentIndex;
 
-    final urlsToPreload = <String>[];
-
-    // Preload next profiles' first photos
-    for (int i = 1; i <= _previewCount; i++) {
-      final nextIndex = currentIndex + i;
-      if (nextIndex < deck.length) {
-        final profile = deck[nextIndex];
-        if (profile.photoUrls.isNotEmpty) {
-          urlsToPreload.add(profile.photoUrls.first);
-        }
+    // Mark current profile's photos as priority (don't evict them first)
+    if (currentIndex < deck.length) {
+      final currentProfile = deck[currentIndex];
+      if (currentProfile.photoUrls.isNotEmpty) {
+        NetworkImageCache.instance.markAsPriority([currentProfile.photoUrls.first]);
       }
     }
 
-    if (urlsToPreload.isNotEmpty) {
-      NetworkImageCache.instance.preload(urlsToPreload);
+    // Collect URLs by priority
+    String? immediateUrl;
+    final highPriorityUrls = <String>[];
+    final lowPriorityUrls = <String>[];
+
+    // Current card's first photo - immediate priority
+    if (currentIndex < deck.length && deck[currentIndex].photoUrls.isNotEmpty) {
+      immediateUrl = deck[currentIndex].photoUrls.first;
     }
+
+    // Next 2 profiles - high priority (most likely to be seen soon)
+    for (int i = 1; i <= 2; i++) {
+      final nextIndex = currentIndex + i;
+      if (nextIndex < deck.length && deck[nextIndex].photoUrls.isNotEmpty) {
+        highPriorityUrls.add(deck[nextIndex].photoUrls.first);
+      }
+    }
+
+    // Preview stack profiles (3-4) - low priority
+    for (int i = 3; i <= _previewCount; i++) {
+      final nextIndex = currentIndex + i;
+      if (nextIndex < deck.length && deck[nextIndex].photoUrls.isNotEmpty) {
+        lowPriorityUrls.add(deck[nextIndex].photoUrls.first);
+      }
+    }
+
+    // Use priority-based preloading - immediate loads first, then high, then low
+    NetworkImageCache.instance.preloadWithPriority(
+      immediateUrls: immediateUrl != null ? [immediateUrl] : null,
+      highUrls: highPriorityUrls.isNotEmpty ? highPriorityUrls : null,
+      lowUrls: lowPriorityUrls.isNotEmpty ? lowPriorityUrls : null,
+    );
   }
 
   List<Profile> _buildUpcomingProfiles(List<Profile> deck, int currentIndex) {

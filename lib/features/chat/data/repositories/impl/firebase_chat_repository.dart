@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -602,8 +603,9 @@ class FirebaseChatRepository implements ChatRepository {
         );
         await _firestore.collection('message_requests').doc(pairKey).delete();
         migrated++;
-      } catch (_) {
+      } catch (e) {
         // Ignore failures; keep request for retry.
+        debugPrint('FirebaseChatRepository: Message request migration failed (will retry): $e');
       }
     }
 

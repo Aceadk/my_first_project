@@ -163,8 +163,9 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
           userId: userId,
           matches: paginated.items,
         );
-      } catch (_) {
+      } catch (e) {
         // Ignore migration errors to avoid blocking matches view.
+        debugPrint('MatchesBloc: Message request migration failed (non-blocking): $e');
       }
     } else {
       _retryCount++;

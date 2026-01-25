@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 /// A profile prompt with a question and user's answer.
 /// Used as conversation starters on dating profiles.
@@ -220,7 +221,8 @@ class PromptQuestions {
   static PromptQuestion? getById(String questionId) {
     try {
       return allQuestions.firstWhere((q) => q.id == questionId);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('ProfilePromptQuestions: Question not found for id $questionId: $e');
       return null;
     }
   }

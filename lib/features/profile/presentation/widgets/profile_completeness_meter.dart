@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
+import 'package:flutter/material.dart';
 
 class ProfileCompletenessMeter extends StatelessWidget {
   const ProfileCompletenessMeter({
@@ -39,7 +40,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
             LinearProgressIndicator(
               value: summary.score,
               minHeight: 8,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: DsColors.skeletonLight,
             ),
             const SizedBox(height: 8),
             if (missing.isEmpty)
@@ -48,9 +49,9 @@ class ProfileCompletenessMeter extends StatelessWidget {
                 style: TextStyle(color: Colors.green),
               )
             else ...[
-              Text(
+              const Text(
                 'Complete these to unlock messaging and swiping:',
-                style: TextStyle(color: Colors.grey.shade800),
+                style: TextStyle(color: DsColors.textMutedLight),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -58,7 +59,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
                 runSpacing: 8,
                 children: missing
                     .map(
-                      (m) => Chip(
+                      (m) => const Chip(
                         label: Text(m),
                         backgroundColor: Colors.orange.withAlpha(32),
                       ),
@@ -72,7 +73,8 @@ class ProfileCompletenessMeter extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.edit),
-                  label: Text(missing.isEmpty ? 'Review profile' : 'Finish profile'),
+                  label: Text(
+                      missing.isEmpty ? 'Review profile' : 'Finish profile'),
                   onPressed: onAction,
                 ),
               ),

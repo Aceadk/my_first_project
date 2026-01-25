@@ -106,7 +106,7 @@ class _StoryRingPainter extends CustomPainter {
     // Create gradient colors
     final gradientColors = hasUnseenStories
         ? [DsColors.primary, DsColors.secondary, DsColors.primary]
-        : [Colors.grey.shade400, Colors.grey.shade500, Colors.grey.shade400];
+        : [DsColors.textMutedLight, DsColors.offlineIndicator, DsColors.textMutedLight];
 
     final gradient = SweepGradient(
       colors: gradientColors,
@@ -365,7 +365,7 @@ class _AnimatedStoryRingPainter extends CustomPainter {
             DsColors.secondary,
             DsColors.primary,
           ]
-        : [Colors.grey.shade400, Colors.grey.shade500, Colors.grey.shade400];
+        : [DsColors.textMutedLight, DsColors.offlineIndicator, DsColors.textMutedLight];
 
     final gradient = SweepGradient(
       colors: gradientColors,

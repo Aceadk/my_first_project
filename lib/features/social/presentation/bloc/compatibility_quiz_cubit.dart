@@ -120,24 +120,54 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
     }
   }
 
-  /// Submit an answer for the current question.
-  void submitAnswer(String optionId) {
-    final question = state.currentQuestion;
-    if (question == null || _currentMatchId == null) return;
+  /// Select an answer for a question (does not auto-advance).
+  void selectAnswer(String questionId, String optionId) {
+    if (_currentMatchId == null) return;
 
     _service.submitAnswer(
       matchId: _currentMatchId!,
-      questionId: question.id,
+      questionId: questionId,
       optionId: optionId,
     );
 
     final newAnswers = Map<String, String>.from(state.answers);
-    newAnswers[question.id] = optionId;
+    newAnswers[questionId] = optionId;
 
-    emit(state.copyWith(
-      answers: newAnswers,
-      currentQuestionIndex: state.currentQuestionIndex + 1,
-    ));
+    emit(state.copyWith(answers: newAnswers));
+  }
+
+  /// Submit an answer for the current question and auto-advance.
+  void submitAnswer(String optionId) {
+    final question = state.currentQuestion;
+    if (question == null) return;
+
+    selectAnswer(question.id, optionId);
+    nextQuestion();
+  }
+
+  /// Move to the next question.
+  void nextQuestion() {
+    if (state.currentQuestionIndex < state.totalQuestions - 1) {
+      emit(state.copyWith(currentQuestionIndex: state.currentQuestionIndex + 1));
+    }
+  }
+
+  /// Move to the previous question.
+  void previousQuestion() {
+    if (state.currentQuestionIndex > 0) {
+      emit(state.copyWith(currentQuestionIndex: state.currentQuestionIndex - 1));
+    }
+  }
+
+  /// Check if current question is answered.
+  bool get isCurrentQuestionAnswered {
+    final question = state.currentQuestion;
+    return question != null && state.answers.containsKey(question.id);
+  }
+
+  /// Check if this is the last question.
+  bool get isLastQuestion {
+    return state.currentQuestionIndex == state.totalQuestions - 1;
   }
 
   /// Complete the quiz and calculate results.

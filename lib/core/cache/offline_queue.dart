@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents a pending action that should be executed when online.
@@ -115,8 +116,9 @@ class OfflineActionQueue {
         _queue.add(PendingAction.fromJson(item as Map<String, dynamic>));
       }
       _emitStatus();
-    } catch (_) {
+    } catch (e) {
       // Corrupted data, clear it
+      debugPrint('OfflineQueue: Corrupted queue data, clearing: $e');
       await prefs.remove(_storageKey);
     }
   }
@@ -159,8 +161,9 @@ class OfflineActionQueue {
             _queue.removeFirst();
             break;
         }
-      } catch (_) {
+      } catch (e) {
         // Network error, stop processing and schedule retry
+        debugPrint('OfflineQueue: Network error processing action, scheduling retry: $e');
         _scheduleRetry();
         break;
       }

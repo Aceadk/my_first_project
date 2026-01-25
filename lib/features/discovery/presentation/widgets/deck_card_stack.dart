@@ -26,6 +26,8 @@ class DeckCardStack extends StatefulWidget {
 }
 
 class _DeckCardStackState extends State<DeckCardStack> {
+  int _lastPreloadedIndex = -1;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -38,18 +40,38 @@ class _DeckCardStackState extends State<DeckCardStack> {
     final deck = state.deck;
     final currentIndex = state.currentIndex;
 
-    // Preload next 4 images
-    final urlsToPreload = <String>[];
-    for (var i = currentIndex; i < currentIndex + 4 && i < deck.length; i++) {
-      final url = deck[i].displayPhotoUrl;
-      if (url != null) {
-        urlsToPreload.add(url);
-      }
+    // Skip if already preloaded for this index
+    if (currentIndex == _lastPreloadedIndex) return;
+    _lastPreloadedIndex = currentIndex;
+
+    // Priority-based preloading
+    String? immediateUrl;
+    final highPriorityUrls = <String>[];
+    final lowPriorityUrls = <String>[];
+
+    // Current card - immediate priority
+    if (currentIndex < deck.length) {
+      immediateUrl = deck[currentIndex].displayPhotoUrl;
     }
 
-    if (urlsToPreload.isNotEmpty) {
-      NetworkImageCache.instance.preload(urlsToPreload);
+    // Next 2 cards - high priority
+    for (var i = currentIndex + 1; i <= currentIndex + 2 && i < deck.length; i++) {
+      final url = deck[i].displayPhotoUrl;
+      if (url != null) highPriorityUrls.add(url);
     }
+
+    // Preview cards (3-4) - low priority
+    for (var i = currentIndex + 3; i <= currentIndex + 4 && i < deck.length; i++) {
+      final url = deck[i].displayPhotoUrl;
+      if (url != null) lowPriorityUrls.add(url);
+    }
+
+    // Use priority-based preloading
+    NetworkImageCache.instance.preloadWithPriority(
+      immediateUrls: immediateUrl != null ? [immediateUrl] : null,
+      highUrls: highPriorityUrls.isNotEmpty ? highPriorityUrls : null,
+      lowUrls: lowPriorityUrls.isNotEmpty ? lowPriorityUrls : null,
+    );
   }
 
   @override
@@ -166,6 +188,7 @@ class _PreviewCard extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
+                placeholder: const _PreviewCardShimmer(),
               )
             : Container(
                 color: Colors.grey.shade800,
@@ -178,6 +201,66 @@ class _PreviewCard extends StatelessWidget {
                 ),
               ),
       ),
+    );
+  }
+}
+
+/// Shimmer placeholder for preview cards - lightweight for background cards.
+class _PreviewCardShimmer extends StatefulWidget {
+  const _PreviewCardShimmer();
+
+  @override
+  State<_PreviewCardShimmer> createState() => _PreviewCardShimmerState();
+}
+
+class _PreviewCardShimmerState extends State<_PreviewCardShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? const Color(0xFF2D2D3A) : const Color(0xFFE8E8EC);
+    final highlightColor = isDark ? const Color(0xFF3D3D4A) : const Color(0xFFF5F5F8);
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [baseColor, highlightColor, baseColor],
+              stops: [
+                (_animation.value - 0.3).clamp(0.0, 1.0),
+                _animation.value.clamp(0.0, 1.0),
+                (_animation.value + 0.3).clamp(0.0, 1.0),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

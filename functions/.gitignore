@@ -6,3 +6,7 @@ firebase-debug.log
 
 # TypeScript
 *.tsbuildinfo
+
+# Environment files (contains secrets)
+.env
+.env.local

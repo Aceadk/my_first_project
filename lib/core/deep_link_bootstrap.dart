@@ -40,7 +40,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
       final initial = await _appLinks.getInitialLink();
       if (!mounted) return;
       _handleUri(initial);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('DeepLinkBootstrap: Failed to get initial link: $e');
+    }
   }
 
   void _handleUri(Uri? uri) async {

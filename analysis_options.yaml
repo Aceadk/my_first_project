@@ -21,8 +21,29 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Error prevention
+    - avoid_empty_else
+    - avoid_print
+    - cancel_subscriptions
+    - close_sinks
+    - throw_in_finally
+
+    # Code quality
+    - avoid_unnecessary_containers
+    - sized_box_for_whitespace
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_literals_to_create_immutables
+    - prefer_const_declarations
+
+    # Null safety
+    - avoid_null_checks_in_equality_operators
+    - null_check_on_nullable_type_parameter
+
+    # Style consistency
+    - prefer_single_quotes
+    - sort_child_properties_last
+    - use_full_hex_values_for_flutter_colors
 
 analyzer:
   exclude:

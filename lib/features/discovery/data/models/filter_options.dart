@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Filter options for advanced discovery filters.
 class DiscoveryFilterOptions {
   DiscoveryFilterOptions._();
@@ -151,7 +153,8 @@ class DiscoveryFilterOptions {
   static String? getLabelForId(String id, List<FilterOption> options) {
     try {
       return options.firstWhere((o) => o.id == id).label;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('DiscoveryFilterOptions: Option not found for id $id: $e');
       return null;
     }
   }

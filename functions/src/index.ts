@@ -87,7 +87,7 @@ const agoraCertificate =
   config.agora?.certificate ?? process.env.AGORA_APP_CERTIFICATE;
 const authOtpSecret = config.auth?.otp_secret ?? process.env.OTP_SECRET ?? "";
 const emailResendKey = config.email?.resend_key ?? process.env.RESEND_API_KEY;
-const emailFrom = config.email?.from ?? "CrushHour <no-reply@crushhour.app>";
+const emailFrom = config.email?.from ?? process.env.EMAIL_FROM ?? "CrushHour <no-reply@crushhour.app>";
 
 const stripe = new Stripe(stripeSecret, {
   apiVersion: "2024-06-20",
@@ -3063,6 +3063,68 @@ export const onMatchCreated = functions.firestore
     const userIds = (data?.userIds as string[] | undefined) ?? [];
     if (userIds.length !== 2) return;
 
+    const matchId = context.params.matchId;
+    const [userA, userB] = userIds;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AUTO-MIGRATE PENDING MESSAGE REQUESTS (R-113 fix)
+    // When a match is created, check if there's a pending message request
+    // between these users and migrate it to the match as the first message.
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      const pairKey = userA.localeCompare(userB) <= 0
+        ? `${userA}|${userB}`
+        : `${userB}|${userA}`;
+
+      const requestDoc = await db.collection("message_requests").doc(pairKey).get();
+
+      if (requestDoc.exists) {
+        const requestData = requestDoc.data();
+        const expiresAt = requestData?.expiresAt?.toDate?.() ?? new Date(0);
+        const isExpired = new Date() > expiresAt;
+
+        if (!isExpired && requestData?.content) {
+          // Migrate the message request to the match's messages collection
+          const messageRef = db
+            .collection("matches")
+            .doc(matchId)
+            .collection("messages")
+            .doc();
+
+          await messageRef.set({
+            matchId,
+            fromUserId: requestData.fromUserId,
+            toUserId: requestData.toUserId,
+            content: requestData.content,
+            type: requestData.type ?? "text",
+            sentAt: requestData.sentAt ?? serverTimestamp(),
+            isRead: false,
+            isMigrated: true, // Flag to indicate this was a pre-match request
+            reactions: {},
+          });
+
+          // Update match metadata
+          await snap.ref.update({
+            hasPreMatchMessage: true,
+            lastMessageAt: serverTimestamp(),
+            lastMessagePreview: String(requestData.content).slice(0, 50),
+          });
+
+          console.log(`Migrated message request ${pairKey} to match ${matchId}`);
+        }
+
+        // Delete the message request regardless of whether it was migrated
+        await db.collection("message_requests").doc(pairKey).delete();
+        console.log(`Deleted message request ${pairKey}`);
+      }
+    } catch (err) {
+      // Don't fail the entire match creation if migration fails
+      console.error("Failed to migrate message request:", err);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SEND PUSH NOTIFICATIONS
+    // ─────────────────────────────────────────────────────────────────────────
     const tokensByUser = await Promise.all(
       userIds.map(async (uid) => ({
         uid,
@@ -5522,6 +5584,53 @@ export const processMessageDeletionQueue = functions.pubsub
       return null;
     } catch (error) {
       console.error("Error processing deletion queue:", error);
+      return null;
+    }
+  });
+
+/**
+ * Scheduled function to cleanup expired message requests. (R-113 fix)
+ * Runs every hour to delete message_requests past their 48-hour expiration.
+ * This ensures expired requests are cleaned up even if neither user fetches them.
+ */
+export const cleanupExpiredMessageRequests = functions.pubsub
+  .schedule("every 1 hours")
+  .onRun(async () => {
+    const now = new Date();
+
+    try {
+      // Query all message_requests where expiresAt is in the past
+      const snapshot = await db
+        .collection("message_requests")
+        .where("expiresAt", "<", now)
+        .limit(500) // Process in batches to avoid timeout
+        .get();
+
+      if (snapshot.empty) {
+        console.log("No expired message requests to cleanup");
+        return null;
+      }
+
+      // Delete expired requests in a batch
+      const batch = db.batch();
+      let count = 0;
+
+      for (const doc of snapshot.docs) {
+        batch.delete(doc.ref);
+        count++;
+      }
+
+      await batch.commit();
+      console.log(`Cleaned up ${count} expired message requests`);
+
+      // If we hit the limit, there might be more - log for monitoring
+      if (count === 500) {
+        console.log("Hit batch limit - more expired requests may exist");
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error cleaning up expired message requests:", error);
       return null;
     }
   });

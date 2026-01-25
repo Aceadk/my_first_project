@@ -4,7 +4,7 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
-### R-114 — Aggressive deck preloading may increase memory/network usage
+### R-114 — Aggressive deck preloading may increase memory/network usage (RESOLVED)
 
 Category: Performance / UX
 
@@ -18,20 +18,26 @@ Likelihood: Medium
 Affected Areas:
 * lib/features/discovery/presentation/screens/deck_screen.dart
 * lib/features/discovery/presentation/widgets/deck_card_stack.dart
+* lib/shared/widgets/cached_network_image.dart
 
-Mitigation:
-* Cap preloading to the first image of the next 4 profiles.
-* Keep background card count limited and lightweight.
+Resolution:
+* ✅ Implemented priority-based image preloading (immediate > high > low)
+* ✅ Added memory pressure thresholds (40MB low, 45MB critical)
+* ✅ Smart cache eviction protects visible/upcoming card images
+* ✅ Low-priority preloads skipped under critical memory pressure
+* ✅ Added shimmer loading placeholders for better perceived performance
+* ✅ WidgetsBindingObserver handles system memory warnings
+* ✅ trimCache() method for aggressive eviction when needed
 
-Status: Monitoring
+Status: Closed
 
 Owner: AI
 
-Created: 2026-01-23
+Resolved: 2026-01-25
 
 ---
 
-### R-113 — Message request migration/expiration is client-driven
+### R-113 — Message request migration/expiration is client-driven (RESOLVED)
 
 Category: UX / Data Integrity
 
@@ -46,16 +52,21 @@ Affected Areas:
 * lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
 * lib/features/chat/presentation/bloc/matches_bloc.dart
 * lib/features/chat/presentation/bloc/message_requests_cubit.dart
+* functions/src/index.ts
 
-Mitigation:
-* Add backend migration/expiration via Cloud Functions or Firestore TTL.
-* Trigger request refresh after match creation events.
+Resolution:
+* ✅ Added `cleanupExpiredMessageRequests` Cloud Function (runs hourly)
+* ✅ Enhanced `onMatchCreated` to auto-migrate pending message requests to match
+* ✅ Added accept/decline actions to MessageRequestsCubit
+* ✅ Improved UI with real-time countdown timer and action buttons
+* ✅ Added match celebration dialog with navigation to chat
+* ✅ Haptic feedback for all interactions
 
-Status: Open
+Status: Closed
 
 Owner: AI
 
-Created: 2026-01-23
+Resolved: 2026-01-25
 
 ---
 
@@ -312,7 +323,7 @@ Created: 2026-01-23
 
 ---
 
-### R-109 — Call screen uses placeholder caller ID (now reachable)
+### R-109 — Call screen uses placeholder caller ID (RESOLVED)
 
 Category: Backend dependencies
 
@@ -327,14 +338,18 @@ Affected Areas:
 * lib/features/calls/presentation/screens/call_screen.dart
 * lib/features/chat/presentation/screens/chat_screen.dart
 
-Mitigation:
-* Pass the authenticated user ID into CallScreen and wire to CallService.
+Resolution:
+* ✅ CallScreen now retrieves authenticated user ID from AuthBloc
+* ✅ Passes actual user ID, name, and photo URL to CallService
+* ✅ Added haptic feedback for all call state transitions
+* ✅ Improved UI with glassmorphism effects and modern animations
+* ✅ Added connection quality indicator and better visual feedback
 
-Status: Open
+Status: Closed
 
 Owner: AI
 
-Created: 2026-01-23
+Resolved: 2026-01-25
 
 ---
 

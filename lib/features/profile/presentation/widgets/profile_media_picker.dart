@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
@@ -270,9 +271,9 @@ class _MediaTile extends StatelessWidget {
               width: 96,
               height: 128,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: DsColors.skeletonLight,
                 border: isPrimary
-                    ? Border.all(color: Colors.pink, width: 3)
+                    ? Border.all(color: DsColors.primary, width: 3)
                     : null,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -294,7 +295,7 @@ class _MediaTile extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.pink,
+                  color: DsColors.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
@@ -378,11 +379,11 @@ class _AddTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.shade400,
+            color: DsColors.borderLight,
             width: 2,
           ),
         ),
-        child: Icon(icon, color: enabled ? Colors.black87 : Colors.grey),
+        child: Icon(icon, color: enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight),
       ),
     );
   }

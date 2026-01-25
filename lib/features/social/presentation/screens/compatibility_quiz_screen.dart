@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
-import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
 
 /// Screen for taking compatibility quizzes with matches.
 class CompatibilityQuizScreen extends StatefulWidget {
@@ -22,87 +22,14 @@ class CompatibilityQuizScreen extends StatefulWidget {
 }
 
 class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
-  final _service = CompatibilityQuizService.instance;
-  CompatibilityQuiz? _quiz;
-  int _currentQuestionIndex = 0;
-  final Map<String, String> _answers = {};
-  bool _isLoading = true;
-  QuizResult? _result;
-
   @override
   void initState() {
     super.initState();
-    _loadQuiz();
-  }
-
-  Future<void> _loadQuiz() async {
-    setState(() => _isLoading = true);
-    try {
-      final quizId = widget.quizId ?? 'basic_compatibility';
-      final quiz = await _service.startQuiz(
-        quizId: quizId,
-        matchId: widget.matchId,
-      );
-      setState(() {
-        _quiz = quiz;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _selectAnswer(String questionId, String optionId) {
-    setState(() {
-      _answers[questionId] = optionId;
-    });
-    _service.submitAnswer(
+    final quizId = widget.quizId ?? 'basic_compatibility';
+    context.read<CompatibilityQuizCubit>().startQuiz(
+      quizId: quizId,
       matchId: widget.matchId,
-      questionId: questionId,
-      optionId: optionId,
     );
-  }
-
-  void _nextQuestion() {
-    if (_currentQuestionIndex < (_quiz?.questions.length ?? 0) - 1) {
-      setState(() => _currentQuestionIndex++);
-    }
-  }
-
-  void _previousQuestion() {
-    if (_currentQuestionIndex > 0) {
-      setState(() => _currentQuestionIndex--);
-    }
-  }
-
-  Future<void> _completeQuiz() async {
-    if (_quiz == null) return;
-
-    setState(() => _isLoading = true);
-
-    // Simulate partner's answers for demo
-    final partnerAnswers = <String, String>{};
-    for (final question in _quiz!.questions) {
-      final options = question.options;
-      partnerAnswers[question.id] = options[options.length ~/ 2].id;
-    }
-
-    try {
-      final result = await _service.completeQuiz(
-        quizId: _quiz!.id,
-        matchId: widget.matchId,
-        user1Id: widget.userId,
-        user2Id: 'partner_${widget.matchId}',
-        user1Answers: _answers,
-        user2Answers: partnerAnswers,
-      );
-      setState(() {
-        _result = result;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
   }
 
   @override
@@ -110,40 +37,90 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        title: _quiz?.title ?? 'Compatibility Quiz',
-        automaticallyImplyLeading: _result == null,
-      ),
-      body: Stack(
-        children: [
-          // Gradient background
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
-              ),
-              child: const Stack(
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(gradient: DsGradients.meshRadial),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return BlocBuilder<CompatibilityQuizCubit, CompatibilityQuizState>(
+      builder: (context, state) {
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: GlassAppBar(
+            title: state.quiz?.title ?? 'Compatibility Quiz',
+            automaticallyImplyLeading: !state.hasResult,
           ),
-          // Content
-          SafeArea(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _result != null
-                    ? _buildResultView(textColor)
-                    : _quiz == null
-                        ? _buildEmptyState(textColor)
-                        : _buildQuizContent(context, textColor),
+          body: Stack(
+            children: [
+              // Gradient background
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                  ),
+                  child: const Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(gradient: DsGradients.meshRadial),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Content
+              SafeArea(
+                child: _buildContent(context, textColor, state),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, Color textColor, CompatibilityQuizState state) {
+    if (state.isLoading || state.isSubmitting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.errorMessage != null) {
+      return _buildErrorState(context, textColor, state.errorMessage!);
+    }
+
+    if (state.hasResult) {
+      return _buildResultView(context, textColor, state);
+    }
+
+    if (state.quiz == null) {
+      return _buildEmptyState(textColor);
+    }
+
+    return _buildQuizContent(context, textColor, state);
+  }
+
+  Widget _buildErrorState(BuildContext context, Color textColor, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: textColor.withValues(alpha: 0.5)),
+          DsGap.md,
+          Text(
+            'Something went wrong',
+            style: TextStyle(color: textColor, fontSize: 18),
+          ),
+          DsGap.sm,
+          Text(
+            message,
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+          ),
+          DsGap.lg,
+          GlassOutlinedButton(
+            onPressed: () {
+              final quizId = widget.quizId ?? 'basic_compatibility';
+              context.read<CompatibilityQuizCubit>().startQuiz(
+                quizId: quizId,
+                matchId: widget.matchId,
+              );
+            },
+            child: const Text('Try Again'),
           ),
         ],
       ),
@@ -166,11 +143,12 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
     );
   }
 
-  Widget _buildQuizContent(BuildContext context, Color textColor) {
-    final question = _quiz!.questions[_currentQuestionIndex];
-    final progress = (_currentQuestionIndex + 1) / _quiz!.questions.length;
-    final isAnswered = _answers.containsKey(question.id);
-    final isLastQuestion = _currentQuestionIndex == _quiz!.questions.length - 1;
+  Widget _buildQuizContent(BuildContext context, Color textColor, CompatibilityQuizState state) {
+    final cubit = context.read<CompatibilityQuizCubit>();
+    final question = state.currentQuestion!;
+    final progress = (state.currentQuestionIndex + 1) / state.totalQuestions;
+    final isAnswered = state.answers.containsKey(question.id);
+    final isLastQuestion = cubit.isLastQuestion;
 
     return Column(
       children: [
@@ -183,7 +161,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Question ${_currentQuestionIndex + 1} of ${_quiz!.questions.length}',
+                    'Question ${state.currentQuestionIndex + 1} of ${state.totalQuestions}',
                     style: TextStyle(color: textColor.withValues(alpha: 0.7)),
                   ),
                   Text(
@@ -249,11 +227,11 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
 
                 // Options
                 ...question.options.map((option) {
-                  final isSelected = _answers[question.id] == option.id;
+                  final isSelected = state.answers[question.id] == option.id;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: DsSpacing.md),
                     child: GlassCard(
-                      onTap: () => _selectAnswer(question.id, option.id),
+                      onTap: () => cubit.selectAnswer(question.id, option.id),
                       showGradientBorder: isSelected,
                       padding: const EdgeInsets.all(DsSpacing.lg),
                       child: Row(
@@ -298,10 +276,10 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
           padding: const EdgeInsets.all(DsSpacing.lg),
           child: Row(
             children: [
-              if (_currentQuestionIndex > 0)
+              if (state.currentQuestionIndex > 0)
                 Expanded(
                   child: GlassOutlinedButton(
-                    onPressed: _previousQuestion,
+                    onPressed: cubit.previousQuestion,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -318,7 +296,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
               Expanded(
                 child: GlassPrimaryButton(
                   onPressed: isAnswered
-                      ? (isLastQuestion ? _completeQuiz : _nextQuestion)
+                      ? (isLastQuestion ? () => _completeQuiz(context, state) : cubit.nextQuestion)
                       : null,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -337,7 +315,28 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
     );
   }
 
-  Widget _buildResultView(Color textColor) {
+  Future<void> _completeQuiz(BuildContext context, CompatibilityQuizState state) async {
+    if (state.quiz == null) return;
+
+    final cubit = context.read<CompatibilityQuizCubit>();
+
+    // Simulate partner's answers for demo
+    final partnerAnswers = <String, String>{};
+    for (final question in state.quiz!.questions) {
+      final options = question.options;
+      partnerAnswers[question.id] = options[options.length ~/ 2].id;
+    }
+
+    await cubit.completeQuiz(
+      user1Id: widget.userId,
+      user2Id: 'partner_${widget.matchId}',
+      user2Answers: partnerAnswers,
+    );
+  }
+
+  Widget _buildResultView(BuildContext context, Color textColor, CompatibilityQuizState state) {
+    final result = state.result!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(DsSpacing.lg),
       child: Column(
@@ -356,7 +355,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 ),
                 DsGap.md,
                 Text(
-                  '${_result!.overallScore}%',
+                  '${result.overallScore}%',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 64,
@@ -364,14 +363,14 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                   ),
                 ),
                 DsGap.sm,
-                _buildScoreLabel(_result!.overallScore ?? 0),
+                _buildScoreLabel(result.overallScore ?? 0),
               ],
             ),
           ),
           DsGap.xl,
 
           // Insights
-          if (_result!.insights.isNotEmpty) ...[
+          if (result.insights.isNotEmpty) ...[
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -384,7 +383,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
               ),
             ),
             DsGap.md,
-            ..._result!.insights.map((insight) {
+            ...result.insights.map((insight) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: DsSpacing.md),
                 child: GlassCard(
@@ -424,7 +423,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
           DsGap.xl,
 
           // Category scores
-          if (_result!.categoryScores.isNotEmpty) ...[
+          if (result.categoryScores.isNotEmpty) ...[
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -440,7 +439,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
             GlassCard(
               padding: const EdgeInsets.all(DsSpacing.lg),
               child: Column(
-                children: _result!.categoryScores.entries.map((entry) {
+                children: result.categoryScores.entries.map((entry) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: DsSpacing.sm),
                     child: Column(
@@ -484,7 +483,10 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
           // Action button
           GlassPrimaryButton(
             isExpanded: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              context.read<CompatibilityQuizCubit>().reset();
+              Navigator.pop(context);
+            },
             child: const Text('Done'),
           ),
         ],

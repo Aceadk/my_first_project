@@ -14,6 +14,7 @@ import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
@@ -54,6 +55,7 @@ class ChatListScreen extends StatelessWidget {
         BlocProvider(
           create: (context) => MessageRequestsCubit(
             chatRepository: context.read<ChatRepository>(),
+            discoveryRepository: context.read<DiscoveryRepository>(),
             userId: userId,
           )..load(),
         ),

@@ -87,7 +87,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dotColor = widget.dotColor ??
-        (isDark ? Colors.white.withValues(alpha: 0.7) : Colors.grey.shade600);
+        (isDark ? DsColors.textMutedDark : DsColors.textMutedLight);
     final bgColor = widget.backgroundColor ??
         (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
 

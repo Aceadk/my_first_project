@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'cache_policy.dart';
 import 'cache_store.dart';
 
@@ -54,7 +55,8 @@ mixin CachingMixin {
       case CachePolicy.networkFirst:
         try {
           return await _fetchAndCache(key, fetch, config);
-        } catch (_) {
+        } catch (e) {
+          debugPrint('CachedRepository: Network fetch failed, falling back to cache: $e');
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;
           rethrow;
@@ -65,7 +67,8 @@ mixin CachingMixin {
         // For simple Future API, behave like networkFirst
         try {
           return await _fetchAndCache(key, fetch, config);
-        } catch (_) {
+        } catch (e) {
+          debugPrint('CachedRepository: Network fetch failed, falling back to cache: $e');
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;
           rethrow;

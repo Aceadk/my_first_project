@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
-import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
+import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
 
 /// Screen displaying profile analytics and insights.
 class ProfileInsightsScreen extends StatefulWidget {
@@ -15,34 +15,10 @@ class ProfileInsightsScreen extends StatefulWidget {
 }
 
 class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
-  final _service = ProfileInsightsService.instance;
-  ProfileInsights? _insights;
-  bool _isLoading = true;
-  String? _errorMessage;
-
   @override
   void initState() {
     super.initState();
-    _loadInsights();
-  }
-
-  Future<void> _loadInsights() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-    try {
-      final insights = await _service.loadInsights(widget.userId);
-      setState(() {
-        _insights = insights;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Unable to load insights. Please try again.';
-      });
-    }
+    context.read<ProfileInsightsCubit>().loadInsights(widget.userId);
   }
 
   @override
@@ -57,7 +33,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: textColor),
-            onPressed: _loadInsights,
+            onPressed: () => context.read<ProfileInsightsCubit>().refreshInsights(widget.userId),
           ),
         ],
       ),
@@ -82,20 +58,27 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           ),
           // Content
           SafeArea(
-            child: _isLoading
-                ? _buildSkeletonLoading()
-                : _errorMessage != null
-                    ? _buildErrorState(textColor)
-                    : _insights == null
-                        ? _buildEmptyState(textColor)
-                        : _buildInsightsContent(context, textColor),
+            child: BlocBuilder<ProfileInsightsCubit, ProfileInsightsState>(
+              builder: (context, state) {
+                if (state.isLoading) {
+                  return _buildSkeletonLoading(context);
+                }
+                if (state.errorMessage != null) {
+                  return _buildErrorState(context, textColor, state.errorMessage!);
+                }
+                if (state.insights == null) {
+                  return _buildEmptyState(textColor);
+                }
+                return _buildInsightsContent(context, textColor, state);
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSkeletonLoading() {
+  Widget _buildSkeletonLoading(BuildContext context) {
     return DsShimmer(
       child: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
@@ -103,49 +86,42 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title skeleton
             const SkeletonBox(width: 120, height: 24),
             DsGap.md,
-            // Stats cards row 1
             Row(
               children: [
-                Expanded(child: _buildSkeletonStatCard()),
+                Expanded(child: _buildSkeletonStatCard(context)),
                 DsGap.mdH,
-                Expanded(child: _buildSkeletonStatCard()),
+                Expanded(child: _buildSkeletonStatCard(context)),
               ],
             ),
             DsGap.md,
-            // Stats cards row 2
             Row(
               children: [
-                Expanded(child: _buildSkeletonStatCard()),
+                Expanded(child: _buildSkeletonStatCard(context)),
                 DsGap.mdH,
-                Expanded(child: _buildSkeletonStatCard()),
+                Expanded(child: _buildSkeletonStatCard(context)),
               ],
             ),
             DsGap.xl,
-            // Activity section skeleton
-            _buildSkeletonSection(height: 160),
+            _buildSkeletonSection(context, height: 160),
             DsGap.xl,
-            // Best time section skeleton
-            _buildSkeletonSection(height: 80),
+            _buildSkeletonSection(context, height: 80),
             DsGap.xl,
-            // Photo performance skeleton
             const SkeletonBox(width: 150, height: 20),
             DsGap.md,
-            _buildSkeletonSection(height: 140),
+            _buildSkeletonSection(context, height: 140),
             DsGap.xl,
-            // Weekly trend skeleton
             const SkeletonBox(width: 120, height: 20),
             DsGap.md,
-            _buildSkeletonSection(height: 150),
+            _buildSkeletonSection(context, height: 150),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSkeletonStatCard() {
+  Widget _buildSkeletonStatCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(DsSpacing.lg),
       decoration: BoxDecoration(
@@ -166,7 +142,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildSkeletonSection({required double height}) {
+  Widget _buildSkeletonSection(BuildContext context, {required double height}) {
     return Container(
       width: double.infinity,
       height: height,
@@ -179,7 +155,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildErrorState(Color textColor) {
+  Widget _buildErrorState(BuildContext context, Color textColor, String errorMessage) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(DsSpacing.xl),
@@ -209,13 +185,13 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             ),
             DsGap.sm,
             Text(
-              _errorMessage ?? 'Unable to load insights',
+              errorMessage,
               style: TextStyle(color: textColor.withValues(alpha: 0.7)),
               textAlign: TextAlign.center,
             ),
             DsGap.xl,
             GlassPrimaryButton(
-              onPressed: _loadInsights,
+              onPressed: () => context.read<ProfileInsightsCubit>().loadInsights(widget.userId),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -252,24 +228,26 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildInsightsContent(BuildContext context, Color textColor) {
+  Widget _buildInsightsContent(BuildContext context, Color textColor, ProfileInsightsState state) {
+    final cubit = context.read<ProfileInsightsCubit>();
+
     return RefreshIndicator(
-      onRefresh: _loadInsights,
+      onRefresh: () => cubit.refreshInsights(widget.userId),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(DsSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildOverviewSection(textColor),
+            _buildOverviewSection(textColor, state),
             DsGap.xl,
-            _buildActivitySection(textColor),
+            _buildActivitySection(textColor, state),
             DsGap.xl,
-            _buildBestTimeSection(textColor),
+            _buildBestTimeSection(textColor, cubit),
             DsGap.xl,
-            _buildPhotoPerformanceSection(textColor),
+            _buildPhotoPerformanceSection(textColor, state),
             DsGap.xl,
-            _buildWeeklyTrendSection(textColor),
+            _buildWeeklyTrendSection(textColor, state),
             DsGap.lg,
           ],
         ),
@@ -277,7 +255,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildOverviewSection(Color textColor) {
+  Widget _buildOverviewSection(Color textColor, ProfileInsightsState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,7 +273,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             Expanded(
               child: _StatCard(
                 icon: Icons.visibility,
-                value: '${_insights!.profileViews}',
+                value: '${state.profileViews}',
                 label: 'Profile Views',
                 gradient: DsGradients.discover,
               ),
@@ -304,7 +282,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             Expanded(
               child: _StatCard(
                 icon: Icons.favorite,
-                value: '${_insights!.likesReceived}',
+                value: '${state.likesReceived}',
                 label: 'Likes Received',
                 gradient: DsGradients.matches,
               ),
@@ -317,7 +295,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             Expanded(
               child: _StatCard(
                 icon: Icons.star,
-                value: '${_insights!.superLikesReceived}',
+                value: '${state.superLikesReceived}',
                 label: 'Super Likes',
                 gradient: DsGradients.chats,
               ),
@@ -326,7 +304,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             Expanded(
               child: _StatCard(
                 icon: Icons.percent,
-                value: '${(_insights!.matchRate * 100).toStringAsFixed(0)}%',
+                value: '${(state.matchRate * 100).toStringAsFixed(0)}%',
                 label: 'Match Rate',
                 gradient: DsGradients.profile,
               ),
@@ -337,7 +315,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildActivitySection(Color textColor) {
+  Widget _buildActivitySection(Color textColor, ProfileInsightsState state) {
     return GlassCard(
       padding: const EdgeInsets.all(DsSpacing.lg),
       child: Column(
@@ -355,21 +333,21 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           _buildActivityRow(
             icon: Icons.send,
             label: 'Likes Sent',
-            value: '${_insights!.likesSent}',
+            value: '${state.likesSent}',
             textColor: textColor,
           ),
           DsGap.sm,
           _buildActivityRow(
             icon: Icons.chat_bubble,
             label: 'Response Rate',
-            value: '${(_insights!.responseRate * 100).toStringAsFixed(0)}%',
+            value: '${(state.responseRate * 100).toStringAsFixed(0)}%',
             textColor: textColor,
           ),
           DsGap.sm,
           _buildActivityRow(
             icon: Icons.timer,
             label: 'Avg Response Time',
-            value: _formatDuration(_insights!.averageResponseTime),
+            value: _formatDuration(state.averageResponseTime),
             textColor: textColor,
           ),
         ],
@@ -404,7 +382,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildBestTimeSection(Color textColor) {
+  Widget _buildBestTimeSection(Color textColor, ProfileInsightsCubit cubit) {
     return GlassCardAccent(
       padding: const EdgeInsets.all(DsSpacing.lg),
       child: Row(
@@ -432,7 +410,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
                 ),
                 DsGap.xs,
                 Text(
-                  _service.getBestTimeToBeActive(),
+                  cubit.getBestTimeToBeActive(),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
@@ -446,8 +424,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildPhotoPerformanceSection(Color textColor) {
-    final photos = _service.getPhotoPerformance();
+  Widget _buildPhotoPerformanceSection(Color textColor, ProfileInsightsState state) {
+    final photos = state.photoPerformance;
     if (photos.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -500,7 +478,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
                             ),
                           ),
                           Text(
-                            '${photo.views} views • ${photo.likes} likes',
+                            '${photo.views} views \u2022 ${photo.likes} likes',
                             style: TextStyle(
                               color: textColor.withValues(alpha: 0.7),
                               fontSize: 12,
@@ -537,8 +515,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildWeeklyTrendSection(Color textColor) {
-    final trend = _insights?.weeklyTrend ?? [];
+  Widget _buildWeeklyTrendSection(Color textColor, ProfileInsightsState state) {
+    final trend = state.weeklyTrend;
     if (trend.isEmpty) return const SizedBox.shrink();
 
     return Column(

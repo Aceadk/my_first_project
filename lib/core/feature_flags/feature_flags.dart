@@ -96,8 +96,8 @@ class FeatureFlagService {
             _localOverrides[entry.key] = entry.value as bool;
           }
         }
-      } catch (_) {
-        // Ignore parse errors
+      } catch (e) {
+        debugPrint('FeatureFlags: Error parsing local overrides: $e');
       }
     }
   }

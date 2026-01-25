@@ -116,7 +116,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   bool getBool(String key, {bool defaultValue = false}) {
     try {
       return _remoteConfig.getBool(key);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -125,7 +126,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   int getInt(String key, {int defaultValue = 0}) {
     try {
       return _remoteConfig.getInt(key);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -134,7 +136,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   String getString(String key, {String defaultValue = ''}) {
     try {
       return _remoteConfig.getString(key);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -143,7 +146,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   double getDouble(String key, {double defaultValue = 0.0}) {
     try {
       return _remoteConfig.getDouble(key);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e');
       return defaultValue;
     }
   }

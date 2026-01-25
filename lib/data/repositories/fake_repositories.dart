@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../core/security/secure_logger.dart';
@@ -67,7 +68,9 @@ class FakeAuthRepository implements AuthRepository {
             body: jsonEncode({'phoneNumber': phoneNumber, 'otp': otp}),
           )
           .timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('FakeAuthRepository: Backend OTP send failed (expected in local dev): $e');
+    }
 
     // Use secure logger for OTP (redacted by default)
     SecureLogger.logOtp(type: 'PHONE', recipient: phoneNumber, code: otp);

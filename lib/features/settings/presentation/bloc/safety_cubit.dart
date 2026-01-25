@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -306,8 +307,9 @@ class SafetyCubit extends Cubit<SafetyState> {
           // Use placeholder if profile not found
           newCache[userId] = SafetyProfileInfo.placeholder(userId);
         }
-      } catch (_) {
+      } catch (e) {
         // Use placeholder on error
+        debugPrint('SafetyCubit: Error fetching profile for $userId, using placeholder: $e');
         newCache[userId] = SafetyProfileInfo.placeholder(userId);
       }
     }

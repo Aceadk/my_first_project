@@ -1,9 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/features/social/data/services/date_idea_service.dart';
+import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
 import 'package:crushhour/features/social/data/models/date_idea.dart';
 
 /// Screen displaying date ideas for matches.
@@ -17,36 +18,10 @@ class DateIdeasScreen extends StatefulWidget {
 }
 
 class _DateIdeasScreenState extends State<DateIdeasScreen> {
-  final _service = DateIdeaService.instance;
-  DateCategory? _selectedCategory;
-  DateCostLevel? _selectedCost;
-  String _searchQuery = '';
-  List<DateIdea> _filteredIdeas = [];
-
   @override
   void initState() {
     super.initState();
-    _filteredIdeas = _service.getAllIdeas();
-  }
-
-  void _applyFilters() {
-    var ideas = _service.getAllIdeas();
-
-    if (_selectedCategory != null) {
-      ideas = ideas.where((i) => i.category == _selectedCategory).toList();
-    }
-
-    if (_selectedCost != null) {
-      ideas = ideas.where((i) =>
-        i.estimatedCost != null && i.estimatedCost!.index <= _selectedCost!.index
-      ).toList();
-    }
-
-    if (_searchQuery.isNotEmpty) {
-      ideas = _service.searchIdeas(_searchQuery);
-    }
-
-    setState(() => _filteredIdeas = ideas);
+    context.read<DateIdeasCubit>().loadIdeas();
   }
 
   @override
@@ -59,14 +34,19 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
       appBar: GlassAppBar(
         title: 'Date Ideas',
         actions: [
-          IconButton(
-            icon: Icon(Icons.shuffle, color: textColor),
-            onPressed: () {
-              setState(() {
-                _filteredIdeas = _service.getRandomSuggestions(5);
-              });
+          BlocBuilder<DateIdeasCubit, DateIdeasState>(
+            builder: (context, state) {
+              return IconButton(
+                icon: Icon(Icons.shuffle, color: textColor),
+                onPressed: () {
+                  final cubit = context.read<DateIdeasCubit>();
+                  // Clear filters and show random suggestions
+                  cubit.clearFilters();
+                  cubit.getPersonalizedSuggestions(count: 5);
+                },
+                tooltip: 'Random Ideas',
+              );
             },
-            tooltip: 'Random Ideas',
           ),
         ],
       ),
@@ -99,56 +79,83 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                   child: Column(
                     children: [
                       // Search bar
-                      GlassTextField(
-                        hintText: 'Search date ideas...',
-                        prefixIcon: Icons.search,
-                        onChanged: (value) {
-                          _searchQuery = value;
-                          _applyFilters();
+                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                        buildWhen: (previous, current) =>
+                            previous.searchQuery != current.searchQuery,
+                        builder: (context, state) {
+                          return GlassTextField(
+                            hintText: 'Search date ideas...',
+                            prefixIcon: Icons.search,
+                            onChanged: (value) {
+                              context.read<DateIdeasCubit>().search(value);
+                            },
+                          );
                         },
                       ),
                       DsGap.md,
 
                       // Category filters
-                      SizedBox(
-                        height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildFilterChip(
-                              label: 'All',
-                              isSelected: _selectedCategory == null,
-                              onTap: () {
-                                _selectedCategory = null;
-                                _applyFilters();
-                              },
+                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                        buildWhen: (previous, current) =>
+                            previous.selectedCategory != current.selectedCategory,
+                        builder: (context, state) {
+                          return SizedBox(
+                            height: 40,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                _buildFilterChip(
+                                  label: 'All',
+                                  isSelected: state.selectedCategory == null,
+                                  onTap: () {
+                                    context.read<DateIdeasCubit>().filterByCategory(null);
+                                  },
+                                ),
+                                ...DateCategory.values.map((category) {
+                                  return _buildFilterChip(
+                                    label: category.displayName,
+                                    icon: category.emoji,
+                                    isSelected: state.selectedCategory == category,
+                                    onTap: () {
+                                      context.read<DateIdeasCubit>().filterByCategory(category);
+                                    },
+                                  );
+                                }),
+                              ],
                             ),
-                            ...DateCategory.values.map((category) {
-                              return _buildFilterChip(
-                                label: category.displayName,
-                                icon: category.emoji,
-                                isSelected: _selectedCategory == category,
-                                onTap: () {
-                                  _selectedCategory = category;
-                                  _applyFilters();
-                                },
-                              );
-                            }),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                       DsGap.sm,
 
                       // Cost filters
-                      SizedBox(
-                        height: 32,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildCostChip(null),
-                            ...DateCostLevel.values.map((cost) => _buildCostChip(cost)),
-                          ],
-                        ),
+                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                        buildWhen: (previous, current) =>
+                            previous.selectedCostLevel != current.selectedCostLevel,
+                        builder: (context, state) {
+                          return SizedBox(
+                            height: 32,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                _buildCostChip(
+                                  cost: null,
+                                  isSelected: state.selectedCostLevel == null,
+                                  onTap: () {
+                                    context.read<DateIdeasCubit>().filterByCostLevel(null);
+                                  },
+                                ),
+                                ...DateCostLevel.values.map((cost) => _buildCostChip(
+                                  cost: cost,
+                                  isSelected: state.selectedCostLevel == cost,
+                                  onTap: () {
+                                    context.read<DateIdeasCubit>().filterByCostLevel(cost);
+                                  },
+                                )),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -156,18 +163,66 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
 
                 // Ideas list
                 Expanded(
-                  child: _filteredIdeas.isEmpty
-                      ? _buildEmptyState(textColor)
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
-                          itemCount: _filteredIdeas.length,
-                          itemBuilder: (context, index) {
-                            return _buildIdeaCard(_filteredIdeas[index], textColor);
-                          },
-                        ),
+                  child: BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                    builder: (context, state) {
+                      if (state.isLoading) {
+                        return _buildLoadingState();
+                      }
+
+                      if (state.errorMessage != null) {
+                        return _buildErrorState(textColor, state.errorMessage!);
+                      }
+
+                      if (state.filteredIdeas.isEmpty) {
+                        return _buildEmptyState(textColor);
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                        itemCount: state.filteredIdeas.length,
+                        itemBuilder: (context, index) {
+                          return _buildIdeaCard(state.filteredIdeas[index], textColor);
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildErrorState(Color textColor, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: textColor.withValues(alpha: 0.5)),
+          DsGap.md,
+          Text(
+            'Something went wrong',
+            style: TextStyle(color: textColor, fontSize: 18),
+          ),
+          DsGap.sm,
+          Text(
+            message,
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+          ),
+          DsGap.lg,
+          GlassOutlinedButton(
+            onPressed: () {
+              context.read<DateIdeasCubit>().loadIdeas();
+            },
+            child: const Text('Try Again'),
           ),
         ],
       ),
@@ -191,17 +246,17 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
     );
   }
 
-  Widget _buildCostChip(DateCostLevel? cost) {
-    final isSelected = _selectedCost == cost;
+  Widget _buildCostChip({
+    required DateCostLevel? cost,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     final label = cost?.display ?? 'Any Budget';
 
     return Padding(
       padding: const EdgeInsets.only(right: DsSpacing.sm),
       child: GestureDetector(
-        onTap: () {
-          setState(() => _selectedCost = cost);
-          _applyFilters();
-        },
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: DsSpacing.md,
@@ -251,108 +306,114 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
   }
 
   Widget _buildIdeaCard(DateIdea idea, Color textColor) {
-    final isSaved = _service.isIdeaSaved(idea.id);
+    return BlocBuilder<DateIdeasCubit, DateIdeasState>(
+      buildWhen: (previous, current) =>
+          previous.savedIdeas != current.savedIdeas,
+      builder: (context, state) {
+        final cubit = context.read<DateIdeasCubit>();
+        final isSaved = cubit.isIdeaSaved(idea.id);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DsSpacing.md),
-      child: GlassCard(
-        onTap: () => _showIdeaDetails(idea, textColor),
-        padding: const EdgeInsets.all(DsSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: DsSpacing.md),
+          child: GlassCard(
+            onTap: () => _showIdeaDetails(idea, textColor),
+            padding: const EdgeInsets.all(DsSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(idea.emoji, style: const TextStyle(fontSize: 32)),
-                DsGap.mdH,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        idea.title,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      DsGap.xs,
-                      Row(
+                Row(
+                  children: [
+                    Text(idea.emoji, style: const TextStyle(fontSize: 32)),
+                    DsGap.mdH,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GlassChip(
-                            label: idea.category.displayName,
-                            height: 24,
-                          ),
-                          DsGap.smH,
-                          if (idea.estimatedCost != null)
-                            Text(
-                              idea.costDisplay,
-                              style: const TextStyle(
-                                color: DsColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Text(
+                            idea.title,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
                             ),
+                          ),
+                          DsGap.xs,
+                          Row(
+                            children: [
+                              GlassChip(
+                                label: idea.category.displayName,
+                                height: 24,
+                              ),
+                              DsGap.smH,
+                              if (idea.estimatedCost != null)
+                                Text(
+                                  idea.costDisplay,
+                                  style: const TextStyle(
+                                    color: DsColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                    color: isSaved ? DsColors.primary : textColor,
-                  ),
-                  onPressed: () {
-                    if (isSaved) {
-                      _service.removeSavedIdea(idea.id);
-                    } else {
-                      _service.saveIdea(idea);
-                    }
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-            DsGap.md,
-            Text(
-              idea.description,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.8),
-                height: 1.4,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            DsGap.md,
-            Row(
-              children: [
-                Icon(Icons.timer, size: 16, color: textColor.withValues(alpha: 0.6)),
-                DsGap.xsH,
-                Text(
-                  idea.durationDisplay,
-                  style: TextStyle(
-                    color: textColor.withValues(alpha: 0.6),
-                    fontSize: 12,
-                  ),
-                ),
-                DsGap.lgH,
-                if (idea.bestFor.isNotEmpty) ...[
-                  Icon(Icons.people, size: 16, color: textColor.withValues(alpha: 0.6)),
-                  DsGap.xsH,
-                  Text(
-                    idea.bestFor.first.displayName,
-                    style: TextStyle(
-                      color: textColor.withValues(alpha: 0.6),
-                      fontSize: 12,
                     ),
+                    IconButton(
+                      icon: Icon(
+                        isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                        color: isSaved ? DsColors.primary : textColor,
+                      ),
+                      onPressed: () {
+                        if (isSaved) {
+                          cubit.removeSavedIdea(idea.id);
+                        } else {
+                          cubit.saveIdea(idea);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                DsGap.md,
+                Text(
+                  idea.description,
+                  style: TextStyle(
+                    color: textColor.withValues(alpha: 0.8),
+                    height: 1.4,
                   ),
-                ],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                DsGap.md,
+                Row(
+                  children: [
+                    Icon(Icons.timer, size: 16, color: textColor.withValues(alpha: 0.6)),
+                    DsGap.xsH,
+                    Text(
+                      idea.durationDisplay,
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                    DsGap.lgH,
+                    if (idea.bestFor.isNotEmpty) ...[
+                      Icon(Icons.people, size: 16, color: textColor.withValues(alpha: 0.6)),
+                      DsGap.xsH,
+                      Text(
+                        idea.bestFor.first.displayName,
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -364,7 +425,6 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
       builder: (context) => _IdeaDetailsSheet(
         idea: idea,
         matchId: widget.matchId,
-        service: _service,
       ),
     );
   }
@@ -374,12 +434,10 @@ class _IdeaDetailsSheet extends StatelessWidget {
   const _IdeaDetailsSheet({
     required this.idea,
     required this.matchId,
-    required this.service,
   });
 
   final DateIdea idea;
   final String? matchId;
-  final DateIdeaService service;
 
   @override
   Widget build(BuildContext context) {
@@ -520,60 +578,66 @@ class _IdeaDetailsSheet extends StatelessWidget {
                         DsGap.xl,
 
                         // Action buttons
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GlassOutlinedButton(
-                                onPressed: () {
-                                  service.saveIdea(idea);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Saved to your ideas!'),
-                                      backgroundColor: DsColors.primary,
+                        BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                          builder: (context, state) {
+                            final cubit = context.read<DateIdeasCubit>();
+
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: GlassOutlinedButton(
+                                    onPressed: () {
+                                      cubit.saveIdea(idea);
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Saved to your ideas!'),
+                                          backgroundColor: DsColors.primary,
+                                        ),
+                                      );
+                                    },
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.bookmark, size: 18),
+                                        SizedBox(width: DsSpacing.sm),
+                                        Text('Save'),
+                                      ],
                                     ),
-                                  );
-                                },
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.bookmark, size: 18),
-                                    SizedBox(width: DsSpacing.sm),
-                                    Text('Save'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (matchId != null) ...[
-                              DsGap.mdH,
-                              Expanded(
-                                child: GlassPrimaryButton(
-                                  onPressed: () async {
-                                    await service.sendIdeaToMatch(
-                                      matchId: matchId!,
-                                      idea: idea,
-                                    );
-                                    if (!context.mounted) return;
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Idea sent!'),
-                                        backgroundColor: DsColors.primary,
-                                      ),
-                                    );
-                                  },
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.send, size: 18),
-                                      SizedBox(width: DsSpacing.sm),
-                                      Text('Send'),
-                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ],
+                                if (matchId != null) ...[
+                                  DsGap.mdH,
+                                  Expanded(
+                                    child: GlassPrimaryButton(
+                                      onPressed: () async {
+                                        await cubit.sendIdeaToMatch(
+                                          matchId: matchId!,
+                                          idea: idea,
+                                        );
+                                        if (!context.mounted) return;
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Idea sent!'),
+                                            backgroundColor: DsColors.primary,
+                                          ),
+                                        );
+                                      },
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.send, size: 18),
+                                          SizedBox(width: DsSpacing.sm),
+                                          Text('Send'),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
                         ),
                         DsGap.lg,
                       ],
