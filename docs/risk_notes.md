@@ -506,7 +506,7 @@ Last Reviewed: 2026-01-20
 
 ---
 
-### R-004 — BoostRepository only has Stub implementation
+### R-004 — BoostRepository only has Stub implementation (RESOLVED)
 
 Category: Backend dependencies
 
@@ -521,15 +521,17 @@ Affected Areas:
 * lib/features/discovery/data/repositories/boost_repository.dart
 * lib/core/di.dart
 
-Mitigation Plan:
-* Implement FirebaseBoostRepository
-* Gate the boost UI behind feature flag until ready
+Resolution:
+* ✅ Implemented FirebaseBoostRepository
+* ✅ Updated DI to use Firebase implementation for production
+* Boost data stored in Firestore `boosts` collection
+* Subscription-based cooldowns and durations working
 
-Status: Open
+Status: Closed
 
-Owner: Developer
+Owner: AI
 
-Last Reviewed: 2026-01-20
+Resolved: 2026-01-25
 
 ---
 

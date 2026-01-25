@@ -18,6 +18,7 @@ import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_rep
 import 'package:crushhour/features/calls/data/repositories/impl/firebase_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/firebase_boost_repository.dart';
 
 // Stub implementations (for development/demo without backend)
 import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
@@ -146,8 +147,7 @@ class CrushDI {
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
         featureFlagRepo = FirebaseFeatureFlagRepository();
-        // Use stub boost repo until Firebase implementation is added
-        boostRepo = StubBoostRepository(subscriptionRepository: subRepo);
+        boostRepo = FirebaseBoostRepository(subscriptionRepository: subRepo);
 
       case BackendMode.http:
         // HTTP implementations for REST API backend

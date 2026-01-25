@@ -329,18 +329,6 @@ firebase deploy --only functions:fetchDiscoveryCandidates
 
 ## 7. Files Cleaned Up This Audit
 
-### 7.1 Duplicate Directories Removed
-
-| Directory | Action |
-|-----------|--------|
-| `macos/Runner 2` | ✅ Deleted |
-| `.dart_tool 2` | ✅ Deleted |
-| `ios/.symlinks 2` | ✅ Deleted |
-| `ios/Flutter/ephemeral 2` | ✅ Deleted |
-| `ios/Pods/abseil 2` | ✅ Deleted |
-| `ios/Pods/FirebaseStorage 2` | ✅ Deleted |
-| `ios/Pods/FirebaseABTesting 2` | ✅ Deleted |
-
 ### 7.2 .gitignore Status
 
 The `.gitignore` file is comprehensive and includes:
@@ -368,7 +356,6 @@ The `.gitignore` file is comprehensive and includes:
 
 | Risk ID | Description | Severity | Status |
 |---------|-------------|----------|--------|
-| R-004 | BoostRepository only has Stub implementation | Medium | Open - gate UI until ready |
 | R-109 | Call screen uses placeholder caller ID | Medium | Open - pass real user ID |
 | R-113 | Message request migration is client-driven | Medium | Open - add backend migration |
 | R-114 | Deck preloading may increase memory usage | Low | Mitigated - capped at 4 profiles |
@@ -377,6 +364,7 @@ The `.gitignore` file is comprehensive and includes:
 
 | Risk ID | Description | Resolution |
 |---------|-------------|------------|
+| R-004 | BoostRepository only has Stub implementation | ✅ FirebaseBoostRepository implemented |
 | R-100 | User data leakage on logout | ✅ Data clearance service implemented |
 | R-101 | Sign-out trapped in onboarding | ✅ Router logout route always allowed |
 | R-102 | Name privacy defaults hide names | ✅ Onboarding explains privacy toggle |
