@@ -115,7 +115,7 @@ class LogoutScreen extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: DsColors.surfaceLight,
                             ),
                           )
                         : const Text('Log out'),

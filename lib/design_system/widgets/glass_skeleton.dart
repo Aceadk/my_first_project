@@ -58,13 +58,8 @@ class _GlassSkeletonState extends State<GlassSkeleton>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark
-        ? DsGlassColors.surfaceDark
-        : DsGlassColors.surfaceLight;
-    final highlightColor = isDark
-        ? DsGlassColors.highlightStrong
-        : DsGlassColors.highlight;
+    final baseColor = DsGlassColors.surfaceFor(context);
+    final highlightColor = DsGlassColors.highlightFor(context, strong: true);
 
     return AnimatedBuilder(
       animation: _animation,
@@ -101,9 +96,7 @@ class _GlassSkeletonState extends State<GlassSkeleton>
                   ],
                 ),
                 border: Border.all(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 0.5,
                 ),
               ),
@@ -126,7 +119,7 @@ class GlassSkeletonCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(DsRadius.lg),
         border: Border.all(
-          color: DsGlassColors.borderLight,
+          color: DsGlassColors.borderFor(context),
           width: 1,
         ),
       ),

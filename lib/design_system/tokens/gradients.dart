@@ -8,7 +8,7 @@ class DsGradients {
   DsGradients._();
 
   // ============================================
-  // Brand Gradients (Pink to Purple)
+  // Brand Gradients (Rose to Plum)
   // ============================================
 
   /// Primary brand gradient - vertical (top to bottom)
@@ -32,28 +32,35 @@ class DsGradients {
     colors: [DsColors.primary, DsColors.secondary],
   );
 
+  /// Soft rose gradient (used for subtle accents)
+  static const LinearGradient roseSoft = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF6F86), Color(0xFFFFA3B1)],
+  );
+
   // ============================================
   // Tab-Specific Gradients
   // ============================================
 
   /// Discover tab gradient (red-orange flame)
   static const LinearGradient discover = LinearGradient(
-    colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+    colors: [Color(0xFFFF4D6D), Color(0xFFFF7A8F)],
   );
 
   /// Matches tab gradient (pink-rose)
   static const LinearGradient matches = LinearGradient(
-    colors: [DsColors.primary, Color(0xFFFF6B9D)],
+    colors: [Color(0xFFFF6F86), Color(0xFFFF9FB1)],
   );
 
   /// Chats tab gradient (purple)
   static const LinearGradient chats = LinearGradient(
-    colors: [DsColors.secondary, Color(0xFF9D6BFF)],
+    colors: [DsColors.secondary, Color(0xFF9A8BFF)],
   );
 
   /// Profile tab gradient (blue)
   static const LinearGradient profile = LinearGradient(
-    colors: [Color(0xFF6B8BFF), Color(0xFF5B7AEA)],
+    colors: [Color(0xFF5C87FF), Color(0xFF7B6CFF)],
   );
 
   // ============================================
@@ -65,8 +72,8 @@ class DsGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Colors.white.withValues(alpha: 0.25),
-      Colors.white.withValues(alpha: 0.05),
+      Colors.white.withValues(alpha: 0.18),
+      Colors.white.withValues(alpha: 0.04),
     ],
   );
 
@@ -75,7 +82,7 @@ class DsGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Colors.white.withValues(alpha: 0.15),
+      Colors.white.withValues(alpha: 0.12),
       Colors.white.withValues(alpha: 0.02),
     ],
   );
@@ -89,9 +96,9 @@ class DsGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0x10FF4081), // 6% pink
-      Color(0x107C4DFF), // 6% purple
-      Color(0x10FF4081), // 6% pink
+      Color(0x12FF4D6D), // 7% rose
+      Color(0x127B6CFF), // 7% plum
+      Color(0x104DD6A7), // 6% mint
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -101,8 +108,8 @@ class DsGradients {
     center: Alignment.topRight,
     radius: 1.5,
     colors: [
-      Color(0x15FF4081), // 8% pink
-      Color(0x10FF4081), // 6% pink
+      Color(0x16FF4D6D), // 9% rose
+      Color(0x0FFF4D6D), // 6% rose
       Colors.transparent,
     ],
     stops: [0.0, 0.3, 1.0],
@@ -113,8 +120,8 @@ class DsGradients {
     center: Alignment.bottomLeft,
     radius: 1.2,
     colors: [
-      Color(0x127C4DFF), // 7% purple
-      Color(0x0A7C4DFF), // 4% purple
+      Color(0x127B6CFF), // 7% plum
+      Color(0x0A7B6CFF), // 4% plum
       Colors.transparent,
     ],
     stops: [0.0, 0.4, 1.0],
@@ -130,7 +137,7 @@ class DsGradients {
     end: Alignment.bottomRight,
     colors: [
       Color(0x60FFFFFF), // 38% white
-      Color(0x20FFFFFF), // 12% white
+      Color(0x26FFFFFF), // 15% white
     ],
   );
 
@@ -139,8 +146,8 @@ class DsGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0x40FFFFFF), // 25% white
-      Color(0x10FFFFFF), // 6% white
+      Color(0x33FFFFFF), // 20% white
+      Color(0x12FFFFFF), // 7% white
     ],
   );
 
@@ -149,8 +156,8 @@ class DsGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0x60FF4081), // 38% pink
-      Color(0x607C4DFF), // 38% purple
+      Color(0x60FF4D6D), // 38% rose
+      Color(0x607B6CFF), // 38% plum
     ],
   );
 

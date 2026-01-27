@@ -5,6 +5,7 @@ import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 
 /// Animated typing indicator with three bouncing dots.
 class TypingIndicator extends StatefulWidget {
@@ -88,8 +89,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dotColor = widget.dotColor ??
         (isDark ? DsColors.textMutedDark : DsColors.textMutedLight);
-    final bgColor = widget.backgroundColor ??
-        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
+    final bgColor = widget.backgroundColor ?? DsGlassColors.surfaceFor(context);
 
     final dots = Row(
       mainAxisSize: MainAxisSize.min,
@@ -134,9 +134,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
             color: bgColor,
             borderRadius: BorderRadius.circular(DsRadius.lg),
             border: Border.all(
-              color: isDark
-                  ? DsGlassColors.borderDark
-                  : DsGlassColors.borderLight,
+              color: DsGlassColors.borderFor(context),
               width: 0.5,
             ),
           ),
@@ -180,9 +178,10 @@ class TypingBubble extends StatelessWidget {
           if (showAvatar) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: isDark
-                  ? DsGlassColors.surfaceMediumDark
-                  : DsGlassColors.surfaceMediumLight,
+              backgroundColor: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.medium,
+              ),
               backgroundImage:
                   avatarUrl != null ? NetworkImage(avatarUrl!) : null,
               child: avatarUrl == null
@@ -238,8 +237,10 @@ class AnimatedTypingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final motionScale =
+        Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: (200 * motionScale).round()),
       transitionBuilder: (child, animation) {
         return FadeTransition(
           opacity: animation,

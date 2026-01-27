@@ -12,6 +12,7 @@ import 'core/constants/network_constants.dart';
 import 'core/deep_link_bootstrap.dart';
 import 'core/services/app_state_preserver.dart';
 import 'core/services/location_service.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -201,16 +202,25 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) => _handleAuthStateChange(state),
-      child: BlocBuilder<ThemeCubit, ThemeMode>(
+      child: BlocBuilder<ThemeCubit, AppThemeMode>(
         builder: (context, themeMode) {
+          final materialMode = switch (themeMode) {
+            AppThemeMode.system => ThemeMode.system,
+            AppThemeMode.light => ThemeMode.light,
+            AppThemeMode.dark => ThemeMode.dark,
+            AppThemeMode.darkLuxury => ThemeMode.dark,
+          };
+          final darkTheme = themeMode == AppThemeMode.darkLuxury
+              ? CrushTheme.darkLuxury()
+              : CrushTheme.dark();
           return BlocBuilder<LocaleCubit, LocaleState>(
             builder: (context, localeState) {
               return DeepLinkBootstrap(
                 child: MaterialApp.router(
                   title: 'Crush',
                   theme: CrushTheme.light(),
-                  darkTheme: CrushTheme.dark(),
-                  themeMode: themeMode,
+                  darkTheme: darkTheme,
+                  themeMode: materialMode,
                   routerConfig: _router,
                   debugShowCheckedModeBanner: false,
                   // Localization

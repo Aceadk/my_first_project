@@ -82,12 +82,12 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             colors: isDark
                 ? [
                     DsColors.backgroundDark,
-                    const Color(0xFF1A1A2E),
+                    DsColors.secondary.withValues(alpha: 0.22),
                     DsColors.backgroundDark,
                   ]
                 : [
                     DsColors.backgroundLight,
-                    const Color(0xFFF8F0FF),
+                    DsColors.secondary.withValues(alpha: 0.08),
                     DsColors.backgroundLight,
                   ],
           ),
@@ -361,7 +361,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                       height: 24,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: Colors.white,
+                                        color: DsColors.surfaceLight,
                                       ),
                                     )
                                   : const Row(
@@ -391,7 +391,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   if (isBusy)
                     Positioned.fill(
                       child: Container(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: DsColors.ink900.withValues(alpha: 0.3),
                         child: const Center(
                           child: CircularProgressIndicator(
                             color: DsColors.primary,
@@ -594,7 +594,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
               primary: DsColors.primary,
-              onPrimary: Colors.white,
+              onPrimary: DsColors.surfaceLight,
               surface: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
               onSurface: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
             ),
@@ -765,7 +765,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                           ? const Icon(
                               Icons.check,
                               size: 16,
-                              color: Colors.white,
+                              color: DsColors.surfaceLight,
                             )
                           : null,
                     ),
@@ -906,10 +906,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
           icon: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
+              color: DsColors.warning.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.elderly, color: Colors.orange, size: 40),
+            child: const Icon(Icons.elderly, color: DsColors.warning, size: 40),
           ),
           title: Text(
             'Age Notice',

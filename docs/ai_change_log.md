@@ -3900,3 +3900,93 @@ Follow-ups / TODO:
 - Consider json_serializable/freezed adoption in dedicated refactoring session
 
 ---
+
+### [2026-01-27] Task: Web App Feature Parity Audit & Roadmap
+
+Summary:
+- Conducted comprehensive analysis of both Flutter mobile app and Next.js web app
+- Discovered web app exists at `/Users/ace/Desktop/crush-web` (separate from Flutter project)
+- Web app is live at https://crush-web-chi.vercel.app with ~60% implementation complete
+- Created detailed feature parity comparison and prioritized roadmap
+- Updated TODO_WEBAPP.md with accurate current status
+
+Analysis Results:
+
+**Mobile App (Flutter) - Complete:**
+- 12 feature modules: auth, discovery, chat, profile, settings, calls, social, analytics, subscription, safety, verification, feature_flags
+- 50+ screens
+- 30+ BLoCs/Cubits
+- 3 data backends (Firebase, HTTP, Stub)
+
+**Web App (Next.js) - 60% Complete:**
+- Phase 0: Foundation - 100% ✓
+- Phase 1: Authentication - 85% ✓
+- Phase 2: Onboarding - 100% ✓
+- Phase 3: Discovery - 75%
+- Phase 4: Messaging - 80%
+- Phase 5: Profile & Settings - 50%
+- Phase 6: Safety & Social - 10%
+- Phase 7: Subscription - 60%
+- Phase 8: Marketing Website - 50%
+- Phase 9: Polish & Testing - 0%
+
+**Web App Tech Stack:**
+- Framework: Next.js 14 (App Router)
+- State: Zustand + React Query
+- UI: Tailwind CSS + Radix UI + @crush/ui
+- Backend: Firebase (shared with mobile)
+- Payments: Stripe
+- Deployment: Vercel
+
+Files Modified:
+- docs/TODO_WEBAPP.md - Complete rewrite with:
+  - Accurate implementation status (was 0%, now 60%)
+  - All completed features marked with [x]
+  - All pending features marked with [ ]
+  - Feature parity comparison table
+  - Prioritized roadmap (P0/P1/P2/P3)
+  - Architecture notes and folder structure
+  - Updated change log
+
+Key Features Implemented in Web:
+- Email/password & phone OTP authentication
+- Complete onboarding flow with location
+- Swipe deck with like/pass actions
+- Match celebration modal
+- Real-time messaging with typing indicators
+- Profile view/edit/preview
+- Settings with theme toggle
+- Premium page with Stripe checkout
+- Marketing pages (about, help, privacy, terms)
+
+Key Features Missing in Web (vs Mobile):
+- Likes You page (P1)
+- Weekly Picks page (P2)
+- Photo sharing in chat (P1)
+- Message reactions (P2)
+- Voice notes (P3)
+- Audio/Video calls (P3)
+- Privacy/Discovery settings (P1)
+- Account management (P1)
+- Date safety features (P3)
+- Date ideas & compatibility quiz (P3)
+
+Verification:
+- Explored both codebases using Task agents
+- Read key implementation files directly
+- Verified web app structure and routes
+- Confirmed deployment at Vercel
+
+Risks & Mitigations:
+- Risk: Web app in separate directory from mobile app
+- Mitigation: Documented both paths in TODO_WEBAPP.md
+- Risk: Feature drift between platforms
+- Mitigation: Created parity table with priorities
+
+Follow-ups / TODO:
+- Implement P1 features: Terms step, Privacy/Discovery settings, Likes You page
+- Add photo sharing to chat
+- Complete Report/Block Firestore integration
+- Add E2E tests before adding more features
+
+---

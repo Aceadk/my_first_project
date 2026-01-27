@@ -13,6 +13,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
@@ -250,13 +251,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (!selfVerified && _showVerificationBanner)
                     Container(
                       width: double.infinity,
-                      color: Colors.orange.withAlpha((0.12 * 255).round()),
+                      color: DsColors.warning.withValues(alpha: 0.12),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.privacy_tip_outlined,
-                            color: Colors.orange,
+                            color: DsColors.warning,
                           ),
                           DsGap.smH,
                           const Expanded(
@@ -294,7 +295,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: Colors.grey),
+                                  ?.copyWith(color: DsColors.ink300),
                             ),
                           ),
                         ],
@@ -311,13 +312,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         style: Theme.of(context)
                             .textTheme
                             .bodySmall
-                            ?.copyWith(color: Colors.orange),
+                            ?.copyWith(color: DsColors.warning),
                       ),
                     ),
                   if (_isNetworkError(state.errorMessage))
                     Container(
                       width: double.infinity,
-                      color: Colors.red.withAlpha((0.08 * 255).round()),
+                      color: DsColors.error.withValues(alpha: 0.08),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
@@ -343,16 +344,21 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (state.isUnmatched)
                     Container(
                       width: double.infinity,
-                      color: Colors.blueGrey.withAlpha((0.12 * 255).round()),
+                      color: DsColors.ink400.withValues(alpha: 0.12),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.heart_broken, color: Colors.white70),
+                          Icon(
+                            Icons.heart_broken,
+                            color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                          ),
                           DsGap.smH,
                           Expanded(
                             child: Text(
                               'You unmatched with ${widget.args.otherName}. You can still browse history, but messaging is disabled.',
-                              style: const TextStyle(color: Colors.white70),
+                              style: TextStyle(
+                                color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                              ),
                             ),
                           ),
                         ],
@@ -361,7 +367,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   else if (isBlocked)
                     Container(
                       width: double.infinity,
-                      color: Colors.red.withAlpha((0.1 * 255).round()),
+                      color: DsColors.error.withValues(alpha: 0.1),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
@@ -387,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   else if (!canMessage)
                     Container(
                       width: double.infinity,
-                      color: Colors.orange.withAlpha((0.1 * 255).round()),
+                      color: DsColors.warning.withValues(alpha: 0.1),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
@@ -425,7 +431,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   else if (messagesMuted || callsMuted)
                     Container(
                       width: double.infinity,
-                      color: Colors.orange.withAlpha((0.1 * 255).round()),
+                      color: DsColors.warning.withValues(alpha: 0.1),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
@@ -464,12 +470,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (!state.mediaSendingEnabled && !state.isUnmatched)
                     Container(
                       width: double.infinity,
-                      color: Colors.blueGrey.withAlpha((0.1 * 255).round()),
+                      color: DsColors.ink400.withValues(alpha: 0.1),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
                           const Icon(Icons.no_photography,
-                              color: Colors.white70),
+                              color: DsColors.surfaceLight.withValues(alpha: 0.7)),
                           DsGap.smH,
                           const Expanded(
                             child: Text(
@@ -571,9 +577,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                     .withValues(alpha: 0.7),
                                                               ]
                                                             : [
-                                                                DsGlassColors.surfaceDark
+                                                                DsGlassColors.surfaceFor(context)
                                                                     .withValues(alpha: 0.6),
-                                                                DsGlassColors.surfaceDark
+                                                                DsGlassColors.surfaceFor(context)
                                                                     .withValues(alpha: 0.4),
                                                               ],
                                                       ),
@@ -582,14 +588,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         color: isMe
                                                             ? DsColors.primary
                                                                 .withValues(alpha: 0.3)
-                                                            : DsGlassColors.borderLight,
+                                                            : DsGlassColors.borderFor(context),
                                                         width: 1,
                                                       ),
                                                       boxShadow: [
                                                         BoxShadow(
                                                           color: (isMe
                                                                   ? DsColors.primary
-                                                                  : Colors.black)
+                                                                  : DsColors.ink900)
                                                               .withValues(alpha: 0.15),
                                                           blurRadius: 8,
                                                           offset: const Offset(0, 2),
@@ -624,7 +630,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           child: CircularProgressIndicator(
                                                             strokeWidth: 1.5,
                                                             valueColor: AlwaysStoppedAnimation(
-                                                              Colors.white.withValues(alpha: 0.5),
+                                                              DsColors.surfaceLight.withValues(alpha: 0.5),
                                                             ),
                                                           ),
                                                         ),
@@ -633,7 +639,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           'Sending...',
                                                           style: TextStyle(
                                                             fontSize: 10,
-                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                            color: DsColors.surfaceLight.withValues(alpha: 0.5),
                                                           ),
                                                         ),
                                                       ],
@@ -653,7 +659,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           _formatTime(msg.sentAt),
                                                           style: TextStyle(
                                                             fontSize: 10,
-                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                            color: DsColors.surfaceLight.withValues(alpha: 0.5),
                                                           ),
                                                         ),
                                                         const SizedBox(width: 4),
@@ -662,14 +668,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           const Icon(
                                                             Icons.done_all,
                                                             size: 14,
-                                                            color: Colors.blue,
+                                                            color: DsColors.info,
                                                           ),
                                                           const SizedBox(width: 2),
                                                           const Text(
                                                             'Seen',
                                                             style: TextStyle(
                                                               fontSize: 10,
-                                                              color: Colors.blue,
+                                                              color: DsColors.info,
                                                               fontWeight: FontWeight.w500,
                                                             ),
                                                           ),
@@ -678,7 +684,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           Icon(
                                                             Icons.done,
                                                             size: 14,
-                                                            color: Colors.white.withValues(alpha: 0.5),
+                                                            color: DsColors.surfaceLight.withValues(alpha: 0.5),
                                                           ),
                                                         ],
                                                       ],
@@ -701,8 +707,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                             : Icons.shield_outlined,
                                                         size: 14,
                                                         color: isHeld
-                                                            ? Colors.redAccent
-                                                            : Colors.amber,
+                                                            ? DsColors.error
+                                                            : DsColors.warning,
                                                       ),
                                                       DsGap.xsH,
                                                       Flexible(
@@ -715,8 +721,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           style: TextStyle(
                                                             fontSize: 11,
                                                             color: isHeld
-                                                                ? Colors.redAccent
-                                                                : Colors.amber.shade200,
+                                                                ? DsColors.error
+                                                                : DsColors.warning,
                                                           ),
                                                         ),
                                                       ),
@@ -740,7 +746,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                     horizontal: 8,
                                                                     vertical: 4),
                                                             decoration: BoxDecoration(
-                                                              color: Colors.black54,
+                                                              color: DsColors.ink900.withValues(alpha: 0.54),
                                                               borderRadius:
                                                                   BorderRadius.circular(
                                                                       12),
@@ -770,14 +776,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       const Icon(
                                                         Icons.error_outline,
                                                         size: 14,
-                                                        color: Colors.redAccent,
+                                                        color: DsColors.error,
                                                       ),
                                                       DsGap.xsH,
                                                       const Text(
                                                         'Failed to send',
                                                         style: TextStyle(
                                                           fontSize: 11,
-                                                          color: Colors.redAccent,
+                                                          color: DsColors.error,
                                                         ),
                                                       ),
                                                       DsGap.smH,
@@ -794,7 +800,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           'Retry',
                                                           style: TextStyle(
                                                             fontSize: 12,
-                                                            color: Colors.blue,
+                                                            color: DsColors.info,
                                                             fontWeight: FontWeight.w600,
                                                             decoration: TextDecoration.underline,
                                                           ),
@@ -820,7 +826,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         height: 12,
                                                         child: CircularProgressIndicator(
                                                           strokeWidth: 1.5,
-                                                          valueColor: AlwaysStoppedAnimation(Colors.grey),
+                                                          valueColor: AlwaysStoppedAnimation(DsColors.ink300),
                                                         ),
                                                       ),
                                                       SizedBox(width: 6),
@@ -828,7 +834,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         'Sending...',
                                                         style: TextStyle(
                                                           fontSize: 11,
-                                                          color: Colors.grey,
+                                                          color: DsColors.ink300,
                                                         ),
                                                       ),
                                                     ],
@@ -880,7 +886,7 @@ class _ChatScreenState extends State<ChatScreen> {
     required bool callsMuted,
     required SafetyCubit safety,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight + 8),
@@ -896,21 +902,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.85),
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.7),
+                  baseSurface.withValues(alpha: 0.85),
+                  baseSurface.withValues(alpha: 0.7),
                 ],
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 0.5,
                 ),
               ),
@@ -939,9 +937,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               border: Border.all(
                                 color: state.otherUserOnline
                                     ? DsColors.onlineIndicator
-                                    : (isDark
-                                        ? DsGlassColors.borderDark
-                                        : DsGlassColors.borderLight),
+                                    : DsGlassColors.borderFor(context),
                                 width: 2,
                               ),
                               boxShadow: state.otherUserOnline
@@ -964,15 +960,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                       fit: BoxFit.cover,
                                     )
                                   : Container(
-                                      color: isDark
-                                          ? DsGlassColors.surfaceDark
-                                          : DsGlassColors.surfaceLight,
+                                      color: DsGlassColors.surfaceFor(context),
                                       child: Icon(
                                         Icons.person,
                                         size: 20,
                                         color: isDark
-                                            ? Colors.white54
-                                            : Colors.black38,
+                                            ? DsColors.surfaceLight.withValues(alpha: 0.54)
+                                            : DsColors.ink900.withValues(alpha: 0.38),
                                       ),
                                     ),
                             ),
@@ -988,7 +982,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   color: DsColors.onlineIndicator,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: isDark ? Colors.black : Colors.white,
+                                    color: isDark ? DsColors.ink900 : DsColors.surfaceLight,
                                     width: 2,
                                   ),
                                   boxShadow: [
@@ -1203,6 +1197,8 @@ class _ChatScreenState extends State<ChatScreen> {
     const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
     final myReaction = message.reactions[widget.args.currentUserId];
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     showModalBottomSheet<void>(
       context: context,
@@ -1213,12 +1209,10 @@ class _ChatScreenState extends State<ChatScreen> {
           filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark
-                  ? DsGlassColors.surfaceDark.withValues(alpha: 0.9)
-                  : DsGlassColors.surfaceLight.withValues(alpha: 0.95),
+              color: baseSurface.withValues(alpha: isDark ? 0.9 : 0.95),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               border: Border.all(
-                color: isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+                color: borderBase,
                 width: 0.5,
               ),
             ),
@@ -1233,7 +1227,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white24 : Colors.black12,
+                        color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1244,8 +1238,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03),
+                          ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                          : DsColors.ink900.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: Row(
@@ -1368,13 +1362,12 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showEditMessageDialog(Message message) {
     final controller = TextEditingController(text: message.content);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: isDark
-            ? DsGlassColors.surfaceDark.withValues(alpha: 0.95)
-            : DsGlassColors.surfaceLight.withValues(alpha: 0.98),
+        backgroundColor: baseSurface.withValues(alpha: isDark ? 0.95 : 0.98),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DsRadius.lg),
         ),
@@ -1524,6 +1517,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
+    final motionScale =
+        Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
 
     return ClipRRect(
       child: BackdropFilter(
@@ -1535,21 +1532,13 @@ class _ChatScreenState extends State<ChatScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                (isDark
-                        ? DsGlassColors.surfaceDark
-                        : DsGlassColors.surfaceLight)
-                    .withValues(alpha: 0.85),
-                (isDark
-                        ? DsGlassColors.surfaceDark
-                        : DsGlassColors.surfaceLight)
-                    .withValues(alpha: 0.7),
+                baseSurface.withValues(alpha: 0.85),
+                baseSurface.withValues(alpha: 0.7),
               ],
             ),
             border: Border(
               top: BorderSide(
-                color: isDark
-                    ? DsGlassColors.borderDark
-                    : DsGlassColors.borderLight,
+                color: borderBase,
                 width: 0.5,
               ),
             ),
@@ -1564,7 +1553,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   // Media action buttons - hide when user is typing
                   AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Duration(milliseconds: (200 * motionScale).round()),
                     curve: Curves.easeInOut,
                     child: _hasInputText
                         ? const SizedBox.shrink()
@@ -1576,19 +1565,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                 end: Alignment.bottomRight,
                                 colors: isDark
                                     ? [
-                                        Colors.white.withValues(alpha: 0.08),
-                                        Colors.white.withValues(alpha: 0.04),
+                                        DsColors.surfaceLight.withValues(alpha: 0.08),
+                                        DsColors.surfaceLight.withValues(alpha: 0.04),
                                       ]
                                     : [
-                                        Colors.black.withValues(alpha: 0.04),
-                                        Colors.black.withValues(alpha: 0.02),
+                                        DsColors.ink900.withValues(alpha: 0.04),
+                                        DsColors.ink900.withValues(alpha: 0.02),
                                       ],
                               ),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: isDark
-                                    ? DsGlassColors.borderDark.withValues(alpha: 0.5)
-                                    : DsGlassColors.borderLight.withValues(alpha: 0.5),
+                                color: borderBase.withValues(alpha: 0.5),
                                 width: 0.5,
                               ),
                             ),
@@ -1620,7 +1607,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   // Spacing between media buttons and text field
                   AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Duration(milliseconds: (200 * motionScale).round()),
                     curve: Curves.easeInOut,
                     child: _hasInputText
                         ? const SizedBox.shrink()
@@ -1636,24 +1623,22 @@ class _ChatScreenState extends State<ChatScreen> {
                           end: Alignment.bottomRight,
                           colors: isDark
                               ? [
-                                  Colors.white.withValues(alpha: 0.1),
-                                  Colors.white.withValues(alpha: 0.05),
+                                  DsColors.surfaceLight.withValues(alpha: 0.1),
+                                  DsColors.surfaceLight.withValues(alpha: 0.05),
                                 ]
                               : [
-                                  Colors.black.withValues(alpha: 0.05),
-                                  Colors.black.withValues(alpha: 0.02),
+                                  DsColors.ink900.withValues(alpha: 0.05),
+                                  DsColors.ink900.withValues(alpha: 0.02),
                                 ],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: isDark
-                              ? DsGlassColors.borderDark
-                              : DsGlassColors.borderLight,
+                          color: borderBase,
                           width: 0.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: DsColors.ink900.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -1668,14 +1653,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         keyboardType: TextInputType.multiline,
                         textInputAction: TextInputAction.newline,
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: isDark ? DsColors.surfaceLight : DsColors.ink900.withValues(alpha: 0.87),
                         ),
                         decoration: InputDecoration(
                           hintText: 'Type a message...',
                           hintStyle: TextStyle(
                             color: isDark
-                                ? Colors.white38
-                                : Colors.black38,
+                                ? DsColors.surfaceLight.withValues(alpha: 0.38)
+                                : DsColors.ink900.withValues(alpha: 0.38),
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
@@ -1722,10 +1707,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor:
-                                    AlwaysStoppedAnimation(Colors.white),
+                                    AlwaysStoppedAnimation(DsColors.surfaceLight),
                               ),
                             )
-                          : const Icon(Icons.send_rounded, color: Colors.white),
+                          : const Icon(Icons.send_rounded, color: DsColors.surfaceLight),
                       onPressed: isSendingText
                           ? null
                           : () async {
@@ -1831,8 +1816,8 @@ class _ChatScreenState extends State<ChatScreen> {
               color: isEnabled
                   ? (isActive
                       ? DsColors.primary
-                      : (isDark ? Colors.white70 : Colors.black54))
-                  : (isDark ? Colors.white24 : Colors.black26),
+                      : (isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54)))
+                  : (isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26)),
             ),
           ),
         ),
@@ -1851,7 +1836,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.shield, size: 16, color: Colors.white),
+          Icon(Icons.shield, size: 16, color: DsColors.surfaceLight),
           SizedBox(width: 6),
           Flexible(
             child: Text(
@@ -1953,16 +1938,15 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Builds a styled error placeholder for media that fails to load.
   Widget _buildMediaErrorPlaceholder(IconData icon, String message) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
     return Container(
       width: 220,
       height: 160,
       decoration: BoxDecoration(
-        color: isDark
-            ? DsGlassColors.surfaceDark.withValues(alpha: 0.6)
-            : DsGlassColors.surfaceLight.withValues(alpha: 0.8),
+        color: baseSurface.withValues(alpha: isDark ? 0.6 : 0.8),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+          color: DsGlassColors.borderFor(context),
           width: 0.5,
         ),
       ),
@@ -2180,9 +2164,13 @@ class _ChatScreenState extends State<ChatScreen> {
     ProfileCompletenessSummary completeness,
     bool isDark,
   ) {
+    final titleColor =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final iconColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      backgroundColor:
+          isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -2195,12 +2183,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ListTile(
                 leading: Icon(
                   Icons.photo_rounded,
-                  color: isDark ? Colors.white70 : Colors.black87,
+                  color: iconColor,
                 ),
                 title: Text(
                   'Photo',
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
+                    color: titleColor,
                   ),
                 ),
                 onTap: () {
@@ -2211,12 +2199,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ListTile(
                 leading: Icon(
                   Icons.videocam_rounded,
-                  color: isDark ? Colors.white70 : Colors.black87,
+                  color: iconColor,
                 ),
                 title: Text(
                   'Video',
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
+                    color: titleColor,
                   ),
                 ),
                 onTap: () {
@@ -2543,6 +2531,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showMatchChatSettings(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
     // Get current user's premium status from auth
     final authState = context.read<AuthBloc>().state;
     final isPremium = authState.user?.plan.isPlus ?? false;
@@ -2567,12 +2557,10 @@ class _ChatScreenState extends State<ChatScreen> {
             filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark
-                    ? DsGlassColors.surfaceDark.withValues(alpha: 0.95)
-                    : DsGlassColors.surfaceLight.withValues(alpha: 0.98),
+                color: baseSurface.withValues(alpha: isDark ? 0.95 : 0.98),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 border: Border.all(
-                  color: isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+                  color: borderBase,
                   width: 0.5,
                 ),
               ),
@@ -2602,7 +2590,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             width: 40,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white24 : Colors.black12,
+                              color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -2650,13 +2638,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                 onPressed: () => Navigator.of(context).pop(),
                                 icon: Icon(
                                   Icons.close,
-                                  color: isDark ? Colors.white54 : Colors.black45,
+                                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.54) : DsColors.ink90045,
                                   size: 22,
                                 ),
                                 style: IconButton.styleFrom(
                                   backgroundColor: isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
-                                      : Colors.black.withValues(alpha: 0.05),
+                                      ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                                      : DsColors.ink900.withValues(alpha: 0.05),
                                 ),
                               ),
                             ],
@@ -2667,7 +2655,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Divider(
                             height: 1,
-                            color: isDark ? Colors.white12 : Colors.black12,
+                            color: isDark
+                                ? DsColors.surfaceLight.withValues(alpha: 0.12)
+                                : DsColors.ink900.withValues(alpha: 0.12),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -2701,11 +2691,13 @@ class _ChatScreenState extends State<ChatScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.03),
+                                  ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                                  : DsColors.ink900.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                color: isDark
+                                    ? DsColors.surfaceLight.withValues(alpha: 0.1)
+                                    : DsColors.ink900.withValues(alpha: 0.05),
                               ),
                             ),
                             child: Column(
@@ -2783,8 +2775,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          Colors.amber.withValues(alpha: 0.15),
-                                          Colors.orange.withValues(alpha: 0.1),
+                                          DsColors.warning.withValues(alpha: 0.15),
+                                          DsColors.warning.withValues(alpha: 0.1),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(10),
@@ -2792,13 +2784,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.workspace_premium, color: Colors.amber, size: 18),
+                                        const Icon(Icons.workspace_premium, color: DsColors.warning, size: 18),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Plus: 7 days retention',
                                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.amber.shade700,
+                                            color: DsColors.warning,
                                           ),
                                         ),
                                       ],
@@ -3035,4 +3027,3 @@ class _LoadMoreIndicator extends StatelessWidget {
     );
   }
 }
-

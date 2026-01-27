@@ -24,24 +24,24 @@ class ChatAttachmentTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.black26,
+          color: DsColors.ink900.withValues(alpha: 0.26),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: Colors.white70),
+            Icon(icon, size: 18, color: DsColors.surfaceLight.withValues(alpha: 0.7)),
             DsGap.xsH,
             Text(
               label,
               style: const TextStyle(
                 decoration: TextDecoration.underline,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
               ),
             ),
             if (isLocal) ...[
               DsGap.xsH,
-              const Icon(Icons.check_circle, size: 14, color: Colors.green),
+              const Icon(Icons.check_circle, size: 14, color: DsColors.success),
             ],
           ],
         ),

@@ -178,7 +178,7 @@ class UpdateDialog extends StatelessWidget {
           onPressed: onUpdate,
           style: ElevatedButton.styleFrom(
             backgroundColor: DsColors.primary,
-            foregroundColor: Colors.white,
+            foregroundColor: DsColors.surfaceLight,
           ),
           child: Text(updateButtonText),
         ),

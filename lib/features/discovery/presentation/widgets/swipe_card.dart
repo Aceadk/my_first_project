@@ -292,7 +292,7 @@ class _SwipeCardState extends State<SwipeCard> {
       container: true,
       child: Container(
       // Full-screen immersive card - no borders, no shadows, pure photo
-      color: Colors.black,
+      color: DsColors.ink900,
       child: Stack(
           fit: StackFit.expand,
           children: [
@@ -380,9 +380,9 @@ class _SwipeCardState extends State<SwipeCard> {
                     begin: Alignment.bottomCenter,
                     end: const Alignment(0, -0.3), // Extend higher for action buttons
                     colors: [
-                      Colors.black.withValues(alpha: 0.85),
-                      Colors.black.withValues(alpha: 0.6),
-                      Colors.black.withValues(alpha: 0.3),
+                      DsColors.ink900.withValues(alpha: 0.85),
+                      DsColors.ink900.withValues(alpha: 0.6),
+                      DsColors.ink900.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.25, 0.5, 0.75],
@@ -399,8 +399,8 @@ class _SwipeCardState extends State<SwipeCard> {
                     begin: Alignment.topCenter,
                     end: Alignment.center,
                     colors: [
-                      Colors.black.withValues(alpha: 0.35),
-                      Colors.black.withValues(alpha: 0.15),
+                      DsColors.ink900.withValues(alpha: 0.35),
+                      DsColors.ink900.withValues(alpha: 0.15),
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.15, 0.35],
@@ -545,11 +545,11 @@ class _SwipeCardState extends State<SwipeCard> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: DsColors.surfaceLight.withValues(alpha: 0.9),
                             fontSize: 13,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withValues(alpha: 0.8),
+                                color: DsColors.ink900.withValues(alpha: 0.8),
                                 blurRadius: 8,
                                 offset: const Offset(0, 1),
                               ),
@@ -563,10 +563,10 @@ class _SwipeCardState extends State<SwipeCard> {
                           Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: DsColors.surfaceLight.withValues(alpha: 0.85),
                             shadows: [
                               Shadow(
-                                color: Colors.black.withValues(alpha: 0.8),
+                                color: DsColors.ink900.withValues(alpha: 0.8),
                                 blurRadius: 6,
                               ),
                             ],
@@ -578,11 +578,11 @@ class _SwipeCardState extends State<SwipeCard> {
                                   ? 'Location unavailable'
                                   : location,
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.85),
+                                color: DsColors.surfaceLight.withValues(alpha: 0.85),
                                 fontSize: 13,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black.withValues(alpha: 0.8),
+                                    color: DsColors.ink900.withValues(alpha: 0.8),
                                     blurRadius: 6,
                                   ),
                                 ],
@@ -608,13 +608,13 @@ class _SwipeCardState extends State<SwipeCard> {
                                   Icon(
                                     Icons.near_me,
                                     size: 12,
-                                    color: Colors.white.withValues(alpha: 0.95),
+                                    color: DsColors.surfaceLight.withValues(alpha: 0.95),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     profile.distanceDisplay!,
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.95),
+                                      color: DsColors.surfaceLight.withValues(alpha: 0.95),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -669,15 +669,15 @@ class _SwipeCardState extends State<SwipeCard> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.grey.shade800,
-            Colors.grey.shade900,
+            DsColors.ink700,
+            DsColors.ink800,
           ],
         ),
       ),
       child: Center(
         child: Icon(
           Icons.person,
-          color: Colors.white.withValues(alpha: 0.3),
+          color: DsColors.surfaceLight.withValues(alpha: 0.3),
           size: 80,
         ),
       ),
@@ -719,8 +719,8 @@ class _MediaProgressIndicators extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2),
               color: isPast
-                  ? Colors.white.withValues(alpha: 0.9)
-                  : Colors.white.withValues(alpha: 0.3),
+                  ? DsColors.surfaceLight.withValues(alpha: 0.9)
+                  : DsColors.surfaceLight.withValues(alpha: 0.3),
             ),
             child: isActive
                 ? LayoutBuilder(
@@ -783,19 +783,19 @@ class _GlassMediaBadge extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(DsRadius.round),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: Colors.white),
+              Icon(icon, size: 14, color: DsColors.surfaceLight),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -828,15 +828,15 @@ class _GlassPlayButton extends StatelessWidget {
           height: 72,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.black.withValues(alpha: 0.4),
+            color: DsColors.ink900.withValues(alpha: 0.4),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1.5,
             ),
           ),
           child: Icon(
             isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            color: Colors.white,
+            color: DsColors.surfaceLight,
             size: 40,
           ),
         ),
@@ -855,7 +855,7 @@ class _CompactPromptDisplayClean extends StatelessWidget {
   Widget build(BuildContext context) {
     final textShadows = [
       Shadow(
-        color: Colors.black.withValues(alpha: 0.8),
+        color: DsColors.ink900.withValues(alpha: 0.8),
         blurRadius: 8,
         offset: const Offset(0, 1),
       ),
@@ -876,7 +876,7 @@ class _CompactPromptDisplayClean extends StatelessWidget {
           child: Text(
             prompt.answer,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: DsColors.surfaceLight.withValues(alpha: 0.9),
               fontSize: 13,
               fontWeight: FontWeight.w500,
               shadows: textShadows,
@@ -934,15 +934,15 @@ class _ProfileIdentityOverlay extends StatelessWidget {
                   ageText.isNotEmpty ? '$displayName, $ageText' : displayName,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
+                            color: DsColors.ink900.withValues(alpha: 0.5),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                           Shadow(
-                            color: Colors.black.withValues(alpha: 0.3),
+                            color: DsColors.ink900.withValues(alpha: 0.3),
                             blurRadius: 16,
                           ),
                         ],
@@ -956,10 +956,10 @@ class _ProfileIdentityOverlay extends StatelessWidget {
                 const Icon(
                   Icons.verified,
                   size: 22,
-                  color: Colors.lightBlueAccent,
+                  color: DsColors.info,
                   shadows: [
                     Shadow(
-                      color: Colors.black,
+                      color: DsColors.ink900,
                       blurRadius: 4,
                     ),
                   ],
@@ -1081,10 +1081,10 @@ class _TraitChip extends StatelessWidget {
         vertical: DsSpacing.xs / 2 + 1,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
+        color: DsColors.ink900.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(DsRadius.round),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: DsColors.surfaceLight.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -1094,13 +1094,13 @@ class _TraitChip extends StatelessWidget {
           Icon(
             icon,
             size: 12,
-            color: Colors.white.withValues(alpha: 0.8),
+            color: DsColors.surfaceLight.withValues(alpha: 0.8),
           ),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: DsColors.surfaceLight.withValues(alpha: 0.9),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -1131,10 +1131,10 @@ class _ForYouBadge extends StatelessWidget {
             vertical: DsSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
+            color: DsColors.surfaceLight.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(DsRadius.round),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: DsColors.surfaceLight.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -1144,13 +1144,13 @@ class _ForYouBadge extends StatelessWidget {
               Icon(
                 Icons.auto_awesome,
                 size: 12,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: DsColors.surfaceLight.withValues(alpha: 0.9),
               ),
               const SizedBox(width: 4),
               Text(
                 'For You',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.95),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.95),
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.2,
@@ -1187,7 +1187,7 @@ class _ProfileStatusBadge extends StatelessWidget {
 
     final label = showActive ? 'Active' : 'New here';
     final color = showActive
-        ? const Color(0xFF7ED687) // Light green for Active
+        ? DsColors.success // Active
         : DsColors.secondary.withValues(alpha: 0.9); // Muted accent for New here
 
     return Container(

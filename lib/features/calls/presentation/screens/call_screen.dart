@@ -161,7 +161,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: DsColors.ink900,
       body: BlocListener<CallBloc, bloc_state.CallState>(
         listener: (context, state) {
           if (state.status == bloc_state.CallStatus.error) {
@@ -225,8 +225,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               colors: [
                 DsColors.primary.withValues(alpha: 0.4),
                 DsColors.secondary.withValues(alpha: 0.3),
-                Colors.black,
-                Colors.black,
+                DsColors.ink900,
+                DsColors.ink900,
               ],
               stops: const [0.0, 0.3, 0.6, 1.0],
             ),
@@ -236,7 +236,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
           child: Container(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: DsColors.ink900.withValues(alpha: 0.3),
           ),
         ),
         // Animated gradient orbs
@@ -343,7 +343,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         Text(
           name,
           style: const TextStyle(
-            color: Colors.white,
+            color: DsColors.surfaceLight,
             fontSize: 32,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.5,
@@ -367,7 +367,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             Text(
               status,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: DsColors.surfaceLight.withValues(alpha: 0.8),
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),
@@ -380,7 +380,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: DsColors.surfaceLight.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -395,7 +395,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 Text(
                   _currentCall!.durationDisplay,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                     fontFeatures: [FontFeature.tabularFigures()],
@@ -416,7 +416,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.4),
+          color: DsColors.surfaceLight.withValues(alpha: 0.4),
           width: 3,
         ),
         boxShadow: [
@@ -450,7 +450,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           style: const TextStyle(
             fontSize: 52,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: DsColors.surfaceLight,
           ),
         ),
       ),
@@ -472,10 +472,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: DsColors.surfaceLight.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -547,14 +547,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFFF5252),
-                  Color(0xFFD32F2F),
+                  DsColors.error,
+                  DsColors.primaryDark,
                 ],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.red.withValues(alpha: 0.5),
+                  color: DsColors.error.withValues(alpha: 0.5),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -562,7 +562,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             ),
             child: const Icon(
               Icons.call_end_rounded,
-              color: Colors.white,
+              color: DsColors.surfaceLight,
               size: 32,
             ),
           ),
@@ -571,7 +571,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         Text(
           'End Call',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: DsColors.surfaceLight.withValues(alpha: 0.7),
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -592,23 +592,27 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             width: 110,
             height: 150,
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: DsColors.ink900.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: DsColors.surfaceLight.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_rounded, color: Colors.white54, size: 36),
-                  SizedBox(height: 8),
+                  Icon(
+                    Icons.person_rounded,
+                    color: DsColors.surfaceLight.withValues(alpha: 0.54),
+                    size: 36,
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     'You',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: DsColors.surfaceLight.withValues(alpha: 0.7),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -630,7 +634,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: DsColors.surfaceLight.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -639,16 +643,16 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               Container(
                 width: 6,
                 height: 6,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: DsColors.success,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 6),
-              const Text(
+              Text(
                 'HD',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: DsColors.surfaceLight.withValues(alpha: 0.7),
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -710,19 +714,19 @@ class _GlassControlButton extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: isActive
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.15),
+                  ? DsColors.surfaceLight
+                  : DsColors.surfaceLight.withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isActive
                     ? Colors.transparent
-                    : Colors.white.withValues(alpha: 0.2),
+                    : DsColors.surfaceLight.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
             child: Icon(
               icon,
-              color: isActive ? Colors.black : Colors.white,
+              color: isActive ? DsColors.ink900 : DsColors.surfaceLight,
               size: 24,
             ),
           ),
@@ -730,7 +734,7 @@ class _GlassControlButton extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: DsColors.surfaceLight.withValues(alpha: 0.8),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),

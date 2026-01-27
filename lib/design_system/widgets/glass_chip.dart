@@ -6,6 +6,7 @@ import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 
 /// A small glass-styled chip/tag for displaying labels, interests, etc.
 ///
@@ -23,7 +24,7 @@ class GlassChip extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.blur = DsBlur.subtle,
-    this.height = 32,
+    this.height = 30,
   });
 
   /// Creates a selected/active chip with gradient background.
@@ -33,7 +34,7 @@ class GlassChip extends StatelessWidget {
     this.icon,
     this.onTap,
     this.blur = DsBlur.subtle,
-    this.height = 32,
+    this.height = 30,
   }) : isSelected = true;
 
   /// Creates a chip with an icon.
@@ -44,7 +45,7 @@ class GlassChip extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.blur = DsBlur.subtle,
-    this.height = 32,
+    this.height = 30,
   });
 
   final String label;
@@ -58,12 +59,13 @@ class GlassChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final shadowColor = effects?.glowColor ?? DsColors.primary;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.22;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final textColor = isSelected
         ? Colors.white
@@ -84,9 +86,9 @@ class GlassChip extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: DsColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: shadowColor.withValues(alpha: shadowOpacity),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
                   ]
                 : null,
@@ -102,8 +104,8 @@ class GlassChip extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -210,11 +212,9 @@ class GlassStatusBadge extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final textColor = color ??
         (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight);

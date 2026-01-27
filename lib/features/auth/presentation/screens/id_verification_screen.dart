@@ -218,12 +218,12 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             colors: isDark
                 ? [
                     DsColors.backgroundDark,
-                    const Color(0xFF1A1A2E),
+                    DsColors.secondary.withValues(alpha: 0.22),
                     DsColors.backgroundDark,
                   ]
                 : [
                     DsColors.backgroundLight,
-                    const Color(0xFFF8F0FF),
+                    DsColors.secondary.withValues(alpha: 0.08),
                     DsColors.backgroundLight,
                   ],
           ),
@@ -369,10 +369,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                 Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
+                    color: DsColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.amber.withValues(alpha: 0.3),
+                      color: DsColors.warning.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -380,7 +380,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     children: [
                       const Icon(
                         Icons.schedule_rounded,
-                        color: Colors.amber,
+                        color: DsColors.warning,
                         size: 22,
                       ),
                       const SizedBox(width: 12),
@@ -442,7 +442,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: DsColors.surfaceLight,
                           ),
                         )
                       : Row(
@@ -642,7 +642,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           decoration: BoxDecoration(
             color: isComplete
                 ? DsColors.success.withValues(alpha: 0.1)
-                : Colors.amber.withValues(alpha: 0.1),
+                : DsColors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -650,7 +650,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isComplete ? DsColors.success : Colors.amber.shade700,
+              color: isComplete ? DsColors.success : DsColors.warning,
             ),
           ),
         ),
@@ -864,7 +864,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                         child: const Icon(
                           Icons.close,
                           size: 12,
-                          color: Colors.white,
+                          color: DsColors.surfaceLight,
                         ),
                       ),
                     ),

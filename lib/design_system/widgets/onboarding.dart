@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
+import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 import 'glass_button.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
 
@@ -34,33 +36,25 @@ class CrushHourOnboardingPages {
       title: 'Discover People',
       description: 'Swipe right to like, left to pass. Find your perfect match among thousands of singles.',
       icon: Icons.local_fire_department_rounded,
-      iconGradient: LinearGradient(
-        colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-      ),
+      iconGradient: DsGradients.discover,
     ),
     OnboardingPage(
       title: 'Make Connections',
       description: 'When both of you like each other, it\'s a match! Start chatting and get to know them.',
       icon: Icons.favorite_rounded,
-      iconGradient: LinearGradient(
-        colors: [DsColors.primary, Color(0xFFFF6B9D)],
-      ),
+      iconGradient: DsGradients.matches,
     ),
     OnboardingPage(
       title: 'Chat Securely',
       description: 'Your conversations are private and secure. Share moments and plan your first date.',
       icon: Icons.chat_bubble_rounded,
-      iconGradient: LinearGradient(
-        colors: [DsColors.secondary, Color(0xFF9D6BFF)],
-      ),
+      iconGradient: DsGradients.chats,
     ),
     OnboardingPage(
       title: 'Be Yourself',
       description: 'Create an authentic profile with photos and prompts. The more you share, the better your matches!',
       icon: Icons.auto_awesome_rounded,
-      iconGradient: LinearGradient(
-        colors: [Color(0xFF6B8BFF), Color(0xFF5B7AEA)],
-      ),
+      iconGradient: DsGradients.profile,
     ),
   ];
 }
@@ -141,12 +135,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 end: Alignment.bottomRight,
                 colors: isDark
                     ? [
-                        const Color(0xFF1A1A2E),
-                        const Color(0xFF16213E),
+                        DsColors.backgroundDark,
+                        DsColors.surfaceDark,
                       ]
                     : [
                         DsColors.backgroundLight,
-                        const Color(0xFFF5F5FF),
+                        DsColors.surfaceLight,
                       ],
               ),
             ),
@@ -409,13 +403,15 @@ class _PageIndicators extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final motionScale =
+        Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(count, (index) {
         final isActive = index == currentIndex;
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: Duration(milliseconds: (300 * motionScale).round()),
           curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: isActive ? 24 : 8,
@@ -429,9 +425,10 @@ class _PageIndicators extends StatelessWidget {
                 : null,
             color: isActive
                 ? null
-                : (isDark
-                    ? DsGlassColors.surfaceMediumDark
-                    : DsGlassColors.surfaceMediumLight),
+                : DsGlassColors.surfaceFor(
+                    context,
+                    strength: DsGlassSurfaceStrength.medium,
+                  ),
           ),
         );
       }),
@@ -537,9 +534,10 @@ class _OnboardingTooltipState extends State<OnboardingTooltip>
                   child: Container(
                     padding: const EdgeInsets.all(DsSpacing.md),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? DsGlassColors.surfaceMediumDark
-                          : DsGlassColors.surfaceMediumLight,
+                      color: DsGlassColors.surfaceFor(
+                        context,
+                        strength: DsGlassSurfaceStrength.medium,
+                      ),
                       borderRadius: BorderRadius.circular(DsRadius.md),
                       border: Border.all(
                         color: DsColors.primary.withValues(alpha: 0.3),

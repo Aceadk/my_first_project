@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'swipeable_card.dart';
@@ -191,11 +192,11 @@ class _PreviewCard extends StatelessWidget {
                 placeholder: const _PreviewCardShimmer(),
               )
             : Container(
-                color: Colors.grey.shade800,
-                child: const Center(
+                color: DsColors.surfaceDark,
+                child: Center(
                   child: Icon(
                     Icons.person,
-                    color: Colors.white54,
+                    color: DsColors.textMutedLight.withValues(alpha: 0.6),
                     size: 64,
                   ),
                 ),
@@ -240,8 +241,9 @@ class _PreviewCardShimmerState extends State<_PreviewCardShimmer>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? const Color(0xFF2D2D3A) : const Color(0xFFE8E8EC);
-    final highlightColor = isDark ? const Color(0xFF3D3D4A) : const Color(0xFFF5F5F8);
+    final baseColor = isDark ? DsColors.skeletonDark : DsColors.skeletonLight;
+    final highlightColor =
+        isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight;
 
     return AnimatedBuilder(
       animation: _animation,

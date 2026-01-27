@@ -79,14 +79,10 @@ class _MessageSearchBarState extends State<MessageSearchBar> {
         child: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: isDark
-                ? DsGlassColors.surfaceDark
-                : DsGlassColors.surfaceLight,
+            color: DsGlassColors.surfaceFor(context),
             borderRadius: BorderRadius.circular(DsRadius.round),
             border: Border.all(
-              color: isDark
-                  ? DsGlassColors.borderDark
-                  : DsGlassColors.borderLight,
+              color: DsGlassColors.borderFor(context),
             ),
           ),
           child: Row(
@@ -186,9 +182,7 @@ class MessageSearchResult extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark
-                  ? DsGlassColors.borderDark
-                  : DsGlassColors.borderLight,
+              color: DsGlassColors.borderFor(context),
               width: 0.5,
             ),
           ),
@@ -198,9 +192,10 @@ class MessageSearchResult extends StatelessWidget {
             // Avatar
             CircleAvatar(
               radius: 24,
-              backgroundColor: isDark
-                  ? DsGlassColors.surfaceMediumDark
-                  : DsGlassColors.surfaceMediumLight,
+              backgroundColor: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.medium,
+              ),
               backgroundImage:
                   avatarUrl != null ? NetworkImage(avatarUrl!) : null,
               child: avatarUrl == null

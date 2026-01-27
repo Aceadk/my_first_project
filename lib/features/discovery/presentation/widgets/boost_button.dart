@@ -12,7 +12,7 @@ import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart'
 class BoostButton extends StatelessWidget {
   const BoostButton({super.key});
 
-  static const _boostColor = Color(0xFF9C27B0); // Purple for boost
+  static const _boostColor = DsColors.secondary; // Premium plum for boost
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +84,7 @@ class BoostButton extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isActive ? _boostColor : (enabled ? _boostColor : Colors.grey);
+    final color = isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
 
     return GestureDetector(
       onTap: enabled ? onTap : null,
@@ -109,16 +109,12 @@ class BoostButton extends StatelessWidget {
                   : null,
               color: isActive
                   ? null
-                  : (isDark
-                      ? DsGlassColors.surfaceDark
-                      : DsGlassColors.surfaceLight),
+                  : DsGlassColors.surfaceFor(context),
               borderRadius: BorderRadius.circular(DsSpacing.md),
               border: Border.all(
                 color: isActive
                     ? _boostColor.withValues(alpha: 0.5)
-                    : (isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight),
+                    : DsGlassColors.borderFor(context),
                 width: isActive ? 2 : 1,
               ),
               boxShadow: isActive
@@ -170,9 +166,10 @@ class BoostButton extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: isDark
-                    ? DsGlassColors.surfaceHeavyDark
-                    : DsGlassColors.surfaceHeavyLight,
+                color: DsGlassColors.surfaceFor(
+                  context,
+                  strength: DsGlassSurfaceStrength.heavy,
+                ),
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(24)),
               ),
@@ -187,7 +184,9 @@ class BoostButton extends StatelessWidget {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white24 : Colors.black26,
+                          color: isDark
+                              ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                              : DsColors.ink900.withValues(alpha: 0.26),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -323,7 +322,7 @@ class BoostButton extends StatelessWidget {
 class BoostIndicator extends StatelessWidget {
   const BoostIndicator({super.key});
 
-  static const _boostColor = Color(0xFF9C27B0);
+  static const _boostColor = DsColors.secondary;
 
   @override
   Widget build(BuildContext context) {

@@ -5,6 +5,7 @@ import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
+import '../theme/theme_extensions.dart';
 
 /// A glassmorphism-styled refresh indicator.
 class GlassRefreshIndicator extends StatefulWidget {
@@ -111,9 +112,14 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final motionScale = effects?.motionScale ?? 1.0;
     final indicatorColor = widget.color ?? DsColors.primary;
     final bgColor = widget.backgroundColor ??
-        (isDark ? DsGlassColors.surfaceMediumDark : DsGlassColors.surfaceMediumLight);
+        DsGlassColors.surfaceFor(
+          context,
+          strength: DsGlassSurfaceStrength.medium,
+        );
 
     final progress = (_dragOffset / _triggerThreshold).clamp(0.0, 1.0);
 
@@ -127,11 +133,11 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
           child: AnimatedContainer(
             duration: _isRefreshing
                 ? Duration.zero
-                : const Duration(milliseconds: 200),
+                : Duration(milliseconds: (200 * motionScale).round()),
             height: _dragOffset,
             child: Center(
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
+                duration: Duration(milliseconds: (150 * motionScale).round()),
                 opacity: progress,
                 child: Transform.scale(
                   scale: progress,
@@ -149,9 +155,7 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
                           color: bgColor,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark
-                                ? DsGlassColors.borderDark
-                                : DsGlassColors.borderLight,
+                            color: DsGlassColors.borderFor(context),
                             width: 1,
                           ),
                           boxShadow: [
@@ -195,7 +199,7 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
           child: AnimatedContainer(
             duration: _isRefreshing
                 ? Duration.zero
-                : const Duration(milliseconds: 200),
+                : Duration(milliseconds: (200 * motionScale).round()),
             transform: Matrix4.translationValues(0, _dragOffset, 0),
             child: widget.child,
           ),
@@ -220,8 +224,6 @@ class GlassRefreshWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return RefreshIndicator(
       onRefresh: () async {
         HapticService.refreshThreshold();
@@ -229,9 +231,10 @@ class GlassRefreshWrapper extends StatelessWidget {
         HapticService.refreshComplete();
       },
       color: color ?? DsColors.primary,
-      backgroundColor: isDark
-          ? DsGlassColors.surfaceMediumDark
-          : DsGlassColors.surfaceMediumLight,
+      backgroundColor: DsGlassColors.surfaceFor(
+        context,
+        strength: DsGlassSurfaceStrength.medium,
+      ),
       strokeWidth: 2.5,
       child: child,
     );

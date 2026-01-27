@@ -157,7 +157,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Sensitive Information',
                 subtitle: 'These are private by default',
                 icon: Icons.security,
-                color: Colors.red,
+                color: DsColors.error,
               ),
               _PrivacyTile(
                 icon: Icons.cake_outlined,
@@ -233,7 +233,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'About Me',
                 subtitle: 'Personal characteristics',
                 icon: Icons.person_outline,
-                color: Colors.blue,
+                color: DsColors.info,
               ),
               _PrivacyTile(
                 icon: Icons.school_outlined,
@@ -262,7 +262,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Lifestyle',
                 subtitle: 'Your habits and preferences',
                 icon: Icons.spa_outlined,
-                color: Colors.green,
+                color: DsColors.success,
               ),
               _PrivacyTile(
                 icon: Icons.fitness_center,
@@ -312,7 +312,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Work & Education',
                 subtitle: 'Professional information',
                 icon: Icons.work_outline,
-                color: Colors.orange,
+                color: DsColors.warning,
               ),
               _PrivacyTile(
                 icon: Icons.badge_outlined,
@@ -341,7 +341,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Music',
                 subtitle: 'Your music taste',
                 icon: Icons.music_note_outlined,
-                color: Colors.purple,
+                color: DsColors.secondary,
               ),
               _PrivacyTile(
                 icon: Icons.mic_outlined,
@@ -363,7 +363,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Social',
                 subtitle: 'Social information',
                 icon: Icons.people_outline,
-                color: Colors.teal,
+                color: DsColors.accent,
               ),
               _PrivacyTile(
                 icon: Icons.language,
@@ -385,7 +385,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                 title: 'Activity Status',
                 subtitle: 'Online presence',
                 icon: Icons.circle,
-                color: Colors.green,
+                color: DsColors.success,
               ),
               _PrivacyTile(
                 icon: Icons.circle,
@@ -528,7 +528,7 @@ class _PrivacyTile extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isSensitive && value ? Colors.orange : null,
+        color: isSensitive && value ? DsColors.warning : null,
       ),
       title: Row(
         children: [
@@ -538,14 +538,14 @@ class _PrivacyTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.2),
+                color: DsColors.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
                 'Sensitive',
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.orange,
+                  color: DsColors.warning,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -558,11 +558,11 @@ class _PrivacyTile extends StatelessWidget {
         value: value,
         onChanged: onChanged,
         activeTrackColor: isSensitive
-            ? Colors.orange.withValues(alpha: 0.5)
+            ? DsColors.warning.withValues(alpha: 0.5)
             : DsColors.primary.withValues(alpha: 0.5),
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return isSensitive ? Colors.orange : DsColors.primary;
+            return isSensitive ? DsColors.warning : DsColors.primary;
           }
           return null;
         }),

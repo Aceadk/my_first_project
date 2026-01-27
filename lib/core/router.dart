@@ -36,6 +36,7 @@ import 'package:crushhour/features/profile/presentation/screens/profile_edit_scr
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart' as settings;
+import 'package:crushhour/features/settings/presentation/screens/appearance_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/privacy_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/notifications_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/language_region_settings_screen.dart';
@@ -96,6 +97,7 @@ class CrushRoutes {
   static const storyViewer = '/story-viewer';
   static const userProfile = '/user-profile';
   static const settings = '/settings';
+  static const appearanceSettings = '/settings/appearance';
   static const privacySettings = '/settings/privacy';
   static const notificationsSettings = '/settings/notifications';
   static const languageSettings = '/settings/language';

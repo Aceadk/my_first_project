@@ -6,6 +6,7 @@ import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 
 /// A glassmorphism-styled text field with frosted background.
 ///
@@ -50,7 +51,7 @@ class GlassTextField extends StatefulWidget {
     this.autofocus = false,
     this.focusNode,
     this.blur = DsBlur.light,
-    this.borderRadius = DsRadius.lg,
+    this.borderRadius = DsRadius.input,
   });
 
   final TextEditingController? controller;
@@ -112,15 +113,18 @@ class _GlassTextFieldState extends State<GlassTextField> {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
     final theme = Theme.of(context);
+    final effects = theme.extension<CrushThemeEffects>();
+    final motionScale = effects?.motionScale ?? 1.0;
+    final glowColor = effects?.glowColor ?? DsColors.primary;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.15;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
 
     final borderColor = widget.errorText != null
         ? DsColors.error
         : _isFocused
             ? DsColors.primary
-            : (isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight);
+            : DsGlassColors.borderFor(context);
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
@@ -139,8 +143,8 @@ class _GlassTextFieldState extends State<GlassTextField> {
         // Label
         if (widget.label != null) ...[
           AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: theme.textTheme.bodySmall!.copyWith(
+            duration: Duration(milliseconds: (200 * motionScale).round()),
+            style: theme.textTheme.labelMedium!.copyWith(
               color: labelColor,
               fontWeight: _isFocused ? FontWeight.w600 : FontWeight.w500,
             ),
@@ -158,7 +162,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
               sigmaY: widget.blur,
             ),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: (200 * motionScale).round()),
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -169,7 +173,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 boxShadow: _isFocused
                     ? [
                         BoxShadow(
-                          color: DsColors.primary.withValues(alpha: 0.15),
+                          color: glowColor.withValues(alpha: shadowOpacity),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -263,11 +267,9 @@ class GlassSearchField extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;

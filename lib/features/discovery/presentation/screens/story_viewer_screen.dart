@@ -282,7 +282,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.black87,
+        backgroundColor: DsColors.ink900.withValues(alpha: 0.87),
       ),
     );
   }
@@ -292,7 +292,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     final story = widget.stories[_currentIndex];
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: DsColors.ink900,
       body: GestureDetector(
         onTapDown: (_) => _pause(),
         onTapUp: (details) {
@@ -331,7 +331,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.center,
                     colors: [
-                      Colors.black.withValues(alpha: 0.6),
+                      DsColors.ink900.withValues(alpha: 0.6),
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.4],
@@ -348,7 +348,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                     begin: Alignment.bottomCenter,
                     end: Alignment.center,
                     colors: [
-                      Colors.black.withValues(alpha: 0.4),
+                      DsColors.ink900.withValues(alpha: 0.4),
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.3],
@@ -421,7 +421,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(2),
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.3),
                 ),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
@@ -429,7 +429,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                     ),
                   ),
                 ),
@@ -453,7 +453,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: DsColors.surfaceLight, width: 2),
           ),
           child: ClipOval(
             child: profile.displayPhotoUrl != null
@@ -462,8 +462,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                     fit: BoxFit.cover,
                   )
                 : Container(
-                    color: Colors.grey,
-                    child: const Icon(Icons.person, color: Colors.white),
+                    color: DsColors.ink300,
+                    child: const Icon(Icons.person, color: DsColors.surfaceLight),
                   ),
           ),
         ),
@@ -476,7 +476,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               Text(
                 profile.publicDisplayName,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -484,7 +484,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               Text(
                 story.remainingTimeDisplay,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),
@@ -496,17 +496,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: DsColors.surfaceLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(DsRadius.sm),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.videocam, color: Colors.white, size: 14),
+                Icon(Icons.videocam, color: DsColors.surfaceLight, size: 14),
                 SizedBox(width: 4),
                 Text(
                   'Video',
-                  style: TextStyle(color: Colors.white, fontSize: 11),
+                  style: TextStyle(color: DsColors.surfaceLight, fontSize: 11),
                 ),
               ],
             ),
@@ -515,7 +515,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         // Close button
         IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close, color: DsColors.surfaceLight),
         ),
       ],
     );
@@ -531,21 +531,21 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         child: Container(
           padding: const EdgeInsets.all(DsSpacing.lg),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: DsColors.ink900.withValues(alpha: 0.3),
           ),
           child: Row(
             children: [
               // View count
               Icon(
                 Icons.visibility_outlined,
-                color: Colors.white.withValues(alpha: 0.7),
+                color: DsColors.surfaceLight.withValues(alpha: 0.7),
                 size: 18,
               ),
               const SizedBox(width: 6),
               Text(
                 '${story.viewCount} views',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.7),
                   fontSize: 13,
                 ),
               ),
@@ -555,12 +555,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 onPressed: () => _openChatWithUser(context),
                 icon: const Icon(
                   Icons.send,
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   size: 18,
                 ),
                 label: const Text(
                   'Send message',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: DsColors.surfaceLight),
                 ),
               ),
             ],
@@ -587,7 +587,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   Widget _buildLoading() {
     return Container(
-      color: Colors.black,
+      color: DsColors.ink900,
       child: const Center(
         child: CircularProgressIndicator(
           color: DsColors.primary,
@@ -599,21 +599,21 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   Widget _buildError() {
     return Container(
-      color: Colors.black,
+      color: DsColors.ink900,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.error_outline,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: DsColors.surfaceLight.withValues(alpha: 0.5),
               size: 48,
             ),
             const SizedBox(height: 12),
             Text(
               'Unable to load story',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: DsColors.surfaceLight.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -630,12 +630,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: DsColors.ink900.withValues(alpha: 0.4),
             shape: BoxShape.circle,
           ),
           child: const Icon(
             Icons.pause,
-            color: Colors.white,
+            color: DsColors.surfaceLight,
             size: 40,
           ),
         ),

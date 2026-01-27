@@ -51,9 +51,7 @@ class ChatEmptyState extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight,
+                    color: DsGlassColors.borderFor(context),
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -70,7 +68,7 @@ class ChatEmptyState extends StatelessWidget {
                   child: const Icon(
                     Icons.favorite_rounded,
                     size: 48,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                   ),
                 ),
               ),
@@ -85,7 +83,7 @@ class ChatEmptyState extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
               ),
               textAlign: TextAlign.center,
             ),
@@ -110,7 +108,7 @@ class ChatEmptyState extends StatelessWidget {
                   child: const Icon(
                     Icons.lightbulb_outline,
                     size: 20,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -142,13 +140,11 @@ class ChatEmptyState extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.03),
+                      ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                      : DsColors.ink900.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight,
+                    color: DsGlassColors.borderFor(context),
                     width: 0.5,
                   ),
                 ),
@@ -182,6 +178,7 @@ class _IceBreakerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
@@ -200,19 +197,17 @@ class _IceBreakerTile extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: isDark
                       ? [
-                          DsGlassColors.surfaceDark.withValues(alpha: 0.6),
-                          DsGlassColors.surfaceDark.withValues(alpha: 0.4),
+                          baseSurface.withValues(alpha: 0.6),
+                          baseSurface.withValues(alpha: 0.4),
                         ]
                       : [
-                          DsGlassColors.surfaceLight.withValues(alpha: 0.7),
-                          DsGlassColors.surfaceLight.withValues(alpha: 0.5),
+                          baseSurface.withValues(alpha: 0.7),
+                          baseSurface.withValues(alpha: 0.5),
                         ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
                 border: Border.all(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 0.5,
                 ),
               ),
@@ -266,7 +261,7 @@ class _IceBreakerTile extends StatelessWidget {
                     child: const Icon(
                       Icons.send_rounded,
                       size: 16,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                     ),
                   ),
                 ],

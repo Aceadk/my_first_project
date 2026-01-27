@@ -19,6 +19,8 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +48,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           DsColors.primary.withValues(alpha: 0.1),
-                          Colors.orange.withValues(alpha: 0.1),
+                          DsColors.warning.withValues(alpha: 0.1),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -58,12 +60,12 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                         Container(
                           padding: DsEdgeInsets.allMd,
                           decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
+                            color: DsColors.warning.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.tune,
-                            color: Colors.orange,
+                            color: DsColors.warning,
                             size: 28,
                           ),
                         ),
@@ -133,7 +135,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                                     : '${discoveryState.distanceKm.round()} km',
                                 style: TextStyle(
                                   color: discoveryState.passportModeEnabled
-                                      ? Colors.cyan
+                                      ? DsColors.info
                                       : DsColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -174,10 +176,10 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                           Container(
                             padding: DsEdgeInsets.allSm,
                             decoration: BoxDecoration(
-                              color: Colors.cyan.withValues(alpha: 0.1),
+                              color: DsColors.info.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(DsRadius.sm),
                               border: Border.all(
-                                color: Colors.cyan.withValues(alpha: 0.3),
+                                color: DsColors.info.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
@@ -185,14 +187,14 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                                 Icon(
                                   Icons.flight_takeoff,
                                   size: 16,
-                                  color: Colors.cyan.shade300,
+                                  color: DsColors.info,
                                 ),
                                 DsGap.smH,
                                 Expanded(
                                   child: Text(
                                     'Passport mode active — distance limit disabled',
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.cyan.shade300,
+                                      color: DsColors.info,
                                     ),
                                   ),
                                 ),
@@ -429,7 +431,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
         return Container(
           height: MediaQuery.of(sheetContext).size.height * 0.7,
           decoration: BoxDecoration(
-            color: isDark ? DsColors.surfaceDark : Colors.white,
+            color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(DsRadius.xl),
               topRight: Radius.circular(DsRadius.xl),
@@ -443,7 +445,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: DsColors.ink300.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -458,15 +460,15 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.cyan.withValues(alpha: 0.2),
-                            Colors.blue.withValues(alpha: 0.2),
+                            DsColors.info.withValues(alpha: 0.2),
+                            DsColors.info.withValues(alpha: 0.2),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(DsRadius.md),
                       ),
                       child: const Icon(
                         Icons.flight_takeoff,
-                        color: Colors.cyan,
+                        color: DsColors.info,
                       ),
                     ),
                     DsGap.mdH,
@@ -566,25 +568,28 @@ class _PassportModeSection extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: passportEnabled
                     ? [
-                        Colors.cyan.withValues(alpha: 0.2),
-                        Colors.blue.withValues(alpha: 0.15),
+                        DsColors.info.withValues(alpha: 0.2),
+                        DsColors.info.withValues(alpha: 0.15),
                       ]
                     : [
-                        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight),
-                        (isDark ? DsGlassColors.surfaceMediumDark : DsGlassColors.surfaceMediumLight),
+                        baseSurface,
+                        DsGlassColors.surfaceFor(
+                          context,
+                          strength: DsGlassSurfaceStrength.medium,
+                        ),
                       ],
               ),
               borderRadius: BorderRadius.circular(DsRadius.lg),
               border: Border.all(
                 color: passportEnabled
-                    ? Colors.cyan.withValues(alpha: 0.4)
-                    : (isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight),
+                    ? DsColors.info.withValues(alpha: 0.4)
+                    : borderBase,
                 width: 1.5,
               ),
               boxShadow: passportEnabled
                   ? [
                       BoxShadow(
-                        color: Colors.cyan.withValues(alpha: 0.15),
+                        color: DsColors.info.withValues(alpha: 0.15),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -603,7 +608,7 @@ class _PassportModeSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: passportEnabled
-                              ? [Colors.cyan, Colors.blue]
+                              ? [DsColors.info, DsColors.info]
                               : [
                                   DsColors.secondary.withValues(alpha: 0.2),
                                   DsColors.primary.withValues(alpha: 0.2),
@@ -613,7 +618,7 @@ class _PassportModeSection extends StatelessWidget {
                         boxShadow: passportEnabled
                             ? [
                                 BoxShadow(
-                                  color: Colors.cyan.withValues(alpha: 0.4),
+                                  color: DsColors.info.withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   spreadRadius: 1,
                                 ),
@@ -622,7 +627,7 @@ class _PassportModeSection extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.flight_takeoff,
-                        color: passportEnabled ? Colors.white : DsColors.secondary,
+                        color: passportEnabled ? DsColors.surfaceLight : DsColors.secondary,
                         size: 24,
                       ),
                     ),
@@ -652,7 +657,7 @@ class _PassportModeSection extends StatelessWidget {
                                   child: const Text(
                                     'PLUS',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: DsColors.surfaceLight,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -667,7 +672,7 @@ class _PassportModeSection extends StatelessWidget {
                                 : 'Swipe anywhere in the world',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: passportEnabled
-                                  ? Colors.cyan.shade300
+                                  ? DsColors.info
                                   : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
                             ),
                           ),
@@ -678,10 +683,10 @@ class _PassportModeSection extends StatelessWidget {
                       Switch(
                         value: passportEnabled,
                         onChanged: onToggle,
-                        activeTrackColor: Colors.cyan.withValues(alpha: 0.5),
+                        activeTrackColor: DsColors.info.withValues(alpha: 0.5),
                         thumbColor: WidgetStateProperty.resolveWith((states) {
                           if (states.contains(WidgetState.selected)) {
-                            return Colors.cyan;
+                            return DsColors.info;
                           }
                           return null;
                         }),
@@ -698,17 +703,17 @@ class _PassportModeSection extends StatelessWidget {
                           icon: Icon(
                             Icons.location_on_outlined,
                             size: 18,
-                            color: passportEnabled ? Colors.cyan : null,
+                            color: passportEnabled ? DsColors.info : null,
                           ),
                           label: Text(
                             passportLocation ?? 'Select location',
                             overflow: TextOverflow.ellipsis,
                           ),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: passportEnabled ? Colors.cyan : null,
+                            foregroundColor: passportEnabled ? DsColors.info : null,
                             side: BorderSide(
                               color: passportEnabled
-                                  ? Colors.cyan.withValues(alpha: 0.5)
+                                  ? DsColors.info.withValues(alpha: 0.5)
                                   : (isDark ? DsColors.borderDark : DsColors.borderLight),
                             ),
                           ),
@@ -721,8 +726,8 @@ class _PassportModeSection extends StatelessWidget {
                           icon: const Icon(Icons.close, size: 20),
                           tooltip: 'Return to my location',
                           style: IconButton.styleFrom(
-                            foregroundColor: Colors.cyan,
-                            backgroundColor: Colors.cyan.withValues(alpha: 0.1),
+                            foregroundColor: DsColors.info,
+                            backgroundColor: DsColors.info.withValues(alpha: 0.1),
                           ),
                         ),
                       ],
@@ -815,12 +820,12 @@ class _CityTile extends StatelessWidget {
                 Container(
                   padding: DsEdgeInsets.allSm,
                   decoration: BoxDecoration(
-                    color: Colors.cyan.withValues(alpha: 0.1),
+                    color: DsColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DsRadius.sm),
                   ),
                   child: const Icon(
                     Icons.location_city,
-                    color: Colors.cyan,
+                    color: DsColors.info,
                     size: 20,
                   ),
                 ),
@@ -891,7 +896,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                   child: const Text(
                     'PLUS',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -951,7 +956,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                             ),
                             child: const Icon(
                               Icons.filter_alt,
-                              color: Colors.white,
+                              color: DsColors.surfaceLight,
                               size: 24,
                             ),
                           ),
@@ -1244,7 +1249,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
               decoration: BoxDecoration(
-                color: isDark ? DsColors.surfaceDark : Colors.white,
+                color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(DsRadius.xl),
                   topRight: Radius.circular(DsRadius.xl),
@@ -1259,7 +1264,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: DsColors.ink300.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1419,7 +1424,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
             return Container(
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
-                color: isDark ? DsColors.surfaceDark : Colors.white,
+                color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(DsRadius.xl),
                   topRight: Radius.circular(DsRadius.xl),
@@ -1433,7 +1438,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: DsColors.ink300.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1532,7 +1537,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
         return Container(
           height: MediaQuery.of(context).size.height * 0.5,
           decoration: BoxDecoration(
-            color: isDark ? DsColors.surfaceDark : Colors.white,
+            color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(DsRadius.xl),
               topRight: Radius.circular(DsRadius.xl),
@@ -1546,7 +1551,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: DsColors.ink300.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1675,13 +1680,13 @@ class _LockedFilterChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.1)
-            : Colors.black.withValues(alpha: 0.05),
+            ? DsColors.surfaceLight.withValues(alpha: 0.1)
+            : DsColors.ink900.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(DsRadius.round),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.1),
+              ? DsColors.surfaceLight.withValues(alpha: 0.1)
+              : DsColors.ink900.withValues(alpha: 0.1),
         ),
       ),
       child: Row(

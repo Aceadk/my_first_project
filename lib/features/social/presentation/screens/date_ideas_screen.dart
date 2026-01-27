@@ -454,7 +454,10 @@ class _IdeaDetailsSheet extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? DsGlassColors.surfaceHeavyDark : DsGlassColors.surfaceHeavyLight,
+              color: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.heavy,
+              ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(DsRadius.xxl)),
             ),
             child: Column(

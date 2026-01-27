@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
 
 /// A pulsing icon container with expanding/contracting outer ring animation.
 /// Used in the empty deck state to draw attention to the icon.
@@ -77,7 +79,7 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveColor = widget.iconColor ??
-        (isDark ? Colors.white70 : Colors.black54);
+        (isDark ? DsColors.textMutedDark : DsColors.textMutedLight);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -145,7 +147,7 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
                 )
               : null,
           color: widget.iconColor == null
-              ? (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F5F5))
+              ? (isDark ? DsColors.skeletonDark : DsColors.skeletonLight)
               : null,
         ),
         child: Icon(
@@ -360,8 +362,8 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
         return OutlinedButton(
           onPressed: widget.onPressed,
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.cyan,
-            side: BorderSide(color: Colors.cyan.withValues(alpha: 0.5)),
+            foregroundColor: DsColors.info,
+            side: BorderSide(color: DsColors.info.withValues(alpha: 0.5)),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: SizedBox(
@@ -439,8 +441,8 @@ class _AnimatedPlane extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan.withValues(alpha: 0),
-                    Colors.cyan.withValues(alpha: 0.3),
+                    DsColors.info.withValues(alpha: 0),
+                    DsColors.info.withValues(alpha: 0.3),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(1),
@@ -457,8 +459,8 @@ class _AnimatedPlane extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan.withValues(alpha: 0),
-                    Colors.cyan.withValues(alpha: 0.2),
+                    DsColors.info.withValues(alpha: 0),
+                    DsColors.info.withValues(alpha: 0.2),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(1),
@@ -471,7 +473,7 @@ class _AnimatedPlane extends StatelessWidget {
             child: Icon(
               Icons.flight,
               size: 20,
-              color: Colors.cyan,
+              color: DsColors.info,
             ),
           ),
         ],
@@ -538,7 +540,7 @@ class _AnimatedCompassIconState extends State<AnimatedCompassIcon>
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = widget.color ?? Colors.cyan;
+    final effectiveColor = widget.color ?? DsColors.info;
 
     return AnimatedBuilder(
       animation: _controller,

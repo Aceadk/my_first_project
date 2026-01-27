@@ -1,40 +1,63 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 
-class ThemeCubit extends Cubit<ThemeMode> {
-  ThemeCubit({required SharedPreferences preferences})
-      : _preferences = preferences,
-        super(_readInitial(preferences));
+class ThemeCubit extends Cubit<AppThemeMode> {
+  ThemeCubit({
+    required SharedPreferences preferences,
+    required AuthRepository authRepository,
+    required ProfileRepository profileRepository,
+  })  : _preferences = preferences,
+        _authRepository = authRepository,
+        _profileRepository = profileRepository,
+        super(_readInitial(preferences)) {
+    _authSubscription = _authRepository.authStateChanges().listen(_syncFromUser);
+  }
 
   final SharedPreferences _preferences;
+  final AuthRepository _authRepository;
+  final ProfileRepository _profileRepository;
   static const _key = 'crush_theme_mode';
+  late final StreamSubscription _authSubscription;
 
-  static ThemeMode _readInitial(SharedPreferences prefs) {
-    final stored = prefs.getString(_key);
-    switch (stored) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
+  static AppThemeMode _readInitial(SharedPreferences prefs) {
+    return appThemeModeFromKey(prefs.getString(_key));
   }
 
-  Future<void> setTheme(ThemeMode mode) async {
+  Future<void> setTheme(AppThemeMode mode) async {
+    if (mode == state) return;
     emit(mode);
-    await _preferences.setString(_key, _serialize(mode));
+    await _preferences.setString(_key, mode.storageKey);
+    await _syncToAccount(mode);
   }
 
-  static String _serialize(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'light';
-      case ThemeMode.dark:
-        return 'dark';
-      case ThemeMode.system:
-        return 'system';
+  Future<void> _syncToAccount(AppThemeMode mode) async {
+    try {
+      await _profileRepository.updateThemePreference(mode.storageKey);
+    } catch (_) {
+      // Best-effort sync. Local preference still applies.
     }
+  }
+
+  Future<void> _syncFromUser(dynamic user) async {
+    if (user == null) return;
+    final preference = user.themePreference as String?;
+    if (preference == null || preference.isEmpty) return;
+    final remoteMode = appThemeModeFromKey(preference);
+    if (remoteMode == state) return;
+
+    emit(remoteMode);
+    await _preferences.setString(_key, remoteMode.storageKey);
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription.cancel();
+    return super.close();
   }
 }
+

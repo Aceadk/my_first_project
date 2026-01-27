@@ -502,9 +502,10 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(DsSpacing.lg),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DsGlassColors.surfaceHeavyDark
-                          : DsGlassColors.surfaceHeavyLight,
+                      color: DsGlassColors.surfaceFor(
+                        context,
+                        strength: DsGlassSurfaceStrength.heavy,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

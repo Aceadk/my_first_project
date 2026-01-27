@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
 import '../tokens/blur.dart';
+import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 
 /// A navigation item for the [GlassBottomNavBar].
 class GlassNavItem {
@@ -92,18 +94,13 @@ class GlassBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
-    // Dark translucent background for both modes
     final bgColor = backgroundColor ??
-        (isDark
-            ? Colors.black.withValues(alpha: 0.75)
-            : Colors.black.withValues(alpha: 0.65));
+        DsGlassColors.surfaceFor(
+          context,
+          strength: DsGlassSurfaceStrength.heavy,
+        );
 
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.white.withValues(alpha: 0.12);
+    final borderColor = DsGlassColors.borderFor(context);
 
     return RepaintBoundary(
       child: ClipRRect(
@@ -114,7 +111,7 @@ class GlassBottomNavBar extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               border: Border(
-                top: BorderSide(color: borderColor, width: 0.5),
+                top: BorderSide(color: borderColor, width: 0.6),
               ),
             ),
             child: SafeArea(
@@ -158,8 +155,14 @@ class _GlassNavItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inactive icons use a muted white for dark translucent background
-    final inactiveColor = Colors.white.withValues(alpha: 0.5);
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final motionScale = effects?.motionScale ?? 1.0;
+    final glowColor = effects?.glowColor ?? item.gradient.colors.first;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.3;
+    final inactiveColor =
+        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     // Build accessibility label
     final semanticLabel = StringBuffer(item.label);
@@ -182,7 +185,7 @@ class _GlassNavItemWidget extends StatelessWidget {
         },
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: Duration(milliseconds: (200 * motionScale).round()),
           curve: Curves.easeOutCubic,
           padding: EdgeInsets.symmetric(
             horizontal: isSelected ? DsSpacing.md : DsSpacing.sm,
@@ -194,9 +197,9 @@ class _GlassNavItemWidget extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: item.gradient.colors.first.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 2),
+                      color: glowColor.withValues(alpha: shadowOpacity),
+                      blurRadius: 14,
+                      offset: const Offset(0, 3),
                     ),
                   ]
                 : null,
@@ -209,7 +212,7 @@ class _GlassNavItemWidget extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 150),
+                    duration: Duration(milliseconds: (150 * motionScale).round()),
                     child: Icon(
                       isSelected ? item.activeIcon : item.icon,
                       key: ValueKey(isSelected),
@@ -230,7 +233,7 @@ class _GlassNavItemWidget extends StatelessWidget {
                 ],
               ),
               AnimatedSize(
-                duration: const Duration(milliseconds: 200),
+                duration: Duration(milliseconds: (200 * motionScale).round()),
                 curve: Curves.easeOutCubic,
                 child: isSelected
                     ? Padding(
@@ -273,16 +276,16 @@ class _NavBadge extends StatelessWidget {
         width: 8,
         height: 8,
         decoration: BoxDecoration(
-          color: const Color(0xFFFF3B5C), // Bright red
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFFF3B5C).withValues(alpha: 0.5),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+        color: DsColors.primary,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: DsColors.primary.withValues(alpha: 0.5),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
       );
     }
 
@@ -300,11 +303,11 @@ class _NavBadge extends StatelessWidget {
         vertical: 1,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF3B5C), // Solid red for clean look
-        borderRadius: BorderRadius.circular(8),
+        color: DsColors.primary,
+        borderRadius: BorderRadius.circular(DsRadius.chip),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF3B5C).withValues(alpha: 0.4),
+            color: DsColors.primary.withValues(alpha: 0.35),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),

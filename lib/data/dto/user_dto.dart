@@ -28,6 +28,7 @@ class UserDto {
   final bool isPhoneVerified;
   final bool isIdVerified;
   final String subscriptionPlan;
+  final String? themePreference;
   final ProfileDto? profile;
 
   const UserDto({
@@ -39,6 +40,7 @@ class UserDto {
     required this.isPhoneVerified,
     required this.isIdVerified,
     required this.subscriptionPlan,
+    this.themePreference,
     this.profile,
   });
 
@@ -61,6 +63,9 @@ class UserDto {
       subscriptionPlan: json['subscription_plan'] as String? ??
                         json['subscriptionPlan'] as String? ??
                         json['plan'] as String? ?? 'free',
+      themePreference: json['theme_preference'] as String? ??
+          json['themePreference'] as String? ??
+          json['theme'] as String?,
       profile: json['profile'] != null
           ? ProfileDto.fromJson(json['profile'] as Map<String, dynamic>)
           : null,
@@ -78,6 +83,7 @@ class UserDto {
       'is_phone_verified': isPhoneVerified,
       'is_id_verified': isIdVerified,
       'subscription_plan': subscriptionPlan,
+      if (themePreference != null) 'theme_preference': themePreference,
       if (profile != null) 'profile': profile!.toJson(),
     };
   }
@@ -93,6 +99,7 @@ class UserDto {
       isPhoneVerified: isPhoneVerified,
       isIdVerified: isIdVerified,
       plan: _parsePlan(subscriptionPlan),
+      themePreference: themePreference,
       profile: profile?.toDomain(),
     );
   }
@@ -108,6 +115,7 @@ class UserDto {
       isPhoneVerified: user.isPhoneVerified,
       isIdVerified: user.isIdVerified,
       subscriptionPlan: _planToString(user.plan),
+      themePreference: user.themePreference,
       profile: user.profile != null ? ProfileDto.fromDomain(user.profile!) : null,
     );
   }

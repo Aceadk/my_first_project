@@ -4,6 +4,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 
 typedef PremiumAction = void Function();
 
@@ -84,7 +85,7 @@ class PlusFeatureGate extends StatelessWidget {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor:
-                                    AlwaysStoppedAnimation(Colors.white),
+                                    AlwaysStoppedAnimation(DsColors.surfaceLight),
                               ),
                             )
                           : const Text('Upgrade to Plus'),

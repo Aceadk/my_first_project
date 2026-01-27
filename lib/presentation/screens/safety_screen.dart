@@ -111,7 +111,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
       builder: (ctx) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red),
+            Icon(Icons.warning_amber_rounded, color: DsColors.error),
             SizedBox(width: 8),
             Text('Emergency Alert'),
           ],
@@ -127,7 +127,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: DsColors.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Send Alert'),
           ),
@@ -369,6 +369,8 @@ class _SafetyEducationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -377,7 +379,7 @@ class _SafetyEducationCard extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Icon(Icons.shield_outlined, color: Colors.green),
+                Icon(Icons.shield_outlined, color: DsColors.success),
                 SizedBox(width: 8),
                 Text(
                   'Stay safe while you connect',
@@ -429,12 +431,17 @@ class _SafetyTip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade700),
+          Icon(
+            icon,
+            size: 18,
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],
@@ -464,6 +471,9 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -472,13 +482,7 @@ class _Section extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(title, style: theme.textTheme.titleMedium),
                 if (isLoading) ...[
                   const SizedBox(width: 8),
                   const SizedBox(
@@ -493,14 +497,18 @@ class _Section extends StatelessWidget {
             if (items.isEmpty)
               Text(
                 emptyText,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               )
             else
               ...items.map((id) {
                 final profile = profileCache[id];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: _buildAvatar(profile),
+                  leading: _buildAvatar(context, profile),
                   title: Text(
                     profile?.name ?? 'User',
                     style: const TextStyle(fontWeight: FontWeight.w500),
@@ -509,7 +517,9 @@ class _Section extends StatelessWidget {
                     id,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
                     ),
                   ),
                   trailing: TextButton(
@@ -524,11 +534,13 @@ class _Section extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(SafetyProfileInfo? profile) {
+  Widget _buildAvatar(BuildContext context, SafetyProfileInfo? profile) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final avatarFill = isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
     if (profile?.photoUrl != null) {
       return CircleAvatar(
         radius: 24,
-        backgroundColor: DsColors.surfaceLight,
+        backgroundColor: avatarFill,
         child: ClipOval(
           child: CachedImage(
             imageUrl: profile!.photoUrl!,
@@ -541,10 +553,10 @@ class _Section extends StatelessWidget {
     }
     return CircleAvatar(
       radius: 24,
-      backgroundColor: DsColors.surfaceLight,
+      backgroundColor: avatarFill,
       child: Icon(
         Icons.person,
-        color: Colors.grey.shade600,
+        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
       ),
     );
   }
@@ -734,19 +746,20 @@ class _DatePlanCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isOngoing = plan.status == DatePlanStatus.ongoing;
     final isScheduled = plan.status == DatePlanStatus.scheduled;
+    final mutedFill = isDark ? DsColors.ink600 : DsColors.ink100;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Colors.black.withValues(alpha: 0.03),
+            ? DsColors.surfaceElevatedDark.withValues(alpha: 0.6)
+            : DsColors.surfaceElevatedLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isOngoing
               ? DsColors.success.withValues(alpha: 0.5)
-              : (isDark ? Colors.white12 : Colors.black12),
+              : (isDark ? DsColors.borderDark : DsColors.borderLight),
         ),
       ),
       child: Column(
@@ -856,7 +869,7 @@ class _DatePlanCard extends StatelessWidget {
                     ),
                     label: Text(plan.hasCheckedIn ? 'Checked In' : 'Check In Safe'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: plan.hasCheckedIn ? Colors.grey : DsColors.success,
+                      backgroundColor: plan.hasCheckedIn ? mutedFill : DsColors.success,
                     ),
                   ),
                 ),
@@ -875,13 +888,13 @@ class _DatePlanCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: onEmergency,
-                icon: const Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+                icon: const Icon(Icons.warning_amber_rounded, size: 18, color: DsColors.error),
                 label: const Text(
                   'Emergency Alert',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: DsColors.error),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
+                  side: const BorderSide(color: DsColors.error),
                 ),
               ),
             ),
@@ -899,12 +912,14 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? DsColors.ink300 : DsColors.ink300;
     final (color, label) = switch (status) {
       DatePlanStatus.scheduled => (DsColors.info, 'Scheduled'),
       DatePlanStatus.ongoing => (DsColors.success, 'Ongoing'),
-      DatePlanStatus.completed => (Colors.grey, 'Completed'),
-      DatePlanStatus.cancelled => (Colors.grey, 'Cancelled'),
-      DatePlanStatus.emergency => (Colors.red, 'Emergency'),
+      DatePlanStatus.completed => (muted, 'Completed'),
+      DatePlanStatus.cancelled => (muted, 'Cancelled'),
+      DatePlanStatus.emergency => (DsColors.error, 'Emergency'),
     };
 
     return Container(
@@ -969,7 +984,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
@@ -983,7 +998,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
+                  color: isDark ? DsColors.ink600 : DsColors.ink100,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1084,7 +1099,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
               DsGap.md,
               Text(
                 _error!,
-                style: const TextStyle(color: Colors.red, fontSize: 13),
+                style: const TextStyle(color: DsColors.error, fontSize: 13),
               ),
             ],
             DsGap.xl,

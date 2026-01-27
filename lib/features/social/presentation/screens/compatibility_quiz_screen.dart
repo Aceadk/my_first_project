@@ -248,7 +248,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                               color: isSelected ? DsColors.primary : Colors.transparent,
                             ),
                             child: isSelected
-                                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                ? const Icon(Icons.check, size: 16, color: DsColors.surfaceLight)
                                 : null,
                           ),
                           DsGap.mdH,
@@ -349,7 +349,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 const Text(
                   'Compatibility Score',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontSize: 16,
                   ),
                 ),
@@ -357,7 +357,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 Text(
                   '${result.overallScore}%',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontSize: 64,
                     fontWeight: FontWeight.bold,
                   ),
@@ -512,13 +512,13 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
         vertical: DsSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: DsColors.surfaceLight.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(DsRadius.round),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: DsColors.surfaceLight,
           fontWeight: FontWeight.w500,
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 
 /// Stub implementation of TestVideoScreen.
 /// Video calling requires a backend service to be configured.
@@ -18,7 +19,7 @@ class TestVideoScreen extends StatelessWidget {
               Icon(
                 Icons.videocam_off,
                 size: 80,
-                color: Colors.grey,
+                color: DsColors.ink300,
               ),
               SizedBox(height: 24),
               Text(
@@ -39,7 +40,7 @@ class TestVideoScreen extends StatelessWidget {
                 'See the documentation for setup instructions.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: DsColors.ink300,
                   fontSize: 14,
                 ),
               ),

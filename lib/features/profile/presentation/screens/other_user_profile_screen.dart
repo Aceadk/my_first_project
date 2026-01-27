@@ -60,10 +60,10 @@ class OtherUserProfileScreen extends StatelessWidget {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: DsColors.ink900.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back, color: Colors.white),
+                child: const Icon(Icons.arrow_back, color: DsColors.surfaceLight),
               ),
               onPressed: () => context.pop(),
             ),
@@ -72,10 +72,10 @@ class OtherUserProfileScreen extends StatelessWidget {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.3),
+                    color: DsColors.ink900.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.more_vert, color: Colors.white),
+                  child: const Icon(Icons.more_vert, color: DsColors.surfaceLight),
                 ),
                 onPressed: () => _showOptionsMenu(context, profile),
               ),
@@ -452,7 +452,7 @@ class OtherUserProfileScreen extends StatelessWidget {
           color: Theme.of(context).scaffoldBackgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: DsColors.ink900.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -491,7 +491,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                         label: const Text('Pass'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Colors.grey),
+                          side: const BorderSide(color: DsColors.ink300),
                         ),
                       ),
                     ),
@@ -1098,7 +1098,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.7),
+                  DsColors.ink900.withValues(alpha: 0.7),
                 ],
                 stops: const [0.5, 1.0],
               ),
@@ -1118,8 +1118,8 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: index == _currentPhotoIndex
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.4),
+                            ? DsColors.surfaceLight
+                            : DsColors.surfaceLight.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

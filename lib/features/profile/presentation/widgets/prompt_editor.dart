@@ -143,19 +143,16 @@ class _PromptTile extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                isDark
-                    ? DsGlassColors.surfaceDark
-                    : DsGlassColors.surfaceLight,
-                isDark
-                    ? DsGlassColors.surfaceMediumDark
-                    : DsGlassColors.surfaceMediumLight,
+                DsGlassColors.surfaceFor(context),
+                DsGlassColors.surfaceFor(
+                  context,
+                  strength: DsGlassSurfaceStrength.medium,
+                ),
               ],
             ),
             borderRadius: BorderRadius.circular(DsRadius.lg),
             border: Border.all(
-              color: isDark
-                  ? DsGlassColors.borderDark
-                  : DsGlassColors.borderLight,
+              color: DsGlassColors.borderFor(context),
               width: 1,
             ),
           ),
@@ -192,7 +189,7 @@ class _PromptTile extends StatelessWidget {
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: onDelete,
                     style: IconButton.styleFrom(
-                      foregroundColor: Colors.red,
+                      foregroundColor: DsColors.error,
                     ),
                     tooltip: 'Delete',
                   ),
@@ -231,8 +228,8 @@ class _AddPromptButton extends StatelessWidget {
         padding: DsEdgeInsets.allLg,
         decoration: BoxDecoration(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.03),
+              ? DsColors.surfaceLight.withValues(alpha: 0.05)
+              : DsColors.ink900.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(DsRadius.lg),
           border: Border.all(
             color: DsColors.primary.withValues(alpha: 0.3),
@@ -286,7 +283,7 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
-        color: isDark ? DsColors.surfaceDark : Colors.white,
+        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(DsRadius.xl),
           topRight: Radius.circular(DsRadius.xl),
@@ -300,7 +297,7 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.3),
+              color: DsColors.ink300.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -612,8 +609,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                 ),
                 filled: true,
                 fillColor: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.03),
+                    ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                    : DsColors.ink900.withValues(alpha: 0.03),
               ),
             ),
             DsGap.lg,
@@ -644,7 +641,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: isDark ? DsColors.surfaceDark : Colors.white,
+        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(DsRadius.xl),
           topRight: Radius.circular(DsRadius.xl),
@@ -658,7 +655,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.3),
+              color: DsColors.ink300.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -721,8 +718,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                       ),
                       filled: true,
                       fillColor: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03),
+                          ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                          : DsColors.ink900.withValues(alpha: 0.03),
                     ),
                   ),
                 ],

@@ -45,8 +45,8 @@ class _AccountActionsSettingsScreenState
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.deepPurple.withValues(alpha: 0.1),
-                        Colors.indigo.withValues(alpha: 0.1),
+                        DsColors.secondary.withValues(alpha: 0.1),
+                        DsColors.secondary.withValues(alpha: 0.1),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -58,12 +58,12 @@ class _AccountActionsSettingsScreenState
                       Container(
                         padding: DsEdgeInsets.allMd,
                         decoration: BoxDecoration(
-                          color: Colors.deepPurple.withValues(alpha: 0.2),
+                          color: DsColors.secondary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.manage_accounts_outlined,
-                          color: Colors.deepPurple,
+                          color: DsColors.secondary,
                           size: 28,
                         ),
                       ),
@@ -117,7 +117,7 @@ class _AccountActionsSettingsScreenState
                   icon: phoneVerified
                       ? Icons.verified_outlined
                       : Icons.phone_android,
-                  iconColor: phoneVerified ? Colors.green : Colors.blue,
+                  iconColor: phoneVerified ? DsColors.success : DsColors.info,
                   title: phoneVerified
                       ? 'Phone verified'
                       : (hasPhone ? 'Verify phone number' : 'Add phone number'),
@@ -125,7 +125,7 @@ class _AccountActionsSettingsScreenState
                       ? 'Your phone is verified and secured'
                       : 'Verify your phone for account security',
                   trailing: phoneVerified
-                      ? const Icon(Icons.lock_outline, color: Colors.green)
+                      ? const Icon(Icons.lock_outline, color: DsColors.success)
                       : const Icon(Icons.chevron_right),
                   onTap: () => context.push(CrushRoutes.phoneProtection),
                 ),
@@ -134,7 +134,7 @@ class _AccountActionsSettingsScreenState
                 // Change password
                 _ActionTile(
                   icon: Icons.lock_reset_outlined,
-                  iconColor: Colors.indigo,
+                  iconColor: DsColors.secondary,
                   title: 'Change password',
                   subtitle: 'Update your account password',
                   onTap: () => _showChangePasswordDialog(context),
@@ -144,7 +144,7 @@ class _AccountActionsSettingsScreenState
                 // Account security settings
                 _ActionTile(
                   icon: Icons.shield_outlined,
-                  iconColor: Colors.teal,
+                  iconColor: DsColors.accent,
                   title: 'Account security',
                   subtitle: 'Email and phone verification settings',
                   onTap: () => context.push(CrushRoutes.securitySettings),
@@ -167,7 +167,7 @@ class _AccountActionsSettingsScreenState
                 // Deactivate account
                 _ActionTile(
                   icon: Icons.pause_circle_outline,
-                  iconColor: Colors.orange,
+                  iconColor: DsColors.warning,
                   title: 'Deactivate account',
                   subtitle: 'Hide your profile temporarily',
                   onTap: () => _showDeactivateFlow(context),
@@ -190,7 +190,7 @@ class _AccountActionsSettingsScreenState
                 // Export your data (GDPR)
                 _ActionTile(
                   icon: Icons.download_outlined,
-                  iconColor: Colors.blue,
+                  iconColor: DsColors.info,
                   title: 'Export your data',
                   subtitle: 'Download a copy of your personal data',
                   onTap: () => _showExportDataDialog(context),
@@ -205,7 +205,7 @@ class _AccountActionsSettingsScreenState
                     'Danger zone',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                          color: DsColors.error,
                         ),
                   ),
                 ),
@@ -214,10 +214,10 @@ class _AccountActionsSettingsScreenState
                   padding: DsEdgeInsets.horizontalLg,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.05),
+                      color: DsColors.error.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.red.withValues(alpha: 0.2),
+                        color: DsColors.error.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(
@@ -226,23 +226,23 @@ class _AccountActionsSettingsScreenState
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
+                              color: DsColors.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.delete_forever_outlined,
-                              color: Colors.red,
+                              color: DsColors.error,
                               size: 22,
                             ),
                           ),
                           title: const Text(
                             'Delete account',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: DsColors.error),
                           ),
                           subtitle:
                               const Text('Permanently remove your account'),
                           trailing:
-                              const Icon(Icons.chevron_right, color: Colors.red),
+                              const Icon(Icons.chevron_right, color: DsColors.error),
                           onTap: () => _showDeleteFlow(context),
                         ),
                       ],
@@ -256,7 +256,7 @@ class _AccountActionsSettingsScreenState
                   padding: DsEdgeInsets.horizontalLg,
                   child: _InfoBox(
                     icon: Icons.pause_circle_outline,
-                    iconColor: Colors.orange,
+                    iconColor: DsColors.warning,
                     title: 'About Deactivation',
                     description:
                         'When you deactivate your account, your profile will be hidden. '
@@ -270,7 +270,7 @@ class _AccountActionsSettingsScreenState
                   padding: DsEdgeInsets.horizontalLg,
                   child: _InfoBox(
                     icon: Icons.delete_forever_outlined,
-                    iconColor: Colors.red,
+                    iconColor: DsColors.error,
                     title: 'About Deletion',
                     description:
                         'When you delete your account, you have 14 days to change your mind. '
@@ -293,7 +293,7 @@ class _AccountActionsSettingsScreenState
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: const Icon(Icons.download_outlined, color: Colors.blue, size: 48),
+          icon: const Icon(Icons.download_outlined, color: DsColors.info, size: 48),
           title: const Text('Export Your Data'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -327,22 +327,22 @@ class _AccountActionsSettingsScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: DsColors.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.blue.withValues(alpha: 0.3),
+                    color: DsColors.info.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.email_outlined, color: Colors.blue, size: 20),
+                    const Icon(Icons.email_outlined, color: DsColors.info, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Your data will be prepared and sent to $email within 48 hours.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue.shade700,
+                          color: DsColors.info,
                         ),
                       ),
                     ),
@@ -400,7 +400,7 @@ class _AccountActionsSettingsScreenState
           builder: (context, setDialogState) {
             return AlertDialog(
               icon: const Icon(Icons.lock_reset_outlined,
-                  color: Colors.indigo, size: 48),
+                  color: DsColors.secondary, size: 48),
               title: const Text('Change Password'),
               content: Form(
                 key: formKey,
@@ -568,7 +568,7 @@ class _AccountActionsSettingsScreenState
       context: context,
       title: 'Why are you leaving?',
       icon: Icons.pause_circle_outline,
-      iconColor: Colors.orange,
+      iconColor: DsColors.warning,
       reasons: const [
         'Taking a break from dating',
         'Found someone special',
@@ -588,7 +588,7 @@ class _AccountActionsSettingsScreenState
         return AlertDialog(
           icon: Icon(
             Icons.pause_circle_outline,
-            color: Colors.orange.shade700,
+            color: DsColors.warning,
             size: 48,
           ),
           title: const Text('Deactivate Account'),
@@ -620,23 +620,23 @@ class _AccountActionsSettingsScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: DsColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.red.withValues(alpha: 0.3),
+                    color: DsColors.error.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.warning_amber_outlined,
-                        color: Colors.red, size: 20),
+                        color: DsColors.error, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'If you don\'t sign in for 6 months, your account will be permanently deleted.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.red.shade700,
+                          color: DsColors.error,
                         ),
                       ),
                     ),
@@ -652,7 +652,7 @@ class _AccountActionsSettingsScreenState
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: DsColors.warning,
               ),
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Deactivate'),
@@ -698,7 +698,7 @@ class _AccountActionsSettingsScreenState
       context: context,
       title: 'Why are you deleting your account?',
       icon: Icons.delete_forever_outlined,
-      iconColor: Colors.red,
+      iconColor: DsColors.error,
       reasons: const [
         'Found a relationship',
         'Not happy with the app',
@@ -717,7 +717,7 @@ class _AccountActionsSettingsScreenState
       builder: (dialogContext) {
         return AlertDialog(
           icon: const Icon(Icons.delete_forever_outlined,
-              color: Colors.red, size: 48),
+              color: DsColors.error, size: 48),
           title: const Text('Delete Account'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -733,23 +733,23 @@ class _AccountActionsSettingsScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
+                  color: DsColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.green.withValues(alpha: 0.3),
+                    color: DsColors.success.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.info_outline,
-                        color: Colors.green, size: 20),
+                        color: DsColors.success, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'You have 14 days to change your mind. Simply sign in within 14 days to recover your account.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.green.shade700,
+                          color: DsColors.success,
                         ),
                       ),
                     ),
@@ -765,7 +765,7 @@ class _AccountActionsSettingsScreenState
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: DsColors.error,
               ),
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Continue'),
@@ -787,7 +787,7 @@ class _AccountActionsSettingsScreenState
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              icon: const Icon(Icons.lock_outline, color: Colors.red, size: 48),
+              icon: const Icon(Icons.lock_outline, color: DsColors.error, size: 48),
               title: const Text('Confirm Your Password'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -821,7 +821,7 @@ class _AccountActionsSettingsScreenState
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: DsColors.error,
                   ),
                   onPressed: () {
                     if (passwordController.text.isNotEmpty) {
@@ -1002,7 +1002,7 @@ class _DeleteWarningItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.close, size: 16, color: Colors.red),
+          const Icon(Icons.close, size: 16, color: DsColors.error),
           DsGap.smH,
           Text(text),
         ],
@@ -1023,7 +1023,7 @@ class _BulletPoint extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.orange),
+          Icon(icon, size: 16, color: DsColors.warning),
           const SizedBox(width: 8),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],

@@ -222,7 +222,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                (isDark ? Colors.black : Colors.white).withValues(alpha: 0.9),
+                (isDark ? DsColors.ink900 : DsColors.surfaceLight).withValues(alpha: 0.9),
               ],
             ),
           ),
@@ -247,14 +247,14 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                     children: [
                       const Icon(
                         Icons.favorite,
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                         size: 20,
                       ),
                       const SizedBox(width: DsSpacing.xs),
                       Text(
                         '$count ${count == 1 ? 'person likes' : 'people like'} you',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: DsColors.surfaceLight,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -394,9 +394,10 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark
-                  ? DsGlassColors.surfaceHeavyDark
-                  : DsGlassColors.surfaceHeavyLight,
+              color: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.heavy,
+              ),
             ),
             child: SafeArea(
               top: false,
@@ -407,7 +408,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : Colors.black26,
+                      color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -532,7 +533,7 @@ class _LikeCard extends StatelessWidget {
                   sigmaY: DsBlur.heavy,
                 ),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: DsColors.ink900.withValues(alpha: 0.1),
                 ),
               ),
 
@@ -545,7 +546,7 @@ class _LikeCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.7),
+                      DsColors.ink900.withValues(alpha: 0.7),
                     ],
                     stops: const [0.5, 1.0],
                   ),
@@ -565,7 +566,7 @@ class _LikeCard extends StatelessWidget {
                   Text(
                     isBlurred ? '???' : profile.publicDisplayName,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -576,7 +577,7 @@ class _LikeCard extends StatelessWidget {
                     Text(
                       '${profile.age}',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: DsColors.surfaceLight.withValues(alpha: 0.8),
                         fontSize: 14,
                       ),
                     ),
@@ -592,12 +593,12 @@ class _LikeCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: DsColors.ink900.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.lock,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     size: 16,
                   ),
                 ),
@@ -646,7 +647,7 @@ class _ProfileDetailSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black26,
+                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -699,7 +700,7 @@ class _ProfileDetailSheet extends StatelessWidget {
                               ),
                               child: const Icon(
                                 Icons.check,
-                                color: Colors.white,
+                                color: DsColors.surfaceLight,
                                 size: 16,
                               ),
                             ),

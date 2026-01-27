@@ -348,7 +348,7 @@ class _UnitToggleButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : textMuted,
+            color: isSelected ? DsColors.surfaceLight : textMuted,
           ),
         ),
       ),

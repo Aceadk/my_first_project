@@ -119,13 +119,13 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
   @override
   Widget build(BuildContext context) {
     final isSent = widget.isFromCurrentUser;
-    final primaryColor = isSent ? Colors.white : DsColors.primary;
+    final primaryColor = isSent ? DsColors.surfaceLight : DsColors.primary;
     final bgColor = isSent
-        ? Colors.white.withValues(alpha: 0.15)
+        ? DsColors.surfaceLight.withValues(alpha: 0.15)
         : DsColors.primary.withValues(alpha: 0.1);
-    final sliderActiveColor = isSent ? Colors.white : DsColors.primary;
+    final sliderActiveColor = isSent ? DsColors.surfaceLight : DsColors.primary;
     final sliderInactiveColor = isSent
-        ? Colors.white.withValues(alpha: 0.3)
+        ? DsColors.surfaceLight.withValues(alpha: 0.3)
         : DsColors.primary.withValues(alpha: 0.3);
 
     if (_hasError) {
@@ -189,12 +189,12 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
                         height: widget.compact ? 14 : 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: isSent ? DsColors.primary : Colors.white,
+                          color: isSent ? DsColors.primary : DsColors.surfaceLight,
                         ),
                       )
                     : Icon(
                         _isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: isSent ? DsColors.primary : Colors.white,
+                        color: isSent ? DsColors.primary : DsColors.surfaceLight,
                         size: widget.compact ? 18 : 22,
                       ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 
 class VideoCallArgs {
   final String currentUserId;
@@ -32,9 +33,9 @@ class VideoCallScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Video call with $otherName'),
-        backgroundColor: Colors.black,
+        backgroundColor: DsColors.backgroundDark,
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: DsColors.backgroundDark,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -42,39 +43,41 @@ class VideoCallScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.videocam_off,
                   size: 80,
-                  color: Colors.white54,
+                  color: DsColors.surfaceLight.withValues(alpha: 0.54),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Video Calling',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Video calling is not yet configured.\n\nConnect your video calling backend (WebRTC, Agora, Twilio, etc.) to enable this feature.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: DsColors.surfaceLight.withValues(alpha: 0.7),
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 48),
                 FloatingActionButton(
-                  backgroundColor: Colors.redAccent,
+                  backgroundColor: DsColors.error,
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Icon(Icons.call_end),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'End Call',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
@@ -33,17 +34,17 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settingsTitle)),
-      body: BlocBuilder<ThemeCubit, ThemeMode>(
+      body: BlocBuilder<ThemeCubit, AppThemeMode>(
         builder: (context, themeMode) {
           return ListView(
             children: [
               // Appearance
               _SettingsTile(
                 icon: Icons.brightness_6_outlined,
-                iconColor: Colors.amber,
+                iconColor: DsColors.warning,
                 title: context.l10n.settingsAppearance,
                 subtitle: _themeLabel(context, themeMode),
-                onTap: () => _showThemeSheet(context, themeMode),
+                onTap: () => context.push(CrushRoutes.appearanceSettings),
               ),
               const Divider(height: 1),
               // Notifications
@@ -83,7 +84,7 @@ class SettingsScreen extends StatelessWidget {
                 builder: (context, discoveryState) {
                   return _SettingsTile(
                     icon: Icons.tune,
-                    iconColor: Colors.orange,
+                    iconColor: DsColors.warning,
                     title: context.l10n.settingsDiscoveryFilters,
                     subtitle: '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
                     onTap: () => context.push(CrushRoutes.discoverySettings),
@@ -96,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                 builder: (context, storageState) {
                   return _SettingsTile(
                     icon: Icons.storage_outlined,
-                    iconColor: Colors.blue,
+                    iconColor: DsColors.info,
                     title: context.l10n.settingsDataStorage,
                     subtitle: 'Cache: ${storageState.cacheSizeMb} MB',
                     onTap: () => context.push(CrushRoutes.storageSettings),
@@ -123,7 +124,7 @@ class SettingsScreen extends StatelessWidget {
                   }
                   return _SettingsTile(
                     icon: Icons.shield_outlined,
-                    iconColor: Colors.green,
+                    iconColor: DsColors.success,
                     title: context.l10n.settingsAccountSecurity,
                     subtitle: subtitle,
                     onTap: () => context.push(CrushRoutes.securitySettings),
@@ -139,7 +140,7 @@ class SettingsScreen extends StatelessWidget {
                   );
                   return _SettingsTile(
                     icon: isIdVerified ? Icons.verified_rounded : Icons.verified_outlined,
-                    iconColor: isIdVerified ? DsColors.success : Colors.blue,
+                    iconColor: isIdVerified ? DsColors.success : DsColors.info,
                     title: 'ID Verification',
                     subtitle: isIdVerified
                         ? 'Verified - Badge active'
@@ -154,7 +155,7 @@ class SettingsScreen extends StatelessWidget {
               // Privacy Settings
               _SettingsTile(
                 icon: Icons.visibility_outlined,
-                iconColor: Colors.indigo,
+                iconColor: DsColors.secondary,
                 title: context.l10n.settingsPrivacy,
                 subtitle: context.l10n.settingsPrivacySubtitle,
                 onTap: () => context.push(CrushRoutes.privacySettings),
@@ -163,7 +164,7 @@ class SettingsScreen extends StatelessWidget {
               // Chat Settings
               _SettingsTile(
                 icon: Icons.chat_bubble_outline,
-                iconColor: Colors.teal,
+                iconColor: DsColors.accent,
                 title: 'Chat Settings',
                 subtitle: 'Message retention & auto-delete',
                 onTap: () => context.push(CrushRoutes.chatSettings),
@@ -178,7 +179,7 @@ class SettingsScreen extends StatelessWidget {
                   final isActive = settings.isActive;
                   return _SettingsTile(
                     icon: isActive ? Icons.visibility_off : Icons.visibility_off_outlined,
-                    iconColor: isActive ? DsColors.primary : Colors.grey,
+                    iconColor: isActive ? DsColors.primary : DsColors.ink300,
                     title: 'Incognito Mode',
                     subtitle: isActive
                         ? settings.expiresAt != null
@@ -193,7 +194,7 @@ class SettingsScreen extends StatelessWidget {
               // Account Actions
               _SettingsTile(
                 icon: Icons.manage_accounts_outlined,
-                iconColor: Colors.deepPurple,
+                iconColor: DsColors.secondary,
                 title: context.l10n.settingsAccountActions,
                 subtitle: context.l10n.settingsAccountActionsSubtitle,
                 onTap: () => context.push(CrushRoutes.accountSettings),
@@ -324,7 +325,7 @@ class SettingsScreen extends StatelessWidget {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(DsColors.surfaceLight),
                                       ),
                                     )
                                   : Text(isPlus ? 'Manage subscription' : 'Upgrade to Plus'),
@@ -354,7 +355,7 @@ class SettingsScreen extends StatelessWidget {
               // Other options
               _SettingsTile(
                 icon: Icons.shield_outlined,
-                iconColor: Colors.teal,
+                iconColor: DsColors.accent,
                 title: 'Safety & Blocking',
                 subtitle: _safetySubtitle(context),
                 onTap: () => context.push(CrushRoutes.safety),
@@ -362,7 +363,7 @@ class SettingsScreen extends StatelessWidget {
               const Divider(height: 1),
               _SettingsTile(
                 icon: Icons.logout,
-                iconColor: Colors.grey,
+                iconColor: DsColors.ink300,
                 title: context.l10n.authSignOut,
                 subtitle: 'Sign out of your account',
                 onTap: () => context.push(CrushRoutes.logout),
@@ -419,14 +420,16 @@ class SettingsScreen extends StatelessWidget {
         : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
   }
 
-  String _themeLabel(BuildContext context, ThemeMode mode) {
+  String _themeLabel(BuildContext context, AppThemeMode mode) {
     switch (mode) {
-      case ThemeMode.light:
+      case AppThemeMode.light:
         return context.l10n.settingsThemeLight;
-      case ThemeMode.dark:
+      case AppThemeMode.dark:
         return context.l10n.settingsThemeDark;
-      case ThemeMode.system:
+      case AppThemeMode.system:
         return context.l10n.settingsThemeSystem;
+      case AppThemeMode.darkLuxury:
+        return 'Dark Luxury';
     }
   }
 
@@ -442,71 +445,6 @@ class SettingsScreen extends StatelessWidget {
       default:
         return 'English';
     }
-  }
-
-  void _showThemeSheet(BuildContext context, ThemeMode current) {
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: DsEdgeInsets.allLg,
-                child: Row(
-                  children: [
-                    const Icon(Icons.brightness_6_outlined, color: Colors.amber),
-                    DsGap.mdH,
-                    Text(
-                      'Choose appearance',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              _ThemeOptionTile(
-                title: 'System default',
-                subtitle: 'Match your device appearance',
-                icon: Icons.settings_suggest_outlined,
-                mode: ThemeMode.system,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              _ThemeOptionTile(
-                title: 'Light',
-                subtitle: 'Bright backgrounds',
-                icon: Icons.light_mode_outlined,
-                mode: ThemeMode.light,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              _ThemeOptionTile(
-                title: 'Dark',
-                subtitle: 'Dim backgrounds',
-                icon: Icons.dark_mode_outlined,
-                mode: ThemeMode.dark,
-                groupValue: current,
-                onSelected: (mode) {
-                  sheetContext.read<ThemeCubit>().setTheme(mode);
-                  Navigator.of(sheetContext).pop();
-                },
-              ),
-              DsGap.lg,
-            ],
-          ),
-        );
-      },
-    );
   }
 
   void _showIncognitoSheet(BuildContext context, IncognitoSettings settings) {
@@ -528,7 +466,7 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.visibility_off,
-                      color: isActive ? DsColors.primary : Colors.grey,
+                      color: isActive ? DsColors.primary : DsColors.ink300,
                     ),
                     DsGap.mdH,
                     Expanded(
@@ -661,12 +599,12 @@ class SettingsScreen extends StatelessWidget {
                   child: Container(
                     padding: DsEdgeInsets.allSm,
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
+                      color: DsColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline, size: 18, color: Colors.amber),
+                        const Icon(Icons.info_outline, size: 18, color: DsColors.warning),
                         DsGap.smH,
                         Expanded(
                           child: Text(
@@ -740,47 +678,6 @@ class _SettingsTile extends StatelessWidget {
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
-    );
-  }
-}
-
-class _ThemeOptionTile extends StatelessWidget {
-  const _ThemeOptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.mode,
-    required this.groupValue,
-    required this.onSelected,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final ThemeMode mode;
-  final ThemeMode groupValue;
-  final ValueChanged<ThemeMode> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = mode == groupValue;
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isSelected ? DsColors.primary : null,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.w600 : null,
-          color: isSelected ? DsColors.primary : null,
-        ),
-      ),
-      subtitle: Text(subtitle),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: DsColors.primary)
-          : null,
-      onTap: () => onSelected(mode),
     );
   }
 }

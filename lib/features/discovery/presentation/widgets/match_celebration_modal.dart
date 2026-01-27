@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -254,10 +255,9 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFFFF5E7D),
-                      Color(0xFFFF6B8A),
-                      Color(0xFFFF8BA0),
-                      Color(0xFFFFABB8),
+                      DsColors.primary,
+                      DsColors.primaryDark,
+                      DsColors.secondary,
                     ],
                   ),
                 ),
@@ -293,7 +293,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                               'You and $matchedName liked each other',
                               style: TextStyle(
                                 fontSize: 17,
-                                color: Colors.white.withValues(alpha: 0.95),
+                                color: DsColors.surfaceLight.withValues(alpha: 0.95),
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.3,
                               ),
@@ -336,9 +336,9 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
       shaderCallback: (bounds) {
         return LinearGradient(
           colors: [
-            Colors.white,
-            Colors.white.withValues(alpha: 0.7),
-            Colors.white,
+            DsColors.surfaceLight,
+            DsColors.surfaceLight.withValues(alpha: 0.7),
+            DsColors.surfaceLight,
           ],
           stops: [
             (_shimmerController.value - 0.4).clamp(0.0, 1.0),
@@ -349,16 +349,16 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
           end: Alignment.bottomRight,
         ).createShader(bounds);
       },
-      child: const Text(
+      child: Text(
         "It's a Match!",
         style: TextStyle(
           fontSize: 46,
           fontWeight: FontWeight.w800,
-          color: Colors.white,
+          color: DsColors.surfaceLight,
           letterSpacing: 2,
           shadows: [
             Shadow(
-              color: Colors.black26,
+              color: DsColors.ink900.withValues(alpha: 0.26),
               offset: Offset(0, 4),
               blurRadius: 15,
             ),
@@ -436,14 +436,12 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: ringOpacity),
+                  color: DsColors.surfaceLight.withValues(alpha: ringOpacity),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isLeft
-                            ? const Color(0xFFFFE1EC)
-                            : const Color(0xFFFFF2D9))
+                    color: (isLeft ? DsColors.primary : DsColors.warning)
                         .withValues(alpha: ringOpacity * 0.35),
                     blurRadius: 14,
                     spreadRadius: 1,
@@ -459,27 +457,26 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
             height: size + 8,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFFFD700), // Gold
-                  Color(0xFFFFC107), // Amber
-                  Color(0xFFFFB300), // Dark gold
-                  Color(0xFFFFD700), // Gold
+                  DsColors.warning,
+                  DsColors.warning.withValues(alpha: 0.85),
+                  DsColors.warning.withValues(alpha: 0.7),
+                  DsColors.warning,
                 ],
               ),
               boxShadow: [
                 // Golden glow
                 BoxShadow(
-                  color:
-                      const Color(0xFFFFD700).withValues(alpha: glowIntensity * 0.6),
+                  color: DsColors.warning.withValues(alpha: glowIntensity * 0.6),
                   blurRadius: 25,
                   spreadRadius: 3,
                 ),
                 // Outer shadow
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: DsColors.ink900.withValues(alpha: 0.25),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -490,7 +487,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   width: 3,
                 ),
               ),
@@ -505,11 +502,11 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                     : Container(
                         width: size,
                         height: size,
-                        color: Colors.grey[200],
+                        color: DsColors.ink100,
                         child: Icon(
                           Icons.person,
                           size: size * 0.5,
-                          color: Colors.grey[400],
+                          color: DsColors.ink200,
                         ),
                       ),
               ),
@@ -537,19 +534,19 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFFFF7A92),
-                Color(0xFFFF1744),
+                DsColors.primary,
+                DsColors.primaryDark,
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF1744)
-                    .withValues(alpha: glowIntensity * 0.6),
+                color:
+                    DsColors.primaryDark.withValues(alpha: glowIntensity * 0.6),
                 blurRadius: 22,
                 spreadRadius: 2,
               ),
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.35),
+                color: DsColors.surfaceLight.withValues(alpha: 0.35),
                 blurRadius: 10,
                 spreadRadius: -2,
                 offset: const Offset(-2, -2),
@@ -558,7 +555,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
           ),
           child: const Icon(
             Icons.favorite,
-            color: Colors.white,
+            color: DsColors.surfaceLight,
             size: 30,
           ),
         ),
@@ -578,19 +575,16 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Color(0xFFFFF8F8),
-              ],
+              colors: [DsColors.surfaceLight, DsColors.ink50],
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: DsColors.ink900.withValues(alpha: 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: DsColors.surfaceLight.withValues(alpha: 0.8),
                 blurRadius: 0,
                 spreadRadius: 1,
               ),
@@ -614,15 +608,15 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            const Color(0xFFFF5E7D).withValues(alpha: 0.15),
-                            const Color(0xFFFF1744).withValues(alpha: 0.1),
+                            DsColors.primary.withValues(alpha: 0.15),
+                            DsColors.primaryDark.withValues(alpha: 0.1),
                           ],
                         ),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.chat_bubble_rounded,
-                        color: Color(0xFFFF1744),
+                        color: DsColors.primaryDark,
                         size: 20,
                       ),
                     ),
@@ -630,7 +624,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                     Text(
                       'Say Hi to $matchedName',
                       style: const TextStyle(
-                        color: Color(0xFFFF1744),
+                        color: DsColors.primaryDark,
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.5,
@@ -651,14 +645,14 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
           height: 58,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(29),
-            color: Colors.white.withValues(alpha: 0.2),
+            color: DsColors.surfaceLight.withValues(alpha: 0.2),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: DsColors.surfaceLight.withValues(alpha: 0.7),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: DsColors.ink900.withValues(alpha: 0.08),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -676,12 +670,12 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: DsColors.surfaceLight.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.style_rounded,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       size: 20,
                     ),
                   ),
@@ -689,7 +683,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                   const Text(
                     'Keep Swiping',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,
@@ -724,7 +718,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
           child: Icon(
             Icons.favorite,
             size: heart.size,
-            color: Colors.white.withValues(alpha: 0.7),
+            color: DsColors.surfaceLight.withValues(alpha: 0.7),
           ),
         ),
       );

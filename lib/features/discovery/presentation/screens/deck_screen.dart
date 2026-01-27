@@ -468,12 +468,12 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.4),
+                            color: DsColors.ink900.withValues(alpha: 0.4),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.more_vert,
-                            color: Colors.white,
+                            color: DsColors.surfaceLight,
                             size: 20,
                           ),
                         ),
@@ -533,7 +533,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 margin: const EdgeInsets.only(top: DsSpacing.xs),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
+                                  color: DsColors.ink900.withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(DsRadius.sm),
                                 ),
                                 child: Text(
@@ -541,7 +541,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
-                                      ?.copyWith(color: Colors.white70),
+                                      ?.copyWith(color: DsColors.surfaceLight.withValues(alpha: 0.7)),
                                 ),
                               ),
                             if (_completenessError != null)
@@ -549,7 +549,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 margin: const EdgeInsets.only(top: DsSpacing.xs),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withValues(alpha: 0.8),
+                                  color: DsColors.warning.withValues(alpha: 0.8),
                                   borderRadius: BorderRadius.circular(DsRadius.sm),
                                 ),
                                 child: Text(
@@ -557,7 +557,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
-                                      ?.copyWith(color: Colors.white),
+                                      ?.copyWith(color: DsColors.surfaceLight),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -587,7 +587,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 borderRadius: BorderRadius.circular(DsRadius.md),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
+                                    color: DsColors.ink900.withValues(alpha: 0.2),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -597,7 +597,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 children: [
                                   const Icon(
                                     Icons.location_on,
-                                    color: Colors.white,
+                                    color: DsColors.surfaceLight,
                                     size: 20,
                                   ),
                                   const SizedBox(width: DsSpacing.sm),
@@ -605,7 +605,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                     child: Text(
                                       'Enable location for better matches nearby',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Colors.white,
+                                        color: DsColors.surfaceLight,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -617,13 +617,13 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                       vertical: DsSpacing.xs,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color: DsColors.surfaceLight.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(DsRadius.sm),
                                     ),
                                     child: const Text(
                                       'Enable',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: DsColors.surfaceLight,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -755,11 +755,11 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                     decoration: BoxDecoration(
                                       color: state.superLikesRemaining > 0
                                           ? DsColors.actionSuperLike
-                                          : Colors.grey,
+                                          : DsColors.ink300,
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.3),
+                                          color: DsColors.ink900.withValues(alpha: 0.3),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
                                         ),
@@ -768,7 +768,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                     child: Text(
                                       '${state.superLikesRemaining}',
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: DsColors.surfaceLight,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -1133,7 +1133,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
       title = 'No one in this city yet';
       subtitle = 'Try exploring a different destination or check back later.';
       icon = Icons.flight_takeoff;
-      iconColor = Colors.cyan;
+      iconColor = DsColors.info;
     } else if (localDeckExhausted) {
       title = 'Explored far and wide';
       subtitle = 'You\'ve seen everyone up to ${currentDistanceKm.round()} km away.\n'
@@ -1164,7 +1164,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                   PulsingIconContainer(
                     icon: icon,
                     iconSize: 56,
-                    iconColor: iconColor ?? (isDark ? Colors.white70 : Colors.black54),
+                    iconColor: iconColor ?? (isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54)),
                   ),
                   DsGap.lg,
                   Text(
@@ -1186,8 +1186,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.05),
+                            ? DsColors.surfaceLight.withValues(alpha: 0.1)
+                            : DsColors.ink900.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -1337,7 +1337,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -1353,21 +1353,13 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.8),
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.6),
+                  baseSurface.withValues(alpha: 0.8),
+                  baseSurface.withValues(alpha: 0.6),
                 ],
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 0.5,
                 ),
               ),
@@ -1391,7 +1383,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                               .titleLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: DsColors.surfaceLight,
                               ),
                         ),
                       ),
@@ -1564,7 +1556,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
+                                      AlwaysStoppedAnimation(DsColors.surfaceLight),
                                 ),
                               )
                             : Text(isPlus ? 'Got it' : 'Upgrade to Plus'),

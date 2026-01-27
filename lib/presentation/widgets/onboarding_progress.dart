@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/design_system.dart';
 
 /// Shared onboarding progress indicator used across splash/auth/setup screens.
 class OnboardingProgress extends StatelessWidget {
@@ -23,6 +24,8 @@ class OnboardingProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     final total = onboardingSteps.length;
     final clampedStep = currentStep.clamp(0, total - 1);
     final progress = (clampedStep + 1) / total;
@@ -38,25 +41,32 @@ class OnboardingProgress extends StatelessWidget {
           children: [
             Text(
               'Step ${clampedStep + 1} of $total',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: theme.textTheme.labelLarge,
             ),
-            const SizedBox(width: 8),
-            Text(stepLabel),
+            const SizedBox(width: DsSpacing.sm),
+            Text(stepLabel, style: theme.textTheme.bodyMedium),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: DsSpacing.xs),
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DsRadius.chip),
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 8,
-            backgroundColor: Colors.grey.withAlpha((0.15 * 255).round()),
+            backgroundColor: (isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight)
+                .withValues(alpha: 0.2),
+            color: DsColors.primary,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: DsSpacing.xs),
         Text(
           caption ?? nextLabel,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color:
+                isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
         ),
       ],
     );

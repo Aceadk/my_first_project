@@ -19,7 +19,7 @@ import 'package:crushhour/features/profile/presentation/screens/other_user_profi
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 
 PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final baseSurface = DsGlassColors.surfaceFor(context);
   return PreferredSize(
     preferredSize: const Size.fromHeight(kToolbarHeight),
     child: ClipRRect(
@@ -34,16 +34,13 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight)
-                    .withValues(alpha: 0.8),
-                (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight)
-                    .withValues(alpha: 0.6),
+                baseSurface.withValues(alpha: 0.8),
+                baseSurface.withValues(alpha: 0.6),
               ],
             ),
             border: Border(
               bottom: BorderSide(
-                color:
-                    isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight,
+                color: DsGlassColors.borderFor(context),
                 width: 0.5,
               ),
             ),
@@ -74,7 +71,7 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
                             .titleLarge
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: DsColors.surfaceLight,
                             ),
                       ),
                     ),
@@ -117,9 +114,7 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight,
+                    color: DsGlassColors.borderFor(context),
                     width: 1.5,
                   ),
                 ),
@@ -129,7 +124,7 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
                   child: const Icon(
                     Icons.mail_outline_rounded,
                     size: 52,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                   ),
                 ),
               ),
@@ -143,7 +138,7 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
               'No message requests',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                   ),
             ),
           ),
@@ -399,6 +394,8 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
     final inbound = widget.request.isInboundFor(widget.currentUserId);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isExpired = _remaining == Duration.zero;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     return AnimatedOpacity(
       opacity: isExpired ? 0.5 : 1.0,
@@ -422,23 +419,15 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      (isDark
-                              ? DsGlassColors.surfaceDark
-                              : DsGlassColors.surfaceLight)
-                          .withValues(alpha: 0.6),
-                      (isDark
-                              ? DsGlassColors.surfaceDark
-                              : DsGlassColors.surfaceLight)
-                          .withValues(alpha: 0.3),
+                      baseSurface.withValues(alpha: 0.6),
+                      baseSurface.withValues(alpha: 0.3),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(DsRadius.lg),
                   border: Border.all(
                     color: inbound
                         ? DsColors.primary.withValues(alpha: 0.3)
-                        : (isDark
-                            ? DsGlassColors.borderDark
-                            : DsGlassColors.borderLight),
+                        : borderBase,
                     width: inbound ? 1.5 : 1,
                   ),
                 ),
@@ -523,8 +512,8 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                       padding: const EdgeInsets.all(DsSpacing.sm),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.black.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.3),
+                            ? DsColors.ink900.withValues(alpha: 0.2)
+                            : DsColors.surfaceLight.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(DsRadius.md),
                       ),
                       child: Text(
@@ -678,16 +667,16 @@ class _ActionButton extends StatelessWidget {
 
     if (isPrimary) {
       backgroundColor = DsColors.primary;
-      foregroundColor = Colors.white;
+      foregroundColor = DsColors.surfaceLight;
     } else if (isDestructive) {
       backgroundColor = isDark
-          ? Colors.white.withValues(alpha: 0.1)
-          : Colors.black.withValues(alpha: 0.05);
+          ? DsColors.surfaceLight.withValues(alpha: 0.1)
+          : DsColors.ink900.withValues(alpha: 0.05);
       foregroundColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     } else {
       backgroundColor = isDark
-          ? Colors.white.withValues(alpha: 0.1)
-          : Colors.black.withValues(alpha: 0.05);
+          ? DsColors.surfaceLight.withValues(alpha: 0.1)
+          : DsColors.ink900.withValues(alpha: 0.05);
       foregroundColor =
           isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
     }
@@ -806,7 +795,7 @@ class _MatchCelebrationDialogState extends State<_MatchCelebrationDialog>
                       ),
                       borderRadius: BorderRadius.circular(DsRadius.xl),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: DsColors.surfaceLight.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -830,7 +819,7 @@ class _MatchCelebrationDialogState extends State<_MatchCelebrationDialog>
                           ),
                           child: const Icon(
                             Icons.favorite_rounded,
-                            color: Colors.white,
+                            color: DsColors.surfaceLight,
                             size: 40,
                           ),
                         ),
@@ -845,7 +834,7 @@ class _MatchCelebrationDialogState extends State<_MatchCelebrationDialog>
                                 .headlineMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: DsColors.surfaceLight,
                                 ),
                           ),
                         ),

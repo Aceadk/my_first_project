@@ -28,8 +28,8 @@ class DataStorageSettingsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.blue.withValues(alpha: 0.1),
-                      Colors.cyan.withValues(alpha: 0.1),
+                      DsColors.info.withValues(alpha: 0.1),
+                      DsColors.info.withValues(alpha: 0.1),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -41,12 +41,12 @@ class DataStorageSettingsScreen extends StatelessWidget {
                     Container(
                       padding: DsEdgeInsets.allMd,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.2),
+                        color: DsColors.info.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.storage_outlined,
-                        color: Colors.blue,
+                        color: DsColors.info,
                         size: 28,
                       ),
                     ),
@@ -118,13 +118,13 @@ class DataStorageSettingsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: DsColors.info.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             '${storageState.cacheSizeMb} MB',
                             style: const TextStyle(
-                              color: Colors.blue,
+                              color: DsColors.info,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -247,7 +247,7 @@ class _SectionHeader extends StatelessWidget {
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.bold,
-          color: Colors.blue,
+          color: DsColors.info,
         ),
       ),
     );

@@ -484,7 +484,7 @@ class _ProfileHeader extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.5),
+                  DsColors.ink900.withValues(alpha: 0.5),
                 ],
               ),
             ),
@@ -498,18 +498,18 @@ class _ProfileHeader extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
+                color: DsColors.ink900.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.photo_library, size: 16, color: Colors.white),
+                  const Icon(Icons.photo_library, size: 16, color: DsColors.surfaceLight),
                   const SizedBox(width: 4),
                   Text(
                     '${profile.photoUrls.length}',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -759,9 +759,7 @@ class _PhotosGrid extends StatelessWidget {
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter, // Prioritize face area
                 placeholder: Container(
-                  color: isDark
-                      ? DsGlassColors.surfaceDark
-                      : DsGlassColors.surfaceLight,
+                  color: DsGlassColors.surfaceFor(context),
                   child: const Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
@@ -770,9 +768,7 @@ class _PhotosGrid extends StatelessWidget {
                   ),
                 ),
                 errorWidget: Container(
-                  color: isDark
-                      ? DsGlassColors.surfaceDark
-                      : DsGlassColors.surfaceLight,
+                  color: DsGlassColors.surfaceFor(context),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -801,9 +797,7 @@ class _PhotosGrid extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(DsRadius.md),
                   border: Border.all(
-                    color: isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight,
+                    color: DsGlassColors.borderFor(context),
                     width: 1,
                   ),
                 ),

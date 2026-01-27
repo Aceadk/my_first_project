@@ -374,8 +374,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [DsColors.backgroundDark, const Color(0xFF1A1A2E), DsColors.backgroundDark]
-                : [DsColors.backgroundLight, const Color(0xFFF8F0FF), DsColors.backgroundLight],
+                ? [
+                    DsColors.backgroundDark,
+                    DsColors.secondary.withValues(alpha: 0.22),
+                    DsColors.backgroundDark,
+                  ]
+                : [
+                    DsColors.backgroundLight,
+                    DsColors.secondary.withValues(alpha: 0.08),
+                    DsColors.backgroundLight,
+                  ],
           ),
         ),
         child: SafeArea(
@@ -559,14 +567,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   if (saving)
                     Positioned.fill(
                       child: Container(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: DsColors.ink900.withValues(alpha: 0.3),
                         child: const Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               CircularProgressIndicator(color: DsColors.primary),
                               DsGap.md,
-                              Text('Setting up your profile...', style: TextStyle(color: Colors.white)),
+                              Text('Setting up your profile...', style: TextStyle(color: DsColors.surfaceLight)),
                             ],
                           ),
                         ),
@@ -689,7 +697,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                      color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.05) : DsColors.ink900.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1119,7 +1127,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     : DsColors.inputFillLight,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: canChangeUsername ? DsColors.primary : Colors.orange,
+                  color: canChangeUsername ? DsColors.primary : DsColors.warning,
                   width: 2,
                 ),
               ),
@@ -1128,7 +1136,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   Icon(
                     canChangeUsername ? Icons.alternate_email_rounded : Icons.lock_rounded,
                     size: 22,
-                    color: canChangeUsername ? DsColors.primary : Colors.orange,
+                    color: canChangeUsername ? DsColors.primary : DsColors.warning,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1164,19 +1172,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.2),
+                        color: DsColors.warning.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.timer_outlined, size: 12, color: Colors.orange),
+                          const Icon(Icons.timer_outlined, size: 12, color: DsColors.warning),
                           const SizedBox(width: 4),
                           Text(
                             '$daysUntilChange days',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: Colors.orange,
+                              color: DsColors.warning,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1195,14 +1203,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const Icon(
                     Icons.info_outline,
                     size: 14,
-                    color: Colors.orange,
+                    color: DsColors.warning,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Username changes are limited to once every 28 days. You can change it again in $daysUntilChange days.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.orange,
+                        color: DsColors.warning,
                         fontSize: 11,
                       ),
                     ),
@@ -1388,7 +1396,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     leading: Container(
                       width: 24, height: 24,
                       decoration: BoxDecoration(shape: BoxShape.circle, color: isSelected ? DsColors.primary : Colors.transparent, border: Border.all(color: isSelected ? DsColors.primary : (isDark ? DsColors.borderDark : DsColors.borderLight), width: 2)),
-                      child: isSelected ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+                      child: isSelected ? const Icon(Icons.check, size: 16, color: DsColors.surfaceLight) : null,
                     ),
                     title: Text(option, style: Theme.of(ctx2).textTheme.bodyMedium?.copyWith(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)),
                   );
@@ -1446,7 +1454,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             child: GlassPrimaryButton(
               onPressed: saving ? null : () => _submit(state),
               child: saving
-                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: DsColors.surfaceLight))
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

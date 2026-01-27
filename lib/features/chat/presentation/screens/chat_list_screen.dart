@@ -100,9 +100,7 @@ class _ChatListView extends StatelessWidget {
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isDark
-                          ? DsGlassColors.borderDark
-                          : DsGlassColors.borderLight,
+                      color: DsGlassColors.borderFor(context),
                       width: 1.5,
                     ),
                     boxShadow: [
@@ -119,7 +117,7 @@ class _ChatListView extends StatelessWidget {
                     child: const Icon(
                       Icons.chat_bubble_outline_rounded,
                       size: 52,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                     ),
                   ),
                 ),
@@ -133,7 +131,7 @@ class _ChatListView extends StatelessWidget {
                 'No conversations yet',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                     ),
               ),
             ),
@@ -154,7 +152,7 @@ class _ChatListView extends StatelessWidget {
   }
 
   PreferredSizeWidget _buildGlassAppBar(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -170,21 +168,13 @@ class _ChatListView extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.8),
-                  (isDark
-                          ? DsGlassColors.surfaceDark
-                          : DsGlassColors.surfaceLight)
-                      .withValues(alpha: 0.6),
+                  baseSurface.withValues(alpha: 0.8),
+                  baseSurface.withValues(alpha: 0.6),
                 ],
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 0.5,
                 ),
               ),
@@ -208,7 +198,7 @@ class _ChatListView extends StatelessWidget {
                               .titleLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: DsColors.surfaceLight,
                               ),
                         ),
                       ),
@@ -321,6 +311,8 @@ class _MessageRequestsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
       child: BackdropFilter(
@@ -340,21 +332,13 @@ class _MessageRequestsTile extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: 0.6),
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: 0.4),
+                    baseSurface.withValues(alpha: 0.6),
+                    baseSurface.withValues(alpha: 0.4),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
                 border: Border.all(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: borderBase,
                   width: 1,
                 ),
               ),
@@ -368,7 +352,7 @@ class _MessageRequestsTile extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.mail_outline_rounded,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       size: 20,
                     ),
                   ),
@@ -551,6 +535,8 @@ class _ChatTileState extends State<_ChatTile>
     final lastMessageTime = _lastMessage?.sentAt;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
@@ -571,23 +557,15 @@ class _ChatTileState extends State<_ChatTile>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: hasUnread ? 0.7 : 0.5),
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: hasUnread ? 0.5 : 0.3),
+                    baseSurface.withValues(alpha: hasUnread ? 0.7 : 0.5),
+                    baseSurface.withValues(alpha: hasUnread ? 0.5 : 0.3),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
                 border: Border.all(
                   color: hasUnread
                       ? DsColors.primary.withValues(alpha: 0.5)
-                      : (isDark
-                          ? DsGlassColors.borderDark
-                          : DsGlassColors.borderLight),
+                      : borderBase,
                   width: hasUnread ? 1.5 : 1,
                 ),
                 boxShadow: hasUnread
@@ -608,14 +586,14 @@ class _ChatTileState extends State<_ChatTile>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark
-                                ? DsGlassColors.borderLight
-                                : DsGlassColors.borderDark.withValues(alpha: 0.3),
+                            color: borderBase.withValues(
+                              alpha: isDark ? 1.0 : 0.3,
+                            ),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: DsColors.ink900.withValues(alpha: 0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -639,7 +617,7 @@ class _ChatTileState extends State<_ChatTile>
                               color: DsColors.onlineIndicator,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isDark ? Colors.black : Colors.white,
+                                color: isDark ? DsColors.ink900 : DsColors.surfaceLight,
                                 width: 2,
                               ),
                               boxShadow: [
@@ -662,15 +640,15 @@ class _ChatTileState extends State<_ChatTile>
                             width: 14,
                             height: 14,
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: DsColors.error,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isDark ? Colors.black : Colors.white,
+                                color: isDark ? DsColors.ink900 : DsColors.surfaceLight,
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.red.withValues(alpha: 0.5),
+                                  color: DsColors.error.withValues(alpha: 0.5),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -709,7 +687,7 @@ class _ChatTileState extends State<_ChatTile>
                                         fontSize: 11,
                                         fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
                                         color: hasUnread
-                                            ? Colors.red.shade400
+                                            ? DsColors.error
                                             : DsColors.textMutedLight,
                                       ),
                                       maxLines: 1,
@@ -777,7 +755,7 @@ class _ChatTileState extends State<_ChatTile>
                                 child: Text(
                                   _unreadCount > 99 ? '99+' : '$_unreadCount',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: DsColors.surfaceLight,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),

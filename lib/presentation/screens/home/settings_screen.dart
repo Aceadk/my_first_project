@@ -5,6 +5,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_e
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -58,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor:
-                                    AlwaysStoppedAnimation(Colors.white),
+                                    AlwaysStoppedAnimation(DsColors.surfaceLight),
                               ),
                             )
                           : const Text('Upgrade to Crush Plus'),
@@ -67,7 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 else
                   const Text(
                     'You have Crush Plus. Enjoy unlimited likes and unsend.',
-                    style: TextStyle(color: Colors.green),
+                    style: TextStyle(color: DsColors.success),
                   ),
               ],
             );

@@ -87,8 +87,7 @@ class _ProfileCompletionIndicatorState extends State<ProfileCompletionIndicator>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = widget.backgroundColor ??
-        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
+    final bgColor = widget.backgroundColor ?? DsGlassColors.surfaceFor(context);
 
     return AnimatedBuilder(
       animation: _animation,
@@ -156,11 +155,11 @@ class _ProfileCompletionIndicatorState extends State<ProfileCompletionIndicator>
   LinearGradient _getGradientForProgress(double progress) {
     if (progress < 0.3) {
       return const LinearGradient(
-        colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+        colors: [DsColors.warning, Color(0xFFFF8A5B)],
       );
     } else if (progress < 0.7) {
       return const LinearGradient(
-        colors: [Color(0xFFFFD93D), Color(0xFFFF8E53)],
+        colors: [DsColors.primary, Color(0xFFFFA3B1)],
       );
     } else {
       return const LinearGradient(
@@ -246,14 +245,13 @@ class ProfileCompletionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(DsSpacing.lg),
           decoration: BoxDecoration(
-            color: isDark
-                ? DsGlassColors.surfaceMediumDark
-                : DsGlassColors.surfaceMediumLight,
+            color: DsGlassColors.surfaceFor(
+              context,
+              strength: DsGlassSurfaceStrength.medium,
+            ),
             borderRadius: BorderRadius.circular(DsRadius.lg),
             border: Border.all(
-              color: isDark
-                  ? DsGlassColors.borderDark
-                  : DsGlassColors.borderLight,
+              color: DsGlassColors.borderFor(context),
             ),
           ),
           child: Column(

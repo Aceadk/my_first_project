@@ -269,6 +269,17 @@ class StubProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<void> updateThemePreference(String preference) async {
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final updatedUser = currentUser.copyWith(themePreference: preference);
+    await _saveUser(updatedUser);
+  }
+
+  @override
   Future<CrushUser> skipBasicInfo({required String username}) async {
     await Future.delayed(const Duration(milliseconds: 50));
 
@@ -417,6 +428,7 @@ class StubProfileRepository implements ProfileRepository {
       isPhoneVerified: json['isPhoneVerified'] ?? false,
       isIdVerified: json['isIdVerified'] ?? false,
       plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      themePreference: json['themePreference'] ?? json['theme_preference'],
       profile: profile,
       hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
       hasSkippedBasicInfo: json['hasSkippedBasicInfo'] ?? false,
@@ -489,6 +501,7 @@ class StubProfileRepository implements ProfileRepository {
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
       'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
+      'themePreference': user.themePreference,
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,
       'hasSkippedBasicInfo': user.hasSkippedBasicInfo,

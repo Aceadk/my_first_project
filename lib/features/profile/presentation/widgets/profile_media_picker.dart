@@ -229,7 +229,7 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
             child: Text(
               'Tap a photo to set as display picture',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
+                color: DsColors.ink300,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -301,12 +301,12 @@ class _MediaTile extends StatelessWidget {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star, color: Colors.white, size: 12),
+                    Icon(Icons.star, color: DsColors.surfaceLight, size: 12),
                     SizedBox(width: 2),
                     Text(
                       'Display',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -325,13 +325,13 @@ class _MediaTile extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
+                      color: DsColors.ink900.withValues(alpha: 0.54),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
                       'Video',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                         fontSize: 10,
                       ),
                     ),
@@ -341,9 +341,9 @@ class _MediaTile extends StatelessWidget {
                     iconSize: 20,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    color: Colors.black87,
+                    color: DsColors.ink900.withValues(alpha: 0.87),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white70,
+                      backgroundColor: DsColors.surfaceLight.withValues(alpha: 0.7),
                       shape: const CircleBorder(),
                     ),
                     onPressed: onRemove,

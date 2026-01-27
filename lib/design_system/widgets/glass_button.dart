@@ -7,6 +7,7 @@ import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
+import '../theme/theme_extensions.dart';
 
 /// A primary button with gradient background and glass shimmer overlay.
 ///
@@ -33,12 +34,17 @@ class GlassPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradientToUse = gradient ?? DsGradients.primaryHorizontal;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final motionScale = effects?.motionScale ?? 1.0;
+    final gradientToUse =
+        gradient ?? effects?.primaryGradient ?? DsGradients.primaryHorizontal;
+    final shadowColor = effects?.glowColor ?? gradientToUse.colors.first;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.28;
     final isDisabled = onPressed == null || isLoading;
 
     Widget buttonContent = AnimatedOpacity(
       opacity: isDisabled ? 0.6 : 1.0,
-      duration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: (200 * motionScale).round()),
       child: Container(
         height: height,
         padding: const EdgeInsets.symmetric(horizontal: DsSpacing.xl),
@@ -47,8 +53,8 @@ class GlassPrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: gradientToUse.colors.first.withValues(alpha: 0.4),
-              blurRadius: 16,
+              color: shadowColor.withValues(alpha: shadowOpacity),
+              blurRadius: 18,
               offset: const Offset(0, 6),
             ),
           ],
@@ -65,8 +71,8 @@ class GlassPrimaryButton extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.white.withValues(alpha: 0.25),
-                        Colors.white.withValues(alpha: 0.0),
+                        Colors.white.withValues(alpha: 0.18),
+                        Colors.white.withValues(alpha: 0.02),
                       ],
                       stops: const [0.0, 0.5],
                     ),
@@ -157,11 +163,9 @@ class GlassOutlinedButton extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor = backgroundColor ??
-        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
+    final bgColor = backgroundColor ?? DsGlassColors.surfaceFor(context);
 
-    final borderClr = borderColor ??
-        (isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight);
+    final borderClr = borderColor ?? DsGlassColors.borderFor(context);
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
@@ -181,7 +185,7 @@ class GlassOutlinedButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(color: borderClr, width: 1.5),
+              border: Border.all(color: borderClr, width: 1.0),
             ),
             child: Center(
               child: isLoading
@@ -263,11 +267,9 @@ class GlassIconButton extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor = backgroundColor ??
-        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
+    final bgColor = backgroundColor ?? DsGlassColors.surfaceFor(context);
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final iconClr = iconColor ??
         (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight);
@@ -337,7 +339,11 @@ class GlassActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradientToUse = gradient ?? DsGradients.primaryHorizontal;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final gradientToUse =
+        gradient ?? effects?.primaryGradient ?? DsGradients.primaryHorizontal;
+    final shadowColor = effects?.glowColor ?? gradientToUse.colors.first;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.4;
 
     Widget button = Container(
       width: size,
@@ -348,7 +354,7 @@ class GlassActionButton extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: gradientToUse.colors.first.withValues(alpha: 0.4),
+                  color: shadowColor.withValues(alpha: shadowOpacity),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -427,11 +433,9 @@ class GlassSmallButton extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;

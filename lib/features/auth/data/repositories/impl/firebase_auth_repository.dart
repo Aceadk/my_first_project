@@ -85,6 +85,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
       final plan =
           userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final themePreference =
+          userData['themePreference'] ?? userData['theme_preference'];
       final profile = _profileFromFirestore(firebaseUser.uid, userData);
 
       // Determine if we need to update email verification status
@@ -96,12 +98,14 @@ class FirebaseAuthRepository implements AuthRepository {
       final currentSkippedBasicInfo = _currentUser?.hasSkippedBasicInfo ?? false;
       final currentSkippedProfileSetup = _currentUser?.hasSkippedProfileSetup ?? false;
       final currentProfile = _currentUser?.profile;
+      final currentThemePreference = _currentUser?.themePreference;
       final needsProfileUpdate = profile != null && profile != currentProfile;
       final needsUpdate = needsEmailVerificationUpdate ||
           hasAcceptedTerms != currentTermsStatus ||
           hasSkippedBasicInfo != currentSkippedBasicInfo ||
           hasSkippedProfileSetup != currentSkippedProfileSetup ||
-          needsProfileUpdate;
+          needsProfileUpdate ||
+          themePreference != currentThemePreference;
 
       if (needsUpdate) {
         _currentUser = CrushUser(
@@ -115,6 +119,7 @@ class FirebaseAuthRepository implements AuthRepository {
           isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
+          themePreference: themePreference,
           profile: profile ?? currentProfile,
           hasAcceptedTerms: hasAcceptedTerms,
           hasSkippedBasicInfo: hasSkippedBasicInfo,
@@ -141,6 +146,7 @@ class FirebaseAuthRepository implements AuthRepository {
       isPhoneVerified: firebaseUser.phoneNumber != null,
       isIdVerified: false,
       plan: SubscriptionPlan.free,
+      themePreference: _currentUser?.themePreference,
       profile: null,
     );
   }
@@ -706,6 +712,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final hasSkippedProfileSetup = userData?['hasSkippedProfileSetup'] as bool? ?? false;
       final plan =
           userData?['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final themePreference =
+          userData?['themePreference'] ?? userData?['theme_preference'];
       final profile = userData != null
           ? _profileFromFirestore(updatedUser.uid, userData)
           : _currentUser?.profile;
@@ -724,6 +732,7 @@ class FirebaseAuthRepository implements AuthRepository {
           isPhoneVerified: firestorePhoneVerified || updatedUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
+          themePreference: themePreference,
           profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,
           hasSkippedBasicInfo: hasSkippedBasicInfo,
@@ -1229,6 +1238,8 @@ class FirebaseAuthRepository implements AuthRepository {
         final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
         final plan =
             userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+        final themePreference =
+            userData['themePreference'] ?? userData['theme_preference'];
         final profile = _profileFromFirestore(updatedFirebaseUser.uid, userData);
 
         _currentUser = CrushUser(
@@ -1240,6 +1251,7 @@ class FirebaseAuthRepository implements AuthRepository {
           isPhoneVerified: firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
+          themePreference: themePreference,
           profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,
           hasSkippedBasicInfo: hasSkippedBasicInfo,

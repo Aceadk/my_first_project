@@ -153,17 +153,17 @@ class _GlassIconButton extends StatelessWidget {
                     colors: [DsColors.primary, DsColors.secondary],
                   )
                 : null,
-            color: isActive ? null : Colors.black.withValues(alpha: 0.4),
+            color: isActive ? null : DsColors.ink900.withValues(alpha: 0.4),
             border: Border.all(
               color: isActive
-                  ? Colors.white.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.3),
+                  ? DsColors.surfaceLight.withValues(alpha: 0.5)
+                  : DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1.5,
             ),
           ),
           child: Icon(
             icon,
-            color: Colors.white,
+            color: DsColors.surfaceLight,
             size: size * 0.5,
           ),
         ),
@@ -207,18 +207,18 @@ class _ReactionPicker extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.2),
-                Colors.white.withValues(alpha: 0.1),
+                DsColors.surfaceLight.withValues(alpha: 0.2),
+                DsColors.surfaceLight.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(DsRadius.xl),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: DsColors.ink900.withValues(alpha: 0.3),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
@@ -240,7 +240,7 @@ class _ReactionPicker extends StatelessWidget {
                   width: 1,
                   height: itemSize * 0.6,
                   margin: const EdgeInsets.symmetric(horizontal: DsSpacing.xs),
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.3),
                 ),
                 _CommentButton(
                   size: itemSize,
@@ -319,12 +319,12 @@ class _CommentButton extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: DsColors.surfaceLight.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(size / 2.0),
         ),
         child: Icon(
           Icons.chat_bubble_outline,
-          color: Colors.white,
+          color: DsColors.surfaceLight,
           size: size * 0.45,
         ),
       ),
@@ -489,8 +489,8 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
             padding: const EdgeInsets.all(DsSpacing.lg),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withValues(alpha: 0.7)
-                  : Colors.white.withValues(alpha: 0.9),
+                  ? DsColors.surfaceDark.withValues(alpha: 0.85)
+                  : DsColors.surfaceLight.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(DsRadius.xl),
               border: Border.all(
                 color: DsColors.primary.withValues(alpha: 0.3),
@@ -577,8 +577,8 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                     hintText: 'Add a comment (optional)...',
                     filled: true,
                     fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.grey.withValues(alpha: 0.1),
+                        ? DsColors.inputFillDark
+                        : DsColors.inputFillLight,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(DsRadius.md),
                       borderSide: BorderSide.none,
@@ -616,7 +616,7 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: DsColors.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: DsColors.surfaceLight,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(DsRadius.md),
                           ),

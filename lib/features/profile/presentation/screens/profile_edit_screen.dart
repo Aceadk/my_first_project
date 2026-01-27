@@ -451,7 +451,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         // ignore: use_build_context_synchronously
         context: context,
         builder: (context) => AlertDialog(
-          icon: const Icon(Icons.elderly, color: Colors.orange, size: 48),
+          icon: const Icon(Icons.elderly, color: DsColors.warning, size: 48),
           title: const Text('Age Notice'),
           content: const Text(
             'You\'re a bit too old to be using a dating app, don\'t you think?\n\n'
@@ -479,7 +479,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       // ignore: use_build_context_synchronously
       context: context,
       builder: (context) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+          icon: const Icon(Icons.warning_amber_rounded, color: DsColors.warning, size: 48),
           title: const Text('Confirm Date of Birth'),
           content: Text(
             'You selected: ${result.day}/${result.month}/${result.year}\n\n'
@@ -1493,7 +1493,7 @@ class _ProgressCard extends StatelessWidget {
                 child: Text(
                   '$percent%',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -1869,7 +1869,7 @@ class _SaveButton extends StatelessWidget {
           color: Theme.of(context).scaffoldBackgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(15),
+              color: DsColors.ink900.withValues(alpha: 0.06),
               blurRadius: 10,
               offset: const Offset(0, -4),
             ),
@@ -1890,7 +1890,7 @@ class _SaveButton extends StatelessWidget {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    valueColor: AlwaysStoppedAnimation(DsColors.surfaceLight),
                   ),
                 )
               : const Row(

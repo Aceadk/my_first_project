@@ -44,12 +44,10 @@ class _DeckActionButtonState extends State<DeckActionButton>
     final isEnabled = widget.enabled;
 
     // When disabled, use grey color
-    final effectiveColor = isEnabled ? widget.color : Colors.grey;
+    final effectiveColor = isEnabled ? widget.color : DsColors.ink300;
 
     // Softer glass background with subtle color tint
-    final bgColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.white.withValues(alpha: 0.9);
+    final bgColor = DsGlassColors.surfaceFor(context);
 
     return Semantics(
       button: true,
@@ -85,7 +83,7 @@ class _DeckActionButtonState extends State<DeckActionButton>
                 boxShadow: [
                   // Main soft shadow
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
+                    color: DsColors.ink900.withValues(alpha: isDark ? 0.2 : 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                     spreadRadius: 0,
@@ -182,10 +180,10 @@ class DeckStatusBar extends StatelessWidget {
                 vertical: DsSpacing.sm,
               ),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: isDark ? 0.15 : 0.1),
+                color: DsColors.warning.withValues(alpha: isDark ? 0.15 : 0.1),
                 borderRadius: BorderRadius.circular(DsSpacing.sm),
                 border: Border.all(
-                  color: Colors.orange.withValues(alpha: 0.3),
+                  color: DsColors.warning.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -194,14 +192,14 @@ class DeckStatusBar extends StatelessWidget {
                   Icon(
                     Icons.refresh,
                     size: 18,
-                    color: Colors.orange.shade300,
+                    color: DsColors.warning,
                   ),
                   const SizedBox(width: DsSpacing.sm),
                   Expanded(
                     child: Text(
                       'Retrying in ~${retryInSeconds}s…',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.orange.shade300,
+                        color: DsColors.warning,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -230,14 +228,10 @@ class DeckStatusBar extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
-                color: isDark
-                    ? DsGlassColors.surfaceDark
-                    : DsGlassColors.surfaceLight,
+                color: DsGlassColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(DsSpacing.sm),
                 border: Border.all(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: DsGlassColors.borderFor(context),
                   width: 1,
                 ),
               ),
@@ -268,9 +262,8 @@ class DeckStatusBar extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: completeness.score,
                       minHeight: 6,
-                      backgroundColor: isDark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.1),
+                      backgroundColor:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                       valueColor: const AlwaysStoppedAnimation(
                         DsColors.primary,
                       ),
@@ -349,18 +342,18 @@ class DeckSearchModeIndicator extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.cyan.withValues(alpha: isDark ? 0.2 : 0.15),
-                      Colors.blue.withValues(alpha: isDark ? 0.15 : 0.1),
+                      DsColors.info.withValues(alpha: isDark ? 0.2 : 0.15),
+                      DsColors.secondary.withValues(alpha: isDark ? 0.15 : 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(DsSpacing.sm),
                   border: Border.all(
-                    color: Colors.cyan.withValues(alpha: 0.4),
+                    color: DsColors.info.withValues(alpha: 0.4),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.cyan.withValues(alpha: 0.1),
+                      color: DsColors.info.withValues(alpha: 0.1),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
@@ -372,14 +365,14 @@ class DeckSearchModeIndicator extends StatelessWidget {
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Colors.cyan, Colors.blue],
+                          colors: [DsColors.info, DsColors.secondary],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.flight_takeoff,
                         size: 14,
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                       ),
                     ),
                     const SizedBox(width: DsSpacing.sm),
@@ -390,7 +383,7 @@ class DeckSearchModeIndicator extends StatelessWidget {
                           Text(
                             'Passport Mode',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.cyan,
+                              color: DsColors.info,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -409,7 +402,7 @@ class DeckSearchModeIndicator extends StatelessWidget {
                     Icon(
                       Icons.chevron_right,
                       size: 18,
-                      color: Colors.cyan.shade300,
+                      color: DsColors.info.withValues(alpha: 0.8),
                     ),
                   ],
                 ),

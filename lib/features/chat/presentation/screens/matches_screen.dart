@@ -165,9 +165,10 @@ class _MatchesViewState extends State<_MatchesView> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark
-                  ? DsGlassColors.surfaceHeavyDark
-                  : DsGlassColors.surfaceHeavyLight,
+              color: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.heavy,
+              ),
             ),
             child: SafeArea(
               top: false,
@@ -178,7 +179,7 @@ class _MatchesViewState extends State<_MatchesView> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : Colors.black26,
+                      color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -502,6 +503,8 @@ class _MatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
@@ -522,21 +525,13 @@ class _MatchTile extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: 0.5),
-                    (isDark
-                            ? DsGlassColors.surfaceDark
-                            : DsGlassColors.surfaceLight)
-                        .withValues(alpha: 0.3),
+                    baseSurface.withValues(alpha: 0.5),
+                    baseSurface.withValues(alpha: 0.3),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
                 border: Border.all(
-                  color: isDark
-                      ? DsGlassColors.borderDark
-                      : DsGlassColors.borderLight,
+                  color: borderBase,
                   width: 1,
                 ),
               ),
@@ -547,9 +542,7 @@ class _MatchTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark
-                            ? DsGlassColors.borderLight
-                            : DsGlassColors.borderDark.withValues(alpha: 0.3),
+                        color: borderBase.withValues(alpha: isDark ? 1.0 : 0.3),
                         width: 2,
                       ),
                       boxShadow: [
@@ -921,7 +914,7 @@ class _LikesYouCard extends StatelessWidget {
                     sigmaY: DsBlur.heavy,
                   ),
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.15),
+                    color: DsColors.ink900.withValues(alpha: 0.15),
                   ),
                 ),
               Positioned.fill(
@@ -932,7 +925,7 @@ class _LikesYouCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.75),
+                        DsColors.ink900.withValues(alpha: 0.75),
                       ],
                     ),
                   ),
@@ -948,7 +941,7 @@ class _LikesYouCard extends StatelessWidget {
                     Text(
                       isBlurred ? 'Likes You' : profile.publicDisplayName,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -959,14 +952,14 @@ class _LikesYouCard extends StatelessWidget {
                     Text(
                       dobLabel,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: DsColors.surfaceLight.withValues(alpha: 0.85),
                         fontSize: 11,
                       ),
                     ),
                     Text(
                       distanceLabel,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: DsColors.surfaceLight.withValues(alpha: 0.85),
                         fontSize: 11,
                       ),
                     ),
@@ -980,12 +973,12 @@ class _LikesYouCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: DsColors.ink900.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.lock,
-                      color: Colors.white,
+                      color: DsColors.surfaceLight,
                       size: 14,
                     ),
                   ),

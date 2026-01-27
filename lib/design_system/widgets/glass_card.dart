@@ -5,6 +5,7 @@ import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
+import '../theme/theme_extensions.dart';
 
 /// A glassmorphism card with optional gradient border.
 ///
@@ -28,12 +29,12 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.blur = DsBlur.light,
-    this.borderRadius = DsRadius.xl,
+    this.borderRadius = DsRadius.card,
     this.padding,
     this.margin,
     this.showGradientBorder = false,
     this.gradientBorder,
-    this.borderWidth = 1.5,
+    this.borderWidth = 1.0,
     this.backgroundColor,
     this.onTap,
     this.elevation = 0,
@@ -76,14 +77,17 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final shadowColor = effects?.glowColor ?? DsColors.primary;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.16;
 
     final bgColor = backgroundColor ??
-        (isDark
-            ? DsGlassColors.surfaceMediumDark
-            : DsGlassColors.surfaceMediumLight);
+        DsGlassColors.surfaceFor(
+          context,
+          strength: DsGlassSurfaceStrength.medium,
+        );
 
-    final defaultBorderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final defaultBorderColor = DsGlassColors.borderFor(context);
 
     Widget cardContent = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -113,8 +117,8 @@ class GlassCard extends StatelessWidget {
           boxShadow: elevation > 0
               ? [
                   BoxShadow(
-                    color: DsColors.primary.withValues(alpha: 0.2),
-                    blurRadius: elevation * 4,
+                    color: shadowColor.withValues(alpha: shadowOpacity),
+                    blurRadius: elevation * 5,
                     offset: Offset(0, elevation * 2),
                   ),
                 ]
@@ -131,8 +135,10 @@ class GlassCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: elevation * 4,
+              color: shadowColor.withValues(
+                alpha: isDark ? 0.35 : (shadowOpacity * 0.75),
+              ),
+              blurRadius: elevation * 5,
               offset: Offset(0, elevation * 2),
             ),
           ],
@@ -185,7 +191,11 @@ class GlassCardAccent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradientToUse = gradient ?? DsGradients.primaryDiagonal;
+    final effects = Theme.of(context).extension<CrushThemeEffects>();
+    final gradientToUse =
+        gradient ?? effects?.primaryGradient ?? DsGradients.primaryDiagonal;
+    final shadowColor = effects?.glowColor ?? DsColors.primary;
+    final shadowOpacity = effects?.shadowOpacity ?? 0.3;
 
     Widget content = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -197,7 +207,7 @@ class GlassCardAccent extends StatelessWidget {
             gradient: gradientToUse,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: DsGlassColors.highlightStrong,
+              color: DsGlassColors.highlightFor(context, strong: true),
               width: 1,
             ),
           ),
@@ -223,7 +233,7 @@ class GlassCardAccent extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: DsColors.primary.withValues(alpha: 0.3),
+            color: shadowColor.withValues(alpha: shadowOpacity),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),

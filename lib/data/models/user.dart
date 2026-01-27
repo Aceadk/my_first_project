@@ -13,6 +13,7 @@ class CrushUser extends Equatable {
   final bool isPhoneVerified;
   final bool isIdVerified;
   final SubscriptionPlan plan;
+  final String? themePreference;
   final bool hasAcceptedTerms;
   /// Flag indicating user skipped basic info (can still complete later in settings)
   final bool hasSkippedBasicInfo;
@@ -44,6 +45,7 @@ class CrushUser extends Equatable {
     required this.isPhoneVerified,
     required this.isIdVerified,
     required this.plan,
+    this.themePreference,
     this.hasAcceptedTerms = false,
     this.hasSkippedBasicInfo = false,
     this.hasSkippedProfileSetup = false,
@@ -87,6 +89,7 @@ class CrushUser extends Equatable {
     bool? isPhoneVerified,
     bool? isIdVerified,
     SubscriptionPlan? plan,
+    String? themePreference,
     bool? hasAcceptedTerms,
     bool? hasSkippedBasicInfo,
     bool? hasSkippedProfileSetup,
@@ -104,6 +107,7 @@ class CrushUser extends Equatable {
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       isIdVerified: isIdVerified ?? this.isIdVerified,
       plan: plan ?? this.plan,
+      themePreference: themePreference ?? this.themePreference,
       hasAcceptedTerms: hasAcceptedTerms ?? this.hasAcceptedTerms,
       hasSkippedBasicInfo: hasSkippedBasicInfo ?? this.hasSkippedBasicInfo,
       hasSkippedProfileSetup: hasSkippedProfileSetup ?? this.hasSkippedProfileSetup,
@@ -122,6 +126,7 @@ class CrushUser extends Equatable {
         isPhoneVerified,
         isIdVerified,
         plan,
+        themePreference,
         hasAcceptedTerms,
         hasSkippedBasicInfo,
         hasSkippedProfileSetup,

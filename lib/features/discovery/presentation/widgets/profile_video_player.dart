@@ -187,7 +187,7 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
     return ClipRRect(
       borderRadius: borderRadius,
       child: Container(
-        color: Colors.black,
+        color: DsColors.ink900,
         child: const Center(
           child: CircularProgressIndicator(
             color: DsColors.primary,
@@ -202,21 +202,21 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
     return ClipRRect(
       borderRadius: borderRadius,
       child: Container(
-        color: Colors.grey.shade900,
+        color: DsColors.ink800,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.videocam_off_outlined,
-                color: Colors.white.withValues(alpha: 0.5),
+                color: DsColors.surfaceLight.withValues(alpha: 0.5),
                 size: 48,
               ),
               const SizedBox(height: 8),
               Text(
                 'Video unavailable',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: DsColors.surfaceLight.withValues(alpha: 0.5),
                   fontSize: 14,
                 ),
               ),
@@ -254,21 +254,24 @@ class _GlassPlayButton extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  DsGlassColors.surfaceMediumLight,
-                  DsGlassColors.surfaceLight,
+                  DsGlassColors.surfaceFor(
+                    context,
+                    strength: DsGlassSurfaceStrength.medium,
+                  ),
+                  DsGlassColors.surfaceFor(context),
                 ],
               ),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: DsColors.surfaceLight.withValues(alpha: 0.3),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: DsColors.ink900.withValues(alpha: 0.3),
                   blurRadius: 16,
                   spreadRadius: 2,
                 ),
@@ -276,7 +279,7 @@ class _GlassPlayButton extends StatelessWidget {
             ),
             child: Icon(
               isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: Colors.white,
+              color: DsColors.surfaceLight,
               size: 48,
             ),
           ),
@@ -325,7 +328,7 @@ class _VideoProgressBarState extends State<_VideoProgressBar> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(2),
-        color: Colors.white.withValues(alpha: 0.3),
+        color: DsColors.surfaceLight.withValues(alpha: 0.3),
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
@@ -388,10 +391,10 @@ class _VideoDurationBadgeState extends State<_VideoDurationBadge> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: DsColors.ink900.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(DsRadius.sm),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: DsColors.surfaceLight.withValues(alpha: 0.2),
               width: 0.5,
             ),
           ),
@@ -400,14 +403,14 @@ class _VideoDurationBadgeState extends State<_VideoDurationBadge> {
             children: [
               const Icon(
                 Icons.videocam_rounded,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
                 size: 14,
               ),
               const SizedBox(width: 4),
               Text(
                 _formatDuration(remaining),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -458,7 +461,7 @@ class VideoIndicatorBadge extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(DsRadius.round),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -467,14 +470,14 @@ class VideoIndicatorBadge extends StatelessWidget {
             children: [
               Icon(
                 Icons.videocam_rounded,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
                 size: compact ? 12 : 14,
               ),
               const SizedBox(width: 4),
               Text(
                 '$videoCount',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   fontSize: compact ? 10 : 12,
                   fontWeight: FontWeight.w600,
                 ),

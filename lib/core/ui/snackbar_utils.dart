@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 
 void showErrorSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
@@ -14,7 +15,7 @@ void showSuccessSnackBar(BuildContext context, String message) {
     ..showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: DsColors.success,
       ),
     );
 }

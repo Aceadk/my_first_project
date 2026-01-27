@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
 /// Status bar showing upload/sending progress.
@@ -14,7 +15,7 @@ class ChatSendStatusBar extends StatelessWidget {
       case SendStatus.uploadingAttachment:
         return Container(
           width: double.infinity,
-          color: Colors.blueGrey.withAlpha((0.08 * 255).round()),
+          color: DsColors.ink400.withValues(alpha: 0.08),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [

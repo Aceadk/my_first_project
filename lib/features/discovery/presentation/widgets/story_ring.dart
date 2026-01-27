@@ -185,19 +185,19 @@ class StoryBadge extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: hasUnseen
-                  ? [
-                      DsColors.primary.withValues(alpha: 0.7),
-                      DsColors.secondary.withValues(alpha: 0.5),
-                    ]
-                  : [
-                      Colors.grey.withValues(alpha: 0.6),
-                      Colors.grey.withValues(alpha: 0.4),
-                    ],
+                colors: hasUnseen
+                    ? [
+                        DsColors.primary.withValues(alpha: 0.7),
+                        DsColors.secondary.withValues(alpha: 0.5),
+                      ]
+                    : [
+                        DsColors.ink300.withValues(alpha: 0.6),
+                        DsColors.ink200.withValues(alpha: 0.4),
+                      ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: DsColors.surfaceLight.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -206,14 +206,14 @@ class StoryBadge extends StatelessWidget {
             children: [
               Icon(
                 Icons.auto_awesome,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
                 size: compact ? 10 : 12,
               ),
               const SizedBox(width: 3),
               Text(
                 storyCount == 1 ? 'Story' : '$storyCount',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: DsColors.surfaceLight,
                   fontSize: compact ? 9 : 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -361,7 +361,7 @@ class _AnimatedStoryRingPainter extends CustomPainter {
         ? [
             DsColors.primary,
             DsColors.secondary,
-            Colors.white.withValues(alpha: 0.8),
+            DsColors.surfaceLight.withValues(alpha: 0.8),
             DsColors.secondary,
             DsColors.primary,
           ]

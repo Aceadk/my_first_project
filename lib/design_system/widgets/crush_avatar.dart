@@ -169,7 +169,7 @@ class _OnlineIndicator extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isOnline ? const Color(0xFF4CAF50) : Colors.grey,
+        color: isOnline ? DsColors.onlineIndicator : DsColors.offlineIndicator,
         border: Border.all(
           color: isDark ? DsColors.backgroundDark : Colors.white,
           width: size * 0.15,

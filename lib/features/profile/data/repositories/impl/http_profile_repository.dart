@@ -224,6 +224,12 @@ class HttpProfileRepository implements ProfileRepository {
     return user;
   }
 
+  @override
+  Future<void> updateThemePreference(String preference) async {
+    // No dedicated endpoint yet; update cached user so UI stays in sync.
+    _cachedUser = _cachedUser?.copyWith(themePreference: preference);
+  }
+
   /// Upload a profile photo.
   ///
   /// Returns the remote URL of the uploaded photo.

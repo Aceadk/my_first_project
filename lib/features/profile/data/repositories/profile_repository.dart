@@ -40,6 +40,9 @@ abstract class ProfileRepository {
 
   Future<CrushUser> updateProfile(Profile profile);
 
+  /// Update the user's theme preference (stored at account level).
+  Future<void> updateThemePreference(String preference);
+
   /// Skip basic info setup - only saves username, marks hasCompletedBasicInfo as true.
   Future<CrushUser> skipBasicInfo({required String username});
 

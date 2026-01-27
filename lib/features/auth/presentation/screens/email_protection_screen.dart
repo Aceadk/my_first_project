@@ -58,10 +58,10 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: DsColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.green.withValues(alpha: 0.3),
+                  color: DsColors.success.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -69,12 +69,12 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
+                      color: DsColors.success.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.verified_outlined,
-                      color: Colors.green,
+                      color: DsColors.success,
                       size: 40,
                     ),
                   ),
@@ -83,7 +83,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                     'Email Verified',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: DsColors.success,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -125,10 +125,10 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
+                color: DsColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.orange.withValues(alpha: 0.3),
+                  color: DsColors.warning.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -138,7 +138,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                     children: [
                       const Icon(
                         Icons.info_outline,
-                        color: Colors.orange,
+                        color: DsColors.warning,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -146,7 +146,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                         'Want to use a different email?',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.orange.shade800,
+                          color: DsColors.warning,
                         ),
                       ),
                     ],
@@ -155,7 +155,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   Text(
                     'To use a different email address, you will need to delete this account and create a new one with the new email.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.orange.shade900,
+                      color: DsColors.warning,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -169,7 +169,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                     child: Text(
                       'Go to Account Settings',
                       style: TextStyle(
-                        color: Colors.orange.shade800,
+                        color: DsColors.warning,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
                       ),

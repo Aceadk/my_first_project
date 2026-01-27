@@ -39,8 +39,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.green.withValues(alpha: 0.1),
-                  Colors.teal.withValues(alpha: 0.1),
+                  DsColors.success.withValues(alpha: 0.1),
+                  DsColors.accent.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -52,12 +52,12 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                 Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
+                    color: DsColors.success.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.shield_outlined,
-                    color: Colors.green,
+                    color: DsColors.success,
                     size: 28,
                   ),
                 ),
@@ -93,16 +93,16 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: hasEmail
                     ? (emailVerified
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1))
-                    : Colors.red.withValues(alpha: 0.1),
+                        ? DsColors.success.withValues(alpha: 0.1)
+                        : DsColors.warning.withValues(alpha: 0.1))
+                    : DsColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: hasEmail
                       ? (emailVerified
-                          ? Colors.green.withValues(alpha: 0.3)
-                          : Colors.orange.withValues(alpha: 0.3))
-                      : Colors.red.withValues(alpha: 0.3),
+                          ? DsColors.success.withValues(alpha: 0.3)
+                          : DsColors.warning.withValues(alpha: 0.3))
+                      : DsColors.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -114,8 +114,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                             : Icons.warning_amber_outlined)
                         : Icons.error_outline,
                     color: hasEmail
-                        ? (emailVerified ? Colors.green : Colors.orange)
-                        : Colors.red,
+                        ? (emailVerified ? DsColors.success : DsColors.warning)
+                        : DsColors.error,
                   ),
                   DsGap.mdH,
                   Expanded(
@@ -131,8 +131,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: hasEmail
-                                ? (emailVerified ? Colors.green : Colors.orange)
-                                : Colors.red,
+                                ? (emailVerified ? DsColors.success : DsColors.warning)
+                                : DsColors.error,
                           ),
                         ),
                         if (hasEmail) ...[
@@ -160,16 +160,16 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: hasPhone
                     ? (phoneVerified
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1))
-                    : Colors.red.withValues(alpha: 0.1),
+                        ? DsColors.success.withValues(alpha: 0.1)
+                        : DsColors.warning.withValues(alpha: 0.1))
+                    : DsColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: hasPhone
                       ? (phoneVerified
-                          ? Colors.green.withValues(alpha: 0.3)
-                          : Colors.orange.withValues(alpha: 0.3))
-                      : Colors.red.withValues(alpha: 0.3),
+                          ? DsColors.success.withValues(alpha: 0.3)
+                          : DsColors.warning.withValues(alpha: 0.3))
+                      : DsColors.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -181,8 +181,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                             : Icons.warning_amber_outlined)
                         : Icons.error_outline,
                     color: hasPhone
-                        ? (phoneVerified ? Colors.green : Colors.orange)
-                        : Colors.red,
+                        ? (phoneVerified ? DsColors.success : DsColors.warning)
+                        : DsColors.error,
                   ),
                   DsGap.mdH,
                   Expanded(
@@ -198,8 +198,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: hasPhone
-                                ? (phoneVerified ? Colors.green : Colors.orange)
-                                : Colors.red,
+                                ? (phoneVerified ? DsColors.success : DsColors.warning)
+                                : DsColors.error,
                           ),
                         ),
                         if (hasPhone) ...[
@@ -222,7 +222,7 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
           // Security options
           _SecurityTile(
             icon: emailVerified ? Icons.verified_outlined : Icons.email_outlined,
-            iconColor: emailVerified ? Colors.green : Colors.blue,
+            iconColor: emailVerified ? DsColors.success : DsColors.info,
             title: emailVerified ? 'Email protection (Locked)' : 'Email protection',
             subtitle: hasEmail
                 ? (emailVerified ? 'Verified and locked' : 'Verify your email')
@@ -232,7 +232,7 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
           ),
           _SecurityTile(
             icon: phoneVerified ? Icons.verified_outlined : Icons.phone_outlined,
-            iconColor: phoneVerified ? Colors.green : Colors.blue,
+            iconColor: phoneVerified ? DsColors.success : DsColors.info,
             title: phoneVerified ? 'Phone protection (Locked)' : 'Phone protection',
             subtitle: hasPhone
                 ? (phoneVerified ? 'Verified and locked' : 'Verify your phone')
@@ -261,7 +261,7 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                       const Icon(
                         Icons.lightbulb_outline,
                         size: 20,
-                        color: Colors.amber,
+                        color: DsColors.warning,
                       ),
                       DsGap.mdH,
                       Text(
@@ -329,7 +329,7 @@ class _SecurityTile extends StatelessWidget {
       title: Text(title),
       subtitle: Text(subtitle),
       trailing: locked
-          ? const Icon(Icons.lock_outline, color: Colors.green)
+          ? const Icon(Icons.lock_outline, color: DsColors.success)
           : const Icon(Icons.chevron_right),
       onTap: onTap,
     );
@@ -353,7 +353,7 @@ class _TipItem extends StatelessWidget {
         Icon(
           Icons.check_circle,
           size: 16,
-          color: Colors.green.withValues(alpha: 0.7),
+          color: DsColors.success.withValues(alpha: 0.7),
         ),
         DsGap.smH,
         Expanded(

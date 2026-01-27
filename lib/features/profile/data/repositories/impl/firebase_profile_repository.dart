@@ -356,6 +356,17 @@ class FirebaseProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<void> updateThemePreference(String preference) async {
+    final userId = _currentUserId;
+    if (userId == null) throw Exception('No user logged in');
+
+    await _firestore.collection('users').doc(userId).set({
+      'themePreference': preference,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
   Future<CrushUser> skipBasicInfo({required String username}) async {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
@@ -491,6 +502,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       isPhoneVerified: data['isPhoneVerified'] ?? false,
       isIdVerified: data['isIdVerified'] ?? false,
       plan: data['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      themePreference: data['themePreference'] ?? data['theme_preference'],
       profile: profile,
       hasAcceptedTerms: data['hasAcceptedTerms'] ?? false,
       hasSkippedBasicInfo: data['hasSkippedBasicInfo'] ?? false,

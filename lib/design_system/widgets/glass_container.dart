@@ -62,14 +62,8 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
-    final bgColor = backgroundColor ??
-        (isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight);
-
-    final borderClr = borderColor ??
-        (isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight);
+    final bgColor = backgroundColor ?? DsGlassColors.surfaceFor(context);
+    final borderClr = borderColor ?? DsGlassColors.borderFor(context);
 
     return RepaintBoundary(
       child: Container(
@@ -122,11 +116,8 @@ class GlassContainerShimmer extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    final bgColor =
-        isDark ? DsGlassColors.surfaceDark : DsGlassColors.surfaceLight;
-
-    final borderClr =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final bgColor = DsGlassColors.surfaceFor(context);
+    final borderClr = DsGlassColors.borderFor(context);
 
     return RepaintBoundary(
       child: Container(

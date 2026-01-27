@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'swipe_card.dart';
 
 /// A swipeable card widget that handles horizontal swipe gestures.
@@ -251,7 +252,7 @@ class _SwipeableCardState extends State<SwipeableCard>
                           top: 30.0,
                           child: _SwipeIconIndicator(
                             icon: Icons.favorite_rounded,
-                            color: Colors.red,
+                            color: DsColors.primary,
                             angle: -0.3,
                           ),
                         ),
@@ -262,7 +263,7 @@ class _SwipeableCardState extends State<SwipeableCard>
                           top: 30.0,
                           child: _SwipeIconIndicator(
                             icon: Icons.close_rounded,
-                            color: Colors.red.shade400,
+                            color: DsColors.error,
                             angle: 0.3,
                           ),
                         ),
@@ -275,7 +276,7 @@ class _SwipeableCardState extends State<SwipeableCard>
                           child: Center(
                             child: _SwipeIconIndicator(
                               icon: Icons.star_rounded,
-                              color: Colors.purple,
+                              color: DsColors.secondary,
                               angle: 0,
                             ),
                           ),
@@ -329,7 +330,7 @@ class _SwipeIconIndicator extends StatelessWidget {
           size: 48,
           shadows: [
             Shadow(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: DsColors.ink900.withValues(alpha: 0.3),
               blurRadius: 4,
             ),
           ],

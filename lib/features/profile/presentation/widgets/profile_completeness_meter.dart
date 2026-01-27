@@ -15,6 +15,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final summary = evaluateProfileCompleteness(profile);
     final percent = (summary.score * 100).round();
     final missing = summary.missing.take(3).toList();
@@ -41,17 +42,22 @@ class ProfileCompletenessMeter extends StatelessWidget {
               value: summary.score,
               minHeight: 8,
               backgroundColor: DsColors.skeletonLight,
+              color: DsColors.primary,
             ),
             const SizedBox(height: 8),
             if (missing.isEmpty)
-              const Text(
+              Text(
                 'Great job! Your profile is ready.',
-                style: TextStyle(color: Colors.green),
+                style: TextStyle(color: DsColors.success),
               )
             else ...[
-              const Text(
+              Text(
                 'Complete these to unlock messaging and swiping:',
-                style: TextStyle(color: DsColors.textMutedLight),
+                style: TextStyle(
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -61,7 +67,8 @@ class ProfileCompletenessMeter extends StatelessWidget {
                     .map(
                       (m) => Chip(
                         label: Text(m),
-                        backgroundColor: Colors.orange.withAlpha(32),
+                        backgroundColor: DsColors.warning
+                            .withValues(alpha: isDark ? 0.18 : 0.12),
                       ),
                     )
                     .toList(),

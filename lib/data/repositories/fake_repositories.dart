@@ -710,6 +710,26 @@ class FakeProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<void> updateThemePreference(String preference) async {
+    if (_user == null) {
+      _user = CrushUser(
+        id: _uuid.v4(),
+        phoneNumber: '',
+        email: null,
+        username: null,
+        isEmailVerified: false,
+        profile: null,
+        isPhoneVerified: true,
+        isIdVerified: false,
+        plan: SubscriptionPlan.free,
+        themePreference: preference,
+      );
+    } else {
+      _user = _user!.copyWith(themePreference: preference);
+    }
+  }
+
+  @override
   Future<CrushUser> skipBasicInfo({required String username}) async {
     _user = (_user ??
             CrushUser(

@@ -143,8 +143,8 @@ class ChatSettingsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.amber.withValues(alpha: 0.1),
-                          Colors.orange.withValues(alpha: 0.1),
+                          DsColors.warning.withValues(alpha: 0.1),
+                          DsColors.warning.withValues(alpha: 0.1),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -153,7 +153,7 @@ class ChatSettingsScreen extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.workspace_premium,
-                          color: Colors.amber,
+                          color: DsColors.warning,
                           size: 24,
                         ),
                         DsGap.mdH,
@@ -210,7 +210,7 @@ class ChatSettingsScreen extends StatelessWidget {
                       Icons.access_time,
                       color: state.settings.extendedRetention
                           ? DsColors.primary
-                          : Colors.grey,
+                          : DsColors.ink300,
                     ),
                   ),
                   title: const Text('Keep messages for 24 hours'),

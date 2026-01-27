@@ -48,7 +48,7 @@ class ChatDateSeparator extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     Colors.transparent,
-                    (isDark ? Colors.white24 : Colors.black12),
+                    (isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12)),
                   ],
                 ),
               ),
@@ -67,13 +67,11 @@ class ChatDateSeparator extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.04),
+                        ? DsColors.surfaceLight.withValues(alpha: 0.08)
+                        : DsColors.ink900.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(DsRadius.round),
                     border: Border.all(
-                      color: isDark
-                          ? DsGlassColors.borderDark
-                          : DsGlassColors.borderLight,
+                      color: DsGlassColors.borderFor(context),
                       width: 0.5,
                     ),
                   ),
@@ -97,7 +95,7 @@ class ChatDateSeparator extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    (isDark ? Colors.white24 : Colors.black12),
+                    (isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12)),
                     Colors.transparent,
                   ],
                 ),

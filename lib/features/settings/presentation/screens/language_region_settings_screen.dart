@@ -268,7 +268,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                         Text(
                           '${options.length} languages',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
+                            color: DsColors.ink300,
                           ),
                         ),
                       ],

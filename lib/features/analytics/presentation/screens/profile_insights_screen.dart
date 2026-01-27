@@ -390,10 +390,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           Container(
             padding: const EdgeInsets.all(DsSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: DsColors.surfaceLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(DsRadius.md),
             ),
-            child: const Icon(Icons.access_time, color: Colors.white, size: 28),
+            child: const Icon(Icons.access_time, color: DsColors.surfaceLight, size: 28),
           ),
           DsGap.lgH,
           Expanded(
@@ -403,7 +403,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
                 const Text(
                   'Best Time to Be Active',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -412,7 +412,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
                 Text(
                   cubit.getBestTimeToBeActive(),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: DsColors.surfaceLight.withValues(alpha: 0.9),
                     fontSize: 14,
                   ),
                 ),
@@ -609,7 +609,7 @@ class _StatCard extends StatelessWidget {
               gradient: gradient,
               borderRadius: BorderRadius.circular(DsRadius.sm),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: DsColors.surfaceLight, size: 20),
           ),
           DsGap.md,
           Text(

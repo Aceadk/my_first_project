@@ -89,6 +89,7 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return Positioned(
       top: MediaQuery.of(context).padding.top + 100,
@@ -120,26 +121,18 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      (isDark
-                              ? DsGlassColors.surfaceDark
-                              : DsGlassColors.surfaceLight)
-                          .withValues(alpha: 0.9),
-                      (isDark
-                              ? DsGlassColors.surfaceDark
-                              : DsGlassColors.surfaceLight)
-                          .withValues(alpha: 0.8),
+                      baseSurface.withValues(alpha: 0.9),
+                      baseSurface.withValues(alpha: 0.8),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(DsRadius.round),
                   border: Border.all(
-                    color: isDark
-                        ? DsGlassColors.borderDark
-                        : DsGlassColors.borderLight,
+                    color: DsGlassColors.borderFor(context),
                     width: 0.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: DsColors.ink900.withValues(alpha: 0.2),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -157,7 +150,7 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
                       child: Icon(
                         widget.icon,
                         size: 20,
-                        color: Colors.white,
+                        color: DsColors.surfaceLight,
                       ),
                     ),
                     const SizedBox(width: DsSpacing.md),

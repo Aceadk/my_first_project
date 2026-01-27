@@ -113,9 +113,9 @@ class _MatchCelebrationState extends State<MatchCelebration>
     const colors = [
       DsColors.primary,
       DsColors.secondary,
-      Color(0xFFFFD700), // Gold
-      Color(0xFFFF69B4), // Hot pink
-      Color(0xFF00CED1), // Dark turquoise
+      DsColors.accent,
+      DsColors.warning,
+      Color(0xFFFF8FA3), // Soft rose
       Colors.white,
     ];
 
@@ -351,7 +351,10 @@ class _MatchCelebrationState extends State<MatchCelebration>
           imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Container(
-            color: DsGlassColors.surfaceMediumDark,
+            color: DsGlassColors.surfaceFor(
+              context,
+              strength: DsGlassSurfaceStrength.medium,
+            ),
             child: const Icon(
               Icons.person,
               size: 48,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import '../../core/ui/snackbar_utils.dart';
 
 /// Shared wrapper to unify loading/error/empty states across screens.
@@ -109,7 +110,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.orange),
+            const Icon(Icons.error_outline, size: 64, color: DsColors.warning),
             const SizedBox(height: 12),
             Text(
               message,

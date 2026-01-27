@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
@@ -21,11 +22,13 @@ class UpgradeNudgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return Card(
       elevation: 0,
-      color: Colors.blueGrey.withAlpha((0.1 * 255).round()),
+      color: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DsSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,17 +39,14 @@ class UpgradeNudgeCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: theme.textTheme.titleMedium,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(subtitle),
-            const SizedBox(height: 10),
+            const SizedBox(height: DsSpacing.xs),
+            Text(subtitle, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: DsSpacing.sm),
             UpsellBullets(items: bullets),
             DsGap.md,
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
@@ -89,15 +89,15 @@ class IntroBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.sm, vertical: DsSpacing.xs),
       decoration: BoxDecoration(
-        color: Colors.pink.shade50,
-        borderRadius: BorderRadius.circular(12),
+        color: DsColors.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(DsRadius.chip),
       ),
-      child: const Text(
+      child: Text(
         'Intro offer',
         style: TextStyle(
-          color: Colors.pink,
+          color: DsColors.primary,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
@@ -122,8 +122,8 @@ class UpsellBullets extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.check_circle, size: 16, color: DsColors.success),
+                  const SizedBox(width: DsSpacing.xs),
                   Expanded(child: Text(item)),
                 ],
               ),

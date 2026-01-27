@@ -8,6 +8,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/gradients.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -201,7 +202,10 @@ class _SplashScreenState extends State<SplashScreen>
           _setNavigationTarget(CrushRoutes.authGateway);
         }
       },
-      child: Scaffold(
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          return Scaffold(
         body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -210,9 +214,9 @@ class _SplashScreenState extends State<SplashScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF1A1A2E),
-                Color(0xFF16213E),
-                Color(0xFF0F3460),
+                DsColors.backgroundDark,
+                DsColors.ink800,
+                DsColors.ink700,
               ],
             ),
           ),
@@ -238,20 +242,13 @@ class _SplashScreenState extends State<SplashScreen>
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      DsColors.primary,
-                                      DsColors.secondary,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
+                                  gradient: DsGradients.primaryDiagonal,
                                   borderRadius: BorderRadius.circular(30),
                                   boxShadow: [
                                     BoxShadow(
                                       color: DsColors.primary
-                                          .withValues(alpha: 0.5),
-                                      blurRadius: 30,
+                                          .withValues(alpha: 0.35),
+                                      blurRadius: 26,
                                       spreadRadius: 5,
                                     ),
                                   ],
@@ -259,7 +256,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 child: const Icon(
                                   Icons.favorite_rounded,
                                   size: 60,
-                                  color: Colors.white,
+                                  color: DsColors.surfaceLight,
                                 ),
                               ),
                             );
@@ -269,18 +266,14 @@ class _SplashScreenState extends State<SplashScreen>
                         // App name with gradient
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Color(0xFFE8E8E8),
-                            ],
+                            colors: [DsColors.surfaceLight, DsColors.ink50],
                           ).createShader(bounds),
-                          child: const Text(
+                          child: Text(
                             'Crush',
-                            style: TextStyle(
+                            style: theme.textTheme.displayLarge?.copyWith(
                               fontSize: 42,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -1,
-                              color: Colors.white,
+                              letterSpacing: -0.6,
+                              color: DsColors.surfaceLight,
                             ),
                           ),
                         ),
@@ -290,7 +283,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'Find your perfect match',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: DsColors.textMutedDark,
                             fontWeight: FontWeight.w400,
                             letterSpacing: 0.5,
                           ),
@@ -310,7 +303,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'From',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: DsColors.textMutedDark.withValues(alpha: 0.8),
                           letterSpacing: 1,
                         ),
                       ),
@@ -327,7 +320,7 @@ class _SplashScreenState extends State<SplashScreen>
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: DsColors.surfaceLight,
                             letterSpacing: 2,
                           ),
                         ),
@@ -340,6 +333,8 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
         ),
+      );
+        },
       ),
     );
   }

@@ -83,12 +83,12 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
 
     final bgColor = backgroundColor ??
-        (isDark
-            ? DsGlassColors.surfaceHeavyDark
-            : DsGlassColors.surfaceHeavyLight);
+        DsGlassColors.surfaceFor(
+          context,
+          strength: DsGlassSurfaceStrength.heavy,
+        );
 
-    final borderColor =
-        isDark ? DsGlassColors.borderDark : DsGlassColors.borderLight;
+    final borderColor = DsGlassColors.borderFor(context);
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
@@ -199,9 +199,10 @@ class GlassSliverAppBar extends StatelessWidget {
     final theme = Theme.of(context);
 
     final bgColor = backgroundColor ??
-        (isDark
-            ? DsGlassColors.surfaceHeavyDark
-            : DsGlassColors.surfaceHeavyLight);
+        DsGlassColors.surfaceFor(
+          context,
+          strength: DsGlassSurfaceStrength.heavy,
+        );
 
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;

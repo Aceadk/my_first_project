@@ -53,10 +53,10 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: DsColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.green.withValues(alpha: 0.3),
+                  color: DsColors.success.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -64,12 +64,12 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
+                      color: DsColors.success.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.verified_outlined,
-                      color: Colors.green,
+                      color: DsColors.success,
                       size: 40,
                     ),
                   ),
@@ -78,7 +78,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                     'Phone Verified',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: DsColors.success,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -120,10 +120,10 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: DsColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.red.withValues(alpha: 0.3),
+                  color: DsColors.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -133,7 +133,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                     children: [
                       const Icon(
                         Icons.warning_amber_outlined,
-                        color: Colors.red,
+                        color: DsColors.error,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -141,7 +141,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                         'Remove phone number',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.red.shade800,
+                          color: DsColors.error,
                         ),
                       ),
                     ],
@@ -153,7 +153,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                     '- Make it available for new accounts after 3 days\n'
                     '- Remove phone-based security features',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.red.shade900,
+                      color: DsColors.error,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -162,8 +162,8 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                     child: OutlinedButton(
                       onPressed: _isDeleting ? null : () => _showDeleteConfirmation(context, currentPhone),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                        foregroundColor: DsColors.error,
+                        side: const BorderSide(color: DsColors.error),
                       ),
                       child: _isDeleting
                           ? const SizedBox(
@@ -171,7 +171,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.red,
+                                color: DsColors.error,
                               ),
                             )
                           : const Text('Remove Phone Number'),
@@ -200,15 +200,15 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
+                color: DsColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.orange.withValues(alpha: 0.3),
+                  color: DsColors.warning.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 20),
+                  const Icon(Icons.warning_amber_outlined, color: DsColors.warning, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -424,7 +424,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 48),
+        icon: const Icon(Icons.warning_amber_rounded, color: DsColors.error, size: 48),
         title: const Text('Remove Phone Number?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -479,7 +479,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
               _deletePhoneNumber();
             },
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: DsColors.error,
             ),
             child: const Text('Remove'),
           ),

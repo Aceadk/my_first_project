@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/design_system/design_system.dart';
 
 /// Privacy Policy screen required for App Store compliance.
 /// Displays how user data is collected, used, and protected.
@@ -12,31 +13,32 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final muted =
+        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Privacy Policy')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DsSpacing.lg),
         children: [
           Text(
             'Last updated: $lastUpdated',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: muted),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          const SizedBox(height: DsSpacing.lg),
+          Text(
             'Your Privacy Matters',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.displaySmall,
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: DsSpacing.sm),
+          Text(
             'CrushHour ("we", "our", or "us") is committed to protecting your privacy. '
             'This Privacy Policy explains how we collect, use, disclose, and safeguard '
             'your information when you use our mobile application.',
+            style: theme.textTheme.bodyLarge,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Information We Collect
           const _SectionHeader('Information We Collect'),
@@ -46,13 +48,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Verification data: ID documents for identity verification'),
           const _Bullet('Communications: messages, reports, and support requests'),
           const _Bullet('Payment information: processed securely through third-party providers'),
-          const SizedBox(height: 12),
+          const SizedBox(height: DsSpacing.md),
           const _SubHeader('Information Collected Automatically'),
           const _Bullet('Location data: to show you nearby users (with your permission)'),
           const _Bullet('Device information: device type, OS version, unique identifiers'),
           const _Bullet('Usage data: app interactions, features used, time spent'),
           const _Bullet('Log data: IP address, access times, crash reports'),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // How We Use Your Information
           const _SectionHeader('How We Use Your Information'),
@@ -64,19 +66,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Respond to your requests and provide customer support'),
           const _Bullet('Analyze usage patterns to improve user experience'),
           const _Bullet('Comply with legal obligations'),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Sharing Your Information
           const _SectionHeader('Sharing Your Information'),
           const Text(
             'We do not sell your personal information. We may share your information with:',
           ),
-          const SizedBox(height: 8),
-          const _Bullet('Other users: Your profile information is visible to potential matches'),
+          const SizedBox(height: DsSpacing.sm),
+          const _Bullet(
+              'Other users: Your profile information is visible to potential matches'),
           const _Bullet('Service providers: Companies that help us operate (hosting, analytics, payments)'),
           const _Bullet('Legal authorities: When required by law or to protect our rights'),
           const _Bullet('Business transfers: In case of merger, acquisition, or sale of assets'),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Data Retention
           const _SectionHeader('Data Retention'),
@@ -86,7 +89,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             'certain information for up to 14 days for recovery purposes, after which '
             'it is permanently deleted. Some data may be retained longer for legal compliance.',
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Your Rights and Choices
           const _SectionHeader('Your Rights and Choices'),
@@ -96,27 +99,29 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Export: Download your data in a portable format'),
           const _Bullet('Opt-out: Unsubscribe from marketing communications'),
           const _Bullet('Location: Control location sharing through device settings'),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: DsSpacing.sm),
+          Text(
             'To exercise these rights, go to Settings > Account > Account Actions, '
             'or contact us at the email below.',
+            style: theme.textTheme.bodyMedium,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Data Security
           const _SectionHeader('Data Security'),
           const Text(
             'We implement industry-standard security measures to protect your information, including:',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsSpacing.sm),
           const _Bullet('Encryption of data in transit and at rest'),
           const _Bullet('Secure authentication with phone/email verification'),
           const _Bullet('Regular security audits and monitoring'),
           const _Bullet('Access controls limiting employee access to user data'),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: DsSpacing.sm),
+          Text(
             'While we strive to protect your information, no method of transmission '
             'over the internet is 100% secure.',
+            style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
 
@@ -207,11 +212,12 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: theme.textTheme.titleLarge,
       ),
     );
   }
@@ -224,11 +230,12 @@ class _SubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4, top: 8),
+      padding: const EdgeInsets.only(bottom: DsSpacing.xs, top: DsSpacing.sm),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        style: theme.textTheme.titleMedium,
       ),
     );
   }
@@ -242,7 +249,7 @@ class _Bullet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DsSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

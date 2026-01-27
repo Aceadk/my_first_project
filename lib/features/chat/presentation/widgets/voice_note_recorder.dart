@@ -266,7 +266,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
           IconButton(
             onPressed: _cancelRecording,
             icon: const Icon(Icons.delete_outline),
-            color: Colors.red,
+            color: DsColors.error,
             tooltip: 'Cancel',
           ),
           const SizedBox(width: DsSpacing.sm),
@@ -283,12 +283,12 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                       height: 12,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.red.withValues(
+                        color: DsColors.error.withValues(
                           alpha: 0.5 + _pulseController.value * 0.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.red.withValues(
+                            color: DsColors.error.withValues(
                               alpha: 0.3 + _pulseController.value * 0.3,
                             ),
                             blurRadius: 8 + _pulseController.value * 4,
@@ -349,7 +349,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
               ),
               child: const Icon(
                 Icons.stop_rounded,
-                color: Colors.white,
+                color: DsColors.surfaceLight,
                 size: 26,
               ),
             ),
@@ -392,14 +392,14 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
               Icon(
                 Icons.headphones_rounded,
                 size: 16,
-                color: isDark ? Colors.white70 : Colors.black54,
+                color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
               ),
               const SizedBox(width: 6),
               Text(
                 'Preview your voice message',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
                 ),
               ),
             ],
@@ -412,7 +412,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
               IconButton(
                 onPressed: _reRecord,
                 icon: const Icon(Icons.refresh_rounded),
-                color: Colors.orange,
+                color: DsColors.warning,
                 tooltip: 'Re-record',
               ),
               // Play/Pause button
@@ -434,7 +434,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                   ),
                   child: Icon(
                     _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     size: 24,
                   ),
                 ),
@@ -482,7 +482,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                             _formatDuration(_playbackPosition),
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? Colors.white70 : Colors.black54,
+                              color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
                               fontFeatures: const [
                                 FontFeature.tabularFigures()
                               ],
@@ -492,7 +492,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                             _formatDuration(_playbackDuration),
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? Colors.white54 : Colors.black38,
+                              color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.54) : DsColors.ink900.withValues(alpha: 0.38),
                               fontFeatures: const [
                                 FontFeature.tabularFigures()
                               ],
@@ -509,7 +509,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
               IconButton(
                 onPressed: _cancelRecording,
                 icon: const Icon(Icons.close_rounded),
-                color: Colors.red.withValues(alpha: 0.8),
+                color: DsColors.error.withValues(alpha: 0.8),
                 tooltip: 'Cancel',
               ),
               // Send button
@@ -533,7 +533,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                   ),
                   child: const Icon(
                     Icons.send_rounded,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     size: 22,
                   ),
                 ),
@@ -550,7 +550,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
       padding: const EdgeInsets.all(DsSpacing.md),
       child: Row(
         children: [
-          const Icon(Icons.mic_off, color: Colors.orange),
+          const Icon(Icons.mic_off, color: DsColors.warning),
           const SizedBox(width: DsSpacing.sm),
           const Expanded(
             child: Text('Microphone permission required'),

@@ -245,7 +245,11 @@ class CrushDI {
         ),
       ),
       BlocProvider<ThemeCubit>(
-        create: (_) => ThemeCubit(preferences: preferences),
+        create: (context) => ThemeCubit(
+          preferences: preferences,
+          authRepository: context.read<AuthRepository>(),
+          profileRepository: context.read<ProfileRepository>(),
+        ),
       ),
       BlocProvider<NotificationSettingsCubit>(
         create: (_) => NotificationSettingsCubit(preferences: preferences),

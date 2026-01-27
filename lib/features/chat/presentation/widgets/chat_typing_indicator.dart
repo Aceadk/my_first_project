@@ -57,6 +57,7 @@ class _ChatTypingIndicatorState extends State<ChatTypingIndicator>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -66,14 +67,10 @@ class _ChatTypingIndicatorState extends State<ChatTypingIndicator>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isDark
-                  ? DsGlassColors.surfaceDark.withValues(alpha: 0.6)
-                  : DsGlassColors.surfaceLight.withValues(alpha: 0.8),
+              color: baseSurface.withValues(alpha: isDark ? 0.6 : 0.8),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark
-                    ? DsGlassColors.borderDark
-                    : DsGlassColors.borderLight,
+                color: DsGlassColors.borderFor(context),
                 width: 0.5,
               ),
             ),

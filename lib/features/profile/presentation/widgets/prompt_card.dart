@@ -39,19 +39,16 @@ class PromptCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  isDark
-                      ? DsGlassColors.surfaceDark
-                      : DsGlassColors.surfaceLight,
-                  isDark
-                      ? DsGlassColors.surfaceMediumDark
-                      : DsGlassColors.surfaceMediumLight,
+                  DsGlassColors.surfaceFor(context),
+                  DsGlassColors.surfaceFor(
+                    context,
+                    strength: DsGlassSurfaceStrength.medium,
+                  ),
                 ],
               ),
               borderRadius: BorderRadius.circular(DsRadius.lg),
               border: Border.all(
-                color: isDark
-                    ? DsGlassColors.borderDark
-                    : DsGlassColors.borderLight,
+                color: DsGlassColors.borderFor(context),
                 width: 1,
               ),
             ),
@@ -226,7 +223,7 @@ class AddPromptsEmptyState extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.chat_bubble_outline,
-                    color: Colors.white,
+                    color: DsColors.surfaceLight,
                     size: 28,
                   ),
                 ),

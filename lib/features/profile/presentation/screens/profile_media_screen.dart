@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
 class ProfileMediaArgs {
@@ -68,7 +69,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
               Text("$displayName's media"),
               if (widget.profile.isVerified) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.verified, color: Colors.lightBlueAccent),
+                const Icon(Icons.verified, color: DsColors.info),
               ],
             ],
           ),
@@ -130,7 +131,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                       if (snapshot.hasError) {
                         return Container(
                           height: 200,
-                          color: Colors.black12,
+                          color: DsColors.ink90012,
                           child: const Center(
                             child: Text('Could not load video'),
                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/design_system/design_system.dart';
 
 /// Terms of Service screen required for App Store compliance.
 /// Displays the legal terms and conditions for using the app.
@@ -12,70 +13,72 @@ class TermsOfServiceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final muted =
+        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Terms of Service')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DsSpacing.lg),
         children: [
           Text(
             'Last updated: $lastUpdated',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: muted),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          const SizedBox(height: DsSpacing.lg),
+          Text(
             'Terms of Service',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.displaySmall,
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: DsSpacing.sm),
+          Text(
             'Welcome to CrushHour! These Terms of Service ("Terms") govern your use '
             'of the CrushHour mobile application ("App" or "Service") operated by '
             'CrushHour Inc. ("we", "us", or "our"). By accessing or using our App, '
             'you agree to be bound by these Terms.',
+            style: theme.textTheme.bodyLarge,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Eligibility
           const _SectionHeader('1. Eligibility'),
           const Text(
             'To use CrushHour, you must:',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsSpacing.sm),
           const _Bullet('Be at least 18 years of age'),
           const _Bullet('Be legally permitted to use the Service under applicable laws'),
           const _Bullet('Not be prohibited from receiving services under applicable laws'),
           const _Bullet('Not have been previously banned from the Service'),
           const _Bullet('Not be a registered sex offender'),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: DsSpacing.sm),
+          Text(
             'By creating an account, you represent and warrant that you meet all '
             'eligibility requirements.',
+            style: theme.textTheme.bodyMedium,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Account Registration
           const _SectionHeader('2. Account Registration'),
           const Text(
             'To use certain features, you must register for an account. You agree to:',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsSpacing.sm),
           const _Bullet('Provide accurate, current, and complete information'),
           const _Bullet('Maintain and update your information to keep it accurate'),
           const _Bullet('Keep your login credentials secure and confidential'),
           const _Bullet('Notify us immediately of any unauthorized account access'),
           const _Bullet('Be responsible for all activities under your account'),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Community Guidelines
           const _SectionHeader('3. Community Guidelines'),
           const Text(
             'You agree to follow our Community Guidelines and not to:',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsSpacing.sm),
           const _Bullet('Post false, misleading, or deceptive content'),
           const _Bullet('Harass, bully, stalk, or intimidate any person'),
           const _Bullet('Use hate speech or discriminatory language'),
@@ -86,7 +89,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           const _Bullet('Use the Service for illegal purposes'),
           const _Bullet('Attempt to hack, disrupt, or damage the Service'),
           const _Bullet('Create multiple accounts or evade bans'),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Content Ownership
           const _SectionHeader('4. Content Ownership'),
@@ -97,7 +100,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             'to use, display, reproduce, and distribute your content in connection with '
             'the Service.',
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DsSpacing.md),
           const _SubHeader('Our Content'),
           const Text(
             'All other content on the Service, including text, graphics, logos, '
@@ -105,14 +108,14 @@ class TermsOfServiceScreen extends StatelessWidget {
             'intellectual property laws. You may not copy, modify, or distribute '
             'our content without permission.',
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsSpacing.xxl),
 
           // Subscriptions and Payments
           const _SectionHeader('5. Subscriptions and Payments'),
           const Text(
             'CrushHour offers free and premium subscription options:',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsSpacing.sm),
           const _Bullet('Subscriptions automatically renew unless cancelled'),
           const _Bullet('Cancel at least 24 hours before renewal to avoid charges'),
           const _Bullet('Manage subscriptions through your app store account'),
@@ -267,11 +270,12 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: theme.textTheme.titleLarge,
       ),
     );
   }
@@ -284,11 +288,12 @@ class _SubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4, top: 8),
+      padding: const EdgeInsets.only(bottom: DsSpacing.xs, top: DsSpacing.sm),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        style: theme.textTheme.titleMedium,
       ),
     );
   }
@@ -302,7 +307,7 @@ class _Bullet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DsSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
