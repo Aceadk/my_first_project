@@ -4,6 +4,603 @@ This file tracks all changes made by AI assistants in this repository.
 
 ---
 
+### [2026-01-26] Task: Web Platform Migration Planning (AUDIT_WEBAPP)
+
+Summary:
+- Conducted comprehensive analysis of Flutter codebase for web migration
+- Made tech stack decision: Next.js (React) over Flutter Web
+- Created complete feature inventory and screen-to-screen mapping
+- Documented full architecture design and implementation plan
+
+Analysis Results:
+- **Codebase Size:** ~197,600 lines across 455 files
+- **Screens:** 51 total screens identified
+- **Widgets:** 60+ reusable components
+- **State Management:** 8 BLoCs + 13 Cubits
+- **Routes:** 34+ routes with auth guards
+- **Backend:** Firebase (primary) + HTTP API + Stub
+
+Tech Stack Decision:
+- **Chosen:** Next.js 14 (React) with TypeScript
+- **Reasoning:**
+  1. SEO critical for marketing website (Flutter Web has poor SEO)
+  2. Smaller bundle sizes (150KB vs 2-4MB)
+  3. Better Core Web Vitals performance
+  4. Web-native UX and accessibility
+  5. Integrated marketing site + web app
+  6. Larger developer talent pool
+
+Proposed Web Stack:
+- Framework: Next.js 14+ (App Router)
+- Language: TypeScript 5.x
+- State: Zustand + React Query
+- Styling: Tailwind CSS + Radix UI
+- Backend: Existing Firebase (no changes needed)
+- Hosting: Vercel
+
+Files Created:
+- docs/AUDIT_WEBAPP.md - Complete audit with:
+  - Tech stack comparison and decision
+  - Feature inventory (9 categories, 50+ features)
+  - Screen-to-screen mapping (51 Flutter → ~40 web routes)
+  - Architecture design (monorepo, state management, components)
+  - 10-phase implementation plan
+  - API requirements
+  - Design system migration guide
+  - Security considerations
+  - Performance requirements
+  - SEO strategy
+  - Testing strategy
+  - Deployment strategy
+  - Risk assessment
+  - Implementation checklist
+
+- docs/TODO_WEBAPP.md - Detailed implementation TODO with:
+  - Phase-by-phase task breakdown
+  - Checkbox items for every deliverable
+  - Decision log
+  - Open questions
+  - Dependencies
+
+Implementation Phases (Estimated 8 weeks):
+1. Phase 0: Foundation (Week 1) - Monorepo, Next.js, design system, Firebase
+2. Phase 1: Authentication (Week 2) - All auth flows
+3. Phase 2: Onboarding (Week 2-3) - Terms, basic info, profile setup
+4. Phase 3: Discovery (Week 3-4) - Swipe deck, matching
+5. Phase 4: Messaging (Week 4-5) - Real-time chat
+6. Phase 5: Profile & Settings (Week 5-6) - Profile management
+7. Phase 6: Safety & Social (Week 6) - Block/report, social features
+8. Phase 7: Subscription (Week 6-7) - Stripe billing
+9. Phase 8: Marketing Website (Week 7-8) - SEO-optimized pages
+10. Phase 9: Polish & Testing (Week 8) - E2E tests, performance
+
+Web Routes Summary:
+- Marketing: / (landing), /features, /pricing, /about, /faq, /privacy, /terms
+- Auth: /auth, /auth/login, /auth/signup, /auth/phone, /auth/verify
+- Onboarding: /onboarding/terms, /onboarding/basic-info, /onboarding/profile
+- App: /discover, /matches, /messages, /profile, /settings
+- Dynamic: /messages/[matchId], /u/[userId], /call/[matchId]
+
+Next Steps:
+1. Review and approve AUDIT_WEBAPP.md
+2. Create web project repository
+3. Begin Phase 0: Foundation setup
+
+Verification:
+- All existing Flutter code analyzed via agent exploration
+- No code changes made to existing mobile app
+- Documentation only (planning phase)
+
+---
+
+### [2026-01-26] Task: Optimize HTTP Polling Frequency (AUDIT_REPORT Fix)
+
+Summary:
+- Optimized HTTP polling intervals in the HTTP repository implementations
+- Added WebSocket connection check to skip polling when real-time connection is available
+- Reduced unnecessary network requests and improved battery/bandwidth efficiency
+
+Changes:
+
+1. **HttpChatRepository - Polling Optimization:**
+   - Increased message polling interval from 3s to 10s (fallback only)
+   - Added configurable constants: `_messagePollingInterval`, `_presencePollingInterval`
+   - Added WebSocket connection check: skips polling entirely when WebSocket is connected
+   - Presence polling remains at 30s (reasonable for online status)
+
+2. **HttpSubscriptionRepository - Documentation:**
+   - Added `_subscriptionPollingInterval` constant (60s, unchanged)
+   - Added documentation explaining rationale for polling intervals
+
+Polling Summary (After Optimization):
+| Component | Before | After | Notes |
+|-----------|--------|-------|-------|
+| Messages | 3s | 10s | Fallback only, skipped if WebSocket connected |
+| Presence | 30s | 30s | Unchanged, skipped if WebSocket connected |
+| Subscription | 60s | 60s | Unchanged, infrequent changes acceptable |
+
+Files Modified:
+- lib/features/chat/data/repositories/impl/http_chat_repository.dart
+  - Added polling interval constants
+  - Added WebSocket check to `_startMessagePolling()` and `_startPresencePolling()`
+  - Changed message polling from 3s to 10s
+
+- lib/features/subscription/data/repositories/impl/http_subscription_repository.dart
+  - Added `_subscriptionPollingInterval` constant
+  - Added class documentation
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-26] Task: Implement Chat Message Pagination (AUDIT_REPORT Fix)
+
+Summary:
+- Implemented message pagination in chat to fix "No message pagination" audit issue (Medium severity)
+- Added infinite scroll for loading older messages
+- Improved UX with loading indicators for initial load and load-more states
+
+Changes:
+
+1. **ChatBloc - Paginated Message Loading:**
+   - Updated `_onChatOpened` to use `fetchMessagesPaginated()` instead of legacy `watchMessages()`
+   - Initial load fetches 50 messages (configurable via `_pageSize`)
+   - After initial load, subscribes to `watchNewMessages()` for real-time updates
+   - Graceful fallback to legacy `watchMessages()` if pagination fails
+   - Properly tracks `isInitialLoading`, `isLoadingMore`, and `hasMoreMessages` states
+
+2. **ChatScreen - Infinite Scroll:**
+   - Added `ScrollController` to detect when user scrolls near top (oldest messages)
+   - Added `_onScroll()` method that triggers `ChatLoadMoreMessagesRequested` event
+   - Scroll threshold: 200px from max scroll extent triggers load more
+   - Proper lifecycle management: listener added in `initState`, removed in `dispose`
+
+3. **ChatScreen - Loading UI:**
+   - Added `_LoadMoreIndicator` widget at top of message list when loading older messages
+   - Shows subtle spinner with "Loading older messages..." text
+   - Respects dark/light theme for proper colors
+   - Initial loading already used skeleton messages (`_buildMessageSkeletonList`)
+
+4. **Profile Document Optimization (AUDIT_REPORT):**
+   - Reviewed "Large profile documents" issue - determined architecture is already optimized:
+     - Activity data (likes, swipes) stored in separate collections
+     - Matches include denormalized name/photo to avoid full profile fetches
+     - Messages in subcollection, not profile document
+   - No code changes needed - Low severity issue was not a real concern
+
+Files Modified:
+- lib/features/chat/presentation/bloc/chat_bloc.dart
+  - `_onChatOpened`: Refactored to use pagination + real-time new message subscription
+
+- lib/features/chat/presentation/screens/chat_screen.dart
+  - Added `_scrollController` field
+  - Added `_onScroll()` method for infinite scroll detection
+  - Updated `initState` and `dispose` for scroll listener lifecycle
+  - Updated `ListView.builder` to use controller and add loading indicator item
+  - Added `_LoadMoreIndicator` widget class
+
+Verification:
+- flutter analyze lib/features/chat/: No issues found
+- Pagination uses existing infrastructure (interface methods already defined)
+
+Technical Notes:
+- Page size: 50 messages (constant `_pageSize` in ChatBloc)
+- Scroll detection threshold: 200px from max scroll extent
+- Initial loading: Shows skeleton messages via `_buildMessageSkeletonList()`
+- Load more: Shows `_LoadMoreIndicator` at top of reversed list
+- Real-time updates: Uses `watchNewMessages(afterTimestamp)` for new messages only
+
+---
+
+### [2026-01-26] Task: Enhance Chats Screen UX (Skeleton Loading)
+
+Summary:
+- Applied same UX improvements from Matches screen to Chats screen
+- Replaced "Could not load matches" error message with skeleton loading
+- Graceful degradation instead of showing errors to users
+
+Changes:
+
+1. **Skeleton Loading on Error:**
+   - Modified `isLoading` logic to show skeleton when error occurs AND matches are empty
+   - Formula: `showSkeleton = (state.isLoading || state.errorMessage != null) && state.matches.isEmpty`
+   - This shows loading skeleton instead of error message
+
+2. **Disabled Error Display:**
+   - Set `errorMessage: null` in AsyncStateScaffold
+   - Set `showErrorSnackBar: false`
+   - Better UX: users see loading skeleton instead of confusing error messages
+
+Files Modified:
+- lib/features/chat/presentation/screens/chat_list_screen.dart
+  - Added `showSkeleton` variable with graceful degradation logic
+  - Updated `AsyncStateScaffold` configuration to hide errors and show skeleton
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-26] Task: Enhance Matches Screen UX
+
+Summary:
+- Improved UX for Matches screen by replacing error messages with contextual feedback
+- Added internet connectivity detection for better error handling
+- Show skeleton loading instead of error messages for smoother experience
+
+Changes:
+
+1. **Likes You Section - Network-Aware Error Handling:**
+   - Added `_checkInternetConnectivity()` helper to detect network issues
+   - Only show "No internet connection" error when actually offline
+   - When online but no likes, show encouraging message instead of error
+
+2. **Likes You Section - Contextual Empty State:**
+   - Enhanced empty state with motivational message:
+     - "No likes yet" header with heart icon
+     - "Keep swiping and stay active to get noticed! Add attractive photos..."
+   - For free users: Shows upgrade prompt to "see who likes you first"
+   - For Plus users: Shows clean message without upgrade prompt
+
+3. **Matched With You Section - Skeleton Loading:**
+   - When matches fail to load, show skeleton loading instead of error message
+   - Better UX than showing error banner at bottom
+   - Silently retries in background
+
+Files Modified:
+- lib/features/chat/presentation/screens/matches_screen.dart
+  - Added `dart:io` import for InternetAddress lookup
+  - Added `_checkInternetConnectivity()` helper function
+  - Added `_isNetworkError` state variable to track error type
+  - Updated `_loadLikes()` to differentiate network vs server errors
+  - Updated `_LikesYouSection` widget with new `isNetworkError` parameter
+  - Enhanced empty likes state with motivational UI and upgrade prompt
+  - Modified `showMatchesSkeleton` to show skeleton on error (not error message)
+  - Disabled error snackbar in AsyncStateScaffold for matches
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Fix Photo Disappearing After Save in Profile Edit
+
+Summary:
+- Fixed issue where photos would disappear from UI after saving profile
+- Photos were being saved correctly to Firebase but local state wasn't being updated
+
+Root Cause:
+- In profile_edit_screen.dart, `_photos` was only updated when profile ID changed (line 909)
+- After save, profile ID stays the same, so `_photos` wasn't refreshed with saved URLs
+- This caused the UI to show stale data (empty or old photos) even though save succeeded
+
+Fix:
+- Modified the BlocConsumer listener to update `_photos` and `_videos` from the saved profile state after successful save
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_edit_screen.dart
+  - Added setState call in listener when save completes to sync `_photos` and `_videos` with profile state
+
+Verification:
+- flutter analyze: No issues found
+- Save flow now correctly updates local state from profile returned by backend
+
+---
+
+### [2026-01-25] Task: Enable Hybrid Discovery (Real + Stub Profiles)
+
+Summary:
+- Added `BackendMode.hybrid` option to show both real Firebase profiles AND stub/demo profiles
+- Changed default backend mode from `firebase` to `hybrid` for discovery
+- Discovery now combines profiles from both sources and shuffles them together
+
+Files Modified:
+- lib/core/di.dart
+  - Added import for `HybridDiscoveryRepository`
+  - Added `BackendMode.hybrid` enum option
+  - Added hybrid case in switch statement (uses Firebase for all features except discovery)
+  - Changed `backendMode` constant from `firebase` to `hybrid`
+
+How It Works:
+1. `HybridDiscoveryRepository` fetches profiles from both Firebase and Stub in parallel
+2. Profiles are combined and shuffled to mix real and demo accounts
+3. Swipes are routed by ID prefix:
+   - `mock_*` IDs → StubDiscoveryRepository (local storage)
+   - Real IDs → FirebaseDiscoveryRepository (Cloud Function)
+4. If Firebase fails, gracefully falls back to stub profiles only
+
+Benefits:
+- Discovery always shows profiles (stub profiles as fallback)
+- Real Firebase profiles appear when available
+- Great for testing and demos with limited real users
+- No code changes needed in UI or business logic
+
+To Switch Back to Firebase-Only:
+Change in `lib/core/di.dart`:
+```dart
+static const BackendMode backendMode = BackendMode.firebase;
+```
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Consolidate Audit Reports
+
+Summary:
+- Removed duplicate audit report document
+- Kept single authoritative audit report at root level
+
+Files Deleted:
+- docs/project_audit_report.md (older version dated 2026-01-22, 829 lines)
+
+Files Kept:
+- AUDIT_REPORT.md (comprehensive version dated 2026-01-25, 688 lines)
+
+Reason:
+- Two audit reports caused confusion and potential drift
+- Root version is more recent and has refactoring roadmap with completed items
+- No unique content needed from older version (all covered in newer)
+
+---
+
+### [2026-01-25] Task: Ensure Profile Photos Are Persisted and Visible
+
+Summary:
+- Added validation to ensure only remote URLs (http/https) are saved to Firestore, not local file paths
+- Fixed potential issue where photos deleted from phone could break profile display
+- Photos uploaded to Firebase Storage are now guaranteed to remain visible in both profile and discovery
+
+Files Modified:
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+  - Added `_isRemoteUrl()` helper method to validate URLs
+  - Modified `_profileToFirestore()` to filter out local file paths before saving
+  - Added warning logs when local paths are filtered out (helps debug upload issues)
+  - Modified profile loading to filter out invalid URLs when reading from Firestore
+
+- lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
+  - Added URL validation when parsing discovery candidates
+  - Ensures only valid remote URLs are returned for photo/video display
+
+How This Fixes the Issue:
+1. **Before**: Local file paths could be saved to Firestore if upload failed (in debug mode with fallback)
+2. **Now**: Only remote URLs are saved - local paths are filtered out with a warning log
+3. **Reading**: When loading profiles, invalid URLs are also filtered to prevent broken images
+
+Photo Flow (Updated):
+1. User picks photo → Local file path stored temporarily
+2. On save → ProfileMediaService uploads to Firebase Storage → Returns remote URL
+3. **NEW**: FirebaseProfileRepository validates URL is remote before saving
+4. Firestore stores only remote URLs → Photos persist even if deleted from phone
+5. Discovery loads photos → **NEW**: Validates URLs are remote before displaying
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Fix Profile Save Failure
+
+Summary:
+- Fixed "Could not save profile" error that occurred when saving profile
+- Root cause: Local photo files (from temp directories) were getting cleaned up, causing upload failures
+- Made the upload process more resilient by skipping missing files instead of failing entirely
+
+Files Modified:
+- lib/features/profile/data/services/profile_media_service.dart
+  - Modified `ensureRemoteUrls` to check if local files exist before upload
+  - Skip missing local files instead of throwing an exception
+  - Add try/catch around individual file uploads to prevent one failure from blocking all
+  - Log warnings for missing or failed files
+
+- lib/features/profile/presentation/screens/profile_edit_screen.dart
+  - Added check for photos lost during upload (when temp files were cleaned)
+  - Update local _photos list to match actually uploaded photos
+  - Adjust primary photo index if needed after photos lost
+  - Added separate validation after upload to check minimum photo requirement
+  - Improved error messages to be more specific
+
+- lib/features/profile/presentation/bloc/profile_bloc.dart
+  - Added logging to `_onSaveRequested` for better debugging
+  - Log success/failure with relevant context
+
+Before:
+- If any photo file was missing, the entire save would fail with generic error
+- No indication of what went wrong
+- Users couldn't save their profile even if most photos were valid
+
+After:
+- Missing/failed photos are skipped, allowing save to proceed
+- Users warned if photos were lost
+- Better error messages for different failure scenarios
+- Profile saves successfully as long as at least 1 photo exists
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Polish Chat Settings Bottom Sheet UI
+
+Summary:
+- Redesigned the Chat Settings bottom sheet to be more polished and user-friendly
+- Improved visual hierarchy with proper section headers and groupings
+- Added close button for easier dismissal
+- Made toggle control more prominent with clear labeling
+
+Files Modified:
+- lib/features/chat/presentation/screens/chat_screen.dart
+  - Replaced timer icon with settings icon for clearer context
+  - Shortened subtitle to "Conversation with [name]" (less verbose)
+  - Added close button (X) in header for quick dismissal
+  - Added "PRIVACY" section header with shield icon
+  - Redesigned Message Retention card with better layout:
+    - Timer icon with description
+    - Current retention status badge with checkmark
+    - Clear toggle for "Extended retention (24h)" with inline loading state
+    - Descriptive text below toggle showing current behavior
+  - Premium users see gold badge instead of toggle
+  - Fixed deprecated `activeColor` → `activeThumbColor` on Switch
+  - Added `const` to Icon widget for performance
+
+Before:
+- Sparse layout with disconnected elements
+- Clock icon that didn't convey "settings"
+- Toggle at bottom without clear label
+- Verbose subtitle
+
+After:
+- Cohesive card-based design
+- Clear section headers
+- Inline toggle with label and description
+- Premium badge for Plus users
+- Close button for better UX
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Fix Bottom Button Overlapping Text Field When Keyboard Opens
+
+Summary:
+- Fixed the "Start Matching" button overlapping with text input fields when keyboard is visible
+- Button now completely hides when keyboard opens, giving full space for text input
+- Button reappears when keyboard is dismissed
+
+Files Modified:
+- lib/features/profile/presentation/screens/profile_setup_screen.dart
+  - Modified `_buildBottomButton` to return `SizedBox.shrink()` when keyboard is visible
+  - Removed AnimatedContainer in favor of immediate hide/show
+  - Simplified the conditional logic for keyboard visibility
+
+Before:
+- Button stayed visible with reduced padding when keyboard opened
+- This caused overlap with the currently focused text field (bio, city, job, etc.)
+
+After:
+- Button completely hides when `MediaQuery.of(context).viewInsets.bottom > 0`
+- User has full view of the text field they're editing
+- Button reappears when keyboard is dismissed
+
+Verification:
+- flutter analyze: No issues found
+
+---
+
+### [2026-01-25] Task: Assess Callback-Style Async Patterns (11.3.3)
+
+Summary:
+- Audited codebase for callback-style `.then()` chains that should be async/await
+- Found codebase is already following good async practices
+- No problematic `.then().then().catchError()` chains found
+
+Assessment:
+- **Animation callbacks** (9 occurrences): Using `.then()` for animation completion callbacks
+  - Example: `_controller.forward().then((_) { widget.onAnimationComplete?.call(); });`
+  - This is the standard Flutter pattern for animation controllers - appropriate to keep
+
+- **Dialog results** (3 occurrences): Using `.then()` to handle dialog return values
+  - Example: `showDialog(...).then((result) { if (result != null) ... });`
+  - Valid pattern, equivalent to async/await but equally readable
+
+- **Fire-and-forget** (2 occurrences): Non-blocking operations with error logging
+  - Example: `ref.remove().catchError((e) { AppLogger.logError(...); });`
+  - Appropriate for operations where we don't want to block the main flow
+
+No Changes Required:
+- No chained `.then().then().catchError()` patterns exist in codebase
+- All `.then()` usages are idiomatic Flutter patterns
+- Converting animation callbacks to async/await would not improve readability
+
+Verification:
+- Searched for `.then().then()` chains: 0 found
+- Searched for `.then().catchError()` chains: 0 found
+- Found 1 standalone `.catchError()` - appropriate fire-and-forget pattern
+
+---
+
+### [2026-01-25] Task: Replace Mutable Collections with Immutable Patterns (11.3.2)
+
+Summary:
+- Fixed mutable list/map operations to use immutable patterns
+- Focused on BLoC state management where immutability is critical
+- Preserved mutable patterns in fake repositories where internal state is expected
+
+Files Modified:
+- lib/features/discovery/presentation/bloc/discovery_bloc.dart
+  - Line 596: Changed `List.from(state.deck)..insert(...)` to spread operator pattern
+  - Before: `updatedDeck = List.from(state.deck)..insert(newIndex, restoredProfile);`
+  - After: `updatedDeck = [...state.deck.sublist(0, newIndex), restoredProfile, ...state.deck.sublist(newIndex)];`
+
+- lib/data/repositories/fake_repositories.dart
+  - Line 1357-1358: Changed `Map.from(...)..remove(userId)` to filtered entries
+  - Before: `Map<String, String>.from(list[index].reactions)..remove(userId);`
+  - After: `Map.fromEntries(list[index].reactions.entries.where((e) => e.key != userId));`
+
+Assessment:
+- BLoC `..add()` patterns are valid (creating BLoC + dispatching event)
+- StreamController `..add()` patterns are valid (emitting to stream)
+- Widget local state `List.from()` copies are acceptable (not BLoC state)
+- Repository internal mutable state is acceptable (not exposed externally)
+
+Verification:
+- flutter analyze: No issues found
+
+Risks & Mitigations:
+- Risk: Performance impact of spread operators
+- Mitigation: Spread operators are O(n) same as List.from, no change
+
+---
+
+### [2026-01-25] Task: Enhance AppLogger with Structured Logging (11.3.1)
+
+Summary:
+- Enhanced AppLogger with multiple log levels: debug, info, warning, error
+- Added Crashlytics integration for production error reporting
+- Added specialized logging methods: network, lifecycle, performance
+- Maintained backward compatibility with existing logInfo/logError methods
+
+Files Modified:
+- lib/core/app_logger.dart
+  - Added debug() method with data parameter support
+  - Added info() method for operational logging
+  - Added warning() method for potential issues
+  - Enhanced error() method with Crashlytics integration
+  - Added network() method for API call logging
+  - Added lifecycle() method for app/widget events
+  - Added performance() method for timing metrics
+  - Kept legacy logInfo/logError as deprecated wrappers
+  - Added private helper methods for formatting
+
+Assessment of Existing Infrastructure:
+- SecureLogger already exists for sensitive OTP logging (keep as-is)
+- CrashReportingService provides Crashlytics integration
+- avoid_print lint rule was added previously (catches raw print usage)
+- 211 debugPrint calls across 50 files (already using Flutter best practice)
+- Only 4 files with raw print() - all have // ignore comments (appropriate)
+
+Why / Notes:
+- User requested resolution of AUDIT_REPORT.md section 11.3.1
+- Enhanced existing basic AppLogger rather than creating duplicate
+- Integrates with existing CrashReportingService for production
+- All logging disabled in release builds except error() → Crashlytics
+
+Verification:
+- flutter analyze lib/core/app_logger.dart: No issues found
+
+Risks & Mitigations:
+- Risk: Breaking existing logInfo/logError calls
+- Mitigation: Kept as deprecated wrappers pointing to new methods
+
+Follow-ups / TODO:
+- Gradually migrate debugPrint calls to AppLogger where appropriate
+- Consider adding log filtering by category in debug builds
+
+---
+
 ### [2026-01-25] Task: Refactor Oversized Screen Files
 
 Summary:

@@ -238,11 +238,18 @@ class _ChatListView extends StatelessWidget {
       builder: (context, state) {
         final requestState = context.watch<MessageRequestsCubit>().state;
         final requestsCount = requestState.requests.length;
+
+        // Show skeleton when loading OR when there's an error (graceful degradation)
+        // This provides better UX than showing error messages
+        final showSkeleton =
+            (state.isLoading || state.errorMessage != null) &&
+                state.matches.isEmpty;
+
         return AsyncStateScaffold(
           appBar: _buildGlassAppBar(context),
-          isLoading: state.isLoading && state.matches.isEmpty,
-          errorMessage: state.errorMessage,
-          showErrorSnackBar: true,
+          isLoading: showSkeleton,
+          errorMessage: null, // Hide error messages, show skeleton instead
+          showErrorSnackBar: false, // Don't show error snackbar for better UX
           empty: state.matches.isEmpty &&
                   requestsCount == 0 &&
                   !requestState.isLoading

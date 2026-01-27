@@ -1,11 +1,16 @@
-/// Shared limits for profile media across setup and edit flows.
-class ProfileMediaLimits {
-  static const int maxPhotos = 9;
-  static const int maxVideos = 1; // Only 1 video allowed
-  static const int minPhotos = 1;
+import 'package:crushhour/core/constants/validation_constants.dart';
 
-  /// Maximum video duration (15 seconds)
-  static const Duration maxVideoDuration = Duration(seconds: 15);
+/// Shared limits for profile media across setup and edit flows.
+///
+/// Re-exports values from [ValidationConstants] for convenient access
+/// in media-related code.
+class ProfileMediaLimits {
+  static const int maxPhotos = ValidationConstants.maxProfilePhotos;
+  static const int maxVideos = ValidationConstants.maxProfileVideos;
+  static const int minPhotos = ValidationConstants.minProfilePhotos;
+
+  /// Maximum video duration
+  static const Duration maxVideoDuration = ValidationConstants.maxVideoDuration;
 
   static const int maxTotal = maxPhotos + maxVideos;
 

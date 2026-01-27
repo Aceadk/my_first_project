@@ -1,3 +1,5 @@
+// ignore_for_file: close_sinks - test mock controllers don't require cleanup
+
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';

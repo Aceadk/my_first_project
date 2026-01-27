@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/core/constants/cache_constants.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
@@ -12,7 +13,7 @@ class OfflineCacheService {
   static const String _profileCacheKey = 'offline_profiles_cache';
   static const String _lastSyncKey = 'offline_last_sync';
   static const String _deckCacheKey = 'offline_deck_cache';
-  static const Duration _cacheExpiry = Duration(hours: 24);
+  static const Duration _cacheExpiry = CacheConstants.offlineCacheDuration;
 
   final StreamController<bool> _connectivityController =
       StreamController<bool>.broadcast();

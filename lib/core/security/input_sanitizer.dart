@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/constants/validation_constants.dart';
 
 /// Input sanitization utilities for security.
 ///
@@ -9,16 +10,16 @@ import 'package:flutter/foundation.dart';
 /// - Validates and sanitizes URLs
 /// - Strips control characters
 class InputSanitizer {
-  /// Maximum length for various field types
-  static const int maxNameLength = 100;
-  static const int maxBioLength = 500;
-  static const int maxCityLength = 100;
-  static const int maxJobTitleLength = 100;
-  static const int maxCompanyLength = 100;
-  static const int maxSchoolLength = 150;
-  static const int maxInterestLength = 50;
-  static const int maxPromptLength = 300;
-  static const int maxUrlLength = 2000;
+  /// Maximum length for various field types - uses centralized constants
+  static const int maxNameLength = ValidationConstants.maxNameLength;
+  static const int maxBioLength = ValidationConstants.maxBioLength;
+  static const int maxCityLength = ValidationConstants.maxCityLength;
+  static const int maxJobTitleLength = ValidationConstants.maxJobTitleLength;
+  static const int maxCompanyLength = ValidationConstants.maxCompanyLength;
+  static const int maxSchoolLength = ValidationConstants.maxSchoolLength;
+  static const int maxInterestLength = ValidationConstants.maxInterestLength;
+  static const int maxPromptLength = ValidationConstants.maxPromptLength;
+  static const int maxUrlLength = ValidationConstants.maxUrlLength;
 
   /// Sanitize a general text field.
   /// Removes control characters and trims whitespace.
@@ -78,7 +79,7 @@ class InputSanitizer {
     sanitized = _stripHtmlTags(sanitized);
 
     // Only allow letters, numbers, spaces, hyphens, commas, and periods
-    sanitized = sanitized.replaceAll(RegExp(r"[^a-zA-Z0-9\s\-,\.À-ÿ]"), '');
+    sanitized = sanitized.replaceAll(RegExp(r'[^a-zA-Z0-9\s\-,\.À-ÿ]'), '');
 
     return sanitized.trim();
   }
@@ -91,7 +92,7 @@ class InputSanitizer {
     sanitized = _stripHtmlTags(sanitized);
 
     // Allow letters, numbers, spaces, hyphens, ampersands, periods, parentheses
-    sanitized = sanitized.replaceAll(RegExp(r"[^a-zA-Z0-9\s\-&\.\(\)À-ÿ]"), '');
+    sanitized = sanitized.replaceAll(RegExp(r'[^a-zA-Z0-9\s\-&\.\(\)À-ÿ]'), '');
 
     return sanitized.trim();
   }

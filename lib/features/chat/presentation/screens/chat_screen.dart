@@ -69,6 +69,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _picker = ImagePicker();
+  final _scrollController = ScrollController();
   Timer? _typingTimer;
   bool _isTyping = false;
   bool _isRecordingVoice = false;
@@ -99,6 +100,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _refreshIceBreakers();
     _checkVerificationBannerVisibility();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _chatBloc = context.read<ChatBloc>();
@@ -110,6 +112,22 @@ class _ChatScreenState extends State<ChatScreen> {
             ));
       }
     });
+  }
+
+  /// Detect when user scrolls near the top (end of reversed list) to load more messages
+  void _onScroll() {
+    if (!mounted) return;
+    final state = _chatBloc?.state;
+    if (state == null) return;
+
+    // In a reversed ListView, the "top" (oldest messages) is at maxScrollExtent
+    // Check if we're within 200px of the top to trigger load more
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        state.hasMoreMessages &&
+        !state.isLoadingMore) {
+      _chatBloc?.add(ChatLoadMoreMessagesRequested(widget.args.matchId));
+    }
   }
 
   /// Check if the verification banner should be shown based on 3-hour cooldown
@@ -171,6 +189,8 @@ class _ChatScreenState extends State<ChatScreen> {
         );
     _typingTimer?.cancel();
     _verificationBannerTimer?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -474,10 +494,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                 otherName: widget.args.otherName,
                               )
                             : ListView.builder(
+                                controller: _scrollController,
                                 reverse: true,
                                 padding: const EdgeInsets.all(12),
-                                itemCount: messages.length,
+                                // Add extra item for loading indicator when loading more
+                                itemCount: messages.length + (state.isLoadingMore ? 1 : 0),
                                 itemBuilder: (context, index) {
+                                  // Show loading indicator at the end (top of reversed list)
+                                  if (state.isLoadingMore && index == messages.length) {
+                                    return const _LoadMoreIndicator();
+                                  }
                                   final msg = messages[messages.length - 1 - index];
                                   final isMe =
                                       msg.fromUserId == widget.args.currentUserId;
@@ -1637,9 +1663,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         controller: _controller,
                         enabled: canSendText,
                         onChanged: _onTextChanged,
-                        maxLines: 1, // Single line only
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.send,
+                        minLines: 1,
+                        maxLines: 2, // Expands to 2 lines, then scrolls internally
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -2582,7 +2609,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         // Header
                         Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                           child: Row(
                             children: [
                               Container(
@@ -2592,12 +2619,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
-                                  Icons.timer_outlined,
+                                  Icons.settings_outlined,
                                   color: DsColors.primary,
-                                  size: 24,
+                                  size: 22,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2608,8 +2635,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      'Settings for this conversation with ${widget.args.otherName}',
+                                      'Conversation with ${widget.args.otherName}',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                                       ),
@@ -2617,106 +2645,209 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ],
                                 ),
                               ),
+                              // Close button
+                              IconButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                  size: 22,
+                                ),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.05),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const Divider(height: 1),
-                        // Current retention display
+                        // Divider
                         Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Divider(
+                            height: 1,
+                            color: isDark ? Colors.white12 : Colors.black12,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Privacy Section Header
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.shield_outlined,
+                                size: 16,
+                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'PRIVACY',
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Message Retention Setting
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(12),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                              ),
                             ),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.access_time, color: DsColors.primary, size: 20),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Message retention',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                        ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: DsColors.primary.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
+                                      child: const Icon(
+                                        Icons.timer_outlined,
+                                        color: DsColors.primary,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Message Retention',
+                                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Messages auto-delete after this time',
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                // Current retention status
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.primary.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        color: DsColors.primary,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        state.retentionDisplay,
-                                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
+                                        'Currently: ${state.retentionDisplay}',
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                           color: DsColors.primary,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                // Toggle or Premium badge
+                                if (state.isPremium) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.amber.withValues(alpha: 0.15),
+                                          Colors.orange.withValues(alpha: 0.1),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.workspace_premium, color: Colors.amber, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Plus: 7 days retention',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.amber.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(height: 16),
+                                  // Extended retention toggle
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Extended retention (24h)',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      if (state.isLoading)
+                                        const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      else
+                                        Switch.adaptive(
+                                          value: state.settings.extendedRetention,
+                                          onChanged: (value) =>
+                                              ctx.read<MatchChatSettingsCubit>().toggleExtendedRetention(value),
+                                          activeThumbColor: DsColors.primary,
+                                          activeTrackColor: DsColors.primary.withValues(alpha: 0.4),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    state.settings.extendedRetention
+                                        ? 'Messages deleted 24 hours after being read'
+                                        : 'Messages deleted 1 hour after being read',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
                         ),
-                        // Settings
-                        if (state.isPremium)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.amber.withValues(alpha: 0.1),
-                                    Colors.orange.withValues(alpha: 0.1),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.workspace_premium, color: Colors.amber, size: 20),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Plus Benefit: Messages kept for 7 days',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          SwitchListTile(
-                            secondary: Icon(
-                              Icons.access_time,
-                              color: state.settings.extendedRetention ? DsColors.primary : Colors.grey,
-                            ),
-                            title: const Text('Keep messages for 24 hours'),
-                            subtitle: Text(
-                              state.settings.extendedRetention
-                                  ? 'Messages deleted 24 hours after being read'
-                                  : 'Messages deleted 1 hour after being read',
-                            ),
-                            value: state.settings.extendedRetention,
-                            onChanged: state.isLoading
-                                ? null
-                                : (value) => ctx.read<MatchChatSettingsCubit>().toggleExtendedRetention(value),
-                            activeTrackColor: DsColors.primary.withValues(alpha: 0.5),
-                            thumbColor: WidgetStateProperty.resolveWith((states) {
-                              if (states.contains(WidgetState.selected)) return DsColors.primary;
-                              return null;
-                            }),
-                          ),
-                        if (state.isLoading)
-                          const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                       ],
                     );
                   },
@@ -2864,5 +2995,44 @@ enum _ChatSafetyAction {
   muteMessages,
   muteCalls,
   safetyCenter
+}
+
+/// Loading indicator shown at the top when loading older messages.
+class _LoadMoreIndicator extends StatelessWidget {
+  const _LoadMoreIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: DsSpacing.lg),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
+              ),
+            ),
+            const SizedBox(width: DsSpacing.sm),
+            Text(
+              'Loading older messages...',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 

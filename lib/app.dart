@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/di.dart';
+import 'core/constants/network_constants.dart';
 import 'core/deep_link_bootstrap.dart';
 import 'core/services/app_state_preserver.dart';
 import 'core/services/location_service.dart';
@@ -131,7 +132,7 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
       // Get current location (non-blocking, with short timeout)
       final location = await locationService.getCurrentLocation(
         includeGeocoding: true,
-        timeout: const Duration(seconds: 10),
+        timeout: NetworkConstants.locationTimeout,
       );
 
       if (location == null) {

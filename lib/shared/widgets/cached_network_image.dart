@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:crushhour/core/constants/network_constants.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -26,7 +27,7 @@ class CachedNetworkImage extends StatefulWidget {
     this.alignment = Alignment.center,
     this.placeholder,
     this.errorWidget,
-    this.fadeInDuration = const Duration(milliseconds: 200),
+    this.fadeInDuration = NetworkConstants.imageFadeInDuration,
     this.borderRadius,
     this.semanticLabel,
     this.excludeFromSemantics = false,
@@ -339,7 +340,7 @@ class NetworkImageCache {
       final response = await http.get(
         Uri.parse(url),
         headers: {'Accept': 'image/*'},
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(NetworkConstants.imageLoadTimeout);
 
       if (response.statusCode == 200) {
         return response.bodyBytes;

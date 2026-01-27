@@ -432,8 +432,13 @@ class FirebaseProfileRepository implements ProfileRepository {
         lastDobChangeAt: _parseTimestamp(profileData['lastDobChangeAt']),
         lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
         bio: profileData['bio'] ?? '',
-        photoUrls: List<String>.from(profileData['photoUrls'] ?? []),
-        videoUrls: List<String>.from(profileData['videoUrls'] ?? []),
+        // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
+        photoUrls: List<String>.from(profileData['photoUrls'] ?? [])
+            .where(_isRemoteUrl)
+            .toList(),
+        videoUrls: List<String>.from(profileData['videoUrls'] ?? [])
+            .where(_isRemoteUrl)
+            .toList(),
         primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(profileData['interests'] ?? []),
         profilePrompts: _parseProfilePrompts(profileData['profilePrompts']),
@@ -530,7 +535,29 @@ class FirebaseProfileRepository implements ProfileRepository {
     );
   }
 
+  /// Checks if a URL is a valid remote URL (not a local file path).
+  bool _isRemoteUrl(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
+
   Map<String, dynamic> _profileToFirestore(Profile p) {
+    // CRITICAL: Only save remote URLs, not local file paths.
+    // Local paths can become invalid if files are deleted from device.
+    final remotePhotoUrls = p.photoUrls.where(_isRemoteUrl).toList();
+    final remoteVideoUrls = p.videoUrls.where(_isRemoteUrl).toList();
+
+    // Log warning if local paths were filtered out (for debugging)
+    if (remotePhotoUrls.length != p.photoUrls.length) {
+      AppLogger.warning(
+        '[FirebaseProfileRepo] Filtered out ${p.photoUrls.length - remotePhotoUrls.length} local photo path(s) - only remote URLs are saved',
+      );
+    }
+    if (remoteVideoUrls.length != p.videoUrls.length) {
+      AppLogger.warning(
+        '[FirebaseProfileRepo] Filtered out ${p.videoUrls.length - remoteVideoUrls.length} local video path(s) - only remote URLs are saved',
+      );
+    }
+
     return {
       'name': p.name,
       'lastName': p.lastName,
@@ -541,8 +568,8 @@ class FirebaseProfileRepository implements ProfileRepository {
       'lastDobChangeAt': p.lastDobChangeAt,
       'lastNameChangeAt': p.lastNameChangeAt,
       'bio': p.bio,
-      'photoUrls': p.photoUrls,
-      'videoUrls': p.videoUrls,
+      'photoUrls': remotePhotoUrls,
+      'videoUrls': remoteVideoUrls,
       'primaryPhotoIndex': p.primaryPhotoIndex,
       'interests': p.interests,
       'profilePrompts': p.profilePrompts.map((prompt) => prompt.toJson()).toList(),

@@ -1354,8 +1354,10 @@ class FakeChatRepository implements ChatRepository {
     if (list == null) return;
     final index = list.indexWhere((m) => m.id == messageId);
     if (index == -1) return;
-    final reactions = Map<String, String>.from(list[index].reactions)
-      ..remove(userId);
+    // Immutable pattern: filter out the user's reaction instead of mutating
+    final reactions = Map.fromEntries(
+      list[index].reactions.entries.where((e) => e.key != userId),
+    );
     list[index] = list[index].copyWith(reactions: reactions);
     _streams[matchId]?.add(List.unmodifiable(list));
   }

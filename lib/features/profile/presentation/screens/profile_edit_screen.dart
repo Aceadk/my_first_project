@@ -162,19 +162,43 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         videoPaths: _videos,
       ),
       logLabel: 'ProfileMediaService.ensureRemoteUrls',
-      fallbackError: 'Could not save profile. Please try again.',
+      fallbackError: 'Could not upload photos. Please try again.',
     );
     if (!mounted) return;
     if (!uploadResult.isSuccess || uploadResult.data == null) {
       showErrorSnackBar(
         context,
-        uploadResult.errorMessage ?? 'Could not save profile. Please try again.',
+        uploadResult.errorMessage ?? 'Could not upload photos. Please try again.',
       );
       setState(() => _uploading = false);
       return;
     }
 
     final uploads = uploadResult.data!;
+
+    // Check if some photos were lost (e.g., temp files cleaned up)
+    final photosLost = _photos.length - uploads.photoUrls.length;
+    if (photosLost > 0) {
+      // Update local photos list to match what was actually uploaded
+      setState(() {
+        _photos.clear();
+        _photos.addAll(uploads.photoUrls);
+        // Adjust primary photo index if needed
+        if (_primaryPhotoIndex >= _photos.length) {
+          _primaryPhotoIndex = _photos.isNotEmpty ? 0 : 0;
+        }
+      });
+    }
+
+    // Check if we still have minimum required photos
+    if (uploads.photoUrls.length < ProfileMediaLimits.minPhotos) {
+      showErrorSnackBar(
+        context,
+        'Some photos could not be uploaded. Please add at least one photo.',
+      );
+      setState(() => _uploading = false);
+      return;
+    }
     final newFirstName = _firstNameController.text.trim();
     final newLastName = _lastNameController.text.trim();
     final baseLastName = base.lastName?.trim() ?? '';
@@ -870,6 +894,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         }
         // Show success notification when save completes without error
         if (!state.isSaving && _hasLoadedProfile) {
+          // Update photos and videos from saved profile to ensure UI shows the persisted data
+          final profile = state.profile;
+          if (profile != null) {
+            setState(() {
+              _photos = List.of(profile.photoUrls);
+              _videos = List.of(profile.videoUrls);
+            });
+          }
           showSuccessSnackBar(context, 'Profile saved successfully!');
         }
       },

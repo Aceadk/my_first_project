@@ -163,6 +163,7 @@ class ProfileMediaService {
   }
 
   /// Upload local files and return list of URLs (local files get uploaded, remote URLs pass through).
+  /// Skips local files that no longer exist (e.g., temp files that were cleaned up).
   Future<({List<String> photoUrls, List<String> videoUrls})> ensureRemoteUrls({
     required String userId,
     required List<String> photoPaths,
@@ -173,8 +174,23 @@ class ProfileMediaService {
 
     for (final filePath in photoPaths) {
       if (isLocalFile(filePath)) {
-        final url = await uploadPhoto(userId: userId, filePath: filePath);
-        photoUrls.add(url);
+        // Check if local file still exists
+        final file = File(filePath);
+        if (!await file.exists()) {
+          debugPrint('ProfileMediaService: Skipping missing local photo: $filePath');
+          continue; // Skip missing files instead of failing
+        }
+        try {
+          final url = await uploadPhoto(userId: userId, filePath: filePath);
+          photoUrls.add(url);
+        } catch (e) {
+          debugPrint('ProfileMediaService: Failed to upload photo, skipping: $e');
+          // In debug mode with fallback, still add the local path
+          if (kDebugMode && useFallbackInDebug) {
+            photoUrls.add(filePath);
+          }
+          // In release mode, skip the failed photo rather than failing entire save
+        }
       } else {
         photoUrls.add(filePath);
       }
@@ -182,8 +198,23 @@ class ProfileMediaService {
 
     for (final filePath in videoPaths) {
       if (isLocalFile(filePath)) {
-        final url = await uploadVideo(userId: userId, filePath: filePath);
-        videoUrls.add(url);
+        // Check if local file still exists
+        final file = File(filePath);
+        if (!await file.exists()) {
+          debugPrint('ProfileMediaService: Skipping missing local video: $filePath');
+          continue; // Skip missing files instead of failing
+        }
+        try {
+          final url = await uploadVideo(userId: userId, filePath: filePath);
+          videoUrls.add(url);
+        } catch (e) {
+          debugPrint('ProfileMediaService: Failed to upload video, skipping: $e');
+          // In debug mode with fallback, still add the local path
+          if (kDebugMode && useFallbackInDebug) {
+            videoUrls.add(filePath);
+          }
+          // In release mode, skip the failed video rather than failing entire save
+        }
       } else {
         videoUrls.add(filePath);
       }

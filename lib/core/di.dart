@@ -29,6 +29,7 @@ import 'package:crushhour/features/subscription/data/repositories/impl/stub_subs
 import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/stub_feature_flag_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/impl/stub_boost_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart';
 
 // HTTP implementations (for REST API backend)
 import 'package:crushhour/features/auth/data/repositories/impl/http_auth_repository.dart';
@@ -64,7 +65,7 @@ import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart'
 import 'package:crushhour/core/services/badge_counter_service.dart';
 
 /// Backend configuration for the app.
-/// Switch between stub (development/demo), Firebase (production), or HTTP (REST API).
+/// Switch between stub (development/demo), Firebase (production), hybrid, or HTTP (REST API).
 enum BackendMode {
   /// Use stub repositories for development and demo without a real backend.
   /// All data is stored locally using SharedPreferences.
@@ -74,6 +75,11 @@ enum BackendMode {
   /// Requires proper Firebase configuration.
   firebase,
 
+  /// Use hybrid mode: Firebase for most features, but discovery shows both
+  /// real Firebase profiles AND stub/demo profiles mixed together.
+  /// Great for testing and demos when Firebase has few real users.
+  hybrid,
+
   /// Use HTTP repositories for REST API backend.
   /// Requires API server configuration.
   http,
@@ -82,11 +88,11 @@ enum BackendMode {
 class CrushDI {
   /// Current backend mode. Change this to switch between implementations.
   /// In production builds, this should be [BackendMode.firebase] or [BackendMode.http].
-  /// For development/demo, use [BackendMode.stub].
+  /// For development/demo, use [BackendMode.stub] or [BackendMode.hybrid].
   ///
-  /// NOTE: Set to [BackendMode.stub] for testing without Firebase premium features.
-  /// All data is stored locally and testers can fully use the app.
-  static const BackendMode backendMode = BackendMode.firebase;
+  /// NOTE: Set to [BackendMode.hybrid] to show both real Firebase profiles AND
+  /// stub/demo profiles in the discovery feed. Great for testing and demos.
+  static const BackendMode backendMode = BackendMode.hybrid;
 
   /// Singleton API client for HTTP mode.
   static ApiClient? _apiClient;
@@ -144,6 +150,18 @@ class CrushDI {
         profileRepo = FirebaseProfileRepository();
         subRepo = FirebaseSubscriptionRepository();
         discoveryRepo = FirebaseDiscoveryRepository();
+        chatRepo = FirebaseChatRepository();
+        callRepo = FirebaseCallRepository();
+        featureFlagRepo = FirebaseFeatureFlagRepository();
+        boostRepo = FirebaseBoostRepository(subscriptionRepository: subRepo);
+
+      case BackendMode.hybrid:
+        // Hybrid mode: Firebase for everything except discovery
+        // Discovery uses HybridDiscoveryRepository to show both real + stub profiles
+        authRepo = FirebaseAuthRepository();
+        profileRepo = FirebaseProfileRepository();
+        subRepo = FirebaseSubscriptionRepository();
+        discoveryRepo = HybridDiscoveryRepository(); // Shows both real and fake profiles
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
         featureFlagRepo = FirebaseFeatureFlagRepository();

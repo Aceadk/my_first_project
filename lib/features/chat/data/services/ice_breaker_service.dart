@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_single_quotes - content strings use apostrophes
+
 import 'dart:math';
 import 'package:crushhour/data/models/profile.dart';
 

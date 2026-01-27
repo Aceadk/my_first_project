@@ -68,8 +68,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       mediaSendingEnabled: true,
       isUnmatching: false,
       isUnmatched: false,
+      isInitialLoading: true,
+      messages: const [],
+      hasMoreMessages: true,
     ));
     _sub?.cancel();
+    _newMessagesSub?.cancel();
     _typingSub?.cancel();
     _presenceSub?.cancel();
     _mediaSub?.cancel();
@@ -92,13 +96,62 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       fallbackError: 'Could not load chat.',
     );
     if (!planResult.isSuccess) {
-      emit(state.copyWith(errorMessage: planResult.errorMessage));
+      emit(state.copyWith(
+        errorMessage: planResult.errorMessage,
+        isInitialLoading: false,
+      ));
       return;
     }
     final plan = planResult.data ?? SubscriptionPlan.free;
-    _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
-      add(ChatMessagesUpdated(messages, plan));
-    });
+
+    // PAGINATION: Load initial batch of messages (newest first)
+    final initialResult = await Result.guard(
+      () => chatRepository.fetchMessagesPaginated(
+        event.matchId,
+        limit: _pageSize,
+      ),
+      logLabel: 'ChatRepository.fetchMessagesPaginated',
+      fallbackError: 'Could not load messages.',
+    );
+
+    if (initialResult.isSuccess && initialResult.data != null) {
+      final paginated = initialResult.data!;
+      emit(state.copyWith(
+        messages: paginated.items,
+        hasMoreMessages: paginated.hasMore,
+        isInitialLoading: false,
+        canUnsend: plan.isPlus,
+        canEdit: plan.isPlus,
+        canSeeReadReceipts: plan.isPlus,
+      ));
+
+      // Watch for NEW messages only (after initial load)
+      final latestTimestamp = paginated.items.isNotEmpty
+          ? paginated.items.last.sentAt
+          : DateTime.now();
+      _newMessagesSub = chatRepository
+          .watchNewMessages(event.matchId, afterTimestamp: latestTimestamp)
+          .listen((newMessages) {
+        if (newMessages.isNotEmpty) {
+          add(ChatNewMessagesReceived(newMessages));
+        }
+      });
+    } else {
+      // Fallback to legacy stream if pagination fails
+      debugPrint('ChatBloc: Pagination failed, falling back to legacy watchMessages');
+      _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
+        add(ChatMessagesUpdated(messages, plan));
+      });
+      emit(state.copyWith(
+        isInitialLoading: false,
+        hasMoreMessages: false,
+        canUnsend: plan.isPlus,
+        canEdit: plan.isPlus,
+        canSeeReadReceipts: plan.isPlus,
+        errorMessage: initialResult.errorMessage,
+      ));
+    }
+
     _typingSub =
         chatRepository.watchTyping(event.matchId).listen((typingUsers) {
       add(ChatTypingUsersUpdated(typingUsers));
@@ -112,12 +165,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         .listen((enabled) {
       add(ChatMediaStatusUpdated(enabled));
     });
-    emit(state.copyWith(
-      canUnsend: plan.isPlus,
-      canEdit: plan.isPlus,
-      canSeeReadReceipts: plan.isPlus,
-      errorMessage: null,
-    ));
 
     // Track conversation opened
     AnalyticsService.instance.logConversationOpened(matchId: event.matchId);

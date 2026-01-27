@@ -72,6 +72,7 @@ class FirebaseRealtimeService {
     // Cancel existing subscription if any
     _subscriptions[subscriptionId]?.cancel();
 
+    // ignore: cancel_subscriptions - stored in _subscriptions map, cancelled via dispose()
     final subscription = _firestore
         .collection(collection)
         .doc(documentId)
@@ -155,6 +156,7 @@ class FirebaseRealtimeService {
       query = query.limit(limit);
     }
 
+    // ignore: cancel_subscriptions - stored in _subscriptions map, cancelled via dispose()
     final subscription = query.snapshots().listen(
       (snapshot) {
         onChanges(snapshot.docChanges);

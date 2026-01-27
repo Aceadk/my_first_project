@@ -1412,14 +1412,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ? 'Start Matching'
         : 'Start Matching ($percentDisplay% complete)';
 
-    // Detect if keyboard is open
+    // Detect if keyboard is open - hide button completely to prevent overlap with text fields
     final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    if (keyboardVisible) {
+      return const SizedBox.shrink();
+    }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: keyboardVisible
-          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-          : DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
+    return Container(
+      padding: DsEdgeInsets.allXxl.copyWith(bottom: DsSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -1430,8 +1430,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Hide message when keyboard is visible
-          if (!isFullyComplete && !keyboardVisible)
+          if (!isFullyComplete)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(

@@ -73,6 +73,7 @@ class StubChatRepository implements ChatRepository {
     String matchId, {
     required DateTime afterTimestamp,
   }) {
+    // ignore: close_sinks - controller lifecycle managed by stream consumer
     final controller = StreamController<List<Message>>.broadcast();
 
     // Check for new messages periodically (simulated real-time)

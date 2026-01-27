@@ -589,11 +589,15 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final restoredProfile = state.lastSwipedProfile!;
       final newIndex = (state.currentIndex - 1).clamp(0, state.deck.length);
 
-      // If profile was removed from deck, re-insert it
+      // If profile was removed from deck, re-insert it (using immutable pattern)
       List<Profile> updatedDeck = state.deck;
       if (newIndex >= state.deck.length ||
           state.deck[newIndex].id != restoredProfile.id) {
-        updatedDeck = List.from(state.deck)..insert(newIndex, restoredProfile);
+        updatedDeck = [
+          ...state.deck.sublist(0, newIndex),
+          restoredProfile,
+          ...state.deck.sublist(newIndex),
+        ];
       }
 
       // Restore super like if that was the last action

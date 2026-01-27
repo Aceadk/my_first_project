@@ -855,6 +855,7 @@ flutter analyze
 | 010 | Per-Chat Settings (Individual Message Retention) | 2026-01-23 | Claude | Completed |
 | 011 | Fix Flutter SDK Path in VS Code | 2026-01-23 | Codex | Completed |
 | 012 | Username Cooldown + Deck Username + Public Names | 2026-01-23 | Codex | In Progress |
+eate 
 
 ---
 

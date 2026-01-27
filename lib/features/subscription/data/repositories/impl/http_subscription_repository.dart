@@ -9,12 +9,21 @@ import 'package:crushhour/data/models/subscription.dart';
 import '../subscription_repository.dart';
 
 /// HTTP-based implementation of SubscriptionRepository.
+///
+/// Uses HTTP polling to check for subscription status changes.
+/// This is acceptable because subscription changes are infrequent
+/// (user-initiated purchases) and 60s latency is fine.
 class HttpSubscriptionRepository implements SubscriptionRepository {
   HttpSubscriptionRepository({
     required ApiClient apiClient,
   }) : _apiClient = apiClient;
 
   final ApiClient _apiClient;
+
+  /// Subscription polling interval.
+  /// 60 seconds is sufficient since subscription changes are user-initiated
+  /// and immediate accuracy isn't critical.
+  static const _subscriptionPollingInterval = Duration(seconds: 60);
 
   final _planController = StreamController<SubscriptionPlan>.broadcast();
   SubscriptionPlan _currentPlan = SubscriptionPlan.free;
@@ -30,9 +39,9 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     _pollingTimer?.cancel();
     _fetchCurrentPlan();
 
-    // Poll every 60 seconds to check for subscription changes
+    // Poll at configured interval to check for subscription changes
     _pollingTimer = Timer.periodic(
-      const Duration(seconds: 60),
+      _subscriptionPollingInterval,
       (_) => _fetchCurrentPlan(),
     );
   }

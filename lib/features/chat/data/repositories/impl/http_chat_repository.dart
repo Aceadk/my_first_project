@@ -18,6 +18,7 @@ import '../chat_repository.dart';
 /// HTTP-based implementation of ChatRepository.
 ///
 /// Uses HTTP for CRUD operations and WebSocket for real-time updates.
+/// Polling is used as a fallback when WebSocket is unavailable.
 class HttpChatRepository implements ChatRepository {
   HttpChatRepository({
     required ApiClient apiClient,
@@ -27,6 +28,20 @@ class HttpChatRepository implements ChatRepository {
 
   final ApiClient _apiClient;
   final WebSocketConnection? _webSocket;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // POLLING CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════════════════
+  // These intervals are used when WebSocket is unavailable (fallback mode).
+  // When WebSocket is connected, real-time events are used instead.
+
+  /// Message polling interval (fallback only).
+  /// 10 seconds provides good balance between responsiveness and battery/network usage.
+  static const _messagePollingInterval = Duration(seconds: 10);
+
+  /// Presence polling interval.
+  /// 30 seconds is sufficient for online status which changes infrequently.
+  static const _presencePollingInterval = Duration(seconds: 30);
 
   // Stream controllers for real-time data
   final Map<String, StreamController<List<Message>>> _messageControllers = {};
@@ -95,10 +110,16 @@ class HttpChatRepository implements ChatRepository {
     // Initial fetch
     _fetchMessages(matchId);
 
-    // Poll every 3 seconds as fallback
+    // Skip polling if WebSocket is connected (real-time events will be used)
+    if (_webSocket?.isConnected == true) {
+      debugPrint('HttpChatRepository: WebSocket connected, skipping message polling');
+      return;
+    }
+
+    // Fallback: Poll at configured interval when WebSocket unavailable
     _pollingTimers['messages_$matchId']?.cancel();
     _pollingTimers['messages_$matchId'] = Timer.periodic(
-      const Duration(seconds: 3),
+      _messagePollingInterval,
       (_) => _fetchMessages(matchId),
     );
   }
@@ -388,9 +409,16 @@ class HttpChatRepository implements ChatRepository {
   void _startPresencePolling(String userId) {
     _fetchPresence(userId);
 
+    // Skip polling if WebSocket is connected (real-time events will be used)
+    if (_webSocket?.isConnected == true) {
+      debugPrint('HttpChatRepository: WebSocket connected, skipping presence polling');
+      return;
+    }
+
+    // Fallback: Poll at configured interval when WebSocket unavailable
     _pollingTimers['presence_$userId']?.cancel();
     _pollingTimers['presence_$userId'] = Timer.periodic(
-      const Duration(seconds: 30),
+      _presencePollingInterval,
       (_) => _fetchPresence(userId),
     );
   }

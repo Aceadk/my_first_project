@@ -573,7 +573,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
                 'Farmers market, plant shopping, and cooking a new recipe with my cat supervising'),
         ProfilePrompt(
             questionId: 'green_flag',
-            answer: "You offer to pet-sit without being asked"),
+            answer: 'You offer to pet-sit without being asked'),
       ],
       country: 'United States',
       city: 'San Francisco',

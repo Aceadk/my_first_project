@@ -59,7 +59,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
                 runSpacing: 8,
                 children: missing
                     .map(
-                      (m) => const Chip(
+                      (m) => Chip(
                         label: Text(m),
                         backgroundColor: Colors.orange.withAlpha(32),
                       ),

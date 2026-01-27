@@ -322,12 +322,25 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onSaveRequested(
       ProfileSaveRequested event, Emitter<ProfileState> emit) async {
+    AppLogger.info('[ProfileBloc] _onSaveRequested called');
     emit(state.copyWith(isSaving: true, errorMessage: null));
+
     final result = await Result.guard(
       () => profileRepository.updateProfile(event.profile),
       logLabel: 'ProfileRepository.updateProfile',
       fallbackError: ErrorMessages.saveProfileFailed,
     );
+
+    if (!result.isSuccess) {
+      AppLogger.error(
+        '[ProfileBloc] Profile save failed',
+        error: result.errorMessage,
+        data: {'hasUser': state.user != null},
+      );
+    } else {
+      AppLogger.info('[ProfileBloc] Profile saved successfully');
+    }
+
     final updatedUser = result.data;
     emit(state.copyWith(
       user: updatedUser ?? state.user,

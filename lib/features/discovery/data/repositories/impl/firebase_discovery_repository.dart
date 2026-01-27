@@ -207,8 +207,13 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       gender: data['gender'] ?? '',
       sexualOrientation: data['sexualOrientation'],
       bio: data['bio'] ?? '',
-      photoUrls: List<String>.from(data['photoUrls'] ?? []),
-      videoUrls: List<String>.from(data['videoUrls'] ?? []),
+      // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
+      photoUrls: List<String>.from(data['photoUrls'] ?? [])
+          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+          .toList(),
+      videoUrls: List<String>.from(data['videoUrls'] ?? [])
+          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+          .toList(),
       primaryPhotoIndex: data['primaryPhotoIndex'] ?? 0,
       interests: List<String>.from(data['interests'] ?? []),
       country: data['country'] ?? '',

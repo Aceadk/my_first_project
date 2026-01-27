@@ -35,6 +35,50 @@ None.
 
 ## Completed Tasks
 
+### Task: Fix AUDIT_REPORT Performance Issues (Message Pagination)
+ID: T-052
+Owner AI: Claude (Opus 4.5)
+Critic AI: Claude (self-critique)
+Status: Done
+
+Goal:
+Address the AUDIT_REPORT performance issues related to chat pagination and profile document structure.
+
+Scope (in/out):
+In:
+- No message pagination (Medium) - Load 50 messages per page with infinite scroll
+- Large profile documents (Low) - Review and optimize if needed
+
+Out:
+- HTTP polling frequency (Low) - Not addressed (existing intervals are reasonable)
+
+Files changed:
+- lib/features/chat/presentation/bloc/chat_bloc.dart (pagination in _onChatOpened)
+- lib/features/chat/presentation/screens/chat_screen.dart (infinite scroll + loading UI)
+- docs/ai_change_log.md (documentation)
+
+Results:
+- Message pagination: Implemented with 50-message pages and infinite scroll
+- Profile structure: Reviewed - already optimized (activity data in separate collections)
+- Added _LoadMoreIndicator widget for load-more UX
+- Proper scroll detection for reversed ListView
+
+Acceptance criteria:
+- ✅ Chat loads messages in paginated batches (50 per page)
+- ✅ Infinite scroll triggers load more when near top
+- ✅ Loading indicator shows when fetching older messages
+- ✅ Real-time new messages still work via watchNewMessages
+- ✅ No flutter analyze errors
+- ✅ Documentation updated
+
+Verification:
+Commands: flutter analyze lib/features/chat/ (0 issues)
+Manual flow: Open chat, scroll up to load older messages
+
+Completed: 2026-01-26
+
+---
+
 ### Task: Refactor Oversized Screen Files
 ID: T-051
 Owner AI: Claude (Opus 4.5)

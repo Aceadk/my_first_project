@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -27,6 +28,21 @@ import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'chat_screen.dart';
+
+/// Helper to check internet connectivity.
+Future<bool> _checkInternetConnectivity() async {
+  try {
+    final result = await InternetAddress.lookup('google.com')
+        .timeout(const Duration(seconds: 5));
+    return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  } on SocketException catch (_) {
+    return false;
+  } on TimeoutException catch (_) {
+    return false;
+  } catch (_) {
+    return false;
+  }
+}
 
 class MatchesScreen extends StatelessWidget {
   const MatchesScreen({super.key, this.onBackToDeck});
@@ -79,6 +95,7 @@ class _MatchesViewState extends State<_MatchesView> {
   List<Profile> _likesYouProfiles = [];
   bool _isLoadingLikes = true;
   String? _likesError;
+  bool _isNetworkError = false;
   StreamSubscription? _matchSubscription;
 
   @override
@@ -103,6 +120,7 @@ class _MatchesViewState extends State<_MatchesView> {
     setState(() {
       _isLoadingLikes = true;
       _likesError = null;
+      _isNetworkError = false;
     });
 
     try {
@@ -115,9 +133,21 @@ class _MatchesViewState extends State<_MatchesView> {
       });
     } catch (e) {
       if (!mounted) return;
+
+      // Check if it's a network connectivity issue
+      final hasInternet = await _checkInternetConnectivity();
+      if (!mounted) return;
+
       setState(() {
         _isLoadingLikes = false;
-        _likesError = 'Could not load likes. Please try again.';
+        if (!hasInternet) {
+          _isNetworkError = true;
+          _likesError = 'No internet connection. Please check your network and try again.';
+        } else {
+          // Server error or other issue - don't show error, treat as empty
+          _likesError = null;
+          _likesYouProfiles = [];
+        }
       });
     }
   }
@@ -234,8 +264,10 @@ class _MatchesViewState extends State<_MatchesView> {
             !_isLoadingLikes &&
             _likesError == null &&
             _likesYouProfiles.isEmpty &&
-            !state.isLoading;
-        final showMatchesSkeleton = state.isLoading && matched.isEmpty;
+            !state.isLoading &&
+            state.errorMessage == null; // Don't show empty if there's an error
+        // Show skeleton when loading OR when there's an error (better UX than showing error)
+        final showMatchesSkeleton = (state.isLoading || state.errorMessage != null) && matched.isEmpty;
 
         final emptyView = showEmpty
             ? Center(
@@ -321,9 +353,10 @@ class _MatchesViewState extends State<_MatchesView> {
             ],
           ),
           isLoading: state.isLoading && matched.isEmpty,
-          errorMessage: state.errorMessage,
+          // Don't show error message - we show skeleton loading instead for better UX
+          errorMessage: null,
           showBodyOnLoading: true,
-          showErrorSnackBar: true,
+          showErrorSnackBar: false,
           empty: emptyView,
           body: NotificationListener<ScrollNotification>(
             onNotification: (notification) {
@@ -342,6 +375,7 @@ class _MatchesViewState extends State<_MatchesView> {
                     profiles: _likesYouProfiles,
                     isLoading: _isLoadingLikes,
                     errorMessage: _likesError,
+                    isNetworkError: _isNetworkError,
                     isPlus: isPlus,
                     onRetry: _loadLikes,
                     onUpgradeRequested: () => _showUpgradePrompt(context),
@@ -630,6 +664,7 @@ class _LikesYouSection extends StatelessWidget {
     required this.profiles,
     required this.isLoading,
     required this.errorMessage,
+    required this.isNetworkError,
     required this.isPlus,
     required this.onRetry,
     required this.onUpgradeRequested,
@@ -639,6 +674,7 @@ class _LikesYouSection extends StatelessWidget {
   final List<Profile> profiles;
   final bool isLoading;
   final String? errorMessage;
+  final bool isNetworkError;
   final bool isPlus;
   final VoidCallback onRetry;
   final VoidCallback onUpgradeRequested;
@@ -647,6 +683,8 @@ class _LikesYouSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final count = profiles.length;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(top: DsSpacing.lg),
       child: Column(
@@ -682,14 +720,15 @@ class _LikesYouSection extends StatelessWidget {
                 ),
               ),
             )
-          else if (errorMessage != null)
+          // Only show error message for network errors
+          else if (errorMessage != null && isNetworkError)
             Padding(
               padding: DsEdgeInsets.horizontalLg,
               child: GlassCard(
                 padding: DsEdgeInsets.allLg,
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: DsColors.error),
+                    const Icon(Icons.wifi_off_rounded, color: DsColors.error),
                     DsGap.smH,
                     Expanded(
                       child: Text(
@@ -705,21 +744,89 @@ class _LikesYouSection extends StatelessWidget {
                 ),
               ),
             )
+          // Show encouraging message when no likes (not a network error)
           else if (profiles.isEmpty)
             Padding(
               padding: DsEdgeInsets.horizontalLg,
               child: GlassCard(
                 padding: DsEdgeInsets.allLg,
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.favorite_border, color: DsColors.primary),
-                    DsGap.smH,
-                    Expanded(
-                      child: Text(
-                        'No likes yet. Keep swiping to get noticed.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: DsColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.favorite_border_rounded,
+                            color: DsColors.primary,
+                            size: 20,
+                          ),
+                        ),
+                        DsGap.smH,
+                        Expanded(
+                          child: Text(
+                            'No likes yet',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
+                    DsGap.md,
+                    Text(
+                      'Keep swiping and stay active to get noticed! Add attractive photos and complete your profile to increase your chances.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                          ),
+                    ),
+                    if (!isPlus) ...[
+                      DsGap.md,
+                      InkWell(
+                        onTap: onUpgradeRequested,
+                        borderRadius: BorderRadius.circular(DsRadius.sm),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DsSpacing.sm,
+                            vertical: DsSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                DsColors.primary.withValues(alpha: 0.1),
+                                DsColors.secondary.withValues(alpha: 0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(DsRadius.sm),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: DsColors.primary,
+                                size: 16,
+                              ),
+                              DsGap.xsH,
+                              Text(
+                                'Upgrade to Plus to see who likes you first!',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: DsColors.primary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
