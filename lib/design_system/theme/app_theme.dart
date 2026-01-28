@@ -271,21 +271,23 @@ class AppTheme {
     );
   }
 
-  static ThemeData darkLuxury() {
+  static ThemeData darkLuxury() => darkLuxuryClassic();
+
+  static ThemeData darkLuxuryClassic() {
     const scheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: DsLuxuryColors.gold,
-      onPrimary: DsLuxuryColors.black,
-      secondary: DsLuxuryColors.royalPurple,
-      onSecondary: DsLuxuryColors.textPrimary,
-      tertiary: DsLuxuryColors.neonMint,
-      onTertiary: DsLuxuryColors.black,
+      primary: DsLuxuryColors.goldPrimary,
+      onPrimary: DsLuxuryColors.textOnGold,
+      secondary: DsLuxuryColors.goldSoft,
+      onSecondary: DsLuxuryColors.textOnGold,
+      tertiary: DsLuxuryColors.goldDark,
+      onTertiary: DsLuxuryColors.textOnGold,
       surface: DsLuxuryColors.surface,
       onSurface: DsLuxuryColors.textPrimary,
-      background: DsLuxuryColors.black,
+      background: DsLuxuryColors.background,
       onBackground: DsLuxuryColors.textPrimary,
       error: DsColors.error,
-      onError: DsLuxuryColors.black,
+      onError: DsLuxuryColors.textOnGold,
     );
 
     return ThemeData(
@@ -293,18 +295,18 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: scheme,
       fontFamily: DsTypography.bodyFontFamily,
-      scaffoldBackgroundColor: DsLuxuryColors.black,
+      scaffoldBackgroundColor: DsLuxuryColors.background,
       textTheme: DsTypography.luxuryTextTheme(),
-      iconTheme: const IconThemeData(color: DsLuxuryColors.gold),
+      iconTheme: const IconThemeData(color: DsLuxuryColors.iconPrimary),
       appBarTheme: const AppBarTheme(
-        backgroundColor: DsLuxuryColors.black,
+        backgroundColor: DsLuxuryColors.background,
         foregroundColor: DsLuxuryColors.textPrimary,
         elevation: 0,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
       ),
       cardTheme: CardThemeData(
-        color: DsLuxuryColors.surface,
+        color: DsLuxuryColors.card,
         elevation: DsElevation.mid,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DsRadius.card),
@@ -312,7 +314,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: DsLuxuryColors.surfaceElevated,
+        fillColor: DsLuxuryColors.inputBackground,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: DsSpacing.lg,
           vertical: DsSpacing.md,
@@ -327,7 +329,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
-          borderSide: const BorderSide(color: DsLuxuryColors.gold, width: 1.5),
+          borderSide: const BorderSide(color: DsLuxuryColors.goldPrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
@@ -340,8 +342,8 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: DsLuxuryColors.gold,
-          foregroundColor: DsLuxuryColors.black,
+          backgroundColor: DsLuxuryColors.goldPrimary,
+          foregroundColor: DsLuxuryColors.textOnGold,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DsRadius.round),
           ),
@@ -354,14 +356,14 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: DsLuxuryColors.gold,
+          foregroundColor: DsLuxuryColors.goldPrimary,
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: DsLuxuryColors.surface,
-        selectedColor: DsLuxuryColors.gold,
-        secondarySelectedColor: DsLuxuryColors.royalPurple,
+        backgroundColor: DsLuxuryColors.card,
+        selectedColor: DsLuxuryColors.goldPrimary,
+        secondarySelectedColor: DsLuxuryColors.goldSoft,
         labelStyle: const TextStyle(
           color: DsLuxuryColors.textPrimary,
           fontWeight: FontWeight.w700,
@@ -387,16 +389,148 @@ class AppTheme {
         thickness: 1,
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: DsLuxuryColors.gold,
+        color: DsLuxuryColors.goldPrimary,
       ),
       extensions: const [
         CrushThemeEffects(
-          glowColor: DsLuxuryColors.glow,
+          glowColor: DsLuxuryColors.glowGold,
           glassSurface: DsLuxuryColors.glass,
           glassBorder: DsLuxuryColors.glassBorder,
           shadowOpacity: 0.28,
           motionScale: 1.2,
           primaryGradient: DsLuxuryGradients.goldSheen,
+        ),
+      ],
+    );
+  }
+
+  static ThemeData darkLuxuryModern() {
+    const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: DsLuxuryModernColors.goldPrimary,
+      onPrimary: DsLuxuryModernColors.textOnGold,
+      secondary: DsLuxuryModernColors.goldSoft,
+      onSecondary: DsLuxuryModernColors.textOnGold,
+      tertiary: DsLuxuryModernColors.goldDark,
+      onTertiary: DsLuxuryModernColors.textOnGold,
+      surface: DsLuxuryModernColors.surface,
+      onSurface: DsLuxuryModernColors.textPrimary,
+      background: DsLuxuryModernColors.background,
+      onBackground: DsLuxuryModernColors.textPrimary,
+      error: DsLuxuryModernColors.error,
+      onError: DsLuxuryModernColors.textOnGold,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      fontFamily: DsTypography.bodyFontFamily,
+      scaffoldBackgroundColor: DsLuxuryModernColors.background,
+      textTheme: DsTypography.luxuryTextTheme(),
+      iconTheme: const IconThemeData(color: DsLuxuryModernColors.iconPrimary),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: DsLuxuryModernColors.background,
+        foregroundColor: DsLuxuryModernColors.textPrimary,
+        elevation: 0,
+        centerTitle: true,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: CardThemeData(
+        color: DsLuxuryModernColors.card,
+        elevation: DsElevation.mid,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRadius.card),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: DsLuxuryModernColors.inputBackground,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DsSpacing.lg,
+          vertical: DsSpacing.md,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DsRadius.input),
+          borderSide: const BorderSide(color: DsLuxuryModernColors.glassBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DsRadius.input),
+          borderSide: const BorderSide(color: DsLuxuryModernColors.glassBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DsRadius.input),
+          borderSide:
+              const BorderSide(color: DsLuxuryModernColors.goldPrimary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DsRadius.input),
+          borderSide: const BorderSide(color: DsLuxuryModernColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DsRadius.input),
+          borderSide: const BorderSide(color: DsLuxuryModernColors.error, width: 1.5),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: DsLuxuryModernColors.goldPrimary,
+          foregroundColor: DsLuxuryModernColors.textOnGold,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DsRadius.round),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.xl,
+            vertical: DsSpacing.md,
+          ),
+          minimumSize: const Size(0, 48),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: DsLuxuryModernColors.goldPrimary,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: DsLuxuryModernColors.card,
+        selectedColor: DsLuxuryModernColors.goldPrimary,
+        secondarySelectedColor: DsLuxuryModernColors.goldSoft,
+        labelStyle: const TextStyle(
+          color: DsLuxuryModernColors.textPrimary,
+          fontWeight: FontWeight.w700,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DsSpacing.md,
+          vertical: DsSpacing.xs,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRadius.chip),
+          side: const BorderSide(color: DsLuxuryModernColors.glassBorder),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: DsLuxuryModernColors.surfaceElevated,
+        contentTextStyle: const TextStyle(color: DsLuxuryModernColors.textPrimary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRadius.lg),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: DsLuxuryModernColors.glassBorder,
+        thickness: 1,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: DsLuxuryModernColors.goldPrimary,
+      ),
+      extensions: const [
+        CrushThemeEffects(
+          glowColor: DsLuxuryModernColors.glowGold,
+          glassSurface: DsLuxuryModernColors.glass,
+          glassBorder: DsLuxuryModernColors.glassBorder,
+          shadowOpacity: 0.24,
+          motionScale: 1.2,
+          primaryGradient: DsLuxuryModernGradients.goldSheen,
         ),
       ],
     );

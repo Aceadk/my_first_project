@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/design-tokens.json",
   "color": {
     "brand": {
-      "primary": { "$type": "color", "$value": "#FF4D6D" },
-      "primaryDark": { "$type": "color", "$value": "#E03B5F" },
+      "primary": { "$type": "color", "$value": "#FF3F7F" },
+      "primaryDark": { "$type": "color", "$value": "#E0356F" },
       "secondary": { "$type": "color", "$value": "#7B6CFF" },
       "accent": { "$type": "color", "$value": "#4DD6A7" }
     },
@@ -67,6 +67,60 @@
       "borderDark": { "$type": "color", "$value": "#26FFFFFF" },
       "frostLight": { "$type": "color", "$value": "#D9FFFFFF" },
       "frostDark": { "$type": "color", "$value": "#B3000000" }
+    },
+    "luxury": {
+      "background": { "$type": "color", "$value": "#000000" },
+      "surface": { "$type": "color", "$value": "#0D0D0D" },
+      "surfaceElevated": { "$type": "color", "$value": "#141414" },
+      "goldPrimary": { "$type": "color", "$value": "#D4AF37" },
+      "goldSoft": { "$type": "color", "$value": "#F1D27A" },
+      "goldDark": { "$type": "color", "$value": "#9E7C19" },
+      "textPrimary": { "$type": "color", "$value": "#F5F5F5" },
+      "textSecondary": { "$type": "color", "$value": "#B3B3B3" },
+      "textMuted": { "$type": "color", "$value": "#7A7A7A" },
+      "textOnGold": { "$type": "color", "$value": "#1A1A1A" },
+      "border": { "$type": "color", "$value": "#2A2A2A" },
+      "borderGold": { "$type": "color", "$value": "#6B5A1E" },
+      "card": { "$type": "color", "$value": "#0D0D0D" },
+      "inputBackground": { "$type": "color", "$value": "#111111" },
+      "iconPrimary": { "$type": "color", "$value": "#D4AF37" },
+      "iconSecondary": { "$type": "color", "$value": "#AAAAAA" },
+      "success": { "$type": "color", "$value": "#3CB371" },
+      "error": { "$type": "color", "$value": "#E05A5A" },
+      "warning": { "$type": "color", "$value": "#E6B566" },
+      "glass": { "$type": "color", "$value": "#CC0D0D0D" },
+      "glassBorder": { "$type": "color", "$value": "#406B5A1E" },
+      "glowGold": { "$type": "color", "$value": "#33D4AF37" },
+      "shimmerGold": { "$type": "color", "$value": "#66F1D27A" },
+      "black": { "$type": "color", "$value": "#000000" },
+      "blackSoft": { "$type": "color", "$value": "#0A0A0A" },
+      "gold": { "$type": "color", "$value": "#D4AF37" },
+      "goldDeep": { "$type": "color", "$value": "#9E7C19" }
+    },
+    "luxuryModern": {
+      "background": { "$type": "color", "$value": "#050505" },
+      "surface": { "$type": "color", "$value": "#101010" },
+      "surfaceElevated": { "$type": "color", "$value": "#181818" },
+      "goldPrimary": { "$type": "color", "$value": "#E6C77D" },
+      "goldSoft": { "$type": "color", "$value": "#F5E6B0" },
+      "goldDark": { "$type": "color", "$value": "#B89B4F" },
+      "textPrimary": { "$type": "color", "$value": "#F2F2F2" },
+      "textSecondary": { "$type": "color", "$value": "#B0B0B0" },
+      "textMuted": { "$type": "color", "$value": "#808080" },
+      "textOnGold": { "$type": "color", "$value": "#121212" },
+      "border": { "$type": "color", "$value": "#262626" },
+      "borderGold": { "$type": "color", "$value": "#7D6A33" },
+      "card": { "$type": "color", "$value": "#101010" },
+      "inputBackground": { "$type": "color", "$value": "#141414" },
+      "iconPrimary": { "$type": "color", "$value": "#E6C77D" },
+      "iconSecondary": { "$type": "color", "$value": "#999999" },
+      "success": { "$type": "color", "$value": "#4CAF84" },
+      "error": { "$type": "color", "$value": "#E57373" },
+      "warning": { "$type": "color", "$value": "#F0C674" },
+      "glass": { "$type": "color", "$value": "#CC101010" },
+      "glassBorder": { "$type": "color", "$value": "#407D6A33" },
+      "glowGold": { "$type": "color", "$value": "#2AE6C77D" },
+      "shimmerGold": { "$type": "color", "$value": "#55F5E6B0" }
     }
   },
   "font": {
@@ -257,6 +311,58 @@
           { "color": "#FFA3B1", "position": 1 }
         ]
       }
+    },
+    "luxuryGoldSheen": {
+      "$type": "gradient",
+      "$value": {
+        "type": "linear",
+        "rotation": 45,
+        "stops": [
+          { "color": "#9E7C19", "position": 0 },
+          { "color": "#D4AF37", "position": 0.5 },
+          { "color": "#F1D27A", "position": 1 }
+        ]
+      }
+    },
+    "luxuryGoldSheenModern": {
+      "$type": "gradient",
+      "$value": {
+        "type": "linear",
+        "rotation": 45,
+        "stops": [
+          { "color": "#B89B4F", "position": 0 },
+          { "color": "#E6C77D", "position": 0.5 },
+          { "color": "#F5E6B0", "position": 1 }
+        ]
+      }
+    },
+    "luxuryPremiumBadge": {
+      "$type": "gradient",
+      "$value": {
+        "type": "linear",
+        "rotation": 45,
+        "stops": [
+          { "color": "#9E7C19", "position": 0 },
+          { "color": "#D4AF37", "position": 0.5 },
+          { "color": "#F1D27A", "position": 1 }
+        ]
+      }
+    },
+    "luxuryPremiumBadgeModern": {
+      "$type": "gradient",
+      "$value": {
+        "type": "linear",
+        "rotation": 45,
+        "stops": [
+          { "color": "#B89B4F", "position": 0 },
+          { "color": "#E6C77D", "position": 0.5 },
+          { "color": "#F5E6B0", "position": 1 }
+        ]
+      }
     }
+  },
+  "motion": {
+    "scaleDefault": { "$type": "number", "$value": 1.0 },
+    "scaleLuxury": { "$type": "number", "$value": 1.2 }
   }
 }

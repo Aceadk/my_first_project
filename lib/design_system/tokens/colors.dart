@@ -5,8 +5,8 @@ class DsColors {
   DsColors._();
 
   // Brand colors (2026 refresh)
-  static const Color primary = Color(0xFFFF4D6D); // Romantic rose
-  static const Color primaryDark = Color(0xFFE03B5F);
+  static const Color primary = Color(0xFFFF3F7F); // Romantic rose (pinker)
+  static const Color primaryDark = Color(0xFFE0356F);
   static const Color secondary = Color(0xFF7B6CFF); // Premium plum
   static const Color accent = Color(0xFF4DD6A7); // Trust mint
 

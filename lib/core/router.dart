@@ -565,6 +565,11 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
             _buildPage(state, const settings.SettingsScreen()),
       ),
       GoRoute(
+        path: CrushRoutes.appearanceSettings,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const AppearanceSettingsScreen()),
+      ),
+      GoRoute(
         path: CrushRoutes.privacySettings,
         pageBuilder: (context, state) =>
             _buildPage(state, const PrivacySettingsScreen()),

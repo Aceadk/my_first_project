@@ -6,6 +6,7 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/utils/validators.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';

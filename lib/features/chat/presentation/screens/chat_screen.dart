@@ -474,8 +474,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.no_photography,
-                              color: DsColors.surfaceLight.withValues(alpha: 0.7)),
+                          Icon(
+                            Icons.no_photography,
+                            color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                          ),
                           DsGap.smH,
                           const Expanded(
                             child: Text(
@@ -887,6 +889,7 @@ class _ChatScreenState extends State<ChatScreen> {
     required SafetyCubit safety,
   }) {
     final baseSurface = DsGlassColors.surfaceFor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight + 8),
@@ -2638,7 +2641,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                 onPressed: () => Navigator.of(context).pop(),
                                 icon: Icon(
                                   Icons.close,
-                                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.54) : DsColors.ink90045,
+                                  color: isDark
+                                      ? DsColors.surfaceLight.withValues(alpha: 0.54)
+                                      : DsColors.ink900.withValues(alpha: 0.45),
                                   size: 22,
                                 ),
                                 style: IconButton.styleFrom(

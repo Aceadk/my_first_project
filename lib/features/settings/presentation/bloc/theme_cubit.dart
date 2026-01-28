@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/theme/app_theme_mode.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/data/models/user.dart';
 
 class ThemeCubit extends Cubit<AppThemeMode> {
   ThemeCubit({
@@ -43,9 +44,9 @@ class ThemeCubit extends Cubit<AppThemeMode> {
     }
   }
 
-  Future<void> _syncFromUser(dynamic user) async {
+  Future<void> _syncFromUser(CrushUser? user) async {
     if (user == null) return;
-    final preference = user.themePreference as String?;
+    final preference = user.themePreference;
     if (preference == null || preference.isEmpty) return;
     final remoteMode = appThemeModeFromKey(preference);
     if (remoteMode == state) return;
@@ -60,4 +61,3 @@ class ThemeCubit extends Cubit<AppThemeMode> {
     return super.close();
   }
 }
-

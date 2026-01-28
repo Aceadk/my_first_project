@@ -314,6 +314,9 @@ class _StubProfileRepository implements ProfileRepository {
       user.copyWith(profile: profile);
 
   @override
+  Future<void> updateThemePreference(String preference) async {}
+
+  @override
   Future<CrushUser> skipBasicInfo({required String username}) async =>
       user.copyWith(username: username, hasSkippedBasicInfo: true);
 

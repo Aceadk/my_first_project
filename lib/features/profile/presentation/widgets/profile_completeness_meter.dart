@@ -46,7 +46,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (missing.isEmpty)
-              Text(
+              const Text(
                 'Great job! Your profile is ready.',
                 style: TextStyle(color: DsColors.success),
               )

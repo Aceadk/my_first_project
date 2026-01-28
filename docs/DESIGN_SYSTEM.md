@@ -10,10 +10,17 @@ This document defines the visual system for Crush across Flutter and web. It mir
 - High legibility, low visual noise.
 
 ### Color palette (core)
-- Primary (Rose): `#FF4D6D`
-- Primary Dark: `#E03B5F`
+- Primary (Rose): `#FF3F7F`
+- Primary Dark: `#E0356F`
 - Secondary (Plum): `#7B6CFF`
 - Accent (Mint): `#4DD6A7`
+
+### Theme presets
+- **Light**
+- **Dark**
+- **System default** (follows device)
+- **Dark Luxury (Royal)** (premium theme)
+- **Dark Luxury (Modern)** (premium theme)
 
 ### Neutral ink scale
 - Ink 900: `#0B0B10`
@@ -46,6 +53,44 @@ This document defines the visual system for Crush across Flutter and web. It mir
 - Glass dark: `#B314141B` (surface), `#26FFFFFF` (border)
 - Frost light: `#D9FFFFFF`
 - Frost dark: `#B3000000`
+
+### Dark Luxury palettes (premium)
+Token prefixes: `color.luxury` (Royal) and `color.luxuryModern` (Modern).
+**Royal (Classic Gold)**
+- Background: `#000000`
+- Surface: `#0D0D0D`
+- Surface Elevated: `#141414`
+- Gold Primary: `#D4AF37`
+- Gold Soft: `#F1D27A`
+- Gold Dark: `#9E7C19`
+- Text Primary: `#F5F5F5`
+- Text Secondary: `#B3B3B3`
+- Text Muted: `#7A7A7A`
+- Text On Gold: `#1A1A1A`
+- Border: `#2A2A2A`
+- Border Gold: `#6B5A1E`
+- Glass: `#CC0D0D0D`
+- Glass Border: `#406B5A1E`
+- Glow: `#33D4AF37`
+- Shimmer: `#66F1D27A`
+
+**Modern (Cool Gold)**
+- Background: `#050505`
+- Surface: `#101010`
+- Surface Elevated: `#181818`
+- Gold Primary: `#E6C77D`
+- Gold Soft: `#F5E6B0`
+- Gold Dark: `#B89B4F`
+- Text Primary: `#F2F2F2`
+- Text Secondary: `#B0B0B0`
+- Text Muted: `#808080`
+- Text On Gold: `#121212`
+- Border: `#262626`
+- Border Gold: `#7D6A33`
+- Glass: `#CC101010`
+- Glass Border: `#407D6A33`
+- Glow: `#2AE6C77D`
+- Shimmer: `#55F5E6B0`
 
 ## 2) Typography
 
@@ -115,6 +160,23 @@ Primary gradients are rose → plum. Use these for hero moments, tabs, and major
 - Primary Diagonal: `primary → secondary`
 - Soft Rose: `#FF6F86 → #FFA3B1`
 
+## 7.1) Theme Effects
+
+The theme extension `CrushThemeEffects` adds:
+- `glowColor` (used for luxury glow/shadows)
+- `glassSurface` and `glassBorder`
+- `shadowOpacity`
+- `motionScale` (luxury motion is slightly slower)
+- `primaryGradient` (theme-aware CTA gradient)
+
+## 7.2) Dark Luxury usage
+
+- **Buttons**: Primary = gold background + `textOnGold`. Secondary = black surface + gold border + gold text.
+- **Cards**: Luxury surfaces with thin gold border or subtle gold glow on premium sections.
+- **Navigation bar**: True-black background, active icon in gold, inactive in muted gray.
+- **Premium badges**: Gradient from goldDark → goldPrimary → goldSoft.
+- **Motion**: Slower easing (`easeOutCubic`), gold shimmer on premium CTAs, soft glow on active tabs, gentle fade+scale transitions.
+
 ## 8) Component Guidelines (high level)
 
 - **Buttons**: Primary uses solid `primary` or `primaryDiagonal` gradients. Secondary uses glass surfaces with `DsGlassColors`.
@@ -135,3 +197,4 @@ A Figma-ready token export is provided here:
 - `docs/design_tokens.json`
 
 This file follows the W3C design token format and can be imported into token tools (e.g., Tokens Studio).
+It now includes Dark Luxury (Royal + Modern) colors, gradients, and motion scale tokens.

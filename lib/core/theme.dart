@@ -7,4 +7,8 @@ class CrushTheme {
   static ThemeData dark() => AppTheme.dark();
 
   static ThemeData darkLuxury() => AppTheme.darkLuxury();
+
+  static ThemeData darkLuxuryClassic() => AppTheme.darkLuxuryClassic();
+
+  static ThemeData darkLuxuryModern() => AppTheme.darkLuxuryModern();
 }

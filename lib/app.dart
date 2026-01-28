@@ -209,10 +209,16 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
             AppThemeMode.light => ThemeMode.light,
             AppThemeMode.dark => ThemeMode.dark,
             AppThemeMode.darkLuxury => ThemeMode.dark,
+            AppThemeMode.darkLuxuryModern => ThemeMode.dark,
           };
-          final darkTheme = themeMode == AppThemeMode.darkLuxury
-              ? CrushTheme.darkLuxury()
-              : CrushTheme.dark();
+          final darkTheme = switch (themeMode) {
+            AppThemeMode.darkLuxury => CrushTheme.darkLuxuryClassic(),
+            AppThemeMode.darkLuxuryModern => CrushTheme.darkLuxuryModern(),
+            _ => CrushTheme.dark(),
+          };
+          final themeAnimationDuration = Duration(
+            milliseconds: (240 * (themeMode.isLuxury ? 1.2 : 1.0)).round(),
+          );
           return BlocBuilder<LocaleCubit, LocaleState>(
             builder: (context, localeState) {
               return DeepLinkBootstrap(
@@ -221,6 +227,8 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
                   theme: CrushTheme.light(),
                   darkTheme: darkTheme,
                   themeMode: materialMode,
+                  themeAnimationDuration: themeAnimationDuration,
+                  themeAnimationCurve: Curves.easeInOutCubic,
                   routerConfig: _router,
                   debugShowCheckedModeBanner: false,
                   // Localization

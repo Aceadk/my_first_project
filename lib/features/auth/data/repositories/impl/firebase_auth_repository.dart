@@ -191,6 +191,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'isPhoneVerified': firebaseUser.phoneNumber != null,
           'isIdVerified': false,
           'plan': 'free',
+          'themePreference': 'system',
           'profile': {
             'name': displayName,
             'lastName': '',

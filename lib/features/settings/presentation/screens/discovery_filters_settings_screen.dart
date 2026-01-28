@@ -19,8 +19,6 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseSurface = DsGlassColors.surfaceFor(context);
-    final borderBase = DsGlassColors.borderFor(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -553,6 +551,8 @@ class _PassportModeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseSurface = DsGlassColors.surfaceFor(context);
+    final borderBase = DsGlassColors.borderFor(context);
 
     return Padding(
       padding: DsEdgeInsets.horizontalLg,

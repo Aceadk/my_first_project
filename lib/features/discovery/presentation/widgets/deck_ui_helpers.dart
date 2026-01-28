@@ -40,8 +40,8 @@ class _DeckActionButtonState extends State<DeckActionButton>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEnabled = widget.enabled;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // When disabled, use grey color
     final effectiveColor = isEnabled ? widget.color : DsColors.ink300;

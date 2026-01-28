@@ -131,7 +131,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                       if (snapshot.hasError) {
                         return Container(
                           height: 200,
-                          color: DsColors.ink90012,
+                          color: DsColors.ink900.withValues(alpha: 0.12),
                           child: const Center(
                             child: Text('Could not load video'),
                           ),

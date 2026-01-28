@@ -429,7 +429,9 @@ class SettingsScreen extends StatelessWidget {
       case AppThemeMode.system:
         return context.l10n.settingsThemeSystem;
       case AppThemeMode.darkLuxury:
-        return 'Dark Luxury';
+        return 'Dark Luxury (Royal)';
+      case AppThemeMode.darkLuxuryModern:
+        return 'Dark Luxury (Modern)';
     }
   }
 

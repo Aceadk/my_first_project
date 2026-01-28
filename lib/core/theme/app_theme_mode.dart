@@ -3,10 +3,12 @@ enum AppThemeMode {
   light,
   dark,
   darkLuxury,
+  darkLuxuryModern,
 }
 
 extension AppThemeModeX on AppThemeMode {
-  bool get isLuxury => this == AppThemeMode.darkLuxury;
+  bool get isLuxury =>
+      this == AppThemeMode.darkLuxury || this == AppThemeMode.darkLuxuryModern;
 
   String get storageKey {
     switch (this) {
@@ -16,6 +18,8 @@ extension AppThemeModeX on AppThemeMode {
         return 'dark';
       case AppThemeMode.darkLuxury:
         return 'luxury';
+      case AppThemeMode.darkLuxuryModern:
+        return 'luxury_modern';
       case AppThemeMode.system:
         return 'system';
     }
@@ -29,12 +33,19 @@ AppThemeMode appThemeModeFromKey(String? value) {
     case 'dark':
       return AppThemeMode.dark;
     case 'luxury':
+    case 'luxury_classic':
     case 'dark_luxury':
     case 'darkLuxury':
+    case 'royal':
+    case 'classic':
       return AppThemeMode.darkLuxury;
+    case 'luxury_modern':
+    case 'modern':
+    case 'modern_luxury':
+    case 'darkLuxuryModern':
+      return AppThemeMode.darkLuxuryModern;
     case 'system':
     default:
       return AppThemeMode.system;
   }
 }
-

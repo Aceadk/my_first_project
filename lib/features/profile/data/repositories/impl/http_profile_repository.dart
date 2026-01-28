@@ -46,6 +46,8 @@ class HttpProfileRepository implements ProfileRepository {
       isPhoneVerified: result.data!['phone_verified'] as bool? ?? true,
       isIdVerified: profile.isVerified,
       plan: result.data!['is_premium'] == true ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      themePreference: result.data!['theme_preference'] as String? ??
+          result.data!['themePreference'] as String?,
       profile: profile,
     );
 
