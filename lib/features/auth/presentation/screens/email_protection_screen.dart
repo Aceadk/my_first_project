@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/utils/validators.dart';
+import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
@@ -167,7 +167,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: Text(
+                    child: const Text(
                       'Go to Account Settings',
                       style: TextStyle(
                         color: DsColors.warning,

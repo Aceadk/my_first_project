@@ -402,7 +402,6 @@ class _PageIndicators extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final motionScale =
         Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
 

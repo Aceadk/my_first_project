@@ -22,6 +22,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/discovery/data/services/incognito_service.dart';
 import 'package:crushhour/features/discovery/data/models/incognito_settings.dart';
+import 'package:crushhour/features/subscription/presentation/widgets/promo_code_sheet.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -331,19 +332,28 @@ class SettingsScreen extends StatelessWidget {
                                   : Text(isPlus ? 'Manage subscription' : 'Upgrade to Plus'),
                             ),
                           ),
-                          Center(
-                            child: TextButton(
-                              onPressed: subState.isRestoring
-                                  ? null
-                                  : () => context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested()),
-                              child: subState.isRestoring
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Text('Restore subscription'),
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: subState.isRestoring
+                                    ? null
+                                    : () => context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested()),
+                                child: subState.isRestoring
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Text('Restore'),
+                              ),
+                              const Text('•', style: TextStyle(color: DsColors.ink300)),
+                              TextButton.icon(
+                                onPressed: () => PromoCodeSheet.show(context),
+                                icon: const Icon(Icons.card_giftcard, size: 16),
+                                label: const Text('Promo code'),
+                              ),
+                            ],
                           ),
                         ],
                       ),

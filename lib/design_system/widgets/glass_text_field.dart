@@ -43,6 +43,7 @@ class GlassTextField extends StatefulWidget {
     this.onChanged,
     this.autofillHints,
     this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
     this.maxLines = 1,
     this.minLines,
     this.maxLength,
@@ -69,6 +70,7 @@ class GlassTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final Iterable<String>? autofillHints;
   final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
   final int maxLines;
   final int? minLines;
   final int? maxLength;
@@ -190,6 +192,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 onChanged: widget.onChanged,
                 autofillHints: widget.autofillHints,
                 inputFormatters: widget.inputFormatters,
+                textCapitalization: widget.textCapitalization,
                 maxLines: widget.maxLines,
                 minLines: widget.minLines,
                 maxLength: widget.maxLength,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 
 abstract class SubscriptionRepository {
   Stream<SubscriptionPlan> watchPlan();
@@ -17,4 +18,13 @@ abstract class SubscriptionRepository {
 
   /// Reconciles plan against billing provider and returns latest status.
   Future<SubscriptionStatus> refreshStatus();
+
+  /// Validates a promo code without redeeming it.
+  Future<PromoCode?> validatePromoCode(String code);
+
+  /// Redeems a promo code for the current user.
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code);
+
+  /// Gets the user's redemption history.
+  Future<List<PromoCode>> getRedeemedCodes();
 }

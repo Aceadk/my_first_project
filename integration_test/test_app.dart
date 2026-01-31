@@ -34,6 +34,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
@@ -125,7 +126,11 @@ class TestApp extends StatelessWidget {
         ),
       ),
       BlocProvider<ThemeCubit>(
-        create: (_) => ThemeCubit(preferences: preferences),
+        create: (context) => ThemeCubit(
+          preferences: preferences,
+          authRepository: context.read<AuthRepository>(),
+          profileRepository: context.read<ProfileRepository>(),
+        ),
       ),
       BlocProvider<NotificationSettingsCubit>(
         create: (_) => NotificationSettingsCubit(preferences: preferences),
@@ -177,13 +182,20 @@ class _TestRouterHostState extends State<_TestRouterHost> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeMode>(
+    return BlocBuilder<ThemeCubit, AppThemeMode>(
       builder: (context, themeMode) {
+        final materialMode = switch (themeMode) {
+          AppThemeMode.system => ThemeMode.system,
+          AppThemeMode.light => ThemeMode.light,
+          AppThemeMode.dark => ThemeMode.dark,
+          AppThemeMode.darkLuxury => ThemeMode.dark,
+          AppThemeMode.darkLuxuryModern => ThemeMode.dark,
+        };
         return MaterialApp.router(
           title: 'CrushHour Test',
           theme: CrushTheme.light(),
           darkTheme: CrushTheme.dark(),
-          themeMode: themeMode,
+          themeMode: materialMode,
           routerConfig: _router,
           debugShowCheckedModeBanner: false,
         );

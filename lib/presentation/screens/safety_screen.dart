@@ -9,7 +9,7 @@ import 'package:crushhour/features/safety/data/services/date_plan_service.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/core/utils/validators.dart';
+import 'package:crushhour/core/validators.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 
@@ -369,8 +369,6 @@ class _SafetyEducationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

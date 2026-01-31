@@ -54,7 +54,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     return [
       theme.colorScheme.primary,
       theme.colorScheme.secondary,
-      theme.colorScheme.background,
+      theme.colorScheme.surface,
     ];
   }
 
@@ -344,7 +344,7 @@ class _ThemePreviewCard extends StatelessWidget {
 
           return Container(
             decoration: BoxDecoration(
-              color: scheme.background,
+              color: scheme.surface,
               borderRadius: BorderRadius.circular(DsRadius.xl),
               border: Border.all(
                 color: scheme.brightness == Brightness.dark

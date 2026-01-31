@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,8 +9,8 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/router.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
+import 'package:crushhour/design_system/theme/theme_extensions.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,72 +32,72 @@ class _SplashScreenState extends State<SplashScreen>
   String? _pendingRoute;
   Object? _pendingArguments;
 
-  late AnimationController _fadeController;
-  late AnimationController _pulseController;
-  late AnimationController _companyFadeController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _pulseAnimation;
+  // Animation timeline controller
+  late AnimationController _timelineController;
+
+  late Animation<double> _screenFadeAnimation;
+  late Animation<double> _strokeAnimation;
+  late Animation<double> _fillFadeAnimation;
+  late Animation<double> _taglineFadeAnimation;
+  late Animation<Offset> _taglineSlideAnimation;
   late Animation<double> _companyFadeAnimation;
-  late Animation<double> _scaleAnimation;
+
+  Timer? _animationFallbackTimer;
 
   @override
   void initState() {
     super.initState();
 
-    // Main content fade in
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _timelineController = AnimationController(
+      duration: const Duration(milliseconds: 1900),
       vsync: this,
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
+    // Subtle screen fade-in (0.0s -> 0.15s)
+    _screenFadeAnimation = CurvedAnimation(
+      parent: _timelineController,
+      curve: const Interval(0.0, 0.15, curve: Curves.easeOut),
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOutBack,
-    ));
-
-    // Pulse animation for the heart
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
+    // Main stroke reveal (0.1s -> 1.6s)
+    _strokeAnimation = CurvedAnimation(
+      parent: _timelineController,
+      curve: const Interval(0.05, 0.85, curve: Curves.easeInOutCubic),
     );
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Company name fade in (delayed)
-    _companyFadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
+    // Fill fade-in at the end of the stroke (1.5s -> 1.8s)
+    _fillFadeAnimation = CurvedAnimation(
+      parent: _timelineController,
+      curve: const Interval(0.78, 0.95, curve: Curves.easeOut),
     );
 
+    // Tagline fade + slide (1.2s -> 1.9s)
+    _taglineFadeAnimation = CurvedAnimation(
+      parent: _timelineController,
+      curve: const Interval(0.63, 1.0, curve: Curves.easeOut),
+    );
+    _taglineSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _timelineController,
+        curve: const Interval(0.63, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    // "From Ace" fade (1.3s -> 1.8s)
     _companyFadeAnimation = CurvedAnimation(
-      parent: _companyFadeController,
-      curve: Curves.easeOut,
+      parent: _timelineController,
+      curve: const Interval(0.7, 0.95, curve: Curves.easeOut),
     );
 
-    // Start animations
-    _fadeController.forward();
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) {
-        _pulseController.repeat(reverse: true);
-      }
-    });
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        _companyFadeController.forward();
+    _timelineController.forward();
+
+    // Fallback: ensure static logo shows after 3 seconds
+    _animationFallbackTimer = Timer(_minimumSplashDuration, () {
+      if (mounted && !_timelineController.isCompleted) {
+        _timelineController.value = 1.0;
       }
     });
 
@@ -124,9 +126,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _fallbackTimer?.cancel();
-    _fadeController.dispose();
-    _pulseController.dispose();
-    _companyFadeController.dispose();
+    _animationFallbackTimer?.cancel();
+    _timelineController.dispose();
     super.dispose();
   }
 
@@ -170,13 +171,18 @@ class _SplashScreenState extends State<SplashScreen>
           }
 
           // 2. Check if user needs to complete basic info
-          if (user != null && user.hasAcceptedTerms && !user.hasCompletedBasicInfo) {
+          if (user != null &&
+              user.hasAcceptedTerms &&
+              !user.hasCompletedBasicInfo) {
             _setNavigationTarget(CrushRoutes.basicInfo);
             return;
           }
 
           // 3. Check if user needs to complete profile setup
-          if (user != null && user.hasAcceptedTerms && user.hasCompletedBasicInfo && !user.hasCompletedProfileSetup) {
+          if (user != null &&
+              user.hasAcceptedTerms &&
+              user.hasCompletedBasicInfo &&
+              !user.hasCompletedProfileSetup) {
             _setNavigationTarget(CrushRoutes.profileSetup);
             return;
           }
@@ -205,137 +211,205 @@ class _SplashScreenState extends State<SplashScreen>
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
+          final backgroundColor = theme.scaffoldBackgroundColor;
+          final mutedColor = theme.colorScheme.onSurface.withValues(alpha: 0.55);
+          final brandGradient =
+              theme.extension<CrushThemeEffects>()?.primaryGradient ??
+                  DsGradients.primaryHorizontal;
+
           return Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                DsColors.backgroundDark,
-                DsColors.ink800,
-                DsColors.ink700,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                const Spacer(flex: 3),
-                // Main content
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Animated heart logo
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _pulseAnimation.value,
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  gradient: DsGradients.primaryDiagonal,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: DsColors.primary
-                                          .withValues(alpha: 0.35),
-                                      blurRadius: 26,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.favorite_rounded,
-                                  size: 60,
-                                  color: DsColors.surfaceLight,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 32),
-                        // App name with gradient
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [DsColors.surfaceLight, DsColors.ink50],
-                          ).createShader(bounds),
-                          child: Text(
-                            'Crush',
-                            style: theme.textTheme.displayLarge?.copyWith(
-                              fontSize: 42,
-                              letterSpacing: -0.6,
-                              color: DsColors.surfaceLight,
+            backgroundColor: backgroundColor,
+            body: SafeArea(
+              child: FadeTransition(
+                opacity: _screenFadeAnimation,
+                child: Column(
+                  children: [
+                    const Spacer(flex: 3),
+                    // Animated "Crush" wordmark with stroke reveal
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final maxWidth =
+                            math.min(constraints.maxWidth * 0.8, 320.0);
+                        final fontSize = maxWidth * 0.23;
+                        final wordmarkHeight = fontSize * 1.3;
+
+                        final baseStyle =
+                            theme.textTheme.titleLarge ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                );
+
+                        final wordmarkStyle = baseStyle.copyWith(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.0,
+                          color: Colors.white,
+                        );
+
+                        return SizedBox(
+                          width: maxWidth,
+                          height: wordmarkHeight,
+                          child: ShaderMask(
+                            shaderCallback: (bounds) =>
+                                brandGradient.createShader(bounds),
+                            child: AnimatedBuilder(
+                              animation: Listenable.merge([
+                                _strokeAnimation,
+                                _fillFadeAnimation,
+                              ]),
+                              builder: (context, child) {
+                                return CustomPaint(
+                                  painter: _CrushTextStrokePainter(
+                                    progress: _strokeAnimation.value,
+                                    fillOpacity: _fillFadeAnimation.value,
+                                    textStyle: wordmarkStyle,
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Tagline
-                        Text(
-                          'Find your perfect match',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: DsColors.textMutedDark,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  ),
-                ),
-                const Spacer(flex: 4),
-                // Company branding at bottom
-                FadeTransition(
-                  opacity: _companyFadeAnimation,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'From',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: DsColors.textMutedDark.withValues(alpha: 0.8),
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      ShaderMask(
-                        shaderCallback: (bounds) => LinearGradient(
-                          colors: [
-                            DsColors.primary.withValues(alpha: 0.9),
-                            DsColors.secondary.withValues(alpha: 0.9),
-                          ],
-                        ).createShader(bounds),
-                        child: const Text(
-                          'Ace',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: DsColors.surfaceLight,
-                            letterSpacing: 2,
+                    const SizedBox(height: 20),
+                    // Tagline
+                    SlideTransition(
+                      position: _taglineSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _taglineFadeAnimation,
+                        child: Text(
+                          'Find your Perfect Match',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: mutedColor,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.4,
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const Spacer(flex: 4),
+                    // Company branding at bottom
+                    FadeTransition(
+                      opacity: _companyFadeAnimation,
+                      child: Text(
+                        'From Ace',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: mutedColor.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                const SizedBox(height: 48),
-              ],
+              ),
             ),
-          ),
-        ),
-      );
+          );
         },
       ),
     );
+  }
+}
+
+/// Custom painter that draws "Crush" with a flowing stroke reveal animation
+class _CrushTextStrokePainter extends CustomPainter {
+  final double progress;
+  final double fillOpacity;
+  final TextStyle textStyle;
+
+  _CrushTextStrokePainter({
+    required this.progress,
+    required this.fillOpacity,
+    required this.textStyle,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paragraphBuilder = ui.ParagraphBuilder(
+      ui.ParagraphStyle(textAlign: TextAlign.center),
+    )
+      ..pushStyle(textStyle.getTextStyle())
+      ..addText('Crush');
+
+    final paragraph = paragraphBuilder.build();
+    paragraph.layout(ui.ParagraphConstraints(width: size.width));
+
+    // Calculate center position
+    final textWidth = paragraph.maxIntrinsicWidth;
+    final textHeight = paragraph.height;
+    final offsetX = (size.width - textWidth) / 2;
+    final offsetY = (size.height - textHeight) / 2;
+
+    canvas.save();
+
+    // Stroke reveal effect using clip
+    if (progress > 0) {
+      // Calculate the reveal width based on progress
+      final revealWidth = textWidth * progress;
+
+      // Create clip rect for the stroke reveal
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(
+        offsetX,
+        offsetY - 10,
+        revealWidth,
+        textHeight + 20,
+      ));
+
+      // Draw stroke outline effect
+      final strokePaint = Paint()
+        ..color = textStyle.color ?? Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (textStyle.fontSize ?? 56) * 0.045
+        ..strokeCap = StrokeCap.round;
+
+      // Create a paragraph with stroke style
+      final strokeStyle =
+          textStyle.copyWith(foreground: strokePaint).getTextStyle();
+
+      final strokeBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
+        textAlign: TextAlign.center,
+      ))
+        ..pushStyle(strokeStyle)
+        ..addText('Crush');
+
+      final strokeParagraph = strokeBuilder.build();
+      strokeParagraph.layout(ui.ParagraphConstraints(width: size.width));
+
+      canvas.drawParagraph(strokeParagraph, Offset(offsetX, offsetY));
+      canvas.restore();
+    }
+
+    // Filled text (fades in after stroke completes)
+    if (fillOpacity > 0) {
+      final fillStyle = textStyle
+          .copyWith(
+            color: (textStyle.color ?? Colors.white)
+                .withValues(alpha: fillOpacity),
+          )
+          .getTextStyle();
+
+      final fillBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
+        textAlign: TextAlign.center,
+      ))
+        ..pushStyle(fillStyle)
+        ..addText('Crush');
+
+      final fillParagraph = fillBuilder.build();
+      fillParagraph.layout(ui.ParagraphConstraints(width: size.width));
+
+      canvas.drawParagraph(fillParagraph, Offset(offsetX, offsetY));
+    }
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_CrushTextStrokePainter oldDelegate) {
+    return progress != oldDelegate.progress ||
+        fillOpacity != oldDelegate.fillOpacity ||
+        textStyle != oldDelegate.textStyle;
   }
 }

@@ -83,7 +83,6 @@ class BoostButton extends StatelessWidget {
     required bool isActive,
     VoidCallback? onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
 
     return GestureDetector(

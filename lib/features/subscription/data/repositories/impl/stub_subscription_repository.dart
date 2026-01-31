@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 import '../subscription_repository.dart';
 
 /// Mock implementation of SubscriptionRepository with local storage.
@@ -129,5 +131,182 @@ class StubSubscriptionRepository implements SubscriptionRepository {
 
   void dispose() {
     _planController.close();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROMO CODE METHODS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static const _redeemedCodesKey = 'redeemed_promo_codes';
+
+  /// Demo promo codes for testing.
+  static const Map<String, PromoCode> _baseCodes = {
+    'WELCOME50': PromoCode(
+      code: 'WELCOME50',
+      type: PromoCodeType.discount,
+      description: '50% off your first month of Plus',
+      discountPercent: 50,
+    ),
+    'FREEWEEK': PromoCode(
+      code: 'FREEWEEK',
+      type: PromoCodeType.freeTrial,
+      description: '7 days free trial of Plus',
+      freeTrialDays: 7,
+    ),
+    'CRUSH2024': PromoCode(
+      code: 'CRUSH2024',
+      type: PromoCodeType.combined,
+      description: 'Special launch offer: 30% off + 10 bonus likes',
+      discountPercent: 30,
+      bonusLikes: 10,
+    ),
+    'SUPERLOVE': PromoCode(
+      code: 'SUPERLOVE',
+      type: PromoCodeType.bonusSuperLikes,
+      description: '5 bonus Super Likes',
+      bonusSuperLikes: 5,
+    ),
+    'CRUSHFREE': PromoCode(
+      code: 'CRUSHFREE',
+      type: PromoCodeType.discount,
+      description: '100% off - Completely free Plus membership!',
+      discountPercent: 100,
+    ),
+  };
+
+  static final Map<String, PromoCode> _demoCodes = {
+    ..._baseCodes,
+    'EXPIRED': PromoCode(
+      code: 'EXPIRED',
+      type: PromoCodeType.discount,
+      description: 'Expired code for testing',
+      discountPercent: 20,
+      expiresAt: DateTime(2023, 1, 1), // Already expired
+    ),
+  };
+
+  @override
+  Future<PromoCode?> validatePromoCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final normalizedCode = code.trim().toUpperCase();
+    final promoCode = _demoCodes[normalizedCode];
+
+    if (promoCode == null) {
+      return null;
+    }
+
+    // Check if already redeemed
+    final redeemed = await getRedeemedCodes();
+    if (redeemed.any((c) => c.code == normalizedCode)) {
+      return null; // Already redeemed
+    }
+
+    return promoCode.isValid ? promoCode : null;
+  }
+
+  @override
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final normalizedCode = code.trim().toUpperCase();
+    final promoCode = _demoCodes[normalizedCode];
+
+    if (promoCode == null) {
+      return PromoCodeRedemptionResult.failure(
+        'Invalid promo code. Please check and try again.',
+      );
+    }
+
+    if (promoCode.isExpired) {
+      return PromoCodeRedemptionResult.failure(
+        'This promo code has expired.',
+      );
+    }
+
+    if (promoCode.isMaxedOut) {
+      return PromoCodeRedemptionResult.failure(
+        'This promo code has reached its maximum redemptions.',
+      );
+    }
+
+    // Check if already redeemed by this user
+    final redeemed = await getRedeemedCodes();
+    if (redeemed.any((c) => c.code == normalizedCode)) {
+      return PromoCodeRedemptionResult.failure(
+        'You have already redeemed this promo code.',
+      );
+    }
+
+    // Apply benefits
+    final benefits = <String>[];
+
+    if (promoCode.discountPercent != null) {
+      benefits.add('${promoCode.discountPercent}% discount applied');
+      // For 100% discount, upgrade to Plus immediately
+      if (promoCode.discountPercent == 100) {
+        await _savePlan(SubscriptionPlan.plus);
+        final prefs = await SharedPreferences.getInstance();
+        // Set renewal 1 year from now for 100% discount
+        final renewalDate = DateTime.now().add(const Duration(days: 365));
+        await prefs.setString(_renewalKey, renewalDate.toIso8601String());
+        await prefs.setString(_statusKey, 'active');
+        benefits.add('Plus membership activated!');
+      }
+    }
+
+    if (promoCode.freeTrialDays != null) {
+      benefits.add('${promoCode.freeTrialDays} day free trial activated');
+      // For demo: upgrade to Plus immediately
+      await _savePlan(SubscriptionPlan.plus);
+      final prefs = await SharedPreferences.getInstance();
+      final trialEnd = DateTime.now().add(
+        Duration(days: promoCode.freeTrialDays!),
+      );
+      await prefs.setString(_renewalKey, trialEnd.toIso8601String());
+      await prefs.setString(_statusKey, 'trialing');
+    }
+
+    if (promoCode.bonusLikes != null) {
+      benefits.add('${promoCode.bonusLikes} bonus likes added');
+    }
+
+    if (promoCode.bonusSuperLikes != null) {
+      benefits.add('${promoCode.bonusSuperLikes} bonus Super Likes added');
+    }
+
+    // Save redemption
+    await _saveRedeemedCode(promoCode);
+
+    return PromoCodeRedemptionResult.success(
+      promoCode: promoCode,
+      appliedBenefits: benefits,
+    );
+  }
+
+  @override
+  Future<List<PromoCode>> getRedeemedCodes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final codesJson = prefs.getStringList(_redeemedCodesKey) ?? [];
+
+    return codesJson
+        .map((json) {
+          try {
+            return PromoCode.fromJson(
+              jsonDecode(json) as Map<String, dynamic>,
+            );
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<PromoCode>()
+        .toList();
+  }
+
+  Future<void> _saveRedeemedCode(PromoCode code) async {
+    final prefs = await SharedPreferences.getInstance();
+    final codesJson = prefs.getStringList(_redeemedCodesKey) ?? [];
+    codesJson.add(jsonEncode(code.toJson()));
+    await prefs.setStringList(_redeemedCodesKey, codesJson);
   }
 }

@@ -20,8 +20,7 @@ class AppTheme {
       onTertiary: DsColors.ink900,
       surface: DsColors.surfaceLight,
       onSurface: DsColors.textPrimaryLight,
-      background: DsColors.backgroundLight,
-      onBackground: DsColors.textPrimaryLight,
+      surfaceContainerHighest: DsColors.backgroundLight,
       error: DsColors.error,
       onError: Colors.white,
     );
@@ -151,8 +150,7 @@ class AppTheme {
       onTertiary: Colors.black,
       surface: DsColors.surfaceDark,
       onSurface: DsColors.textPrimaryDark,
-      background: DsColors.backgroundDark,
-      onBackground: DsColors.textPrimaryDark,
+      surfaceContainerHighest: DsColors.backgroundDark,
       error: DsColors.error,
       onError: Colors.white,
     );
@@ -284,8 +282,7 @@ class AppTheme {
       onTertiary: DsLuxuryColors.textOnGold,
       surface: DsLuxuryColors.surface,
       onSurface: DsLuxuryColors.textPrimary,
-      background: DsLuxuryColors.background,
-      onBackground: DsLuxuryColors.textPrimary,
+      surfaceContainerHighest: DsLuxuryColors.background,
       error: DsColors.error,
       onError: DsLuxuryColors.textOnGold,
     );
@@ -415,8 +412,7 @@ class AppTheme {
       onTertiary: DsLuxuryModernColors.textOnGold,
       surface: DsLuxuryModernColors.surface,
       onSurface: DsLuxuryModernColors.textPrimary,
-      background: DsLuxuryModernColors.background,
-      onBackground: DsLuxuryModernColors.textPrimary,
+      surfaceContainerHighest: DsLuxuryModernColors.background,
       error: DsLuxuryModernColors.error,
       onError: DsLuxuryModernColors.textOnGold,
     );

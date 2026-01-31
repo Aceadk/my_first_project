@@ -164,7 +164,7 @@ class DsGlassColors {
     Color base,
     DsGlassSurfaceStrength strength,
   ) {
-    final alpha = base.opacity;
+    final alpha = base.a;
     final boost = switch (strength) {
       DsGlassSurfaceStrength.light => 0.0,
       DsGlassSurfaceStrength.medium => 0.12,

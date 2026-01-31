@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/spacing.dart';
 
 /// A pulsing icon container with expanding/contracting outer ring animation.
 /// Used in the empty deck state to draw attention to the icon.

@@ -13,6 +13,7 @@ import '../models/match.dart';
 import '../models/message.dart';
 import '../models/message_request.dart';
 import '../models/subscription.dart';
+import '../models/promo_code.dart';
 import '../models/favourites.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
@@ -488,6 +489,52 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   final _controller = StreamController<SubscriptionPlan>.broadcast()
     ..add(SubscriptionPlan.free);
   SubscriptionPlan _current = SubscriptionPlan.free;
+  final List<PromoCode> _redeemedCodes = [];
+
+  static const Map<String, PromoCode> _baseCodes = {
+    'WELCOME50': PromoCode(
+      code: 'WELCOME50',
+      type: PromoCodeType.discount,
+      description: '50% off your first month of Plus',
+      discountPercent: 50,
+    ),
+    'FREEWEEK': PromoCode(
+      code: 'FREEWEEK',
+      type: PromoCodeType.freeTrial,
+      description: '7 days free trial of Plus',
+      freeTrialDays: 7,
+    ),
+    'CRUSH2024': PromoCode(
+      code: 'CRUSH2024',
+      type: PromoCodeType.combined,
+      description: 'Special launch offer: 30% off + 10 bonus likes',
+      discountPercent: 30,
+      bonusLikes: 10,
+    ),
+    'SUPERLOVE': PromoCode(
+      code: 'SUPERLOVE',
+      type: PromoCodeType.bonusSuperLikes,
+      description: '5 bonus Super Likes',
+      bonusSuperLikes: 5,
+    ),
+    'CRUSHFREE': PromoCode(
+      code: 'CRUSHFREE',
+      type: PromoCodeType.discount,
+      description: '100% off - Completely free Plus membership!',
+      discountPercent: 100,
+    ),
+  };
+
+  static final Map<String, PromoCode> _demoCodes = {
+    ..._baseCodes,
+    'EXPIRED': PromoCode(
+      code: 'EXPIRED',
+      type: PromoCodeType.discount,
+      description: 'Expired code for testing',
+      discountPercent: 20,
+      expiresAt: DateTime(2023, 1, 1),
+    ),
+  };
 
   @override
   Stream<SubscriptionPlan> watchPlan() => _controller.stream;
@@ -544,6 +591,92 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
       nextRenewal: DateTime.now().add(const Duration(days: 30)),
       cancelAtPeriodEnd: false,
     );
+  }
+
+  @override
+  Future<PromoCode?> validatePromoCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    final normalizedCode = code.trim().toUpperCase();
+    final promoCode = _demoCodes[normalizedCode];
+    if (promoCode == null) {
+      return null;
+    }
+
+    if (_redeemedCodes.any((c) => c.code == normalizedCode)) {
+      return null;
+    }
+
+    return promoCode.isValid ? promoCode : null;
+  }
+
+  @override
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final normalizedCode = code.trim().toUpperCase();
+    final promoCode = _demoCodes[normalizedCode];
+
+    if (promoCode == null) {
+      return PromoCodeRedemptionResult.failure(
+        'Invalid promo code. Please check and try again.',
+      );
+    }
+
+    if (promoCode.isExpired) {
+      return PromoCodeRedemptionResult.failure(
+        'This promo code has expired.',
+      );
+    }
+
+    if (promoCode.isMaxedOut) {
+      return PromoCodeRedemptionResult.failure(
+        'This promo code has reached its maximum redemptions.',
+      );
+    }
+
+    if (_redeemedCodes.any((c) => c.code == normalizedCode)) {
+      return PromoCodeRedemptionResult.failure(
+        'You have already redeemed this promo code.',
+      );
+    }
+
+    final benefits = <String>[];
+
+    if (promoCode.discountPercent != null) {
+      benefits.add('${promoCode.discountPercent}% discount applied');
+      if (promoCode.discountPercent == 100) {
+        _current = SubscriptionPlan.plus;
+        _controller.add(_current);
+        benefits.add('Plus membership activated!');
+      }
+    }
+
+    if (promoCode.freeTrialDays != null) {
+      benefits.add('${promoCode.freeTrialDays} day free trial activated');
+      _current = SubscriptionPlan.plus;
+      _controller.add(_current);
+    }
+
+    if (promoCode.bonusLikes != null) {
+      benefits.add('${promoCode.bonusLikes} bonus likes added');
+    }
+
+    if (promoCode.bonusSuperLikes != null) {
+      benefits.add('${promoCode.bonusSuperLikes} bonus Super Likes added');
+    }
+
+    _redeemedCodes.add(promoCode);
+
+    return PromoCodeRedemptionResult.success(
+      promoCode: promoCode,
+      appliedBenefits: benefits,
+    );
+  }
+
+  @override
+  Future<List<PromoCode>> getRedeemedCodes() async {
+    return List.unmodifiable(_redeemedCodes);
   }
 
   /// Clean up resources

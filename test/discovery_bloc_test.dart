@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
@@ -119,6 +120,16 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(plan: plan);
+
+  @override
+  Future<PromoCode?> validatePromoCode(String code) async => null;
+
+  @override
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async =>
+      PromoCodeRedemptionResult.failure('Not implemented in test');
+
+  @override
+  Future<List<PromoCode>> getRedeemedCodes() async => [];
 }
 
 /// Stub AuthRepository for testing - emits no auth state changes.

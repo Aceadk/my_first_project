@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 import '../subscription_repository.dart';
 
 /// HTTP-based implementation of SubscriptionRepository.
@@ -145,5 +146,80 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
   void dispose() {
     _pollingTimer?.cancel();
     _planController.close();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROMO CODE METHODS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<PromoCode?> validatePromoCode(String code) async {
+    final normalizedCode = code.trim().toUpperCase();
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/promo-codes/validate',
+      body: {'code': normalizedCode},
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure || result.data?['valid'] != true) {
+      return null;
+    }
+
+    return PromoCode.fromJson(result.data!['promoCode'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async {
+    final normalizedCode = code.trim().toUpperCase();
+
+    final result = await _apiClient.post<Map<String, dynamic>>(
+      '/promo-codes/redeem',
+      body: {'code': normalizedCode},
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) {
+      return PromoCodeRedemptionResult.failure(
+        result.error?.message ?? 'Failed to redeem promo code.',
+      );
+    }
+
+    final data = result.data!;
+    if (data['success'] != true) {
+      return PromoCodeRedemptionResult.failure(
+        data['error'] as String? ?? 'Failed to redeem promo code.',
+      );
+    }
+
+    final promoCode = PromoCode.fromJson(
+      data['promoCode'] as Map<String, dynamic>,
+    );
+    final benefits = (data['appliedBenefits'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
+    return PromoCodeRedemptionResult.success(
+      promoCode: promoCode,
+      appliedBenefits: benefits,
+    );
+  }
+
+  @override
+  Future<List<PromoCode>> getRedeemedCodes() async {
+    final result = await _apiClient.get<Map<String, dynamic>>(
+      '/promo-codes/redeemed',
+      parser: (data) => data as Map<String, dynamic>,
+    );
+
+    if (result.isFailure) return [];
+
+    final codes = result.data?['codes'] as List<dynamic>?;
+    if (codes == null) return [];
+
+    return codes
+        .map((json) => PromoCode.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 }

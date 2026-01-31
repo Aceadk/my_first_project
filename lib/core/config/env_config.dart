@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Environment configuration for sensitive credentials.
 ///
@@ -116,9 +117,7 @@ class EnvConfig {
     final configured = await isSmtpConfigured();
     final hasEnvVars = _smtpHost.isNotEmpty && _smtpEmail.isNotEmpty;
 
-    // ignore: avoid_print
-    print('[EnvConfig] SMTP configured: $configured');
-    // ignore: avoid_print
-    print('[EnvConfig] Using dart-defines: $hasEnvVars');
+    AppLogger.debug('SMTP configured: $configured');
+    AppLogger.debug('Using dart-defines: $hasEnvVars');
   }
 }

@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
@@ -246,6 +247,16 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(plan: SubscriptionPlan.free);
+
+  @override
+  Future<PromoCode?> validatePromoCode(String code) async => null;
+
+  @override
+  Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async =>
+      PromoCodeRedemptionResult.failure('Not implemented in test');
+
+  @override
+  Future<List<PromoCode>> getRedeemedCodes() async => [];
 }
 
 class _FakeAuthRepository implements AuthRepository {

@@ -111,7 +111,6 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effects = Theme.of(context).extension<CrushThemeEffects>();
     final motionScale = effects?.motionScale ?? 1.0;
     final indicatorColor = widget.color ?? DsColors.primary;

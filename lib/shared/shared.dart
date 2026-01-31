@@ -19,4 +19,4 @@ export '../data/models/privacy_settings.dart';
 // Core Utilities
 export '../core/utils/result.dart';
 export '../core/utils/constants.dart';
-export '../core/utils/validators.dart';
+export '../core/validators.dart';

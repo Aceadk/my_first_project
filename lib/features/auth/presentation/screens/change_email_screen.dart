@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/utils/validators.dart';
+import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
