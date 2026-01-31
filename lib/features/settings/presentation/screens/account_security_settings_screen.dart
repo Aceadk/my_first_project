@@ -19,8 +19,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
     );
     final hasEmail = currentEmail != null && currentEmail.isNotEmpty;
 
-    final currentPhone =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.phoneNumber);
+    final currentPhone = context
+        .select<AuthBloc, String?>((bloc) => bloc.state.user?.phoneNumber);
     final phoneVerified = context.select<AuthBloc, bool>(
       (bloc) => bloc.state.user?.isPhoneVerified ?? false,
     );
@@ -68,16 +68,19 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Protect Your Account',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       DsGap.xs,
                       Text(
                         'Add extra layers of security to keep your account safe.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                        ),
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                            ),
                       ),
                     ],
                   ),
@@ -128,20 +131,26 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                                   ? 'Email verified'
                                   : 'Email not verified')
                               : 'No email added',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: hasEmail
-                                ? (emailVerified ? DsColors.success : DsColors.warning)
-                                : DsColors.error,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: hasEmail
+                                        ? (emailVerified
+                                            ? DsColors.success
+                                            : DsColors.warning)
+                                        : DsColors.error,
+                                  ),
                         ),
                         if (hasEmail) ...[
                           DsGap.xs,
                           Text(
                             currentEmail,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ],
@@ -195,20 +204,26 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                                   ? 'Phone verified'
                                   : 'Phone not verified')
                               : 'No phone added',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: hasPhone
-                                ? (phoneVerified ? DsColors.success : DsColors.warning)
-                                : DsColors.error,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: hasPhone
+                                        ? (phoneVerified
+                                            ? DsColors.success
+                                            : DsColors.warning)
+                                        : DsColors.error,
+                                  ),
                         ),
                         if (hasPhone) ...[
                           DsGap.xs,
                           Text(
                             _maskPhoneNumber(currentPhone),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ],
@@ -221,9 +236,12 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
           DsGap.lg,
           // Security options
           _SecurityTile(
-            icon: emailVerified ? Icons.verified_outlined : Icons.email_outlined,
+            icon:
+                emailVerified ? Icons.verified_outlined : Icons.email_outlined,
             iconColor: emailVerified ? DsColors.success : DsColors.info,
-            title: emailVerified ? 'Email protection (Locked)' : 'Email protection',
+            title: emailVerified
+                ? 'Email protection (Locked)'
+                : 'Email protection',
             subtitle: hasEmail
                 ? (emailVerified ? 'Verified and locked' : 'Verify your email')
                 : 'Add an email for recovery and OTP',
@@ -231,9 +249,12 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
             onTap: () => context.push(CrushRoutes.emailProtection),
           ),
           _SecurityTile(
-            icon: phoneVerified ? Icons.verified_outlined : Icons.phone_outlined,
+            icon:
+                phoneVerified ? Icons.verified_outlined : Icons.phone_outlined,
             iconColor: phoneVerified ? DsColors.success : DsColors.info,
-            title: phoneVerified ? 'Phone protection (Locked)' : 'Phone protection',
+            title: phoneVerified
+                ? 'Phone protection (Locked)'
+                : 'Phone protection',
             subtitle: hasPhone
                 ? (phoneVerified ? 'Verified and locked' : 'Verify your phone')
                 : 'Add a phone number for security',
@@ -267,8 +288,8 @@ class AccountSecuritySettingsScreen extends StatelessWidget {
                       Text(
                         'Security tips',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ],
                   ),
@@ -360,8 +381,9 @@ class _TipItem extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
           ),
         ),
       ],

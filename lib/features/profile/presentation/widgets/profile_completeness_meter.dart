@@ -54,9 +54,8 @@ class ProfileCompletenessMeter extends StatelessWidget {
               Text(
                 'Complete these to unlock messaging and swiping:',
                 style: TextStyle(
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
               ),
               const SizedBox(height: 8),

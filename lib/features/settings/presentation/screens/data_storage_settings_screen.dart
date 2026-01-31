@@ -57,16 +57,22 @@ class DataStorageSettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Manage Storage',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           DsGap.xs,
                           Text(
                             'Control how media is downloaded and stored.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -116,7 +122,8 @@ class DataStorageSettingsScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: DsColors.info.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
@@ -145,15 +152,21 @@ class DataStorageSettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           '50 MB',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                         Text(
                           '1 GB',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ],
                     ),
@@ -189,10 +202,12 @@ class DataStorageSettingsScreen extends StatelessWidget {
                 child: Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                    color:
+                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                     ),
                   ),
                   child: Column(
@@ -203,14 +218,19 @@ class DataStorageSettingsScreen extends StatelessWidget {
                           Icon(
                             Icons.info_outline,
                             size: 20,
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
                           ),
                           DsGap.mdH,
                           Text(
                             'About cache',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ],
                       ),
@@ -218,8 +238,10 @@ class DataStorageSettingsScreen extends StatelessWidget {
                       Text(
                         'Cached data helps the app load faster. Clearing it may temporarily slow down loading times.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                        ),
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                            ),
                       ),
                     ],
                   ),
@@ -246,9 +268,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: DsColors.info,
-        ),
+              fontWeight: FontWeight.bold,
+              color: DsColors.info,
+            ),
       ),
     );
   }

@@ -189,12 +189,14 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
                         height: widget.compact ? 14 : 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: isSent ? DsColors.primary : DsColors.surfaceLight,
+                          color:
+                              isSent ? DsColors.primary : DsColors.surfaceLight,
                         ),
                       )
                     : Icon(
                         _isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: isSent ? DsColors.primary : DsColors.surfaceLight,
+                        color:
+                            isSent ? DsColors.primary : DsColors.surfaceLight,
                         size: widget.compact ? 18 : 22,
                       ),
               ),

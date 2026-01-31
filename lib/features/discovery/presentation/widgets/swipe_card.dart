@@ -25,7 +25,8 @@ class SwipeCard extends StatefulWidget {
   final Profile profile;
 
   /// Callback when user reacts to content.
-  final void Function(String reactionType, ReactionContentType contentType, int index, String? comment)? onReaction;
+  final void Function(String reactionType, ReactionContentType contentType,
+      int index, String? comment)? onReaction;
 
   const SwipeCard({
     super.key,
@@ -261,7 +262,9 @@ class _SwipeCardState extends State<SwipeCard> {
     // Show username on deck cards, fall back to first name if no username
     final displayName = profile.username != null && profile.username!.isNotEmpty
         ? '@${profile.username}'
-        : profile.name.isNotEmpty ? profile.name : 'Someone new';
+        : profile.name.isNotEmpty
+            ? profile.name
+            : 'Someone new';
     final bio = profile.bio.trim().isEmpty
         ? 'This member has not added a bio yet.'
         : profile.bio;
@@ -291,9 +294,9 @@ class _SwipeCardState extends State<SwipeCard> {
       hint: 'Swipe right to like, swipe left to pass',
       container: true,
       child: Container(
-      // Full-screen immersive card - no borders, no shadows, pure photo
-      color: DsColors.ink900,
-      child: Stack(
+        // Full-screen immersive card - no borders, no shadows, pure photo
+        color: DsColors.ink900,
+        child: Stack(
           fit: StackFit.expand,
           children: [
             // Media (photo or video) with accessibility
@@ -324,7 +327,9 @@ class _SwipeCardState extends State<SwipeCard> {
                   child: Semantics(
                     button: true,
                     label: 'Previous photo',
-                    hint: _currentMediaIndex > 0 ? 'Double tap to view previous photo' : 'No previous photo',
+                    hint: _currentMediaIndex > 0
+                        ? 'Double tap to view previous photo'
+                        : 'No previous photo',
                     child: GestureDetector(
                       onTap: _goPrevious,
                       behavior: HitTestBehavior.opaque,
@@ -339,7 +344,8 @@ class _SwipeCardState extends State<SwipeCard> {
                     label: currentMedia?.isVideo == true
                         ? 'Play or pause video'
                         : 'View full profile',
-                    hint: 'Double tap to ${currentMedia?.isVideo == true ? 'toggle video playback' : 'see full profile'}',
+                    hint:
+                        'Double tap to ${currentMedia?.isVideo == true ? 'toggle video playback' : 'see full profile'}',
                     child: GestureDetector(
                       onTap: () {
                         if (currentMedia?.isVideo == true) {
@@ -361,7 +367,9 @@ class _SwipeCardState extends State<SwipeCard> {
                   child: Semantics(
                     button: true,
                     label: 'Next photo',
-                    hint: _currentMediaIndex < _allMedia.length - 1 ? 'Double tap to view next photo' : 'No next photo',
+                    hint: _currentMediaIndex < _allMedia.length - 1
+                        ? 'Double tap to view next photo'
+                        : 'No next photo',
                     child: GestureDetector(
                       onTap: _goNext,
                       behavior: HitTestBehavior.opaque,
@@ -378,7 +386,8 @@ class _SwipeCardState extends State<SwipeCard> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
-                    end: const Alignment(0, -0.3), // Extend higher for action buttons
+                    end: const Alignment(
+                        0, -0.3), // Extend higher for action buttons
                     colors: [
                       DsColors.ink900.withValues(alpha: 0.85),
                       DsColors.ink900.withValues(alpha: 0.6),
@@ -459,9 +468,11 @@ class _SwipeCardState extends State<SwipeCard> {
                       child: _MediaProgressIndicators(
                         count: media.length,
                         currentIndex: _currentMediaIndex,
-                        videoProgress: _videoController != null && _isVideoInitialized
+                        videoProgress: _videoController != null &&
+                                _isVideoInitialized
                             ? _videoController!.value.position.inMilliseconds /
-                                (_videoController!.value.duration.inMilliseconds.clamp(1, double.maxFinite.toInt()))
+                                (_videoController!.value.duration.inMilliseconds
+                                    .clamp(1, double.maxFinite.toInt()))
                             : null,
                       ),
                     ),
@@ -539,7 +550,8 @@ class _SwipeCardState extends State<SwipeCard> {
                         _CompactPromptDisplayClean(
                           prompt: profile.profilePrompts.first,
                         )
-                      else if (bio.isNotEmpty && bio != 'This member has not added a bio yet.')
+                      else if (bio.isNotEmpty &&
+                          bio != 'This member has not added a bio yet.')
                         Text(
                           bio,
                           maxLines: 1,
@@ -563,7 +575,8 @@ class _SwipeCardState extends State<SwipeCard> {
                           Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: DsColors.surfaceLight.withValues(alpha: 0.85),
+                            color:
+                                DsColors.surfaceLight.withValues(alpha: 0.85),
                             shadows: [
                               Shadow(
                                 color: DsColors.ink900.withValues(alpha: 0.8),
@@ -578,11 +591,13 @@ class _SwipeCardState extends State<SwipeCard> {
                                   ? 'Location unavailable'
                                   : location,
                               style: TextStyle(
-                                color: DsColors.surfaceLight.withValues(alpha: 0.85),
+                                color: DsColors.surfaceLight
+                                    .withValues(alpha: 0.85),
                                 fontSize: 13,
                                 shadows: [
                                   Shadow(
-                                    color: DsColors.ink900.withValues(alpha: 0.8),
+                                    color:
+                                        DsColors.ink900.withValues(alpha: 0.8),
                                     blurRadius: 6,
                                   ),
                                 ],
@@ -600,7 +615,8 @@ class _SwipeCardState extends State<SwipeCard> {
                               ),
                               decoration: BoxDecoration(
                                 color: DsColors.primary.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(DsRadius.round),
+                                borderRadius:
+                                    BorderRadius.circular(DsRadius.round),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -608,13 +624,15 @@ class _SwipeCardState extends State<SwipeCard> {
                                   Icon(
                                     Icons.near_me,
                                     size: 12,
-                                    color: DsColors.surfaceLight.withValues(alpha: 0.95),
+                                    color: DsColors.surfaceLight
+                                        .withValues(alpha: 0.95),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     profile.distanceDisplay!,
                                     style: TextStyle(
-                                      color: DsColors.surfaceLight.withValues(alpha: 0.95),
+                                      color: DsColors.surfaceLight
+                                          .withValues(alpha: 0.95),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -664,7 +682,7 @@ class _SwipeCardState extends State<SwipeCard> {
 
   Widget _placeholder() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -904,7 +922,9 @@ class _ProfileIdentityOverlay extends StatelessWidget {
     // Show username on deck cards, fall back to first name if no username
     final displayName = profile.username != null && profile.username!.isNotEmpty
         ? '@${profile.username}'
-        : profile.name.isNotEmpty ? profile.name : 'Someone new';
+        : profile.name.isNotEmpty
+            ? profile.name
+            : 'Someone new';
     final ageText = profile.age > 0 ? '${profile.age}' : '';
 
     // Collect trait chips (limit to 3-4 for clean layout)
@@ -933,20 +953,20 @@ class _ProfileIdentityOverlay extends StatelessWidget {
                 child: Text(
                   ageText.isNotEmpty ? '$displayName, $ageText' : displayName,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: DsColors.surfaceLight,
-                        shadows: [
-                          Shadow(
-                            color: DsColors.ink900.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                          Shadow(
-                            color: DsColors.ink900.withValues(alpha: 0.3),
-                            blurRadius: 16,
-                          ),
-                        ],
+                    fontWeight: FontWeight.bold,
+                    color: DsColors.surfaceLight,
+                    shadows: [
+                      Shadow(
+                        color: DsColors.ink900.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                      Shadow(
+                        color: DsColors.ink900.withValues(alpha: 0.3),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1011,7 +1031,8 @@ class _ProfileIdentityOverlay extends StatelessWidget {
     }
 
     // Relationship goals
-    if (profile.relationshipGoals != null && profile.relationshipGoals!.isNotEmpty) {
+    if (profile.relationshipGoals != null &&
+        profile.relationshipGoals!.isNotEmpty) {
       chips.add(_TraitChip(
         icon: Icons.favorite_outline,
         label: profile.relationshipGoals!,
@@ -1040,15 +1061,25 @@ class _ProfileIdentityOverlay extends StatelessWidget {
   String _formatSmoking(String value) {
     final lower = value.toLowerCase();
     if (lower.contains('never') || lower.contains('non')) return 'Non-smoker';
-    if (lower.contains('social') || lower.contains('occasion')) return 'Social smoker';
+    if (lower.contains('social') || lower.contains('occasion')) {
+      return 'Social smoker';
+    }
     return value;
   }
 
   String _formatDrinking(String value) {
     final lower = value.toLowerCase();
-    if (lower.contains('never') || lower.contains('non') || lower.contains('sober')) return 'Sober';
-    if (lower.contains('social') || lower.contains('occasion')) return 'Social drinker';
-    if (lower.contains('regular') || lower.contains('often')) return 'Regular drinker';
+    if (lower.contains('never') ||
+        lower.contains('non') ||
+        lower.contains('sober')) {
+      return 'Sober';
+    }
+    if (lower.contains('social') || lower.contains('occasion')) {
+      return 'Social drinker';
+    }
+    if (lower.contains('regular') || lower.contains('often')) {
+      return 'Regular drinker';
+    }
     return value;
   }
 
@@ -1188,7 +1219,8 @@ class _ProfileStatusBadge extends StatelessWidget {
     final label = showActive ? 'Active' : 'New here';
     final color = showActive
         ? DsColors.success // Active
-        : DsColors.secondary.withValues(alpha: 0.9); // Muted accent for New here
+        : DsColors.secondary
+            .withValues(alpha: 0.9); // Muted accent for New here
 
     return Container(
       padding: const EdgeInsets.symmetric(

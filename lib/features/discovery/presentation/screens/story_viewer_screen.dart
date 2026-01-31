@@ -247,9 +247,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
       // Find a mutual match with the story owner
       final existingMatch = matches.cast<dynamic>().firstWhere(
-        (match) => match.otherUserId == storyOwnerId && match.isMutual,
-        orElse: () => null,
-      );
+            (match) => match.otherUserId == storyOwnerId && match.isMutual,
+            orElse: () => null,
+          );
 
       if (!mounted) return;
 
@@ -268,7 +268,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       } else {
         // No mutual match exists - inform user
         _resume();
-        _showSnackBarMessage('Match with ${widget.profile.publicDisplayName} first to send messages');
+        _showSnackBarMessage(
+            'Match with ${widget.profile.publicDisplayName} first to send messages');
       }
     } catch (e) {
       if (!mounted) return;
@@ -463,7 +464,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   )
                 : Container(
                     color: DsColors.ink300,
-                    child: const Icon(Icons.person, color: DsColors.surfaceLight),
+                    child:
+                        const Icon(Icons.person, color: DsColors.surfaceLight),
                   ),
           ),
         ),

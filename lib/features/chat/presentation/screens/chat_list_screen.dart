@@ -193,13 +193,11 @@ class _ChatListView extends StatelessWidget {
                             DsGradients.chats.createShader(bounds),
                         child: Text(
                           'Chats',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.surfaceLight,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.surfaceLight,
+                                  ),
                         ),
                       ),
                     ),
@@ -231,9 +229,8 @@ class _ChatListView extends StatelessWidget {
 
         // Show skeleton when loading OR when there's an error (graceful degradation)
         // This provides better UX than showing error messages
-        final showSkeleton =
-            (state.isLoading || state.errorMessage != null) &&
-                state.matches.isEmpty;
+        final showSkeleton = (state.isLoading || state.errorMessage != null) &&
+            state.matches.isEmpty;
 
         return AsyncStateScaffold(
           appBar: _buildGlassAppBar(context),
@@ -464,7 +461,8 @@ class _ChatTileState extends State<_ChatTile>
 
   /// Update badge counter using stored reference (safe for dispose/async)
   void _updateBadgeCounterSafe() {
-    final totalUnread = _unreadCounts.values.fold(0, (sum, count) => sum + count);
+    final totalUnread =
+        _unreadCounts.values.fold(0, (sum, count) => sum + count);
     _badgeCounterCubit?.updateUnreadChats(totalUnread);
   }
 
@@ -487,8 +485,7 @@ class _ChatTileState extends State<_ChatTile>
             _lastMessage = sorted.first;
             // Count unread messages sent to current user
             _unreadCount = messages
-                .where((m) =>
-                    m.toUserId == widget.currentUserId && !m.isRead)
+                .where((m) => m.toUserId == widget.currentUserId && !m.isRead)
                 .length;
             // Update static map and badge counter
             _unreadCounts[widget.match.id] = _unreadCount;
@@ -505,7 +502,8 @@ class _ChatTileState extends State<_ChatTile>
   void _subscribeToPresence() {
     final chatRepo = _chatRepository;
     if (chatRepo == null) return;
-    _presenceSubscription = chatRepo.watchPresence(widget.match.otherUserId).listen(
+    _presenceSubscription =
+        chatRepo.watchPresence(widget.match.otherUserId).listen(
       (isOnline) {
         if (!mounted) return;
         setState(() {
@@ -617,13 +615,15 @@ class _ChatTileState extends State<_ChatTile>
                               color: DsColors.onlineIndicator,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isDark ? DsColors.ink900 : DsColors.surfaceLight,
+                                color: isDark
+                                    ? DsColors.ink900
+                                    : DsColors.surfaceLight,
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      DsColors.onlineIndicator.withValues(alpha: 0.5),
+                                  color: DsColors.onlineIndicator
+                                      .withValues(alpha: 0.5),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -643,7 +643,9 @@ class _ChatTileState extends State<_ChatTile>
                               color: DsColors.error,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isDark ? DsColors.ink900 : DsColors.surfaceLight,
+                                color: isDark
+                                    ? DsColors.ink900
+                                    : DsColors.surfaceLight,
                                 width: 2,
                               ),
                               boxShadow: [
@@ -671,21 +673,27 @@ class _ChatTileState extends State<_ChatTile>
                                 children: [
                                   Text(
                                     name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                                              fontWeight: hasUnread
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w600,
-                                            ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: hasUnread
+                                              ? FontWeight.bold
+                                              : FontWeight.w600,
+                                        ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 2),
                                     child: Text(
-                                      hasUnread ? 'New Message' : lastMessageText,
+                                      hasUnread
+                                          ? 'New Message'
+                                          : lastMessageText,
                                       style: TextStyle(
                                         fontSize: 11,
-                                        fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                                        fontWeight: hasUnread
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
                                         color: hasUnread
                                             ? DsColors.error
                                             : DsColors.textMutedLight,
@@ -700,14 +708,16 @@ class _ChatTileState extends State<_ChatTile>
                             if (lastMessageTime != null)
                               Text(
                                 _formatTime(lastMessageTime),
-                                style:
-                                    Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: hasUnread
-                                              ? DsColors.primary
-                                              : DsColors.textMutedLight,
-                                          fontWeight:
-                                              hasUnread ? FontWeight.bold : null,
-                                        ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: hasUnread
+                                          ? DsColors.primary
+                                          : DsColors.textMutedLight,
+                                      fontWeight:
+                                          hasUnread ? FontWeight.bold : null,
+                                    ),
                               ),
                           ],
                         ),
@@ -717,24 +727,27 @@ class _ChatTileState extends State<_ChatTile>
                             Expanded(
                               child: Text(
                                 lastMessageText,
-                                style:
-                                    Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: hasUnread
-                                              ? Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color
-                                              : DsColors.textMutedLight,
-                                          fontWeight:
-                                              hasUnread ? FontWeight.w600 : null,
-                                        ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: hasUnread
+                                          ? Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color
+                                          : DsColors.textMutedLight,
+                                      fontWeight:
+                                          hasUnread ? FontWeight.w600 : null,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (hasUnread)
                               Container(
-                                margin: const EdgeInsets.only(left: DsSpacing.sm),
+                                margin:
+                                    const EdgeInsets.only(left: DsSpacing.sm),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: DsSpacing.sm,
                                   vertical: 2,
@@ -745,8 +758,8 @@ class _ChatTileState extends State<_ChatTile>
                                       BorderRadius.circular(DsRadius.round),
                                   boxShadow: [
                                     BoxShadow(
-                                      color:
-                                          DsColors.primary.withValues(alpha: 0.3),
+                                      color: DsColors.primary
+                                          .withValues(alpha: 0.3),
                                       blurRadius: 6,
                                       spreadRadius: 1,
                                     ),

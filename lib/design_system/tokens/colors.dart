@@ -136,9 +136,13 @@ class DsGlassColors {
       case DsGlassSurfaceStrength.light:
         return brightness == Brightness.dark ? surfaceDark : surfaceLight;
       case DsGlassSurfaceStrength.medium:
-        return brightness == Brightness.dark ? surfaceMediumDark : surfaceMediumLight;
+        return brightness == Brightness.dark
+            ? surfaceMediumDark
+            : surfaceMediumLight;
       case DsGlassSurfaceStrength.heavy:
-        return brightness == Brightness.dark ? surfaceHeavyDark : surfaceHeavyLight;
+        return brightness == Brightness.dark
+            ? surfaceHeavyDark
+            : surfaceHeavyLight;
     }
   }
 

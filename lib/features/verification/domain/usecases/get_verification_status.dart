@@ -28,7 +28,8 @@ class GetVerificationStatusUseCase
   }
 
   @override
-  Future<Result<PhotoVerification?>> execute(GetVerificationStatusParams params) {
+  Future<Result<PhotoVerification?>> execute(
+      GetVerificationStatusParams params) {
     return Result.guard(
       () => _service.getVerificationStatus(params.userId),
       logLabel: 'GetVerificationStatusUseCase',

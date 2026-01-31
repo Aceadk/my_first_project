@@ -24,7 +24,8 @@ void main() {
       test('returns ideas filtered by category', () {
         final casualIdeas = service.getIdeasByCategory(DateCategory.casual);
 
-        expect(casualIdeas.every((i) => i.category == DateCategory.casual), isTrue);
+        expect(casualIdeas.every((i) => i.category == DateCategory.casual),
+            isTrue);
       });
 
       test('returns empty list for category with no ideas', () {
@@ -62,7 +63,8 @@ void main() {
 
       test('returns more ideas for higher budget', () {
         final budgetIdeas = service.getIdeasByBudget(DateCostLevel.budget);
-        final expensiveIdeas = service.getIdeasByBudget(DateCostLevel.expensive);
+        final expensiveIdeas =
+            service.getIdeasByBudget(DateCostLevel.expensive);
 
         expect(expensiveIdeas.length, greaterThanOrEqualTo(budgetIdeas.length));
       });

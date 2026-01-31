@@ -9,7 +9,8 @@ import 'package:crushhour/features/discovery/data/repositories/boost_repository.
 /// State for boost feature.
 class BoostState extends Equatable {
   const BoostState({
-    this.status = const BoostStatus(canBoost: false, nextBoostAvailableAt: null),
+    this.status =
+        const BoostStatus(canBoost: false, nextBoostAvailableAt: null),
     this.isLoading = false,
     this.errorMessage,
     this.tick = 0,
@@ -29,7 +30,8 @@ class BoostState extends Equatable {
   bool get isBoostActive => status.isBoostActive;
 
   /// Remaining duration of active boost.
-  Duration get boostRemaining => status.activeSession?.remainingDuration ?? Duration.zero;
+  Duration get boostRemaining =>
+      status.activeSession?.remainingDuration ?? Duration.zero;
 
   /// Remaining cooldown until next boost is available.
   Duration get cooldownRemaining => status.cooldownRemaining;

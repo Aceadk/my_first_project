@@ -108,10 +108,12 @@ class OfflineCacheService {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final deckCache = profiles.map((p) => _CachedProfile(
-            profile: p,
-            cachedAt: DateTime.now(),
-          )).toList();
+      final deckCache = profiles
+          .map((p) => _CachedProfile(
+                profile: p,
+                cachedAt: DateTime.now(),
+              ))
+          .toList();
 
       final jsonList = deckCache.map((c) => c.toJson()).toList();
       await prefs.setString(_deckCacheKey, jsonEncode(jsonList));
@@ -248,8 +250,8 @@ class OfflineCacheService {
 
     try {
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      return jsonMap.map((key, value) =>
-          MapEntry(key, _CachedProfile.fromJson(value as Map<String, dynamic>)));
+      return jsonMap.map((key, value) => MapEntry(
+          key, _CachedProfile.fromJson(value as Map<String, dynamic>)));
     } catch (e) {
       return {};
     }

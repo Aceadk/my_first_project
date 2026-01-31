@@ -99,14 +99,16 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 previous.errorMessage != current.errorMessage,
             listener: (context, state) {
               // Debug logging
-              debugPrint('[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}');
+              debugPrint(
+                  '[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}');
 
               // Navigate when our save completes successfully (no error)
               if (_isSubmitting && !state.isSaving) {
                 _isSubmitting = false; // Reset the flag
 
                 if (state.errorMessage == null) {
-                  debugPrint('[BasicInfo] Save successful, navigating to idVerification');
+                  debugPrint(
+                      '[BasicInfo] Save successful, navigating to idVerification');
                   context.read<AuthBloc>().add(AuthUserRefreshRequested());
                   if (context.canPop()) {
                     context.pop();
@@ -220,8 +222,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                   backgroundColor: isDark
                                       ? DsColors.surfaceDark
                                       : DsColors.skeletonLight,
-                                  valueColor: const AlwaysStoppedAnimation<
-                                      Color>(DsColors.primary),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                          DsColors.primary),
                                 ),
                               ),
                             ],
@@ -251,8 +254,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                 ),
                                 if (_usernameErrorText() == null)
                                   Padding(
-                                    padding: const EdgeInsets.only(
-                                        top: 6, left: 12),
+                                    padding:
+                                        const EdgeInsets.only(top: 6, left: 12),
                                     child: Text(
                                       '3-20 characters, letters, numbers, or underscore',
                                       style: Theme.of(context)
@@ -354,7 +357,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                           child: SizedBox(
                             width: double.infinity,
                             child: GlassPrimaryButton(
-                              onPressed: isBusy ? null : () => _handleNext(context),
+                              onPressed:
+                                  isBusy ? null : () => _handleNext(context),
                               child: isBusy
                                   ? const SizedBox(
                                       width: 24,
@@ -464,9 +468,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               size: 28,
               color: isSelected
                   ? DsColors.primary
-                  : (isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight),
+                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
             ),
             const SizedBox(height: 8),
             Text(
@@ -493,9 +495,22 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     String displayText;
     if (_dateOfBirth != null) {
       final age = _calculatedAge;
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      displayText = '${months[_dateOfBirth!.month - 1]} ${_dateOfBirth!.day}, ${_dateOfBirth!.year}';
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
+      displayText =
+          '${months[_dateOfBirth!.month - 1]} ${_dateOfBirth!.day}, ${_dateOfBirth!.year}';
       if (age != null) {
         displayText += ' ($age years old)';
       }
@@ -520,7 +535,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                     ? DsColors.error
                     : (_dateOfBirth != null
                         ? DsColors.primary
-                        : (isDark ? DsColors.borderDark : DsColors.borderLight)),
+                        : (isDark
+                            ? DsColors.borderDark
+                            : DsColors.borderLight)),
                 width: (_dateOfBirth != null || hasError) ? 2 : 1,
               ),
             ),
@@ -533,7 +550,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       ? DsColors.error
                       : (_dateOfBirth != null
                           ? DsColors.primary
-                          : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)),
+                          : (isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -553,7 +572,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 Icon(
                   Icons.calendar_today_rounded,
                   size: 20,
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
               ],
             ),
@@ -596,7 +616,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               primary: DsColors.primary,
               onPrimary: DsColors.surfaceLight,
               surface: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
-              onSurface: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+              onSurface:
+                  isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
             ),
             dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
@@ -749,9 +770,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       height: 24,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected
-                            ? DsColors.primary
-                            : Colors.transparent,
+                        color:
+                            isSelected ? DsColors.primary : Colors.transparent,
                         border: Border.all(
                           color: isSelected
                               ? DsColors.primary
@@ -932,9 +952,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                foregroundColor: isDark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight,
+                foregroundColor:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
               child: const Text('Go Back'),
             ),

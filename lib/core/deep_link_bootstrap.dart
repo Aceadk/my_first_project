@@ -59,7 +59,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
         // Try to get pending email from secure storage
         final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
         if (pendingEmail != null && mounted) {
-          context.read<AuthBloc>().add(AuthEmailLinkSubmitted(pendingEmail, link));
+          context
+              .read<AuthBloc>()
+              .add(AuthEmailLinkSubmitted(pendingEmail, link));
         }
       }
       return;
@@ -70,7 +72,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
       // Get the pending email from secure storage
       final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
       if (pendingEmail != null && mounted) {
-        context.read<AuthBloc>().add(AuthEmailLinkSubmitted(pendingEmail, link));
+        context
+            .read<AuthBloc>()
+            .add(AuthEmailLinkSubmitted(pendingEmail, link));
       }
       return;
     }

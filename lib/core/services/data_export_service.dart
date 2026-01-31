@@ -71,7 +71,8 @@ class DataExportService {
       // Gather matches
       onProgress?.call('Exporting matches...', 0.6);
       final matches = await getMatchesData();
-      exportData['matches'] = matches.map((m) => _sanitizeMatchData(m)).toList();
+      exportData['matches'] =
+          matches.map((m) => _sanitizeMatchData(m)).toList();
       exportData['matchCount'] = matches.length;
       if (matches.isNotEmpty) {
         (exportData['dataCategories'] as List).add('matches');
@@ -80,7 +81,8 @@ class DataExportService {
       // Gather messages
       onProgress?.call('Exporting messages...', 0.8);
       final messages = await getMessagesData();
-      exportData['messages'] = messages.map((m) => _sanitizeMessageData(m)).toList();
+      exportData['messages'] =
+          messages.map((m) => _sanitizeMessageData(m)).toList();
       exportData['messageCount'] = messages.length;
       if (messages.isNotEmpty) {
         (exportData['dataCategories'] as List).add('messages');
@@ -140,10 +142,12 @@ class DataExportService {
       'photoUrls': profile.photoUrls,
       'videoUrls': profile.videoUrls,
       'interests': profile.interests,
-      'profilePrompts': profile.profilePrompts.map((p) => {
-        'question': p.question,
-        'answer': p.answer,
-      }).toList(),
+      'profilePrompts': profile.profilePrompts
+          .map((p) => {
+                'question': p.question,
+                'answer': p.answer,
+              })
+          .toList(),
       'heightCm': profile.heightCm,
       'relationshipGoals': profile.relationshipGoals,
       'languages': profile.languages,
@@ -179,7 +183,8 @@ class DataExportService {
     };
   }
 
-  Map<String, dynamic> _sanitizePreferencesData(DiscoveryPreferences preferences) {
+  Map<String, dynamic> _sanitizePreferencesData(
+      DiscoveryPreferences preferences) {
     return {
       'minAge': preferences.minAge,
       'maxAge': preferences.maxAge,

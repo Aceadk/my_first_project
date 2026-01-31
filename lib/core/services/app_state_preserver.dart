@@ -33,7 +33,8 @@ class AppStatePreserver {
 
     _currentRoute = route;
     await _prefs!.setString(_lastRouteKey, route);
-    await _prefs!.setInt(_lastRouteTimestampKey, DateTime.now().millisecondsSinceEpoch);
+    await _prefs!
+        .setInt(_lastRouteTimestampKey, DateTime.now().millisecondsSinceEpoch);
   }
 
   /// Get the last saved route if it's still valid
@@ -83,13 +84,13 @@ class AppStatePreserver {
   /// Check if a route should NOT be preserved
   bool _shouldNotPreserve(String route) {
     return route == '/' ||
-           route == '/splash' ||
-           route.startsWith('/auth') ||
-           route == '/terms-conditions' ||
-           route == '/basic-info' ||
-           route == '/profile-setup' ||
-           route == '/id-verification' ||
-           route == '/email-verification' ||
-           route == '/logout';
+        route == '/splash' ||
+        route.startsWith('/auth') ||
+        route == '/terms-conditions' ||
+        route == '/basic-info' ||
+        route == '/profile-setup' ||
+        route == '/id-verification' ||
+        route == '/email-verification' ||
+        route == '/logout';
   }
 }

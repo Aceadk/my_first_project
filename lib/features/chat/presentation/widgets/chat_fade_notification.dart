@@ -110,7 +110,8 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DsRadius.round),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+              filter:
+                  ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: DsSpacing.lg,

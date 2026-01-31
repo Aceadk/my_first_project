@@ -49,6 +49,15 @@ class CertificatePinning {
     // Example: 'staging-api.crushhour.app',
   ];
 
+  /// Whether pinning is actually configured.
+  /// If no hosts/fingerprints are set, pinning is effectively disabled.
+  static bool get _hasPinsConfigured {
+    if (_pinnedHosts.isEmpty) return false;
+    if (_productionFingerprints.isNotEmpty) return true;
+    if (_stagingFingerprints.isNotEmpty) return true;
+    return false;
+  }
+
   /// Creates an HTTP client with certificate pinning enabled.
   ///
   /// In debug mode, pinning can be bypassed for development.
@@ -57,6 +66,15 @@ class CertificatePinning {
     bool bypassInDebug = true,
     Duration? connectionTimeout,
   }) {
+    // If no pins are configured, fall back to the default client.
+    if (!_hasPinsConfigured) {
+      debugPrint(
+        'CertificatePinning: No pinned hosts/fingerprints configured. '
+        'Pinning is disabled.',
+      );
+      return http.Client();
+    }
+
     // Skip pinning in debug mode if allowed
     if (kDebugMode && bypassInDebug) {
       debugPrint('CertificatePinning: Bypassed in debug mode');
@@ -74,6 +92,13 @@ class CertificatePinning {
   static http.Client createStrictPinnedClient({
     Duration? connectionTimeout,
   }) {
+    if (!_hasPinsConfigured) {
+      debugPrint(
+        'CertificatePinning: Strict pinning requested but no pins are configured.',
+      );
+      return http.Client();
+    }
+
     final httpClient = HttpClient()
       ..connectionTimeout = connectionTimeout ?? const Duration(seconds: 30)
       ..badCertificateCallback = _validateCertificate;

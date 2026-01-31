@@ -119,9 +119,8 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) throw Exception('Date plan not found');
 
-    final updatedContacts = plan.sharedWith
-        .where((c) => c.phone != contactPhone)
-        .toList();
+    final updatedContacts =
+        plan.sharedWith.where((c) => c.phone != contactPhone).toList();
     final updatedPlan = plan.copyWith(sharedWith: updatedContacts);
 
     _plans[planId] = updatedPlan;
@@ -205,17 +204,16 @@ class DatePlanService {
   /// Get active date plans for user.
   Future<List<DatePlan>> getActivePlans(String userId) async {
     return _plans.values
-        .where((p) => p.userId == userId &&
+        .where((p) =>
+            p.userId == userId &&
             (p.status == DatePlanStatus.scheduled ||
-             p.status == DatePlanStatus.ongoing))
+                p.status == DatePlanStatus.ongoing))
         .toList();
   }
 
   /// Get all plans for user.
   Future<List<DatePlan>> getAllPlans(String userId) async {
-    return _plans.values
-        .where((p) => p.userId == userId)
-        .toList()
+    return _plans.values.where((p) => p.userId == userId).toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
   }
 
@@ -260,7 +258,8 @@ class DatePlanService {
     });
   }
 
-  Future<void> _notifyContactAdded(EmergencyContact contact, DatePlan plan) async {
+  Future<void> _notifyContactAdded(
+      EmergencyContact contact, DatePlan plan) async {
     // In production, send SMS/push notification
   }
 

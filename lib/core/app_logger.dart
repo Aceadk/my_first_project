@@ -48,7 +48,8 @@ class AppLogger {
   ///
   /// Use for potentially problematic situations that don't cause errors
   /// but might indicate issues (e.g., deprecated API usage, slow operations).
-  static void warning(String message, {Object? error, Map<String, dynamic>? data}) {
+  static void warning(String message,
+      {Object? error, Map<String, dynamic>? data}) {
     if (!kDebugMode) return;
 
     final formattedMessage = _formatMessage('WARN', message, data);
@@ -137,7 +138,8 @@ class AppLogger {
   /// Log a performance metric (debug only).
   ///
   /// Use for tracking timing and performance data.
-  static void performance(String operation, Duration duration, {Map<String, dynamic>? data}) {
+  static void performance(String operation, Duration duration,
+      {Map<String, dynamic>? data}) {
     if (!kDebugMode) return;
 
     final dataStr = data != null ? ' ${_formatData(data)}' : '';
@@ -162,7 +164,8 @@ class AppLogger {
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static String _formatMessage(String level, String message, Map<String, dynamic>? data) {
+  static String _formatMessage(
+      String level, String message, Map<String, dynamic>? data) {
     final dataStr = data != null ? ' ${_formatData(data)}' : '';
     return '[$level] $message$dataStr';
   }

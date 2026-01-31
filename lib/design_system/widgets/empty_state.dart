@@ -68,8 +68,10 @@ class DsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
-    final mutedColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final textColor =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final mutedColor =
+        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final effectiveIconColor = iconColor ?? DsColors.primary;
 
     // Build semantic label for screen readers
@@ -85,97 +87,97 @@ class DsEmptyState extends StatelessWidget {
       label: semanticLabel.toString(),
       container: true,
       child: Padding(
-      padding: const EdgeInsets.all(DsSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Animated visual element (Lottie, custom widget, or icon)
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeOutBack,
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: child,
-              );
-            },
-            child: _buildVisual(effectiveIconColor),
-          ),
-          const SizedBox(height: DsSpacing.xl),
-          // Title with fade-in animation
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, 10 * (1 - value)),
-                  child: child,
-                ),
-              );
-            },
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          if (message != null) ...[
-            const SizedBox(height: DsSpacing.sm),
+        padding: const EdgeInsets.all(DsSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Animated visual element (Lottie, custom widget, or icon)
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: child,
+                );
+              },
+              child: _buildVisual(effectiveIconColor),
+            ),
+            const SizedBox(height: DsSpacing.xl),
+            // Title with fade-in animation
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 400),
               curve: Curves.easeOut,
               builder: (context, value, child) {
                 return Opacity(
                   opacity: value,
-                  child: child,
+                  child: Transform.translate(
+                    offset: Offset(0, 10 * (1 - value)),
+                    child: child,
+                  ),
                 );
               },
               child: Text(
-                message!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: mutedColor,
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                 textAlign: TextAlign.center,
               ),
             ),
-          ],
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: DsSpacing.xl),
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOut,
-              builder: (context, value, child) {
-                return Opacity(
-                  opacity: value,
-                  child: child,
-                );
-              },
-              child: GlassPrimaryButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
+            if (message != null) ...[
+              const SizedBox(height: DsSpacing.sm),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: child,
+                  );
+                },
+                child: Text(
+                  message!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: mutedColor,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: DsSpacing.xl),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: child,
+                  );
+                },
+                child: GlassPrimaryButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
+              ),
+            ],
+            if (secondaryActionLabel != null && onSecondaryAction != null) ...[
+              const SizedBox(height: DsSpacing.sm),
+              TextButton(
+                onPressed: onSecondaryAction,
+                child: Text(secondaryActionLabel!),
+              ),
+            ],
           ],
-          if (secondaryActionLabel != null && onSecondaryAction != null) ...[
-            const SizedBox(height: DsSpacing.sm),
-            TextButton(
-              onPressed: onSecondaryAction,
-              child: Text(secondaryActionLabel!),
-            ),
-          ],
-        ],
+        ),
       ),
-    ),
     );
   }
 
@@ -260,7 +262,8 @@ class EmptyStateNoMatches extends StatelessWidget {
 
 /// Empty state for no messages in chat.
 class EmptyStateNoMessages extends StatelessWidget {
-  const EmptyStateNoMessages({super.key, required this.otherName, this.onSendHi});
+  const EmptyStateNoMessages(
+      {super.key, required this.otherName, this.onSendHi});
 
   final String otherName;
   final VoidCallback? onSendHi;

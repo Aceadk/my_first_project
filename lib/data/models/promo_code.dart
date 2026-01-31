@@ -55,8 +55,7 @@ class PromoCode {
   }
 
   /// Whether the code has expired.
-  bool get isExpired =>
-      expiresAt != null && DateTime.now().isAfter(expiresAt!);
+  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
 
   /// Whether the code has reached max redemptions.
   bool get isMaxedOut =>

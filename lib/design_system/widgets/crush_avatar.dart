@@ -62,7 +62,8 @@ class CrushAvatar extends StatelessWidget {
                 height: size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark ? DsColors.surfaceDark : DsColors.inputFillLight,
+                  color:
+                      isDark ? DsColors.surfaceDark : DsColors.inputFillLight,
                   border: Border.all(
                     color: isDark ? DsColors.borderDark : DsColors.borderLight,
                     width: 2,
@@ -73,7 +74,8 @@ class CrushAvatar extends StatelessWidget {
                       ? Image.network(
                           imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(initials, isDark),
+                          errorBuilder: (_, __, ___) =>
+                              _buildPlaceholder(initials, isDark),
                           loadingBuilder: (context, child, progress) {
                             if (progress == null) return child;
                             return _buildLoadingPlaceholder(isDark);
@@ -120,7 +122,8 @@ class CrushAvatar extends StatelessWidget {
             : Icon(
                 Icons.person,
                 size: size * 0.5,
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
       ),
     );
@@ -225,7 +228,8 @@ class CrushAvatarStack extends StatelessWidget {
 
     return SizedBox(
       height: avatarSize,
-      width: avatarSize + (visible.length - 1) * (avatarSize - effectiveOverlap) +
+      width: avatarSize +
+          (visible.length - 1) * (avatarSize - effectiveOverlap) +
           (remaining > 0 ? avatarSize - effectiveOverlap : 0),
       child: Stack(
         children: [

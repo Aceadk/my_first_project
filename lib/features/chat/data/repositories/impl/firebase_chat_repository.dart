@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -16,8 +19,26 @@ class FirebaseChatRepository implements ChatRepository {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+  final Cipher _cipher = AesGcm.with256bits();
+
+  static const String _e2eePrefix = 'enc_v1:';
+  static const String _e2eePepper = String.fromEnvironment(
+    'CHAT_E2EE_PEPPER',
+    defaultValue: 'crushhour_e2ee_v1',
+  );
+  static const bool _e2eeDefaultEnabled = bool.fromEnvironment(
+    'ENABLE_CHAT_E2EE',
+    defaultValue: false,
+  );
+  bool _e2eeEnabled = _e2eeDefaultEnabled;
 
   String? get _currentUserId => _auth.currentUser?.uid;
+
+  bool get isE2eeEnabled => _e2eeEnabled;
+
+  void setE2eeEnabled(bool enabled) {
+    _e2eeEnabled = enabled;
+  }
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -29,16 +50,21 @@ class FirebaseChatRepository implements ChatRepository {
         .snapshots()
         .map((snapshot) {
       final userId = _currentUserId;
-      return snapshot.docs.where((doc) {
-        final data = doc.data();
-        final msg = _messageFromFirestore(doc.id, data);
-        // Filter out messages deleted for the current user
-        if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
-          return false;
-        }
-        final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
-        return !deletedFor.contains(userId);
-      }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
+      return snapshot.docs
+          .where((doc) {
+            final data = doc.data();
+            final msg = _messageFromFirestore(doc.id, data);
+            // Filter out messages deleted for the current user
+            if (userId != null &&
+                msg.fromUserId == userId &&
+                msg.isDeletedForSender) {
+              return false;
+            }
+            final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+            return !deletedFor.contains(userId);
+          })
+          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+          .toList();
     });
   }
 
@@ -59,7 +85,8 @@ class FirebaseChatRepository implements ChatRepository {
 
     // Apply cursor for pagination (fetch older messages)
     if (beforeTimestamp != null) {
-      query = query.where('sentAt', isLessThan: Timestamp.fromDate(beforeTimestamp));
+      query = query.where('sentAt',
+          isLessThan: Timestamp.fromDate(beforeTimestamp));
     }
 
     // Limit results
@@ -72,16 +99,21 @@ class FirebaseChatRepository implements ChatRepository {
     final docs = hasMore ? snapshot.docs.take(limit).toList() : snapshot.docs;
 
     // Parse messages and filter deleted ones
-    final messages = docs.where((doc) {
-      final data = doc.data();
-      final msg = _messageFromFirestore(doc.id, data);
-      // Filter out messages deleted for the current user
-      if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
-        return false;
-      }
-      final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
-      return !deletedFor.contains(userId);
-    }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
+    final messages = docs
+        .where((doc) {
+          final data = doc.data();
+          final msg = _messageFromFirestore(doc.id, data);
+          // Filter out messages deleted for the current user
+          if (userId != null &&
+              msg.fromUserId == userId &&
+              msg.isDeletedForSender) {
+            return false;
+          }
+          final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+          return !deletedFor.contains(userId);
+        })
+        .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+        .toList();
 
     // Reverse to get chronological order (oldest first) for UI
     return PaginatedResult(
@@ -106,16 +138,21 @@ class FirebaseChatRepository implements ChatRepository {
         .orderBy('sentAt', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.where((doc) {
-        final data = doc.data();
-        final msg = _messageFromFirestore(doc.id, data);
-        // Filter out messages deleted for the current user
-        if (userId != null && msg.fromUserId == userId && msg.isDeletedForSender) {
-          return false;
-        }
-        final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
-        return !deletedFor.contains(userId);
-      }).map((doc) => _messageFromFirestore(doc.id, doc.data())).toList();
+      return snapshot.docs
+          .where((doc) {
+            final data = doc.data();
+            final msg = _messageFromFirestore(doc.id, data);
+            // Filter out messages deleted for the current user
+            if (userId != null &&
+                msg.fromUserId == userId &&
+                msg.isDeletedForSender) {
+              return false;
+            }
+            final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+            return !deletedFor.contains(userId);
+          })
+          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+          .toList();
     });
   }
 
@@ -127,11 +164,19 @@ class FirebaseChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
+    final payload = _shouldEncrypt(type, content)
+        ? await _encryptContent(
+            matchId: matchId,
+            fromUserId: fromUserId,
+            toUserId: toUserId,
+            content: content,
+          )
+        : content;
     final callable = _functions.httpsCallable('sendMessage');
     await callable.call<Map<String, dynamic>>({
       'matchId': matchId,
       'toUserId': toUserId,
-      'content': content,
+      'content': payload,
       'type': type.name,
     });
   }
@@ -146,7 +191,8 @@ class FirebaseChatRepository implements ChatRepository {
     if (userId == null) throw Exception('No user logged in');
 
     final file = File(filePath);
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}';
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}';
     final ref = _storage.ref('chat_media/$matchId/$userId/$fileName');
 
     final uploadTask = await ref.putFile(file);
@@ -179,11 +225,35 @@ class FirebaseChatRepository implements ChatRepository {
     required String messageId,
     required String newContent,
   }) async {
+    String payload = newContent;
+    if (_shouldEncrypt(MessageType.text, newContent)) {
+      try {
+        final doc = await _firestore
+            .collection('matches')
+            .doc(matchId)
+            .collection('messages')
+            .doc(messageId)
+            .get();
+        final data = doc.data();
+        final fromUserId = data?['fromUserId'] as String?;
+        final toUserId = data?['toUserId'] as String?;
+        if (fromUserId != null && toUserId != null) {
+          payload = await _encryptContent(
+            matchId: matchId,
+            fromUserId: fromUserId,
+            toUserId: toUserId,
+            content: newContent,
+          );
+        }
+      } catch (e) {
+        debugPrint('FirebaseChatRepository: E2EE edit lookup failed: $e');
+      }
+    }
     final callable = _functions.httpsCallable('editMessage');
     await callable.call<Map<String, dynamic>>({
       'matchId': matchId,
       'messageId': messageId,
-      'content': newContent,
+      'content': payload,
     });
   }
 
@@ -315,11 +385,7 @@ class FirebaseChatRepository implements ChatRepository {
 
   @override
   Stream<bool> watchPresence(String userId) {
-    return _firestore
-        .collection('presence')
-        .doc(userId)
-        .snapshots()
-        .map((doc) {
+    return _firestore.collection('presence').doc(userId).snapshots().map((doc) {
       if (!doc.exists) return false;
       final data = doc.data();
       final isOnline = data?['isOnline'] as bool? ?? false;
@@ -347,11 +413,7 @@ class FirebaseChatRepository implements ChatRepository {
 
   @override
   Stream<bool> watchMediaSendingEnabled(String matchId) {
-    return _firestore
-        .collection('matches')
-        .doc(matchId)
-        .snapshots()
-        .map((doc) {
+    return _firestore.collection('matches').doc(matchId).snapshots().map((doc) {
       if (!doc.exists) return false;
       return doc.data()?['mediaSendingEnabled'] as bool? ?? false;
     });
@@ -605,7 +667,8 @@ class FirebaseChatRepository implements ChatRepository {
         migrated++;
       } catch (e) {
         // Ignore failures; keep request for retry.
-        debugPrint('FirebaseChatRepository: Message request migration failed (will retry): $e');
+        debugPrint(
+            'FirebaseChatRepository: Message request migration failed (will retry): $e');
       }
     }
 
@@ -615,6 +678,121 @@ class FirebaseChatRepository implements ChatRepository {
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
+
+  bool _isEncryptedContent(String content) {
+    return content.startsWith(_e2eePrefix);
+  }
+
+  bool _shouldEncrypt(MessageType type, String content) {
+    if (!_e2eeEnabled) return false;
+    if (type != MessageType.text) return false;
+    if (content.isEmpty) return false;
+    if (_isEncryptedContent(content)) return false;
+    return true;
+  }
+
+  List<int> _deriveKeyBytes(
+    String matchId,
+    String fromUserId,
+    String toUserId,
+  ) {
+    final ids = [fromUserId, toUserId]..sort();
+    final material = '$matchId|${ids[0]}|${ids[1]}|$_e2eePepper';
+    return sha256.convert(utf8.encode(material)).bytes;
+  }
+
+  Future<String> _encryptContent({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+  }) async {
+    final keyBytes = _deriveKeyBytes(matchId, fromUserId, toUserId);
+    final secretKey = SecretKey(keyBytes);
+    final nonce = _cipher.newNonce();
+    final secretBox = await _cipher.encrypt(
+      utf8.encode(content),
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+    final payload = [
+      base64Url.encode(nonce),
+      base64Url.encode(secretBox.cipherText),
+      base64Url.encode(secretBox.mac.bytes),
+    ].join('.');
+    return '$_e2eePrefix$payload';
+  }
+
+  Future<String?> _decryptContent({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+  }) async {
+    if (!_isEncryptedContent(content)) {
+      return content;
+    }
+    final payload = content.substring(_e2eePrefix.length);
+    final parts = payload.split('.');
+    if (parts.length != 3) {
+      return null;
+    }
+    try {
+      final nonce = base64Url.decode(parts[0]);
+      final cipherText = base64Url.decode(parts[1]);
+      final macBytes = base64Url.decode(parts[2]);
+      final secretBox = SecretBox(
+        cipherText,
+        nonce: nonce,
+        mac: Mac(macBytes),
+      );
+      final keyBytes = _deriveKeyBytes(matchId, fromUserId, toUserId);
+      final secretKey = SecretKey(keyBytes);
+      final clearText =
+          await _cipher.decrypt(secretBox, secretKey: secretKey);
+      return utf8.decode(clearText);
+    } catch (e) {
+      debugPrint('FirebaseChatRepository: E2EE decrypt failed: $e');
+      return null;
+    }
+  }
+
+  Message _copyWithContent(Message message, String content) {
+    return Message(
+      id: message.id,
+      matchId: message.matchId,
+      fromUserId: message.fromUserId,
+      toUserId: message.toUserId,
+      content: content,
+      type: message.type,
+      sentAt: message.sentAt,
+      isRead: message.isRead,
+      readAt: message.readAt,
+      isDeletedForSender: message.isDeletedForSender,
+      reactions: message.reactions,
+      moderationStatus: message.moderationStatus,
+      moderationReason: message.moderationReason,
+      moderationAction: message.moderationAction,
+      isFlagged: message.isFlagged,
+      sendStatus: message.sendStatus,
+    );
+  }
+
+  Future<Message> decryptMessage(Message message) async {
+    if (!_e2eeEnabled || message.type != MessageType.text) {
+      return message;
+    }
+    final decrypted = await _decryptContent(
+      matchId: message.matchId,
+      fromUserId: message.fromUserId,
+      toUserId: message.toUserId,
+      content: message.content,
+    );
+    if (decrypted == null) {
+      return _copyWithContent(message, '[Encrypted message]');
+    }
+    return _copyWithContent(message, decrypted);
+  }
 
   Message _messageFromFirestore(String id, Map<String, dynamic> data) {
     return Message(
@@ -669,7 +847,8 @@ class FirebaseChatRepository implements ChatRepository {
       status: MatchStatus.mutual,
       preMatchMessageRequestsCount:
           data['preMatchMessageRequestsCount'] as int? ?? 0,
-      pinnedForUser: (data['pinnedBy'] as List<dynamic>?)?.contains(userId) ?? false,
+      pinnedForUser:
+          (data['pinnedBy'] as List<dynamic>?)?.contains(userId) ?? false,
       otherUserName: data['otherUserName'] as String?,
       otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
     );

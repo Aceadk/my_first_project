@@ -66,10 +66,7 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
                           DsGradients.chats.createShader(bounds),
                       child: Text(
                         'Message Requests',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: DsColors.surfaceLight,
                             ),
@@ -147,9 +144,8 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
             'When someone sends you a message request,\nit will show up here for 48 hours.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
           ),
         ],
@@ -491,12 +487,12 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                                         .textTheme
                                         .labelSmall
                                         ?.copyWith(
-                                          color: _getCountdownColor(isDark),
-                                          fontWeight: FontWeight.w600,
-                                          fontFeatures: const [
-                                            FontFeature.tabularFigures(),
-                                          ],
-                                        ),
+                                      color: _getCountdownColor(isDark),
+                                      fontWeight: FontWeight.w600,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -672,7 +668,8 @@ class _ActionButton extends StatelessWidget {
       backgroundColor = isDark
           ? DsColors.surfaceLight.withValues(alpha: 0.1)
           : DsColors.ink900.withValues(alpha: 0.05);
-      foregroundColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+      foregroundColor =
+          isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     } else {
       backgroundColor = isDark
           ? DsColors.surfaceLight.withValues(alpha: 0.1)
@@ -825,8 +822,9 @@ class _MatchCelebrationDialogState extends State<_MatchCelebrationDialog>
                         ),
                         const SizedBox(height: DsSpacing.lg),
                         ShaderMask(
-                          shaderCallback: (bounds) =>
-                              DsGradients.primaryHorizontal.createShader(bounds),
+                          shaderCallback: (bounds) => DsGradients
+                              .primaryHorizontal
+                              .createShader(bounds),
                           child: Text(
                             "It's a Match!",
                             style: Theme.of(context)

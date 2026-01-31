@@ -106,7 +106,11 @@ class _StoryRingPainter extends CustomPainter {
     // Create gradient colors
     final gradientColors = hasUnseenStories
         ? [DsColors.primary, DsColors.secondary, DsColors.primary]
-        : [DsColors.textMutedLight, DsColors.offlineIndicator, DsColors.textMutedLight];
+        : [
+            DsColors.textMutedLight,
+            DsColors.offlineIndicator,
+            DsColors.textMutedLight
+          ];
 
     final gradient = SweepGradient(
       colors: gradientColors,
@@ -185,15 +189,15 @@ class StoryBadge extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-                colors: hasUnseen
-                    ? [
-                        DsColors.primary.withValues(alpha: 0.7),
-                        DsColors.secondary.withValues(alpha: 0.5),
-                      ]
-                    : [
-                        DsColors.ink300.withValues(alpha: 0.6),
-                        DsColors.ink200.withValues(alpha: 0.4),
-                      ],
+              colors: hasUnseen
+                  ? [
+                      DsColors.primary.withValues(alpha: 0.7),
+                      DsColors.secondary.withValues(alpha: 0.5),
+                    ]
+                  : [
+                      DsColors.ink300.withValues(alpha: 0.6),
+                      DsColors.ink200.withValues(alpha: 0.4),
+                    ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -365,7 +369,11 @@ class _AnimatedStoryRingPainter extends CustomPainter {
             DsColors.secondary,
             DsColors.primary,
           ]
-        : [DsColors.textMutedLight, DsColors.offlineIndicator, DsColors.textMutedLight];
+        : [
+            DsColors.textMutedLight,
+            DsColors.offlineIndicator,
+            DsColors.textMutedLight
+          ];
 
     final gradient = SweepGradient(
       colors: gradientColors,

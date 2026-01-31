@@ -16,7 +16,8 @@ class ThemeCubit extends Cubit<AppThemeMode> {
         _authRepository = authRepository,
         _profileRepository = profileRepository,
         super(_readInitial(preferences)) {
-    _authSubscription = _authRepository.authStateChanges().listen(_syncFromUser);
+    _authSubscription =
+        _authRepository.authStateChanges().listen(_syncFromUser);
   }
 
   final SharedPreferences _preferences;

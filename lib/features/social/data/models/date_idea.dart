@@ -102,10 +102,9 @@ class DateIdea extends Equatable {
       estimatedDuration: json['estimatedDuration'] != null
           ? Duration(minutes: json['estimatedDuration'] as int)
           : null,
-      tags: (json['tags'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              [],
       imageUrl: json['imageUrl'] as String?,
       requirements: (json['requirements'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -293,7 +292,8 @@ class DateIdeas {
     DateIdea(
       id: 'coffee_walk',
       title: 'Coffee & Walk',
-      description: 'Grab coffee and take a leisurely walk in the park. Perfect for getting to know someone in a relaxed setting.',
+      description:
+          'Grab coffee and take a leisurely walk in the park. Perfect for getting to know someone in a relaxed setting.',
       category: DateCategory.casual,
       emoji: '☕',
       estimatedCost: DateCostLevel.budget,
@@ -304,7 +304,8 @@ class DateIdeas {
     DateIdea(
       id: 'cooking_class',
       title: 'Cooking Class',
-      description: 'Learn to cook a new cuisine together. Great for bonding and creating something delicious.',
+      description:
+          'Learn to cook a new cuisine together. Great for bonding and creating something delicious.',
       category: DateCategory.creative,
       emoji: '👨‍🍳',
       estimatedCost: DateCostLevel.moderate,
@@ -316,7 +317,8 @@ class DateIdeas {
     DateIdea(
       id: 'sunset_picnic',
       title: 'Sunset Picnic',
-      description: 'Pack a picnic basket and watch the sunset together at a scenic spot.',
+      description:
+          'Pack a picnic basket and watch the sunset together at a scenic spot.',
       category: DateCategory.romantic,
       emoji: '🌅',
       estimatedCost: DateCostLevel.budget,
@@ -328,7 +330,8 @@ class DateIdeas {
     DateIdea(
       id: 'museum_day',
       title: 'Museum Exploration',
-      description: 'Explore an art or history museum together and share your interpretations.',
+      description:
+          'Explore an art or history museum together and share your interpretations.',
       category: DateCategory.cultural,
       emoji: '🏛️',
       estimatedCost: DateCostLevel.budget,
@@ -339,7 +342,8 @@ class DateIdeas {
     DateIdea(
       id: 'hiking',
       title: 'Scenic Hike',
-      description: 'Take on a trail together and enjoy nature. Choose difficulty based on fitness levels.',
+      description:
+          'Take on a trail together and enjoy nature. Choose difficulty based on fitness levels.',
       category: DateCategory.adventure,
       emoji: '🥾',
       estimatedCost: DateCostLevel.free,
@@ -351,7 +355,8 @@ class DateIdeas {
     DateIdea(
       id: 'game_night',
       title: 'Board Game Café',
-      description: 'Visit a board game café and play games over drinks. Fun and competitive!',
+      description:
+          'Visit a board game café and play games over drinks. Fun and competitive!',
       category: DateCategory.casual,
       emoji: '🎲',
       estimatedCost: DateCostLevel.budget,
@@ -362,7 +367,8 @@ class DateIdeas {
     DateIdea(
       id: 'wine_tasting',
       title: 'Wine Tasting',
-      description: 'Sample wines at a local winery or wine bar. Sophisticated and relaxing.',
+      description:
+          'Sample wines at a local winery or wine bar. Sophisticated and relaxing.',
       category: DateCategory.foodie,
       emoji: '🍷',
       estimatedCost: DateCostLevel.moderate,
@@ -384,7 +390,8 @@ class DateIdeas {
     DateIdea(
       id: 'pottery',
       title: 'Pottery Class',
-      description: 'Get your hands dirty making pottery together. Creative and memorable!',
+      description:
+          'Get your hands dirty making pottery together. Creative and memorable!',
       category: DateCategory.creative,
       emoji: '🏺',
       estimatedCost: DateCostLevel.moderate,
@@ -396,7 +403,8 @@ class DateIdeas {
     DateIdea(
       id: 'stargazing',
       title: 'Stargazing',
-      description: 'Find a dark spot away from city lights and watch the stars together.',
+      description:
+          'Find a dark spot away from city lights and watch the stars together.',
       category: DateCategory.romantic,
       emoji: '⭐',
       estimatedCost: DateCostLevel.free,

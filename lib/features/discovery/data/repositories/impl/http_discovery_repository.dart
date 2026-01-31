@@ -42,7 +42,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Failed to fetch deck - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Failed to fetch deck - ${result.error}');
       return [];
     }
 
@@ -71,14 +72,16 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Swipe right failed - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Swipe right failed - ${result.error}');
       return null;
     }
 
     final response = SwipeResponseDto.fromJson(result.data!);
 
     if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(response.match!, currentUserId: userId);
+      return DiscoveryMapper.matchFromDto(response.match!,
+          currentUserId: userId);
     }
 
     return null;
@@ -100,7 +103,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Swipe left failed - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Swipe left failed - ${result.error}');
     }
   }
 
@@ -112,11 +116,15 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Failed to fetch top picks - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Failed to fetch top picks - ${result.error}');
       return [];
     }
 
-    final profiles = result.data!['profiles'] as List<dynamic>? ?? [];
+    // Support both 'candidates' (new) and 'profiles' (legacy) keys
+    final profiles = result.data!['candidates'] as List<dynamic>? ??
+        result.data!['profiles'] as List<dynamic>? ??
+        [];
     return profiles
         .map((json) => DiscoveryMapper.profileFromDiscoveryDto(
               DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
@@ -132,11 +140,15 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Failed to fetch likes - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Failed to fetch likes - ${result.error}');
       return [];
     }
 
-    final profiles = result.data!['profiles'] as List<dynamic>? ?? [];
+    // Support both 'candidates' (new) and 'profiles' (legacy) keys
+    final profiles = result.data!['candidates'] as List<dynamic>? ??
+        result.data!['profiles'] as List<dynamic>? ??
+        [];
     return profiles
         .map((json) => DiscoveryMapper.profileFromDiscoveryDto(
               DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
@@ -152,7 +164,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Failed to fetch matches - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Failed to fetch matches - ${result.error}');
       return [];
     }
 
@@ -170,7 +183,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Failed to fetch profile - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Failed to fetch profile - ${result.error}');
       return null;
     }
 
@@ -198,13 +212,15 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Super like failed - ${result.error}');
+      debugPrint(
+          'HttpDiscoveryRepository: Super like failed - ${result.error}');
       return null;
     }
 
     final response = SwipeResponseDto.fromJson(result.data!);
     if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(response.match!, currentUserId: userId);
+      return DiscoveryMapper.matchFromDto(response.match!,
+          currentUserId: userId);
     }
 
     return null;

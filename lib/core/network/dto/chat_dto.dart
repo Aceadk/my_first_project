@@ -67,7 +67,8 @@ class ConversationDto extends BaseDto with DtoMetadata {
   Map<String, dynamic> toJson() => {
         'id': id,
         'match_id': matchId,
-        if (participants != null) 'participants': participants!.map((p) => p.toJson()).toList(),
+        if (participants != null)
+          'participants': participants!.map((p) => p.toJson()).toList(),
         if (lastMessage != null) 'last_message': lastMessage!.toJson(),
         if (unreadCount != null) 'unread_count': unreadCount,
         if (isPinned != null) 'is_pinned': isPinned,
@@ -262,7 +263,9 @@ class MessageDto extends BaseDto with DtoMetadata {
       thumbnailUrl: json.getString('thumbnail_url'),
       mediaDuration: json.getInt('media_duration'),
       mediaSize: json.getInt('media_size'),
-      replyTo: json.getMap('reply_to') != null ? MessageDto.fromJson(json.getMap('reply_to')!) : null,
+      replyTo: json.getMap('reply_to') != null
+          ? MessageDto.fromJson(json.getMap('reply_to')!)
+          : null,
       reactions: json.getList(
         'reactions',
         (e) => MessageReactionDto.fromJson(e as Map<String, dynamic>),
@@ -290,7 +293,8 @@ class MessageDto extends BaseDto with DtoMetadata {
         if (mediaDuration != null) 'media_duration': mediaDuration,
         if (mediaSize != null) 'media_size': mediaSize,
         if (replyTo != null) 'reply_to': replyTo!.toJson(),
-        if (reactions != null) 'reactions': reactions!.map((r) => r.toJson()).toList(),
+        if (reactions != null)
+          'reactions': reactions!.map((r) => r.toJson()).toList(),
         if (status != null) 'status': status!.toJson(),
         if (readBy != null) 'read_by': readBy,
         if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
@@ -416,8 +420,12 @@ class SendMessageRequestDto extends BaseDto {
     }
 
     // Media messages require mediaUrl
-    if ([MessageType.image, MessageType.audio, MessageType.video, MessageType.gif]
-        .contains(type)) {
+    if ([
+      MessageType.image,
+      MessageType.audio,
+      MessageType.video,
+      MessageType.gif
+    ].contains(type)) {
       validator.requireNotEmpty(mediaUrl, 'media_url');
     }
 
@@ -425,7 +433,8 @@ class SendMessageRequestDto extends BaseDto {
   }
 
   /// Create a text message request.
-  factory SendMessageRequestDto.text(String content, {String? replyToId, String? clientId}) {
+  factory SendMessageRequestDto.text(String content,
+      {String? replyToId, String? clientId}) {
     return SendMessageRequestDto(
       type: MessageType.text,
       content: content,

@@ -4,8 +4,7 @@ import 'colors.dart';
 
 class DsTypography {
   /// Primary body font (clean, modern, readable).
-  static String get bodyFontFamily =>
-      GoogleFonts.plusJakartaSans().fontFamily!;
+  static String get bodyFontFamily => GoogleFonts.plusJakartaSans().fontFamily!;
 
   /// Display font for hero headings (romantic, premium tone).
   static String get displayFontFamily =>

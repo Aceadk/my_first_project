@@ -11,6 +11,7 @@ class ChatState extends Equatable {
   final String? errorMessage;
   final bool canUnsend;
   final bool canEdit;
+
   /// Whether the user can see read receipts (Plus feature).
   final bool canSeeReadReceipts;
   final String? uploadingAttachmentName;
@@ -20,12 +21,16 @@ class ChatState extends Equatable {
   final bool mediaSendingEnabled;
   final bool isUnmatching;
   final bool isUnmatched;
+
   /// Whether initial messages are loading.
   final bool isInitialLoading;
+
   /// Whether older messages are being loaded (load more).
   final bool isLoadingMore;
+
   /// Whether there are more older messages to load.
   final bool hasMoreMessages;
+
   /// Messages that failed to send (keyed by temp ID).
   final Map<String, Message> failedMessages;
 

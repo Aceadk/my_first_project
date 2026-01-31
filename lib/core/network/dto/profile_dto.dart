@@ -94,7 +94,9 @@ class ProfileDto extends BaseDto with DtoMetadata {
   /// Get primary photo URL.
   String? get primaryPhotoUrl {
     if (photos == null || photos!.isEmpty) return null;
-    return photos!.firstWhere((p) => p.isPrimary ?? false, orElse: () => photos!.first).url;
+    return photos!
+        .firstWhere((p) => p.isPrimary ?? false, orElse: () => photos!.first)
+        .url;
   }
 
   factory ProfileDto.fromJson(Map<String, dynamic> json) {
@@ -105,8 +107,11 @@ class ProfileDto extends BaseDto with DtoMetadata {
       birthDate: json.getDateTime('birth_date'),
       gender: json.getString('gender'),
       interestedIn: json.getList('interested_in', (e) => e.toString()),
-      photos: json.getList('photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
-      location: json.getMap('location') != null ? LocationDto.fromJson(json.getMap('location')!) : null,
+      photos: json.getList(
+          'photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
+      location: json.getMap('location') != null
+          ? LocationDto.fromJson(json.getMap('location')!)
+          : null,
       height: json.getInt('height'),
       jobTitle: json.getString('job_title'),
       company: json.getString('company'),
@@ -160,11 +165,13 @@ class ProfileDto extends BaseDto with DtoMetadata {
         if (zodiacSign != null) 'zodiac_sign': zodiacSign,
         if (personalityType != null) 'personality_type': personalityType,
         if (lovingLanguage != null) 'loving_language': lovingLanguage,
-        if (communicationStyle != null) 'communication_style': communicationStyle,
+        if (communicationStyle != null)
+          'communication_style': communicationStyle,
         if (pets != null) 'pets': pets,
         if (isVerified != null) 'is_verified': isVerified,
         if (isPremium != null) 'is_premium': isPremium,
-        if (profileCompleteness != null) 'profile_completeness': profileCompleteness,
+        if (profileCompleteness != null)
+          'profile_completeness': profileCompleteness,
         if (lastActive != null) 'last_active': lastActive!.toIso8601String(),
         if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
         if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
@@ -391,15 +398,21 @@ class UpdateProfileRequestDto extends BaseDto {
     if (hometown != null) json['hometown'] = hometown;
     if (languages != null) json['languages'] = languages;
     if (interests != null) json['interests'] = interests;
-    if (relationshipGoals != null) json['relationship_goals'] = relationshipGoals;
+    if (relationshipGoals != null) {
+      json['relationship_goals'] = relationshipGoals;
+    }
     if (drinkingHabit != null) json['drinking_habit'] = drinkingHabit;
     if (smokingHabit != null) json['smoking_habit'] = smokingHabit;
     if (exerciseHabit != null) json['exercise_habit'] = exerciseHabit;
-    if (dietaryPreference != null) json['dietary_preference'] = dietaryPreference;
+    if (dietaryPreference != null) {
+      json['dietary_preference'] = dietaryPreference;
+    }
     if (zodiacSign != null) json['zodiac_sign'] = zodiacSign;
     if (personalityType != null) json['personality_type'] = personalityType;
     if (lovingLanguage != null) json['loving_language'] = lovingLanguage;
-    if (communicationStyle != null) json['communication_style'] = communicationStyle;
+    if (communicationStyle != null) {
+      json['communication_style'] = communicationStyle;
+    }
     if (pets != null) json['pets'] = pets;
     return json;
   }
@@ -413,7 +426,8 @@ class UpdateProfileRequestDto extends BaseDto {
     }
 
     if (bio != null) {
-      validator.require(bio!.length <= 500, 'bio', 'Bio must be 500 characters or less');
+      validator.require(
+          bio!.length <= 500, 'bio', 'Bio must be 500 characters or less');
     }
 
     if (height != null) {
@@ -454,7 +468,8 @@ class DiscoveryPreferencesDto extends BaseDto {
       maxAge: json.getInt('max_age'),
       maxDistance: json.getInt('max_distance'),
       distanceUnit: json.getString('distance_unit'),
-      genderPreferences: json.getList('gender_preferences', (e) => e.toString()),
+      genderPreferences:
+          json.getList('gender_preferences', (e) => e.toString()),
       showMe: json.getBool('show_me'),
       globalMode: json.getBool('global_mode'),
     );

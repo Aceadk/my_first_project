@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 enum CallStatus { idle, connecting, inCall, ended, error }
 
 class CallState extends Equatable {

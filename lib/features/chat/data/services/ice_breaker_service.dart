@@ -31,12 +31,14 @@ class IceBreakerService {
   }
 
   /// Generate suggestions based on the other user's profile.
-  static List<IceBreakerSuggestion> _getProfileBasedSuggestions(Profile profile) {
+  static List<IceBreakerSuggestion> _getProfileBasedSuggestions(
+      Profile profile) {
     final suggestions = <IceBreakerSuggestion>[];
 
     // Based on interests
     if (profile.interests.isNotEmpty) {
-      final interest = profile.interests[_random.nextInt(profile.interests.length)];
+      final interest =
+          profile.interests[_random.nextInt(profile.interests.length)];
       suggestions.add(IceBreakerSuggestion(
         text: "I noticed you're into $interest! What got you started?",
         category: IceBreakerCategory.interest,
@@ -57,7 +59,8 @@ class IceBreakerService {
 
     // Based on prompts
     if (profile.profilePrompts.isNotEmpty) {
-      final prompt = profile.profilePrompts[_random.nextInt(profile.profilePrompts.length)];
+      final prompt = profile
+          .profilePrompts[_random.nextInt(profile.profilePrompts.length)];
       suggestions.add(IceBreakerSuggestion(
         text: "Love your answer about '${prompt.question}' - tell me more!",
         category: IceBreakerCategory.prompt,
@@ -119,7 +122,8 @@ class IceBreakerService {
     return [
       // Fun questions
       const IceBreakerSuggestion(
-        text: "If you could have dinner with anyone, dead or alive, who would it be?",
+        text:
+            "If you could have dinner with anyone, dead or alive, who would it be?",
         category: IceBreakerCategory.fun,
         icon: '🍽️',
       ),
@@ -129,7 +133,8 @@ class IceBreakerService {
         icon: '😂',
       ),
       const IceBreakerSuggestion(
-        text: "Are you more of a spontaneous adventure or planned vacation person?",
+        text:
+            "Are you more of a spontaneous adventure or planned vacation person?",
         category: IceBreakerCategory.fun,
         icon: '✈️',
       ),
@@ -172,7 +177,8 @@ class IceBreakerService {
       ),
       // Compliment starters
       const IceBreakerSuggestion(
-        text: "Your smile in your photos is contagious! What made you choose them?",
+        text:
+            "Your smile in your photos is contagious! What made you choose them?",
         category: IceBreakerCategory.compliment,
         icon: '😊',
       ),

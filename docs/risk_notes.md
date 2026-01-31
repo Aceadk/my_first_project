@@ -4,6 +4,93 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-117 — Tokens exposed in logs/crash reports (RESOLVED)
+
+Category: Security / Privacy
+
+Description:
+FCM tokens and App Check tokens were being logged in full to debug output. These could leak via log aggregation, crash reporting, or shared development environments.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/core/services/app_check_service.dart
+* lib/core/services/push_notification_service.dart
+
+Resolution:
+* ✅ Enhanced SecureLogger with token-specific redaction methods
+* ✅ All token logging now uses SecureLogger (shows "dK7x...9mN2 (152 chars)")
+* ✅ Tokens never appear in full in any logs
+* ✅ Auth repositories verified - no token logging
+* ✅ Network layer verified - no token logging
+
+Status: Closed
+
+Owner: AI
+
+Resolved: 2026-01-31
+
+---
+
+### R-116 — Backend API abuse from forged requests (MITIGATED)
+
+Category: Security
+
+Description:
+Without App Check, malicious actors could forge API requests to Cloud Functions, potentially abusing the discovery, matching, or messaging systems.
+
+Impact: High
+
+Likelihood: Medium
+
+Affected Areas:
+* functions/src/index.ts (all callable functions)
+* lib/core/services/app_check_service.dart
+
+Resolution:
+* ✅ Added Firebase App Check with DeviceCheck (iOS) and Play Integrity (Android)
+* ✅ Added `verifyAppCheck()` helper to Cloud Functions
+* ✅ `ENFORCE_APP_CHECK` flag for gradual rollout (currently false for monitoring)
+* ⏳ Enable enforcement after confirming all clients have App Check
+
+Status: In Progress (monitoring mode)
+
+Owner: AI
+
+Opened: 2026-01-31
+
+---
+
+### R-115 — Stub/mock profiles could leak to production builds (RESOLVED)
+
+Category: Security / Data Integrity
+
+Description:
+HybridDiscoveryRepository combines Firebase and stub data for development, but had no production guard to prevent mock profiles (mock_* IDs) from appearing in release builds.
+
+Impact: High
+
+Likelihood: Low (but embarrassing)
+
+Affected Areas:
+* lib/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart
+
+Resolution:
+* ✅ Added `kReleaseMode` check: `_stubRepo = kReleaseMode ? null : StubDiscoveryRepository()`
+* ✅ Added `_includeStubData` getter that returns false in release mode
+* ✅ All fetch methods now check `_includeStubData` before using stub data
+* ✅ Debug print indicates mode on initialization
+
+Status: Closed
+
+Owner: AI
+
+Resolved: 2026-01-31
+
+---
+
 ### R-114 — Aggressive deck preloading may increase memory/network usage (RESOLVED)
 
 Category: Performance / UX
@@ -185,7 +272,7 @@ Created: 2026-01-20
 
 ---
 
-### R-104 — Discovery payload mismatch blocks real users
+### R-104 — Discovery payload mismatch blocks real users (RESOLVED)
 
 Category: Backend dependencies
 
@@ -200,15 +287,23 @@ Affected Areas:
 * functions/src/index.ts
 * lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart
 
-Mitigation:
-* Align Cloud Function response shape with client expectation.
-* Update client mapping to handle `profiles` if kept.
+Resolution:
+* ✅ Verified Cloud Function (index.ts:3335-3346) returns `candidates` key with flattened profile data
+* ✅ Client (firebase_discovery_repository.dart:29) correctly expects `candidates`
+* ✅ Profile data is properly flattened via `...c.profile` spread in Cloud Function
+* ✅ `_profileFromFirestore()` correctly maps flat data to Profile model
+* ✅ REST API `/v1/discovery/deck` updated to return `candidates` (line 4858) with backward compatible `profiles`
+* ✅ `DiscoveryDeckDto` updated to parse `candidates` first, fall back to `profiles`
+* ✅ `HttpDiscoveryRepository` updated to try `candidates` first
+* Both callable function and REST API now aligned
 
-Status: Open
+Status: Closed
 
 Owner: AI
 
 Created: 2026-01-22
+
+Resolved: 2026-01-31
 
 ---
 
@@ -238,7 +333,7 @@ Created: 2026-01-22
 
 ---
 
-### R-106 — Storage rules mismatch for profile/chat media
+### R-106 — Storage rules mismatch for profile/chat media (RESOLVED)
 
 Category: Backend dependencies
 
@@ -254,14 +349,21 @@ Affected Areas:
 * lib/features/profile/data/services/profile_media_service.dart
 * lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
 
-Mitigation:
-* Align storage paths in code with rules (or update rules to allow current paths).
+Resolution:
+* ✅ Storage rules already include correct paths (verified 2026-01-31):
+  - `users/{uid}/photos/{fileName}` (lines 44-49) — matches ProfileMediaService
+  - `users/{uid}/videos/{fileName}` (lines 52-57) — matches ProfileMediaService
+  - `chat_media/{matchId}/{userId}/{fileName}` (lines 82-90) — matches FirebaseChatRepository
+* ✅ Legacy paths kept for backwards compatibility but don't cause conflicts
+* ✅ All code upload paths align with storage rules
 
-Status: Open
+Status: Closed
 
 Owner: AI
 
 Created: 2026-01-22
+
+Resolved: 2026-01-31
 
 ---
 
@@ -436,6 +538,188 @@ Last Reviewed:
 ---
 
 ## Active Risks
+
+### R-115 — Age Gate (18+) for Dating App (RESOLVED)
+
+Category: Security & Compliance
+
+Description:
+Dating apps require explicit age verification (18+) at signup. Both App Store and Play Store require this for dating apps.
+
+Impact: Critical
+
+Likelihood: High
+
+Affected Areas:
+* lib/features/auth/presentation/screens/auth_gateway_screen.dart
+* lib/features/auth/presentation/screens/basic_info_screen.dart
+
+Resolution:
+* Added age gate dialog at AuthGatewayScreen entry point
+* Users must confirm they are 18+ before proceeding to signup
+* Dialog is non-dismissible to ensure compliance
+* BasicInfoScreen still has DOB validation as secondary check (ages 18-75)
+* Clear messaging about dating app being for adults only
+
+Status: Closed
+
+Owner: AI
+
+Resolved: 2026-01-31
+
+---
+
+### R-116 — CRITICAL: Missing Sign in with Apple
+
+Category: Compliance
+
+Description:
+Apple App Store requires Sign in with Apple if any social login is offered. Firebase Auth supports it but it's not implemented in the app.
+
+Impact: Critical
+
+Likelihood: High
+
+Affected Areas:
+* lib/features/auth/presentation/screens/auth_gateway_screen.dart
+* lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+
+Mitigation Plan:
+* Implement apple_sign_in package
+* Add Sign in with Apple button to auth gateway
+* Configure Apple Developer credentials
+
+Status: Open - BLOCKER for App Store submission
+
+Owner: Developer
+
+Created: 2026-01-31
+
+---
+
+### R-117 — Privacy Policy and Terms URLs (RESOLVED)
+
+Category: Compliance
+
+Description:
+Privacy Policy and Terms of Service URLs are required for both App Store and Play Store submission.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* public/privacy.html
+* public/terms.html
+* lib/config/legal_config.dart
+
+Resolution:
+* Created public HTML pages at /public/privacy.html and /public/terms.html
+* Configured Firebase Hosting rewrites for /privacy and /terms routes
+* Created centralized LegalConfig with all legal URLs
+* URLs accessible at https://crushhour.app/privacy and https://crushhour.app/terms
+* Updated Flutter screens to use LegalConfig
+
+Status: Closed
+
+Owner: AI
+
+Resolved: 2026-01-31
+
+Note: Requires `firebase deploy --only hosting` to publish pages
+
+---
+
+### R-118 — Low Test Coverage (4.6%)
+
+Category: Quality
+
+Description:
+Only 21 test files for 457 Dart files (~200,330 LOC). This represents 4.6% test-to-code ratio, well below industry standard of 60%+. Increases regression risk.
+
+Impact: Medium
+
+Likelihood: High
+
+Affected Areas:
+* test/
+* All feature modules
+
+Mitigation Plan:
+* Add BLoC unit tests for all 24 BLoCs/Cubits
+* Add repository integration tests
+* Add widget tests for design system
+* Target 40% coverage for MVP, 60% for v1.0
+
+Status: Open
+
+Owner: Developer
+
+Created: 2026-01-31
+
+---
+
+### R-119 — iOS Privacy Manifest (RESOLVED)
+
+Category: Compliance
+
+Description:
+iOS 17+ requires PrivacyInfo.xcprivacy file declaring API usage.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* ios/Runner/PrivacyInfo.xcprivacy
+* ios/Runner.xcodeproj/project.pbxproj
+
+Resolution:
+* PrivacyInfo.xcprivacy file already existed with comprehensive declarations
+* File was NOT included in Xcode project build (critical oversight)
+* Added file reference to project.pbxproj (PBXFileReference, PBXGroup, PBXBuildFile, PBXResourcesBuildPhase)
+* Manifest properly declares:
+  - NSPrivacyAccessedAPICategoryUserDefaults (CA92.1)
+  - NSPrivacyAccessedAPICategoryFileTimestamp (C617.1)
+  - NSPrivacyAccessedAPICategorySystemBootTime (35F9.1)
+  - NSPrivacyAccessedAPICategoryDiskSpace (E174.1)
+* Collected data types declared: Name, Email, Phone, DOB, Photos, Location, UserID
+
+Status: Closed
+
+Owner: AI
+
+Resolved: 2026-01-31
+
+---
+
+### R-120 — E2E Chat Encryption Not Implemented
+
+Category: Security
+
+Description:
+Chat messages are not end-to-end encrypted. While Firebase provides transport encryption, messages are readable in Firestore. For a dating app, this poses privacy risk.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+* lib/features/chat/presentation/bloc/chat_bloc.dart
+
+Mitigation Plan:
+* Implement Signal Protocol or similar E2E encryption
+* Store encrypted messages in Firestore
+* Key exchange during match creation
+
+Status: Open
+
+Owner: Developer
+
+Created: 2026-01-31
+
+---
 
 ### R-001 — BLoC state complexity growth
 

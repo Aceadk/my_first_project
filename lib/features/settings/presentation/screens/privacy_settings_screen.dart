@@ -112,16 +112,22 @@ class PrivacySettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Control Your Privacy',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           DsGap.xs,
                           Text(
                             'Choose what others can see when they view your profile.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -410,10 +416,12 @@ class PrivacySettingsScreen extends StatelessWidget {
                 child: Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                    color:
+                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                     ),
                   ),
                   child: Row(
@@ -421,15 +429,20 @@ class PrivacySettingsScreen extends StatelessWidget {
                       Icon(
                         Icons.info_outline,
                         size: 20,
-                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
                       ),
                       DsGap.mdH,
                       Expanded(
                         child: Text(
                           'Hidden information will only be visible to you. Matches can see public information.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ),
                     ],
@@ -488,14 +501,16 @@ class _SectionHeader extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                 ),
               ],
             ),

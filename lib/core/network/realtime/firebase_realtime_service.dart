@@ -73,11 +73,8 @@ class FirebaseRealtimeService {
     _subscriptions[subscriptionId]?.cancel();
 
     // ignore: cancel_subscriptions - stored in _subscriptions map, cancelled via dispose()
-    final subscription = _firestore
-        .collection(collection)
-        .doc(documentId)
-        .snapshots()
-        .listen(
+    final subscription =
+        _firestore.collection(collection).doc(documentId).snapshots().listen(
       (snapshot) {
         onData(snapshot.data());
       },
@@ -128,14 +125,16 @@ class FirebaseRealtimeService {
   /// Subscribe to a collection with a callback.
   String subscribeToCollection({
     required String collection,
-    required void Function(List<DocumentChange<Map<String, dynamic>>> changes) onChanges,
+    required void Function(List<DocumentChange<Map<String, dynamic>>> changes)
+        onChanges,
     List<QueryFilter>? filters,
     String? orderBy,
     bool descending = false,
     int? limit,
     void Function(dynamic error)? onError,
   }) {
-    final subscriptionId = '${collection}_${DateTime.now().millisecondsSinceEpoch}';
+    final subscriptionId =
+        '${collection}_${DateTime.now().millisecondsSinceEpoch}';
 
     Query<Map<String, dynamic>> query = _firestore.collection(collection);
 
@@ -188,7 +187,8 @@ class FirebaseRealtimeService {
       case FilterOperator.arrayContains:
         return query.where(filter.field, arrayContains: filter.value);
       case FilterOperator.arrayContainsAny:
-        return query.where(filter.field, arrayContainsAny: filter.value as List);
+        return query.where(filter.field,
+            arrayContainsAny: filter.value as List);
       case FilterOperator.whereIn:
         return query.where(filter.field, whereIn: filter.value as List);
       case FilterOperator.whereNotIn:
@@ -215,7 +215,8 @@ class FirebaseRealtimeService {
         .limit(limit);
 
     if (afterTimestamp != null) {
-      query = query.where('created_at', isGreaterThan: Timestamp.fromDate(afterTimestamp));
+      query = query.where('created_at',
+          isGreaterThan: Timestamp.fromDate(afterTimestamp));
     }
 
     return query.snapshots().map((snapshot) {
@@ -287,7 +288,11 @@ class FirebaseRealtimeService {
 
   /// Listen to user's online presence.
   Stream<bool> listenToPresence({required String userId}) {
-    return _firestore.collection('presence').doc(userId).snapshots().map((snapshot) {
+    return _firestore
+        .collection('presence')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) {
       if (!snapshot.exists) return false;
       final data = snapshot.data();
       if (data == null) return false;
@@ -404,32 +409,38 @@ class QueryFilter {
 
   /// Create an equals filter.
   factory QueryFilter.equals(String field, dynamic value) {
-    return QueryFilter(field: field, operator: FilterOperator.equals, value: value);
+    return QueryFilter(
+        field: field, operator: FilterOperator.equals, value: value);
   }
 
   /// Create a not equals filter.
   factory QueryFilter.notEquals(String field, dynamic value) {
-    return QueryFilter(field: field, operator: FilterOperator.notEquals, value: value);
+    return QueryFilter(
+        field: field, operator: FilterOperator.notEquals, value: value);
   }
 
   /// Create a less than filter.
   factory QueryFilter.lessThan(String field, dynamic value) {
-    return QueryFilter(field: field, operator: FilterOperator.lessThan, value: value);
+    return QueryFilter(
+        field: field, operator: FilterOperator.lessThan, value: value);
   }
 
   /// Create a greater than filter.
   factory QueryFilter.greaterThan(String field, dynamic value) {
-    return QueryFilter(field: field, operator: FilterOperator.greaterThan, value: value);
+    return QueryFilter(
+        field: field, operator: FilterOperator.greaterThan, value: value);
   }
 
   /// Create an array contains filter.
   factory QueryFilter.arrayContains(String field, dynamic value) {
-    return QueryFilter(field: field, operator: FilterOperator.arrayContains, value: value);
+    return QueryFilter(
+        field: field, operator: FilterOperator.arrayContains, value: value);
   }
 
   /// Create a whereIn filter.
   factory QueryFilter.whereIn(String field, List<dynamic> values) {
-    return QueryFilter(field: field, operator: FilterOperator.whereIn, value: values);
+    return QueryFilter(
+        field: field, operator: FilterOperator.whereIn, value: values);
   }
 }
 

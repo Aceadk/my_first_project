@@ -131,8 +131,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
-    final hintColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final hintColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     final labelColor = _isFocused
         ? DsColors.primary
@@ -211,8 +210,8 @@ class _GlassTextFieldState extends State<GlassTextField> {
                   suffixIcon: widget.suffixIcon != null
                       ? GestureDetector(
                           onTap: widget.onSuffixTap,
-                          child:
-                              Icon(widget.suffixIcon, color: hintColor, size: 22),
+                          child: Icon(widget.suffixIcon,
+                              color: hintColor, size: 22),
                         )
                       : null,
                   border: InputBorder.none,
@@ -277,8 +276,7 @@ class GlassSearchField extends StatelessWidget {
     final textColor =
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
-    final hintColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final hintColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),

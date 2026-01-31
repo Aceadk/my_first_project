@@ -6,8 +6,10 @@ enum MessageType { text, image, video, voice }
 enum MessageSendStatus {
   /// Message sent successfully.
   sent,
+
   /// Message is currently being sent.
   sending,
+
   /// Message failed to send.
   failed,
 }
@@ -81,8 +83,7 @@ class Message extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [
+  List<Object?> get props => [
         id,
         matchId,
         fromUserId,

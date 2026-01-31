@@ -17,10 +17,11 @@ class HttpAuthRepository implements AuthRepository {
   HttpAuthRepository({
     ApiClient? apiClient,
     FlutterSecureStorage? secureStorage,
-  })  : _apiClient = apiClient ?? ApiClient(
-          config: ApiConfig.production,
-          authTokenProvider: null, // Set after initialization
-        ),
+  })  : _apiClient = apiClient ??
+            ApiClient(
+              config: ApiConfig.production,
+              authTokenProvider: null, // Set after initialization
+            ),
         _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   final ApiClient _apiClient;
@@ -41,6 +42,9 @@ class HttpAuthRepository implements AuthRepository {
 
   @override
   bool get supportsUsernameLogin => true;
+
+  @override
+  bool get supportsAppleSignIn => false;
 
   @override
   Stream<CrushUser?> authStateChanges() => _authStateController.stream;
@@ -167,7 +171,8 @@ class HttpAuthRepository implements AuthRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to sign in with email link');
+      throw Exception(
+          result.error?.message ?? 'Failed to sign in with email link');
     }
 
     final response = VerifyOtpResponseDto.fromJson(result.data!);
@@ -218,6 +223,13 @@ class HttpAuthRepository implements AuthRepository {
     _emitAuthState(_currentUser);
 
     return _currentUser!;
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() async {
+    throw UnimplementedError(
+      'Apple Sign-In is not supported for the HTTP backend yet.',
+    );
   }
 
   @override
@@ -318,7 +330,8 @@ class HttpAuthRepository implements AuthRepository {
 
     // For other purposes, update current user if needed
     if (result.data?['user'] != null) {
-      final userDto = UserDto.fromJson(result.data!['user'] as Map<String, dynamic>);
+      final userDto =
+          UserDto.fromJson(result.data!['user'] as Map<String, dynamic>);
       _currentUser = AuthMapper.userFromDto(userDto, plan: _currentUser?.plan);
       _emitAuthState(_currentUser);
       return _currentUser;
@@ -340,7 +353,8 @@ class HttpAuthRepository implements AuthRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to request password reset');
+      throw Exception(
+          result.error?.message ?? 'Failed to request password reset');
     }
   }
 
@@ -357,7 +371,8 @@ class HttpAuthRepository implements AuthRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to verify password reset OTP');
+      throw Exception(
+          result.error?.message ?? 'Failed to verify password reset OTP');
     }
 
     final resetToken = result.data?['reset_token'] as String?;
@@ -417,7 +432,8 @@ class HttpAuthRepository implements AuthRepository {
 
   @override
   Future<CrushUser?> checkEmailVerification() async {
-    final result = await _apiClient.get<Map<String, dynamic>>('/auth/check-email-verification');
+    final result = await _apiClient
+        .get<Map<String, dynamic>>('/auth/check-email-verification');
     if (result.isSuccess && result.data != null) {
       final verified = result.data!['email_verified'] as bool? ?? false;
       if (verified && _currentUser != null) {
@@ -447,7 +463,8 @@ class HttpAuthRepository implements AuthRepository {
 
   Future<void> _storeTokens(AuthTokensDto tokens) async {
     await _secureStorage.write(key: _accessTokenKey, value: tokens.accessToken);
-    await _secureStorage.write(key: _refreshTokenKey, value: tokens.refreshToken);
+    await _secureStorage.write(
+        key: _refreshTokenKey, value: tokens.refreshToken);
   }
 
   Future<void> _clearTokens() async {
@@ -493,7 +510,8 @@ class HttpAuthRepository implements AuthRepository {
     final result = await _apiClient.post<void>('/auth/phone/schedule-deletion');
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to schedule phone deletion');
+      throw Exception(
+          result.error?.message ?? 'Failed to schedule phone deletion');
     }
   }
 
@@ -545,7 +563,8 @@ class HttpAuthRepository implements AuthRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to schedule account deletion');
+      throw Exception(
+          result.error?.message ?? 'Failed to schedule account deletion');
     }
 
     await _clearTokens();

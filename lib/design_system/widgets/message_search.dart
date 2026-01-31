@@ -91,9 +91,8 @@ class _MessageSearchBarState extends State<MessageSearchBar> {
               Icon(
                 Icons.search,
                 size: 20,
-                color: isDark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
               const SizedBox(width: DsSpacing.sm),
               Expanded(
@@ -299,7 +298,8 @@ class _HighlightedText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (query.isEmpty) {
-      return Text(text, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
+      return Text(text,
+          style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
     }
 
     final lowerText = text.toLowerCase();
@@ -442,18 +442,14 @@ class _EmptySearchState extends StatelessWidget {
           Icon(
             Icons.search,
             size: 64,
-            color: isDark
-                ? DsColors.textMutedDark
-                : DsColors.textMutedLight,
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
           const SizedBox(height: DsSpacing.md),
           Text(
             'Search your messages',
             style: TextStyle(
               fontSize: 16,
-              color: isDark
-                  ? DsColors.textMutedDark
-                  : DsColors.textMutedLight,
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
             ),
           ),
         ],
@@ -478,18 +474,14 @@ class _NoResultsState extends StatelessWidget {
           Icon(
             Icons.search_off,
             size: 64,
-            color: isDark
-                ? DsColors.textMutedDark
-                : DsColors.textMutedLight,
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
           const SizedBox(height: DsSpacing.md),
           Text(
             'No results for "$query"',
             style: TextStyle(
               fontSize: 16,
-              color: isDark
-                  ? DsColors.textMutedDark
-                  : DsColors.textMutedLight,
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
             ),
           ),
         ],

@@ -16,7 +16,10 @@ class AuthMapper {
       isEmailVerified: dto.email != null,
       isPhoneVerified: dto.phoneNumber != null,
       isIdVerified: dto.isVerified ?? false,
-      plan: plan ?? (dto.isPremium == true ? SubscriptionPlan.plus : SubscriptionPlan.free),
+      plan: plan ??
+          (dto.isPremium == true
+              ? SubscriptionPlan.plus
+              : SubscriptionPlan.free),
       profile: null, // Profile loaded separately
     );
   }

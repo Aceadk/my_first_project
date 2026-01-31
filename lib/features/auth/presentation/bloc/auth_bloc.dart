@@ -51,8 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // a session was restored from secure storage.
       },
       logLabel: 'AuthRepository.authStateChanges',
-      fallbackError:
-          'Could not connect to authentication. Please try again.',
+      fallbackError: 'Could not connect to authentication. Please try again.',
     );
     if (!result.isSuccess) {
       emit(state.copyWith(
@@ -107,12 +106,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final user = result.data;
     if (user != null) {
       await AnalyticsService.instance.logLogin(method: 'phone');
-      await AnalyticsService.instance.logPhoneVerificationCompleted(success: true);
+      await AnalyticsService.instance
+          .logPhoneVerificationCompleted(success: true);
     } else {
-      await AnalyticsService.instance.logPhoneVerificationCompleted(success: false);
+      await AnalyticsService.instance
+          .logPhoneVerificationCompleted(success: false);
     }
     emit(state.copyWith(
-      status: user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
+      status:
+          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
       user: user ?? state.user,
       isLoading: false,
       errorMessage: result.errorMessage,

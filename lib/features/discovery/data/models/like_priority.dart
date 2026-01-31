@@ -132,10 +132,10 @@ class LikePriority extends Equatable {
 
 /// Priority levels for likes.
 enum LikePriorityLevel {
-  standard,    // Free users
-  premium,     // Premium subscribers
-  platinum,    // Platinum subscribers
-  spotlight,   // Spotlight/featured (special promotion)
+  standard, // Free users
+  premium, // Premium subscribers
+  platinum, // Platinum subscribers
+  spotlight, // Spotlight/featured (special promotion)
 }
 
 extension LikePriorityLevelExtension on LikePriorityLevel {

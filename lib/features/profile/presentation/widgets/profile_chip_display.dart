@@ -21,7 +21,8 @@ class ProfileChipDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final chipBg = isDark ? DsColors.inputFillDark : DsColors.inputFillLight;
-    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     if (items.isEmpty) {
@@ -54,22 +55,22 @@ class ProfileChipDisplay extends StatelessWidget {
           runSpacing: DsSpacing.xs,
           children: [
             ...visibleItems.map((item) => Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DsSpacing.sm,
-                vertical: DsSpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: chipBg,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                item,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: textPrimary,
-                ),
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpacing.sm,
+                    vertical: DsSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: chipBg,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    item,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: textPrimary,
+                    ),
+                  ),
+                )),
             if (remaining > 0)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -123,7 +124,8 @@ class ProfileFieldDisplay extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Padding(

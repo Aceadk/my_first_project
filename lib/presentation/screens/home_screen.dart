@@ -75,7 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                    color: isDark
+                        ? DsColors.backgroundDark
+                        : DsColors.backgroundLight,
                   ),
                   child: const Stack(
                     children: [

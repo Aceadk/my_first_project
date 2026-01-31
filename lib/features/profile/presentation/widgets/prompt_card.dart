@@ -71,11 +71,11 @@ class PromptCard extends StatelessWidget {
                       child: Text(
                         prompt.question,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                          fontWeight: FontWeight.w600,
-                        ),
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ],
@@ -85,9 +85,9 @@ class PromptCard extends StatelessWidget {
                 Text(
                   prompt.answer,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    height: 1.4,
-                  ),
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                      ),
                   maxLines: compact ? 3 : null,
                   overflow: compact ? TextOverflow.ellipsis : null,
                 ),
@@ -231,15 +231,17 @@ class AddPromptsEmptyState extends StatelessWidget {
                 Text(
                   'Add Conversation Starters',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 DsGap.xs,
                 Text(
                   'Help others start a conversation with you',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 DsGap.md,
@@ -255,9 +257,9 @@ class AddPromptsEmptyState extends StatelessWidget {
                     Text(
                       'Add up to ${PromptQuestions.maxPromptsPerProfile} prompts',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: DsColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color: DsColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),

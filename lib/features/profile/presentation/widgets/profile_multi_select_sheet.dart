@@ -72,7 +72,8 @@ class _ProfileMultiSelectSheetState<T>
             _selected.length >= widget.maxSelections!) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Maximum ${widget.maxSelections} selections allowed'),
+              content:
+                  Text('Maximum ${widget.maxSelections} selections allowed'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -205,14 +206,13 @@ class _ProfileMultiSelectSheetState<T>
                     checkmarkColor: DsColors.primary,
                     labelStyle: TextStyle(
                       color: isSelected ? DsColors.primary : textPrimary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
-                        color: isSelected
-                            ? DsColors.primary
-                            : dividerColor,
+                        color: isSelected ? DsColors.primary : dividerColor,
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(

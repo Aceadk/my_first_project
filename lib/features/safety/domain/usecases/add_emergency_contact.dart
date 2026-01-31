@@ -15,7 +15,8 @@ class AddEmergencyContactParams {
 }
 
 /// Use case for adding an emergency contact to a date plan.
-class AddEmergencyContactUseCase extends UseCase<DatePlan, AddEmergencyContactParams>
+class AddEmergencyContactUseCase
+    extends UseCase<DatePlan, AddEmergencyContactParams>
     with ValidatingUseCase<DatePlan, AddEmergencyContactParams> {
   final DatePlanService _service;
 

@@ -36,7 +36,8 @@ class ChatEmptyState extends StatelessWidget {
           // Match icon with glass effect
           ClipOval(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
+              filter: ImageFilter.blur(
+                  sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
               child: Container(
                 width: 100,
                 height: 100,
@@ -117,26 +118,29 @@ class ChatEmptyState extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
                   ),
                 ),
               ],
             ),
             DsGap.md,
             ...suggestions.map((suggestion) => Padding(
-              padding: const EdgeInsets.only(bottom: DsSpacing.sm),
-              child: _IceBreakerTile(
-                suggestion: suggestion,
-                onTap: () => onSuggestionTap(suggestion.text),
-              ),
-            )),
+                  padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+                  child: _IceBreakerTile(
+                    suggestion: suggestion,
+                    onTap: () => onSuggestionTap(suggestion.text),
+                  ),
+                )),
           ],
           DsGap.lg,
           // Glass refresh button
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+              filter: ImageFilter.blur(
+                  sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark

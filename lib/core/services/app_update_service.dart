@@ -22,8 +22,10 @@ class AppUpdateService {
   // Store URLs - Update these once your app is published to the stores
   // iOS: Replace 'id000000000' with your actual App Store ID after submission
   // Android: Package ID is 'com.ace.crush' (matches build.gradle.kts)
-  static const String _appStoreUrl = 'https://apps.apple.com/app/crushhour/id000000000';
-  static const String _playStoreUrl = 'https://play.google.com/store/apps/details?id=com.ace.crush';
+  static const String _appStoreUrl =
+      'https://apps.apple.com/app/crushhour/id000000000';
+  static const String _playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.ace.crush';
 
   /// Initialize the service.
   Future<void> initialize() async {
@@ -32,7 +34,8 @@ class AppUpdateService {
     try {
       _packageInfo = await PackageInfo.fromPlatform();
       _isInitialized = true;
-      debugPrint('AppUpdateService: Initialized - version ${_packageInfo?.version}');
+      debugPrint(
+          'AppUpdateService: Initialized - version ${_packageInfo?.version}');
     } catch (e) {
       debugPrint('AppUpdateService: Failed to initialize - $e');
     }
@@ -191,7 +194,8 @@ class UpdateCheckResult {
   final String? message;
 
   bool get requiresUpdate =>
-      status == UpdateStatus.forceUpdate || status == UpdateStatus.updateRequired;
+      status == UpdateStatus.forceUpdate ||
+      status == UpdateStatus.updateRequired;
 
   bool get isForced => status == UpdateStatus.forceUpdate;
 

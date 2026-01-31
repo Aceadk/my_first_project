@@ -86,58 +86,226 @@ class PromptQuestions {
 
   static const List<PromptQuestion> allQuestions = [
     // About Me
-    PromptQuestion(id: 'simple_pleasure', question: 'A life goal of mine', category: categoryAboutMe, emoji: '🎯'),
-    PromptQuestion(id: 'not_obvious', question: 'Something not obvious about me', category: categoryAboutMe, emoji: '🤫'),
-    PromptQuestion(id: 'proud_of', question: 'I\'m proud of', category: categoryAboutMe, emoji: '🏆'),
-    PromptQuestion(id: 'never_shut_up', question: 'I\'ll never shut up about', category: categoryAboutMe, emoji: '🗣️'),
-    PromptQuestion(id: 'geek_out', question: 'I geek out on', category: categoryAboutMe, emoji: '🤓'),
-    PromptQuestion(id: 'fun_fact', question: 'A fun fact about me', category: categoryAboutMe, emoji: '✨'),
-    PromptQuestion(id: 'unusual_skill', question: 'My most unusual skill', category: categoryAboutMe, emoji: '🎪'),
-    PromptQuestion(id: 'superpower', question: 'My superpower', category: categoryAboutMe, emoji: '🦸'),
+    PromptQuestion(
+        id: 'simple_pleasure',
+        question: 'A life goal of mine',
+        category: categoryAboutMe,
+        emoji: '🎯'),
+    PromptQuestion(
+        id: 'not_obvious',
+        question: 'Something not obvious about me',
+        category: categoryAboutMe,
+        emoji: '🤫'),
+    PromptQuestion(
+        id: 'proud_of',
+        question: 'I\'m proud of',
+        category: categoryAboutMe,
+        emoji: '🏆'),
+    PromptQuestion(
+        id: 'never_shut_up',
+        question: 'I\'ll never shut up about',
+        category: categoryAboutMe,
+        emoji: '🗣️'),
+    PromptQuestion(
+        id: 'geek_out',
+        question: 'I geek out on',
+        category: categoryAboutMe,
+        emoji: '🤓'),
+    PromptQuestion(
+        id: 'fun_fact',
+        question: 'A fun fact about me',
+        category: categoryAboutMe,
+        emoji: '✨'),
+    PromptQuestion(
+        id: 'unusual_skill',
+        question: 'My most unusual skill',
+        category: categoryAboutMe,
+        emoji: '🎪'),
+    PromptQuestion(
+        id: 'superpower',
+        question: 'My superpower',
+        category: categoryAboutMe,
+        emoji: '🦸'),
 
     // Dating
-    PromptQuestion(id: 'looking_for', question: 'I\'m looking for', category: categoryDating, emoji: '💕'),
-    PromptQuestion(id: 'perfect_date', question: 'My ideal first date', category: categoryDating, emoji: '🌹'),
-    PromptQuestion(id: 'green_flag', question: 'A green flag I look for', category: categoryDating, emoji: '🟢'),
-    PromptQuestion(id: 'dealbreaker', question: 'My biggest dealbreaker', category: categoryDating, emoji: '🚩'),
-    PromptQuestion(id: 'love_language', question: 'My love language is', category: categoryDating, emoji: '💝'),
-    PromptQuestion(id: 'like_you_if', question: 'We\'ll get along if', category: categoryDating, emoji: '🤝'),
-    PromptQuestion(id: 'way_to_heart', question: 'The way to my heart is', category: categoryDating, emoji: '❤️'),
-    PromptQuestion(id: 'together_we', question: 'Together, we could', category: categoryDating, emoji: '💑'),
+    PromptQuestion(
+        id: 'looking_for',
+        question: 'I\'m looking for',
+        category: categoryDating,
+        emoji: '💕'),
+    PromptQuestion(
+        id: 'perfect_date',
+        question: 'My ideal first date',
+        category: categoryDating,
+        emoji: '🌹'),
+    PromptQuestion(
+        id: 'green_flag',
+        question: 'A green flag I look for',
+        category: categoryDating,
+        emoji: '🟢'),
+    PromptQuestion(
+        id: 'dealbreaker',
+        question: 'My biggest dealbreaker',
+        category: categoryDating,
+        emoji: '🚩'),
+    PromptQuestion(
+        id: 'love_language',
+        question: 'My love language is',
+        category: categoryDating,
+        emoji: '💝'),
+    PromptQuestion(
+        id: 'like_you_if',
+        question: 'We\'ll get along if',
+        category: categoryDating,
+        emoji: '🤝'),
+    PromptQuestion(
+        id: 'way_to_heart',
+        question: 'The way to my heart is',
+        category: categoryDating,
+        emoji: '❤️'),
+    PromptQuestion(
+        id: 'together_we',
+        question: 'Together, we could',
+        category: categoryDating,
+        emoji: '💑'),
 
     // Personality
-    PromptQuestion(id: 'typical_sunday', question: 'My typical Sunday', category: categoryPersonality, emoji: '☀️'),
-    PromptQuestion(id: 'go_to_karaoke', question: 'My go-to karaoke song', category: categoryPersonality, emoji: '🎤'),
-    PromptQuestion(id: 'comfort_food', question: 'My comfort food', category: categoryPersonality, emoji: '🍕'),
-    PromptQuestion(id: 'guilty_pleasure', question: 'My guilty pleasure', category: categoryPersonality, emoji: '🙈'),
-    PromptQuestion(id: 'best_travel', question: 'Best travel story', category: categoryPersonality, emoji: '✈️'),
-    PromptQuestion(id: 'happy_place', question: 'My happy place', category: categoryPersonality, emoji: '🏖️'),
-    PromptQuestion(id: 'rewatch', question: 'I could rewatch forever', category: categoryPersonality, emoji: '📺'),
-    PromptQuestion(id: 'current_obsession', question: 'My current obsession', category: categoryPersonality, emoji: '😍'),
+    PromptQuestion(
+        id: 'typical_sunday',
+        question: 'My typical Sunday',
+        category: categoryPersonality,
+        emoji: '☀️'),
+    PromptQuestion(
+        id: 'go_to_karaoke',
+        question: 'My go-to karaoke song',
+        category: categoryPersonality,
+        emoji: '🎤'),
+    PromptQuestion(
+        id: 'comfort_food',
+        question: 'My comfort food',
+        category: categoryPersonality,
+        emoji: '🍕'),
+    PromptQuestion(
+        id: 'guilty_pleasure',
+        question: 'My guilty pleasure',
+        category: categoryPersonality,
+        emoji: '🙈'),
+    PromptQuestion(
+        id: 'best_travel',
+        question: 'Best travel story',
+        category: categoryPersonality,
+        emoji: '✈️'),
+    PromptQuestion(
+        id: 'happy_place',
+        question: 'My happy place',
+        category: categoryPersonality,
+        emoji: '🏖️'),
+    PromptQuestion(
+        id: 'rewatch',
+        question: 'I could rewatch forever',
+        category: categoryPersonality,
+        emoji: '📺'),
+    PromptQuestion(
+        id: 'current_obsession',
+        question: 'My current obsession',
+        category: categoryPersonality,
+        emoji: '😍'),
 
     // Lifestyle
-    PromptQuestion(id: 'weekend_plans', question: 'My ideal weekend', category: categoryLifestyle, emoji: '🎉'),
-    PromptQuestion(id: 'morning_routine', question: 'My morning routine', category: categoryLifestyle, emoji: '🌅'),
-    PromptQuestion(id: 'workout_routine', question: 'My workout routine', category: categoryLifestyle, emoji: '💪'),
-    PromptQuestion(id: 'cooking', question: 'I\'m known for cooking', category: categoryLifestyle, emoji: '👨‍🍳'),
-    PromptQuestion(id: 'pet_peeve', question: 'My biggest pet peeve', category: categoryLifestyle, emoji: '😤'),
-    PromptQuestion(id: 'splurge_on', question: 'I splurge on', category: categoryLifestyle, emoji: '💸'),
+    PromptQuestion(
+        id: 'weekend_plans',
+        question: 'My ideal weekend',
+        category: categoryLifestyle,
+        emoji: '🎉'),
+    PromptQuestion(
+        id: 'morning_routine',
+        question: 'My morning routine',
+        category: categoryLifestyle,
+        emoji: '🌅'),
+    PromptQuestion(
+        id: 'workout_routine',
+        question: 'My workout routine',
+        category: categoryLifestyle,
+        emoji: '💪'),
+    PromptQuestion(
+        id: 'cooking',
+        question: 'I\'m known for cooking',
+        category: categoryLifestyle,
+        emoji: '👨‍🍳'),
+    PromptQuestion(
+        id: 'pet_peeve',
+        question: 'My biggest pet peeve',
+        category: categoryLifestyle,
+        emoji: '😤'),
+    PromptQuestion(
+        id: 'splurge_on',
+        question: 'I splurge on',
+        category: categoryLifestyle,
+        emoji: '💸'),
 
     // Conversation Starters
-    PromptQuestion(id: 'debate', question: 'Let\'s debate this topic', category: categoryConversation, emoji: '🎭'),
-    PromptQuestion(id: 'hot_take', question: 'My most controversial opinion', category: categoryConversation, emoji: '🔥'),
-    PromptQuestion(id: 'recommend', question: 'I\'d recommend this to anyone', category: categoryConversation, emoji: '👍'),
-    PromptQuestion(id: 'believe_everyone', question: 'I believe everyone should', category: categoryConversation, emoji: '💡'),
-    PromptQuestion(id: 'change_my_mind', question: 'Change my mind about', category: categoryConversation, emoji: '🤔'),
-    PromptQuestion(id: 'unpopular_opinion', question: 'My unpopular opinion', category: categoryConversation, emoji: '🙊'),
+    PromptQuestion(
+        id: 'debate',
+        question: 'Let\'s debate this topic',
+        category: categoryConversation,
+        emoji: '🎭'),
+    PromptQuestion(
+        id: 'hot_take',
+        question: 'My most controversial opinion',
+        category: categoryConversation,
+        emoji: '🔥'),
+    PromptQuestion(
+        id: 'recommend',
+        question: 'I\'d recommend this to anyone',
+        category: categoryConversation,
+        emoji: '👍'),
+    PromptQuestion(
+        id: 'believe_everyone',
+        question: 'I believe everyone should',
+        category: categoryConversation,
+        emoji: '💡'),
+    PromptQuestion(
+        id: 'change_my_mind',
+        question: 'Change my mind about',
+        category: categoryConversation,
+        emoji: '🤔'),
+    PromptQuestion(
+        id: 'unpopular_opinion',
+        question: 'My unpopular opinion',
+        category: categoryConversation,
+        emoji: '🙊'),
 
     // Fun
-    PromptQuestion(id: 'two_truths_lie', question: 'Two truths and a lie', category: categoryFun, emoji: '🤥'),
-    PromptQuestion(id: 'worst_idea', question: 'Worst idea that worked', category: categoryFun, emoji: '😂'),
-    PromptQuestion(id: 'celebrity_crush', question: 'My celebrity crush', category: categoryFun, emoji: '🌟'),
-    PromptQuestion(id: 'bucket_list', question: 'On my bucket list', category: categoryFun, emoji: '📋'),
-    PromptQuestion(id: 'zombie_apocalypse', question: 'In a zombie apocalypse, I\'d be', category: categoryFun, emoji: '🧟'),
-    PromptQuestion(id: 'desert_island', question: 'Desert island essentials', category: categoryFun, emoji: '🏝️'),
+    PromptQuestion(
+        id: 'two_truths_lie',
+        question: 'Two truths and a lie',
+        category: categoryFun,
+        emoji: '🤥'),
+    PromptQuestion(
+        id: 'worst_idea',
+        question: 'Worst idea that worked',
+        category: categoryFun,
+        emoji: '😂'),
+    PromptQuestion(
+        id: 'celebrity_crush',
+        question: 'My celebrity crush',
+        category: categoryFun,
+        emoji: '🌟'),
+    PromptQuestion(
+        id: 'bucket_list',
+        question: 'On my bucket list',
+        category: categoryFun,
+        emoji: '📋'),
+    PromptQuestion(
+        id: 'zombie_apocalypse',
+        question: 'In a zombie apocalypse, I\'d be',
+        category: categoryFun,
+        emoji: '🧟'),
+    PromptQuestion(
+        id: 'desert_island',
+        question: 'Desert island essentials',
+        category: categoryFun,
+        emoji: '🏝️'),
   ];
 
   /// Get questions by category.
@@ -222,7 +390,8 @@ class PromptQuestions {
     try {
       return allQuestions.firstWhere((q) => q.id == questionId);
     } catch (e) {
-      debugPrint('ProfilePromptQuestions: Question not found for id $questionId: $e');
+      debugPrint(
+          'ProfilePromptQuestions: Question not found for id $questionId: $e');
       return null;
     }
   }

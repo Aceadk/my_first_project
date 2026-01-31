@@ -28,7 +28,8 @@ class StubChatRepository implements ChatRepository {
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
-    _messageControllers[matchId] ??= StreamController<List<Message>>.broadcast();
+    _messageControllers[matchId] ??=
+        StreamController<List<Message>>.broadcast();
 
     // Load initial messages
     _loadMessages(matchId).then((messages) {
@@ -53,7 +54,8 @@ class StubChatRepository implements ChatRepository {
 
     // Apply cursor filter
     if (beforeTimestamp != null) {
-      messages = messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+      messages =
+          messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
     }
 
     // Check if there's more
@@ -123,7 +125,9 @@ class StubChatRepository implements ChatRepository {
 
     // Simulate auto-reply after 2-3 seconds (50% chance)
     if (DateTime.now().millisecond % 2 == 0) {
-      Future.delayed(Duration(milliseconds: 2000 + (DateTime.now().millisecond % 1000)), () async {
+      Future.delayed(
+          Duration(milliseconds: 2000 + (DateTime.now().millisecond % 1000)),
+          () async {
         // Show typing indicator
         await setTyping(matchId: matchId, userId: toUserId, isTyping: true);
 
@@ -469,20 +473,24 @@ class StubChatRepository implements ChatRepository {
     final matchesJson = prefs.getString('mock_matches_$userId');
     if (matchesJson == null) return [];
 
-    final matchesList = List<Map<String, dynamic>>.from(jsonDecode(matchesJson));
-    return matchesList.map((m) => CrushMatch(
-      id: m['id'],
-      userId: m['userId'],
-      otherUserId: m['otherUserId'],
-      status: MatchStatus.values.firstWhere(
-        (s) => s.name == m['status'],
-        orElse: () => MatchStatus.mutual,
-      ),
-      preMatchMessageRequestsCount: m['preMatchMessageRequestsCount'] ?? 0,
-      pinnedForUser: m['pinnedForUser'] ?? false,
-      otherUserName: m['otherUserName'],
-      otherUserPhotoUrl: m['otherUserPhotoUrl'],
-    )).toList();
+    final matchesList =
+        List<Map<String, dynamic>>.from(jsonDecode(matchesJson));
+    return matchesList
+        .map((m) => CrushMatch(
+              id: m['id'],
+              userId: m['userId'],
+              otherUserId: m['otherUserId'],
+              status: MatchStatus.values.firstWhere(
+                (s) => s.name == m['status'],
+                orElse: () => MatchStatus.mutual,
+              ),
+              preMatchMessageRequestsCount:
+                  m['preMatchMessageRequestsCount'] ?? 0,
+              pinnedForUser: m['pinnedForUser'] ?? false,
+              otherUserName: m['otherUserName'],
+              otherUserPhotoUrl: m['otherUserPhotoUrl'],
+            ))
+        .toList();
   }
 
   @override
@@ -494,7 +502,8 @@ class StubChatRepository implements ChatRepository {
     final allMatches = await fetchUserMatches(userId);
     final total = allMatches.length;
     final end = (offset + limit).clamp(0, total);
-    final items = offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
+    final items =
+        offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
     return PaginatedResult(
       items: items,
       total: total,
@@ -627,26 +636,29 @@ class StubChatRepository implements ChatRepository {
     final messagesJson = prefs.getString('$_messagesKeyPrefix$matchId');
     if (messagesJson == null) return [];
 
-    final messagesList = List<Map<String, dynamic>>.from(jsonDecode(messagesJson));
-    return messagesList.map((m) => Message(
-      id: m['id'],
-      matchId: m['matchId'],
-      fromUserId: m['fromUserId'],
-      toUserId: m['toUserId'],
-      content: m['content'],
-      type: MessageType.values.firstWhere(
-        (t) => t.name == m['type'],
-        orElse: () => MessageType.text,
-      ),
-      sentAt: DateTime.parse(m['sentAt']),
-      isRead: m['isRead'] ?? false,
-      isDeletedForSender: m['isDeletedForSender'] ?? false,
-      reactions: Map<String, String>.from(m['reactions'] ?? {}),
-      moderationStatus: m['moderationStatus'],
-      moderationReason: m['moderationReason'],
-      moderationAction: m['moderationAction'],
-      isFlagged: m['isFlagged'] ?? false,
-    )).toList();
+    final messagesList =
+        List<Map<String, dynamic>>.from(jsonDecode(messagesJson));
+    return messagesList
+        .map((m) => Message(
+              id: m['id'],
+              matchId: m['matchId'],
+              fromUserId: m['fromUserId'],
+              toUserId: m['toUserId'],
+              content: m['content'],
+              type: MessageType.values.firstWhere(
+                (t) => t.name == m['type'],
+                orElse: () => MessageType.text,
+              ),
+              sentAt: DateTime.parse(m['sentAt']),
+              isRead: m['isRead'] ?? false,
+              isDeletedForSender: m['isDeletedForSender'] ?? false,
+              reactions: Map<String, String>.from(m['reactions'] ?? {}),
+              moderationStatus: m['moderationStatus'],
+              moderationReason: m['moderationReason'],
+              moderationAction: m['moderationAction'],
+              isFlagged: m['isFlagged'] ?? false,
+            ))
+        .toList();
   }
 
   Future<void> _saveMessage(String matchId, Message message) async {
@@ -657,23 +669,26 @@ class StubChatRepository implements ChatRepository {
 
   Future<void> _saveAllMessages(String matchId, List<Message> messages) async {
     final prefs = await SharedPreferences.getInstance();
-    final messagesList = messages.map((m) => {
-      'id': m.id,
-      'matchId': m.matchId,
-      'fromUserId': m.fromUserId,
-      'toUserId': m.toUserId,
-      'content': m.content,
-      'type': m.type.name,
-      'sentAt': m.sentAt.toIso8601String(),
-      'isRead': m.isRead,
-      'isDeletedForSender': m.isDeletedForSender,
-      'reactions': m.reactions,
-      'moderationStatus': m.moderationStatus,
-      'moderationReason': m.moderationReason,
-      'moderationAction': m.moderationAction,
-      'isFlagged': m.isFlagged,
-    }).toList();
-    await prefs.setString('$_messagesKeyPrefix$matchId', jsonEncode(messagesList));
+    final messagesList = messages
+        .map((m) => {
+              'id': m.id,
+              'matchId': m.matchId,
+              'fromUserId': m.fromUserId,
+              'toUserId': m.toUserId,
+              'content': m.content,
+              'type': m.type.name,
+              'sentAt': m.sentAt.toIso8601String(),
+              'isRead': m.isRead,
+              'isDeletedForSender': m.isDeletedForSender,
+              'reactions': m.reactions,
+              'moderationStatus': m.moderationStatus,
+              'moderationReason': m.moderationReason,
+              'moderationAction': m.moderationAction,
+              'isFlagged': m.isFlagged,
+            })
+        .toList();
+    await prefs.setString(
+        '$_messagesKeyPrefix$matchId', jsonEncode(messagesList));
   }
 
   Future<void> _notifyMessageUpdate(String matchId) async {

@@ -18,7 +18,8 @@ class RealtimeMatchNotification {
     required this.createdAt,
   });
 
-  factory RealtimeMatchNotification.fromRtdb(String matchId, Map<dynamic, dynamic> data) {
+  factory RealtimeMatchNotification.fromRtdb(
+      String matchId, Map<dynamic, dynamic> data) {
     return RealtimeMatchNotification(
       matchId: matchId,
       otherUserId: data['otherUserId'] as String? ?? '',
@@ -42,7 +43,8 @@ class RealtimeMatchService {
   String? _currentUserId;
 
   /// Stream controller for new match notifications.
-  final _matchController = StreamController<RealtimeMatchNotification>.broadcast();
+  final _matchController =
+      StreamController<RealtimeMatchNotification>.broadcast();
 
   /// Stream of new match notifications.
   /// Subscribe to this to receive instant match notifications.
@@ -61,7 +63,8 @@ class RealtimeMatchService {
 
     _currentUserId = userId;
 
-    AppLogger.logInfo('[RealtimeMatchService] Starting match listener for user: $userId');
+    AppLogger.logInfo(
+        '[RealtimeMatchService] Starting match listener for user: $userId');
 
     // Listen to /users/{userId}/newMatches
     final ref = _rtdb.ref('users/$userId/newMatches');
@@ -71,7 +74,8 @@ class RealtimeMatchService {
         final data = event.snapshot.value;
 
         if (matchId != null && data != null && data is Map) {
-          AppLogger.logInfo('[RealtimeMatchService] New match detected: $matchId');
+          AppLogger.logInfo(
+              '[RealtimeMatchService] New match detected: $matchId');
 
           final notification = RealtimeMatchNotification.fromRtdb(
             matchId,
@@ -83,12 +87,14 @@ class RealtimeMatchService {
 
           // Clear the notification from RTDB (so it doesn't show again)
           event.snapshot.ref.remove().catchError((e) {
-            AppLogger.logError('[RealtimeMatchService] Failed to clear match notification', e);
+            AppLogger.logError(
+                '[RealtimeMatchService] Failed to clear match notification', e);
           });
         }
       },
       onError: (error) {
-        AppLogger.logError('[RealtimeMatchService] Match listener error', error);
+        AppLogger.logError(
+            '[RealtimeMatchService] Match listener error', error);
       },
     );
   }

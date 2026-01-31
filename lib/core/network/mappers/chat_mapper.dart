@@ -6,7 +6,8 @@ class ChatMapper {
   ChatMapper._();
 
   /// Convert MessageDto to Message domain model.
-  static domain.Message messageFromDto(dto.MessageDto messageDto, {required String toUserId}) {
+  static domain.Message messageFromDto(dto.MessageDto messageDto,
+      {required String toUserId}) {
     return domain.Message(
       id: messageDto.id,
       matchId: messageDto.conversationId,
@@ -30,7 +31,8 @@ class ChatMapper {
       senderId: message.fromUserId,
       type: _messageTypeToDto(message.type),
       content: message.type == domain.MessageType.text ? message.content : null,
-      mediaUrl: message.type != domain.MessageType.text ? message.content : null,
+      mediaUrl:
+          message.type != domain.MessageType.text ? message.content : null,
       status: message.isRead ? dto.MessageStatus.read : dto.MessageStatus.sent,
       createdAt: message.sentAt,
       deletedAt: message.isDeletedForSender ? DateTime.now() : null,
@@ -41,23 +43,28 @@ class ChatMapper {
   }
 
   /// Convert Message to SendMessageRequestDto.
-  static dto.SendMessageRequestDto messageToSendRequest(domain.Message message, {String? clientId}) {
+  static dto.SendMessageRequestDto messageToSendRequest(domain.Message message,
+      {String? clientId}) {
     return dto.SendMessageRequestDto(
       type: _messageTypeToDto(message.type),
       content: message.type == domain.MessageType.text ? message.content : null,
-      mediaUrl: message.type != domain.MessageType.text ? message.content : null,
+      mediaUrl:
+          message.type != domain.MessageType.text ? message.content : null,
       clientId: clientId,
     );
   }
 
   /// Create a text message request.
-  static dto.SendMessageRequestDto textMessageRequest(String content, {String? replyToId}) {
+  static dto.SendMessageRequestDto textMessageRequest(String content,
+      {String? replyToId}) {
     return dto.SendMessageRequestDto.text(content, replyToId: replyToId);
   }
 
   /// Create an image message request.
-  static dto.SendMessageRequestDto imageMessageRequest(String mediaUrl, {String? thumbnailUrl}) {
-    return dto.SendMessageRequestDto.image(mediaUrl, thumbnailUrl: thumbnailUrl);
+  static dto.SendMessageRequestDto imageMessageRequest(String mediaUrl,
+      {String? thumbnailUrl}) {
+    return dto.SendMessageRequestDto.image(mediaUrl,
+        thumbnailUrl: thumbnailUrl);
   }
 
   static domain.MessageType _messageTypeFromDto(dto.MessageType dtoType) {
@@ -88,7 +95,8 @@ class ChatMapper {
     }
   }
 
-  static Map<String, String> _reactionsFromDto(List<dto.MessageReactionDto>? reactions) {
+  static Map<String, String> _reactionsFromDto(
+      List<dto.MessageReactionDto>? reactions) {
     if (reactions == null || reactions.isEmpty) return const {};
     return {for (final r in reactions) r.userId: r.emoji};
   }

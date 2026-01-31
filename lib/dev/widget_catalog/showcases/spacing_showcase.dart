@@ -107,17 +107,25 @@ DsColors.info''',
             children: [
               Row(
                 children: [
-                  Expanded(child: _buildColorSwatch(context, 'bgLight', DsColors.backgroundLight)),
+                  Expanded(
+                      child: _buildColorSwatch(
+                          context, 'bgLight', DsColors.backgroundLight)),
                   const SizedBox(width: DsSpacing.sm),
-                  Expanded(child: _buildColorSwatch(context, 'bgDark', DsColors.backgroundDark)),
+                  Expanded(
+                      child: _buildColorSwatch(
+                          context, 'bgDark', DsColors.backgroundDark)),
                 ],
               ),
               const SizedBox(height: DsSpacing.sm),
               Row(
                 children: [
-                  Expanded(child: _buildColorSwatch(context, 'surfaceLight', DsColors.surfaceLight)),
+                  Expanded(
+                      child: _buildColorSwatch(
+                          context, 'surfaceLight', DsColors.surfaceLight)),
                   const SizedBox(width: DsSpacing.sm),
-                  Expanded(child: _buildColorSwatch(context, 'surfaceDark', DsColors.surfaceDark)),
+                  Expanded(
+                      child: _buildColorSwatch(
+                          context, 'surfaceDark', DsColors.surfaceDark)),
                 ],
               ),
             ],
@@ -135,10 +143,14 @@ Text(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTextColorRow(context, 'textPrimaryLight', DsColors.textPrimaryLight),
-              _buildTextColorRow(context, 'textPrimaryDark', DsColors.textPrimaryDark),
-              _buildTextColorRow(context, 'textMutedLight', DsColors.textMutedLight),
-              _buildTextColorRow(context, 'textMutedDark', DsColors.textMutedDark),
+              _buildTextColorRow(
+                  context, 'textPrimaryLight', DsColors.textPrimaryLight),
+              _buildTextColorRow(
+                  context, 'textPrimaryDark', DsColors.textPrimaryDark),
+              _buildTextColorRow(
+                  context, 'textMutedLight', DsColors.textMutedLight),
+              _buildTextColorRow(
+                  context, 'textMutedDark', DsColors.textMutedDark),
             ],
           ),
         ),
@@ -147,9 +159,13 @@ Text(
           description: 'Colors for borders and dividers',
           child: Row(
             children: [
-              Expanded(child: _buildColorSwatch(context, 'borderLight', DsColors.borderLight)),
+              Expanded(
+                  child: _buildColorSwatch(
+                      context, 'borderLight', DsColors.borderLight)),
               const SizedBox(width: DsSpacing.sm),
-              Expanded(child: _buildColorSwatch(context, 'borderDark', DsColors.borderDark)),
+              Expanded(
+                  child: _buildColorSwatch(
+                      context, 'borderDark', DsColors.borderDark)),
             ],
           ),
         ),
@@ -241,7 +257,8 @@ Container(
   }
 
   Widget _buildColorSwatch(BuildContext context, String name, Color color) {
-    final isDark = ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
+    final isDark =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
     return Container(
       height: 60,
       decoration: BoxDecoration(

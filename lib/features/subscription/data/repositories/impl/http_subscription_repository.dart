@@ -67,12 +67,14 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpSubscriptionRepository: Failed to get plan - ${result.error}');
+      debugPrint(
+          'HttpSubscriptionRepository: Failed to get plan - ${result.error}');
       return _currentPlan;
     }
 
     final planStr = result.data?['plan'] as String? ?? 'free';
-    _currentPlan = planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    _currentPlan =
+        planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
 
     return _currentPlan;
   }
@@ -127,7 +129,8 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
     final data = result.data!;
     final planStr = data['plan'] as String? ?? 'free';
-    final plan = planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    final plan =
+        planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
 
     _currentPlan = plan;
     _planController.add(plan);
@@ -166,7 +169,8 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
       return null;
     }
 
-    return PromoCode.fromJson(result.data!['promoCode'] as Map<String, dynamic>);
+    return PromoCode.fromJson(
+        result.data!['promoCode'] as Map<String, dynamic>);
   }
 
   @override

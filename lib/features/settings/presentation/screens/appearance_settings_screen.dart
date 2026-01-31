@@ -18,7 +18,8 @@ class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
 
   @override
-  State<AppearanceSettingsScreen> createState() => _AppearanceSettingsScreenState();
+  State<AppearanceSettingsScreen> createState() =>
+      _AppearanceSettingsScreenState();
 }
 
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
@@ -93,7 +94,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   void _showLockedSnack() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Dark Luxury themes are a Plus feature. Upgrade to unlock them.'),
+        content: Text(
+            'Dark Luxury themes are a Plus feature. Upgrade to unlock them.'),
       ),
     );
   }
@@ -122,15 +124,20 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
             final previewTheme = _themeForPreview(context, _previewMode);
             final hasChanges = _previewMode != currentMode;
             final isLocked = _isPremiumLocked(_previewMode, isPlus);
-            final useModernLuxury = _previewMode == AppThemeMode.darkLuxuryModern;
-            final luxuryGradient =
-                useModernLuxury ? DsLuxuryModernGradients.goldSheen : DsLuxuryGradients.goldSheen;
-            final luxuryTextOnGold =
-                useModernLuxury ? DsLuxuryModernColors.textOnGold : DsLuxuryColors.textOnGold;
-            final luxurySurface =
-                useModernLuxury ? DsLuxuryModernColors.background : DsLuxuryColors.background;
-            final luxuryAccent =
-                useModernLuxury ? DsLuxuryModernColors.goldPrimary : DsLuxuryColors.goldPrimary;
+            final useModernLuxury =
+                _previewMode == AppThemeMode.darkLuxuryModern;
+            final luxuryGradient = useModernLuxury
+                ? DsLuxuryModernGradients.goldSheen
+                : DsLuxuryGradients.goldSheen;
+            final luxuryTextOnGold = useModernLuxury
+                ? DsLuxuryModernColors.textOnGold
+                : DsLuxuryColors.textOnGold;
+            final luxurySurface = useModernLuxury
+                ? DsLuxuryModernColors.background
+                : DsLuxuryColors.background;
+            final luxuryAccent = useModernLuxury
+                ? DsLuxuryModernColors.goldPrimary
+                : DsLuxuryColors.goldPrimary;
 
             return ListView(
               padding: const EdgeInsets.all(DsSpacing.lg),
@@ -205,10 +212,11 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                         Expanded(
                           child: Text(
                             'Upgrade to Plus to unlock Dark Luxury themes.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: luxuryTextOnGold,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: luxuryTextOnGold,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                           ),
                         ),
                         FilledButton(
@@ -335,10 +343,12 @@ class _ThemePreviewCard extends StatelessWidget {
         builder: (context) {
           final scheme = Theme.of(context).colorScheme;
           final effects = Theme.of(context).extension<CrushThemeEffects>();
-          final highlight = effects?.primaryGradient ?? DsGradients.primaryHorizontal;
+          final highlight =
+              effects?.primaryGradient ?? DsGradients.primaryHorizontal;
           final previewCopy = switch (mode) {
             AppThemeMode.darkLuxury => 'Royal gold shimmer with romantic glow',
-            AppThemeMode.darkLuxuryModern => 'Sleek gold accents with modern glow',
+            AppThemeMode.darkLuxuryModern =>
+              'Sleek gold accents with modern glow',
             _ => 'Balanced contrast and elevated surfaces',
           };
 
@@ -406,9 +416,11 @@ class _ThemePreviewCard extends StatelessWidget {
                               height: 44,
                               decoration: BoxDecoration(
                                 gradient: highlight,
-                                borderRadius: BorderRadius.circular(DsRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(DsRadius.md),
                               ),
-                              child: Icon(Icons.favorite, color: scheme.onPrimary),
+                              child:
+                                  Icon(Icons.favorite, color: scheme.onPrimary),
                             ),
                             const SizedBox(width: DsSpacing.md),
                             Expanded(
@@ -428,7 +440,9 @@ class _ThemePreviewCard extends StatelessWidget {
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
-                                        ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.7)),
+                                        ?.copyWith(
+                                            color: scheme.onSurface
+                                                .withValues(alpha: 0.7)),
                                   ),
                                 ],
                               ),
@@ -606,7 +620,9 @@ class _PremiumBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isLocked ? DsColors.warning.withValues(alpha: 0.15) : DsColors.primary.withValues(alpha: 0.15),
+        color: isLocked
+            ? DsColors.warning.withValues(alpha: 0.15)
+            : DsColors.primary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(

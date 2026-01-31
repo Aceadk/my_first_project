@@ -83,16 +83,16 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   Text(
                     'Email Verified',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: DsColors.success,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.success,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     currentEmail,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),
@@ -146,9 +146,9 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       Text(
                         'Want to use a different email?',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: DsColors.warning,
-                        ),
+                              fontWeight: FontWeight.w600,
+                              color: DsColors.warning,
+                            ),
                       ),
                     ],
                   ),
@@ -156,8 +156,8 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   Text(
                     'To use a different email address, you will need to delete this account and create a new one with the new email.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: DsColors.warning,
-                    ),
+                          color: DsColors.warning,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
@@ -330,10 +330,10 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
 
     final result = await Result.guard(
       () => authRepo.requestEmailOtp(
-            identifier: email,
-            purpose: EmailOtpPurpose.addEmail,
-            email: email,
-          ),
+        identifier: email,
+        purpose: EmailOtpPurpose.addEmail,
+        email: email,
+      ),
       logLabel: 'AuthRepository.requestEmailOtp',
       fallbackError: 'Could not send code. Please try again.',
     );

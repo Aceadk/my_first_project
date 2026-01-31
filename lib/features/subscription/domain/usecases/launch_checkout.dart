@@ -21,7 +21,8 @@ class LaunchCheckoutUseCase extends UseCase<void, LaunchCheckoutParams>
     if (params.url.isEmpty) {
       return 'Checkout URL is required';
     }
-    if (!params.url.startsWith('http://') && !params.url.startsWith('https://')) {
+    if (!params.url.startsWith('http://') &&
+        !params.url.startsWith('https://')) {
       return 'Invalid checkout URL';
     }
     return null;

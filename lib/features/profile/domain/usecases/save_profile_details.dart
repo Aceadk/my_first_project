@@ -34,7 +34,8 @@ class SaveProfileDetailsParams {
 }
 
 /// Use case for saving detailed profile information (bio, photos, interests).
-class SaveProfileDetailsUseCase extends UseCase<CrushUser, SaveProfileDetailsParams>
+class SaveProfileDetailsUseCase
+    extends UseCase<CrushUser, SaveProfileDetailsParams>
     with ValidatingUseCase<CrushUser, SaveProfileDetailsParams> {
   final ProfileRepository _profileRepository;
 

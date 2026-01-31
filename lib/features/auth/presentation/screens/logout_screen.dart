@@ -60,15 +60,15 @@ class LogoutScreen extends StatelessWidget {
                 Text(
                   'Ready to log out?',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 DsGap.md,
                 Text(
                   'You are signed in as $identifier.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: DsColors.textMutedLight,
-                  ),
+                        color: DsColors.textMutedLight,
+                      ),
                 ),
                 DsGap.md,
                 Container(
@@ -90,9 +90,10 @@ class LogoutScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Logging out will pause new matches and messages until you return.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: DsColors.warning,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: DsColors.warning,
+                                  ),
                         ),
                       ),
                     ],
@@ -125,7 +126,8 @@ class LogoutScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: state.isLoading ? null : () => Navigator.pop(context),
+                    onPressed:
+                        state.isLoading ? null : () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       padding: DsEdgeInsets.buttonPadding,
                     ),

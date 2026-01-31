@@ -34,7 +34,8 @@ class CrushEmptyState extends StatelessWidget {
     return CrushEmptyState(
       icon: Icons.favorite_border,
       title: 'No matches yet',
-      subtitle: 'Keep swiping and sending message requests.\nWhen you match with someone, they will appear here.',
+      subtitle:
+          'Keep swiping and sending message requests.\nWhen you match with someone, they will appear here.',
       actionLabel: 'Keep swiping',
       onAction: onKeepSwiping,
     );
@@ -62,7 +63,8 @@ class CrushEmptyState extends StatelessWidget {
     return CrushEmptyState(
       icon: Icons.people_outline,
       title: "You're all caught up!",
-      subtitle: 'There are no more people nearby right now.\nTry adjusting your filters or exploring with Passport.',
+      subtitle:
+          'There are no more people nearby right now.\nTry adjusting your filters or exploring with Passport.',
       actionLabel: 'Change filters',
       onAction: onChangeFilters,
       secondaryActionLabel: showPassportOption ? 'Try Passport' : null,
@@ -107,7 +109,9 @@ class CrushEmptyState extends StatelessWidget {
     return CrushEmptyState(
       icon: Icons.search_off,
       title: 'No results found',
-      subtitle: query != null ? 'No matches for "$query"' : 'Try a different search term.',
+      subtitle: query != null
+          ? 'No matches for "$query"'
+          : 'Try a different search term.',
       actionLabel: 'Clear search',
       onAction: onClearSearch,
     );
@@ -127,7 +131,8 @@ class CrushEmptyState extends StatelessWidget {
                 Icon(
                   icon,
                   size: iconSize,
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
             const SizedBox(height: DsSpacing.lg),
             Text(
@@ -142,7 +147,9 @@ class CrushEmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -189,7 +196,8 @@ class _ProfileCompletionIcon extends StatelessWidget {
             child: CircularProgressIndicator(
               value: percent,
               strokeWidth: 6,
-              backgroundColor: isDark ? DsColors.borderDark : DsColors.borderLight,
+              backgroundColor:
+                  isDark ? DsColors.borderDark : DsColors.borderLight,
               color: DsColors.primary,
             ),
           ),
@@ -223,7 +231,8 @@ class CrushAnimatedEmptyState extends StatefulWidget {
   });
 
   @override
-  State<CrushAnimatedEmptyState> createState() => _CrushAnimatedEmptyStateState();
+  State<CrushAnimatedEmptyState> createState() =>
+      _CrushAnimatedEmptyStateState();
 }
 
 class _CrushAnimatedEmptyStateState extends State<CrushAnimatedEmptyState>

@@ -23,7 +23,8 @@ class Result<T> {
       return Result._(data: value);
     } catch (error, stackTrace) {
       AppLogger.logError(logLabel ?? 'Operation failed', error, stackTrace);
-      String? message = fallbackError ?? 'Something went wrong. Please try again.';
+      String? message =
+          fallbackError ?? 'Something went wrong. Please try again.';
       String? code;
       if (error is SocketException || error is TimeoutException) {
         message =

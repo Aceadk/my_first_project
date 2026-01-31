@@ -185,7 +185,8 @@ class ApiEndpoints {
   // ─────────────────────────────────────────────────────────────────────────
 
   static const String chatConversations = '/chat/conversations';
-  static String chatMessages(String conversationId) => '/chat/$conversationId/messages';
+  static String chatMessages(String conversationId) =>
+      '/chat/$conversationId/messages';
   static String chatSend(String conversationId) => '/chat/$conversationId/send';
   static String chatRead(String conversationId) => '/chat/$conversationId/read';
 
@@ -299,13 +300,15 @@ class VersionNegotiationResult {
     final upgradeRequired = clientVersion < serverMinVersion;
 
     String? warning;
-    if (serverRecommendedVersion != null && clientVersion < serverRecommendedVersion) {
+    if (serverRecommendedVersion != null &&
+        clientVersion < serverRecommendedVersion) {
       warning = 'A newer API version ($serverRecommendedVersion) is available. '
           'Please update for the best experience.';
     }
 
     // Use the highest compatible version
-    final negotiated = clientVersion <= serverMaxVersion ? clientVersion : serverMaxVersion;
+    final negotiated =
+        clientVersion <= serverMaxVersion ? clientVersion : serverMaxVersion;
 
     return VersionNegotiationResult(
       clientVersion: clientVersion,

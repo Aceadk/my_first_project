@@ -212,7 +212,8 @@ class _SplashScreenState extends State<SplashScreen>
         builder: (context) {
           final theme = Theme.of(context);
           final backgroundColor = theme.scaffoldBackgroundColor;
-          final mutedColor = theme.colorScheme.onSurface.withValues(alpha: 0.55);
+          final mutedColor =
+              theme.colorScheme.onSurface.withValues(alpha: 0.55);
           final brandGradient =
               theme.extension<CrushThemeEffects>()?.primaryGradient ??
                   DsGradients.primaryHorizontal;
@@ -233,12 +234,11 @@ class _SplashScreenState extends State<SplashScreen>
                         final fontSize = maxWidth * 0.23;
                         final wordmarkHeight = fontSize * 1.3;
 
-                        final baseStyle =
-                            theme.textTheme.titleLarge ??
-                                const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                );
+                        final baseStyle = theme.textTheme.titleLarge ??
+                            const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            );
 
                         final wordmarkStyle = baseStyle.copyWith(
                           fontSize: fontSize,

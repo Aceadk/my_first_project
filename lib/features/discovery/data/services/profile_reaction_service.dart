@@ -146,7 +146,8 @@ class ProfileReactionService {
           r.contentType == contentType &&
           r.contentIndex == contentIndex);
     } catch (e) {
-      debugPrint('ProfileReactionService: Reaction not found for user $fromUserId -> $toUserId: $e');
+      debugPrint(
+          'ProfileReactionService: Reaction not found for user $fromUserId -> $toUserId: $e');
       return null;
     }
   }

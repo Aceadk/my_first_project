@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/router.dart';
 
 /// Deep link configuration for the app.
 ///
@@ -7,12 +8,17 @@ import 'package:flutter/foundation.dart';
 /// - https://crushhour.app/  (universal links)
 ///
 /// Deep link paths:
-/// - /profile/:userId - View a user's profile
+/// - /user-profile/:userId - View a user's profile
 /// - /chat/:matchId - Open a chat
-/// - /match/:matchId - View a match
-/// - /invite/:code - Accept an invite
+/// - /match/:matchId - View a match (routes to chat)
 /// - /settings - Open settings
-/// - /premium - Open premium upsell
+/// - /premium or /upgrade - Open settings (subscription section)
+/// - /auth/login - Login
+/// - /auth/signup - Signup
+/// - /auth/reset - Password reset
+/// - /email-verification - Email verification
+/// - /privacy-policy - Privacy policy
+/// - /terms-of-service - Terms of service
 class DeepLinkConfig {
   static const String customScheme = 'crushhour';
   static const String universalHost = 'crushhour.app';
@@ -27,7 +33,7 @@ class DeepLinkConfig {
 
     final pathSegments = uri.pathSegments;
     if (pathSegments.isEmpty) {
-      return const DeepLinkResult(route: '/home');
+      return const DeepLinkResult(route: CrushRoutes.home);
     }
 
     final firstSegment = pathSegments.first;
@@ -37,7 +43,7 @@ class DeepLinkConfig {
         if (pathSegments.length >= 2) {
           final userId = pathSegments[1];
           return DeepLinkResult(
-            route: '/user-profile',
+            route: '${CrushRoutes.userProfile}/$userId',
             params: {'userId': userId},
             requiresAuth: true,
           );
@@ -48,7 +54,7 @@ class DeepLinkConfig {
         if (pathSegments.length >= 2) {
           final matchId = pathSegments[1];
           return DeepLinkResult(
-            route: '/chat/$matchId',
+            route: '${CrushRoutes.chat}/$matchId',
             params: {'matchId': matchId},
             requiresAuth: true,
           );
@@ -59,34 +65,23 @@ class DeepLinkConfig {
         if (pathSegments.length >= 2) {
           final matchId = pathSegments[1];
           return DeepLinkResult(
-            route: '/chat/$matchId',
+            route: '${CrushRoutes.chat}/$matchId',
             params: {'matchId': matchId},
             requiresAuth: true,
           );
         }
         return null;
 
-      case 'invite':
-        if (pathSegments.length >= 2) {
-          final code = pathSegments[1];
-          return DeepLinkResult(
-            route: '/invite',
-            params: {'code': code},
-            queryParams: {'code': code},
-          );
-        }
-        return null;
-
       case 'settings':
         return const DeepLinkResult(
-          route: '/settings',
+          route: CrushRoutes.settings,
           requiresAuth: true,
         );
 
       case 'premium':
       case 'upgrade':
         return const DeepLinkResult(
-          route: '/premium',
+          route: CrushRoutes.settings,
           requiresAuth: true,
         );
 
@@ -94,7 +89,7 @@ class DeepLinkConfig {
         final token = uri.queryParameters['token'];
         if (token != null) {
           return DeepLinkResult(
-            route: '/email-protection',
+            route: CrushRoutes.emailProtection,
             queryParams: {'token': token},
           );
         }
@@ -105,7 +100,7 @@ class DeepLinkConfig {
         final email = uri.queryParameters['email'];
         final token = uri.queryParameters['token'];
         return DeepLinkResult(
-          route: '/auth/verify-email',
+          route: CrushRoutes.emailVerification,
           queryParams: {
             if (email != null) 'email': email,
             if (token != null) 'token': token,
@@ -116,29 +111,32 @@ class DeepLinkConfig {
         final token = uri.queryParameters['token'];
         if (token != null) {
           return DeepLinkResult(
-            route: '/auth/reset',
+            route: CrushRoutes.resetPassword,
             queryParams: {'token': token},
           );
         }
         return null;
 
       case 'login':
-        return const DeepLinkResult(route: '/auth/login');
+        return const DeepLinkResult(route: CrushRoutes.login);
 
       case 'signup':
         final referral = uri.queryParameters['ref'];
         return DeepLinkResult(
-          route: '/auth/signup',
+          route: CrushRoutes.signUp,
           queryParams: referral != null ? {'ref': referral} : null,
         );
 
       default:
         // Try to match known routes directly
         final knownRoutes = [
-          '/home',
-          '/safety',
-          '/profile',
-          '/auth',
+          CrushRoutes.home,
+          CrushRoutes.safety,
+          CrushRoutes.profile,
+          CrushRoutes.settings,
+          CrushRoutes.authGateway,
+          CrushRoutes.privacyPolicy,
+          CrushRoutes.termsOfService,
         ];
         final path = '/${pathSegments.join('/')}';
         if (knownRoutes.any((r) => path.startsWith(r))) {
@@ -193,12 +191,7 @@ class DeepLinkConfig {
 
   /// Build a profile share link.
   static Uri buildProfileShareLink(String userId) {
-    return buildShareLink(path: '/profile/$userId');
-  }
-
-  /// Build an invite link.
-  static Uri buildInviteLink(String code) {
-    return buildShareLink(path: '/invite/$code');
+    return buildShareLink(path: '${CrushRoutes.userProfile}/$userId');
   }
 
   /// Build a referral signup link.
@@ -241,13 +234,15 @@ class DeepLinkResult {
       return route;
     }
     final query = queryParams!.entries
-        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map((e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
         .join('&');
     return '$route?$query';
   }
 
   @override
-  String toString() => 'DeepLinkResult(route: $route, params: $params, requiresAuth: $requiresAuth)';
+  String toString() =>
+      'DeepLinkResult(route: $route, params: $params, requiresAuth: $requiresAuth)';
 }
 
 /// Handler for processing incoming deep links.

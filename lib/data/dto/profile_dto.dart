@@ -126,35 +126,36 @@ class ProfileDto {
       age: json['age'] as int? ?? 0,
       gender: json['gender'] as String? ?? '',
       sexualOrientation: json['sexual_orientation'] as String? ??
-                         json['sexualOrientation'] as String?,
-      dateOfBirth: json['date_of_birth'] as String? ??
-                   json['dateOfBirth'] as String?,
+          json['sexualOrientation'] as String?,
+      dateOfBirth:
+          json['date_of_birth'] as String? ?? json['dateOfBirth'] as String?,
       lastNameChangeAt: json['last_name_change_at'] as String? ??
-                        json['lastNameChangeAt'] as String?,
+          json['lastNameChangeAt'] as String?,
       photoUrls: _parseStringList(json['photo_urls'] ?? json['photoUrls']),
       videoUrls: _parseStringList(json['video_urls'] ?? json['videoUrls']),
       primaryPhotoIndex: json['primary_photo_index'] as int? ??
-                         json['primaryPhotoIndex'] as int? ?? 0,
+          json['primaryPhotoIndex'] as int? ??
+          0,
       bio: json['bio'] as String? ?? '',
       interests: _parseStringList(json['interests']),
       prompts: _parseStringList(json['prompts']),
       heightCm: json['height_cm'] as int? ?? json['heightCm'] as int?,
       relationshipGoals: json['relationship_goals'] as String? ??
-                         json['relationshipGoals'] as String?,
+          json['relationshipGoals'] as String?,
       languages: _parseStringList(json['languages']),
-      zodiacSign: json['zodiac_sign'] as String? ??
-                  json['zodiacSign'] as String?,
+      zodiacSign:
+          json['zodiac_sign'] as String? ?? json['zodiacSign'] as String?,
       educationLevel: json['education_level'] as String? ??
-                      json['educationLevel'] as String?,
-      familyPlans: json['family_plans'] as String? ??
-                   json['familyPlans'] as String?,
+          json['educationLevel'] as String?,
+      familyPlans:
+          json['family_plans'] as String? ?? json['familyPlans'] as String?,
       personalityType: json['personality_type'] as String? ??
-                       json['personalityType'] as String?,
+          json['personalityType'] as String?,
       workout: json['workout'] as String?,
-      socialMedia: json['social_media'] as String? ??
-                   json['socialMedia'] as String?,
+      socialMedia:
+          json['social_media'] as String? ?? json['socialMedia'] as String?,
       sleepingHabits: json['sleeping_habits'] as String? ??
-                      json['sleepingHabits'] as String?,
+          json['sleepingHabits'] as String?,
       smoking: json['smoking'] as String?,
       drinking: json['drinking'] as String?,
       diet: json['diet'] as String?,
@@ -168,16 +169,17 @@ class ProfileDto {
       livingIn: json['living_in'] as String? ?? json['livingIn'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      favoriteSongs: _parseStringList(json['favorite_songs'] ?? json['favoriteSongs']),
+      favoriteSongs:
+          _parseStringList(json['favorite_songs'] ?? json['favoriteSongs']),
       favoriteSinger: json['favorite_singer'] as String? ??
-                      json['favoriteSinger'] as String?,
-      isVerified: json['is_verified'] as bool? ??
-                  json['isVerified'] as bool? ?? false,
+          json['favoriteSinger'] as String?,
+      isVerified:
+          json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? false,
       verificationBadge: json['verification_badge'] as String? ??
-                         json['verificationBadge'] as String?,
+          json['verificationBadge'] as String?,
       preferences: json['preferences'] as Map<String, dynamic>?,
       privacySettings: json['privacy_settings'] as Map<String, dynamic>? ??
-                       json['privacySettings'] as Map<String, dynamic>?,
+          json['privacySettings'] as Map<String, dynamic>?,
     );
   }
 
@@ -240,7 +242,9 @@ class ProfileDto {
       gender: gender,
       sexualOrientation: sexualOrientation,
       dateOfBirth: dateOfBirth != null ? DateTime.tryParse(dateOfBirth!) : null,
-      lastNameChangeAt: lastNameChangeAt != null ? DateTime.tryParse(lastNameChangeAt!) : null,
+      lastNameChangeAt: lastNameChangeAt != null
+          ? DateTime.tryParse(lastNameChangeAt!)
+          : null,
       photoUrls: photoUrls,
       videoUrls: videoUrls,
       primaryPhotoIndex: primaryPhotoIndex,
@@ -357,22 +361,28 @@ class ProfileDto {
       minAge: json['min_age'] as int? ?? json['minAge'] as int? ?? 18,
       maxAge: json['max_age'] as int? ?? json['maxAge'] as int? ?? 50,
       maxDistanceKm: (json['max_distance_km'] as num?)?.toDouble() ??
-                     (json['maxDistanceKm'] as num?)?.toDouble() ?? 50,
-      showMeGenders: _parseStringList(json['show_me_genders'] ?? json['showMeGenders']),
+          (json['maxDistanceKm'] as num?)?.toDouble() ??
+          50,
+      showMeGenders:
+          _parseStringList(json['show_me_genders'] ?? json['showMeGenders']),
       showMyDistance: json['show_my_distance'] as bool? ??
-                      json['showMyDistance'] as bool? ?? true,
-      showMyAge: json['show_my_age'] as bool? ??
-                 json['showMyAge'] as bool? ?? true,
+          json['showMyDistance'] as bool? ??
+          true,
+      showMyAge:
+          json['show_my_age'] as bool? ?? json['showMyAge'] as bool? ?? true,
       hideFromDiscovery: json['hide_from_discovery'] as bool? ??
-                         json['hideFromDiscovery'] as bool? ?? false,
+          json['hideFromDiscovery'] as bool? ??
+          false,
       incognitoMode: json['incognito_mode'] as bool? ??
-                     json['incognitoMode'] as bool? ?? false,
+          json['incognitoMode'] as bool? ??
+          false,
       country: json['country'] as String? ?? '',
       city: json['city'] as String? ?? '',
     );
   }
 
-  static ProfilePrivacySettings _parsePrivacySettings(Map<String, dynamic>? json) {
+  static ProfilePrivacySettings _parsePrivacySettings(
+      Map<String, dynamic>? json) {
     // ProfilePrivacySettings has its own fromJson factory
     return ProfilePrivacySettings.fromJson(json);
   }
@@ -392,7 +402,8 @@ class ProfileDto {
     };
   }
 
-  static Map<String, dynamic> _privacySettingsToJson(ProfilePrivacySettings settings) {
+  static Map<String, dynamic> _privacySettingsToJson(
+      ProfilePrivacySettings settings) {
     // ProfilePrivacySettings has its own toJson method
     return settings.toJson();
   }

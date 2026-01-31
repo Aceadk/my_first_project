@@ -10,7 +10,8 @@ class TriggerEmergencyAlertParams {
 }
 
 /// Use case for triggering an emergency alert to all contacts.
-class TriggerEmergencyAlertUseCase extends UseCase<void, TriggerEmergencyAlertParams>
+class TriggerEmergencyAlertUseCase
+    extends UseCase<void, TriggerEmergencyAlertParams>
     with ValidatingUseCase<void, TriggerEmergencyAlertParams> {
   final DatePlanService _service;
 
@@ -30,7 +31,8 @@ class TriggerEmergencyAlertUseCase extends UseCase<void, TriggerEmergencyAlertPa
     return Result.guard(
       () => _service.triggerEmergencyAlert(params.planId),
       logLabel: 'TriggerEmergencyAlertUseCase',
-      fallbackError: 'Unable to send emergency alert. Please call emergency services.',
+      fallbackError:
+          'Unable to send emergency alert. Please call emergency services.',
     );
   }
 }

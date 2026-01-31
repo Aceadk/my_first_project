@@ -84,7 +84,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       listener: (context, state) {
         // Handle phone auth state changes
         if (_authMethod == 'phone') {
-          if (state.status == AuthStatus.otpSent && state.phoneInProgress != null) {
+          if (state.status == AuthStatus.otpSent &&
+              state.phoneInProgress != null) {
             setState(() {
               _phoneInProgress = state.phoneInProgress;
               _currentStep = 1; // Move to OTP step
@@ -237,7 +238,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           isLoading: _isLoading,
           isDark: isDark,
           obscurePassword: _obscurePassword,
-          onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+          onToggleObscure: () =>
+              setState(() => _obscurePassword = !_obscurePassword),
           onNext: _createAccount,
           onChanged: () => setState(() => _passwordError = null),
           hasUsername: _usernameController.text.trim().isNotEmpty,
@@ -326,7 +328,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // Must be valid
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
     if (!valid) {
-      setState(() => _usernameError = 'Use 3-20 letters, numbers, or underscore');
+      setState(
+          () => _usernameError = 'Use 3-20 letters, numbers, or underscore');
       return;
     }
     setState(() {
@@ -381,21 +384,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (password.isEmpty) {
       setState(() => _passwordError = 'Please create a password');
       if (errors.isNotEmpty) {
-        showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+        showErrorSnackBar(context,
+            'Please complete all required fields: ${errors.join(", ")}');
       }
       return;
     }
     if (password.length < 8) {
       setState(() => _passwordError = 'Password must be at least 8 characters');
       if (errors.isNotEmpty) {
-        showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+        showErrorSnackBar(context,
+            'Please complete all required fields: ${errors.join(", ")}');
       }
       return;
     }
 
     // If there are missing required fields, show error and let user go back
     if (errors.isNotEmpty) {
-      showErrorSnackBar(context, 'Please complete all required fields: ${errors.join(", ")}');
+      showErrorSnackBar(
+          context, 'Please complete all required fields: ${errors.join(", ")}');
       return;
     }
 
@@ -474,7 +480,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    showSuccessSnackBar(context, 'A verification email has been sent to your inbox.');
+    showSuccessSnackBar(
+        context, 'A verification email has been sent to your inbox.');
   }
 
   Future<void> _openEmailApp() async {
@@ -490,13 +497,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
           await launchUrl(gmailUri);
         } else {
           if (mounted) {
-            showErrorSnackBar(context, 'Could not open email app. Please check your email manually.');
+            showErrorSnackBar(context,
+                'Could not open email app. Please check your email manually.');
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, 'Could not open email app. Please check your email manually.');
+        showErrorSnackBar(context,
+            'Could not open email app. Please check your email manually.');
       }
     }
   }
@@ -518,7 +527,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() => _isLoading = false);
     }
 
-    if (result.isSuccess && result.data != null && result.data!.isEmailVerified) {
+    if (result.isSuccess &&
+        result.data != null &&
+        result.data!.isEmailVerified) {
       if (mounted) {
         showSuccessSnackBar(context, 'Email verified! Welcome to Crush.');
         context.go(CrushRoutes.termsConditions);
@@ -554,16 +565,16 @@ class _StepProgress extends StatelessWidget {
             Text(
               'Step ${currentStep + 1} of $totalSteps',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DsColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: DsColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const Spacer(),
             Text(
               '${((currentStep + 1) / totalSteps * 100).round()}%',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DsColors.textMutedLight,
-              ),
+                    color: DsColors.textMutedLight,
+                  ),
             ),
           ],
         ),
@@ -616,32 +627,33 @@ class _UsernameStep extends StatelessWidget {
           child: Text(
             'Welcome to Crush',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: DsColors.backgroundLight,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: DsColors.backgroundLight,
+                ),
           ),
         ),
         DsGap.xs,
         Text(
           'Step 1',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: DsColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
+                color: DsColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
         ),
         DsGap.lg,
         Text(
           'Choose your username',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+                fontWeight: FontWeight.w600,
+              ),
         ),
         DsGap.xs,
         Text(
           'This is how others will find you on Crush.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxl,
         GlassTextField(
@@ -659,8 +671,9 @@ class _UsernameStep extends StatelessWidget {
         Text(
           '3-20 characters, letters, numbers, and underscore only',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxl,
         GlassPrimaryButton(
@@ -683,8 +696,10 @@ class _UsernameStep extends StatelessWidget {
                 child: Text(
                   'or sign up with',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                 ),
               ),
               const Expanded(child: Divider()),
@@ -746,8 +761,9 @@ class _AltSignUpOption extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color:
-                    isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+                color: isDark
+                    ? DsColors.textPrimaryDark
+                    : DsColors.textPrimaryLight,
               ),
             ),
           ],
@@ -786,8 +802,8 @@ class _EmailStep extends StatelessWidget {
         Text(
           'What\'s your email?',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.sm,
         Text(
@@ -795,8 +811,9 @@ class _EmailStep extends StatelessWidget {
               ? 'Test mode: verification is disabled.'
               : 'We\'ll send you a verification link to confirm your email.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxl,
         GlassTextField(
@@ -862,15 +879,16 @@ class _PasswordStep extends StatelessWidget {
         Text(
           'Create a password',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.sm,
         Text(
           'Make it strong with at least 8 characters.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         if (missingFields.isNotEmpty) ...[
           DsGap.md,
@@ -895,8 +913,8 @@ class _PasswordStep extends StatelessWidget {
                   child: Text(
                     'Missing required fields: ${missingFields.join(", ")}. Go back to fill them before creating your account.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: DsColors.warning,
-                    ),
+                          color: DsColors.warning,
+                        ),
                   ),
                 ),
               ],
@@ -912,7 +930,9 @@ class _PasswordStep extends StatelessWidget {
           errorText: error,
           enabled: !isLoading,
           obscureText: obscurePassword,
-          suffixIcon: obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          suffixIcon: obscurePassword
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
           onSuffixTap: onToggleObscure,
           onChanged: (_) => onChanged(),
           textInputAction: TextInputAction.done,
@@ -1069,8 +1089,8 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
           child: Text(
             'Check your email',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
         DsGap.md,
@@ -1078,8 +1098,10 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
           child: Text(
             'We sent a verification link to',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: widget.isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color: widget.isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
             textAlign: TextAlign.center,
           ),
         ),
@@ -1094,9 +1116,9 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
             child: Text(
               widget.email,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: DsColors.primary,
-              ),
+                    fontWeight: FontWeight.w600,
+                    color: DsColors.primary,
+                  ),
             ),
           ),
         ),
@@ -1150,8 +1172,8 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
                       child: Text(
                         'If you didn\'t request this, please ignore the email.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: DsColors.warning,
-                        ),
+                              color: DsColors.warning,
+                            ),
                       ),
                     ),
                   ],
@@ -1180,8 +1202,8 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
                 Text(
                   'Auto-checking verification status...',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: DsColors.success,
-                  ),
+                        color: DsColors.success,
+                      ),
                 ),
               ],
             ),
@@ -1223,8 +1245,10 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
           child: Text(
             'Check your spam folder if you don\'t see it',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: widget.isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color: widget.isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
           ),
         ),
       ],
@@ -1270,8 +1294,10 @@ class _InstructionRow extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-            ),
+                  color: isDark
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight,
+                ),
           ),
         ),
       ],
@@ -1413,15 +1439,16 @@ class _PhoneStep extends StatelessWidget {
         Text(
           'Enter your phone number',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.sm,
         Text(
           'We\'ll send you a code to verify your account.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxl,
         // Country picker
@@ -1432,7 +1459,8 @@ class _PhoneStep extends StatelessWidget {
             labelText: 'Country',
             prefixIcon: const Icon(Icons.flag_outlined),
             filled: true,
-            fillColor: isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
+            fillColor:
+                isDark ? DsColors.inputFillDark : DsColors.inputFillLight,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -1507,8 +1535,9 @@ class _PhoneStep extends StatelessWidget {
         Text(
           'SMS rates may apply. We only use this to secure your account.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxl,
         GlassPrimaryButton(
@@ -1587,15 +1616,16 @@ class _PhoneOtpStep extends StatelessWidget {
         Text(
           'Enter verification code',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.sm,
         RichText(
           text: TextSpan(
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
             children: [
               const TextSpan(text: 'We sent a 6-digit code to '),
               TextSpan(
@@ -1686,7 +1716,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Bosnia and Herzegovina', dialCode: '+387', flag: '🇧🇦'),
   _CountryCode(name: 'Botswana', dialCode: '+267', flag: '🇧🇼'),
   _CountryCode(name: 'Brazil', dialCode: '+55', flag: '🇧🇷'),
-  _CountryCode(name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
+  _CountryCode(
+      name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
   _CountryCode(name: 'British Virgin Islands', dialCode: '+1284', flag: '🇻🇬'),
   _CountryCode(name: 'Brunei', dialCode: '+673', flag: '🇧🇳'),
   _CountryCode(name: 'Bulgaria', dialCode: '+359', flag: '🇧🇬'),
@@ -1697,7 +1728,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Canada', dialCode: '+1', flag: '🇨🇦'),
   _CountryCode(name: 'Cape Verde', dialCode: '+238', flag: '🇨🇻'),
   _CountryCode(name: 'Cayman Islands', dialCode: '+1345', flag: '🇰🇾'),
-  _CountryCode(name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
+  _CountryCode(
+      name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
   _CountryCode(name: 'Chad', dialCode: '+235', flag: '🇹🇩'),
   _CountryCode(name: 'Chile', dialCode: '+56', flag: '🇨🇱'),
   _CountryCode(name: 'China', dialCode: '+86', flag: '🇨🇳'),
@@ -1713,7 +1745,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Curacao', dialCode: '+599', flag: '🇨🇼'),
   _CountryCode(name: 'Cyprus', dialCode: '+357', flag: '🇨🇾'),
   _CountryCode(name: 'Czech Republic', dialCode: '+420', flag: '🇨🇿'),
-  _CountryCode(name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
+  _CountryCode(
+      name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
   _CountryCode(name: 'Denmark', dialCode: '+45', flag: '🇩🇰'),
   _CountryCode(name: 'Djibouti', dialCode: '+253', flag: '🇩🇯'),
   _CountryCode(name: 'Dominica', dialCode: '+1767', flag: '🇩🇲'),
@@ -1814,7 +1847,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Norfolk Island', dialCode: '+672', flag: '🇳🇫'),
   _CountryCode(name: 'North Korea', dialCode: '+850', flag: '🇰🇵'),
   _CountryCode(name: 'North Macedonia', dialCode: '+389', flag: '🇲🇰'),
-  _CountryCode(name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
+  _CountryCode(
+      name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
   _CountryCode(name: 'Norway', dialCode: '+47', flag: '🇳🇴'),
   _CountryCode(name: 'Oman', dialCode: '+968', flag: '🇴🇲'),
   _CountryCode(name: 'Pakistan', dialCode: '+92', flag: '🇵🇰'),
@@ -1839,8 +1873,12 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Saint Kitts and Nevis', dialCode: '+1869', flag: '🇰🇳'),
   _CountryCode(name: 'Saint Lucia', dialCode: '+1758', flag: '🇱🇨'),
   _CountryCode(name: 'Saint Martin', dialCode: '+590', flag: '🇲🇫'),
-  _CountryCode(name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
-  _CountryCode(name: 'Saint Vincent and the Grenadines', dialCode: '+1784', flag: '🇻🇨'),
+  _CountryCode(
+      name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
+  _CountryCode(
+      name: 'Saint Vincent and the Grenadines',
+      dialCode: '+1784',
+      flag: '🇻🇨'),
   _CountryCode(name: 'Samoa', dialCode: '+685', flag: '🇼🇸'),
   _CountryCode(name: 'San Marino', dialCode: '+378', flag: '🇸🇲'),
   _CountryCode(name: 'Sao Tome and Principe', dialCode: '+239', flag: '🇸🇹'),
@@ -1877,7 +1915,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Tunisia', dialCode: '+216', flag: '🇹🇳'),
   _CountryCode(name: 'Turkey', dialCode: '+90', flag: '🇹🇷'),
   _CountryCode(name: 'Turkmenistan', dialCode: '+993', flag: '🇹🇲'),
-  _CountryCode(name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
+  _CountryCode(
+      name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
   _CountryCode(name: 'Tuvalu', dialCode: '+688', flag: '🇹🇻'),
   _CountryCode(name: 'Uganda', dialCode: '+256', flag: '🇺🇬'),
   _CountryCode(name: 'Ukraine', dialCode: '+380', flag: '🇺🇦'),

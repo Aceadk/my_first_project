@@ -11,7 +11,8 @@ class SearchDateIdeasParams {
 }
 
 /// Use case for searching date ideas by text.
-class SearchDateIdeasUseCase extends UseCase<List<DateIdea>, SearchDateIdeasParams>
+class SearchDateIdeasUseCase
+    extends UseCase<List<DateIdea>, SearchDateIdeasParams>
     with ValidatingUseCase<List<DateIdea>, SearchDateIdeasParams> {
   final DateIdeaService _service;
 

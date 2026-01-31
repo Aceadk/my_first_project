@@ -406,9 +406,8 @@ class _CompletionItemTile extends StatelessWidget {
               Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: isDark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
           ],
         ),

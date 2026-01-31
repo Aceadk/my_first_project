@@ -18,7 +18,8 @@ class PrivacySettingsCubit extends Cubit<ProfilePrivacySettings> {
     try {
       return ProfilePrivacySettings.fromJson(jsonDecode(json));
     } catch (e) {
-      debugPrint('PrivacySettingsCubit: Error parsing saved settings, using defaults: $e');
+      debugPrint(
+          'PrivacySettingsCubit: Error parsing saved settings, using defaults: $e');
       return const ProfilePrivacySettings();
     }
   }

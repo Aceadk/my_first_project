@@ -162,7 +162,8 @@ Card(
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Text('JD', style: TextStyle(color: Colors.white)),
+                    child:
+                        const Text('JD', style: TextStyle(color: Colors.white)),
                   ),
                   const SizedBox(width: DsSpacing.md),
                   Expanded(

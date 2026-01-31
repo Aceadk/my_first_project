@@ -53,21 +53,25 @@ class ProfileMediaService {
       debugPrint('ProfileMediaService: Photo uploaded - $downloadUrl');
       return downloadUrl;
     } on FirebaseException catch (e) {
-      debugPrint('ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
-      debugPrint('ProfileMediaService: Make sure Firebase Storage rules allow uploads for authenticated users.');
+      debugPrint(
+          'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
+      debugPrint(
+          'ProfileMediaService: Make sure Firebase Storage rules allow uploads for authenticated users.');
       debugPrint('ProfileMediaService: Example rules:');
       debugPrint('  rules_version = "2";');
       debugPrint('  service firebase.storage {');
       debugPrint('    match /b/{bucket}/o {');
       debugPrint('      match /users/{userId}/{allPaths=**} {');
-      debugPrint('        allow read, write: if request.auth != null && request.auth.uid == userId;');
+      debugPrint(
+          '        allow read, write: if request.auth != null && request.auth.uid == userId;');
       debugPrint('      }');
       debugPrint('    }');
       debugPrint('  }');
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint('ProfileMediaService: Using local file fallback for development');
+        debugPrint(
+            'ProfileMediaService: Using local file fallback for development');
         return filePath;
       }
       rethrow;
@@ -76,7 +80,8 @@ class ProfileMediaService {
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint('ProfileMediaService: Using local file fallback for development');
+        debugPrint(
+            'ProfileMediaService: Using local file fallback for development');
         return filePath;
       }
       rethrow;
@@ -120,11 +125,13 @@ class ProfileMediaService {
       debugPrint('ProfileMediaService: Video uploaded - $downloadUrl');
       return downloadUrl;
     } on FirebaseException catch (e) {
-      debugPrint('ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
+      debugPrint(
+          'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint('ProfileMediaService: Using local file fallback for development');
+        debugPrint(
+            'ProfileMediaService: Using local file fallback for development');
         return filePath;
       }
       rethrow;
@@ -133,7 +140,8 @@ class ProfileMediaService {
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint('ProfileMediaService: Using local file fallback for development');
+        debugPrint(
+            'ProfileMediaService: Using local file fallback for development');
         return filePath;
       }
       rethrow;
@@ -177,14 +185,16 @@ class ProfileMediaService {
         // Check if local file still exists
         final file = File(filePath);
         if (!await file.exists()) {
-          debugPrint('ProfileMediaService: Skipping missing local photo: $filePath');
+          debugPrint(
+              'ProfileMediaService: Skipping missing local photo: $filePath');
           continue; // Skip missing files instead of failing
         }
         try {
           final url = await uploadPhoto(userId: userId, filePath: filePath);
           photoUrls.add(url);
         } catch (e) {
-          debugPrint('ProfileMediaService: Failed to upload photo, skipping: $e');
+          debugPrint(
+              'ProfileMediaService: Failed to upload photo, skipping: $e');
           // In debug mode with fallback, still add the local path
           if (kDebugMode && useFallbackInDebug) {
             photoUrls.add(filePath);
@@ -201,14 +211,16 @@ class ProfileMediaService {
         // Check if local file still exists
         final file = File(filePath);
         if (!await file.exists()) {
-          debugPrint('ProfileMediaService: Skipping missing local video: $filePath');
+          debugPrint(
+              'ProfileMediaService: Skipping missing local video: $filePath');
           continue; // Skip missing files instead of failing
         }
         try {
           final url = await uploadVideo(userId: userId, filePath: filePath);
           videoUrls.add(url);
         } catch (e) {
-          debugPrint('ProfileMediaService: Failed to upload video, skipping: $e');
+          debugPrint(
+              'ProfileMediaService: Failed to upload video, skipping: $e');
           // In debug mode with fallback, still add the local path
           if (kDebugMode && useFallbackInDebug) {
             videoUrls.add(filePath);

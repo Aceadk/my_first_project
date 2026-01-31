@@ -56,13 +56,17 @@ class _DeckCardStackState extends State<DeckCardStack> {
     }
 
     // Next 2 cards - high priority
-    for (var i = currentIndex + 1; i <= currentIndex + 2 && i < deck.length; i++) {
+    for (var i = currentIndex + 1;
+        i <= currentIndex + 2 && i < deck.length;
+        i++) {
       final url = deck[i].displayPhotoUrl;
       if (url != null) highPriorityUrls.add(url);
     }
 
     // Preview cards (3-4) - low priority
-    for (var i = currentIndex + 3; i <= currentIndex + 4 && i < deck.length; i++) {
+    for (var i = currentIndex + 3;
+        i <= currentIndex + 4 && i < deck.length;
+        i++) {
       final url = deck[i].displayPhotoUrl;
       if (url != null) lowPriorityUrls.add(url);
     }

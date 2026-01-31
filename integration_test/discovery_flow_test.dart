@@ -13,7 +13,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    testWidgets('authenticated user sees home screen with deck', (tester) async {
+    testWidgets('authenticated user sees home screen with deck',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(TestApp(preferences: prefs));
@@ -23,7 +24,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');
@@ -48,7 +50,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');
@@ -73,7 +76,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');
@@ -105,7 +109,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');
@@ -140,7 +145,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');

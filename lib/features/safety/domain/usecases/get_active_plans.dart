@@ -11,7 +11,8 @@ class GetActivePlansParams {
 }
 
 /// Use case for getting active date plans for a user.
-class GetActivePlansUseCase extends UseCase<List<DatePlan>, GetActivePlansParams>
+class GetActivePlansUseCase
+    extends UseCase<List<DatePlan>, GetActivePlansParams>
     with ValidatingUseCase<List<DatePlan>, GetActivePlansParams> {
   final DatePlanService _service;
 

@@ -124,7 +124,8 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = widget.borderRadius ?? BorderRadius.circular(DsRadius.lg);
+    final borderRadius =
+        widget.borderRadius ?? BorderRadius.circular(DsRadius.lg);
 
     if (_hasError) {
       return _buildErrorState(borderRadius);

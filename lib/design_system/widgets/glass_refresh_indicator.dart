@@ -172,7 +172,8 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
                                   padding: const EdgeInsets.all(12),
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation(indicatorColor),
+                                    valueColor:
+                                        AlwaysStoppedAnimation(indicatorColor),
                                   ),
                                 ),
                               )

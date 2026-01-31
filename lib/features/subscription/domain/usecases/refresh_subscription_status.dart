@@ -4,7 +4,8 @@ import 'package:crushhour/domain/use_cases/use_case.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 
 /// Use case for refreshing subscription status from the billing provider.
-class RefreshSubscriptionStatusUseCase extends UseCase<SubscriptionStatus, NoParams> {
+class RefreshSubscriptionStatusUseCase
+    extends UseCase<SubscriptionStatus, NoParams> {
   final SubscriptionRepository _repository;
 
   RefreshSubscriptionStatusUseCase(this._repository);

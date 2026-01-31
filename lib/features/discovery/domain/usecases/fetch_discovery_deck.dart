@@ -13,7 +13,8 @@ class FetchDeckParams {
 /// Use case for fetching profiles for the discovery deck.
 ///
 /// Returns a list of profiles that the user can swipe on.
-class FetchDiscoveryDeckUseCase extends UseCase<List<Profile>, FetchDeckParams> {
+class FetchDiscoveryDeckUseCase
+    extends UseCase<List<Profile>, FetchDeckParams> {
   final DiscoveryRepository _discoveryRepository;
 
   FetchDiscoveryDeckUseCase(this._discoveryRepository);

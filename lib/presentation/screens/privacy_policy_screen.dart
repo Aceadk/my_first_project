@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/config/legal_config.dart';
 import 'package:crushhour/design_system/design_system.dart';
 
 /// Privacy Policy screen required for App Store compliance.
@@ -7,15 +8,14 @@ import 'package:crushhour/design_system/design_system.dart';
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
-  static const String supportEmail = 'privacy@crushhour.app';
-  static const String lastUpdated = 'January 2026';
+  static const String supportEmail = LegalConfig.privacyEmail;
+  static const String lastUpdated = LegalConfig.privacyPolicyLastUpdated;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
-    final muted =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final muted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Privacy Policy')),
@@ -43,16 +43,24 @@ class PrivacyPolicyScreen extends StatelessWidget {
           // Information We Collect
           const _SectionHeader('Information We Collect'),
           const _SubHeader('Personal Information You Provide'),
-          const _Bullet('Account information: name, email, phone number, date of birth'),
-          const _Bullet('Profile information: photos, bio, interests, preferences'),
-          const _Bullet('Verification data: ID documents for identity verification'),
-          const _Bullet('Communications: messages, reports, and support requests'),
-          const _Bullet('Payment information: processed securely through third-party providers'),
+          const _Bullet(
+              'Account information: name, email, phone number, date of birth'),
+          const _Bullet(
+              'Profile information: photos, bio, interests, preferences'),
+          const _Bullet(
+              'Verification data: ID documents for identity verification'),
+          const _Bullet(
+              'Communications: messages, reports, and support requests'),
+          const _Bullet(
+              'Payment information: processed securely through third-party providers'),
           const SizedBox(height: DsSpacing.md),
           const _SubHeader('Information Collected Automatically'),
-          const _Bullet('Location data: to show you nearby users (with your permission)'),
-          const _Bullet('Device information: device type, OS version, unique identifiers'),
-          const _Bullet('Usage data: app interactions, features used, time spent'),
+          const _Bullet(
+              'Location data: to show you nearby users (with your permission)'),
+          const _Bullet(
+              'Device information: device type, OS version, unique identifiers'),
+          const _Bullet(
+              'Usage data: app interactions, features used, time spent'),
           const _Bullet('Log data: IP address, access times, crash reports'),
           const SizedBox(height: DsSpacing.xxl),
 
@@ -63,7 +71,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Process your transactions and manage your account'),
           const _Bullet('Send you service updates and promotional messages'),
           const _Bullet('Verify your identity and prevent fraud'),
-          const _Bullet('Respond to your requests and provide customer support'),
+          const _Bullet(
+              'Respond to your requests and provide customer support'),
           const _Bullet('Analyze usage patterns to improve user experience'),
           const _Bullet('Comply with legal obligations'),
           const SizedBox(height: DsSpacing.xxl),
@@ -76,9 +85,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const SizedBox(height: DsSpacing.sm),
           const _Bullet(
               'Other users: Your profile information is visible to potential matches'),
-          const _Bullet('Service providers: Companies that help us operate (hosting, analytics, payments)'),
-          const _Bullet('Legal authorities: When required by law or to protect our rights'),
-          const _Bullet('Business transfers: In case of merger, acquisition, or sale of assets'),
+          const _Bullet(
+              'Service providers: Companies that help us operate (hosting, analytics, payments)'),
+          const _Bullet(
+              'Legal authorities: When required by law or to protect our rights'),
+          const _Bullet(
+              'Business transfers: In case of merger, acquisition, or sale of assets'),
           const SizedBox(height: DsSpacing.xxl),
 
           // Data Retention
@@ -98,7 +110,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Deletion: Request deletion of your account and data'),
           const _Bullet('Export: Download your data in a portable format'),
           const _Bullet('Opt-out: Unsubscribe from marketing communications'),
-          const _Bullet('Location: Control location sharing through device settings'),
+          const _Bullet(
+              'Location: Control location sharing through device settings'),
           const SizedBox(height: DsSpacing.sm),
           Text(
             'To exercise these rights, go to Settings > Account > Account Actions, '
@@ -116,7 +129,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const _Bullet('Encryption of data in transit and at rest'),
           const _Bullet('Secure authentication with phone/email verification'),
           const _Bullet('Regular security audits and monitoring'),
-          const _Bullet('Access controls limiting employee access to user data'),
+          const _Bullet(
+              'Access controls limiting employee access to user data'),
           const SizedBox(height: DsSpacing.sm),
           Text(
             'While we strive to protect your information, no method of transmission '

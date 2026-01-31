@@ -76,22 +76,26 @@ class _MatchCelebrationState extends State<MatchCelebration>
     );
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween(begin: 0.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 60,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 40,
       ),
     ]).animate(_scaleController);
 
     _heartAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.5).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween(begin: 0.0, end: 1.5)
+            .chain(CurveTween(curve: Curves.elasticOut)),
         weight: 70,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.5, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(begin: 1.5, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30,
       ),
     ]).animate(_scaleController);
@@ -173,7 +177,8 @@ class _MatchCelebrationState extends State<MatchCelebration>
                   sigmaY: DsBlur.heavy * _fadeAnimation.value,
                 ),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.6 * _fadeAnimation.value),
+                  color: Colors.black
+                      .withValues(alpha: 0.6 * _fadeAnimation.value),
                 ),
               ),
             ),
@@ -238,16 +243,21 @@ class _MatchCelebrationState extends State<MatchCelebration>
                               Transform.scale(
                                 scale: _heartAnimation.value,
                                 child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: DsSpacing.md),
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: DsSpacing.md),
                                   padding: const EdgeInsets.all(DsSpacing.md),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [DsColors.primary, DsColors.secondary],
+                                      colors: [
+                                        DsColors.primary,
+                                        DsColors.secondary
+                                      ],
                                     ),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: DsColors.primary.withValues(alpha: 0.5),
+                                        color: DsColors.primary
+                                            .withValues(alpha: 0.5),
                                         blurRadius: 20,
                                         spreadRadius: 5,
                                       ),
@@ -282,12 +292,16 @@ class _MatchCelebrationState extends State<MatchCelebration>
                               _GlassActionButton(
                                 onPressed: widget.onSendMessage,
                                 gradient: const LinearGradient(
-                                  colors: [DsColors.primary, DsColors.secondary],
+                                  colors: [
+                                    DsColors.primary,
+                                    DsColors.secondary
+                                  ],
                                 ),
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.chat_bubble, color: Colors.white),
+                                    Icon(Icons.chat_bubble,
+                                        color: Colors.white),
                                     SizedBox(width: DsSpacing.sm),
                                     Text(
                                       'Send a Message',
@@ -370,7 +384,8 @@ class _MatchCelebrationState extends State<MatchCelebration>
     return _confetti.map((particle) {
       final progress = _confettiController.value;
       final y = particle.y + progress * particle.speed * 1.5;
-      final wobbleOffset = sin(progress * particle.wobbleSpeed * 2 * pi) * particle.wobble;
+      final wobbleOffset =
+          sin(progress * particle.wobbleSpeed * 2 * pi) * particle.wobble;
 
       if (y > 1.2) return const SizedBox.shrink();
 

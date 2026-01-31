@@ -200,13 +200,17 @@ class CrashReportingService {
   }
 
   /// Log a user action as a breadcrumb.
-  Future<void> logUserAction(String action, {Map<String, dynamic>? params}) async {
-    final paramsStr = params?.entries.map((e) => '${e.key}=${e.value}').join(', ') ?? '';
-    await log('User action: $action${paramsStr.isNotEmpty ? ' ($paramsStr)' : ''}');
+  Future<void> logUserAction(String action,
+      {Map<String, dynamic>? params}) async {
+    final paramsStr =
+        params?.entries.map((e) => '${e.key}=${e.value}').join(', ') ?? '';
+    await log(
+        'User action: $action${paramsStr.isNotEmpty ? ' ($paramsStr)' : ''}');
   }
 
   /// Log an API call as a breadcrumb.
-  Future<void> logApiCall(String endpoint, {int? statusCode, String? error}) async {
+  Future<void> logApiCall(String endpoint,
+      {int? statusCode, String? error}) async {
     if (error != null) {
       await log('API Error: $endpoint - $error');
     } else if (statusCode != null) {

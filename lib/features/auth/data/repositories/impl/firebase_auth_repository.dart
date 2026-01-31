@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -68,23 +72,31 @@ class FirebaseAuthRepository implements AuthRepository {
 
   /// Checks Firestore for OTP-based email verification, developer status, and terms acceptance.
   /// Always syncs hasAcceptedTerms from Firestore to ensure permanent T&C acceptance.
-  Future<bool> _checkAndUpdateFirestoreVerification(fb.User firebaseUser) async {
+  Future<bool> _checkAndUpdateFirestoreVerification(
+      fb.User firebaseUser) async {
     try {
-      final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+      final userDoc =
+          await _firestore.collection('users').doc(firebaseUser.uid).get();
       final userData = userDoc.data();
       if (userData == null) return false;
 
-      final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
-      final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
+      final firestoreEmailVerified =
+          userData['isEmailVerified'] as bool? ?? false;
+      final emailVerifiedViaOtp =
+          userData['emailVerifiedViaOtp'] as bool? ?? false;
       // Read phone verification status from Firestore
-      final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
+      final firestorePhoneVerified =
+          userData['isPhoneVerified'] as bool? ?? false;
       final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
       await _cacheTermsAccepted(firebaseUser.uid, hasAcceptedTerms);
       // Read skip flags for onboarding steps
-      final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
-      final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
-      final plan =
-          userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final hasSkippedBasicInfo =
+          userData['hasSkippedBasicInfo'] as bool? ?? false;
+      final hasSkippedProfileSetup =
+          userData['hasSkippedProfileSetup'] as bool? ?? false;
+      final plan = userData['plan'] == 'plus'
+          ? SubscriptionPlan.plus
+          : SubscriptionPlan.free;
       final themePreference =
           userData['themePreference'] ?? userData['theme_preference'];
       final profile = _profileFromFirestore(firebaseUser.uid, userData);
@@ -95,8 +107,10 @@ class FirebaseAuthRepository implements AuthRepository {
 
       // Check if any state differs from current user
       final currentTermsStatus = _currentUser?.hasAcceptedTerms ?? false;
-      final currentSkippedBasicInfo = _currentUser?.hasSkippedBasicInfo ?? false;
-      final currentSkippedProfileSetup = _currentUser?.hasSkippedProfileSetup ?? false;
+      final currentSkippedBasicInfo =
+          _currentUser?.hasSkippedBasicInfo ?? false;
+      final currentSkippedProfileSetup =
+          _currentUser?.hasSkippedProfileSetup ?? false;
       final currentProfile = _currentUser?.profile;
       final currentThemePreference = _currentUser?.themePreference;
       final needsProfileUpdate = profile != null && profile != currentProfile;
@@ -114,9 +128,12 @@ class FirebaseAuthRepository implements AuthRepository {
           email: firebaseUser.email,
           username: firebaseUser.displayName,
           // Use Firestore verification if not verified via Firebase SDK
-          isEmailVerified: firebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp,
+          isEmailVerified: firebaseUser.emailVerified ||
+              firestoreEmailVerified ||
+              emailVerifiedViaOtp,
           // Phone verification should come from Firestore or Firebase Auth
-          isPhoneVerified: firestorePhoneVerified || firebaseUser.phoneNumber != null,
+          isPhoneVerified:
+              firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
           themePreference: themePreference,
@@ -125,13 +142,15 @@ class FirebaseAuthRepository implements AuthRepository {
           hasSkippedBasicInfo: hasSkippedBasicInfo,
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
-        AppLogger.logInfo('[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
+        AppLogger.logInfo(
+            '[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
         return true;
       }
       return false;
     } catch (e) {
       // Don't log error for expected document-not-found cases
-      AppLogger.logInfo('[FirebaseAuthRepo] Could not check Firestore verification: $e');
+      AppLogger.logInfo(
+          '[FirebaseAuthRepo] Could not check Firestore verification: $e');
       return false;
     }
   }
@@ -171,7 +190,8 @@ class FirebaseAuthRepository implements AuthRepository {
   /// Creates the document with minimal data if it doesn't exist.
   Future<void> _ensureUserDocumentExists(fb.User firebaseUser) async {
     final userId = firebaseUser.uid;
-    AppLogger.logInfo('[FirebaseAuthRepo] Ensuring user document exists for: $userId');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Ensuring user document exists for: $userId');
 
     try {
       final docRef = _firestore.collection('users').doc(userId);
@@ -211,7 +231,8 @@ class FirebaseAuthRepository implements AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        AppLogger.logInfo('[FirebaseAuthRepo] User document created successfully');
+        AppLogger.logInfo(
+            '[FirebaseAuthRepo] User document created successfully');
       } else {
         AppLogger.logInfo('[FirebaseAuthRepo] User document already exists');
       }
@@ -226,6 +247,9 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   bool get supportsUsernameLogin => false;
+
+  @override
+  bool get supportsAppleSignIn => true;
 
   @override
   Future<void> bootstrapSession() async {
@@ -341,41 +365,49 @@ class FirebaseAuthRepository implements AuthRepository {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (fb.FirebaseAuthException e) {
-          SecureLogger.error('Phone OTP Error: code=${e.code}, message=${e.message}', e);
+          SecureLogger.error(
+              'Phone OTP Error: code=${e.code}, message=${e.message}', e);
           if (!completer.isCompleted) {
             String errorMessage = e.message ?? 'Verification failed';
             // Provide more helpful error messages based on Firebase error codes
             switch (e.code) {
               case 'invalid-phone-number':
-                errorMessage = 'Invalid phone number format. Use format: +1234567890';
+                errorMessage =
+                    'Invalid phone number format. Use format: +1234567890';
                 break;
               case 'too-many-requests':
                 errorMessage = 'Too many requests. Please try again later.';
                 break;
               case 'app-not-authorized':
-                errorMessage = 'Phone auth not configured. Please enable it in Firebase Console.';
+                errorMessage =
+                    'Phone auth not configured. Please enable it in Firebase Console.';
                 break;
               case 'missing-client-identifier':
-                errorMessage = 'Missing SHA fingerprint. Add SHA-1 and SHA-256 to Firebase Console for this app.';
+                errorMessage =
+                    'Missing SHA fingerprint. Add SHA-1 and SHA-256 to Firebase Console for this app.';
                 break;
               case 'quota-exceeded':
                 errorMessage = 'SMS quota exceeded. Please try again tomorrow.';
                 break;
               case 'network-request-failed':
-                errorMessage = 'Network error. Please check your internet connection.';
+                errorMessage =
+                    'Network error. Please check your internet connection.';
                 break;
               case 'captcha-check-failed':
-                errorMessage = 'reCAPTCHA verification failed. Please try again.';
+                errorMessage =
+                    'reCAPTCHA verification failed. Please try again.';
                 break;
               case 'invalid-app-credential':
-                errorMessage = 'App credentials invalid. Check Firebase configuration.';
+                errorMessage =
+                    'App credentials invalid. Check Firebase configuration.';
                 break;
               case 'web-context-cancelled':
                 errorMessage = 'Verification was cancelled.';
                 break;
               default:
                 // Include the error code for debugging unknown errors
-                errorMessage = 'Phone verification failed (${e.code}): ${e.message ?? "Unknown error"}';
+                errorMessage =
+                    'Phone verification failed (${e.code}): ${e.message ?? "Unknown error"}';
             }
             completer.completeError(Exception(errorMessage));
           }
@@ -446,7 +478,8 @@ class FirebaseAuthRepository implements AuthRepository {
     } on fb.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         // User doesn't exist - create account automatically
-        AppLogger.logInfo('[FirebaseAuthRepo] User not found, creating account for: $email');
+        AppLogger.logInfo(
+            '[FirebaseAuthRepo] User not found, creating account for: $email');
         try {
           final credential = await _firebaseAuth.createUserWithEmailAndPassword(
             email: email,
@@ -457,10 +490,12 @@ class FirebaseAuthRepository implements AuthRepository {
           // Send email verification for new accounts
           if (firebaseUser != null && !firebaseUser.emailVerified) {
             await firebaseUser.sendEmailVerification();
-            AppLogger.logInfo('[FirebaseAuthRepo] Verification email sent to: $email');
+            AppLogger.logInfo(
+                '[FirebaseAuthRepo] Verification email sent to: $email');
           }
         } catch (createError) {
-          AppLogger.logError('[FirebaseAuthRepo] Failed to create account', createError);
+          AppLogger.logError(
+              '[FirebaseAuthRepo] Failed to create account', createError);
           rethrow;
         }
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
@@ -486,6 +521,60 @@ class FirebaseAuthRepository implements AuthRepository {
     // Firebase only supports email-based password auth
     // Assume identifier is email
     return signInWithEmailPassword(email: identifier, password: password);
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() async {
+    try {
+      final isAvailable = await SignInWithApple.isAvailable();
+      if (!isAvailable) {
+        throw Exception('Apple Sign-In is not available on this device.');
+      }
+
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      final idToken = appleCredential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Apple Sign-In failed. Missing identity token.');
+      }
+
+      final oauthCredential = fb.OAuthProvider('apple.com').credential(
+        idToken: idToken,
+        accessToken: appleCredential.authorizationCode,
+        rawNonce: rawNonce,
+      );
+
+      final authResult =
+          await _firebaseAuth.signInWithCredential(oauthCredential);
+      final firebaseUser = authResult.user;
+      if (firebaseUser == null) {
+        throw Exception('Apple Sign-In failed.');
+      }
+
+      final fullName = [
+        appleCredential.givenName,
+        appleCredential.familyName,
+      ].where((value) => value?.trim().isNotEmpty ?? false).join(' ');
+
+      if (fullName.isNotEmpty) {
+        await firebaseUser.updateDisplayName(fullName);
+      }
+
+      await _ensureUserDocumentExists(firebaseUser);
+      return _mapFirebaseUser(firebaseUser);
+    } catch (e) {
+      AppLogger.logError('[FirebaseAuthRepo] Apple sign-in failed', e);
+      rethrow;
+    }
   }
 
   @override
@@ -535,12 +624,14 @@ class FirebaseAuthRepository implements AuthRepository {
     final normalizedIdentifier = identifier.trim().toLowerCase();
 
     // Store identifier in secure storage for later verification
-    await _secureStorage.write(key: _emailOtpIdentifierKey, value: normalizedIdentifier);
+    await _secureStorage.write(
+        key: _emailOtpIdentifierKey, value: normalizedIdentifier);
     await _secureStorage.write(key: _emailOtpPurposeKey, value: purpose.value);
 
     // Call Cloud Function to send OTP
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable('requestEmailOtp');
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('requestEmailOtp');
       await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'purpose': purpose.value,
@@ -551,7 +642,8 @@ class FirebaseAuthRepository implements AuthRepository {
     } on FirebaseFunctionsException catch (e) {
       AppLogger.logError('requestEmailOtp', e);
       // Rethrow with user-friendly message
-      throw Exception(e.message ?? 'Failed to send verification code. Please try again.');
+      throw Exception(
+          e.message ?? 'Failed to send verification code. Please try again.');
     }
   }
 
@@ -567,7 +659,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
     try {
       // Call Cloud Function to verify OTP
-      final callable = FirebaseFunctions.instance.httpsCallable('verifyEmailOtp');
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('verifyEmailOtp');
       final result = await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'otp': otp.trim(),
@@ -581,7 +674,8 @@ class FirebaseAuthRepository implements AuthRepository {
       // If Cloud Function returns a custom token, sign in with it
       final customToken = data['customToken'] as String?;
       if (customToken != null) {
-        final credential = await _firebaseAuth.signInWithCustomToken(customToken);
+        final credential =
+            await _firebaseAuth.signInWithCustomToken(customToken);
         final firebaseUser = credential.user;
         if (firebaseUser != null) {
           await _ensureUserDocumentExists(firebaseUser);
@@ -677,7 +771,8 @@ class FirebaseAuthRepository implements AuthRepository {
       return null;
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}');
 
     // Check Firebase SDK verification first
     if (updatedUser.emailVerified) {
@@ -687,9 +782,12 @@ class FirebaseAuthRepository implements AuthRepository {
           'isEmailVerified': true,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        AppLogger.logInfo('[FirebaseAuthRepo] Updated Firestore isEmailVerified to true');
+        AppLogger.logInfo(
+            '[FirebaseAuthRepo] Updated Firestore isEmailVerified to true');
       } catch (e) {
-        AppLogger.logError('[FirebaseAuthRepo] Error updating Firestore verification status', e);
+        AppLogger.logError(
+            '[FirebaseAuthRepo] Error updating Firestore verification status',
+            e);
       }
 
       // Update the stored user and emit new state
@@ -701,25 +799,33 @@ class FirebaseAuthRepository implements AuthRepository {
     // Also check Firestore for OTP-verified users
     // Users who verified via email OTP have isEmailVerified in Firestore but not in Firebase SDK
     try {
-      final userDoc = await _firestore.collection('users').doc(updatedUser.uid).get();
+      final userDoc =
+          await _firestore.collection('users').doc(updatedUser.uid).get();
       final userData = userDoc.data();
-      final firestoreEmailVerified = userData?['isEmailVerified'] as bool? ?? false;
-      final emailVerifiedViaOtp = userData?['emailVerifiedViaOtp'] as bool? ?? false;
+      final firestoreEmailVerified =
+          userData?['isEmailVerified'] as bool? ?? false;
+      final emailVerifiedViaOtp =
+          userData?['emailVerifiedViaOtp'] as bool? ?? false;
       // Read phone verification status from Firestore
-      final firestorePhoneVerified = userData?['isPhoneVerified'] as bool? ?? false;
+      final firestorePhoneVerified =
+          userData?['isPhoneVerified'] as bool? ?? false;
       // Read terms acceptance from Firestore (permanent per account)
       final hasAcceptedTerms = userData?['hasAcceptedTerms'] as bool? ?? false;
-      final hasSkippedBasicInfo = userData?['hasSkippedBasicInfo'] as bool? ?? false;
-      final hasSkippedProfileSetup = userData?['hasSkippedProfileSetup'] as bool? ?? false;
-      final plan =
-          userData?['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final hasSkippedBasicInfo =
+          userData?['hasSkippedBasicInfo'] as bool? ?? false;
+      final hasSkippedProfileSetup =
+          userData?['hasSkippedProfileSetup'] as bool? ?? false;
+      final plan = userData?['plan'] == 'plus'
+          ? SubscriptionPlan.plus
+          : SubscriptionPlan.free;
       final themePreference =
           userData?['themePreference'] ?? userData?['theme_preference'];
       final profile = userData != null
           ? _profileFromFirestore(updatedUser.uid, userData)
           : _currentUser?.profile;
 
-      AppLogger.logInfo('[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
+      AppLogger.logInfo(
+          '[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
 
       if (firestoreEmailVerified || emailVerifiedViaOtp) {
         // User verified via OTP - create user with verified status
@@ -730,7 +836,8 @@ class FirebaseAuthRepository implements AuthRepository {
           username: updatedUser.displayName,
           isEmailVerified: true, // Override with Firestore value
           // Phone verification should come from Firestore or Firebase Auth
-          isPhoneVerified: firestorePhoneVerified || updatedUser.phoneNumber != null,
+          isPhoneVerified:
+              firestorePhoneVerified || updatedUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
           themePreference: themePreference,
@@ -740,11 +847,13 @@ class FirebaseAuthRepository implements AuthRepository {
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
         _authStateController.add(_currentUser);
-        AppLogger.logInfo('[FirebaseAuthRepo] User verified via OTP, returning verified status');
+        AppLogger.logInfo(
+            '[FirebaseAuthRepo] User verified via OTP, returning verified status');
         return _currentUser;
       }
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error checking Firestore verification status', e);
+      AppLogger.logError(
+          '[FirebaseAuthRepo] Error checking Firestore verification status', e);
     }
 
     return null;
@@ -762,7 +871,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     // Get current user's phone number from Firestore
-    final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+    final userDoc =
+        await _firestore.collection('users').doc(firebaseUser.uid).get();
     final userData = userDoc.data();
     final phoneNumber = userData?['phoneNumber'] as String?;
 
@@ -770,7 +880,8 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No phone number to delete');
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}');
 
     // Calculate deletion time: 2 days 23 hours from now (just under 3 days)
     final deletionTime = DateTime.now().add(const Duration(hours: 71));
@@ -800,7 +911,8 @@ class FirebaseAuthRepository implements AuthRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime');
 
     // Update local state
     _currentUser = _currentUser?.copyWith(
@@ -829,7 +941,8 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No email associated with account');
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}');
 
     // Re-authenticate with current password
     final credential = fb.EmailAuthProvider.credential(
@@ -858,7 +971,8 @@ class FirebaseAuthRepository implements AuthRepository {
     await _sendAccountNotification(
       userId: firebaseUser.uid,
       title: 'Password Changed',
-      message: 'Your password was successfully changed. If you did not make this change, please contact support immediately.',
+      message:
+          'Your password was successfully changed. If you did not make this change, please contact support immediately.',
     );
 
     AppLogger.logInfo('[FirebaseAuthRepo] Password changed successfully');
@@ -875,7 +989,8 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No user logged in');
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}');
 
     // Calculate auto-deletion date: 6 months from now
     final autoDeletionDate = DateTime.now().add(const Duration(days: 180));
@@ -902,11 +1017,13 @@ class FirebaseAuthRepository implements AuthRepository {
     await _sendAccountNotification(
       userId: firebaseUser.uid,
       title: 'Account Deactivated',
-      message: 'Your account has been deactivated. Sign in anytime to reactivate. '
+      message:
+          'Your account has been deactivated. Sign in anytime to reactivate. '
           'If you don\'t sign in within 6 months, your account will be permanently deleted.',
     );
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate');
 
     // Sign out the user
     await signOut();
@@ -931,7 +1048,8 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No email associated with account');
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}');
 
     // Re-authenticate with password
     final credential = fb.EmailAuthProvider.credential(
@@ -942,7 +1060,8 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       await firebaseUser.reauthenticateWithCredential(credential);
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Re-authentication failed for deletion', e);
+      AppLogger.logError(
+          '[FirebaseAuthRepo] Re-authentication failed for deletion', e);
       throw Exception('Password is incorrect');
     }
 
@@ -977,7 +1096,8 @@ class FirebaseAuthRepository implements AuthRepository {
           'Sign in within 14 days to cancel the deletion and recover your account.',
     );
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate');
+    AppLogger.logInfo(
+        '[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate');
 
     // Sign out the user
     await signOut();
@@ -1013,7 +1133,8 @@ class FirebaseAuthRepository implements AuthRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      AppLogger.logInfo('[FirebaseAuthRepo] Account notification queued for user: $userId');
+      AppLogger.logInfo(
+          '[FirebaseAuthRepo] Account notification queued for user: $userId');
     } catch (e) {
       AppLogger.logError('[FirebaseAuthRepo] Error sending notification', e);
       // Don't throw - notification failure shouldn't block the action
@@ -1048,7 +1169,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
       return querySnapshot2.docs.isNotEmpty;
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error checking email existence', e);
+      AppLogger.logError(
+          '[FirebaseAuthRepo] Error checking email existence', e);
       return false;
     }
   }
@@ -1132,7 +1254,8 @@ class FirebaseAuthRepository implements AuthRepository {
     // Handle legacy 'All' value by converting to proper defaults
     List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
     if (showMeGenders.isEmpty ||
-        showMeGenders.any((g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+        showMeGenders.any(
+            (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
       showMeGenders = ['male', 'female'];
     }
 
@@ -1206,7 +1329,8 @@ class FirebaseAuthRepository implements AuthRepository {
           );
 
       _authStateController.add(_currentUser);
-      AppLogger.logInfo('[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}');
+      AppLogger.logInfo(
+          '[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}');
       return _currentUser!;
     } catch (e) {
       AppLogger.logError('[FirebaseAuthRepo] Error accepting terms', e);
@@ -1226,30 +1350,43 @@ class FirebaseAuthRepository implements AuthRepository {
 
     // Check Firestore for full user data including skip flags
     try {
-      final userDoc = await _firestore.collection('users').doc(updatedFirebaseUser.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(updatedFirebaseUser.uid)
+          .get();
       final userData = userDoc.data();
 
       if (userData != null) {
-        final firestoreEmailVerified = userData['isEmailVerified'] as bool? ?? false;
-        final emailVerifiedViaOtp = userData['emailVerifiedViaOtp'] as bool? ?? false;
-        final firestorePhoneVerified = userData['isPhoneVerified'] as bool? ?? false;
+        final firestoreEmailVerified =
+            userData['isEmailVerified'] as bool? ?? false;
+        final emailVerifiedViaOtp =
+            userData['emailVerifiedViaOtp'] as bool? ?? false;
+        final firestorePhoneVerified =
+            userData['isPhoneVerified'] as bool? ?? false;
         final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
         await _cacheTermsAccepted(updatedFirebaseUser.uid, hasAcceptedTerms);
-        final hasSkippedBasicInfo = userData['hasSkippedBasicInfo'] as bool? ?? false;
-        final hasSkippedProfileSetup = userData['hasSkippedProfileSetup'] as bool? ?? false;
-        final plan =
-            userData['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+        final hasSkippedBasicInfo =
+            userData['hasSkippedBasicInfo'] as bool? ?? false;
+        final hasSkippedProfileSetup =
+            userData['hasSkippedProfileSetup'] as bool? ?? false;
+        final plan = userData['plan'] == 'plus'
+            ? SubscriptionPlan.plus
+            : SubscriptionPlan.free;
         final themePreference =
             userData['themePreference'] ?? userData['theme_preference'];
-        final profile = _profileFromFirestore(updatedFirebaseUser.uid, userData);
+        final profile =
+            _profileFromFirestore(updatedFirebaseUser.uid, userData);
 
         _currentUser = CrushUser(
           id: updatedFirebaseUser.uid,
           phoneNumber: updatedFirebaseUser.phoneNumber ?? '',
           email: updatedFirebaseUser.email,
           username: updatedFirebaseUser.displayName,
-          isEmailVerified: updatedFirebaseUser.emailVerified || firestoreEmailVerified || emailVerifiedViaOtp,
-          isPhoneVerified: firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
+          isEmailVerified: updatedFirebaseUser.emailVerified ||
+              firestoreEmailVerified ||
+              emailVerifiedViaOtp,
+          isPhoneVerified:
+              firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
           isIdVerified: false,
           plan: plan,
           themePreference: themePreference,
@@ -1262,13 +1399,28 @@ class FirebaseAuthRepository implements AuthRepository {
         return _currentUser;
       }
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error refreshing user from Firestore', e);
+      AppLogger.logError(
+          '[FirebaseAuthRepo] Error refreshing user from Firestore', e);
     }
 
     // Fall back to basic Firebase user
     _currentUser = _mapFirebaseUser(updatedFirebaseUser);
     _authStateController.add(_currentUser);
     return _currentUser;
+  }
+
+  static String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  static String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   void dispose() {

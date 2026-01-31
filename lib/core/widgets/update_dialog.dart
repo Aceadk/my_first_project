@@ -50,7 +50,8 @@ class UpdateDialog extends StatelessWidget {
           message: result.message ?? _getMessageForStatus(result.status),
           isDismissible: isDismissible,
           onUpdate: onUpdate ?? () => _defaultOnUpdate(context),
-          onLater: isDismissible ? (onLater ?? () => Navigator.pop(context)) : null,
+          onLater:
+              isDismissible ? (onLater ?? () => Navigator.pop(context)) : null,
         ),
       ),
     );
@@ -244,7 +245,11 @@ class MaintenanceDialog extends StatelessWidget {
             'Please check back later.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withAlpha((0.7 * 255).round()),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.color
+                      ?.withAlpha((0.7 * 255).round()),
                 ),
           ),
         ],
@@ -304,7 +309,8 @@ class _UpdateCheckerState extends State<UpdateChecker> {
     if (widget.maintenanceMode) {
       await UpdateDialog.showMaintenance(
         context,
-        message: widget.maintenanceMessage ?? 'We are performing maintenance. Please try again later.',
+        message: widget.maintenanceMessage ??
+            'We are performing maintenance. Please try again later.',
       );
       return;
     }

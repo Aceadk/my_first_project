@@ -205,13 +205,20 @@ class DiscoverySettingsState extends Equatable {
       relationshipGoals: relationshipGoals ?? this.relationshipGoals,
       verifiedOnly: verifiedOnly ?? this.verifiedOnly,
       languageFilters: languageFilters ?? this.languageFilters,
-      smokingFilter: clearSmokingFilter ? null : (smokingFilter ?? this.smokingFilter),
-      drinkingFilter: clearDrinkingFilter ? null : (drinkingFilter ?? this.drinkingFilter),
-      exerciseFilter: clearExerciseFilter ? null : (exerciseFilter ?? this.exerciseFilter),
+      smokingFilter:
+          clearSmokingFilter ? null : (smokingFilter ?? this.smokingFilter),
+      drinkingFilter:
+          clearDrinkingFilter ? null : (drinkingFilter ?? this.drinkingFilter),
+      exerciseFilter:
+          clearExerciseFilter ? null : (exerciseFilter ?? this.exerciseFilter),
       petsFilter: clearPetsFilter ? null : (petsFilter ?? this.petsFilter),
-      familyPlansFilter: clearFamilyPlansFilter ? null : (familyPlansFilter ?? this.familyPlansFilter),
-      zodiacFilter: clearZodiacFilter ? null : (zodiacFilter ?? this.zodiacFilter),
-      religionFilter: clearReligionFilter ? null : (religionFilter ?? this.religionFilter),
+      familyPlansFilter: clearFamilyPlansFilter
+          ? null
+          : (familyPlansFilter ?? this.familyPlansFilter),
+      zodiacFilter:
+          clearZodiacFilter ? null : (zodiacFilter ?? this.zodiacFilter),
+      religionFilter:
+          clearReligionFilter ? null : (religionFilter ?? this.religionFilter),
     );
   }
 }
@@ -302,7 +309,11 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
   }
 
   Future<void> setInterests(List<String> interests) async {
-    final sanitized = interests.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList();
+    final sanitized = interests
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
     await _persist(state.copyWith(interests: sanitized));
   }
 
@@ -484,7 +495,8 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
     await _preferences.setBool(_visibleKey, next.visible);
     await _preferences.setBool(_passportEnabledKey, next.passportModeEnabled);
     if (next.passportLocation != null) {
-      await _preferences.setString(_passportLocationKey, next.passportLocation!);
+      await _preferences.setString(
+          _passportLocationKey, next.passportLocation!);
     }
     if (next.passportLatitude != null) {
       await _preferences.setDouble(_passportLatKey, next.passportLatitude!);
@@ -500,7 +512,8 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
       await _preferences.setInt(_maxHeightKey, next.maxHeightCm!);
     }
     await _preferences.setStringList(_educationLevelsKey, next.educationLevels);
-    await _preferences.setStringList(_relationshipGoalsKey, next.relationshipGoals);
+    await _preferences.setStringList(
+        _relationshipGoalsKey, next.relationshipGoals);
     await _preferences.setBool(_verifiedOnlyKey, next.verifiedOnly);
     await _preferences.setStringList(_languageFiltersKey, next.languageFilters);
     if (next.smokingFilter != null) {
@@ -516,7 +529,8 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
       await _preferences.setString(_petsFilterKey, next.petsFilter!);
     }
     if (next.familyPlansFilter != null) {
-      await _preferences.setString(_familyPlansFilterKey, next.familyPlansFilter!);
+      await _preferences.setString(
+          _familyPlansFilterKey, next.familyPlansFilter!);
     }
     if (next.zodiacFilter != null) {
       await _preferences.setString(_zodiacFilterKey, next.zodiacFilter!);

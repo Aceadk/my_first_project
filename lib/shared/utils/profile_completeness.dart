@@ -1,7 +1,8 @@
 import 'package:crushhour/data/models/profile.dart';
 
 /// Minimum completeness thresholds
-const double kSwipeMinimumCompleteness = 1.0; // Must complete all required fields
+const double kSwipeMinimumCompleteness =
+    1.0; // Must complete all required fields
 const double kMessagingMinimumCompleteness = 1.0;
 
 /// Minimum requirements for swiping

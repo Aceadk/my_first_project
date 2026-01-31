@@ -162,9 +162,12 @@ class VerifyOtpResponseDto extends BaseDto {
   factory VerifyOtpResponseDto.fromJson(Map<String, dynamic> json) {
     return VerifyOtpResponseDto(
       success: json.getBool('success') ?? false,
-      user: json.getMap('user') != null ? UserDto.fromJson(json.getMap('user')!) : null,
-      tokens:
-          json.getMap('tokens') != null ? AuthTokensDto.fromJson(json.getMap('tokens')!) : null,
+      user: json.getMap('user') != null
+          ? UserDto.fromJson(json.getMap('user')!)
+          : null,
+      tokens: json.getMap('tokens') != null
+          ? AuthTokensDto.fromJson(json.getMap('tokens')!)
+          : null,
       isNewUser: json.getBool('is_new_user'),
       message: json.getString('message'),
     );

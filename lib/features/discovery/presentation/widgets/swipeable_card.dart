@@ -32,7 +32,8 @@ class SwipeableCard extends StatefulWidget {
   final bool superLikeEnabled;
 
   /// Callback when user reacts to content (photo/prompt).
-  final void Function(String reactionType, ReactionContentType contentType, int index, String? comment)? onReaction;
+  final void Function(String reactionType, ReactionContentType contentType,
+      int index, String? comment)? onReaction;
 
   @override
   State<SwipeableCard> createState() => _SwipeableCardState();
@@ -119,7 +120,9 @@ class _SwipeableCardState extends State<SwipeableCard>
     }
 
     // Haptic feedback when crossing upward threshold (for SuperLike)
-    if (!_crossedUpThreshold && newDragY < -_swipeUpThreshold && widget.superLikeEnabled) {
+    if (!_crossedUpThreshold &&
+        newDragY < -_swipeUpThreshold &&
+        widget.superLikeEnabled) {
       _crossedUpThreshold = true;
       HapticFeedback.lightImpact();
     }
@@ -139,8 +142,10 @@ class _SwipeableCardState extends State<SwipeableCard>
         widget.onSwipeUp != null &&
         (dragY < -_swipeUpThreshold || velocityY < -_velocityUpThreshold);
 
-    final shouldSwipeRight = dragX > _swipeThreshold || velocityX > _velocityThreshold;
-    final shouldSwipeLeft = dragX < -_swipeThreshold || velocityX < -_velocityThreshold;
+    final shouldSwipeRight =
+        dragX > _swipeThreshold || velocityX > _velocityThreshold;
+    final shouldSwipeLeft =
+        dragX < -_swipeThreshold || velocityX < -_velocityThreshold;
 
     if (shouldSwipeUp && dragY.abs() > dragX.abs()) {
       // Prioritize swipe up if vertical movement is dominant
@@ -161,7 +166,8 @@ class _SwipeableCardState extends State<SwipeableCard>
     // Haptic feedback when swipe is confirmed
     HapticFeedback.mediumImpact();
 
-    _animationX = Tween<double>(begin: _dragXNotifier.value, end: targetX).animate(
+    _animationX =
+        Tween<double>(begin: _dragXNotifier.value, end: targetX).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationY = Tween<double>(begin: _dragYNotifier.value, end: 0).animate(
@@ -190,7 +196,8 @@ class _SwipeableCardState extends State<SwipeableCard>
     _animationX = Tween<double>(begin: _dragXNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _animationY = Tween<double>(begin: _dragYNotifier.value, end: -screenHeight).animate(
+    _animationY =
+        Tween<double>(begin: _dragYNotifier.value, end: -screenHeight).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
@@ -228,10 +235,15 @@ class _SwipeableCardState extends State<SwipeableCard>
             return ValueListenableBuilder<double>(
               valueListenable: _dragYNotifier,
               builder: (context, dragY, child) {
-                final rotation = (dragX / _rotationDivisor).clamp(-_maxRotation, _maxRotation);
-                final horizontalOpacity = 1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
-                final verticalOpacity = 1 - (dragY.abs() / _opacityDivisor).clamp(0.0, 0.3);
-                final opacity = horizontalOpacity < verticalOpacity ? horizontalOpacity : verticalOpacity;
+                final rotation = (dragX / _rotationDivisor)
+                    .clamp(-_maxRotation, _maxRotation);
+                final horizontalOpacity =
+                    1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
+                final verticalOpacity =
+                    1 - (dragY.abs() / _opacityDivisor).clamp(0.0, 0.3);
+                final opacity = horizontalOpacity < verticalOpacity
+                    ? horizontalOpacity
+                    : verticalOpacity;
 
                 return Transform(
                   transform: Matrix4.identity()
@@ -258,7 +270,7 @@ class _SwipeableCardState extends State<SwipeableCard>
                         ),
                       // Pass indicator (left side) - Bold red X icon
                       if (dragX < -_indicatorVisibilityThreshold)
-                        Positioned(
+                        const Positioned(
                           right: 30.0,
                           top: 30.0,
                           child: _SwipeIconIndicator(
@@ -268,7 +280,8 @@ class _SwipeableCardState extends State<SwipeableCard>
                           ),
                         ),
                       // SuperLike indicator (top center) - Purple star icon
-                      if (dragY < -_indicatorVisibilityThreshold && widget.superLikeEnabled)
+                      if (dragY < -_indicatorVisibilityThreshold &&
+                          widget.superLikeEnabled)
                         const Positioned(
                           left: 0,
                           right: 0,

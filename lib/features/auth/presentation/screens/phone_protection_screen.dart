@@ -78,16 +78,16 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                   Text(
                     'Phone Verified',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: DsColors.success,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.success,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _maskPhoneNumber(currentPhone),
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),
@@ -141,9 +141,9 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                       Text(
                         'Remove phone number',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: DsColors.error,
-                        ),
+                              fontWeight: FontWeight.w600,
+                              color: DsColors.error,
+                            ),
                       ),
                     ],
                   ),
@@ -154,14 +154,17 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                     '- Make it available for new accounts after 3 days\n'
                     '- Remove phone-based security features',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: DsColors.error,
-                    ),
+                          color: DsColors.error,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: _isDeleting ? null : () => _showDeleteConfirmation(context, currentPhone),
+                      onPressed: _isDeleting
+                          ? null
+                          : () =>
+                              _showDeleteConfirmation(context, currentPhone),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: DsColors.error,
                         side: const BorderSide(color: DsColors.error),
@@ -209,7 +212,8 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_outlined, color: DsColors.warning, size: 20),
+                  const Icon(Icons.warning_amber_outlined,
+                      color: DsColors.warning, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -398,9 +402,9 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
 
     final result = await Result.guard(
       () => context.read<AuthRepository>().verifyOtp(
-        phoneNumber: phone,
-        otp: otp,
-      ),
+            phoneNumber: phone,
+            otp: otp,
+          ),
       logLabel: 'AuthRepository.verifyOtp',
       fallbackError: 'Invalid or expired code. Please try again.',
     );
@@ -425,7 +429,8 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: DsColors.error, size: 48),
+        icon: const Icon(Icons.warning_amber_rounded,
+            color: DsColors.error, size: 48),
         title: const Text('Remove Phone Number?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -457,8 +462,8 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
             Text(
               'This action will:',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(

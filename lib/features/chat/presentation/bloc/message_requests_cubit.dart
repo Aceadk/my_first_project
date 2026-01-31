@@ -68,9 +68,8 @@ class MessageRequestsCubit extends Cubit<MessageRequestsState> {
       );
 
       // Remove the request from local state
-      final updatedRequests = state.requests
-          .where((r) => r.id != request.id)
-          .toList();
+      final updatedRequests =
+          state.requests.where((r) => r.id != request.id).toList();
 
       if (match != null) {
         // Match created! The onMatchCreated Cloud Function will auto-migrate the message.
@@ -112,9 +111,8 @@ class MessageRequestsCubit extends Cubit<MessageRequestsState> {
           .delete();
 
       // Remove from local state
-      final updatedRequests = state.requests
-          .where((r) => r.id != request.id)
-          .toList();
+      final updatedRequests =
+          state.requests.where((r) => r.id != request.id).toList();
 
       emit(state.copyWith(
         requests: updatedRequests,

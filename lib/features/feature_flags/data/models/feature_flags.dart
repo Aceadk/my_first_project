@@ -251,8 +251,7 @@ class FeatureFlags extends Equatable {
       maxPrompts: map['max_prompts'] as int? ?? 3,
 
       // Subscription
-      enablePlusSubscription:
-          map['enable_plus_subscription'] as bool? ?? true,
+      enablePlusSubscription: map['enable_plus_subscription'] as bool? ?? true,
       enableFreeTrial: map['enable_free_trial'] as bool? ?? true,
       freeTrialDays: map['free_trial_days'] as int? ?? 7,
       showUpsellAfterSwipes: map['show_upsell_after_swipes'] as int? ?? 10,

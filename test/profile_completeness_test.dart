@@ -76,7 +76,8 @@ void main() {
     final summary = evaluateProfileCompleteness(profile);
     expect(summary.score, lessThan(kSwipeMinimumCompleteness));
     // Required fields: 1 photo, 10 char bio, 3 interests, city + country
-    expect(summary.missing, contains('Write a bio (at least $kMinBioLength characters)'));
+    expect(summary.missing,
+        contains('Write a bio (at least $kMinBioLength characters)'));
     expect(summary.missing, contains('Add at least $kMinInterests interests'));
     expect(summary.missing, contains('Add your city and country'));
     // Prompts are optional - shown in recommended

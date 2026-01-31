@@ -163,7 +163,8 @@ class OfflineActionQueue {
         }
       } catch (e) {
         // Network error, stop processing and schedule retry
-        debugPrint('OfflineQueue: Network error processing action, scheduling retry: $e');
+        debugPrint(
+            'OfflineQueue: Network error processing action, scheduling retry: $e');
         _scheduleRetry();
         break;
       }

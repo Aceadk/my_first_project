@@ -83,7 +83,8 @@ class BoostButton extends StatelessWidget {
     required bool isActive,
     VoidCallback? onTap,
   }) {
-    final color = isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
+    final color =
+        isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
 
     return GestureDetector(
       onTap: enabled ? onTap : null,
@@ -106,9 +107,7 @@ class BoostButton extends StatelessWidget {
                       ],
                     )
                   : null,
-              color: isActive
-                  ? null
-                  : DsGlassColors.surfaceFor(context),
+              color: isActive ? null : DsGlassColors.surfaceFor(context),
               borderRadius: BorderRadius.circular(DsSpacing.md),
               border: Border.all(
                 color: isActive
@@ -161,7 +160,8 @@ class BoostButton extends StatelessWidget {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+            filter:
+                ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(

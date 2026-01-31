@@ -55,7 +55,8 @@ mixin PaginatedResponse<T> {
 }
 
 /// Generic paginated response DTO.
-class PaginatedDto<T extends BaseDto> extends BaseDto with PaginatedResponse<T> {
+class PaginatedDto<T extends BaseDto> extends BaseDto
+    with PaginatedResponse<T> {
   const PaginatedDto({
     required this.items,
     required this.page,
@@ -146,7 +147,8 @@ class ApiResponseDto<T> extends BaseDto {
   @override
   Map<String, dynamic> toJson() => {
         'success': success,
-        if (data != null) 'data': data is BaseDto ? (data as BaseDto).toJson() : data,
+        if (data != null)
+          'data': data is BaseDto ? (data as BaseDto).toJson() : data,
         if (error != null) 'error': error,
         if (errorCode != null) 'error_code': errorCode,
         if (message != null) 'message': message,
@@ -160,7 +162,9 @@ class ApiResponseDto<T> extends BaseDto {
   ) {
     return ApiResponseDto<T>(
       success: json['success'] as bool? ?? false,
-      data: json['data'] != null && dataParser != null ? dataParser(json['data']) : null,
+      data: json['data'] != null && dataParser != null
+          ? dataParser(json['data'])
+          : null,
       error: json['error'] as String?,
       errorCode: json['error_code'] as String?,
       message: json['message'] as String?,
@@ -181,7 +185,8 @@ class ApiResponseDto<T> extends BaseDto {
   }
 
   /// Create an error response.
-  factory ApiResponseDto.error(String error, {String? errorCode, String? message}) {
+  factory ApiResponseDto.error(String error,
+      {String? errorCode, String? message}) {
     return ApiResponseDto(
       success: false,
       error: error,
@@ -423,7 +428,8 @@ class DtoValidator {
 
   /// Require a valid email.
   DtoValidator requireEmail(String? value, String field) {
-    if (value != null && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+    if (value != null &&
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
       _errors.add(ValidationError(
         field: field,
         message: '$field must be a valid email',

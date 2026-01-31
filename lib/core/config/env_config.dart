@@ -30,7 +30,8 @@ class EnvConfig {
   static const String _smtpPortStr = String.fromEnvironment('SMTP_PORT');
   static const String _smtpEmail = String.fromEnvironment('SMTP_EMAIL');
   static const String _smtpPassword = String.fromEnvironment('SMTP_PASSWORD');
-  static const String _smtpSenderName = String.fromEnvironment('SMTP_SENDER_NAME', defaultValue: 'Crush');
+  static const String _smtpSenderName =
+      String.fromEnvironment('SMTP_SENDER_NAME', defaultValue: 'Crush');
 
   // Secure storage keys
   static const String _keySmtpHost = 'smtp_host';
@@ -78,11 +79,11 @@ class EnvConfig {
     final email = await getSmtpEmail();
     final password = await getSmtpPassword();
     return host != null &&
-           host.isNotEmpty &&
-           email != null &&
-           email.isNotEmpty &&
-           password != null &&
-           password.isNotEmpty;
+        host.isNotEmpty &&
+        email != null &&
+        email.isNotEmpty &&
+        password != null &&
+        password.isNotEmpty;
   }
 
   /// Configure SMTP settings at runtime (for development/testing).

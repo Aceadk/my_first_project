@@ -94,9 +94,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
     // Determine system UI overlay style
-    final systemStyle = isDark
-        ? SystemUiOverlayStyle.light
-        : SystemUiOverlayStyle.dark;
+    final systemStyle =
+        isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark;
 
     Widget titleContent;
     if (titleWidget != null) {

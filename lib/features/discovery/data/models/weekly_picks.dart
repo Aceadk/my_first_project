@@ -98,9 +98,8 @@ class WeeklyPicks extends Equatable {
     if (likedPicks.contains(pickId)) return this;
     return copyWith(
       likedPicks: [...likedPicks, pickId],
-      viewedPicks: viewedPicks.contains(pickId)
-          ? viewedPicks
-          : [...viewedPicks, pickId],
+      viewedPicks:
+          viewedPicks.contains(pickId) ? viewedPicks : [...viewedPicks, pickId],
     );
   }
 

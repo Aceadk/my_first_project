@@ -67,7 +67,8 @@ class MatchChatSettingsCubit extends Cubit<MatchChatSettingsState> {
 
     try {
       // Update via Cloud Function for this specific match
-      final callable = FirebaseFunctions.instance.httpsCallable('updateMatchChatSettings');
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('updateMatchChatSettings');
       await callable.call<void>({
         'matchId': state.matchId,
         'extendedRetention': value,

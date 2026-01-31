@@ -1,6 +1,17 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 
+/// Profile completeness data returned from the server.
+///
+/// All scores are normalized to 0.0-1.0 range to match client-side
+/// [ProfileCompletenessSummary] from profile_completeness.dart.
+///
+/// Breakdown format (weighted scores, sum = total score):
+/// - photos: 0.0-0.30 (30% weight)
+/// - bio: 0.0-0.25 (25% weight)
+/// - interests: 0.0-0.25 (25% weight)
+/// - location: 0.0-0.20 (20% weight)
+/// - prompts: 0.0-1.0 (tracking only, not counted in score)
 class RemoteProfileCompleteness {
   RemoteProfileCompleteness({
     required this.score,
@@ -15,6 +26,7 @@ class RemoteProfileCompleteness {
     required this.threshold,
   });
 
+  /// Overall completeness score (0.0-1.0, where 1.0 = 100% complete)
   final double score;
   final Map<String, double> breakdown;
   final List<String> missing;
@@ -35,8 +47,7 @@ class RemoteProfileCompleteness {
       requiredMissing.isNotEmpty ? requiredMissing : missing;
 
   factory RemoteProfileCompleteness.fromMap(Map<String, dynamic> map) {
-    double toDouble(dynamic value) =>
-        value is num ? value.toDouble() : 0.0;
+    double toDouble(dynamic value) => value is num ? value.toDouble() : 0.0;
 
     Map<String, double> toBreakdown(dynamic value) {
       if (value is Map) {
@@ -95,7 +106,8 @@ class ProfileValidationService {
       }).timeout(
         _callTimeout,
         onTimeout: () {
-          debugPrint('ProfileValidationService.validate: timeout after $_callTimeout');
+          debugPrint(
+              'ProfileValidationService.validate: timeout after $_callTimeout');
           throw TimeoutException('Profile validation timed out');
         },
       );
@@ -106,8 +118,9 @@ class ProfileValidationService {
     } catch (e) {
       debugPrint('ProfileValidationService.validate error: $e');
       // Return a permissive default on error to not block the user
+      // Score 1.0 = 100% complete (normalized 0.0-1.0 range)
       return RemoteProfileCompleteness(
-        score: 100.0,
+        score: 1.0,
         breakdown: {},
         missing: [],
         requiredMissing: [],
@@ -116,7 +129,7 @@ class ProfileValidationService {
         meetsRequiredFields: true,
         meetsMinimum: true,
         minimum: minimum,
-        threshold: 0.0,
+        threshold: 1.0,
       );
     }
   }

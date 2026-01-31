@@ -293,7 +293,8 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                               'You and $matchedName liked each other',
                               style: TextStyle(
                                 fontSize: 17,
-                                color: DsColors.surfaceLight.withValues(alpha: 0.95),
+                                color: DsColors.surfaceLight
+                                    .withValues(alpha: 0.95),
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.3,
                               ),
@@ -312,7 +313,8 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
                           Transform.translate(
                             offset: Offset(0, _buttonsSlide.value),
                             child: Opacity(
-                              opacity: (1 - _buttonsSlide.value / 120).clamp(0.0, 1.0),
+                              opacity: (1 - _buttonsSlide.value / 120)
+                                  .clamp(0.0, 1.0),
                               child: _buildActionButtons(matchedName),
                             ),
                           ),
@@ -359,7 +361,7 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
           shadows: [
             Shadow(
               color: DsColors.ink900.withValues(alpha: 0.26),
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
               blurRadius: 15,
             ),
           ],
@@ -470,7 +472,8 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
               boxShadow: [
                 // Golden glow
                 BoxShadow(
-                  color: DsColors.warning.withValues(alpha: glowIntensity * 0.6),
+                  color:
+                      DsColors.warning.withValues(alpha: glowIntensity * 0.6),
                   blurRadius: 25,
                   spreadRadius: 3,
                 ),
@@ -705,7 +708,8 @@ class _MatchCelebrationModalState extends State<MatchCelebrationModal>
 
       if (adjustedProgress > 1.0) return const SizedBox.shrink();
 
-      final currentY = heart.startY + (heart.endY - heart.startY) * adjustedProgress;
+      final currentY =
+          heart.startY + (heart.endY - heart.startY) * adjustedProgress;
       final sway = sin(adjustedProgress * pi * 5) * heart.swayAmount;
       final currentX = heart.startX + sway;
       final opacity = (1.0 - adjustedProgress * 1.2).clamp(0.0, 0.6);

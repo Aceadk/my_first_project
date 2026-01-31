@@ -90,7 +90,8 @@ PrimaryButton(
             ),
             WidgetVariant(
               label: 'Loading',
-              child: PrimaryButton(label: 'Loading', loading: true, onPressed: () {}),
+              child: PrimaryButton(
+                  label: 'Loading', loading: true, onPressed: () {}),
             ),
             const WidgetVariant(
               label: 'Disabled',
@@ -108,15 +109,18 @@ PrimaryButton(
           variants: [
             WidgetVariant(
               label: 'Elevated',
-              child: ElevatedButton(onPressed: () {}, child: const Text('Elevated')),
+              child: ElevatedButton(
+                  onPressed: () {}, child: const Text('Elevated')),
             ),
             WidgetVariant(
               label: 'Filled',
-              child: FilledButton(onPressed: () {}, child: const Text('Filled')),
+              child:
+                  FilledButton(onPressed: () {}, child: const Text('Filled')),
             ),
             WidgetVariant(
               label: 'Outlined',
-              child: OutlinedButton(onPressed: () {}, child: const Text('Outlined')),
+              child: OutlinedButton(
+                  onPressed: () {}, child: const Text('Outlined')),
             ),
             WidgetVariant(
               label: 'Text',
@@ -130,7 +134,8 @@ PrimaryButton(
           variants: [
             WidgetVariant(
               label: 'Icon Only',
-              child: IconButton(onPressed: () {}, icon: const Icon(Icons.favorite)),
+              child: IconButton(
+                  onPressed: () {}, icon: const Icon(Icons.favorite)),
             ),
             WidgetVariant(
               label: 'With Label',

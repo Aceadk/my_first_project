@@ -64,7 +64,8 @@ void main() {
       expect(find.text('Please enter your password'), findsOneWidget);
     });
 
-    testWidgets('successful login with dev admin bypass navigates to home', (tester) async {
+    testWidgets('successful login with dev admin bypass navigates to home',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(TestApp(preferences: prefs));
@@ -75,7 +76,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Enter dev admin credentials
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
       await tester.pumpAndSettle();
 
@@ -95,7 +97,8 @@ void main() {
       expect(find.text('Welcome back'), findsNothing);
     });
 
-    testWidgets('navigates to sign up screen from auth gateway', (tester) async {
+    testWidgets('navigates to sign up screen from auth gateway',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(TestApp(preferences: prefs));
@@ -128,7 +131,8 @@ void main() {
       }
     });
 
-    testWidgets('can navigate to email OTP auth from login screen', (tester) async {
+    testWidgets('can navigate to email OTP auth from login screen',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(TestApp(preferences: prefs));
@@ -146,7 +150,8 @@ void main() {
       }
     });
 
-    testWidgets('can navigate to forgot password from login screen', (tester) async {
+    testWidgets('can navigate to forgot password from login screen',
+        (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(TestApp(preferences: prefs));
@@ -166,7 +171,8 @@ void main() {
   });
 
   group('Session Persistence', () {
-    testWidgets('remembers authenticated user across app restarts', (tester) async {
+    testWidgets('remembers authenticated user across app restarts',
+        (tester) async {
       // Start with authenticated state by using dev bypass
       final prefs = await SharedPreferences.getInstance();
 
@@ -177,7 +183,8 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
-      final identifierField = find.widgetWithText(TextField, 'Email or username');
+      final identifierField =
+          find.widgetWithText(TextField, 'Email or username');
       await tester.enterText(identifierField, 'admin123');
 
       final passwordField = find.widgetWithText(TextField, 'Password');

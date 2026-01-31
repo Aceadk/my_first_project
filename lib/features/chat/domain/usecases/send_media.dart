@@ -75,7 +75,8 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
     if (plan.isFree && params.currentMediaCount >= _freeUserMediaLimit) {
       return const Result.success(SendMediaResult(
         success: false,
-        errorMessage: 'Free users can send up to 8 media messages. Upgrade to Plus for unlimited.',
+        errorMessage:
+            'Free users can send up to 8 media messages. Upgrade to Plus for unlimited.',
         limitReached: true,
       ));
     }

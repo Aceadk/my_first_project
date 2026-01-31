@@ -67,7 +67,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   void _onPlanUpdated(
       SubscriptionPlanUpdated event, Emitter<SubscriptionState> emit) {
     // Track subscription purchase if plan upgraded to plus
-    if (state.plan == SubscriptionPlan.free && event.plan == SubscriptionPlan.plus) {
+    if (state.plan == SubscriptionPlan.free &&
+        event.plan == SubscriptionPlan.plus) {
       AnalyticsService.instance.logSubscriptionPurchased(
         plan: 'plus',
         price: 9.99, // Configure based on your pricing
@@ -83,8 +84,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     ));
   }
 
-  Future<void> _onRestoreRequested(
-      SubscriptionRestoreRequested event, Emitter<SubscriptionState> emit) async {
+  Future<void> _onRestoreRequested(SubscriptionRestoreRequested event,
+      Emitter<SubscriptionState> emit) async {
     emit(state.copyWith(isRestoring: true, errorMessage: null));
     final result = await Result.guard(
       () => subscriptionRepository.refreshStatus(),

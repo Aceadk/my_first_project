@@ -31,7 +31,8 @@ class ChatAttachmentTile extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: DsColors.surfaceLight.withValues(alpha: 0.7)),
+            Icon(icon,
+                size: 18, color: DsColors.surfaceLight.withValues(alpha: 0.7)),
             DsGap.xsH,
             Text(
               label,

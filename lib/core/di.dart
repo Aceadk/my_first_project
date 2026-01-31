@@ -161,7 +161,8 @@ class CrushDI {
         authRepo = FirebaseAuthRepository();
         profileRepo = FirebaseProfileRepository();
         subRepo = FirebaseSubscriptionRepository();
-        discoveryRepo = HybridDiscoveryRepository(); // Shows both real and fake profiles
+        discoveryRepo =
+            HybridDiscoveryRepository(); // Shows both real and fake profiles
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
         featureFlagRepo = FirebaseFeatureFlagRepository();
@@ -230,6 +231,7 @@ class CrushDI {
           discoveryRepository: context.read<DiscoveryRepository>(),
           subscriptionRepository: context.read<SubscriptionRepository>(),
           authRepository: context.read<AuthRepository>(),
+          profileRepository: context.read<ProfileRepository>(),
         ),
       ),
       BlocProvider<ChatBloc>(

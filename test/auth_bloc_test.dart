@@ -257,6 +257,9 @@ class _StubAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => true;
 
   @override
+  bool get supportsAppleSignIn => true;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override
@@ -294,6 +297,11 @@ class _StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
+    return _testUser;
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() async {
     return _testUser;
   }
 

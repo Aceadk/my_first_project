@@ -222,7 +222,8 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                (isDark ? DsColors.ink900 : DsColors.surfaceLight).withValues(alpha: 0.9),
+                (isDark ? DsColors.ink900 : DsColors.surfaceLight)
+                    .withValues(alpha: 0.9),
               ],
             ),
           ),
@@ -408,7 +409,9 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
+                      color: isDark
+                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                          : DsColors.ink900.withValues(alpha: 0.26),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -525,87 +528,87 @@ class _LikeCard extends StatelessWidget {
                   child: const Icon(Icons.person, size: 64),
                 ),
 
-            // Blur overlay for free users
-            if (isBlurred)
-              BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: DsBlur.heavy,
-                  sigmaY: DsBlur.heavy,
-                ),
-                child: Container(
-                  color: DsColors.ink900.withValues(alpha: 0.1),
-                ),
-              ),
-
-            // Gradient overlay
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      DsColors.ink900.withValues(alpha: 0.7),
-                    ],
-                    stops: const [0.5, 1.0],
+              // Blur overlay for free users
+              if (isBlurred)
+                BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: DsBlur.heavy,
+                    sigmaY: DsBlur.heavy,
+                  ),
+                  child: Container(
+                    color: DsColors.ink900.withValues(alpha: 0.1),
                   ),
                 ),
-              ),
-            ),
 
-            // Name and age (blurred for free users)
-            Positioned(
-              bottom: DsSpacing.sm,
-              left: DsSpacing.sm,
-              right: DsSpacing.sm,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isBlurred ? '???' : profile.publicDisplayName,
-                    style: const TextStyle(
-                      color: DsColors.surfaceLight,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (!isBlurred)
-                    Text(
-                      '${profile.age}',
-                      style: TextStyle(
-                        color: DsColors.surfaceLight.withValues(alpha: 0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // Lock icon for blurred cards
-            if (isBlurred)
-              Positioned(
-                top: DsSpacing.sm,
-                right: DsSpacing.sm,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
+              // Gradient overlay
+              Positioned.fill(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: DsColors.ink900.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.lock,
-                    color: DsColors.surfaceLight,
-                    size: 16,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        DsColors.ink900.withValues(alpha: 0.7),
+                      ],
+                      stops: const [0.5, 1.0],
+                    ),
                   ),
                 ),
               ),
-          ],
+
+              // Name and age (blurred for free users)
+              Positioned(
+                bottom: DsSpacing.sm,
+                left: DsSpacing.sm,
+                right: DsSpacing.sm,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isBlurred ? '???' : profile.publicDisplayName,
+                      style: const TextStyle(
+                        color: DsColors.surfaceLight,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (!isBlurred)
+                      Text(
+                        '${profile.age}',
+                        style: TextStyle(
+                          color: DsColors.surfaceLight.withValues(alpha: 0.8),
+                          fontSize: 14,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Lock icon for blurred cards
+              if (isBlurred)
+                Positioned(
+                  top: DsSpacing.sm,
+                  right: DsSpacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: DsColors.ink900.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock,
+                      color: DsColors.surfaceLight,
+                      size: 16,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -647,7 +650,9 @@ class _ProfileDetailSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
+                  color: isDark
+                      ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                      : DsColors.ink900.withValues(alpha: 0.26),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -723,8 +728,8 @@ class _ProfileDetailSheet extends StatelessWidget {
                           children: profile.interests.map((interest) {
                             return Chip(
                               label: Text(interest),
-                              backgroundColor: DsColors.primary
-                                  .withValues(alpha: 0.1),
+                              backgroundColor:
+                                  DsColors.primary.withValues(alpha: 0.1),
                             );
                           }).toList(),
                         ),

@@ -22,12 +22,19 @@ class DiscoveryDeckDto extends BaseDto {
   final DateTime? boostExpiresAt;
 
   factory DiscoveryDeckDto.fromJson(Map<String, dynamic> json) {
+    // Support both 'candidates' (new) and 'profiles' (legacy) keys
+    final profilesList = json.getList(
+          'candidates',
+          (e) => DiscoveryProfileDto.fromJson(e as Map<String, dynamic>),
+        ) ??
+        json.getList(
+          'profiles',
+          (e) => DiscoveryProfileDto.fromJson(e as Map<String, dynamic>),
+        ) ??
+        [];
+
     return DiscoveryDeckDto(
-      profiles: json.getList(
-            'profiles',
-            (e) => DiscoveryProfileDto.fromJson(e as Map<String, dynamic>),
-          ) ??
-          [],
+      profiles: profilesList,
       remainingSwipes: json.getInt('remaining_swipes'),
       nextRefreshAt: json.getDateTime('next_refresh_at'),
       boostActive: json.getBool('boost_active'),
@@ -39,9 +46,11 @@ class DiscoveryDeckDto extends BaseDto {
   Map<String, dynamic> toJson() => {
         'profiles': profiles.map((p) => p.toJson()).toList(),
         if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
-        if (nextRefreshAt != null) 'next_refresh_at': nextRefreshAt!.toIso8601String(),
+        if (nextRefreshAt != null)
+          'next_refresh_at': nextRefreshAt!.toIso8601String(),
         if (boostActive != null) 'boost_active': boostActive,
-        if (boostExpiresAt != null) 'boost_expires_at': boostExpiresAt!.toIso8601String(),
+        if (boostExpiresAt != null)
+          'boost_expires_at': boostExpiresAt!.toIso8601String(),
       };
 }
 
@@ -90,7 +99,9 @@ class DiscoveryProfileDto extends BaseDto {
   /// Get primary photo URL.
   String? get primaryPhotoUrl {
     if (photos == null || photos!.isEmpty) return null;
-    return photos!.firstWhere((p) => p.isPrimary ?? false, orElse: () => photos!.first).url;
+    return photos!
+        .firstWhere((p) => p.isPrimary ?? false, orElse: () => photos!.first)
+        .url;
   }
 
   /// Get distance display string.
@@ -109,7 +120,8 @@ class DiscoveryProfileDto extends BaseDto {
       displayName: json.getString('display_name') ?? '',
       age: json.getInt('age'),
       bio: json.getString('bio'),
-      photos: json.getList('photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
+      photos: json.getList(
+          'photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
       distance: json.getDouble('distance'),
       distanceUnit: json.getString('distance_unit'),
       location: json.getString('location'),
@@ -220,7 +232,9 @@ class SwipeResponseDto extends BaseDto {
     return SwipeResponseDto(
       success: json.getBool('success') ?? false,
       isMatch: json.getBool('is_match'),
-      match: json.getMap('match') != null ? MatchDto.fromJson(json.getMap('match')!) : null,
+      match: json.getMap('match') != null
+          ? MatchDto.fromJson(json.getMap('match')!)
+          : null,
       remainingSwipes: json.getInt('remaining_swipes'),
       remainingSuperLikes: json.getInt('remaining_super_likes'),
       message: json.getString('message'),
@@ -233,7 +247,8 @@ class SwipeResponseDto extends BaseDto {
         if (isMatch != null) 'is_match': isMatch,
         if (match != null) 'match': match!.toJson(),
         if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
-        if (remainingSuperLikes != null) 'remaining_super_likes': remainingSuperLikes,
+        if (remainingSuperLikes != null)
+          'remaining_super_likes': remainingSuperLikes,
         if (message != null) 'message': message,
       };
 }

@@ -65,7 +65,8 @@ class ValidationConstants {
   static const int maxVideoDurationSeconds = 15;
 
   /// Maximum video duration.
-  static const Duration maxVideoDuration = Duration(seconds: maxVideoDurationSeconds);
+  static const Duration maxVideoDuration =
+      Duration(seconds: maxVideoDurationSeconds);
 
   /// Maximum file size for photos (10 MB).
   static const int maxPhotoSizeBytes = 10 * 1024 * 1024;

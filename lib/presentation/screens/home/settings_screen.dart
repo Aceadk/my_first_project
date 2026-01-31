@@ -58,8 +58,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation(DsColors.surfaceLight),
+                                valueColor: AlwaysStoppedAnimation(
+                                    DsColors.surfaceLight),
                               ),
                             )
                           : const Text('Upgrade to Crush Plus'),

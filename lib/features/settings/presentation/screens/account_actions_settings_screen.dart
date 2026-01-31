@@ -27,8 +27,7 @@ class _AccountActionsSettingsScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = context.select<AuthBloc, dynamic>((bloc) => bloc.state.user);
     final phoneVerified = user?.isPhoneVerified ?? false;
-    final hasPhone =
-        user?.phoneNumber != null && user.phoneNumber.isNotEmpty;
+    final hasPhone = user?.phoneNumber != null && user.phoneNumber.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -241,8 +240,8 @@ class _AccountActionsSettingsScreenState
                           ),
                           subtitle:
                               const Text('Permanently remove your account'),
-                          trailing:
-                              const Icon(Icons.chevron_right, color: DsColors.error),
+                          trailing: const Icon(Icons.chevron_right,
+                              color: DsColors.error),
                           onTap: () => _showDeleteFlow(context),
                         ),
                       ],
@@ -293,7 +292,8 @@ class _AccountActionsSettingsScreenState
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: const Icon(Icons.download_outlined, color: DsColors.info, size: 48),
+          icon: const Icon(Icons.download_outlined,
+              color: DsColors.info, size: 48),
           title: const Text('Export Your Data'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -335,12 +335,13 @@ class _AccountActionsSettingsScreenState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.email_outlined, color: DsColors.info, size: 20),
+                    const Icon(Icons.email_outlined,
+                        color: DsColors.info, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Your data will be prepared and sent to $email within 48 hours.',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: DsColors.info,
                         ),
@@ -517,9 +518,9 @@ class _AccountActionsSettingsScreenState
       try {
         final result = await Result.guard(
           () => authRepository.changePassword(
-                currentPassword: currentPasswordController.text,
-                newPassword: newPasswordController.text,
-              ),
+            currentPassword: currentPasswordController.text,
+            newPassword: newPasswordController.text,
+          ),
           logLabel: 'AuthRepository.changePassword',
           fallbackError: 'Could not change password. Please try again.',
         );
@@ -548,7 +549,8 @@ class _AccountActionsSettingsScreenState
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
-          showErrorSnackBar(this.context, 'An error occurred. Please try again.');
+          showErrorSnackBar(
+              this.context, 'An error occurred. Please try again.');
         }
       }
     }
@@ -586,7 +588,7 @@ class _AccountActionsSettingsScreenState
       context: this.context,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: Icon(
+          icon: const Icon(
             Icons.pause_circle_outline,
             color: DsColors.warning,
             size: 48,
@@ -626,11 +628,11 @@ class _AccountActionsSettingsScreenState
                     color: DsColors.error.withValues(alpha: 0.3),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    const Icon(Icons.warning_amber_outlined,
+                    Icon(Icons.warning_amber_outlined,
                         color: DsColors.error, size: 20),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'If you don\'t sign in for 6 months, your account will be permanently deleted.',
@@ -739,11 +741,11 @@ class _AccountActionsSettingsScreenState
                     color: DsColors.success.withValues(alpha: 0.3),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    const Icon(Icons.info_outline,
+                    Icon(Icons.info_outline,
                         color: DsColors.success, size: 20),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'You have 14 days to change your mind. Simply sign in within 14 days to recover your account.',
@@ -787,7 +789,8 @@ class _AccountActionsSettingsScreenState
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              icon: const Icon(Icons.lock_outline, color: DsColors.error, size: 48),
+              icon: const Icon(Icons.lock_outline,
+                  color: DsColors.error, size: 48),
               title: const Text('Confirm Your Password'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -842,9 +845,9 @@ class _AccountActionsSettingsScreenState
 
       final result = await Result.guard(
         () => authRepository.deleteAccount(
-              password: passwordController.text,
-              reason: reason,
-            ),
+          password: passwordController.text,
+          reason: reason,
+        ),
         logLabel: 'AuthRepository.deleteAccount',
         fallbackError: 'Could not delete account. Please check your password.',
       );
@@ -863,7 +866,8 @@ class _AccountActionsSettingsScreenState
         authBloc.add(AuthSignedOut());
         this.context.go(CrushRoutes.authGateway);
       } else {
-        showErrorSnackBar(this.context, result.errorMessage ?? 'Deletion failed.');
+        showErrorSnackBar(
+            this.context, result.errorMessage ?? 'Deletion failed.');
       }
     }
 

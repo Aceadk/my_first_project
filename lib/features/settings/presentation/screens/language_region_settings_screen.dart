@@ -74,16 +74,22 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Localization',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           DsGap.xs,
                           Text(
                             'Set your preferred language and region.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -97,7 +103,8 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                 title: Text(context.l10n.settingsLanguage),
                 subtitle: Text(_languageLabel(localeState.languageCode)),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLanguageSheet(context, localeState.languageCode),
+                onTap: () =>
+                    _showLanguageSheet(context, localeState.languageCode),
               ),
               const Divider(indent: 72),
               // Region
@@ -106,7 +113,8 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                 title: Text(context.l10n.settingsRegion),
                 subtitle: Text(localeState.region),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showRegionDialog(context, localeState.region, localeCubit),
+                onTap: () =>
+                    _showRegionDialog(context, localeState.region, localeCubit),
               ),
               const Divider(indent: 72),
               // Auto-detect
@@ -132,10 +140,12 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                 child: Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                    color:
+                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                     ),
                   ),
                   child: Row(
@@ -143,15 +153,20 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                       Icon(
                         Icons.info_outline,
                         size: 20,
-                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
                       ),
                       DsGap.mdH,
                       Expanded(
                         child: Text(
                           'Your region helps us show you relevant matches nearby.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ),
                     ],
@@ -260,16 +275,18 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                         DsGap.mdH,
                         Text(
                           'Choose language',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const Spacer(),
                         Text(
                           '${options.length} languages',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.ink300,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: DsColors.ink300,
+                                  ),
                         ),
                       ],
                     ),
@@ -284,7 +301,9 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                         final isSelected = option['code'] == current;
                         return ListTile(
                           leading: Icon(
-                            isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                            isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
                             color: isSelected ? DsColors.primary : null,
                           ),
                           title: Text(

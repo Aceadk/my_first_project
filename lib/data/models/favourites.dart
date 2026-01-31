@@ -58,7 +58,9 @@ class ProfileFavourites extends Equatable {
       movie: clearMovie ? null : (movie ?? this.movie),
       book: clearBook ? null : (book ?? this.book),
       hobby: clearHobby ? null : (hobby ?? this.hobby),
-      travelDestination: clearTravelDestination ? null : (travelDestination ?? this.travelDestination),
+      travelDestination: clearTravelDestination
+          ? null
+          : (travelDestination ?? this.travelDestination),
     );
   }
 

@@ -15,22 +15,26 @@ class CrushUser extends Equatable {
   final SubscriptionPlan plan;
   final String? themePreference;
   final bool hasAcceptedTerms;
+
   /// Flag indicating user skipped basic info (can still complete later in settings)
   final bool hasSkippedBasicInfo;
+
   /// Flag indicating user skipped profile setup (can still complete later in settings)
   final bool hasSkippedProfileSetup;
 
   /// Check if user can change their username (once every 28 days)
   bool get canChangeUsername {
     if (lastUsernameChangeAt == null) return true;
-    final daysSinceLastChange = DateTime.now().difference(lastUsernameChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastUsernameChangeAt!).inDays;
     return daysSinceLastChange >= 28;
   }
 
   /// Days remaining until username can be changed again
   int get daysUntilUsernameChange {
     if (lastUsernameChangeAt == null) return 0;
-    final daysSinceLastChange = DateTime.now().difference(lastUsernameChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastUsernameChangeAt!).inDays;
     return (28 - daysSinceLastChange).clamp(0, 28);
   }
 
@@ -72,7 +76,9 @@ class CrushUser extends Equatable {
 
   /// Check if all onboarding steps are complete
   bool get isOnboardingComplete {
-    return hasAcceptedTerms && hasCompletedBasicInfo && hasCompletedProfileSetup;
+    return hasAcceptedTerms &&
+        hasCompletedBasicInfo &&
+        hasCompletedProfileSetup;
   }
 
   /// Sentinel object for copyWith null handling
@@ -110,7 +116,8 @@ class CrushUser extends Equatable {
       themePreference: themePreference ?? this.themePreference,
       hasAcceptedTerms: hasAcceptedTerms ?? this.hasAcceptedTerms,
       hasSkippedBasicInfo: hasSkippedBasicInfo ?? this.hasSkippedBasicInfo,
-      hasSkippedProfileSetup: hasSkippedProfileSetup ?? this.hasSkippedProfileSetup,
+      hasSkippedProfileSetup:
+          hasSkippedProfileSetup ?? this.hasSkippedProfileSetup,
     );
   }
 

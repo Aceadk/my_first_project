@@ -25,7 +25,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   @override
   void initState() {
     super.initState();
-    AppLogger.logInfo('[ProfileViewScreen] initState - requesting profile load');
+    AppLogger.logInfo(
+        '[ProfileViewScreen] initState - requesting profile load');
     context.read<ProfileBloc>().add(ProfileLoadRequested());
   }
 
@@ -33,7 +34,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        AppLogger.logInfo('[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
+        AppLogger.logInfo(
+            '[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
 
         if (state.isLoading && state.profile == null) {
           AppLogger.logInfo('[ProfileViewScreen] Showing loading skeleton');
@@ -47,7 +49,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         // Handle empty state - user exists but hasn't created profile yet
         if (state.status == ProfileStatus.empty || profile == null) {
           final isEmpty = state.status == ProfileStatus.empty;
-          AppLogger.logInfo('[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile');
+          AppLogger.logInfo(
+              '[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile');
           return Scaffold(
             body: Center(
               child: Padding(
@@ -70,9 +73,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     DsGap.xl,
                     Text(
                       isEmpty ? 'Complete Your Profile' : 'Profile not found',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     DsGap.sm,
                     Text(
@@ -86,7 +90,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     FilledButton.icon(
                       onPressed: () => isEmpty
                           ? context.push(CrushRoutes.profileEdit)
-                          : context.read<ProfileBloc>().add(ProfileLoadRequested()),
+                          : context
+                              .read<ProfileBloc>()
+                              .add(ProfileLoadRequested()),
                       icon: Icon(isEmpty ? Icons.edit : Icons.refresh),
                       label: Text(isEmpty ? 'Create Profile' : 'Retry'),
                       style: FilledButton.styleFrom(
@@ -149,18 +155,22 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  hasBasicInfo ? '${profile.fullName}, ${profile.age}' : profile.fullName,
+                                  hasBasicInfo
+                                      ? '${profile.fullName}, ${profile.age}'
+                                      : profile.fullName,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 // Username display
-                                if (state.user?.username != null && state.user!.username!.isNotEmpty) ...[
+                                if (state.user?.username != null &&
+                                    state.user!.username!.isNotEmpty) ...[
                                   DsGap.xs,
                                   Row(
                                     children: [
-                                      const Icon(Icons.alternate_email, size: 16, color: DsColors.primary),
+                                      const Icon(Icons.alternate_email,
+                                          size: 16, color: DsColors.primary),
                                       const SizedBox(width: 4),
                                       Text(
                                         state.user!.username!,
@@ -173,34 +183,45 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                     ],
                                   ),
                                 ],
-                                if (profile.livingIn != null && profile.livingIn!.isNotEmpty) ...[
+                                if (profile.livingIn != null &&
+                                    profile.livingIn!.isNotEmpty) ...[
                                   DsGap.xs,
                                   Row(
                                     children: [
-                                      const Icon(Icons.location_on, size: 16, color: DsColors.primary),
+                                      const Icon(Icons.location_on,
+                                          size: 16, color: DsColors.primary),
                                       const SizedBox(width: 4),
                                       Text(
                                         profile.livingIn!,
                                         style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.color,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ],
-                                if (profile.jobTitle != null || profile.company != null) ...[
+                                if (profile.jobTitle != null ||
+                                    profile.company != null) ...[
                                   DsGap.xs,
                                   Row(
                                     children: [
-                                      const Icon(Icons.work_outline, size: 16, color: DsColors.primary),
+                                      const Icon(Icons.work_outline,
+                                          size: 16, color: DsColors.primary),
                                       const SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
                                           [profile.jobTitle, profile.company]
-                                              .where((s) => s != null && s.isNotEmpty)
+                                              .where((s) =>
+                                                  s != null && s.isNotEmpty)
                                               .join(' at '),
                                           style: TextStyle(
-                                            color: Theme.of(context).textTheme.bodySmall?.color,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -214,7 +235,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           ),
                           // Edit button
                           FilledButton.icon(
-                            onPressed: () => context.push(CrushRoutes.profileEdit),
+                            onPressed: () =>
+                                context.push(CrushRoutes.profileEdit),
                             icon: const Icon(Icons.edit, size: 18),
                             label: const Text('Edit'),
                             style: FilledButton.styleFrom(
@@ -229,7 +251,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       if (!isComplete || !hasBasicInfo) ...[
                         _CompletionCard(
                           percent: hasBasicInfo ? percent : 0,
-                          missing: hasBasicInfo ? summary.missing : ['age', 'gender', 'bio', 'photos'],
+                          missing: hasBasicInfo
+                              ? summary.missing
+                              : ['age', 'gender', 'bio', 'photos'],
                           isNewProfile: !hasBasicInfo,
                         ),
                         DsGap.lg,
@@ -296,19 +320,25 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               _InfoRow(
                                 icon: Icons.height,
                                 label: 'Height',
-                                value: ProfileFieldOptions.formatHeightDisplay(profile.heightCm!),
+                                value: ProfileFieldOptions.formatHeightDisplay(
+                                    profile.heightCm!),
                               ),
                             if (profile.relationshipGoals != null)
                               _InfoRow(
                                 icon: Icons.favorite,
                                 label: 'Looking for',
-                                value: ProfileFieldOptions.getRelationshipGoalLabel(profile.relationshipGoals) ?? '',
+                                value: ProfileFieldOptions
+                                        .getRelationshipGoalLabel(
+                                            profile.relationshipGoals) ??
+                                    '',
                               ),
                             if (profile.zodiacSign != null)
                               _InfoRow(
                                 icon: Icons.auto_awesome,
                                 label: 'Zodiac',
-                                value: ProfileFieldOptions.getZodiacLabel(profile.zodiacSign) ?? '',
+                                value: ProfileFieldOptions.getZodiacLabel(
+                                        profile.zodiacSign) ??
+                                    '',
                               ),
                           ],
                         ),
@@ -341,25 +371,33 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               _InfoRow(
                                 icon: Icons.school_outlined,
                                 label: 'Education',
-                                value: ProfileFieldOptions.getEducationLabel(profile.educationLevel) ?? '',
+                                value: ProfileFieldOptions.getEducationLabel(
+                                        profile.educationLevel) ??
+                                    '',
                               ),
                             if (profile.familyPlans != null)
                               _InfoRow(
                                 icon: Icons.family_restroom,
                                 label: 'Family Plans',
-                                value: ProfileFieldOptions.getFamilyPlanLabel(profile.familyPlans) ?? '',
+                                value: ProfileFieldOptions.getFamilyPlanLabel(
+                                        profile.familyPlans) ??
+                                    '',
                               ),
                             if (profile.personalityType != null)
                               _InfoRow(
                                 icon: Icons.emoji_people,
                                 label: 'Personality',
-                                value: ProfileFieldOptions.getPersonalityLabel(profile.personalityType) ?? '',
+                                value: ProfileFieldOptions.getPersonalityLabel(
+                                        profile.personalityType) ??
+                                    '',
                               ),
                             if (profile.religion != null)
                               _InfoRow(
                                 icon: Icons.self_improvement,
                                 label: 'Religion',
-                                value: ProfileFieldOptions.getReligionLabel(profile.religion) ?? '',
+                                value: ProfileFieldOptions.getReligionLabel(
+                                        profile.religion) ??
+                                    '',
                               ),
                           ],
                         ),
@@ -376,27 +414,37 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           children: [
                             if (profile.workout != null)
                               GlassChip.icon(
-                                label: ProfileFieldOptions.getWorkoutLabel(profile.workout) ?? '',
+                                label: ProfileFieldOptions.getWorkoutLabel(
+                                        profile.workout) ??
+                                    '',
                                 icon: Icons.fitness_center,
                               ),
                             if (profile.sleepingHabits != null)
                               GlassChip.icon(
-                                label: ProfileFieldOptions.getSleepingLabel(profile.sleepingHabits) ?? '',
+                                label: ProfileFieldOptions.getSleepingLabel(
+                                        profile.sleepingHabits) ??
+                                    '',
                                 icon: Icons.bedtime_outlined,
                               ),
                             if (profile.smoking != null)
                               GlassChip.icon(
-                                label: ProfileFieldOptions.getSmokingLabel(profile.smoking) ?? '',
+                                label: ProfileFieldOptions.getSmokingLabel(
+                                        profile.smoking) ??
+                                    '',
                                 icon: Icons.smoking_rooms,
                               ),
                             if (profile.drinking != null)
                               GlassChip.icon(
-                                label: ProfileFieldOptions.getDrinkingLabel(profile.drinking) ?? '',
+                                label: ProfileFieldOptions.getDrinkingLabel(
+                                        profile.drinking) ??
+                                    '',
                                 icon: Icons.local_bar,
                               ),
                             if (profile.pets != null)
                               GlassChip.icon(
-                                label: ProfileFieldOptions.getPetLabel(profile.pets) ?? '',
+                                label: ProfileFieldOptions.getPetLabel(
+                                        profile.pets) ??
+                                    '',
                                 icon: Icons.pets,
                               ),
                           ],
@@ -405,7 +453,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       DsGap.lg,
 
                       // Music
-                      if (profile.favoriteSinger != null || profile.favoriteSongs.isNotEmpty) ...[
+                      if (profile.favoriteSinger != null ||
+                          profile.favoriteSongs.isNotEmpty) ...[
                         _InfoSection(
                           title: 'Music',
                           icon: Icons.music_note_outlined,
@@ -424,7 +473,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: profile.favoriteSongs.map((song) {
-                                    return GlassChip.icon(label: song, icon: Icons.music_note);
+                                    return GlassChip.icon(
+                                        label: song, icon: Icons.music_note);
                                   }).toList(),
                                 ),
                               ],
@@ -504,7 +554,8 @@ class _ProfileHeader extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.photo_library, size: 16, color: DsColors.surfaceLight),
+                  const Icon(Icons.photo_library,
+                      size: 16, color: DsColors.surfaceLight),
                   const SizedBox(width: 4),
                   Text(
                     '${profile.photoUrls.length}',
@@ -583,8 +634,11 @@ class _CompletionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isNewProfile ? 'Set up your profile' : 'Complete your profile',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      isNewProfile
+                          ? 'Set up your profile'
+                          : 'Complete your profile',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
                       isNewProfile
@@ -602,7 +656,8 @@ class _CompletionCard extends StatelessWidget {
                 onPressed: () => context.push(CrushRoutes.profileEdit),
                 style: FilledButton.styleFrom(
                   backgroundColor: DsColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
                 child: Text(isNewProfile ? 'Get Started' : 'Complete'),
               ),

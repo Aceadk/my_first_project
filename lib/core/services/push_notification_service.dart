@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -216,10 +217,11 @@ class PushNotificationService {
     return await _messaging.getToken();
   }
 
-  /// Print FCM token for testing
+  /// Print FCM token for testing (redacted for security)
   Future<void> _printFCMToken() async {
     final token = await getToken();
-    debugPrint('FCM Token: $token');
+    // SECURITY: Never log full FCM tokens - use SecureLogger
+    SecureLogger.logToken(type: 'FCM', token: token);
   }
 
   /// Register FCM token for a user (call after login)

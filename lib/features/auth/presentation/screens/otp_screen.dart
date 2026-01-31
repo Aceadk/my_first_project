@@ -135,9 +135,7 @@ class _OtpScreenState extends State<OtpScreen> {
     return null;
   }
 
-  bool _canSubmitOtp() =>
-      _digitsOnly(_otpController.text).length == 6;
+  bool _canSubmitOtp() => _digitsOnly(_otpController.text).length == 6;
 }
 
-String _digitsOnly(String input) =>
-    input.replaceAll(RegExp(r'[^0-9]'), '');
+String _digitsOnly(String input) => input.replaceAll(RegExp(r'[^0-9]'), '');

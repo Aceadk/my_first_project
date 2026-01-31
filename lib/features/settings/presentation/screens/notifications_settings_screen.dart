@@ -58,16 +58,22 @@ class NotificationsSettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Stay Connected',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           DsGap.xs,
                           Text(
                             'Get notified about matches, messages, and more.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -153,10 +159,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                 child: Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                    color:
+                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                     ),
                   ),
                   child: Row(
@@ -164,15 +172,20 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       Icon(
                         Icons.info_outline,
                         size: 20,
-                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
                       ),
                       DsGap.mdH,
                       Expanded(
                         child: Text(
                           'You can also manage notifications in your device settings.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ),
                     ],

@@ -52,7 +52,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async => deck;
+  }) async =>
+      deck;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -91,7 +92,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => null;
@@ -141,6 +143,9 @@ class _StubAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => false;
 
   @override
+  bool get supportsAppleSignIn => false;
+
+  @override
   Stream<CrushUser?> authStateChanges() => const Stream.empty();
 
   @override
@@ -173,6 +178,11 @@ class _StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() {
     throw UnimplementedError();
   }
 

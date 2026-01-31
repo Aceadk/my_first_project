@@ -10,7 +10,8 @@ class RecordLikeReceivedParams {
 }
 
 /// Use case for recording when a like is received.
-class RecordLikeReceivedUseCase extends UseCase<void, RecordLikeReceivedParams> {
+class RecordLikeReceivedUseCase
+    extends UseCase<void, RecordLikeReceivedParams> {
   final ProfileInsightsService _service;
 
   RecordLikeReceivedUseCase([ProfileInsightsService? service])

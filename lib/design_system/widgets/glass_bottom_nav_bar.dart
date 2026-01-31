@@ -212,7 +212,8 @@ class _GlassNavItemWidget extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   AnimatedSwitcher(
-                    duration: Duration(milliseconds: (150 * motionScale).round()),
+                    duration:
+                        Duration(milliseconds: (150 * motionScale).round()),
                     child: Icon(
                       isSelected ? item.activeIcon : item.icon,
                       key: ValueKey(isSelected),
@@ -276,16 +277,16 @@ class _NavBadge extends StatelessWidget {
         width: 8,
         height: 8,
         decoration: BoxDecoration(
-        color: DsColors.primary,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: DsColors.primary.withValues(alpha: 0.5),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
+          color: DsColors.primary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: DsColors.primary.withValues(alpha: 0.5),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
       );
     }
 

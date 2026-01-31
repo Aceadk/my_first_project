@@ -22,7 +22,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         Positioned.fill(
           child: Container(
-            color: theme.colorScheme.surface.withValues(alpha:0.6),
+            color: theme.colorScheme.surface.withValues(alpha: 0.6),
           ),
         ),
         Positioned.fill(

@@ -392,14 +392,18 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
               Icon(
                 Icons.headphones_rounded,
                 size: 16,
-                color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
+                color: isDark
+                    ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                    : DsColors.ink900.withValues(alpha: 0.54),
               ),
               const SizedBox(width: 6),
               Text(
                 'Preview your voice message',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
+                  color: isDark
+                      ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                      : DsColors.ink900.withValues(alpha: 0.54),
                 ),
               ),
             ],
@@ -482,7 +486,9 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                             _formatDuration(_playbackPosition),
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54),
+                              color: isDark
+                                  ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                                  : DsColors.ink900.withValues(alpha: 0.54),
                               fontFeatures: const [
                                 FontFeature.tabularFigures()
                               ],
@@ -492,7 +498,10 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                             _formatDuration(_playbackDuration),
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.54) : DsColors.ink900.withValues(alpha: 0.38),
+                              color: isDark
+                                  ? DsColors.surfaceLight
+                                      .withValues(alpha: 0.54)
+                                  : DsColors.ink900.withValues(alpha: 0.38),
                               fontFeatures: const [
                                 FontFeature.tabularFigures()
                               ],
@@ -596,9 +605,8 @@ class _RecordingWaveform extends StatelessWidget {
           // Create wave effect based on animation
           final phase = (i / barCount + animation) % 1.0;
           final sineValue = (phase * 3.14159 * 2).abs();
-          final heightFactor = isRecording
-              ? 0.3 + (sineValue.abs() % 1) * 0.7
-              : 0.3;
+          final heightFactor =
+              isRecording ? 0.3 + (sineValue.abs() % 1) * 0.7 : 0.3;
           final barHeight = minHeight + (maxHeight - minHeight) * heightFactor;
 
           return Padding(

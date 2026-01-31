@@ -131,7 +131,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     final prefs = _cachedPreferences;
     final isPlusUser = plan.isPlus;
-    final passportModeEnabled = isPlusUser && (prefs?.passportModeEnabled ?? false);
+    final passportModeEnabled =
+        isPlusUser && (prefs?.passportModeEnabled ?? false);
 
     // Determine distance limit based on subscription and passport mode
     double distanceLimit;
@@ -187,7 +188,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       );
 
       final extendedResult = await Result.guard(
-        () => discoveryRepository.fetchDeck(event.userId, filter: extendedFilter),
+        () =>
+            discoveryRepository.fetchDeck(event.userId, filter: extendedFilter),
         logLabel: 'DiscoveryRepository.fetchDeck (extended)',
         fallbackError: 'Could not load people. Please try again.',
       );
@@ -294,9 +296,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being swiped on for match celebration
-    final swipedProfile = currentIndex < state.deck.length
-        ? state.deck[currentIndex]
-        : null;
+    final swipedProfile =
+        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
 
     final planResult = await Result.guard(
       () => subscriptionRepository.getCurrentPlan(),
@@ -386,9 +387,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being swiped for rewind support
-    final swipedProfile = currentIndex < state.deck.length
-        ? state.deck[currentIndex]
-        : null;
+    final swipedProfile =
+        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
 
     emit(state.copyWith(
       currentIndex: nextIndex,
@@ -455,7 +455,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     if (superLikesRemaining <= 0) {
       emit(state.copyWith(
         status: DeckStatus.ready,
-        errorMessage: 'No super likes remaining today. Upgrade to Plus for more!',
+        errorMessage:
+            'No super likes remaining today. Upgrade to Plus for more!',
       ));
       return;
     }
@@ -464,9 +465,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being super liked
-    final swipedProfile = currentIndex < state.deck.length
-        ? state.deck[currentIndex]
-        : null;
+    final swipedProfile =
+        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
 
     // Optimistically update UI
     emit(state.copyWith(
@@ -637,7 +637,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     // Build filter based on current state
     final filter = DiscoveryFilter(
-      maxDistanceKm: state.currentDistanceLimitKm > 0 ? state.currentDistanceLimitKm : null,
+      maxDistanceKm: state.currentDistanceLimitKm > 0
+          ? state.currentDistanceLimitKm
+          : null,
       passportModeEnabled: state.passportModeActive,
       localDeckExhausted: state.localDeckExhausted,
       userLatitude: _userLatitude,
@@ -661,9 +663,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     // Filter out profiles already in the deck
     final existingIds = state.deck.map((p) => p.id).toSet();
-    final uniqueNewProfiles = newProfiles
-        .where((p) => !existingIds.contains(p.id))
-        .toList();
+    final uniqueNewProfiles =
+        newProfiles.where((p) => !existingIds.contains(p.id)).toList();
 
     emit(state.copyWith(
       isLoadingMore: false,

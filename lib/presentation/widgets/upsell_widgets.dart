@@ -26,7 +26,8 @@ class UpgradeNudgeCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       elevation: 0,
-      color: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+      color:
+          isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
       child: Padding(
         padding: const EdgeInsets.all(DsSpacing.lg),
         child: Column(
@@ -89,12 +90,13 @@ class IntroBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DsSpacing.sm, vertical: DsSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DsSpacing.sm, vertical: DsSpacing.xs),
       decoration: BoxDecoration(
         color: DsColors.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(DsRadius.chip),
       ),
-      child: Text(
+      child: const Text(
         'Intro offer',
         style: TextStyle(
           color: DsColors.primary,
@@ -122,7 +124,8 @@ class UpsellBullets extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, size: 16, color: DsColors.success),
+                  const Icon(Icons.check_circle,
+                      size: 16, color: DsColors.success),
                   const SizedBox(width: DsSpacing.xs),
                   Expanded(child: Text(item)),
                 ],

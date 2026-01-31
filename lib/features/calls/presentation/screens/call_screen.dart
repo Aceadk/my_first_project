@@ -7,7 +7,8 @@ import 'package:crushhour/features/calls/data/models/call.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
-import 'package:crushhour/features/calls/presentation/bloc/call_state.dart' as bloc_state;
+import 'package:crushhour/features/calls/presentation/bloc/call_state.dart'
+    as bloc_state;
 import 'package:crushhour/design_system/design_system.dart';
 
 class CallScreenArgs {
@@ -240,7 +241,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           ),
         ),
         // Animated gradient orbs
-        if (_uiState == CallUIState.outgoing || _uiState == CallUIState.connecting)
+        if (_uiState == CallUIState.outgoing ||
+            _uiState == CallUIState.connecting)
           AnimatedBuilder(
             animation: _ringController,
             builder: (context, _) {
@@ -326,9 +328,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             AnimatedBuilder(
               animation: _pulseController,
               builder: (context, child) {
-                final scale = isConnecting
-                    ? 1.0 + (_pulseController.value * 0.05)
-                    : 1.0;
+                final scale =
+                    isConnecting ? 1.0 + (_pulseController.value * 0.05) : 1.0;
                 return Transform.scale(
                   scale: scale,
                   child: child,
@@ -643,7 +644,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               Container(
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: DsColors.success,
                   shape: BoxShape.circle,
                 ),

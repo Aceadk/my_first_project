@@ -67,9 +67,10 @@ class LikePriorityService {
   /// Check if user has been priority liked.
   bool hasPriorityLikeFrom(String fromUserId, String toUserId) {
     return _sentLikes.values.any(
-      (like) => like.fromUserId == fromUserId &&
-                like.toUserId == toUserId &&
-                like.isActive,
+      (like) =>
+          like.fromUserId == fromUserId &&
+          like.toUserId == toUserId &&
+          like.isActive,
     );
   }
 

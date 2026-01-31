@@ -65,7 +65,8 @@ class ProfileInsights extends Equatable {
   String get matchRateDisplay => '${(matchRate * 100).toStringAsFixed(1)}%';
 
   /// Get formatted response rate.
-  String get responseRateDisplay => '${(responseRate * 100).toStringAsFixed(1)}%';
+  String get responseRateDisplay =>
+      '${(responseRate * 100).toStringAsFixed(1)}%';
 
   /// Get formatted average response time.
   String get avgResponseTimeDisplay {

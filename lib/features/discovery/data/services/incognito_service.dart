@@ -30,9 +30,8 @@ class IncognitoService {
     bool onlyShowToLiked = false,
     bool isPremium = false,
   }) async {
-    final expiresAt = isPremium
-        ? null
-        : DateTime.now().add(IncognitoSettings.freeDuration);
+    final expiresAt =
+        isPremium ? null : DateTime.now().add(IncognitoSettings.freeDuration);
 
     _currentSettings = IncognitoSettings(
       isEnabled: true,

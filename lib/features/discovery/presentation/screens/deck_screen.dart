@@ -63,7 +63,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   String? _lastProfileSignature;
   bool _backendBlocked = false;
   String? _lastBoostUserId;
-  int _lastPreloadedIndex = -1; // Track last preloaded index to avoid redundant preloads
+  int _lastPreloadedIndex =
+      -1; // Track last preloaded index to avoid redundant preloads
 
   // Location prompt banner state
   bool _showLocationBanner = false;
@@ -160,7 +161,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     if (currentIndex < deck.length) {
       final currentProfile = deck[currentIndex];
       if (currentProfile.photoUrls.isNotEmpty) {
-        NetworkImageCache.instance.markAsPriority([currentProfile.photoUrls.first]);
+        NetworkImageCache.instance
+            .markAsPriority([currentProfile.photoUrls.first]);
       }
     }
 
@@ -231,9 +233,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
 
           // Get current user's photo for the celebration modal
           final currentProfile = context.read<ProfileBloc>().state.profile;
-          final currentUserPhotoUrl = currentProfile?.photoUrls.isNotEmpty == true
-              ? currentProfile!.photoUrls.first
-              : null;
+          final currentUserPhotoUrl =
+              currentProfile?.photoUrls.isNotEmpty == true
+                  ? currentProfile!.photoUrls.first
+                  : null;
 
           // Show the celebration modal
           MatchCelebrationModal.show(
@@ -282,9 +285,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
 
         // Filter out users who should be hidden (blocked or reported within 10 days)
         final safety = context.read<SafetyCubit>();
-        final filteredDeck = state.deck
-            .where((p) => !safety.shouldHideFromFeed(p.id))
-            .toList();
+        final filteredDeck =
+            state.deck.where((p) => !safety.shouldHideFromFeed(p.id)).toList();
 
         final isEmptyDeck = status == DeckStatus.empty ||
             filteredDeck.isEmpty ||
@@ -292,7 +294,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
 
         final currentProfile = isEmptyDeck
             ? null
-            : filteredDeck[state.currentIndex.clamp(0, filteredDeck.length - 1)];
+            : filteredDeck[
+                state.currentIndex.clamp(0, filteredDeck.length - 1)];
         final upcomingProfiles = isEmptyDeck
             ? const <Profile>[]
             : _buildUpcomingProfiles(filteredDeck, state.currentIndex);
@@ -348,13 +351,15 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                           superLikeEnabled: state.superLikesRemaining > 0,
                           onTap: () => context.push(
                             CrushRoutes.userProfile,
-                            extra: OtherUserProfileArgs(profile: currentProfile),
+                            extra:
+                                OtherUserProfileArgs(profile: currentProfile),
                           ),
                           onSwipeLeft: () async {
                             // Pass action (swipe right to left)
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
-                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                            if (!_canSwipe(completeness, backendSwipeReady,
+                                isAccountVerified: isAccountVerified)) {
                               _showProfileIncompleteDialog(
                                 context,
                                 completeness,
@@ -389,7 +394,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                             // Like action (swipe left to right)
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
-                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                            if (!_canSwipe(completeness, backendSwipeReady,
+                                isAccountVerified: isAccountVerified)) {
                               _showProfileIncompleteDialog(
                                 context,
                                 completeness,
@@ -424,7 +430,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                             // SuperLike action (swipe up)
                             if (userId == null) return;
                             final discoveryBloc = context.read<DiscoveryBloc>();
-                            if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                            if (!_canSwipe(completeness, backendSwipeReady,
+                                isAccountVerified: isAccountVerified)) {
                               _showProfileIncompleteDialog(
                                 context,
                                 completeness,
@@ -501,9 +508,13 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                     ),
 
                     // Status indicators overlay (top-left) - only show when relevant
-                    if (isLoading || retryInSeconds != null || completeness.score < 0.5 ||
-                        state.localDeckExhausted || state.passportModeActive ||
-                        _checkingCompleteness || _completenessError != null)
+                    if (isLoading ||
+                        retryInSeconds != null ||
+                        completeness.score < 0.5 ||
+                        state.localDeckExhausted ||
+                        state.passportModeActive ||
+                        _checkingCompleteness ||
+                        _completenessError != null)
                       Positioned(
                         top: DsSpacing.md,
                         left: DsSpacing.md,
@@ -512,45 +523,60 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (isLoading || retryInSeconds != null || completeness.score < 0.5)
+                            if (isLoading ||
+                                retryInSeconds != null ||
+                                completeness.score < 0.5)
                               DeckStatusBar(
                                 isLoading: isLoading,
                                 retryInSeconds: retryInSeconds,
                                 completeness: completeness,
                               ),
-                            if (state.localDeckExhausted || state.passportModeActive)
+                            if (state.localDeckExhausted ||
+                                state.passportModeActive)
                               Padding(
-                                padding: const EdgeInsets.only(top: DsSpacing.xs),
+                                padding:
+                                    const EdgeInsets.only(top: DsSpacing.xs),
                                 child: DeckSearchModeIndicator(
                                   localDeckExhausted: state.localDeckExhausted,
                                   passportModeActive: state.passportModeActive,
-                                  currentDistanceKm: state.currentDistanceLimitKm,
-                                  onTapPassport: () => context.push(CrushRoutes.discoverySettings),
+                                  currentDistanceKm:
+                                      state.currentDistanceLimitKm,
+                                  onTapPassport: () => context
+                                      .push(CrushRoutes.discoverySettings),
                                 ),
                               ),
                             if (_checkingCompleteness)
                               Container(
-                                margin: const EdgeInsets.only(top: DsSpacing.xs),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                margin:
+                                    const EdgeInsets.only(top: DsSpacing.xs),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: DsColors.ink900.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(DsRadius.sm),
+                                  borderRadius:
+                                      BorderRadius.circular(DsRadius.sm),
                                 ),
                                 child: Text(
                                   'Checking profile...',
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
-                                      ?.copyWith(color: DsColors.surfaceLight.withValues(alpha: 0.7)),
+                                      ?.copyWith(
+                                          color: DsColors.surfaceLight
+                                              .withValues(alpha: 0.7)),
                                 ),
                               ),
                             if (_completenessError != null)
                               Container(
-                                margin: const EdgeInsets.only(top: DsSpacing.xs),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                margin:
+                                    const EdgeInsets.only(top: DsSpacing.xs),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: DsColors.warning.withValues(alpha: 0.8),
-                                  borderRadius: BorderRadius.circular(DsRadius.sm),
+                                  color:
+                                      DsColors.warning.withValues(alpha: 0.8),
+                                  borderRadius:
+                                      BorderRadius.circular(DsRadius.sm),
                                 ),
                                 child: Text(
                                   _completenessError!,
@@ -584,10 +610,12 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                               ),
                               decoration: BoxDecoration(
                                 color: DsColors.primary.withValues(alpha: 0.9),
-                                borderRadius: BorderRadius.circular(DsRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(DsRadius.md),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: DsColors.ink900.withValues(alpha: 0.2),
+                                    color:
+                                        DsColors.ink900.withValues(alpha: 0.2),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -604,10 +632,13 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   Expanded(
                                     child: Text(
                                       'Enable location for better matches nearby',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: DsColors.surfaceLight,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: DsColors.surfaceLight,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: DsSpacing.sm),
@@ -617,8 +648,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                       vertical: DsSpacing.xs,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: DsColors.surfaceLight.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(DsRadius.sm),
+                                      color: DsColors.surfaceLight
+                                          .withValues(alpha: 0.2),
+                                      borderRadius:
+                                          BorderRadius.circular(DsRadius.sm),
                                     ),
                                     child: const Text(
                                       'Enable',
@@ -654,8 +687,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                               enabled: state.canRewind,
                               onTap: () async {
                                 if (userId == null) return;
-                                final discoveryBloc = context.read<DiscoveryBloc>();
-                                discoveryBloc.add(DiscoveryRewindRequested(userId));
+                                final discoveryBloc =
+                                    context.read<DiscoveryBloc>();
+                                discoveryBloc
+                                    .add(DiscoveryRewindRequested(userId));
                               },
                             ),
                             const SizedBox(height: DsSpacing.md),
@@ -667,8 +702,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                               size: 52,
                               onTap: () async {
                                 if (userId == null) return;
-                                final discoveryBloc = context.read<DiscoveryBloc>();
-                                if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                final discoveryBloc =
+                                    context.read<DiscoveryBloc>();
+                                if (!_canSwipe(completeness, backendSwipeReady,
+                                    isAccountVerified: isAccountVerified)) {
                                   _showProfileIncompleteDialog(
                                     context,
                                     completeness,
@@ -713,8 +750,11 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   enabled: state.superLikesRemaining > 0,
                                   onTap: () async {
                                     if (userId == null) return;
-                                    final discoveryBloc = context.read<DiscoveryBloc>();
-                                    if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                    final discoveryBloc =
+                                        context.read<DiscoveryBloc>();
+                                    if (!_canSwipe(
+                                        completeness, backendSwipeReady,
+                                        isAccountVerified: isAccountVerified)) {
                                       _showProfileIncompleteDialog(
                                         context,
                                         completeness,
@@ -724,7 +764,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                       );
                                       return;
                                     }
-                                    final outcome = await _evaluateBackendAllowance(
+                                    final outcome =
+                                        await _evaluateBackendAllowance(
                                       minimum: 'swipe',
                                       local: completeness,
                                       isAccountVerified: isAccountVerified,
@@ -759,7 +800,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: DsColors.ink900.withValues(alpha: 0.3),
+                                          color: DsColors.ink900
+                                              .withValues(alpha: 0.3),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
                                         ),
@@ -786,8 +828,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                               size: 52,
                               onTap: () async {
                                 if (userId == null) return;
-                                final discoveryBloc = context.read<DiscoveryBloc>();
-                                if (!_canSwipe(completeness, backendSwipeReady, isAccountVerified: isAccountVerified)) {
+                                final discoveryBloc =
+                                    context.read<DiscoveryBloc>();
+                                if (!_canSwipe(completeness, backendSwipeReady,
+                                    isAccountVerified: isAccountVerified)) {
                                   _showProfileIncompleteDialog(
                                     context,
                                     completeness,
@@ -874,7 +918,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     ].join('|');
   }
 
-  Future<void> _refreshBackendCompleteness({String minimum = 'message'}) async {
+  Future<void> _refreshBackendCompleteness({String minimum = 'messaging'}) async {
     // Single setState at start
     setState(() {
       _checkingCompleteness = true;
@@ -913,7 +957,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     required bool isAccountVerified,
   }) async {
     // First check local requirements - fast path
-    if (minimum == 'swipe' && !_canSwipe(local, true, isAccountVerified: isAccountVerified)) {
+    if (minimum == 'swipe' &&
+        !_canSwipe(local, true, isAccountVerified: isAccountVerified)) {
       return const _BackendCheckOutcome(
         allowed: false,
         blocked: true,
@@ -924,7 +969,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     final backend = _backendCompleteness;
     if (backend != null) {
       final allowed =
-          minimum == 'message' ? backend.allowsMessaging : backend.allowsSwipe;
+          minimum == 'messaging' ? backend.allowsMessaging : backend.allowsSwipe;
       return _BackendCheckOutcome(
         allowed: allowed,
         remote: backend,
@@ -998,7 +1043,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     RemoteProfileCompleteness? remote, {
     required String minimum,
   }) {
-    final remoteMissing = minimum == 'message'
+    final remoteMissing = minimum == 'messaging'
         ? remote?.missingForMessaging
         : remote?.missingForSwipe;
     if (remoteMissing != null && remoteMissing.isNotEmpty) {
@@ -1136,7 +1181,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
       iconColor = DsColors.info;
     } else if (localDeckExhausted) {
       title = 'Explored far and wide';
-      subtitle = 'You\'ve seen everyone up to ${currentDistanceKm.round()} km away.\n'
+      subtitle =
+          'You\'ve seen everyone up to ${currentDistanceKm.round()} km away.\n'
           'Try Passport mode to explore globally!';
       icon = Icons.explore;
       iconColor = DsColors.secondary;
@@ -1164,12 +1210,16 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                   PulsingIconContainer(
                     icon: icon,
                     iconSize: 56,
-                    iconColor: iconColor ?? (isDark ? DsColors.surfaceLight.withValues(alpha: 0.7) : DsColors.ink900.withValues(alpha: 0.54)),
+                    iconColor: iconColor ??
+                        (isDark
+                            ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                            : DsColors.ink900.withValues(alpha: 0.54)),
                   ),
                   DsGap.lg,
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   DsGap.sm,
@@ -1177,13 +1227,16 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                     subtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                    ),
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                        ),
                   ),
                   if (locationLabel != null) ...[
                     DsGap.md,
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: isDark
                             ? DsColors.surfaceLight.withValues(alpha: 0.1)
@@ -1196,16 +1249,21 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                           Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             passportModeActive
                                 ? locationLabel
                                 : '$locationLabel • ${currentDistanceKm.round()} km',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -1223,8 +1281,11 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 child: const Icon(Icons.tune, size: 18),
                               )
                             : const Icon(Icons.tune, size: 18),
-                        onPressed: () => context.push(CrushRoutes.discoverySettings),
-                        label: Text(activeCount > 0 ? 'Filters active' : 'Adjust filters'),
+                        onPressed: () =>
+                            context.push(CrushRoutes.discoverySettings),
+                        label: Text(activeCount > 0
+                            ? 'Filters active'
+                            : 'Adjust filters'),
                       );
                     },
                   ),
@@ -1245,7 +1306,9 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                       onPressed: isPlus
                           ? () => context.push(CrushRoutes.discoverySettings)
                           : () => _showPassportUpsell(context),
-                      label: isPlus ? 'Enable Passport mode' : 'Try Passport with Plus',
+                      label: isPlus
+                          ? 'Enable Passport mode'
+                          : 'Try Passport with Plus',
                       isPlus: isPlus,
                     ),
                   ],
@@ -1378,13 +1441,11 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                             DsGradients.primaryHorizontal.createShader(bounds),
                         child: Text(
                           'Crush',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.surfaceLight,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.surfaceLight,
+                                  ),
                         ),
                       ),
                     ),
@@ -1398,7 +1459,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                           const SizedBox(width: DsSpacing.xs),
                           GlassIconButton(
                             icon: Icons.auto_awesome,
-                            onPressed: () => context.push(CrushRoutes.weeklyPicks),
+                            onPressed: () =>
+                                context.push(CrushRoutes.weeklyPicks),
                             size: 40,
                           ),
                         ],
@@ -1555,8 +1617,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(DsColors.surfaceLight),
+                                  valueColor: AlwaysStoppedAnimation(
+                                      DsColors.surfaceLight),
                                 ),
                               )
                             : Text(isPlus ? 'Got it' : 'Upgrade to Plus'),

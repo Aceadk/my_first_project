@@ -32,8 +32,7 @@ class CachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) =>
-          placeholder ?? const _DefaultPlaceholder(),
+      placeholder: (context, url) => placeholder ?? const _DefaultPlaceholder(),
       errorWidget: (context, url, error) =>
           errorWidget ?? const _DefaultErrorWidget(),
       fadeInDuration: const Duration(milliseconds: 200),

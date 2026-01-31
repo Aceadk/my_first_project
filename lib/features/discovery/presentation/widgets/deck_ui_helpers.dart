@@ -83,7 +83,8 @@ class _DeckActionButtonState extends State<DeckActionButton>
                 boxShadow: [
                   // Main soft shadow
                   BoxShadow(
-                    color: DsColors.ink900.withValues(alpha: isDark ? 0.2 : 0.08),
+                    color:
+                        DsColors.ink900.withValues(alpha: isDark ? 0.2 : 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                     spreadRadius: 0,
@@ -142,7 +143,8 @@ class DeckStatusBar extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(DsSpacing.xs),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+          filter:
+              ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
           child: Container(
             height: 4,
             decoration: BoxDecoration(
@@ -189,7 +191,7 @@ class DeckStatusBar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.refresh,
                     size: 18,
                     color: DsColors.warning,
@@ -332,7 +334,8 @@ class DeckSearchModeIndicator extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DsSpacing.sm),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
+              filter:
+                  ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(

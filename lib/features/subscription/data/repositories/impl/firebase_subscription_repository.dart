@@ -189,7 +189,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   Future<PromoCodeRedemptionResult> redeemPromoCode(String code) async {
     final userId = _currentUserId;
     if (userId == null) {
-      return PromoCodeRedemptionResult.failure('Please sign in to redeem a promo code.');
+      return PromoCodeRedemptionResult.failure(
+          'Please sign in to redeem a promo code.');
     }
 
     final normalizedCode = code.trim().toUpperCase();

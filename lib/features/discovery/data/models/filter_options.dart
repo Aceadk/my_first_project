@@ -83,7 +83,8 @@ class DiscoveryFilterOptions {
     FilterOption(id: 'want', label: 'Want children'),
     FilterOption(id: 'dont_want', label: 'Don\'t want children'),
     FilterOption(id: 'have_want_more', label: 'Have children, want more'),
-    FilterOption(id: 'have_dont_want_more', label: 'Have children, don\'t want more'),
+    FilterOption(
+        id: 'have_dont_want_more', label: 'Have children, don\'t want more'),
     FilterOption(id: 'not_sure', label: 'Not sure yet'),
     FilterOption(id: 'open', label: 'Open to children'),
   ];

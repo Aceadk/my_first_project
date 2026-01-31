@@ -73,7 +73,8 @@ class PassportLocationsService {
         // Avoid duplicates
         if (!locations.any((l) =>
             l['city']?.toLowerCase() == location['city']?.toLowerCase() &&
-            l['country']?.toLowerCase() == location['country']?.toLowerCase())) {
+            l['country']?.toLowerCase() ==
+                location['country']?.toLowerCase())) {
           locations.add(location);
         }
       }
@@ -128,7 +129,8 @@ class PassportLocationsService {
     List<Map<String, String>> locations = [];
     if (locationsJson != null) {
       final decoded = jsonDecode(locationsJson) as List;
-      locations = decoded.map((e) => Map<String, String>.from(e as Map)).toList();
+      locations =
+          decoded.map((e) => Map<String, String>.from(e as Map)).toList();
     }
 
     // Check if already exists

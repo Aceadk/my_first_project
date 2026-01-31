@@ -43,9 +43,7 @@ class FeatureFlagCubit extends Cubit<FeatureFlagState> {
     try {
       final success = await _repository.fetchAndActivate();
       emit(state.copyWith(
-        status: success
-            ? FeatureFlagStatus.loaded
-            : FeatureFlagStatus.error,
+        status: success ? FeatureFlagStatus.loaded : FeatureFlagStatus.error,
         flags: _repository.flags,
         lastFetchTime: _repository.lastFetchTime,
         errorMessage: success ? null : 'Failed to refresh flags',

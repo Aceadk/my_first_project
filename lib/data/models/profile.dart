@@ -17,8 +17,10 @@ class Profile extends Equatable {
   final String gender;
   final String? sexualOrientation;
   final DateTime? dateOfBirth;
-  final DateTime? lastDobChangeAt; // Track when DOB was last changed (once per month)
-  final DateTime? lastNameChangeAt; // Track when name was last changed (once per month)
+  final DateTime?
+      lastDobChangeAt; // Track when DOB was last changed (once per month)
+  final DateTime?
+      lastNameChangeAt; // Track when name was last changed (once per month)
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MEDIA
@@ -37,28 +39,32 @@ class Profile extends Equatable {
   /// Check if user can change their display name (once every 28 days)
   bool get canChangeName {
     if (lastNameChangeAt == null) return true;
-    final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastNameChangeAt!).inDays;
     return daysSinceLastChange >= 28;
   }
 
   /// Days remaining until name can be changed again
   int get daysUntilNameChange {
     if (lastNameChangeAt == null) return 0;
-    final daysSinceLastChange = DateTime.now().difference(lastNameChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastNameChangeAt!).inDays;
     return (28 - daysSinceLastChange).clamp(0, 28);
   }
 
   /// Check if user can change their date of birth (once per month)
   bool get canChangeDob {
     if (lastDobChangeAt == null) return true;
-    final daysSinceLastChange = DateTime.now().difference(lastDobChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastDobChangeAt!).inDays;
     return daysSinceLastChange >= 30;
   }
 
   /// Days remaining until DOB can be changed again
   int get daysUntilDobChange {
     if (lastDobChangeAt == null) return 0;
-    final daysSinceLastChange = DateTime.now().difference(lastDobChangeAt!).inDays;
+    final daysSinceLastChange =
+        DateTime.now().difference(lastDobChangeAt!).inDays;
     return (30 - daysSinceLastChange).clamp(0, 30);
   }
 
@@ -330,9 +336,11 @@ class Profile extends Equatable {
   }) {
     return Profile(
       id: id ?? this.id,
-      username: identical(username, _unset) ? this.username : username as String?,
+      username:
+          identical(username, _unset) ? this.username : username as String?,
       name: name ?? this.name,
-      lastName: identical(lastName, _unset) ? this.lastName : lastName as String?,
+      lastName:
+          identical(lastName, _unset) ? this.lastName : lastName as String?,
       age: age ?? this.age,
       gender: gender ?? this.gender,
       sexualOrientation: identical(sexualOrientation, _unset)
@@ -355,8 +363,7 @@ class Profile extends Equatable {
       // ignore: deprecated_member_use_from_same_package
       prompts: prompts ?? this.prompts, // Keep for backwards compatibility
       profilePrompts: profilePrompts ?? this.profilePrompts,
-      heightCm:
-          identical(heightCm, _unset) ? this.heightCm : heightCm as int?,
+      heightCm: identical(heightCm, _unset) ? this.heightCm : heightCm as int?,
       relationshipGoals: identical(relationshipGoals, _unset)
           ? this.relationshipGoals
           : relationshipGoals as String?,
@@ -375,16 +382,14 @@ class Profile extends Equatable {
           : personalityType as String?,
       religion:
           identical(religion, _unset) ? this.religion : religion as String?,
-      workout:
-          identical(workout, _unset) ? this.workout : workout as String?,
+      workout: identical(workout, _unset) ? this.workout : workout as String?,
       socialMedia: identical(socialMedia, _unset)
           ? this.socialMedia
           : socialMedia as String?,
       sleepingHabits: identical(sleepingHabits, _unset)
           ? this.sleepingHabits
           : sleepingHabits as String?,
-      smoking:
-          identical(smoking, _unset) ? this.smoking : smoking as String?,
+      smoking: identical(smoking, _unset) ? this.smoking : smoking as String?,
       drinking:
           identical(drinking, _unset) ? this.drinking : drinking as String?,
       diet: identical(diet, _unset) ? this.diet : diet as String?,
@@ -393,8 +398,7 @@ class Profile extends Equatable {
       pets: identical(pets, _unset) ? this.pets : pets as String?,
       jobTitle:
           identical(jobTitle, _unset) ? this.jobTitle : jobTitle as String?,
-      company:
-          identical(company, _unset) ? this.company : company as String?,
+      company: identical(company, _unset) ? this.company : company as String?,
       school: identical(school, _unset) ? this.school : school as String?,
       country: country ?? this.country,
       city: city ?? this.city,
@@ -402,9 +406,8 @@ class Profile extends Equatable {
           identical(livingIn, _unset) ? this.livingIn : livingIn as String?,
       latitude:
           identical(latitude, _unset) ? this.latitude : latitude as double?,
-      longitude: identical(longitude, _unset)
-          ? this.longitude
-          : longitude as double?,
+      longitude:
+          identical(longitude, _unset) ? this.longitude : longitude as double?,
       distance:
           identical(distance, _unset) ? this.distance : distance as double?,
       distanceUnit: identical(distanceUnit, _unset)

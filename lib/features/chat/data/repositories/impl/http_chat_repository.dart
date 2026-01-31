@@ -55,7 +55,8 @@ class HttpChatRepository implements ChatRepository {
   @override
   Stream<List<Message>> watchMessages(String matchId) {
     if (!_messageControllers.containsKey(matchId)) {
-      _messageControllers[matchId] = StreamController<List<Message>>.broadcast();
+      _messageControllers[matchId] =
+          StreamController<List<Message>>.broadcast();
       _startMessagePolling(matchId);
     }
     return _messageControllers[matchId]!.stream;
@@ -112,7 +113,8 @@ class HttpChatRepository implements ChatRepository {
 
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
-      debugPrint('HttpChatRepository: WebSocket connected, skipping message polling');
+      debugPrint(
+          'HttpChatRepository: WebSocket connected, skipping message polling');
       return;
     }
 
@@ -215,7 +217,8 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpChatRepository: Failed to mark messages read - ${result.error}');
+      debugPrint(
+          'HttpChatRepository: Failed to mark messages read - ${result.error}');
     }
   }
 
@@ -411,7 +414,8 @@ class HttpChatRepository implements ChatRepository {
 
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
-      debugPrint('HttpChatRepository: WebSocket connected, skipping presence polling');
+      debugPrint(
+          'HttpChatRepository: WebSocket connected, skipping presence polling');
       return;
     }
 
@@ -481,7 +485,8 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to update media settings');
+      throw Exception(
+          result.error?.message ?? 'Failed to update media settings');
     }
 
     _mediaSendingControllers[matchId]?.add(enabled);
@@ -557,7 +562,8 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpChatRepository: Failed to fetch matches - ${result.error}');
+      debugPrint(
+          'HttpChatRepository: Failed to fetch matches - ${result.error}');
       return const PaginatedResult(items: [], total: 0, hasMore: false);
     }
 
@@ -584,7 +590,8 @@ class HttpChatRepository implements ChatRepository {
     String? toUserName,
     String? toUserPhotoUrl,
   }) async {
-    throw UnsupportedError('Message requests are not supported in HTTP backend.');
+    throw UnsupportedError(
+        'Message requests are not supported in HTTP backend.');
   }
 
   @override

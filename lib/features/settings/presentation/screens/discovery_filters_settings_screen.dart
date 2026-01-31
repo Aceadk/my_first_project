@@ -74,16 +74,24 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'Find Your Match',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                               DsGap.xs,
                               Text(
                                 'Customize who you see in discovery.',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                               ),
                             ],
                           ),
@@ -101,7 +109,9 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     onSelectLocation: () => _showLocationPicker(context, cubit),
                     onClearLocation: () => cubit.clearPassportLocation(),
                     onUpgrade: () {
-                      context.read<SubscriptionBloc>().add(PlusCheckoutRequested());
+                      context
+                          .read<SubscriptionBloc>()
+                          .add(PlusCheckoutRequested());
                     },
                   ),
                   DsGap.md,
@@ -122,7 +132,8 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: DsColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
@@ -157,15 +168,25 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                           children: [
                             Text(
                               '1 km',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                             Text(
                               '200 km',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                           ],
                         ),
@@ -182,7 +203,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.flight_takeoff,
                                   size: 16,
                                   color: DsColors.info,
@@ -191,9 +212,12 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     'Passport mode active — distance limit disabled',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: DsColors.info,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: DsColors.info,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -221,9 +245,11 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: DsColors.secondary.withValues(alpha: 0.1),
+                                color:
+                                    DsColors.secondary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -253,15 +279,25 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                           children: [
                             Text(
                               '18',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                             Text(
                               '75',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                           ],
                         ),
@@ -308,7 +344,9 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     state: discoveryState,
                     cubit: cubit,
                     onUpgrade: () {
-                      context.read<SubscriptionBloc>().add(PlusCheckoutRequested());
+                      context
+                          .read<SubscriptionBloc>()
+                          .add(PlusCheckoutRequested());
                     },
                   ),
                   DsGap.lg,
@@ -319,10 +357,14 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     child: Container(
                       padding: DsEdgeInsets.allMd,
                       decoration: BoxDecoration(
-                        color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                        color: isDark
+                            ? DsColors.surfaceDark
+                            : DsColors.surfaceLight,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                          color: isDark
+                              ? DsColors.borderDark
+                              : DsColors.borderLight,
                         ),
                       ),
                       child: Row(
@@ -330,15 +372,22 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                           Icon(
                             Icons.info_outline,
                             size: 20,
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
                           ),
                           DsGap.mdH,
                           Expanded(
                             child: Text(
                               'Adjusting these filters affects who sees you too.',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                           ),
                         ],
@@ -476,15 +525,23 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Passport to anywhere',
-                            style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(sheetContext)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           Text(
                             'Select a city to explore',
-                            style: Theme.of(sheetContext).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style: Theme.of(sheetContext)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? DsColors.textMutedDark
+                                      : DsColors.textMutedLight,
+                                ),
                           ),
                         ],
                       ),
@@ -627,7 +684,9 @@ class _PassportModeSection extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.flight_takeoff,
-                        color: passportEnabled ? DsColors.surfaceLight : DsColors.secondary,
+                        color: passportEnabled
+                            ? DsColors.surfaceLight
+                            : DsColors.secondary,
                         size: 24,
                       ),
                     ),
@@ -640,19 +699,27 @@ class _PassportModeSection extends StatelessWidget {
                             children: [
                               Text(
                                 'Passport Mode',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                               DsGap.smH,
                               if (!isPlus)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [DsColors.primary, DsColors.secondary],
+                                      colors: [
+                                        DsColors.primary,
+                                        DsColors.secondary
+                                      ],
                                     ),
-                                    borderRadius: BorderRadius.circular(DsRadius.round),
+                                    borderRadius:
+                                        BorderRadius.circular(DsRadius.round),
                                   ),
                                   child: const Text(
                                     'PLUS',
@@ -670,11 +737,14 @@ class _PassportModeSection extends StatelessWidget {
                             passportEnabled && passportLocation != null
                                 ? 'Exploring: $passportLocation'
                                 : 'Swipe anywhere in the world',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: passportEnabled
-                                  ? DsColors.info
-                                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: passportEnabled
+                                          ? DsColors.info
+                                          : (isDark
+                                              ? DsColors.textMutedDark
+                                              : DsColors.textMutedLight),
+                                    ),
                           ),
                         ],
                       ),
@@ -710,11 +780,14 @@ class _PassportModeSection extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: passportEnabled ? DsColors.info : null,
+                            foregroundColor:
+                                passportEnabled ? DsColors.info : null,
                             side: BorderSide(
                               color: passportEnabled
                                   ? DsColors.info.withValues(alpha: 0.5)
-                                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
+                                  : (isDark
+                                      ? DsColors.borderDark
+                                      : DsColors.borderLight),
                             ),
                           ),
                         ),
@@ -727,7 +800,8 @@ class _PassportModeSection extends StatelessWidget {
                           tooltip: 'Return to my location',
                           style: IconButton.styleFrom(
                             foregroundColor: DsColors.info,
-                            backgroundColor: DsColors.info.withValues(alpha: 0.1),
+                            backgroundColor:
+                                DsColors.info.withValues(alpha: 0.1),
                           ),
                         ),
                       ],
@@ -750,8 +824,10 @@ class _PassportModeSection extends StatelessWidget {
                   Text(
                     'Unlock Passport mode and explore people from anywhere in the world.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                    ),
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -776,9 +852,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: DsColors.primary,
-        ),
+              fontWeight: FontWeight.bold,
+              color: DsColors.primary,
+            ),
       ),
     );
   }
@@ -839,7 +915,8 @@ class _CityTile extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
               ],
             ),
@@ -879,14 +956,15 @@ class _AdvancedFiltersSection extends StatelessWidget {
               Text(
                 'Advanced Filters',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: DsColors.secondary,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: DsColors.secondary,
+                    ),
               ),
               DsGap.smH,
               if (!isPlus)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [DsColors.primary, DsColors.secondary],
@@ -924,7 +1002,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(DsRadius.lg),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
+                filter: ImageFilter.blur(
+                    sigmaX: DsBlur.light, sigmaY: DsBlur.light),
                 child: Container(
                   padding: DsEdgeInsets.allLg,
                   decoration: BoxDecoration(
@@ -967,16 +1046,24 @@ class _AdvancedFiltersSection extends StatelessWidget {
                               children: [
                                 Text(
                                   'Unlock Advanced Filters',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 DsGap.xs,
                                 Text(
                                   'Filter by height, education, lifestyle & more',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                      ),
                                 ),
                               ],
                             ),
@@ -989,12 +1076,18 @@ class _AdvancedFiltersSection extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _LockedFilterChip(label: 'Height', icon: Icons.height),
-                          _LockedFilterChip(label: 'Education', icon: Icons.school),
-                          _LockedFilterChip(label: 'Goals', icon: Icons.favorite),
-                          _LockedFilterChip(label: 'Verified', icon: Icons.verified),
-                          _LockedFilterChip(label: 'Lifestyle', icon: Icons.self_improvement),
-                          _LockedFilterChip(label: 'Religion', icon: Icons.church),
+                          _LockedFilterChip(
+                              label: 'Height', icon: Icons.height),
+                          _LockedFilterChip(
+                              label: 'Education', icon: Icons.school),
+                          _LockedFilterChip(
+                              label: 'Goals', icon: Icons.favorite),
+                          _LockedFilterChip(
+                              label: 'Verified', icon: Icons.verified),
+                          _LockedFilterChip(
+                              label: 'Lifestyle', icon: Icons.self_improvement),
+                          _LockedFilterChip(
+                              label: 'Religion', icon: Icons.church),
                         ],
                       ),
                       DsGap.lg,
@@ -1067,9 +1160,11 @@ class _AdvancedFiltersSection extends StatelessWidget {
             child: Text(
               'Lifestyle',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
 
@@ -1135,9 +1230,11 @@ class _AdvancedFiltersSection extends StatelessWidget {
             child: Text(
               'More',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
 
@@ -1189,7 +1286,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
   String _getEducationSubtitle() {
     if (state.educationLevels.isEmpty) return 'Any education';
     return state.educationLevels
-        .map((id) => DiscoveryFilterOptions.getLabelForId(id, DiscoveryFilterOptions.educationLevels))
+        .map((id) => DiscoveryFilterOptions.getLabelForId(
+            id, DiscoveryFilterOptions.educationLevels))
         .whereType<String>()
         .join(', ');
   }
@@ -1197,39 +1295,52 @@ class _AdvancedFiltersSection extends StatelessWidget {
   String _getRelationshipGoalsSubtitle() {
     if (state.relationshipGoals.isEmpty) return 'Any goals';
     return state.relationshipGoals
-        .map((id) => DiscoveryFilterOptions.getLabelForId(id, DiscoveryFilterOptions.relationshipGoals))
+        .map((id) => DiscoveryFilterOptions.getLabelForId(
+            id, DiscoveryFilterOptions.relationshipGoals))
         .whereType<String>()
         .join(', ');
   }
 
   String _getSmokingSubtitle() {
     if (state.smokingFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.smokingFilter!, DiscoveryFilterOptions.smokingOptions) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(
+            state.smokingFilter!, DiscoveryFilterOptions.smokingOptions) ??
+        'Any';
   }
 
   String _getDrinkingSubtitle() {
     if (state.drinkingFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.drinkingFilter!, DiscoveryFilterOptions.drinkingOptions) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(
+            state.drinkingFilter!, DiscoveryFilterOptions.drinkingOptions) ??
+        'Any';
   }
 
   String _getExerciseSubtitle() {
     if (state.exerciseFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.exerciseFilter!, DiscoveryFilterOptions.exerciseOptions) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(
+            state.exerciseFilter!, DiscoveryFilterOptions.exerciseOptions) ??
+        'Any';
   }
 
   String _getFamilyPlansSubtitle() {
     if (state.familyPlansFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.familyPlansFilter!, DiscoveryFilterOptions.familyPlansOptions) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(state.familyPlansFilter!,
+            DiscoveryFilterOptions.familyPlansOptions) ??
+        'Any';
   }
 
   String _getZodiacSubtitle() {
     if (state.zodiacFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.zodiacFilter!, DiscoveryFilterOptions.zodiacSigns) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(
+            state.zodiacFilter!, DiscoveryFilterOptions.zodiacSigns) ??
+        'Any';
   }
 
   String _getReligionSubtitle() {
     if (state.religionFilter == null) return 'Any';
-    return DiscoveryFilterOptions.getLabelForId(state.religionFilter!, DiscoveryFilterOptions.religionOptions) ?? 'Any';
+    return DiscoveryFilterOptions.getLabelForId(
+            state.religionFilter!, DiscoveryFilterOptions.religionOptions) ??
+        'Any';
   }
 
   void _showHeightPicker(BuildContext context) {
@@ -1276,9 +1387,10 @@ class _AdvancedFiltersSection extends StatelessWidget {
                       children: [
                         Text(
                           'Height Range',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const Spacer(),
                         TextButton(
@@ -1306,16 +1418,24 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           children: [
                             Text(
                               'Min',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                             Text(
                               HeightUtils.getDisplayHeight(minHeight),
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.secondary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.secondary,
+                                  ),
                             ),
                           ],
                         ),
@@ -1323,16 +1443,24 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           children: [
                             Text(
                               'Max',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                             Text(
                               HeightUtils.getDisplayHeight(maxHeight),
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.secondary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.secondary,
+                                  ),
                             ),
                           ],
                         ),
@@ -1347,7 +1475,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
                       min: HeightUtils.minHeight.toDouble(),
                       max: HeightUtils.maxHeight.toDouble(),
                       divisions: 100,
-                      values: RangeValues(minHeight.toDouble(), maxHeight.toDouble()),
+                      values: RangeValues(
+                          minHeight.toDouble(), maxHeight.toDouble()),
                       labels: RangeLabels(
                         HeightUtils.cmToFeetInches(minHeight),
                         HeightUtils.cmToFeetInches(maxHeight),
@@ -1368,7 +1497,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: () {
-                          cubit.setHeightRange(minCm: minHeight, maxCm: maxHeight);
+                          cubit.setHeightRange(
+                              minCm: minHeight, maxCm: maxHeight);
                           Navigator.pop(context);
                         },
                         child: const Text('Apply'),
@@ -1450,9 +1580,10 @@ class _AdvancedFiltersSection extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const Spacer(),
                         TextButton(
@@ -1507,7 +1638,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           onSelected(selected);
                           Navigator.pop(context);
                         },
-                        child: Text('Apply${selected.isNotEmpty ? ' (${selected.length})' : ''}'),
+                        child: Text(
+                            'Apply${selected.isNotEmpty ? ' (${selected.length})' : ''}'),
                       ),
                     ),
                   ),
@@ -1564,8 +1696,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const Spacer(),
                     if (selectedId != null)
@@ -1701,8 +1833,9 @@ class _LockedFilterChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
           ),
           const SizedBox(width: 4),
           Icon(

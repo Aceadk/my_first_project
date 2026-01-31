@@ -58,7 +58,8 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
         bottom: TabBar(
           controller: _tabController,
           labelColor: DsColors.primary,
-          unselectedLabelColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          unselectedLabelColor:
+              theme.colorScheme.onSurface.withValues(alpha: 0.6),
           indicatorColor: DsColors.primary,
           tabs: const [
             Tab(text: 'Email link'),
@@ -272,8 +273,8 @@ class _EmailLinkTab extends StatelessWidget {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(DsColors.backgroundLight),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              DsColors.backgroundLight),
                         ),
                       )
                     : Text(
@@ -295,7 +296,8 @@ class _EmailLinkTab extends StatelessWidget {
               decoration: BoxDecoration(
                 color: DsColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: DsColors.success.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: DsColors.success.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -469,8 +471,8 @@ class _EmailPasswordTab extends StatelessWidget {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(DsColors.backgroundLight),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              DsColors.backgroundLight),
                         ),
                       )
                     : const Text(
@@ -504,7 +506,8 @@ class _EmailPasswordTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

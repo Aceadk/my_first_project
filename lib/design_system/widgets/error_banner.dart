@@ -15,7 +15,7 @@ class ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final background = theme.colorScheme.error.withValues(alpha:0.1);
+    final background = theme.colorScheme.error.withValues(alpha: 0.1);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(DsSpacing.md),

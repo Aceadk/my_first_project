@@ -92,8 +92,13 @@ class _StubChatRepository implements ChatRepository {
   bool shouldThrow = false;
   final List<(String, String)> blockedPairs = [];
   final List<(String, String)> unblockedPairs = [];
-  final List<({String reporterId, String reportedId, String reason, String? source})>
-      reports = [];
+  final List<
+      ({
+        String reporterId,
+        String reportedId,
+        String reason,
+        String? source
+      })> reports = [];
 
   void _maybeThrow() {
     if (shouldThrow) throw Exception('network failed');
@@ -333,14 +338,16 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async => [];
+  }) async =>
+      [];
 
   @override
   Future<CrushMatch?> swipeRight({
     required String userId,
     required String targetUserId,
     String? attachedMessage,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<void> swipeLeft({
@@ -364,7 +371,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => null;

@@ -54,22 +54,26 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   }
 
   Future<void> togglePush(bool value) async {
-    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'push', enabled: value);
+    await AnalyticsService.instance
+        .logNotificationSettingsChanged(type: 'push', enabled: value);
     await _update(state.copyWith(push: value));
   }
 
   Future<void> toggleEmail(bool value) async {
-    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'email', enabled: value);
+    await AnalyticsService.instance
+        .logNotificationSettingsChanged(type: 'email', enabled: value);
     await _update(state.copyWith(email: value));
   }
 
   Future<void> toggleSound(bool value) async {
-    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'sound', enabled: value);
+    await AnalyticsService.instance
+        .logNotificationSettingsChanged(type: 'sound', enabled: value);
     await _update(state.copyWith(sound: value));
   }
 
   Future<void> toggleVibration(bool value) async {
-    await AnalyticsService.instance.logNotificationSettingsChanged(type: 'vibration', enabled: value);
+    await AnalyticsService.instance
+        .logNotificationSettingsChanged(type: 'vibration', enabled: value);
     await _update(state.copyWith(vibration: value));
   }
 

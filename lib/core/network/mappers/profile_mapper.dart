@@ -133,7 +133,8 @@ class ProfileMapper {
   }
 
   /// Convert DiscoveryPreferencesDto to domain model.
-  static DiscoveryPreferences preferencesFromDto(DiscoveryPreferencesDto dto, {
+  static DiscoveryPreferences preferencesFromDto(
+    DiscoveryPreferencesDto dto, {
     String? country,
     String? city,
   }) {

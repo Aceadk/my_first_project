@@ -82,7 +82,8 @@ class GlassChip extends StatelessWidget {
             color: isSelected ? null : bgColor,
             gradient: isSelected ? DsGradients.primaryHorizontal : null,
             borderRadius: BorderRadius.circular(DsRadius.round),
-            border: isSelected ? null : Border.all(color: borderColor, width: 1),
+            border:
+                isSelected ? null : Border.all(color: borderColor, width: 1),
             boxShadow: isSelected
                 ? [
                     BoxShadow(

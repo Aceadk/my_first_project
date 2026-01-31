@@ -245,9 +245,60 @@ function toAuthHttpsError(
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// APP CHECK CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Enable App Check enforcement globally.
+ * When true, requests without valid App Check tokens will be rejected.
+ *
+ * IMPORTANT: Before enabling in production:
+ * 1. Configure App Check in Firebase Console
+ * 2. Register iOS app with DeviceCheck/App Attest
+ * 3. Register Android app with Play Integrity
+ * 4. Deploy and test with enforcement disabled first
+ * 5. Enable gradually using Firebase Console's enforcement settings
+ */
+const ENFORCE_APP_CHECK = false; // Set to true after App Check is fully configured
+
+/**
+ * Verify App Check token and optionally enforce it.
+ * Returns true if the request has a valid App Check token.
+ */
+function verifyAppCheck(context: CallableContext, action: string): boolean {
+  const appCheckToken = context.app;
+
+  if (appCheckToken) {
+    // Valid App Check token present
+    return true;
+  }
+
+  if (ENFORCE_APP_CHECK) {
+    console.warn("App Check: Rejected request without valid token", {
+      action,
+      uid: context.auth?.uid,
+    });
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "App Check verification failed. Please update your app."
+    );
+  }
+
+  // Log warning but allow request (enforcement disabled)
+  console.info("App Check: Request without token (enforcement disabled)", {
+    action,
+    uid: context.auth?.uid,
+  });
+  return false;
+}
+
 function callable<TData>(handler: CallableHandler<TData>) {
   return functions.https.onCall(async (data: TData, context: CallableContext) => {
     try {
+      // Verify App Check token (logs warning if missing, throws if enforcement enabled)
+      verifyAppCheck(context, handler.name || "callable");
+
       return await handler(data, context);
     } catch (err) {
       if (isHttpsError(err)) {
@@ -346,6 +397,21 @@ const SIGNUP_ATTEMPT_BLOCK_MS = 20 * 60 * 1000;
 const DATE_PLAN_EMAIL_LIMIT = 3;
 const DATE_PLAN_EMAIL_WINDOW_MS = 60 * 60 * 1000;
 const DATE_PLAN_EMAIL_BLOCK_MS = 2 * 60 * 60 * 1000;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAFETY ACTION RATE LIMITS
+// Prevents abuse of report/block features
+// ─────────────────────────────────────────────────────────────────────────────
+const REPORT_LIMIT = 10; // Max 10 reports per window
+const REPORT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+const REPORT_BLOCK_MS = 2 * 60 * 60 * 1000; // 2 hour block after exceeding
+const BLOCK_LIMIT = 20; // Max 20 blocks per window
+const BLOCK_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+const BLOCK_BLOCK_MS = 60 * 60 * 1000; // 1 hour block after exceeding
+const UNBLOCK_LIMIT = 30; // Max 30 unblocks per window
+const UNBLOCK_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+const UNBLOCK_BLOCK_MS = 30 * 60 * 1000; // 30 min block after exceeding
+
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -2739,6 +2805,17 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     );
   }
 
+  // Rate limiting: prevent report spam/abuse
+  const reportLimit = await applyRateLimit(
+    `report:uid:${reporterId}`,
+    REPORT_LIMIT,
+    REPORT_WINDOW_MS,
+    REPORT_BLOCK_MS
+  );
+  if (!reportLimit.allowed) {
+    throwRateLimitError(reportLimit.retryAfterMs);
+  }
+
   await ensureUserExists(reportedId);
 
   await db.collection("reports").add({
@@ -2808,6 +2885,17 @@ export const blockUser = callable<BlockRequest>(async (data, context) => {
     );
   }
 
+  // Rate limiting: prevent block abuse
+  const blockLimit = await applyRateLimit(
+    `block:uid:${blockerId}`,
+    BLOCK_LIMIT,
+    BLOCK_WINDOW_MS,
+    BLOCK_BLOCK_MS
+  );
+  if (!blockLimit.allowed) {
+    throwRateLimitError(blockLimit.retryAfterMs);
+  }
+
   const docId = `${blockerId}_${blockedId}`;
   await db.collection("blocks").doc(docId).set({
     blockerId,
@@ -2828,6 +2916,17 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
       "permission-denied",
       "Blocker mismatch."
     );
+  }
+
+  // Rate limiting: prevent unblock abuse (less restrictive)
+  const unblockLimit = await applyRateLimit(
+    `unblock:uid:${blockerId}`,
+    UNBLOCK_LIMIT,
+    UNBLOCK_WINDOW_MS,
+    UNBLOCK_BLOCK_MS
+  );
+  if (!unblockLimit.allowed) {
+    throwRateLimitError(unblockLimit.retryAfterMs);
   }
 
   const docId = `${blockerId}_${blockedId}`;
@@ -4142,38 +4241,38 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
     const country = typeof profile?.country === "string" ? profile.country : "";
     const city = typeof profile?.city === "string" ? profile.city : "";
 
-    // Calculate breakdown scores (0-100 for each category)
+    // Calculate breakdown scores (0.0-1.0 normalized, matching client-side)
     // Required: 1 photo, 10 char bio, 3 interests, city + country
     // Prompts are optional (recommended only)
-    const photoScore = Math.min(100, (photos.length / PROFILE_MIN_PHOTOS) * 100);
-    const bioScore = Math.min(100, (bio.length / PROFILE_MIN_BIO_LENGTH) * 100);
-    const promptsScore = prompts.length > 0 ? 100 : 0; // Just for tracking, not required
-    const interestsScore = Math.min(
-      100,
-      (interests.length / PROFILE_MIN_INTERESTS) * 100
-    );
-    const locationScore = city && country ? 100 : 0;
-
-    const breakdown: Record<string, number> = {
-      photos: photoScore,
-      bio: bioScore,
-      prompts: promptsScore,
-      interests: interestsScore,
-      location: locationScore,
-    };
-
-    // Calculate overall weighted score (prompts excluded - optional)
+    // Weights: photos 30%, bio 25%, interests 25%, location 20%
     const weights = {
       photos: 0.30,
       bio: 0.25,
       interests: 0.25,
       location: 0.20,
     };
+
+    const photoRatio = Math.min(1.0, photos.length / PROFILE_MIN_PHOTOS);
+    const bioRatio = Math.min(1.0, bio.length / PROFILE_MIN_BIO_LENGTH);
+    const interestsRatio = Math.min(1.0, interests.length / PROFILE_MIN_INTERESTS);
+    const locationRatio = city && country ? 1.0 : 0.0;
+    const promptsRatio = prompts.length > 0 ? 1.0 : 0.0; // Just for tracking
+
+    // Breakdown stores weighted scores (matching client-side format)
+    const breakdown: Record<string, number> = {
+      photos: photoRatio * weights.photos,
+      bio: bioRatio * weights.bio,
+      interests: interestsRatio * weights.interests,
+      location: locationRatio * weights.location,
+      prompts: promptsRatio, // Not weighted, just for tracking
+    };
+
+    // Calculate overall score (0.0-1.0, sum of weighted components)
     const score =
-      photoScore * weights.photos +
-      bioScore * weights.bio +
-      interestsScore * weights.interests +
-      locationScore * weights.location;
+      breakdown.photos +
+      breakdown.bio +
+      breakdown.interests +
+      breakdown.location;
 
     // Build missing list
     const missing: string[] = [];
@@ -4204,9 +4303,9 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
       missing.push("Answer prompts to stand out (optional).");
     }
 
-    // Thresholds - must complete all required fields (100%)
-    const swipeThreshold = 100;
-    const messagingThreshold = 100;
+    // Thresholds - must complete all required fields (1.0 = 100%)
+    const swipeThreshold = 1.0;
+    const messagingThreshold = 1.0;
 
     const meetsSwipeMinimum = score >= swipeThreshold;
     const meetsMessagingMinimum = score >= messagingThreshold;
@@ -4856,8 +4955,10 @@ app.get("/v1/discovery/deck", authMiddleware, async (req: AuthRequest, res: Resp
       });
 
     res.json({
-      profiles,
-      total_count: profiles.length,
+      candidates: profiles,  // Renamed from 'profiles' to match callable function
+      profiles,              // Keep for backward compatibility
+      total: profiles.length,
+      total_count: profiles.length,  // Keep for backward compatibility
       has_more: profiles.length >= 20,
     });
   } catch (err) {
@@ -5346,6 +5447,22 @@ app.post("/v1/users/block", authMiddleware, async (req: AuthRequest, res: Respon
       return res.status(400).json({ error: "blocked_id required" });
     }
 
+    // Rate limiting
+    const blockLimit = await applyRateLimit(
+      `block:uid:${req.uid}`,
+      BLOCK_LIMIT,
+      BLOCK_WINDOW_MS,
+      BLOCK_BLOCK_MS
+    );
+    if (!blockLimit.allowed) {
+      const retryTime = formatRetryTime(blockLimit.retryAfterMs);
+      return res.status(429).json({
+        error: "Too many block requests",
+        retry_after_ms: blockLimit.retryAfterMs,
+        message: `Please try again ${retryTime}`,
+      });
+    }
+
     await db.collection("blocks").add({
       blockerId: req.uid,
       blockedId: blocked_id,
@@ -5365,6 +5482,22 @@ app.post("/v1/users/unblock", authMiddleware, async (req: AuthRequest, res: Resp
     const { blocked_id } = req.body;
     if (!blocked_id) {
       return res.status(400).json({ error: "blocked_id required" });
+    }
+
+    // Rate limiting
+    const unblockLimit = await applyRateLimit(
+      `unblock:uid:${req.uid}`,
+      UNBLOCK_LIMIT,
+      UNBLOCK_WINDOW_MS,
+      UNBLOCK_BLOCK_MS
+    );
+    if (!unblockLimit.allowed) {
+      const retryTime = formatRetryTime(unblockLimit.retryAfterMs);
+      return res.status(429).json({
+        error: "Too many unblock requests",
+        retry_after_ms: unblockLimit.retryAfterMs,
+        message: `Please try again ${retryTime}`,
+      });
     }
 
     const blockSnap = await db.collection("blocks")
@@ -5390,6 +5523,22 @@ app.post("/v1/users/report", authMiddleware, async (req: AuthRequest, res: Respo
     const { reported_id, reason, description, match_id, message_id } = req.body;
     if (!reported_id || !reason) {
       return res.status(400).json({ error: "reported_id and reason required" });
+    }
+
+    // Rate limiting
+    const reportLimit = await applyRateLimit(
+      `report:uid:${req.uid}`,
+      REPORT_LIMIT,
+      REPORT_WINDOW_MS,
+      REPORT_BLOCK_MS
+    );
+    if (!reportLimit.allowed) {
+      const retryTime = formatRetryTime(reportLimit.retryAfterMs);
+      return res.status(429).json({
+        error: "Too many report requests",
+        retry_after_ms: reportLimit.retryAfterMs,
+        message: `Please try again ${retryTime}`,
+      });
     }
 
     await db.collection("reports").add({

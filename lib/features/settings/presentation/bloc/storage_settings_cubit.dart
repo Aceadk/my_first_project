@@ -24,8 +24,7 @@ class StorageSettingsState {
       cacheSizeMb: cacheSizeMb ?? this.cacheSizeMb,
       mediaDownloadWifiOnly:
           mediaDownloadWifiOnly ?? this.mediaDownloadWifiOnly,
-      mediaDownloadEnabled:
-          mediaDownloadEnabled ?? this.mediaDownloadEnabled,
+      mediaDownloadEnabled: mediaDownloadEnabled ?? this.mediaDownloadEnabled,
     );
   }
 }
@@ -79,7 +78,8 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
               await file.delete(recursive: true);
             }
           } catch (e) {
-            debugPrint('StorageSettingsCubit: Failed to delete ${file.path}: $e');
+            debugPrint(
+                'StorageSettingsCubit: Failed to delete ${file.path}: $e');
           }
         }
       }
@@ -96,7 +96,8 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
               await file.delete(recursive: true);
             }
           } catch (e) {
-            debugPrint('StorageSettingsCubit: Failed to delete ${file.path}: $e');
+            debugPrint(
+                'StorageSettingsCubit: Failed to delete ${file.path}: $e');
           }
         }
       }

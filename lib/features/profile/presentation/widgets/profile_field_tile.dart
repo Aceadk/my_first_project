@@ -27,7 +27,8 @@ class ProfileFieldTile extends StatelessWidget {
     final hasValue = value != null && value!.isNotEmpty;
     final displayValue = hasValue ? value! : (placeholder ?? 'Add');
 
-    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
 

@@ -31,7 +31,8 @@ class MessageRequestsState extends Equatable {
 
   /// Check if a specific request is currently being processed.
   bool isProcessing(String requestId) =>
-      actionRequestId == requestId && actionStatus == RequestActionStatus.loading;
+      actionRequestId == requestId &&
+      actionStatus == RequestActionStatus.loading;
 
   MessageRequestsState copyWith({
     List<MessageRequest>? requests,
@@ -50,7 +51,8 @@ class MessageRequestsState extends Equatable {
       actionRequestId: actionRequestId,
       actionStatus: actionStatus ?? this.actionStatus,
       actionErrorMessage: actionErrorMessage,
-      showMatchNotification: showMatchNotification ?? this.showMatchNotification,
+      showMatchNotification:
+          showMatchNotification ?? this.showMatchNotification,
       matchedUserName: matchedUserName,
     );
   }

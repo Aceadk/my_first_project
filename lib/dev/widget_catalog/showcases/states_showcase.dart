@@ -115,7 +115,9 @@ LoadingOverlay(
                 child: Card(
                   child: Center(
                     child: Text(
-                      _isLoading ? 'Tap to hide loading' : 'Tap to show loading',
+                      _isLoading
+                          ? 'Tap to hide loading'
+                          : 'Tap to show loading',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),

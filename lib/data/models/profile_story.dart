@@ -45,8 +45,7 @@ class ProfileStory extends Equatable {
   static const Duration maxVideoDuration = Duration(seconds: 15);
 
   /// Get the expiration time (defaults to 24h after creation).
-  DateTime get expirationTime =>
-      expiresAt ?? createdAt.add(defaultDuration);
+  DateTime get expirationTime => expiresAt ?? createdAt.add(defaultDuration);
 
   /// Check if the story is still active (not expired).
   bool get isActive => DateTime.now().isBefore(expirationTime);

@@ -43,14 +43,12 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     }
   }
 
-  Future<void> _onCallEnded(
-      CallEnded event, Emitter<CallState> emit) async {
+  Future<void> _onCallEnded(CallEnded event, Emitter<CallState> emit) async {
     await callRepository.endCall();
     emit(state.copyWith(status: CallStatus.ended));
   }
 
-  void _onCallEngineUpdated(
-      CallEngineUpdated event, Emitter<CallState> emit) {
+  void _onCallEngineUpdated(CallEngineUpdated event, Emitter<CallState> emit) {
     switch (event.event.type) {
       case CallEngineEventType.joinedChannel:
         emit(state.copyWith(status: CallStatus.inCall));

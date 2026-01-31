@@ -70,8 +70,7 @@ class MatchesScreen extends StatelessWidget {
       )..add(const MatchesLoadRequested()),
       child: BlocListener<DiscoveryBloc, DiscoveryState>(
         listenWhen: (previous, current) =>
-            previous.newMatch != current.newMatch &&
-            current.newMatch != null,
+            previous.newMatch != current.newMatch && current.newMatch != null,
         listener: (context, state) {
           context.read<MatchesBloc>().add(const MatchesRefreshRequested());
         },
@@ -142,7 +141,8 @@ class _MatchesViewState extends State<_MatchesView> {
         _isLoadingLikes = false;
         if (!hasInternet) {
           _isNetworkError = true;
-          _likesError = 'No internet connection. Please check your network and try again.';
+          _likesError =
+              'No internet connection. Please check your network and try again.';
         } else {
           // Server error or other issue - don't show error, treat as empty
           _likesError = null;
@@ -179,7 +179,9 @@ class _MatchesViewState extends State<_MatchesView> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.26),
+                      color: isDark
+                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                          : DsColors.ink900.withValues(alpha: 0.26),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -268,7 +270,8 @@ class _MatchesViewState extends State<_MatchesView> {
             !state.isLoading &&
             state.errorMessage == null; // Don't show empty if there's an error
         // Show skeleton when loading OR when there's an error (better UX than showing error)
-        final showMatchesSkeleton = (state.isLoading || state.errorMessage != null) && matched.isEmpty;
+        final showMatchesSkeleton =
+            (state.isLoading || state.errorMessage != null) && matched.isEmpty;
 
         final emptyView = showEmpty
             ? Center(
@@ -300,9 +303,10 @@ class _MatchesViewState extends State<_MatchesView> {
                       DsGap.xxl,
                       Text(
                         'No matches yet',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       DsGap.sm,
                       Text(
@@ -365,7 +369,9 @@ class _MatchesViewState extends State<_MatchesView> {
                   notification.metrics.extentAfter < 200 &&
                   state.hasMore &&
                   !state.isLoadingMore) {
-                context.read<MatchesBloc>().add(const MatchesLoadMoreRequested());
+                context
+                    .read<MatchesBloc>()
+                    .add(const MatchesLoadMoreRequested());
               }
               return false;
             },
@@ -428,8 +434,10 @@ class _MatchesViewState extends State<_MatchesView> {
                         (context, index) {
                           final matchCount = matched.length;
                           final loadingItemCount = state.isLoadingMore ? 1 : 0;
-                          final separatorCount = matchCount > 0 ? matchCount - 1 : 0;
-                          final totalItems = matchCount + separatorCount + loadingItemCount;
+                          final separatorCount =
+                              matchCount > 0 ? matchCount - 1 : 0;
+                          final totalItems =
+                              matchCount + separatorCount + loadingItemCount;
 
                           if (index >= totalItems) return null;
                           if (index == totalItems - 1 && state.isLoadingMore) {
@@ -439,7 +447,8 @@ class _MatchesViewState extends State<_MatchesView> {
                                 child: SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 ),
                               ),
                             );
@@ -565,18 +574,20 @@ class _MatchTile extends StatelessWidget {
                       children: [
                         Text(
                           name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         DsGap.xs,
                         Text(
                           'Tap to open chat',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark
-                                    ? DsColors.textMutedDark
-                                    : DsColors.textMutedLight,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ],
                     ),
@@ -685,7 +696,8 @@ class _LikesYouSection extends StatelessWidget {
         children: [
           _SectionHeader(
             title: 'Likes You',
-            subtitle: count == 0 ? 'No new likes yet' : '$count people like you',
+            subtitle:
+                count == 0 ? 'No new likes yet' : '$count people like you',
             trailing: isPlus
                 ? null
                 : TextButton(
@@ -764,7 +776,10 @@ class _LikesYouSection extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'No likes yet',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -810,7 +825,10 @@ class _LikesYouSection extends StatelessWidget {
                               DsGap.xsH,
                               Text(
                                 'Upgrade to Plus to see who likes you first!',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: DsColors.primary,
                                       fontWeight: FontWeight.w500,
                                     ),

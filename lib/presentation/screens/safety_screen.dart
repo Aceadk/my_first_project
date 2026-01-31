@@ -67,7 +67,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
     try {
       await _datePlanService.checkIn(planId);
       if (mounted) {
-        showSuccessSnackBar(context, 'Checked in safely! Your contacts have been notified.');
+        showSuccessSnackBar(
+            context, 'Checked in safely! Your contacts have been notified.');
       }
     } catch (e) {
       if (mounted) {
@@ -80,7 +81,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
     try {
       await _datePlanService.startDate(planId);
       if (mounted) {
-        showSuccessSnackBar(context, 'Date started! Your contacts have been notified.');
+        showSuccessSnackBar(
+            context, 'Date started! Your contacts have been notified.');
       }
     } catch (e) {
       if (mounted) {
@@ -93,7 +95,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
     try {
       await _datePlanService.endDateSafely(planId);
       if (mounted) {
-        showSuccessSnackBar(context, 'Date ended safely! Your contacts have been notified.');
+        showSuccessSnackBar(
+            context, 'Date ended safely! Your contacts have been notified.');
       }
     } catch (e) {
       if (mounted) {
@@ -150,7 +153,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
         if (mounted) {
           messenger.showSnackBar(
             const SnackBar(
-              content: Text('Could not send alert. Please call emergency services directly.'),
+              content: Text(
+                  'Could not send alert. Please call emergency services directly.'),
               backgroundColor: DsColors.error,
             ),
           );
@@ -174,7 +178,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
         onPlanCreated: () {
           Navigator.pop(ctx);
           _loadDatePlans();
-          showSuccessSnackBar(context, 'Date plan created! We emailed your contact.');
+          showSuccessSnackBar(
+              context, 'Date plan created! We emailed your contact.');
         },
       ),
     );
@@ -205,7 +210,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
               _DatePlansSection(
                 plans: _activePlans,
                 isLoading: _isLoadingPlans,
-                onCreatePlan: () => _showCreateDatePlanSheet(context, currentUserId),
+                onCreatePlan: () =>
+                    _showCreateDatePlanSheet(context, currentUserId),
                 onCheckIn: (planId) => _checkIn(planId),
                 onEndDate: (planId) => _endDateSafely(planId),
                 onEmergency: (planId) => _triggerEmergency(context, planId),
@@ -246,7 +252,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
                 items: state.mutedCalls.toList(),
                 profileCache: state.profileCache,
                 isLoading: state.isLoadingProfiles,
-                onRemove: (userId) => cubit.toggleMuteCalls(userId, mute: false),
+                onRemove: (userId) =>
+                    cubit.toggleMuteCalls(userId, mute: false),
                 removeLabel: 'Unmute calls',
               ),
               const SizedBox(height: 16),
@@ -266,7 +273,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         'Open their profile or chat, choose Report, and pick a reason. '
-                    'We review reports to keep the community safe.',
+                        'We review reports to keep the community safe.',
                       ),
                       TextButton.icon(
                         onPressed: () {
@@ -391,15 +398,18 @@ class _SafetyEducationCard extends StatelessWidget {
             const SizedBox(height: 8),
             const _SafetyTip(
               icon: Icons.place_outlined,
-              text: 'Plan first meetups in busy public places and share details with a friend.',
+              text:
+                  'Plan first meetups in busy public places and share details with a friend.',
             ),
             const _SafetyTip(
               icon: Icons.lock_outline,
-              text: 'Keep chats in Crush until you trust someone. Never send money or codes.',
+              text:
+                  'Keep chats in Crush until you trust someone. Never send money or codes.',
             ),
             const _SafetyTip(
               icon: Icons.verified_user_outlined,
-              text: 'Look for verification badges and report profiles that feel fake or pushy.',
+              text:
+                  'Look for verification badges and report profiles that feel fake or pushy.',
             ),
             const _SafetyTip(
               icon: Icons.flag_outlined,
@@ -496,9 +506,8 @@ class _Section extends StatelessWidget {
               Text(
                 emptyText,
                 style: TextStyle(
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
               )
             else
@@ -626,7 +635,8 @@ class _DatePlansSection extends StatelessWidget {
             Text(
               'Share your date details with trusted contacts who can check on you.',
               style: TextStyle(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 fontSize: 13,
               ),
             ),
@@ -769,7 +779,9 @@ class _DatePlanCard extends StatelessWidget {
                 radius: 20,
                 backgroundColor: DsColors.primary.withValues(alpha: 0.1),
                 child: Text(
-                  plan.matchName.isNotEmpty ? plan.matchName[0].toUpperCase() : '?',
+                  plan.matchName.isNotEmpty
+                      ? plan.matchName[0].toUpperCase()
+                      : '?',
                   style: const TextStyle(
                     color: DsColors.primary,
                     fontWeight: FontWeight.bold,
@@ -792,7 +804,9 @@ class _DatePlanCard extends StatelessWidget {
                       '${plan.formattedDate} at ${plan.formattedTime}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
                       ),
                     ),
                   ],
@@ -807,7 +821,8 @@ class _DatePlanCard extends StatelessWidget {
               Icon(
                 Icons.place_outlined,
                 size: 14,
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -815,7 +830,9 @@ class _DatePlanCard extends StatelessWidget {
                   plan.location,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
                   ),
                 ),
               ),
@@ -828,14 +845,17 @@ class _DatePlanCard extends StatelessWidget {
                 Icon(
                   Icons.people_outline,
                   size: 14,
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'Shared with ${plan.sharedWith.length} contact${plan.sharedWith.length > 1 ? 's' : ''}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
                   ),
                 ),
               ],
@@ -865,9 +885,11 @@ class _DatePlanCard extends StatelessWidget {
                       plan.hasCheckedIn ? Icons.check : Icons.safety_check,
                       size: 18,
                     ),
-                    label: Text(plan.hasCheckedIn ? 'Checked In' : 'Check In Safe'),
+                    label: Text(
+                        plan.hasCheckedIn ? 'Checked In' : 'Check In Safe'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: plan.hasCheckedIn ? mutedFill : DsColors.success,
+                      backgroundColor:
+                          plan.hasCheckedIn ? mutedFill : DsColors.success,
                     ),
                   ),
                 ),
@@ -886,7 +908,8 @@ class _DatePlanCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: onEmergency,
-                icon: const Icon(Icons.warning_amber_rounded, size: 18, color: DsColors.error),
+                icon: const Icon(Icons.warning_amber_rounded,
+                    size: 18, color: DsColors.error),
                 label: const Text(
                   'Emergency Alert',
                   style: TextStyle(color: DsColors.error),
@@ -1013,7 +1036,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             Text(
               'Share your date details with someone you trust.',
               style: TextStyle(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
             ),
             DsGap.xl,
@@ -1031,7 +1055,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
                 Expanded(
                   child: _DateTimeButton(
                     icon: Icons.calendar_today,
-                    label: '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
+                    label:
+                        '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
                     onTap: _selectDate,
                   ),
                 ),
@@ -1067,7 +1092,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
               'This person will be notified of your date details and can check on you.',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
               ),
             ),
             DsGap.md,

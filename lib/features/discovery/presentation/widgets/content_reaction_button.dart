@@ -374,8 +374,8 @@ class _SentReactionIndicatorState extends State<SentReactionIndicator>
         weight: 20,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.8)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween:
+            Tween(begin: 1.0, end: 0.8).chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
       ),
     ]).animate(_controller);

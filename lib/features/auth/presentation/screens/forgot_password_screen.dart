@@ -79,8 +79,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           'Forgot Password?',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.sm,
         // Subtitle
@@ -88,8 +88,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           'No worries! Enter your email and we\'ll send you a link to reset your password.',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.xxxl,
         // Email field
@@ -189,8 +190,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           'Check Your Email',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         DsGap.md,
         // Email sent to
@@ -205,9 +206,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Text(
             _sentEmail ?? '',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: DsColors.primary,
-            ),
+                  fontWeight: FontWeight.w600,
+                  color: DsColors.primary,
+                ),
           ),
         ),
         DsGap.xl,
@@ -250,8 +251,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Open the email we sent to your inbox',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-                      ),
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
                     ),
                   ),
                 ],
@@ -282,8 +285,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Click the "Reset Password" link in the email',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-                      ),
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
                     ),
                   ),
                 ],
@@ -314,8 +319,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Create your new password and sign in',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
-                      ),
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
                     ),
                   ),
                 ],
@@ -338,8 +345,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Text(
                 'Check your spam folder if you don\'t see the email',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
               ),
             ),
           ],
@@ -397,8 +406,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Text(
               'Didn\'t receive the email? ',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
             ),
             Semantics(
               button: true,
@@ -455,9 +466,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _isLoading = true;
     });
     final result = await Result.guard(
-      () => context
-          .read<AuthRepository>()
-          .requestPasswordReset(email: email),
+      () => context.read<AuthRepository>().requestPasswordReset(email: email),
       logLabel: 'AuthRepository.requestPasswordReset',
       fallbackError: 'Could not send reset link. Please try again.',
     );
@@ -482,9 +491,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
     final email = _sentEmail ?? normalizeEmail(_emailController.text);
     final result = await Result.guard(
-      () => context
-          .read<AuthRepository>()
-          .requestPasswordReset(email: email),
+      () => context.read<AuthRepository>().requestPasswordReset(email: email),
       logLabel: 'AuthRepository.requestPasswordReset',
       fallbackError: 'Could not resend reset link. Please try again.',
     );

@@ -30,8 +30,12 @@ extension EmailOtpPurposeValue on EmailOtpPurpose {
 
 abstract class AuthRepository {
   bool get isVerificationBypassEnabled;
+
   /// Whether password login accepts usernames in addition to email.
   bool get supportsUsernameLogin;
+
+  /// Whether Sign in with Apple is supported by the current backend/platform.
+  bool get supportsAppleSignIn;
 
   Future<void> bootstrapSession();
 
@@ -60,6 +64,9 @@ abstract class AuthRepository {
     required String identifier,
     required String password,
   });
+
+  /// Sign in with Apple (iOS only).
+  Future<CrushUser> signInWithApple();
 
   Future<CrushUser> signUpWithPassword({
     required String username,

@@ -112,9 +112,11 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     }
   }
 
-  Future<void> _fetchMatches(Emitter<MatchesState> emit, {required bool refresh}) async {
+  Future<void> _fetchMatches(Emitter<MatchesState> emit,
+      {required bool refresh}) async {
     // Track if this is a manual refresh vs auto-retry
-    final isManualRefresh = _isManualRefresh || state.status != MatchesStatus.error;
+    final isManualRefresh =
+        _isManualRefresh || state.status != MatchesStatus.error;
 
     if (isManualRefresh) {
       _retryCount = 0;
@@ -165,7 +167,8 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
         );
       } catch (e) {
         // Ignore migration errors to avoid blocking matches view.
-        debugPrint('MatchesBloc: Message request migration failed (non-blocking): $e');
+        debugPrint(
+            'MatchesBloc: Message request migration failed (non-blocking): $e');
       }
     } else {
       _retryCount++;

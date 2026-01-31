@@ -109,7 +109,8 @@ class GradualRolloutService {
   }
 
   /// Check if user is in a specific variant.
-  bool isInVariant(String experimentName, String variant, List<String> variants) {
+  bool isInVariant(
+      String experimentName, String variant, List<String> variants) {
     return getVariant(experimentName, variants) == variant;
   }
 
@@ -217,7 +218,8 @@ class GradualRolloutService {
     final parts1 = v1.split('.').map((p) => int.tryParse(p) ?? 0).toList();
     final parts2 = v2.split('.').map((p) => int.tryParse(p) ?? 0).toList();
 
-    final maxLength = parts1.length > parts2.length ? parts1.length : parts2.length;
+    final maxLength =
+        parts1.length > parts2.length ? parts1.length : parts2.length;
 
     for (int i = 0; i < maxLength; i++) {
       final p1 = i < parts1.length ? parts1[i] : 0;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/config/legal_config.dart';
 import 'package:crushhour/design_system/design_system.dart';
 
 /// Terms of Service screen required for App Store compliance.
@@ -7,15 +8,14 @@ import 'package:crushhour/design_system/design_system.dart';
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
 
-  static const String supportEmail = 'legal@crushhour.app';
-  static const String lastUpdated = 'January 2026';
+  static const String supportEmail = LegalConfig.legalEmail;
+  static const String lastUpdated = LegalConfig.termsOfServiceLastUpdated;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
-    final muted =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final muted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Terms of Service')),
@@ -48,8 +48,10 @@ class TermsOfServiceScreen extends StatelessWidget {
           ),
           const SizedBox(height: DsSpacing.sm),
           const _Bullet('Be at least 18 years of age'),
-          const _Bullet('Be legally permitted to use the Service under applicable laws'),
-          const _Bullet('Not be prohibited from receiving services under applicable laws'),
+          const _Bullet(
+              'Be legally permitted to use the Service under applicable laws'),
+          const _Bullet(
+              'Not be prohibited from receiving services under applicable laws'),
           const _Bullet('Not have been previously banned from the Service'),
           const _Bullet('Not be a registered sex offender'),
           const SizedBox(height: DsSpacing.sm),
@@ -67,9 +69,11 @@ class TermsOfServiceScreen extends StatelessWidget {
           ),
           const SizedBox(height: DsSpacing.sm),
           const _Bullet('Provide accurate, current, and complete information'),
-          const _Bullet('Maintain and update your information to keep it accurate'),
+          const _Bullet(
+              'Maintain and update your information to keep it accurate'),
           const _Bullet('Keep your login credentials secure and confidential'),
-          const _Bullet('Notify us immediately of any unauthorized account access'),
+          const _Bullet(
+              'Notify us immediately of any unauthorized account access'),
           const _Bullet('Be responsible for all activities under your account'),
           const SizedBox(height: DsSpacing.xxl),
 
@@ -84,7 +88,8 @@ class TermsOfServiceScreen extends StatelessWidget {
           const _Bullet('Use hate speech or discriminatory language'),
           const _Bullet('Share explicit, obscene, or illegal content'),
           const _Bullet('Spam, solicit, or advertise without permission'),
-          const _Bullet('Impersonate another person or misrepresent your identity'),
+          const _Bullet(
+              'Impersonate another person or misrepresent your identity'),
           const _Bullet('Share others\' private information without consent'),
           const _Bullet('Use the Service for illegal purposes'),
           const _Bullet('Attempt to hack, disrupt, or damage the Service'),
@@ -117,7 +122,8 @@ class TermsOfServiceScreen extends StatelessWidget {
           ),
           const SizedBox(height: DsSpacing.sm),
           const _Bullet('Subscriptions automatically renew unless cancelled'),
-          const _Bullet('Cancel at least 24 hours before renewal to avoid charges'),
+          const _Bullet(
+              'Cancel at least 24 hours before renewal to avoid charges'),
           const _Bullet('Manage subscriptions through your app store account'),
           const _Bullet('Refunds are subject to app store policies'),
           const _Bullet('We may change pricing with reasonable notice'),
@@ -187,8 +193,10 @@ class TermsOfServiceScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const _Bullet('Your right to use the Service immediately ceases'),
-          const _Bullet('We may delete your account data after the retention period'),
-          const _Bullet('Provisions that should survive termination will remain in effect'),
+          const _Bullet(
+              'We may delete your account data after the retention period'),
+          const _Bullet(
+              'Provisions that should survive termination will remain in effect'),
           const SizedBox(height: 24),
 
           // Dispute Resolution

@@ -54,7 +54,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     super.initState();
     _photos = List.of(widget.initialPhotos);
     _videos = List.of(widget.initialVideos);
-    _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
+    _primaryPhotoIndex = widget.initialPrimaryIndex
+        .clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
   }
 
   @override
@@ -66,7 +67,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       setState(() {
         _photos = List.of(widget.initialPhotos);
         _videos = List.of(widget.initialVideos);
-        _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
+        _primaryPhotoIndex = widget.initialPrimaryIndex
+            .clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
       });
     }
   }
@@ -93,7 +95,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     if (widget.onError != null) {
       widget.onError!(message);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -120,7 +123,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       _notify();
 
       if (files.length > selected.length) {
-        _showError('Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.');
+        _showError(
+            'Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.');
       }
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
@@ -167,7 +171,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
         _primaryPhotoIndex = _photos.length - 1;
       } else if (index < _primaryPhotoIndex) {
         _primaryPhotoIndex--;
-      } else if (index == _primaryPhotoIndex && _primaryPhotoIndex >= _photos.length) {
+      } else if (index == _primaryPhotoIndex &&
+          _primaryPhotoIndex >= _photos.length) {
         _primaryPhotoIndex = _photos.length - 1;
       }
     });
@@ -229,9 +234,9 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
             child: Text(
               'Tap a photo to set as display picture',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DsColors.ink300,
-                fontStyle: FontStyle.italic,
-              ),
+                    color: DsColors.ink300,
+                    fontStyle: FontStyle.italic,
+                  ),
             ),
           ),
       ],
@@ -343,7 +348,8 @@ class _MediaTile extends StatelessWidget {
                     constraints: const BoxConstraints(),
                     color: DsColors.ink900.withValues(alpha: 0.87),
                     style: IconButton.styleFrom(
-                      backgroundColor: DsColors.surfaceLight.withValues(alpha: 0.7),
+                      backgroundColor:
+                          DsColors.surfaceLight.withValues(alpha: 0.7),
                       shape: const CircleBorder(),
                     ),
                     onPressed: onRemove,
@@ -383,7 +389,9 @@ class _AddTile extends StatelessWidget {
             width: 2,
           ),
         ),
-        child: Icon(icon, color: enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight),
+        child: Icon(icon,
+            color:
+                enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight),
       ),
     );
   }

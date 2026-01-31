@@ -41,8 +41,7 @@ class Throttler {
   void run(void Function() callback) {
     final now = DateTime.now();
 
-    if (_lastCall == null ||
-        now.difference(_lastCall!) >= duration) {
+    if (_lastCall == null || now.difference(_lastCall!) >= duration) {
       _lastCall = now;
       callback();
     } else {

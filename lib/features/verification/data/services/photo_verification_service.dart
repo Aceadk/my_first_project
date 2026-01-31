@@ -7,10 +7,12 @@ class PhotoVerificationService {
   PhotoVerificationService._();
   static final PhotoVerificationService instance = PhotoVerificationService._();
 
-  final _verificationController = StreamController<PhotoVerification>.broadcast();
+  final _verificationController =
+      StreamController<PhotoVerification>.broadcast();
   final _poseController = StreamController<VerificationPose>.broadcast();
 
-  Stream<PhotoVerification> get verificationStream => _verificationController.stream;
+  Stream<PhotoVerification> get verificationStream =>
+      _verificationController.stream;
   Stream<VerificationPose> get currentPoseStream => _poseController.stream;
 
   PhotoVerification? _currentVerification;
@@ -61,7 +63,8 @@ class PhotoVerificationService {
     _currentVerification = _currentVerification!.copyWith(
       selfieUrl: selfieUrl,
       confidenceScore: confidence,
-      status: passed ? VerificationStatus.verified : VerificationStatus.rejected,
+      status:
+          passed ? VerificationStatus.verified : VerificationStatus.rejected,
       verifiedAt: passed ? DateTime.now() : null,
       rejectionReason: passed ? null : 'Pose did not match. Please try again.',
       attempts: _currentVerification!.attempts + 1,

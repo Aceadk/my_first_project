@@ -164,7 +164,8 @@ class _FakeChatRepository implements ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
-  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async =>
+      const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Future<String> uploadMedia({
@@ -181,7 +182,8 @@ class _FakeChatRepository implements ChatRepository {
     String matchId, {
     int limit = 30,
     DateTime? beforeTimestamp,
-  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async =>
+      const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchNewMessages(
@@ -270,6 +272,9 @@ class _FakeAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => false;
 
   @override
+  bool get supportsAppleSignIn => false;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override
@@ -306,6 +311,9 @@ class _FakeAuthRepository implements AuthRepository {
     required String password,
   }) async =>
       throw UnimplementedError();
+
+  @override
+  Future<CrushUser> signInWithApple() async => throw UnimplementedError();
 
   @override
   Future<CrushUser> loginWithPassword({

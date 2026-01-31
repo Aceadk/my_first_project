@@ -78,7 +78,8 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
 
     _router = createRouter(
       authBloc,
-      initialRoute: isAuthenticated && preservedRoute != null ? preservedRoute : null,
+      initialRoute:
+          isAuthenticated && preservedRoute != null ? preservedRoute : null,
     );
 
     // Listen for real-time match notifications

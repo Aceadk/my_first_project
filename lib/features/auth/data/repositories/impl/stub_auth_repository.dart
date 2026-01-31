@@ -32,6 +32,9 @@ class StubAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => true;
 
   @override
+  bool get supportsAppleSignIn => true;
+
+  @override
   Future<void> bootstrapSession() async {
     // Try to restore session from secure storage
     final userId = await _secureStorage.read(key: _currentUserKey);
@@ -191,6 +194,26 @@ class StubAuthRepository implements AuthRepository {
     if (storedPassword != password) {
       throw Exception('Incorrect password');
     }
+
+    await _setCurrentUser(user);
+    return user;
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() async {
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    final uniqueId = DateTime.now().millisecondsSinceEpoch;
+    final email = 'apple_user_$uniqueId@privaterelay.appleid.com';
+    final username = 'apple$uniqueId';
+
+    final existing = await _getUserByEmail(email);
+    final user = existing ??
+        await _createUser(
+          email: email,
+          username: username,
+          isEmailVerified: true,
+        );
 
     await _setCurrentUser(user);
     return user;
@@ -479,7 +502,8 @@ class StubAuthRepository implements AuthRepository {
   Future<CrushUser?> _getUserByUsername(String username) async {
     final users = await _getAllUsers();
     for (final userData in users.values) {
-      if (userData['username']?.toString().toLowerCase() == username.toLowerCase()) {
+      if (userData['username']?.toString().toLowerCase() ==
+          username.toLowerCase()) {
         return _userFromJson(userData);
       }
     }
@@ -548,9 +572,8 @@ class StubAuthRepository implements AuthRepository {
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
-        dateOfBirth: p['dateOfBirth'] != null
-            ? DateTime.parse(p['dateOfBirth'])
-            : null,
+        dateOfBirth:
+            p['dateOfBirth'] != null ? DateTime.parse(p['dateOfBirth']) : null,
         lastNameChangeAt: p['lastNameChangeAt'] != null
             ? DateTime.parse(p['lastNameChangeAt'])
             : null,
@@ -591,7 +614,8 @@ class StubAuthRepository implements AuthRepository {
           minAge: p['preferences']?['minAge'] ?? 18,
           maxAge: p['preferences']?['maxAge'] ?? 50,
           maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
-          showMeGenders: List<String>.from(p['preferences']?['showMeGenders'] ?? ['male', 'female']),
+          showMeGenders: List<String>.from(
+              p['preferences']?['showMeGenders'] ?? ['male', 'female']),
           showMyDistance: p['preferences']?['showMyDistance'] ?? true,
           showMyAge: p['preferences']?['showMyAge'] ?? true,
           hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,
@@ -613,7 +637,9 @@ class StubAuthRepository implements AuthRepository {
       isEmailVerified: json['isEmailVerified'] ?? false,
       isPhoneVerified: json['isPhoneVerified'] ?? false,
       isIdVerified: json['isIdVerified'] ?? false,
-      plan: json['plan'] == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      plan: json['plan'] == 'plus'
+          ? SubscriptionPlan.plus
+          : SubscriptionPlan.free,
       profile: profile,
       hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
       hasSkippedBasicInfo: json['hasSkippedBasicInfo'] ?? false,
@@ -727,13 +753,15 @@ class StubAuthRepository implements AuthRepository {
     }
 
     // Verify current password
-    final storedPassword = await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    final storedPassword =
+        await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
     if (storedPassword != currentPassword) {
       throw Exception('Current password is incorrect');
     }
 
     // Update password
-    await _secureStorage.write(key: 'pwd_${_currentUser!.id}', value: newPassword);
+    await _secureStorage.write(
+        key: 'pwd_${_currentUser!.id}', value: newPassword);
   }
 
   @override
@@ -760,7 +788,8 @@ class StubAuthRepository implements AuthRepository {
     }
 
     // Verify password
-    final storedPassword = await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    final storedPassword =
+        await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
     if (storedPassword != null && storedPassword != password) {
       throw Exception('Password is incorrect');
     }

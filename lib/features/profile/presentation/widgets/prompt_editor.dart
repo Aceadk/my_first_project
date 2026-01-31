@@ -33,15 +33,17 @@ class PromptEditor extends StatelessWidget {
             Text(
               'Conversation Starters',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const Spacer(),
             Text(
               '${prompts.length}/$maxPrompts',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
             ),
           ],
         ),
@@ -49,8 +51,9 @@ class PromptEditor extends StatelessWidget {
         Text(
           'Help others start a conversation with you',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-          ),
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              ),
         ),
         DsGap.lg,
 
@@ -98,7 +101,8 @@ class PromptEditor extends StatelessWidget {
     });
   }
 
-  void _showEditPromptSheet(BuildContext context, ProfilePrompt prompt, int index) {
+  void _showEditPromptSheet(
+      BuildContext context, ProfilePrompt prompt, int index) {
     showModalBottomSheet<ProfilePrompt?>(
       context: context,
       isScrollControlled: true,
@@ -170,11 +174,11 @@ class _PromptTile extends StatelessWidget {
                     child: Text(
                       prompt.question,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ),
                   IconButton(
@@ -249,9 +253,9 @@ class _AddPromptButton extends StatelessWidget {
             Text(
               'Add a conversation starter',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: DsColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: DsColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ],
         ),
@@ -322,11 +326,12 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
                     _selectedQuestion != null
                         ? 'Answer the prompt'
                         : _selectedCategory != null
-                            ? PromptQuestions.getCategoryDisplayName(_selectedCategory!)
+                            ? PromptQuestions.getCategoryDisplayName(
+                                _selectedCategory!)
                             : 'Choose a prompt',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 IconButton(
@@ -443,25 +448,29 @@ class _CategoryTile extends StatelessWidget {
                       children: [
                         Text(
                           PromptQuestions.getCategoryDisplayName(category),
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         DsGap.xs,
                         Text(
                           '$availableCount prompts available',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ],
                     ),
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
                   ),
                 ],
               ),
@@ -512,7 +521,8 @@ class _QuestionTile extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 ),
               ],
             ),
@@ -589,8 +599,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                   child: Text(
                     widget.prompt.question,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ],
@@ -668,8 +678,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                 Text(
                   'Edit Answer',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -697,9 +707,10 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                       Expanded(
                         child: Text(
                           widget.prompt.question,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ),
                     ],

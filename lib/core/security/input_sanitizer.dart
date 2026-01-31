@@ -27,7 +27,8 @@ class InputSanitizer {
     if (input == null || input.isEmpty) return '';
 
     // Remove null bytes and control characters (except newlines and tabs)
-    var sanitized = input.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '');
+    var sanitized =
+        input.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '');
 
     // Trim whitespace
     sanitized = sanitized.trim();
@@ -88,7 +89,8 @@ class InputSanitizer {
   static String sanitizeJobField(String? input, {int? maxLength}) {
     if (input == null || input.isEmpty) return '';
 
-    var sanitized = sanitizeText(input, maxLength: maxLength ?? maxJobTitleLength);
+    var sanitized =
+        sanitizeText(input, maxLength: maxLength ?? maxJobTitleLength);
     sanitized = _stripHtmlTags(sanitized);
 
     // Allow letters, numbers, spaces, hyphens, ampersands, periods, parentheses
@@ -130,8 +132,8 @@ class InputSanitizer {
 
     // Check if it's a local file path (for debug mode fallback)
     final isLocalPath = !sanitized.startsWith('http://') &&
-                        !sanitized.startsWith('https://') &&
-                        (sanitized.startsWith('/') || sanitized.startsWith('file://'));
+        !sanitized.startsWith('https://') &&
+        (sanitized.startsWith('/') || sanitized.startsWith('file://'));
 
     // In debug mode, allow local file paths if enabled
     if (isLocalPath) {
@@ -169,7 +171,8 @@ class InputSanitizer {
 
   /// Sanitize a list of URLs.
   /// In debug mode, allows local file paths for development with local file fallback.
-  static List<String> sanitizeUrls(List<String>? inputs, {bool allowLocalPaths = true}) {
+  static List<String> sanitizeUrls(List<String>? inputs,
+      {bool allowLocalPaths = true}) {
     if (inputs == null || inputs.isEmpty) return [];
 
     return inputs
@@ -202,7 +205,8 @@ class InputSanitizer {
     var sanitized = input.trim().toLowerCase();
 
     // Basic email validation
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(sanitized)) {
       return '';
     }

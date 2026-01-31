@@ -16,7 +16,8 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen>
@@ -52,7 +53,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       // App came back to foreground - immediately check verification
-      AppLogger.logInfo('[EmailVerificationScreen] App resumed, checking verification...');
+      AppLogger.logInfo(
+          '[EmailVerificationScreen] App resumed, checking verification...');
       _checkVerification();
     }
   }
@@ -74,7 +76,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       final user = await authRepo.checkEmailVerification();
 
       if (user != null && user.isEmailVerified) {
-        AppLogger.logInfo('[EmailVerificationScreen] Email verified! Navigating to home...');
+        AppLogger.logInfo(
+            '[EmailVerificationScreen] Email verified! Navigating to home...');
         _checkTimer?.cancel();
 
         if (mounted) {
@@ -94,7 +97,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         }
       }
     } catch (e) {
-      AppLogger.logError('[EmailVerificationScreen] Error checking verification', e);
+      AppLogger.logError(
+          '[EmailVerificationScreen] Error checking verification', e);
     } finally {
       if (mounted) {
         setState(() => _isChecking = false);
@@ -122,7 +126,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         _startCooldownTimer();
       }
     } catch (e) {
-      AppLogger.logError('[EmailVerificationScreen] Error sending verification', e);
+      AppLogger.logError(
+          '[EmailVerificationScreen] Error sending verification', e);
       if (mounted) {
         setState(() {
           _message = 'Failed to send email. Please try again.';

@@ -4,8 +4,7 @@ import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
 
 /// Use case for getting all available compatibility quizzes.
-class GetAllQuizzesUseCase
-    extends UseCase<List<CompatibilityQuiz>, NoParams> {
+class GetAllQuizzesUseCase extends UseCase<List<CompatibilityQuiz>, NoParams> {
   final CompatibilityQuizService _service;
 
   GetAllQuizzesUseCase([CompatibilityQuizService? service])

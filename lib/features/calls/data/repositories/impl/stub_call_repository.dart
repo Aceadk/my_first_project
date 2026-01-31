@@ -29,7 +29,8 @@ class StubCallRepository implements CallRepository {
     ));
 
     // Simulate remote user joining after 1-2 seconds (50% of the time)
-    _simulationTimer = Timer(Duration(milliseconds: 1000 + _random.nextInt(1000)), () {
+    _simulationTimer =
+        Timer(Duration(milliseconds: 1000 + _random.nextInt(1000)), () {
       if (_isInCall && _random.nextBool()) {
         _eventController.add(CallEngineEvent(
           type: CallEngineEventType.userJoined,

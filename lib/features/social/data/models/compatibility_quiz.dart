@@ -259,8 +259,8 @@ class QuizResult extends Equatable {
               ?.map((k, v) => MapEntry(k, v as int)) ??
           {},
       insights: (json['insights'] as List<dynamic>?)
-              ?.map(
-                  (i) => CompatibilityInsight.fromJson(i as Map<String, dynamic>))
+              ?.map((i) =>
+                  CompatibilityInsight.fromJson(i as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -445,7 +445,10 @@ class CompatibilityQuizzes {
         question: 'What\'s your communication style?',
         emoji: '💬',
         options: [
-          QuizOption(id: 'a', text: 'Constant texting throughout the day', emoji: '📱'),
+          QuizOption(
+              id: 'a',
+              text: 'Constant texting throughout the day',
+              emoji: '📱'),
           QuizOption(id: 'b', text: 'A few meaningful messages', emoji: '💭'),
           QuizOption(id: 'c', text: 'Prefer calls over texts', emoji: '📞'),
           QuizOption(id: 'd', text: 'Quality time in person', emoji: '👥'),

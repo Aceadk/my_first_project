@@ -25,7 +25,8 @@ class WidgetCatalogScreen extends StatelessWidget {
             onPressed: () {
               // Toggle theme for testing
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Use app settings to change theme')),
+                const SnackBar(
+                    content: Text('Use app settings to change theme')),
               );
             },
             tooltip: 'Toggle theme',

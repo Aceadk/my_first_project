@@ -51,7 +51,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -74,13 +75,15 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                color:
+                    isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
               ),
               child: const Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration: BoxDecoration(gradient: DsGradients.meshRadial),
+                      decoration:
+                          BoxDecoration(gradient: DsGradients.meshRadial),
                     ),
                   ),
                 ],
@@ -286,7 +289,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.star_outline, size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(Icons.star_outline,
+              size: 64, color: textColor.withValues(alpha: 0.5)),
           DsGap.md,
           Text(
             'No picks available',
@@ -498,7 +502,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                   bottom: Radius.circular(DsRadius.xl),
                 ),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
+                  filter: ImageFilter.blur(
+                      sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
                   child: Container(
                     padding: const EdgeInsets.all(DsSpacing.lg),
                     decoration: BoxDecoration(
@@ -514,7 +519,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                         if (pick.matchScore != null) ...[
                           Row(
                             children: [
-                              const Icon(Icons.favorite, color: DsColors.primary, size: 16),
+                              const Icon(Icons.favorite,
+                                  color: DsColors.primary, size: 16),
                               DsGap.xsH,
                               Text(
                                 '${pick.matchScore}% Match',
@@ -539,7 +545,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                           Wrap(
                             spacing: DsSpacing.xs,
                             runSpacing: DsSpacing.xs,
-                            children: pick.commonInterests.take(3).map((interest) {
+                            children:
+                                pick.commonInterests.take(3).map((interest) {
                               return GlassChip(label: interest, height: 28);
                             }).toList(),
                           ),

@@ -21,8 +21,9 @@ class ChatSettings extends Equatable {
 
   /// Computed retention duration based on settings.
   /// Note: For Plus users, this is overridden to 7 days on the backend.
-  MessageRetention get retentionDuration =>
-      extendedRetention ? MessageRetention.twentyFourHours : MessageRetention.oneHour;
+  MessageRetention get retentionDuration => extendedRetention
+      ? MessageRetention.twentyFourHours
+      : MessageRetention.oneHour;
 
   /// Get the retention hours based on settings.
   /// Free users: 1 hour (default) or 24 hours (if extended enabled)

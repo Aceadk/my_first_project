@@ -127,7 +127,8 @@ class ProfileInsightsService {
         likes: Random().nextInt(30) + 5,
         likeRate: 0.1 + (Random().nextDouble() * 0.3),
       );
-    })..sort((a, b) => b.likeRate.compareTo(a.likeRate));
+    })
+      ..sort((a, b) => b.likeRate.compareTo(a.likeRate));
   }
 
   /// Get best time to be active.

@@ -48,7 +48,8 @@ class AnalyticsService {
       await _analytics.setUserProperty(name: 'gender', value: gender);
     }
     if (age != null) {
-      await _analytics.setUserProperty(name: 'age_group', value: _ageGroup(age));
+      await _analytics.setUserProperty(
+          name: 'age_group', value: _ageGroup(age));
     }
     if (country != null) {
       await _analytics.setUserProperty(name: 'country', value: country);

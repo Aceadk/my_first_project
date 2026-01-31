@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 
 void main() {
-  testWidgets('shows loader when loading with error/empty present', (tester) async {
+  testWidgets('shows loader when loading with error/empty present',
+      (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: AsyncStateScaffold(

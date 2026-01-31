@@ -83,23 +83,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       lastName: state.user?.profile?.lastName,
       age: state.user?.profile?.age ?? 18,
       gender: _gender ?? state.user?.profile?.gender ?? '',
-      sexualOrientation: _sexualOrientation ?? state.user?.profile?.sexualOrientation,
+      sexualOrientation:
+          _sexualOrientation ?? state.user?.profile?.sexualOrientation,
       dateOfBirth: _dateOfBirth ?? state.user?.profile?.dateOfBirth,
       bio: '',
       photoUrls: List.of(_photos),
       videoUrls: List.of(_videos),
       primaryPhotoIndex: _primaryPhotoIndex,
       isVerified: state.user?.profile?.isVerified ?? false,
-      jobTitle: _jobTitleController.text.isNotEmpty ? _jobTitleController.text : state.user?.profile?.jobTitle,
-      company: _companyController.text.isNotEmpty ? _companyController.text : state.user?.profile?.company,
-      school: _schoolController.text.isNotEmpty ? _schoolController.text : state.user?.profile?.school,
-      interests: _interests.isNotEmpty ? _interests : (state.user?.profile?.interests ?? const []),
-      profilePrompts: _profilePrompts.isNotEmpty ? _profilePrompts : (state.user?.profile?.profilePrompts ?? const []),
+      jobTitle: _jobTitleController.text.isNotEmpty
+          ? _jobTitleController.text
+          : state.user?.profile?.jobTitle,
+      company: _companyController.text.isNotEmpty
+          ? _companyController.text
+          : state.user?.profile?.company,
+      school: _schoolController.text.isNotEmpty
+          ? _schoolController.text
+          : state.user?.profile?.school,
+      interests: _interests.isNotEmpty
+          ? _interests
+          : (state.user?.profile?.interests ?? const []),
+      profilePrompts: _profilePrompts.isNotEmpty
+          ? _profilePrompts
+          : (state.user?.profile?.profilePrompts ?? const []),
       // ignore: deprecated_member_use_from_same_package
-      prompts: state.user?.profile?.prompts ?? const [], // Keep for backwards compatibility
+      prompts: state.user?.profile?.prompts ??
+          const [], // Keep for backwards compatibility
       heightCm: _heightCm ?? state.user?.profile?.heightCm,
-      relationshipGoals: _relationshipGoals ?? state.user?.profile?.relationshipGoals,
-      languages: _languages.isNotEmpty ? _languages : (state.user?.profile?.languages ?? const []),
+      relationshipGoals:
+          _relationshipGoals ?? state.user?.profile?.relationshipGoals,
+      languages: _languages.isNotEmpty
+          ? _languages
+          : (state.user?.profile?.languages ?? const []),
       zodiacSign: _zodiacSign ?? state.user?.profile?.zodiacSign,
       educationLevel: _educationLevel ?? state.user?.profile?.educationLevel,
       familyPlans: _familyPlans ?? state.user?.profile?.familyPlans,
@@ -111,9 +126,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       smoking: _smoking ?? state.user?.profile?.smoking,
       drinking: _drinking ?? state.user?.profile?.drinking,
       pets: _pets ?? state.user?.profile?.pets,
-      livingIn: _livingInController.text.isNotEmpty ? _livingInController.text : state.user?.profile?.livingIn,
-      favoriteSongs: _favoriteSongs.isNotEmpty ? _favoriteSongs : (state.user?.profile?.favoriteSongs ?? const []),
-      favoriteSinger: _favoriteSingerController.text.isNotEmpty ? _favoriteSingerController.text : state.user?.profile?.favoriteSinger,
+      livingIn: _livingInController.text.isNotEmpty
+          ? _livingInController.text
+          : state.user?.profile?.livingIn,
+      favoriteSongs: _favoriteSongs.isNotEmpty
+          ? _favoriteSongs
+          : (state.user?.profile?.favoriteSongs ?? const []),
+      favoriteSinger: _favoriteSingerController.text.isNotEmpty
+          ? _favoriteSingerController.text
+          : state.user?.profile?.favoriteSinger,
       country: state.user?.profile?.country ?? 'Unknown',
       city: state.user?.profile?.city ?? 'Unknown',
       latitude: state.user?.profile?.latitude,
@@ -131,8 +152,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             country: 'Unknown',
             city: 'Unknown',
           ),
-      privacySettings:
-          state.user?.profile?.privacySettings ?? const ProfilePrivacySettings(),
+      privacySettings: state.user?.profile?.privacySettings ??
+          const ProfilePrivacySettings(),
     );
   }
 
@@ -148,7 +169,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final base = state.profile ?? _fallbackProfile(state);
     // Try ProfileBloc state first, then fall back to AuthBloc for user ID
-    final userId = state.user?.id ?? state.profile?.id ?? context.read<AuthBloc>().state.user?.id;
+    final userId = state.user?.id ??
+        state.profile?.id ??
+        context.read<AuthBloc>().state.user?.id;
     if (userId == null) {
       showErrorSnackBar(context, 'You need to be signed in to save changes.');
       return;
@@ -168,7 +191,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (!uploadResult.isSuccess || uploadResult.data == null) {
       showErrorSnackBar(
         context,
-        uploadResult.errorMessage ?? 'Could not upload photos. Please try again.',
+        uploadResult.errorMessage ??
+            'Could not upload photos. Please try again.',
       );
       setState(() => _uploading = false);
       return;
@@ -243,20 +267,34 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       pets: _pets,
       interests: _interests,
       profilePrompts: _profilePrompts,
-      jobTitle: _jobTitleController.text.trim().isNotEmpty ? _jobTitleController.text.trim() : null,
-      company: _companyController.text.trim().isNotEmpty ? _companyController.text.trim() : null,
-      school: _schoolController.text.trim().isNotEmpty ? _schoolController.text.trim() : null,
-      livingIn: _livingInController.text.trim().isNotEmpty ? _livingInController.text.trim() : null,
+      jobTitle: _jobTitleController.text.trim().isNotEmpty
+          ? _jobTitleController.text.trim()
+          : null,
+      company: _companyController.text.trim().isNotEmpty
+          ? _companyController.text.trim()
+          : null,
+      school: _schoolController.text.trim().isNotEmpty
+          ? _schoolController.text.trim()
+          : null,
+      livingIn: _livingInController.text.trim().isNotEmpty
+          ? _livingInController.text.trim()
+          : null,
       favoriteSongs: _favoriteSongs,
-      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty ? _favoriteSingerController.text.trim() : base.favoriteSinger,
+      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty
+          ? _favoriteSingerController.text.trim()
+          : base.favoriteSinger,
       dateOfBirth: _dateOfBirth,
       gender: _gender,
       sexualOrientation: _sexualOrientation,
       privacySettings: updatedPrivacy,
       preferences: updatedPreferences,
       // Location fields
-      country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : base.country,
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : base.city,
+      country: _countryController.text.trim().isNotEmpty
+          ? _countryController.text.trim()
+          : base.country,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : base.city,
     );
 
     context.read<ProfileBloc>().add(ProfileSaveRequested(profile: updated));
@@ -366,7 +404,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
-  Future<void> _showDateOfBirthPicker(BuildContext context, Profile? profile) async {
+  Future<void> _showDateOfBirthPicker(
+      BuildContext context, Profile? profile) async {
     // Check if DOB is locked
     if (profile != null && !profile.canChangeDob) {
       showErrorSnackBar(
@@ -422,8 +461,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (!mounted) return;
 
     // Calculate age from selected date
-    final age = now.year - result.year -
-        ((now.month < result.month || (now.month == result.month && now.day < result.day)) ? 1 : 0);
+    final age = now.year -
+        result.year -
+        ((now.month < result.month ||
+                (now.month == result.month && now.day < result.day))
+            ? 1
+            : 0);
 
     // Reject if under 18
     if (age < 18) {
@@ -479,25 +522,26 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       // ignore: use_build_context_synchronously
       context: context,
       builder: (context) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded, color: DsColors.warning, size: 48),
-          title: const Text('Confirm Date of Birth'),
-          content: Text(
-            'You selected: ${result.day}/${result.month}/${result.year}\n\n'
-            'Please verify this is your correct date of birth. '
-            'You will not be able to change it for 1 month after saving.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Go Back'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirm'),
-            ),
-          ],
+        icon: const Icon(Icons.warning_amber_rounded,
+            color: DsColors.warning, size: 48),
+        title: const Text('Confirm Date of Birth'),
+        content: Text(
+          'You selected: ${result.day}/${result.month}/${result.year}\n\n'
+          'Please verify this is your correct date of birth. '
+          'You will not be able to change it for 1 month after saving.',
         ),
-      );
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Go Back'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
     if (finalConfirm == true) {
       setState(() => _dateOfBirth = result);
     }
@@ -585,7 +629,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       options: options.map((e) => e.value).toList(),
       selectedValue: _personalityType,
       labelBuilder: (v) => options.firstWhere((e) => e.value == v).label,
-      subtitleBuilder: (v) => options.firstWhere((e) => e.value == v).description,
+      subtitleBuilder: (v) =>
+          options.firstWhere((e) => e.value == v).description,
     );
     if (result != null) {
       setState(() => _personalityType = result);
@@ -717,7 +762,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
               decoration: BoxDecoration(
                 color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -727,7 +773,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)
+                      color: (isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight)
                           .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -739,7 +787,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         const Expanded(
                           child: Text(
                             'Favorite Songs',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600),
                           ),
                         ),
                         TextButton(
@@ -759,7 +808,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
                     child: Row(
                       children: [
                         Expanded(
@@ -796,7 +846,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               });
                             }
                           },
-                          icon: const Icon(Icons.add_circle, color: DsColors.primary),
+                          icon: const Icon(Icons.add_circle,
+                              color: DsColors.primary),
                         ),
                       ],
                     ),
@@ -806,7 +857,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom + DsSpacing.lg,
+                        bottom: MediaQuery.of(context).padding.bottom +
+                            DsSpacing.lg,
                       ),
                       itemCount: songs.length,
                       itemBuilder: (context, index) => ListTile(
@@ -814,7 +866,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         title: Text(songs[index]),
                         trailing: IconButton(
                           icon: const Icon(Icons.close, size: 20),
-                          onPressed: () => setModalState(() => songs.removeAt(index)),
+                          onPressed: () =>
+                              setModalState(() => songs.removeAt(index)),
                         ),
                       ),
                     ),
@@ -930,7 +983,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _livingInController.text = profile.livingIn ?? '';
           _favoriteSingerController.text = profile.favoriteSinger ?? '';
           // Don't load "Unknown" as it's just a placeholder
-          _countryController.text = profile.country != 'Unknown' ? profile.country : '';
+          _countryController.text =
+              profile.country != 'Unknown' ? profile.country : '';
           _cityController.text = profile.city != 'Unknown' ? profile.city : '';
           _heightCm = profile.heightCm;
           _relationshipGoals = profile.relationshipGoals;
@@ -977,7 +1031,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               absorbing: saving,
               child: SingleChildScrollView(
                 controller: _scrollController,
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: DsEdgeInsets.screenPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1082,14 +1137,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ProfileFieldTile(
                           label: 'Height',
                           value: _heightCm != null
-                              ? ProfileFieldOptions.formatHeightDisplay(_heightCm!)
+                              ? ProfileFieldOptions.formatHeightDisplay(
+                                  _heightCm!)
                               : null,
                           leadingIcon: Icons.height,
                           onTap: () => _showHeightPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Relationship Goals',
-                          value: ProfileFieldOptions.getRelationshipGoalLabel(_relationshipGoals),
+                          value: ProfileFieldOptions.getRelationshipGoalLabel(
+                              _relationshipGoals),
                           leadingIcon: Icons.favorite,
                           onTap: () => _showRelationshipGoalsPicker(context),
                         ),
@@ -1139,7 +1196,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ProfileFieldTile(
                           label: 'I speak',
                           value: _languages.isNotEmpty
-                              ? _languages.take(3).join(', ') + (_languages.length > 3 ? '...' : '')
+                              ? _languages.take(3).join(', ') +
+                                  (_languages.length > 3 ? '...' : '')
                               : null,
                           leadingIcon: Icons.translate,
                           onTap: () => _showLanguagesPicker(context),
@@ -1157,31 +1215,36 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       children: [
                         ProfileFieldTile(
                           label: 'Zodiac Sign',
-                          value: ProfileFieldOptions.getZodiacLabel(_zodiacSign),
+                          value:
+                              ProfileFieldOptions.getZodiacLabel(_zodiacSign),
                           leadingIcon: Icons.auto_awesome,
                           onTap: () => _showZodiacPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Education',
-                          value: ProfileFieldOptions.getEducationLabel(_educationLevel),
+                          value: ProfileFieldOptions.getEducationLabel(
+                              _educationLevel),
                           leadingIcon: Icons.school_outlined,
                           onTap: () => _showEducationPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Family Plans',
-                          value: ProfileFieldOptions.getFamilyPlanLabel(_familyPlans),
+                          value: ProfileFieldOptions.getFamilyPlanLabel(
+                              _familyPlans),
                           leadingIcon: Icons.family_restroom,
                           onTap: () => _showFamilyPlansPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Personality Type',
-                          value: ProfileFieldOptions.getPersonalityLabel(_personalityType),
+                          value: ProfileFieldOptions.getPersonalityLabel(
+                              _personalityType),
                           leadingIcon: Icons.emoji_people,
                           onTap: () => _showPersonalityPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Religion',
-                          value: ProfileFieldOptions.getReligionLabel(_religion),
+                          value:
+                              ProfileFieldOptions.getReligionLabel(_religion),
                           leadingIcon: Icons.self_improvement,
                           onTap: () => _showReligionPicker(context),
                           showDivider: false,
@@ -1204,13 +1267,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                         ProfileFieldTile(
                           label: 'Social Media',
-                          value: ProfileFieldOptions.getSocialMediaLabel(_socialMedia),
+                          value: ProfileFieldOptions.getSocialMediaLabel(
+                              _socialMedia),
                           leadingIcon: Icons.phone_android,
                           onTap: () => _showSocialMediaPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'Sleeping Habits',
-                          value: ProfileFieldOptions.getSleepingLabel(_sleepingHabits),
+                          value: ProfileFieldOptions.getSleepingLabel(
+                              _sleepingHabits),
                           leadingIcon: Icons.bedtime_outlined,
                           onTap: () => _showSleepingPicker(context),
                         ),
@@ -1222,7 +1287,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                         ProfileFieldTile(
                           label: 'Drinking',
-                          value: ProfileFieldOptions.getDrinkingLabel(_drinking),
+                          value:
+                              ProfileFieldOptions.getDrinkingLabel(_drinking),
                           leadingIcon: Icons.local_bar,
                           onTap: () => _showDrinkingPicker(context),
                         ),
@@ -1345,13 +1411,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                         ProfileFieldTile(
                           label: 'Sexual Orientation',
-                          value: ProfileFieldOptions.getSexualOrientationLabel(_sexualOrientation),
+                          value: ProfileFieldOptions.getSexualOrientationLabel(
+                              _sexualOrientation),
                           leadingIcon: Icons.favorite_border,
                           onTap: () => _showOrientationPicker(context),
                         ),
                         ProfileFieldTile(
                           label: 'I Am Looking For',
-                          value: ProfileFieldOptions.getLookingForLabel(_lookingFor),
+                          value: ProfileFieldOptions.getLookingForLabel(
+                              _lookingFor),
                           leadingIcon: Icons.search_rounded,
                           onTap: () => _showLookingForPicker(context),
                           showDivider: false,
@@ -1408,7 +1476,8 @@ class _ProgressCard extends StatelessWidget {
       // 100% complete
       progressColor = DsColors.success;
       icon = Icons.check_circle;
-      final displayName = (username != null && username!.isNotEmpty) ? '@$username' : 'You';
+      final displayName =
+          (username != null && username!.isNotEmpty) ? '@$username' : 'You';
       title = 'Profile Complete!';
       subtitle = 'Your profile is all set up, $displayName!';
     } else if (isEligibleToSwipe) {
@@ -1431,7 +1500,10 @@ class _ProgressCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: isEligibleToSwipe || isFullyComplete
               ? [DsColors.success.withAlpha(30), DsColors.success.withAlpha(10)]
-              : [DsColors.primary.withAlpha(30), DsColors.primary.withAlpha(10)],
+              : [
+                  DsColors.primary.withAlpha(30),
+                  DsColors.primary.withAlpha(10)
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1523,15 +1595,16 @@ class _ProgressCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.tips_and_updates_rounded, color: DsColors.info, size: 20),
+                  const Icon(Icons.tips_and_updates_rounded,
+                      color: DsColors.info, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'We recommend completing all fields to get more matches and build trust with other users.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: DsColors.info,
-                        fontWeight: FontWeight.w500,
-                      ),
+                            color: DsColors.info,
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                   ),
                 ],
@@ -1669,14 +1742,18 @@ class _UsernameDisplay extends StatelessWidget {
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: hasUsername ? DsColors.primary.withAlpha(100) : (isDark ? DsColors.borderDark : DsColors.borderLight),
+          color: hasUsername
+              ? DsColors.primary.withAlpha(100)
+              : (isDark ? DsColors.borderDark : DsColors.borderLight),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.alternate_email_rounded,
-            color: hasUsername ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+            color: hasUsername
+                ? DsColors.primary
+                : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
             size: 22,
           ),
           const SizedBox(width: 12),
@@ -1687,16 +1764,23 @@ class _UsernameDisplay extends StatelessWidget {
                 Text(
                   'Username',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                    fontSize: 11,
-                  ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                        fontSize: 11,
+                      ),
                 ),
                 Text(
                   hasUsername ? '@$username' : 'Not set',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: hasUsername ? DsColors.primary : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
-                    fontWeight: hasUsername ? FontWeight.w600 : FontWeight.w400,
-                  ),
+                        color: hasUsername
+                            ? DsColors.primary
+                            : (isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight),
+                        fontWeight:
+                            hasUsername ? FontWeight.w600 : FontWeight.w400,
+                      ),
                 ),
               ],
             ),
@@ -1740,13 +1824,15 @@ class _StyledTextField extends StatelessWidget {
       maxLines: maxLines,
       minLines: minLines,
       enabled: enabled,
-      textInputAction: maxLines > 1 ? TextInputAction.newline : TextInputAction.done,
+      textInputAction:
+          maxLines > 1 ? TextInputAction.newline : TextInputAction.done,
       onEditingComplete: () => FocusScope.of(context).unfocus(),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         helperText: helperText,
-        prefixIcon: Icon(icon, color: enabled ? DsColors.primary : DsColors.textMutedLight),
+        prefixIcon: Icon(icon,
+            color: enabled ? DsColors.primary : DsColors.textMutedLight),
         filled: true,
         fillColor: Theme.of(context).brightness == Brightness.dark
             ? DsColors.inputFillDark

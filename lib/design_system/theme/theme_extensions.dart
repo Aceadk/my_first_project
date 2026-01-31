@@ -42,13 +42,14 @@ class CrushThemeEffects extends ThemeExtension<CrushThemeEffects> {
     if (other is! CrushThemeEffects) return this;
     return CrushThemeEffects(
       glowColor: Color.lerp(glowColor, other.glowColor, t) ?? glowColor,
-      glassSurface: Color.lerp(glassSurface, other.glassSurface, t) ?? glassSurface,
+      glassSurface:
+          Color.lerp(glassSurface, other.glassSurface, t) ?? glassSurface,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t) ?? glassBorder,
       shadowOpacity: shadowOpacity + (other.shadowOpacity - shadowOpacity) * t,
       motionScale: motionScale + (other.motionScale - motionScale) * t,
-      primaryGradient: LinearGradient.lerp(primaryGradient, other.primaryGradient, t) ??
-          primaryGradient,
+      primaryGradient:
+          LinearGradient.lerp(primaryGradient, other.primaryGradient, t) ??
+              primaryGradient,
     );
   }
 }
-

@@ -70,16 +70,22 @@ class ChatSettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Message Retention',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           DsGap.xs,
                           Text(
                             'Control how long your messages are kept after being read.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                         ],
                       ),
@@ -94,10 +100,12 @@ class ChatSettingsScreen extends StatelessWidget {
                 child: Container(
                   padding: DsEdgeInsets.allMd,
                   decoration: BoxDecoration(
-                    color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+                    color:
+                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                      color:
+                          isDark ? DsColors.borderDark : DsColors.borderLight,
                     ),
                   ),
                   child: Row(
@@ -114,16 +122,24 @@ class ChatSettingsScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Current retention',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                             Text(
                               state.retentionDisplay,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.primary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.primary,
+                                  ),
                             ),
                           ],
                         ),
@@ -163,16 +179,24 @@ class ChatSettingsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'Plus Benefit',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                               DsGap.xs,
                               Text(
                                 'Your messages are kept for 7 days after being read. This is a Plus-exclusive benefit!',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                               ),
                             ],
                           ),
@@ -261,16 +285,24 @@ class ChatSettingsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'Want more time?',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                               DsGap.xs,
                               Text(
                                 'Upgrade to Plus to keep messages for up to 7 days!',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                               ),
                             ],
                           ),
@@ -293,28 +325,35 @@ class ChatSettingsScreen extends StatelessWidget {
                         Icon(
                           Icons.info_outline,
                           size: 18,
-                          color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'How it works',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                         ),
                       ],
                     ),
                     DsGap.sm,
                     _InfoItem(
                       icon: Icons.visibility,
-                      text: 'Messages are deleted after being read, based on your retention setting.',
+                      text:
+                          'Messages are deleted after being read, based on your retention setting.',
                       isDark: isDark,
                     ),
                     DsGap.xs,
                     _InfoItem(
                       icon: Icons.person,
-                      text: 'Your setting only affects your view. Others see messages based on their own settings.',
+                      text:
+                          'Your setting only affects your view. Others see messages based on their own settings.',
                       isDark: isDark,
                     ),
                     DsGap.xs,
@@ -370,8 +409,9 @@ class _InfoItem extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                ),
           ),
         ),
       ],

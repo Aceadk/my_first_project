@@ -42,8 +42,9 @@ class DiscoveryFilter {
       passportModeEnabled ? (passportLatitude ?? userLatitude) : userLatitude;
 
   /// Returns the effective longitude for discovery.
-  double? get effectiveLongitude =>
-      passportModeEnabled ? (passportLongitude ?? userLongitude) : userLongitude;
+  double? get effectiveLongitude => passportModeEnabled
+      ? (passportLongitude ?? userLongitude)
+      : userLongitude;
 }
 
 abstract class DiscoveryRepository {

@@ -27,9 +27,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         // Fetch every 12 hours in production, 1 minute in debug
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: kDebugMode
-            ? const Duration(minutes: 1)
-            : const Duration(hours: 12),
+        minimumFetchInterval:
+            kDebugMode ? const Duration(minutes: 1) : const Duration(hours: 12),
       ));
 
       // Set default values
@@ -117,7 +116,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getBool(key);
     } catch (e) {
-      debugPrint('FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e');
+      debugPrint(
+          'FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -127,7 +127,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getInt(key);
     } catch (e) {
-      debugPrint('FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e');
+      debugPrint(
+          'FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -137,7 +138,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getString(key);
     } catch (e) {
-      debugPrint('FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e');
+      debugPrint(
+          'FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -147,7 +149,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getDouble(key);
     } catch (e) {
-      debugPrint('FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e');
+      debugPrint(
+          'FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e');
       return defaultValue;
     }
   }
@@ -166,9 +169,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       // Reset to normal fetch interval
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: kDebugMode
-            ? const Duration(minutes: 1)
-            : const Duration(hours: 12),
+        minimumFetchInterval:
+            kDebugMode ? const Duration(minutes: 1) : const Duration(hours: 12),
       ));
     } catch (e) {
       debugPrint('Error force refreshing Remote Config: $e');

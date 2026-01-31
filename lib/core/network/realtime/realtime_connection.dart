@@ -75,7 +75,8 @@ class WebSocketConnection {
 
   /// Connect to the WebSocket server.
   Future<void> connect() async {
-    if (_state == ConnectionState.connected || _state == ConnectionState.connecting) {
+    if (_state == ConnectionState.connected ||
+        _state == ConnectionState.connecting) {
       return;
     }
 
@@ -206,7 +207,10 @@ class WebSocketConnection {
     _stopHeartbeat();
     _heartbeatTimer = Timer.periodic(heartbeatInterval, (_) {
       if (isConnected) {
-        send({'type': 'ping', 'timestamp': DateTime.now().millisecondsSinceEpoch});
+        send({
+          'type': 'ping',
+          'timestamp': DateTime.now().millisecondsSinceEpoch
+        });
       }
     });
   }
@@ -226,7 +230,8 @@ class WebSocketConnection {
 
     // Exponential backoff with jitter
     final delay = _calculateReconnectDelay();
-    debugPrint('WebSocketConnection: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectCount + 1}/$reconnectAttempts)');
+    debugPrint(
+        'WebSocketConnection: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectCount + 1}/$reconnectAttempts)');
 
     _reconnectTimer = Timer(delay, () {
       _reconnectCount++;
@@ -236,11 +241,13 @@ class WebSocketConnection {
 
   Duration _calculateReconnectDelay() {
     // Exponential backoff: 1s, 2s, 4s, 8s, 16s, ...
-    final baseDelay = initialReconnectDelay.inMilliseconds * (1 << _reconnectCount);
+    final baseDelay =
+        initialReconnectDelay.inMilliseconds * (1 << _reconnectCount);
     final cappedDelay = baseDelay.clamp(0, maxReconnectDelay.inMilliseconds);
 
     // Add jitter (±20%)
-    final jitter = (cappedDelay * 0.2 * (DateTime.now().millisecond / 1000 - 0.5)).round();
+    final jitter =
+        (cappedDelay * 0.2 * (DateTime.now().millisecond / 1000 - 0.5)).round();
     return Duration(milliseconds: cappedDelay + jitter);
   }
 
@@ -300,7 +307,9 @@ class MessageReceivedEvent extends RealtimeEvent {
       senderId: json['sender_id'] as String? ?? '',
       content: json['content'] as String? ?? '',
       messageType: json['message_type'] as String? ?? 'text',
-      timestamp: json['timestamp'] != null ? DateTime.tryParse(json['timestamp'] as String) : null,
+      timestamp: json['timestamp'] != null
+          ? DateTime.tryParse(json['timestamp'] as String)
+          : null,
     );
   }
 }
@@ -393,7 +402,9 @@ class PresenceEvent extends RealtimeEvent {
     return PresenceEvent(
       userId: json['user_id'] as String? ?? '',
       isOnline: json['is_online'] as bool? ?? false,
-      lastSeen: json['last_seen'] != null ? DateTime.tryParse(json['last_seen'] as String) : null,
+      lastSeen: json['last_seen'] != null
+          ? DateTime.tryParse(json['last_seen'] as String)
+          : null,
     );
   }
 }

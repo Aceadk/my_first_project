@@ -35,7 +35,8 @@ import 'package:crushhour/features/profile/presentation/screens/profile_view_scr
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
-import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart' as settings;
+import 'package:crushhour/features/settings/presentation/screens/settings_screen.dart'
+    as settings;
 import 'package:crushhour/features/settings/presentation/screens/appearance_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/privacy_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/notifications_settings_screen.dart';
@@ -60,6 +61,9 @@ import 'package:crushhour/features/analytics/presentation/screens/profile_insigh
 import '../presentation/screens/privacy_policy_screen.dart';
 import '../presentation/screens/terms_of_service_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/match.dart';
 
 class CrushRoutes {
   static const root = '/';
@@ -159,14 +163,12 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
       // Check if user needs account verification
       // Only require verification for users who have neither email nor phone verified
       // Users with phone verification can skip email verification
-      final needsAccountVerification = isLoggedIn &&
-          user != null &&
-          !user.isAccountVerified;
+      final needsAccountVerification =
+          isLoggedIn && user != null && !user.isAccountVerified;
 
       // Check if user needs to accept terms and conditions
-      final needsTermsAcceptance = isLoggedIn &&
-          user != null &&
-          !user.hasAcceptedTerms;
+      final needsTermsAcceptance =
+          isLoggedIn && user != null && !user.hasAcceptedTerms;
 
       // Check if user needs to complete basic info (after T&C)
       final needsBasicInfo = isLoggedIn &&
@@ -267,7 +269,10 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
       }
 
       // Logged in but needs email verification (after completing onboarding)
-      if (needsAccountVerification && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup) {
+      if (needsAccountVerification &&
+          !needsTermsAcceptance &&
+          !needsBasicInfo &&
+          !needsProfileSetup) {
         // Allow staying on verification screen, onboarding routes, settings,
         // or accessing public/legal routes
         if (isEmailVerificationRoute ||
@@ -283,7 +288,11 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
       }
 
       // Logged in with completed onboarding - redirect away from auth/onboarding routes
-      if (isLoggedIn && !needsTermsAcceptance && !needsBasicInfo && !needsProfileSetup && !needsAccountVerification) {
+      if (isLoggedIn &&
+          !needsTermsAcceptance &&
+          !needsBasicInfo &&
+          !needsProfileSetup &&
+          !needsAccountVerification) {
         if (isAuthRoute || isEmailVerificationRoute || isOnboardingRoute) {
           return CrushRoutes.home;
         }
@@ -429,8 +438,7 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
       ),
       GoRoute(
         path: CrushRoutes.home,
-        pageBuilder: (context, state) =>
-            _buildPage(state, const HomeScreen()),
+        pageBuilder: (context, state) => _buildPage(state, const HomeScreen()),
       ),
       GoRoute(
         path: '${CrushRoutes.chat}/:matchId',
@@ -439,8 +447,18 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
           if (args is ChatScreenArgs) {
             return _buildPage(state, ChatScreen(args: args));
           }
-          // Fallback if no args provided - go back home
-          return _buildPage(state, const HomeScreen());
+          final matchId = state.pathParameters['matchId'] ?? '';
+          final currentUserId = authBloc.state.user?.id ?? '';
+          if (matchId.isEmpty || currentUserId.isEmpty) {
+            return _buildPage(state, const HomeScreen());
+          }
+          return _buildPage(
+            state,
+            _ChatDeepLinkLoader(
+              matchId: matchId,
+              currentUserId: currentUserId,
+            ),
+          );
         },
       ),
       GoRoute(
@@ -516,7 +534,8 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
           final args = state.extra as Map<String, String>?;
           final matchId = args?['matchId'] ?? '';
           final userId = authBloc.state.user?.id ?? '';
-          return _buildPage(state, CompatibilityQuizScreen(matchId: matchId, userId: userId));
+          return _buildPage(
+              state, CompatibilityQuizScreen(matchId: matchId, userId: userId));
         },
       ),
       GoRoute(
@@ -610,7 +629,8 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
           // Get current chat settings from profile and subscription status
           final profileState = context.read<ProfileBloc>().state;
           final subState = context.read<SubscriptionBloc>().state;
-          final chatSettings = profileState.profile?.chatSettings ?? const ChatSettings();
+          final chatSettings =
+              profileState.profile?.chatSettings ?? const ChatSettings();
           final isPremium = subState.plan == SubscriptionPlan.plus;
 
           return _buildPage(
@@ -633,6 +653,21 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
             return _buildPage(state, OtherUserProfileScreen(args: args));
           }
           return _buildPage(state, const HomeScreen());
+        },
+      ),
+      GoRoute(
+        path: '${CrushRoutes.userProfile}/:userId',
+        pageBuilder: (context, state) {
+          final userId = state.pathParameters['userId'] ??
+              state.uri.queryParameters['userId'] ??
+              '';
+          if (userId.isEmpty) {
+            return _buildPage(state, const HomeScreen());
+          }
+          return _buildPage(
+            state,
+            _UserProfileDeepLinkLoader(userId: userId),
+          );
         },
       ),
       GoRoute(
@@ -692,4 +727,135 @@ CustomTransitionPage<void> _buildPage(GoRouterState state, Widget child) {
       );
     },
   );
+}
+
+class _ChatDeepLinkLoader extends StatelessWidget {
+  const _ChatDeepLinkLoader({
+    required this.matchId,
+    required this.currentUserId,
+  });
+
+  final String matchId;
+  final String currentUserId;
+
+  @override
+  Widget build(BuildContext context) {
+    final discoveryRepo = context.read<DiscoveryRepository>();
+    return FutureBuilder<List<CrushMatch>>(
+      future: discoveryRepo.fetchMatches(currentUserId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _DeepLinkLoadingScaffold(
+            message: 'Opening chat...',
+          );
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return const _DeepLinkErrorScaffold(
+            message: 'Unable to load chat right now.',
+          );
+        }
+        CrushMatch? match;
+        try {
+          match = snapshot.data!.firstWhere((m) => m.id == matchId);
+        } catch (_) {
+          match = null;
+        }
+        if (match == null) {
+          return const _DeepLinkErrorScaffold(
+            message: 'Chat not found.',
+          );
+        }
+        final args = ChatScreenArgs(
+          matchId: match.id,
+          currentUserId: currentUserId,
+          otherUserId: match.otherUserId,
+          otherName: match.otherUserName ?? 'Someone',
+          otherPhotoUrl: match.otherUserPhotoUrl,
+        );
+        return ChatScreen(args: args);
+      },
+    );
+  }
+}
+
+class _UserProfileDeepLinkLoader extends StatelessWidget {
+  const _UserProfileDeepLinkLoader({required this.userId});
+
+  final String userId;
+
+  @override
+  Widget build(BuildContext context) {
+    final discoveryRepo = context.read<DiscoveryRepository>();
+    return FutureBuilder<Profile?>(
+      future: discoveryRepo.fetchProfileById(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _DeepLinkLoadingScaffold(
+            message: 'Loading profile...',
+          );
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return const _DeepLinkErrorScaffold(
+            message: 'Profile not found.',
+          );
+        }
+        return OtherUserProfileScreen(
+          args: OtherUserProfileArgs(profile: snapshot.data!),
+        );
+      },
+    );
+  }
+}
+
+class _DeepLinkLoadingScaffold extends StatelessWidget {
+  const _DeepLinkLoadingScaffold({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(message),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeepLinkErrorScaffold extends StatelessWidget {
+  const _DeepLinkErrorScaffold({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => context.go(CrushRoutes.home),
+                child: const Text('Go to Home'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

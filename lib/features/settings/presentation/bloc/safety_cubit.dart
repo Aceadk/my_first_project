@@ -50,6 +50,7 @@ class SafetyState {
   final Set<String> blockedUsers;
   final Set<String> mutedMessages;
   final Set<String> mutedCalls;
+
   /// Map of reported user IDs to the timestamp when they were reported.
   final Map<String, DateTime> reportedUsers;
   final Map<String, SafetyProfileInfo> profileCache;
@@ -86,8 +87,7 @@ class SafetyCubit extends Cubit<SafetyState> {
     required SharedPreferences preferences,
     required ChatRepository chatRepository,
     required DiscoveryRepository discoveryRepository,
-  })
-      : _preferences = preferences,
+  })  : _preferences = preferences,
         _chatRepository = chatRepository,
         _discoveryRepository = discoveryRepository,
         super(_readInitial(preferences));
@@ -290,7 +290,8 @@ class SafetyCubit extends Cubit<SafetyState> {
     };
 
     // Filter out already cached profiles
-    final idsToFetch = allIds.where((id) => !state.profileCache.containsKey(id)).toList();
+    final idsToFetch =
+        allIds.where((id) => !state.profileCache.containsKey(id)).toList();
 
     if (idsToFetch.isEmpty) return;
 
@@ -309,7 +310,8 @@ class SafetyCubit extends Cubit<SafetyState> {
         }
       } catch (e) {
         // Use placeholder on error
-        debugPrint('SafetyCubit: Error fetching profile for $userId, using placeholder: $e');
+        debugPrint(
+            'SafetyCubit: Error fetching profile for $userId, using placeholder: $e');
         newCache[userId] = SafetyProfileInfo.placeholder(userId);
       }
     }

@@ -1225,7 +1225,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     try {
       return _mockProfiles.firstWhere((p) => p.id == profileId);
     } catch (e) {
-      debugPrint('StubDiscoveryRepository: Profile not found for id $profileId: $e');
+      debugPrint(
+          'StubDiscoveryRepository: Profile not found for id $profileId: $e');
       return null;
     }
   }
@@ -1297,7 +1298,8 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     try {
       return _mockProfiles.firstWhere((p) => p.id == lastSwipedId);
     } catch (e) {
-      debugPrint('StubDiscoveryRepository: Rewound profile not found for id $lastSwipedId: $e');
+      debugPrint(
+          'StubDiscoveryRepository: Rewound profile not found for id $lastSwipedId: $e');
       return null;
     }
   }

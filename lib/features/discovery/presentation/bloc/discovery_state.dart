@@ -85,7 +85,8 @@ class DiscoveryState extends Equatable {
   int get remainingProfiles => deck.length - currentIndex;
 
   /// Whether we should preload more profiles (when < 5 remaining)
-  bool get shouldLoadMore => remainingProfiles < 5 && hasMoreProfiles && !isLoadingMore;
+  bool get shouldLoadMore =>
+      remainingProfiles < 5 && hasMoreProfiles && !isLoadingMore;
 
   /// Whether free undo is available today (resets at midnight).
   bool get hasFreeUndoAvailable {
@@ -129,10 +130,13 @@ class DiscoveryState extends Equatable {
       status: status ?? this.status,
       errorMessage: errorMessage,
       nextRetrySeconds: nextRetrySeconds,
-      newMatch: identical(newMatch, _unset) ? this.newMatch : newMatch as MatchResult?,
+      newMatch: identical(newMatch, _unset)
+          ? this.newMatch
+          : newMatch as MatchResult?,
       localDeckExhausted: localDeckExhausted ?? this.localDeckExhausted,
       passportModeActive: passportModeActive ?? this.passportModeActive,
-      currentDistanceLimitKm: currentDistanceLimitKm ?? this.currentDistanceLimitKm,
+      currentDistanceLimitKm:
+          currentDistanceLimitKm ?? this.currentDistanceLimitKm,
       superLikesRemaining: superLikesRemaining ?? this.superLikesRemaining,
       superLikesResetDate: identical(superLikesResetDate, _unset)
           ? this.superLikesResetDate

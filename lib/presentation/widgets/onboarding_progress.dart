@@ -53,10 +53,9 @@ class OnboardingProgress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 8,
-            backgroundColor: (isDark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight)
-                .withValues(alpha: 0.2),
+            backgroundColor:
+                (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)
+                    .withValues(alpha: 0.2),
             color: DsColors.primary,
           ),
         ),
@@ -64,8 +63,7 @@ class OnboardingProgress extends StatelessWidget {
         Text(
           caption ?? nextLabel,
           style: theme.textTheme.labelSmall?.copyWith(
-            color:
-                isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
         ),
       ],

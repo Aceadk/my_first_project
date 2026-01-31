@@ -55,7 +55,8 @@ class _AsyncStateScaffoldState extends State<AsyncStateScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final hasError = widget.errorMessage != null && widget.errorMessage!.isNotEmpty;
+    final hasError =
+        widget.errorMessage != null && widget.errorMessage!.isNotEmpty;
     final hasCustomErrorView = widget.error != null;
     final canRetry = widget.onRetry != null;
     final hasEmptyView = widget.empty != null;

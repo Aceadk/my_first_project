@@ -29,14 +29,12 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
   @override
   void initState() {
     super.initState();
-    _validVideoUrls = widget.profile.videoUrls
-        .where((url) {
-          final uri = Uri.tryParse(url);
-          return uri != null &&
-              uri.hasScheme &&
-              (uri.isScheme('http') || uri.isScheme('https'));
-        })
-        .toList();
+    _validVideoUrls = widget.profile.videoUrls.where((url) {
+      final uri = Uri.tryParse(url);
+      return uri != null &&
+          uri.hasScheme &&
+          (uri.isScheme('http') || uri.isScheme('https'));
+    }).toList();
     _videoControllers = _validVideoUrls
         .map(
           (url) => VideoPlayerController.networkUrl(Uri.parse(url)),
@@ -105,7 +103,8 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text('${photos.length} photo${photos.length == 1 ? '' : 's'}'),
+                  Text(
+                      '${photos.length} photo${photos.length == 1 ? '' : 's'}'),
                   const SizedBox(height: 12),
                 ],
               ),

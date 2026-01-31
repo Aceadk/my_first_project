@@ -70,7 +70,8 @@ class DiscoveryMapper {
   }
 
   /// Convert MatchDto to CrushMatch domain model.
-  static CrushMatch matchFromDto(MatchDto dto, {required String currentUserId}) {
+  static CrushMatch matchFromDto(MatchDto dto,
+      {required String currentUserId}) {
     return CrushMatch(
       id: dto.id,
       userId: currentUserId,

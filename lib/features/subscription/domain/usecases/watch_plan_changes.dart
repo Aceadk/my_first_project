@@ -3,7 +3,8 @@ import 'package:crushhour/domain/use_cases/use_case.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 
 /// Use case for watching subscription plan changes as a stream.
-class WatchPlanChangesUseCase extends StreamUseCase<SubscriptionPlan, NoParams> {
+class WatchPlanChangesUseCase
+    extends StreamUseCase<SubscriptionPlan, NoParams> {
   final SubscriptionRepository _repository;
 
   WatchPlanChangesUseCase(this._repository);

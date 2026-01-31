@@ -46,7 +46,8 @@ class OtherUserProfileScreen extends StatelessWidget {
     final isMatch = args.isMatch;
     final matchId = args.matchId;
     // Show full real name when viewing someone's profile (first + last name)
-    final displayName = profile.fullName.isNotEmpty ? profile.fullName : 'Someone new';
+    final displayName =
+        profile.fullName.isNotEmpty ? profile.fullName : 'Someone new';
 
     return Scaffold(
       body: CustomScrollView(
@@ -63,7 +64,8 @@ class OtherUserProfileScreen extends StatelessWidget {
                   color: DsColors.ink900.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back, color: DsColors.surfaceLight),
+                child:
+                    const Icon(Icons.arrow_back, color: DsColors.surfaceLight),
               ),
               onPressed: () => context.pop(),
             ),
@@ -75,7 +77,8 @@ class OtherUserProfileScreen extends StatelessWidget {
                     color: DsColors.ink900.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.more_vert, color: DsColors.surfaceLight),
+                  child:
+                      const Icon(Icons.more_vert, color: DsColors.surfaceLight),
                 ),
                 onPressed: () => _showOptionsMenu(context, profile),
               ),
@@ -262,7 +265,8 @@ class OtherUserProfileScreen extends StatelessWidget {
                   ],
 
                   // Languages
-                  if (privacy.showLanguages && profile.languages.isNotEmpty) ...[
+                  if (privacy.showLanguages &&
+                      profile.languages.isNotEmpty) ...[
                     _InfoSection(
                       title: 'Languages',
                       icon: Icons.language,
@@ -311,8 +315,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                                       profile.personalityType) ??
                                   '',
                             ),
-                          if (privacy.showReligion &&
-                              profile.religion != null)
+                          if (privacy.showReligion && profile.religion != null)
                             _InfoRow(
                               icon: Icons.self_improvement,
                               label: 'Religion',
@@ -513,7 +516,8 @@ class OtherUserProfileScreen extends StatelessWidget {
                                     );
                                   },
                             icon: const Icon(Icons.chat_bubble_outline),
-                            label: Text(hasPending ? 'Request Sent' : 'Send Message'),
+                            label: Text(
+                                hasPending ? 'Request Sent' : 'Send Message'),
                             style: FilledButton.styleFrom(
                               backgroundColor: DsColors.secondary,
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -580,7 +584,8 @@ class OtherUserProfileScreen extends StatelessWidget {
     }
 
     final discoveryBloc = context.read<DiscoveryBloc>();
-    final isDeckProfile = _isCurrentDeckProfile(discoveryBloc.state, profile.id);
+    final isDeckProfile =
+        _isCurrentDeckProfile(discoveryBloc.state, profile.id);
 
     if (isDeckProfile) {
       discoveryBloc.add(
@@ -618,7 +623,8 @@ class OtherUserProfileScreen extends StatelessWidget {
     }
 
     final discoveryBloc = context.read<DiscoveryBloc>();
-    final isDeckProfile = _isCurrentDeckProfile(discoveryBloc.state, profile.id);
+    final isDeckProfile =
+        _isCurrentDeckProfile(discoveryBloc.state, profile.id);
 
     if (isDeckProfile) {
       discoveryBloc.add(
@@ -657,7 +663,8 @@ class OtherUserProfileScreen extends StatelessWidget {
       _returnToDeck(context, preferPop: false);
     } catch (_) {
       if (context.mounted) {
-        showErrorSnackBar(context, 'Could not like this profile. Please try again.');
+        showErrorSnackBar(
+            context, 'Could not like this profile. Please try again.');
       }
     }
   }
@@ -778,15 +785,18 @@ class OtherUserProfileScreen extends StatelessWidget {
                                         toUserId: profile.id,
                                         content: content,
                                         type: MessageType.text,
-                                        fromUserName: currentProfile?.publicDisplayName,
-                                        fromUserPhotoUrl:
-                                            currentProfile?.photoUrls.isNotEmpty == true
-                                                ? currentProfile!.photoUrls.first
-                                                : null,
-                                        toUserName: profile.publicDisplayName,
-                                        toUserPhotoUrl: profile.photoUrls.isNotEmpty
-                                            ? profile.photoUrls.first
+                                        fromUserName:
+                                            currentProfile?.publicDisplayName,
+                                        fromUserPhotoUrl: currentProfile
+                                                    ?.photoUrls.isNotEmpty ==
+                                                true
+                                            ? currentProfile!.photoUrls.first
                                             : null,
+                                        toUserName: profile.publicDisplayName,
+                                        toUserPhotoUrl:
+                                            profile.photoUrls.isNotEmpty
+                                                ? profile.photoUrls.first
+                                                : null,
                                       );
                                   if (!context.mounted) return;
                                   if (request == null) {
@@ -909,8 +919,8 @@ class OtherUserProfileScreen extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          isBlocked ? 'User unblocked' : 'User blocked'),
+                      content:
+                          Text(isBlocked ? 'User unblocked' : 'User blocked'),
                     ),
                   );
                   if (!isBlocked) {
@@ -934,12 +944,13 @@ class OtherUserProfileScreen extends StatelessWidget {
               onTap: () async {
                 Navigator.pop(sheetContext);
                 final isMuted = safetyCubit.isMessagesMuted(profile.id);
-                await safetyCubit.toggleMuteMessages(profile.id, mute: !isMuted);
+                await safetyCubit.toggleMuteMessages(profile.id,
+                    mute: !isMuted);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          isMuted ? 'Messages unmuted' : 'Messages muted'),
+                      content:
+                          Text(isMuted ? 'Messages unmuted' : 'Messages muted'),
                     ),
                   );
                 }

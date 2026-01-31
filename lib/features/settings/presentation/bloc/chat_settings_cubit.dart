@@ -58,7 +58,8 @@ class ChatSettingsCubit extends Cubit<ChatSettingsState> {
 
     try {
       // Update via Cloud Function
-      final callable = FirebaseFunctions.instance.httpsCallable('updateChatSettings');
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('updateChatSettings');
       await callable.call<void>({'extendedRetention': value});
 
       // Update local state

@@ -96,10 +96,12 @@ void main() {
         expect(service.isVisibleTo('viewer_123'), isTrue);
       });
 
-      test('returns false for non-liked viewers when onlyShowToLiked', () async {
+      test('returns false for non-liked viewers when onlyShowToLiked',
+          () async {
         await service.enableIncognito(onlyShowToLiked: true);
 
-        expect(service.isVisibleTo('viewer_123', viewerHasLiked: false), isFalse);
+        expect(
+            service.isVisibleTo('viewer_123', viewerHasLiked: false), isFalse);
       });
 
       test('returns true for liked viewers when onlyShowToLiked', () async {

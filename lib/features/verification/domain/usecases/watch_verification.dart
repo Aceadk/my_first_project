@@ -3,7 +3,8 @@ import 'package:crushhour/features/verification/data/models/photo_verification.d
 import 'package:crushhour/features/verification/data/services/photo_verification_service.dart';
 
 /// Use case for watching verification status changes as a stream.
-class WatchVerificationUseCase extends StreamUseCase<PhotoVerification, NoParams> {
+class WatchVerificationUseCase
+    extends StreamUseCase<PhotoVerification, NoParams> {
   final PhotoVerificationService _service;
 
   WatchVerificationUseCase([PhotoVerificationService? service])

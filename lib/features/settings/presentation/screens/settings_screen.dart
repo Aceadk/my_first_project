@@ -62,7 +62,8 @@ class SettingsScreen extends StatelessWidget {
                     iconColor: DsColors.primary,
                     title: context.l10n.settingsNotifications,
                     subtitle: '$enabledCount of 4 enabled',
-                    onTap: () => context.push(CrushRoutes.notificationsSettings),
+                    onTap: () =>
+                        context.push(CrushRoutes.notificationsSettings),
                   );
                 },
               ),
@@ -74,7 +75,8 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.language,
                     iconColor: DsColors.secondary,
                     title: context.l10n.settingsLanguageRegion,
-                    subtitle: '${_languageLabel(localeState.languageCode)} - ${localeState.region}',
+                    subtitle:
+                        '${_languageLabel(localeState.languageCode)} - ${localeState.region}',
                     onTap: () => context.push(CrushRoutes.languageSettings),
                   );
                 },
@@ -87,7 +89,8 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.tune,
                     iconColor: DsColors.warning,
                     title: context.l10n.settingsDiscoveryFilters,
-                    subtitle: '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
+                    subtitle:
+                        '${discoveryState.distanceKm.round()} km, ${discoveryState.minAge}-${discoveryState.maxAge} years',
                     onTap: () => context.push(CrushRoutes.discoverySettings),
                   );
                 },
@@ -140,7 +143,9 @@ class SettingsScreen extends StatelessWidget {
                     (bloc) => bloc.state.user?.isIdVerified ?? false,
                   );
                   return _SettingsTile(
-                    icon: isIdVerified ? Icons.verified_rounded : Icons.verified_outlined,
+                    icon: isIdVerified
+                        ? Icons.verified_rounded
+                        : Icons.verified_outlined,
                     iconColor: isIdVerified ? DsColors.success : DsColors.info,
                     title: 'ID Verification',
                     subtitle: isIdVerified
@@ -148,7 +153,8 @@ class SettingsScreen extends StatelessWidget {
                         : 'Verify to unlock 50% more swipes',
                     onTap: isIdVerified
                         ? null
-                        : () => context.push(CrushRoutes.idVerificationSettings),
+                        : () =>
+                            context.push(CrushRoutes.idVerificationSettings),
                   );
                 },
               ),
@@ -179,7 +185,9 @@ class SettingsScreen extends StatelessWidget {
                   final settings = snapshot.data ?? const IncognitoSettings();
                   final isActive = settings.isActive;
                   return _SettingsTile(
-                    icon: isActive ? Icons.visibility_off : Icons.visibility_off_outlined,
+                    icon: isActive
+                        ? Icons.visibility_off
+                        : Icons.visibility_off_outlined,
                     iconColor: isActive ? DsColors.primary : DsColors.ink300,
                     title: 'Incognito Mode',
                     subtitle: isActive
@@ -218,7 +226,8 @@ class SettingsScreen extends StatelessWidget {
                   final renewal = subState.nextRenewal;
                   final cancelAtPeriodEnd = subState.cancelAtPeriodEnd == true;
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -229,7 +238,8 @@ class SettingsScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: DsColors.primary.withValues(alpha: 0.1),
+                                  color:
+                                      DsColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -240,19 +250,25 @@ class SettingsScreen extends StatelessWidget {
                               DsGap.mdH,
                               Text(
                                 context.l10n.settingsSubscription,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                             ],
                           ),
                           DsGap.md,
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: isPlus
                                   ? DsColors.primary.withValues(alpha: 0.1)
-                                  : (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
+                                  : (isDark
+                                      ? DsColors.surfaceDark
+                                      : DsColors.surfaceLight),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -272,9 +288,14 @@ class SettingsScreen extends StatelessWidget {
                                 if (renewal != null)
                                   '${cancelAtPeriodEnd ? 'Access ends' : 'Renews'} on ${formatDate(renewal)}',
                               ].join(' - '),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
                             ),
                           ],
                           DsGap.sm,
@@ -282,9 +303,12 @@ class SettingsScreen extends StatelessWidget {
                             isPlus
                                 ? 'Manage billing or renew your Plus plan.'
                                 : 'Upgrade to Plus for unlimited likes, rewinds, and Passport.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
                           ),
                           if (!isPlus) ...[
                             DsGap.md,
@@ -301,12 +325,15 @@ class SettingsScreen extends StatelessWidget {
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.local_offer, size: 16, color: DsColors.primary),
+                                  Icon(Icons.local_offer,
+                                      size: 16, color: DsColors.primary),
                                   DsGap.smH,
                                   Expanded(
                                     child: Text(
                                       '50% off your first month!',
-                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500),
                                     ),
                                   ),
                                 ],
@@ -319,17 +346,22 @@ class SettingsScreen extends StatelessWidget {
                             child: FilledButton(
                               onPressed: loading
                                   ? null
-                                  : () => context.read<SubscriptionBloc>().add(PlusCheckoutRequested()),
+                                  : () => context
+                                      .read<SubscriptionBloc>()
+                                      .add(PlusCheckoutRequested()),
                               child: loading
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(DsColors.surfaceLight),
+                                        valueColor: AlwaysStoppedAnimation(
+                                            DsColors.surfaceLight),
                                       ),
                                     )
-                                  : Text(isPlus ? 'Manage subscription' : 'Upgrade to Plus'),
+                                  : Text(isPlus
+                                      ? 'Manage subscription'
+                                      : 'Upgrade to Plus'),
                             ),
                           ),
                           Row(
@@ -338,16 +370,20 @@ class SettingsScreen extends StatelessWidget {
                               TextButton(
                                 onPressed: subState.isRestoring
                                     ? null
-                                    : () => context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested()),
+                                    : () => context
+                                        .read<SubscriptionBloc>()
+                                        .add(SubscriptionRestoreRequested()),
                                 child: subState.isRestoring
                                     ? const SizedBox(
                                         width: 16,
                                         height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
                                       )
                                     : const Text('Restore'),
                               ),
-                              const Text('•', style: TextStyle(color: DsColors.ink300)),
+                              const Text('•',
+                                  style: TextStyle(color: DsColors.ink300)),
                               TextButton.icon(
                                 onPressed: () => PromoCodeSheet.show(context),
                                 icon: const Icon(Icons.card_giftcard, size: 16),
@@ -385,9 +421,11 @@ class SettingsScreen extends StatelessWidget {
                 child: Text(
                   'Legal',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                 ),
               ),
               DsGap.sm,
@@ -409,8 +447,10 @@ class SettingsScreen extends StatelessWidget {
                 trailing: Text(
                   _appVersion,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                 ),
               ),
               DsGap.xxl,
@@ -472,183 +512,200 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-              Padding(
-                padding: DsEdgeInsets.allLg,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.visibility_off,
-                      color: isActive ? DsColors.primary : DsColors.ink300,
-                    ),
-                    DsGap.mdH,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Incognito Mode',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                Padding(
+                  padding: DsEdgeInsets.allLg,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.visibility_off,
+                        color: isActive ? DsColors.primary : DsColors.ink300,
+                      ),
+                      DsGap.mdH,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Incognito Mode',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                          ),
-                          DsGap.xs,
-                          Text(
-                            'Browse profiles without being seen',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                            DsGap.xs,
+                            Text(
+                              'Browse profiles without being seen',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                if (isActive) ...[
+                  // Show current status
+                  Padding(
+                    padding: DsEdgeInsets.allLg,
+                    child: Container(
+                      padding: DsEdgeInsets.allMd,
+                      decoration: BoxDecoration(
+                        color: DsColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: DsColors.primary),
+                          DsGap.mdH,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Incognito is active',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                if (settings.expiresAt != null)
+                                  Text(
+                                    settings.remainingTimeDisplay,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              if (isActive) ...[
-                // Show current status
-                Padding(
-                  padding: DsEdgeInsets.allLg,
-                  child: Container(
-                    padding: DsEdgeInsets.allMd,
-                    decoration: BoxDecoration(
-                      color: DsColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                  ),
+                  // Feature toggles
+                  _IncognitoOptionTile(
+                    title: 'Hide from "Liked You"',
+                    subtitle: 'Your likes won\'t appear in their list',
+                    value: settings.hideFromLikedYou,
+                    onChanged: (value) {
+                      IncognitoService.instance
+                          .updateSettings(hideFromLikedYou: value);
+                    },
+                  ),
+                  _IncognitoOptionTile(
+                    title: 'Hide last active',
+                    subtitle: 'Others won\'t see when you were online',
+                    value: settings.hideLastActive,
+                    onChanged: (value) {
+                      IncognitoService.instance
+                          .updateSettings(hideLastActive: value);
+                    },
+                  ),
+                  _IncognitoOptionTile(
+                    title: 'Hide read receipts',
+                    subtitle: 'Messages won\'t show as read',
+                    value: settings.hideReadReceipts,
+                    onChanged: (value) {
+                      IncognitoService.instance
+                          .updateSettings(hideReadReceipts: value);
+                    },
+                  ),
+                  DsGap.md,
+                  Padding(
+                    padding: DsEdgeInsets.horizontalLg,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          IncognitoService.instance.disableIncognito();
+                          Navigator.of(sheetContext).pop();
+                        },
+                        child: const Text('Turn off Incognito'),
+                      ),
                     ),
-                    child: Row(
+                  ),
+                ] else ...[
+                  // Features preview
+                  const Padding(
+                    padding: DsEdgeInsets.allLg,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.check_circle, color: DsColors.primary),
-                        DsGap.mdH,
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Incognito is active',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              if (settings.expiresAt != null)
-                                Text(
-                                  settings.remainingTimeDisplay,
-                                  style: TextStyle(
-                                    color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                            ],
-                          ),
+                        _IncognitoFeatureRow(
+                          icon: Icons.favorite_outline,
+                          text: 'Your likes won\'t appear in "Liked You"',
+                        ),
+                        DsGap.sm,
+                        _IncognitoFeatureRow(
+                          icon: Icons.access_time,
+                          text: 'Hide your last active status',
+                        ),
+                        DsGap.sm,
+                        _IncognitoFeatureRow(
+                          icon: Icons.mark_chat_read,
+                          text: 'Hide read receipts in chats',
                         ),
                       ],
                     ),
                   ),
-                ),
-                // Feature toggles
-                _IncognitoOptionTile(
-                  title: 'Hide from "Liked You"',
-                  subtitle: 'Your likes won\'t appear in their list',
-                  value: settings.hideFromLikedYou,
-                  onChanged: (value) {
-                    IncognitoService.instance.updateSettings(hideFromLikedYou: value);
-                  },
-                ),
-                _IncognitoOptionTile(
-                  title: 'Hide last active',
-                  subtitle: 'Others won\'t see when you were online',
-                  value: settings.hideLastActive,
-                  onChanged: (value) {
-                    IncognitoService.instance.updateSettings(hideLastActive: value);
-                  },
-                ),
-                _IncognitoOptionTile(
-                  title: 'Hide read receipts',
-                  subtitle: 'Messages won\'t show as read',
-                  value: settings.hideReadReceipts,
-                  onChanged: (value) {
-                    IncognitoService.instance.updateSettings(hideReadReceipts: value);
-                  },
-                ),
-                DsGap.md,
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        IncognitoService.instance.disableIncognito();
-                        Navigator.of(sheetContext).pop();
-                      },
-                      child: const Text('Turn off Incognito'),
-                    ),
-                  ),
-                ),
-              ] else ...[
-                // Features preview
-                const Padding(
-                  padding: DsEdgeInsets.allLg,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _IncognitoFeatureRow(
-                        icon: Icons.favorite_outline,
-                        text: 'Your likes won\'t appear in "Liked You"',
+                  DsGap.sm,
+                  Padding(
+                    padding: DsEdgeInsets.horizontalLg,
+                    child: Container(
+                      padding: DsEdgeInsets.allSm,
+                      decoration: BoxDecoration(
+                        color: DsColors.warning.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      DsGap.sm,
-                      _IncognitoFeatureRow(
-                        icon: Icons.access_time,
-                        text: 'Hide your last active status',
-                      ),
-                      DsGap.sm,
-                      _IncognitoFeatureRow(
-                        icon: Icons.mark_chat_read,
-                        text: 'Hide read receipts in chats',
-                      ),
-                    ],
-                  ),
-                ),
-                DsGap.sm,
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Container(
-                    padding: DsEdgeInsets.allSm,
-                    decoration: BoxDecoration(
-                      color: DsColors.warning.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline, size: 18, color: DsColors.warning),
-                        DsGap.smH,
-                        Expanded(
-                          child: Text(
-                            'Free users get 1 hour. Upgrade for unlimited.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              size: 18, color: DsColors.warning),
+                          DsGap.smH,
+                          Expanded(
+                            child: Text(
+                              'Free users get 1 hour. Upgrade for unlimited.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  DsGap.lg,
+                  Padding(
+                    padding: DsEdgeInsets.horizontalLg,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          IncognitoService.instance.enableIncognito();
+                          Navigator.of(sheetContext).pop();
+                        },
+                        child: const Text('Enable Incognito'),
+                      ),
+                    ),
+                  ),
+                ],
                 DsGap.lg,
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () {
-                        IncognitoService.instance.enableIncognito();
-                        Navigator.of(sheetContext).pop();
-                      },
-                      child: const Text('Enable Incognito'),
-                    ),
-                  ),
-                ),
               ],
-              DsGap.lg,
-            ],
-          ),
+            ),
           ),
         );
       },

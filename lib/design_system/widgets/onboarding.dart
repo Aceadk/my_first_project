@@ -34,25 +34,29 @@ class CrushHourOnboardingPages {
   static const List<OnboardingPage> pages = [
     OnboardingPage(
       title: 'Discover People',
-      description: 'Swipe right to like, left to pass. Find your perfect match among thousands of singles.',
+      description:
+          'Swipe right to like, left to pass. Find your perfect match among thousands of singles.',
       icon: Icons.local_fire_department_rounded,
       iconGradient: DsGradients.discover,
     ),
     OnboardingPage(
       title: 'Make Connections',
-      description: 'When both of you like each other, it\'s a match! Start chatting and get to know them.',
+      description:
+          'When both of you like each other, it\'s a match! Start chatting and get to know them.',
       icon: Icons.favorite_rounded,
       iconGradient: DsGradients.matches,
     ),
     OnboardingPage(
       title: 'Chat Securely',
-      description: 'Your conversations are private and secure. Share moments and plan your first date.',
+      description:
+          'Your conversations are private and secure. Share moments and plan your first date.',
       icon: Icons.chat_bubble_rounded,
       iconGradient: DsGradients.chats,
     ),
     OnboardingPage(
       title: 'Be Yourself',
-      description: 'Create an authentic profile with photos and prompts. The more you share, the better your matches!',
+      description:
+          'Create an authentic profile with photos and prompts. The more you share, the better your matches!',
       icon: Icons.auto_awesome_rounded,
       iconGradient: DsGradients.profile,
     ),
@@ -183,7 +187,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     Row(
                       children: [
                         // Skip button
-                        if (widget.showSkip && _currentPage < widget.pages.length - 1)
+                        if (widget.showSkip &&
+                            _currentPage < widget.pages.length - 1)
                           TextButton(
                             onPressed: _skip,
                             child: Text(
@@ -305,9 +310,8 @@ class _OnboardingPageView extends StatelessWidget {
               page.description,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight,
+                color:
+                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,

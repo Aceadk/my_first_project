@@ -316,8 +316,10 @@ class ApiClient {
   ) async {
     if (onProgress == null) {
       return await request.send().timeout(
-        Duration(seconds: config.timeout.inSeconds * 3), // Longer timeout for uploads
-      );
+            Duration(
+                seconds:
+                    config.timeout.inSeconds * 3), // Longer timeout for uploads
+          );
     }
 
     // For progress tracking, we need to intercept the stream
@@ -345,8 +347,8 @@ class ApiClient {
     );
 
     return await _httpClient.send(streamedRequest).timeout(
-      Duration(seconds: config.timeout.inSeconds * 3),
-    );
+          Duration(seconds: config.timeout.inSeconds * 3),
+        );
   }
 
   String? _getMimeType(String fileName) {
@@ -471,7 +473,8 @@ class ApiClient {
   }
 
   Future<http.Response> _executeRequest(ApiRequest request) async {
-    final uri = Uri.parse(request.url).replace(queryParameters: request.queryParams);
+    final uri =
+        Uri.parse(request.url).replace(queryParameters: request.queryParams);
 
     final httpRequest = http.Request(request.method.name.toUpperCase(), uri);
     httpRequest.headers.addAll(request.headers);
@@ -480,11 +483,13 @@ class ApiClient {
       httpRequest.body = jsonEncode(request.body);
     }
 
-    final streamedResponse = await _httpClient.send(httpRequest).timeout(config.timeout);
+    final streamedResponse =
+        await _httpClient.send(httpRequest).timeout(config.timeout);
     return http.Response.fromStream(streamedResponse);
   }
 
-  Future<Map<String, String>> _buildHeaders(bool requiresAuth, String requestId) async {
+  Future<Map<String, String>> _buildHeaders(
+      bool requiresAuth, String requestId) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -505,7 +510,8 @@ class ApiClient {
     return headers;
   }
 
-  ApiResult<T> _handleResponse<T>(ApiResponse response, T Function(dynamic)? parser) {
+  ApiResult<T> _handleResponse<T>(
+      ApiResponse response, T Function(dynamic)? parser) {
     // Check for version mismatch
     _checkVersionHeaders(response.headers);
 
@@ -525,7 +531,8 @@ class ApiClient {
 
         return ApiResult.success(json as T);
       } catch (e) {
-        return ApiResult.failure(ApiError.parse('Failed to parse response: $e'));
+        return ApiResult.failure(
+            ApiError.parse('Failed to parse response: $e'));
       }
     }
 
@@ -548,22 +555,30 @@ class ApiClient {
 
     switch (response.statusCode) {
       case 400:
-        return ApiResult.failure(ApiError.badRequest(message ?? 'Bad request', errorCode));
+        return ApiResult.failure(
+            ApiError.badRequest(message ?? 'Bad request', errorCode));
       case 401:
         onAuthError?.call();
-        return ApiResult.failure(ApiError.unauthorized(message ?? 'Unauthorized', errorCode));
+        return ApiResult.failure(
+            ApiError.unauthorized(message ?? 'Unauthorized', errorCode));
       case 403:
-        return ApiResult.failure(ApiError.forbidden(message ?? 'Forbidden', errorCode));
+        return ApiResult.failure(
+            ApiError.forbidden(message ?? 'Forbidden', errorCode));
       case 404:
-        return ApiResult.failure(ApiError.notFound(message ?? 'Not found', errorCode));
+        return ApiResult.failure(
+            ApiError.notFound(message ?? 'Not found', errorCode));
       case 409:
-        return ApiResult.failure(ApiError.conflict(message ?? 'Conflict', errorCode));
+        return ApiResult.failure(
+            ApiError.conflict(message ?? 'Conflict', errorCode));
       case 422:
-        return ApiResult.failure(ApiError.validation(message ?? 'Validation failed', errorCode));
+        return ApiResult.failure(
+            ApiError.validation(message ?? 'Validation failed', errorCode));
       case 429:
-        return ApiResult.failure(ApiError.rateLimited(message ?? 'Too many requests', errorCode));
+        return ApiResult.failure(
+            ApiError.rateLimited(message ?? 'Too many requests', errorCode));
       case >= 500:
-        return ApiResult.failure(ApiError.server(message ?? 'Server error', errorCode));
+        return ApiResult.failure(
+            ApiError.server(message ?? 'Server error', errorCode));
       default:
         return ApiResult.failure(ApiError.unknown(message ?? 'Unknown error'));
     }
@@ -572,7 +587,8 @@ class ApiClient {
   void _checkVersionHeaders(Map<String, String> headers) {
     final serverMinVersion = headers[ApiHeaders.serverMinVersion.toLowerCase()];
     final serverMaxVersion = headers[ApiHeaders.serverMaxVersion.toLowerCase()];
-    final deprecationWarning = headers[ApiHeaders.deprecationWarning.toLowerCase()];
+    final deprecationWarning =
+        headers[ApiHeaders.deprecationWarning.toLowerCase()];
 
     if (deprecationWarning != null) {
       debugPrint('API Deprecation Warning: $deprecationWarning');
@@ -748,7 +764,8 @@ class ApiError implements Exception {
       type == ApiErrorType.server;
 
   @override
-  String toString() => 'ApiError($type): $message${code != null ? ' [$code]' : ''}';
+  String toString() =>
+      'ApiError($type): $message${code != null ? ' [$code]' : ''}';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

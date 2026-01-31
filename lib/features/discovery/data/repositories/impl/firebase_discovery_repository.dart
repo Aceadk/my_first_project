@@ -20,8 +20,10 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     final result = await callable.call<Map<String, dynamic>>({
       if (filter.maxDistanceKm != null) 'maxDistanceKm': filter.maxDistanceKm,
       'passportModeEnabled': filter.passportModeEnabled,
-      if (filter.effectiveLatitude != null) 'latitude': filter.effectiveLatitude,
-      if (filter.effectiveLongitude != null) 'longitude': filter.effectiveLongitude,
+      if (filter.effectiveLatitude != null)
+        'latitude': filter.effectiveLatitude,
+      if (filter.effectiveLongitude != null)
+        'longitude': filter.effectiveLongitude,
     });
 
     final candidates = result.data['candidates'] as List<dynamic>? ?? [];
@@ -106,7 +108,8 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       if (likerId != null) {
         final userDoc = await _firestore.collection('users').doc(likerId).get();
         if (userDoc.exists) {
-          final profileData = userDoc.data()?['profile'] as Map<String, dynamic>?;
+          final profileData =
+              userDoc.data()?['profile'] as Map<String, dynamic>?;
           if (profileData != null) {
             profiles.add(_profileFromFirestore({
               'id': likerId,
@@ -145,7 +148,8 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
         status: MatchStatus.mutual,
         preMatchMessageRequestsCount:
             data['preMatchMessageRequestsCount'] as int? ?? 0,
-        pinnedForUser: (data['pinnedBy'] as List<dynamic>?)?.contains(userId) ?? false,
+        pinnedForUser:
+            (data['pinnedBy'] as List<dynamic>?)?.contains(userId) ?? false,
         otherUserName: data['otherUserName'] as String?,
         otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
       );
@@ -209,10 +213,12 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       bio: data['bio'] ?? '',
       // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
       photoUrls: List<String>.from(data['photoUrls'] ?? [])
-          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+          .where(
+              (url) => url.startsWith('http://') || url.startsWith('https://'))
           .toList(),
       videoUrls: List<String>.from(data['videoUrls'] ?? [])
-          .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+          .where(
+              (url) => url.startsWith('http://') || url.startsWith('https://'))
           .toList(),
       primaryPhotoIndex: data['primaryPhotoIndex'] ?? 0,
       interests: List<String>.from(data['interests'] ?? []),
@@ -264,7 +270,8 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     // Handle legacy 'All' value by converting to proper defaults
     List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
     if (showMeGenders.isEmpty ||
-        showMeGenders.any((g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+        showMeGenders.any(
+            (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
       showMeGenders = ['male', 'female'];
     }
 

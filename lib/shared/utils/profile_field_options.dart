@@ -7,7 +7,8 @@ class ProfileFieldOptions {
   // RELATIONSHIP GOALS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> relationshipGoals = [
+  static const List<({String label, String value, String emoji})>
+      relationshipGoals = [
     (label: 'Long-term partner', value: 'long_term', emoji: '💍'),
     (label: 'Long-term, open to short', value: 'long_open_short', emoji: '💕'),
     (label: 'Short-term, open to long', value: 'short_open_long', emoji: '🎉'),
@@ -21,7 +22,8 @@ class ProfileFieldOptions {
   // EDUCATION LEVELS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> educationLevels = [
+  static const List<({String label, String value, String emoji})>
+      educationLevels = [
     (label: 'High school', value: 'high_school', emoji: '🏫'),
     (label: 'Trade school', value: 'trade_school', emoji: '🔧'),
     (label: 'At university', value: 'at_uni', emoji: '📚'),
@@ -36,11 +38,20 @@ class ProfileFieldOptions {
   // FAMILY PLANS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> familyPlans = [
+  static const List<({String label, String value, String emoji})> familyPlans =
+      [
     (label: 'I want children', value: 'want', emoji: '👶'),
     (label: 'I don\'t want children', value: 'dont_want', emoji: '🚫'),
-    (label: 'I have children and want more', value: 'have_want_more', emoji: '👨‍👩‍👧‍👦'),
-    (label: 'I have children and don\'t want more', value: 'have_no_more', emoji: '👨‍👩‍👧'),
+    (
+      label: 'I have children and want more',
+      value: 'have_want_more',
+      emoji: '👨‍👩‍👧‍👦'
+    ),
+    (
+      label: 'I have children and don\'t want more',
+      value: 'have_no_more',
+      emoji: '👨‍👩‍👧'
+    ),
     (label: 'Not sure yet', value: 'not_sure', emoji: '🤔'),
     (label: 'Open to children', value: 'open', emoji: '💭'),
   ];
@@ -49,7 +60,8 @@ class ProfileFieldOptions {
   // PERSONALITY TYPES (MBTI)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String description})> personalityTypes = [
+  static const List<({String label, String value, String description})>
+      personalityTypes = [
     (label: 'INTJ', value: 'intj', description: 'The Architect'),
     (label: 'INTP', value: 'intp', description: 'The Logician'),
     (label: 'ENTJ', value: 'entj', description: 'The Commander'),
@@ -72,7 +84,8 @@ class ProfileFieldOptions {
   // WORKOUT HABITS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> workoutHabits = [
+  static const List<({String label, String value, String emoji})>
+      workoutHabits = [
     (label: 'Everyday', value: 'everyday', emoji: '💪'),
     (label: 'Often', value: 'often', emoji: '🏃'),
     (label: 'Sometimes', value: 'sometimes', emoji: '🚶'),
@@ -85,7 +98,8 @@ class ProfileFieldOptions {
   // SOCIAL MEDIA USAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> socialMediaUsage = [
+  static const List<({String label, String value, String emoji})>
+      socialMediaUsage = [
     (label: 'Socially active', value: 'active', emoji: '📱'),
     (label: 'Influencer vibes', value: 'influencer', emoji: '✨'),
     (label: 'Not much', value: 'not_much', emoji: '🤷'),
@@ -97,7 +111,8 @@ class ProfileFieldOptions {
   // SLEEPING HABITS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> sleepingHabits = [
+  static const List<({String label, String value, String emoji})>
+      sleepingHabits = [
     (label: 'Early bird', value: 'early_bird', emoji: '🌅'),
     (label: 'Night owl', value: 'night_owl', emoji: '🦉'),
     (label: 'It varies', value: 'varies', emoji: '🔄'),
@@ -109,7 +124,8 @@ class ProfileFieldOptions {
   // SMOKING HABITS (Expanded)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> smokingHabits = [
+  static const List<({String label, String value, String emoji})>
+      smokingHabits = [
     (label: 'Non-smoker', value: 'non_smoker', emoji: '🚭'),
     (label: 'Social smoker', value: 'social', emoji: '🚬'),
     (label: 'Smoker when drinking', value: 'when_drinking', emoji: '🍺'),
@@ -124,7 +140,8 @@ class ProfileFieldOptions {
   // DRINKING HABITS (Expanded)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> drinkingHabits = [
+  static const List<({String label, String value, String emoji})>
+      drinkingHabits = [
     (label: 'Never', value: 'never', emoji: '🚫'),
     (label: 'Occasionally', value: 'occasionally', emoji: '🍷'),
     (label: 'Socially', value: 'socially', emoji: '🥂'),
@@ -173,7 +190,8 @@ class ProfileFieldOptions {
   // RELIGION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> religionOptions = [
+  static const List<({String label, String value, String emoji})>
+      religionOptions = [
     (label: 'Agnostic', value: 'agnostic', emoji: '🤔'),
     (label: 'Atheist', value: 'atheist', emoji: '🔬'),
     (label: 'Buddhist', value: 'buddhist', emoji: '☸️'),
@@ -192,19 +210,61 @@ class ProfileFieldOptions {
   // ZODIAC SIGNS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String dateRange, String emoji})> zodiacSigns = [
+  static const List<
+          ({String label, String value, String dateRange, String emoji})>
+      zodiacSigns = [
     (label: 'Aries', value: 'aries', dateRange: 'Mar 21 - Apr 19', emoji: '♈'),
-    (label: 'Taurus', value: 'taurus', dateRange: 'Apr 20 - May 20', emoji: '♉'),
-    (label: 'Gemini', value: 'gemini', dateRange: 'May 21 - Jun 20', emoji: '♊'),
-    (label: 'Cancer', value: 'cancer', dateRange: 'Jun 21 - Jul 22', emoji: '♋'),
+    (
+      label: 'Taurus',
+      value: 'taurus',
+      dateRange: 'Apr 20 - May 20',
+      emoji: '♉'
+    ),
+    (
+      label: 'Gemini',
+      value: 'gemini',
+      dateRange: 'May 21 - Jun 20',
+      emoji: '♊'
+    ),
+    (
+      label: 'Cancer',
+      value: 'cancer',
+      dateRange: 'Jun 21 - Jul 22',
+      emoji: '♋'
+    ),
     (label: 'Leo', value: 'leo', dateRange: 'Jul 23 - Aug 22', emoji: '♌'),
     (label: 'Virgo', value: 'virgo', dateRange: 'Aug 23 - Sep 22', emoji: '♍'),
     (label: 'Libra', value: 'libra', dateRange: 'Sep 23 - Oct 22', emoji: '♎'),
-    (label: 'Scorpio', value: 'scorpio', dateRange: 'Oct 23 - Nov 21', emoji: '♏'),
-    (label: 'Sagittarius', value: 'sagittarius', dateRange: 'Nov 22 - Dec 21', emoji: '♐'),
-    (label: 'Capricorn', value: 'capricorn', dateRange: 'Dec 22 - Jan 19', emoji: '♑'),
-    (label: 'Aquarius', value: 'aquarius', dateRange: 'Jan 20 - Feb 18', emoji: '♒'),
-    (label: 'Pisces', value: 'pisces', dateRange: 'Feb 19 - Mar 20', emoji: '♓'),
+    (
+      label: 'Scorpio',
+      value: 'scorpio',
+      dateRange: 'Oct 23 - Nov 21',
+      emoji: '♏'
+    ),
+    (
+      label: 'Sagittarius',
+      value: 'sagittarius',
+      dateRange: 'Nov 22 - Dec 21',
+      emoji: '♐'
+    ),
+    (
+      label: 'Capricorn',
+      value: 'capricorn',
+      dateRange: 'Dec 22 - Jan 19',
+      emoji: '♑'
+    ),
+    (
+      label: 'Aquarius',
+      value: 'aquarius',
+      dateRange: 'Jan 20 - Feb 18',
+      emoji: '♒'
+    ),
+    (
+      label: 'Pisces',
+      value: 'pisces',
+      dateRange: 'Feb 19 - Mar 20',
+      emoji: '♓'
+    ),
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -303,7 +363,8 @@ class ProfileFieldOptions {
   // LOOKING FOR OPTIONS (Who to show in deck)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const List<({String label, String value, String emoji})> lookingForOptions = [
+  static const List<({String label, String value, String emoji})>
+      lookingForOptions = [
     (label: 'Women', value: 'female', emoji: '👩'),
     (label: 'Men', value: 'male', emoji: '👨'),
     (label: 'Everyone', value: 'everyone', emoji: '👥'),
@@ -488,7 +549,8 @@ class ProfileFieldOptions {
   /// Get display label for a sexual orientation value
   static String? getSexualOrientationLabel(String? value) {
     if (value == null) return null;
-    final match = sexualOrientationOptions.where((e) => e.value == value).firstOrNull;
+    final match =
+        sexualOrientationOptions.where((e) => e.value == value).firstOrNull;
     return match?.label;
   }
 
@@ -510,7 +572,17 @@ class ProfileFieldOptions {
   /// Convert "looking for" value to showMeGenders list
   static List<String> lookingForToShowMeGenders(String lookingFor) {
     if (lookingFor == 'everyone') {
-      return ['male', 'female', 'non_binary', 'trans_woman', 'trans_man', 'genderqueer', 'genderfluid', 'agender', 'two_spirit'];
+      return [
+        'male',
+        'female',
+        'non_binary',
+        'trans_woman',
+        'trans_man',
+        'genderqueer',
+        'genderfluid',
+        'agender',
+        'two_spirit'
+      ];
     }
     return [lookingFor];
   }

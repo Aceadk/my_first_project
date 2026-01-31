@@ -101,7 +101,8 @@ class LocaleCubit extends Cubit<LocaleState> {
       if (permission == LocationPermission.denied) {
         emit(state.copyWith(
           isDetecting: false,
-          errorMessage: 'Location permission denied. Please allow location access in Settings.',
+          errorMessage:
+              'Location permission denied. Please allow location access in Settings.',
         ));
         return;
       }
@@ -109,7 +110,8 @@ class LocaleCubit extends Cubit<LocaleState> {
       if (permission == LocationPermission.deniedForever) {
         emit(state.copyWith(
           isDetecting: false,
-          errorMessage: 'Location permission permanently denied. Please enable it in Settings > Privacy > Location Services.',
+          errorMessage:
+              'Location permission permanently denied. Please enable it in Settings > Privacy > Location Services.',
         ));
         return;
       }
@@ -129,7 +131,8 @@ class LocaleCubit extends Cubit<LocaleState> {
         },
       );
 
-      developer.log('LocaleCubit: Got position: ${position.latitude}, ${position.longitude}');
+      developer.log(
+          'LocaleCubit: Got position: ${position.latitude}, ${position.longitude}');
 
       // Try to get placemark (reverse geocoding)
       String resolvedRegion;
@@ -141,7 +144,8 @@ class LocaleCubit extends Cubit<LocaleState> {
         ).timeout(const Duration(seconds: 10));
 
         final place = placemarks.isNotEmpty ? placemarks.first : null;
-        developer.log('LocaleCubit: Placemark: ${place?.locality}, ${place?.administrativeArea}, ${place?.country}');
+        developer.log(
+            'LocaleCubit: Placemark: ${place?.locality}, ${place?.administrativeArea}, ${place?.country}');
 
         final components = <String>[
           if (place != null && place.locality?.isNotEmpty == true)
@@ -157,7 +161,8 @@ class LocaleCubit extends Cubit<LocaleState> {
       } catch (geocodeError) {
         developer.log('LocaleCubit: Geocoding error: $geocodeError');
         // If geocoding fails, use coordinates as fallback
-        resolvedRegion = 'Lat ${position.latitude.toStringAsFixed(3)}, Lng ${position.longitude.toStringAsFixed(3)}';
+        resolvedRegion =
+            'Lat ${position.latitude.toStringAsFixed(3)}, Lng ${position.longitude.toStringAsFixed(3)}';
       }
 
       developer.log('LocaleCubit: Resolved region: $resolvedRegion');
@@ -175,27 +180,32 @@ class LocaleCubit extends Cubit<LocaleState> {
       developer.log('LocaleCubit: Timeout error: $e');
       emit(state.copyWith(
         isDetecting: false,
-        errorMessage: 'Location request timed out. Make sure you have GPS signal and try again.',
+        errorMessage:
+            'Location request timed out. Make sure you have GPS signal and try again.',
       ));
     } on LocationServiceDisabledException catch (e) {
       developer.log('LocaleCubit: Location service disabled: $e');
       emit(state.copyWith(
         isDetecting: false,
-        errorMessage: 'Location services are disabled. Please enable them in Settings.',
+        errorMessage:
+            'Location services are disabled. Please enable them in Settings.',
       ));
     } on PermissionDeniedException catch (e) {
       developer.log('LocaleCubit: Permission denied: $e');
       emit(state.copyWith(
         isDetecting: false,
-        errorMessage: 'Location permission was denied. Please allow location access.',
+        errorMessage:
+            'Location permission was denied. Please allow location access.',
       ));
     } catch (e, stackTrace) {
       developer.log('LocaleCubit: Unexpected error: $e\n$stackTrace');
       String errorMessage = 'Could not detect location.';
       if (e.toString().contains('network')) {
-        errorMessage = 'Network error. Check your internet connection and try again.';
+        errorMessage =
+            'Network error. Check your internet connection and try again.';
       } else if (e.toString().contains('timeout')) {
-        errorMessage = 'Request timed out. Try moving to an area with better GPS signal.';
+        errorMessage =
+            'Request timed out. Try moving to an area with better GPS signal.';
       }
       emit(state.copyWith(
         isDetecting: false,

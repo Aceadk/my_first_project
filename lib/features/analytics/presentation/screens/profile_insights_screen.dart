@@ -24,7 +24,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -33,7 +34,9 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: textColor),
-            onPressed: () => context.read<ProfileInsightsCubit>().refreshInsights(widget.userId),
+            onPressed: () => context
+                .read<ProfileInsightsCubit>()
+                .refreshInsights(widget.userId),
           ),
         ],
       ),
@@ -43,13 +46,15 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                color:
+                    isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
               ),
               child: const Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration: BoxDecoration(gradient: DsGradients.meshRadial),
+                      decoration:
+                          BoxDecoration(gradient: DsGradients.meshRadial),
                     ),
                   ),
                 ],
@@ -64,7 +69,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
                   return _buildSkeletonLoading(context);
                 }
                 if (state.errorMessage != null) {
-                  return _buildErrorState(context, textColor, state.errorMessage!);
+                  return _buildErrorState(
+                      context, textColor, state.errorMessage!);
                 }
                 if (state.insights == null) {
                   return _buildEmptyState(textColor);
@@ -155,7 +161,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, Color textColor, String errorMessage) {
+  Widget _buildErrorState(
+      BuildContext context, Color textColor, String errorMessage) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(DsSpacing.xl),
@@ -191,7 +198,9 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
             ),
             DsGap.xl,
             GlassPrimaryButton(
-              onPressed: () => context.read<ProfileInsightsCubit>().loadInsights(widget.userId),
+              onPressed: () => context
+                  .read<ProfileInsightsCubit>()
+                  .loadInsights(widget.userId),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -212,7 +221,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.analytics_outlined, size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(Icons.analytics_outlined,
+              size: 64, color: textColor.withValues(alpha: 0.5)),
           DsGap.md,
           Text(
             'No insights available yet',
@@ -228,7 +238,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildInsightsContent(BuildContext context, Color textColor, ProfileInsightsState state) {
+  Widget _buildInsightsContent(
+      BuildContext context, Color textColor, ProfileInsightsState state) {
     final cubit = context.read<ProfileInsightsCubit>();
 
     return RefreshIndicator(
@@ -393,7 +404,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
               color: DsColors.surfaceLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(DsRadius.md),
             ),
-            child: const Icon(Icons.access_time, color: DsColors.surfaceLight, size: 28),
+            child: const Icon(Icons.access_time,
+                color: DsColors.surfaceLight, size: 28),
           ),
           DsGap.lgH,
           Expanded(
@@ -424,7 +436,8 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
     );
   }
 
-  Widget _buildPhotoPerformanceSection(Color textColor, ProfileInsightsState state) {
+  Widget _buildPhotoPerformanceSection(
+      Color textColor, ProfileInsightsState state) {
     final photos = state.photoPerformance;
     if (photos.isEmpty) return const SizedBox.shrink();
 
@@ -539,8 +552,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: trend.map((metric) {
-                final maxViews = trend.map((m) => m.views).reduce((a, b) => a > b ? a : b);
-                final height = maxViews > 0 ? (metric.views / maxViews) * 80 : 0.0;
+                final maxViews =
+                    trend.map((m) => m.views).reduce((a, b) => a > b ? a : b);
+                final height =
+                    maxViews > 0 ? (metric.views / maxViews) * 80 : 0.0;
 
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.end,

@@ -182,7 +182,8 @@ class StoryService {
       if (userId == 'user1') {
         addStory(
           userId: userId,
-          mediaUrl: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+          mediaUrl:
+              'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
           mediaType: StoryMediaType.video,
           thumbnailUrl: 'https://picsum.photos/seed/${userId}video/400/600',
         );

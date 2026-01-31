@@ -52,8 +52,10 @@ class DateIdeasState extends Equatable {
       filteredIdeas: filteredIdeas ?? this.filteredIdeas,
       savedIdeas: savedIdeas ?? this.savedIdeas,
       suggestedIdeas: suggestedIdeas ?? this.suggestedIdeas,
-      selectedCategory: clearCategory ? null : (selectedCategory ?? this.selectedCategory),
-      selectedCostLevel: clearCostLevel ? null : (selectedCostLevel ?? this.selectedCostLevel),
+      selectedCategory:
+          clearCategory ? null : (selectedCategory ?? this.selectedCategory),
+      selectedCostLevel:
+          clearCostLevel ? null : (selectedCostLevel ?? this.selectedCostLevel),
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,

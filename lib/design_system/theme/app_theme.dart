@@ -326,7 +326,8 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
-          borderSide: const BorderSide(color: DsLuxuryColors.goldPrimary, width: 1.5),
+          borderSide:
+              const BorderSide(color: DsLuxuryColors.goldPrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
@@ -456,8 +457,8 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
-          borderSide:
-              const BorderSide(color: DsLuxuryModernColors.goldPrimary, width: 1.5),
+          borderSide: const BorderSide(
+              color: DsLuxuryModernColors.goldPrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
@@ -465,7 +466,8 @@ class AppTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DsRadius.input),
-          borderSide: const BorderSide(color: DsLuxuryModernColors.error, width: 1.5),
+          borderSide:
+              const BorderSide(color: DsLuxuryModernColors.error, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -507,7 +509,8 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: DsLuxuryModernColors.surfaceElevated,
-        contentTextStyle: const TextStyle(color: DsLuxuryModernColors.textPrimary),
+        contentTextStyle:
+            const TextStyle(color: DsLuxuryModernColors.textPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DsRadius.lg),
         ),

@@ -48,6 +48,9 @@ class FakeAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => true;
 
   @override
+  bool get supportsAppleSignIn => true;
+
+  @override
   Future<void> bootstrapSession() async {}
 
   @override
@@ -70,7 +73,8 @@ class FakeAuthRepository implements AuthRepository {
           )
           .timeout(const Duration(seconds: 5));
     } catch (e) {
-      debugPrint('FakeAuthRepository: Backend OTP send failed (expected in local dev): $e');
+      debugPrint(
+          'FakeAuthRepository: Backend OTP send failed (expected in local dev): $e');
     }
 
     // Use secure logger for OTP (redacted by default)
@@ -149,6 +153,39 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<CrushUser> signInWithApple() async {
+    final uniqueId = _uuid.v4().substring(0, 8);
+    final email = 'apple_$uniqueId@privaterelay.appleid.com';
+    final username = 'apple_$uniqueId';
+
+    final existing = _usersByEmail[email];
+    if (existing != null) {
+      _current = existing;
+      _controller.add(_current);
+      return existing;
+    }
+
+    final user = CrushUser(
+      id: _uuid.v4(),
+      phoneNumber: '',
+      email: email,
+      username: username,
+      isEmailVerified: true,
+      profile: null,
+      isPhoneVerified: false,
+      isIdVerified: false,
+      plan: SubscriptionPlan.free,
+    );
+    _usersByEmail[email] = user;
+    _usersByUsername[username] = user;
+    _passwordsByUserId[user.id] = _uuid.v4();
+    _passwordsByEmail[email] = _uuid.v4();
+    _current = user;
+    _controller.add(_current);
+    return user;
+  }
+
+  @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
@@ -192,7 +229,10 @@ class FakeAuthRepository implements AuthRepository {
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
     _emailOtpStore[key] = _OtpEntry(code: otp, expiresAt: expiresAt);
     // Use secure logger (redacted by default)
-    SecureLogger.logOtp(type: 'EMAIL_${purpose.value.toUpperCase()}', recipient: identifier, code: otp);
+    SecureLogger.logOtp(
+        type: 'EMAIL_${purpose.value.toUpperCase()}',
+        recipient: identifier,
+        code: otp);
   }
 
   @override
@@ -361,7 +401,8 @@ class FakeAuthRepository implements AuthRepository {
     _emailOtpStore['forgot_password:$normalized'] =
         _OtpEntry(code: otp, expiresAt: expiresAt);
     // Use secure logger (redacted by default)
-    SecureLogger.logOtp(type: 'PASSWORD_RESET', recipient: normalized, code: otp);
+    SecureLogger.logOtp(
+        type: 'PASSWORD_RESET', recipient: normalized, code: otp);
   }
 
   @override
@@ -877,9 +918,9 @@ class FakeProfileRepository implements ProfileRepository {
               plan: SubscriptionPlan.free,
             ))
         .copyWith(
-          username: username,
-          hasSkippedBasicInfo: true,
-        );
+      username: username,
+      hasSkippedBasicInfo: true,
+    );
     return _user!;
   }
 
@@ -921,8 +962,9 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
           city: 'Unknown',
         );
 
-    final genders =
-        prefs.showMeGenders.isEmpty ? const ['female', 'male'] : prefs.showMeGenders;
+    final genders = prefs.showMeGenders.isEmpty
+        ? const ['female', 'male']
+        : prefs.showMeGenders;
     const names = [
       'Alex',
       'Jordan',
@@ -972,7 +1014,8 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
     final safeSpan = ageSpan < 0 ? 0 : ageSpan;
 
     // Determine effective distance limit
-    final maxDistanceKm = filter.maxDistanceKm ?? CrushConstants.defaultMaxDistanceKm;
+    final maxDistanceKm =
+        filter.maxDistanceKm ?? CrushConstants.defaultMaxDistanceKm;
     final isPassportMode = filter.passportModeEnabled;
 
     // Generate profiles with varying distances
@@ -1244,7 +1287,8 @@ class FakeChatRepository implements ChatRepository {
     var messages = _messagesByMatch[matchId] ?? [];
     messages.sort((a, b) => b.sentAt.compareTo(a.sentAt));
     if (beforeTimestamp != null) {
-      messages = messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+      messages =
+          messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
     }
     final hasMore = messages.length > limit;
     final items = messages.take(limit).toList();
@@ -1584,7 +1628,8 @@ class FakeChatRepository implements ChatRepository {
     final allMatches = await discoveryRepo.fetchMatches(userId);
     final total = allMatches.length;
     final end = (offset + limit).clamp(0, total);
-    final items = offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
+    final items =
+        offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
     return PaginatedResult(
       items: items,
       total: total,

@@ -55,8 +55,10 @@ class ProfileSingleSelectSheet<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
-    final textPrimary = isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final backgroundColor =
+        isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
+    final textPrimary =
+        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
 

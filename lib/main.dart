@@ -11,6 +11,7 @@ import 'core/services/push_notification_service.dart';
 import 'core/services/crash_reporting_service.dart';
 import 'core/services/app_update_service.dart';
 import 'core/services/gradual_rollout_service.dart';
+import 'core/services/app_check_service.dart';
 import 'core/performance/performance_monitor.dart';
 
 Future<void> main() async {
@@ -23,6 +24,10 @@ Future<void> main() async {
 
     // Initialize Firebase
     await Firebase.initializeApp();
+
+    // Initialize App Check for device attestation (SECURITY)
+    // Must be initialized before any Firebase service calls
+    await AppCheckService.instance.initialize();
 
     // Initialize crash reporting early
     await CrashReportingService.instance.initialize();

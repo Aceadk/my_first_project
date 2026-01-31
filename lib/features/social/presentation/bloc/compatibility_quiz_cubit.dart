@@ -29,10 +29,9 @@ class CompatibilityQuizState extends Equatable {
 
   List<QuizQuestion> get questions => quiz?.questions ?? [];
   int get totalQuestions => questions.length;
-  QuizQuestion? get currentQuestion =>
-      currentQuestionIndex < questions.length
-          ? questions[currentQuestionIndex]
-          : null;
+  QuizQuestion? get currentQuestion => currentQuestionIndex < questions.length
+      ? questions[currentQuestionIndex]
+      : null;
   bool get isComplete => currentQuestionIndex >= totalQuestions;
   double get progress =>
       totalQuestions > 0 ? currentQuestionIndex / totalQuestions : 0;
@@ -148,14 +147,16 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   /// Move to the next question.
   void nextQuestion() {
     if (state.currentQuestionIndex < state.totalQuestions - 1) {
-      emit(state.copyWith(currentQuestionIndex: state.currentQuestionIndex + 1));
+      emit(
+          state.copyWith(currentQuestionIndex: state.currentQuestionIndex + 1));
     }
   }
 
   /// Move to the previous question.
   void previousQuestion() {
     if (state.currentQuestionIndex > 0) {
-      emit(state.copyWith(currentQuestionIndex: state.currentQuestionIndex - 1));
+      emit(
+          state.copyWith(currentQuestionIndex: state.currentQuestionIndex - 1));
     }
   }
 

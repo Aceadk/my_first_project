@@ -105,9 +105,10 @@ class _ChatTypingIndicatorState extends State<ChatTypingIndicator>
           Text(
             '${widget.name} is typing',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              fontStyle: FontStyle.italic,
-            ),
+                  color:
+                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  fontStyle: FontStyle.italic,
+                ),
           ),
         ],
       ),

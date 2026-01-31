@@ -80,7 +80,8 @@ class CompatibilityQuizService {
       completedAt: DateTime.now(),
       overallScore: scoreData.overallScore,
       categoryScores: scoreData.categoryScores,
-      insights: _generateInsights(scoreData.overallScore, quiz, user1Answers, user2Answers),
+      insights: _generateInsights(
+          scoreData.overallScore, quiz, user1Answers, user2Answers),
     );
 
     _results['${matchId}_$quizId'] = result;
@@ -148,9 +149,8 @@ class CompatibilityQuizService {
     // Convert category counts to percentages
     final categoryPercentages = <String, int>{};
     for (final entry in categoryScores.entries) {
-      final categoryQuestions = quiz.questions
-          .where((q) => q.category?.name == entry.key)
-          .length;
+      final categoryQuestions =
+          quiz.questions.where((q) => q.category?.name == entry.key).length;
       if (categoryQuestions > 0) {
         categoryPercentages[entry.key] =
             ((entry.value / categoryQuestions) * 100).round();
@@ -210,7 +210,8 @@ class CompatibilityQuizService {
         insights.add(CompatibilityInsight(
           type: InsightType.funFact,
           title: 'You Both Agree',
-          description: 'On "${question.question.replaceAll("'", "")}" - ${option.text}',
+          description:
+              'On "${question.question.replaceAll("'", "")}" - ${option.text}',
           emoji: question.emoji ?? '🎯',
           isPositive: true,
         ));

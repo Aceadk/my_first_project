@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -23,6 +24,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription? _authSubscription;
 
   static const int _pageSize = 30;
+  static const bool _e2eeEnabled =
+      bool.fromEnvironment('ENABLE_CHAT_E2EE', defaultValue: false);
+
+  FirebaseChatRepository? get _firebaseChatRepo =>
+      chatRepository is FirebaseChatRepository
+          ? chatRepository as FirebaseChatRepository
+          : null;
 
   ChatBloc({
     required this.chatRepository,
@@ -57,6 +65,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         add(ChatResetRequested());
       }
     });
+
+    final firebaseRepo = _firebaseChatRepo;
+    if (firebaseRepo != null) {
+      firebaseRepo.setE2eeEnabled(_e2eeEnabled);
+    }
   }
 
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
@@ -116,8 +129,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (initialResult.isSuccess && initialResult.data != null) {
       final paginated = initialResult.data!;
+      final decrypted = await _maybeDecryptMessages(paginated.items);
       emit(state.copyWith(
-        messages: paginated.items,
+        messages: decrypted,
         hasMoreMessages: paginated.hasMore,
         isInitialLoading: false,
         canUnsend: plan.isPlus,
@@ -126,8 +140,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ));
 
       // Watch for NEW messages only (after initial load)
-      final latestTimestamp = paginated.items.isNotEmpty
-          ? paginated.items.last.sentAt
+      final latestTimestamp = decrypted.isNotEmpty
+          ? decrypted.last.sentAt
           : DateTime.now();
       _newMessagesSub = chatRepository
           .watchNewMessages(event.matchId, afterTimestamp: latestTimestamp)
@@ -138,7 +152,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       });
     } else {
       // Fallback to legacy stream if pagination fails
-      debugPrint('ChatBloc: Pagination failed, falling back to legacy watchMessages');
+      debugPrint(
+          'ChatBloc: Pagination failed, falling back to legacy watchMessages');
       _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
         add(ChatMessagesUpdated(messages, plan));
       });
@@ -570,32 +585,39 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ));
   }
 
-  void _onMessagesUpdated(ChatMessagesUpdated event, Emitter<ChatState> emit) {
+  Future<void> _onMessagesUpdated(
+      ChatMessagesUpdated event, Emitter<ChatState> emit) async {
+    final decryptedMessages = await _maybeDecryptMessages(event.messages);
     // Remove optimistic messages that now have real counterparts from server
     // Match by content, sender, and approximate timestamp (within 30 seconds)
-    final updatedFailedMessages = Map<String, Message>.from(state.failedMessages);
-    final serverMessageSignatures = event.messages.map((m) =>
-      '${m.fromUserId}_${m.content}_${m.type.name}'
-    ).toSet();
+    final updatedFailedMessages =
+        Map<String, Message>.from(state.failedMessages);
+    final serverMessageSignatures = decryptedMessages
+        .map((m) => '${m.fromUserId}_${m.content}_${m.type.name}')
+        .toSet();
 
     updatedFailedMessages.removeWhere((tempId, optimisticMsg) {
-      final signature = '${optimisticMsg.fromUserId}_${optimisticMsg.content}_${optimisticMsg.type.name}';
+      final signature =
+          '${optimisticMsg.fromUserId}_${optimisticMsg.content}_${optimisticMsg.type.name}';
       // If a server message matches this optimistic message, remove it
       if (serverMessageSignatures.contains(signature)) {
         // Find the matching server message and check timestamp
-        final matchingServerMsg = event.messages.firstWhere(
+        final matchingServerMsg = decryptedMessages.firstWhere(
           (m) => '${m.fromUserId}_${m.content}_${m.type.name}' == signature,
           orElse: () => optimisticMsg,
         );
         // Only remove if within 30 seconds of each other
-        final timeDiff = matchingServerMsg.sentAt.difference(optimisticMsg.sentAt).inSeconds.abs();
+        final timeDiff = matchingServerMsg.sentAt
+            .difference(optimisticMsg.sentAt)
+            .inSeconds
+            .abs();
         return timeDiff < 30;
       }
       return false;
     });
 
     emit(state.copyWith(
-      messages: event.messages,
+      messages: decryptedMessages,
       canUnsend: event.plan.isPlus,
       canEdit: event.plan.isPlus,
       canSeeReadReceipts: event.plan.isPlus,
@@ -613,7 +635,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(isLoadingMore: true));
 
     // Get the oldest message timestamp for cursor
-    final oldestMessage = state.messages.isNotEmpty ? state.messages.first : null;
+    final oldestMessage =
+        state.messages.isNotEmpty ? state.messages.first : null;
     final beforeTimestamp = oldestMessage?.sentAt;
 
     final result = await Result.guard(
@@ -628,8 +651,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (result.isSuccess && result.data != null) {
       final paginated = result.data!;
+      final decrypted = await _maybeDecryptMessages(paginated.items);
       // Prepend older messages to the existing list
-      final allMessages = [...paginated.items, ...state.messages];
+      final allMessages = [...decrypted, ...state.messages];
       emit(state.copyWith(
         messages: allMessages,
         isLoadingMore: false,
@@ -644,22 +668,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   /// Handle new messages received in real-time.
-  void _onNewMessagesReceived(
+  Future<void> _onNewMessagesReceived(
     ChatNewMessagesReceived event,
     Emitter<ChatState> emit,
-  ) {
+  ) async {
     if (event.newMessages.isEmpty) return;
 
     // Filter out duplicates
     final existingIds = state.messages.map((m) => m.id).toSet();
-    final uniqueNewMessages = event.newMessages
-        .where((m) => !existingIds.contains(m.id))
-        .toList();
+    final uniqueNewMessages =
+        event.newMessages.where((m) => !existingIds.contains(m.id)).toList();
 
     if (uniqueNewMessages.isEmpty) return;
 
+    final decryptedNewMessages = await _maybeDecryptMessages(uniqueNewMessages);
+
     // Append new messages to the end
-    final allMessages = [...state.messages, ...uniqueNewMessages];
+    final allMessages = [...state.messages, ...decryptedNewMessages];
 
     emit(state.copyWith(messages: allMessages));
   }
@@ -735,6 +760,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             m.fromUserId == userId &&
             (m.type == MessageType.image || m.type == MessageType.video))
         .length;
+  }
+
+  Future<List<Message>> _maybeDecryptMessages(List<Message> messages) async {
+    if (messages.isEmpty) return messages;
+    final repo = _firebaseChatRepo;
+    if (repo == null || !repo.isE2eeEnabled) return messages;
+    return Future.wait(messages.map(repo.decryptMessage));
   }
 
   String _filename(String path) {

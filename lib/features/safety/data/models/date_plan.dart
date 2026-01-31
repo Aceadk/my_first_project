@@ -71,8 +71,7 @@ class DatePlan extends Equatable {
 
   /// Check if the date is upcoming.
   bool get isUpcoming =>
-      status == DatePlanStatus.scheduled &&
-      dateTime.isAfter(DateTime.now());
+      status == DatePlanStatus.scheduled && dateTime.isAfter(DateTime.now());
 
   /// Check if check-in is overdue.
   bool get isCheckInOverdue {

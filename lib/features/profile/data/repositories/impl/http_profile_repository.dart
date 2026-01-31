@@ -30,7 +30,8 @@ class HttpProfileRepository implements ProfileRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpProfileRepository: Failed to get current user - ${result.error}');
+      debugPrint(
+          'HttpProfileRepository: Failed to get current user - ${result.error}');
       return _cachedUser;
     }
 
@@ -45,7 +46,9 @@ class HttpProfileRepository implements ProfileRepository {
       isEmailVerified: result.data!['email_verified'] as bool? ?? false,
       isPhoneVerified: result.data!['phone_verified'] as bool? ?? true,
       isIdVerified: profile.isVerified,
-      plan: result.data!['is_premium'] == true ? SubscriptionPlan.plus : SubscriptionPlan.free,
+      plan: result.data!['is_premium'] == true
+          ? SubscriptionPlan.plus
+          : SubscriptionPlan.free,
       themePreference: result.data!['theme_preference'] as String? ??
           result.data!['themePreference'] as String?,
       profile: profile,
@@ -126,7 +129,8 @@ class HttpProfileRepository implements ProfileRepository {
     );
 
     if (result.isFailure) {
-      throw Exception(result.error?.message ?? 'Failed to save profile details');
+      throw Exception(
+          result.error?.message ?? 'Failed to save profile details');
     }
 
     // Upload photos if provided
@@ -152,7 +156,8 @@ class HttpProfileRepository implements ProfileRepository {
     // ID document upload requires a file path parameter
     // This method signature would need to be updated in the interface
     // to accept a file path or File object
-    debugPrint('HttpProfileRepository: uploadIdDocument - update interface to accept file path');
+    debugPrint(
+        'HttpProfileRepository: uploadIdDocument - update interface to accept file path');
   }
 
   /// Upload an ID document for verification.
@@ -235,7 +240,8 @@ class HttpProfileRepository implements ProfileRepository {
   /// Upload a profile photo.
   ///
   /// Returns the remote URL of the uploaded photo.
-  Future<String> _uploadPhoto(String localPath, {bool isPrimary = false}) async {
+  Future<String> _uploadPhoto(String localPath,
+      {bool isPrimary = false}) async {
     final file = File(localPath);
 
     if (!await file.exists()) {
@@ -261,7 +267,8 @@ class HttpProfileRepository implements ProfileRepository {
       throw Exception('No photo URL returned from server');
     }
 
-    debugPrint('HttpProfileRepository: Photo uploaded successfully - $photoUrl');
+    debugPrint(
+        'HttpProfileRepository: Photo uploaded successfully - $photoUrl');
     return photoUrl;
   }
 

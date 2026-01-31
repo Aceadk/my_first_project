@@ -26,8 +26,18 @@ class ChatDateSeparator extends StatelessWidget {
       return weekdays[date.weekday - 1];
     } else {
       final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
       ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
@@ -48,7 +58,9 @@ class ChatDateSeparator extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     Colors.transparent,
-                    (isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12)),
+                    (isDark
+                        ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                        : DsColors.ink900.withValues(alpha: 0.12)),
                   ],
                 ),
               ),
@@ -59,7 +71,8 @@ class ChatDateSeparator extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(DsRadius.round),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+                filter: ImageFilter.blur(
+                    sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: DsSpacing.md,
@@ -95,7 +108,9 @@ class ChatDateSeparator extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    (isDark ? DsColors.surfaceLight.withValues(alpha: 0.24) : DsColors.ink900.withValues(alpha: 0.12)),
+                    (isDark
+                        ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                        : DsColors.ink900.withValues(alpha: 0.12)),
                     Colors.transparent,
                   ],
                 ),

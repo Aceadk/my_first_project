@@ -265,6 +265,9 @@ class _StubAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => false;
 
   @override
+  bool get supportsAppleSignIn => false;
+
+  @override
   Stream<CrushUser?> authStateChanges() => const Stream.empty();
 
   @override
@@ -297,6 +300,11 @@ class _StubAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CrushUser> signInWithApple() {
     throw UnimplementedError();
   }
 

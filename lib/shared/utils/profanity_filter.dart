@@ -165,5 +165,4 @@ class ProfanityFilter {
     }
     return null;
   }
-
 }

@@ -134,7 +134,8 @@ class WidgetVariants extends StatelessWidget {
                 ? Wrap(
                     spacing: 16,
                     runSpacing: 16,
-                    children: variants.map((v) => _VariantItem(variant: v)).toList(),
+                    children:
+                        variants.map((v) => _VariantItem(variant: v)).toList(),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

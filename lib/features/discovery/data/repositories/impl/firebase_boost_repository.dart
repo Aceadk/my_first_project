@@ -106,7 +106,8 @@ class FirebaseBoostRepository implements BoostRepository {
     // Check if user can boost
     final status = await getBoostStatus(userId);
     if (!status.canBoost) {
-      throw Exception('Cannot activate boost: on cooldown or boost already active');
+      throw Exception(
+          'Cannot activate boost: on cooldown or boost already active');
     }
 
     // Calculate boost duration based on subscription

@@ -145,7 +145,8 @@ class SkeletonChatTile extends StatelessWidget {
               children: [
                 SkeletonBox(width: 120, height: 16, borderRadius: 4.0),
                 SizedBox(height: 8),
-                SkeletonBox(width: double.infinity, height: 14, borderRadius: 4.0),
+                SkeletonBox(
+                    width: double.infinity, height: 14, borderRadius: 4.0),
               ],
             ),
           ),
@@ -239,11 +240,14 @@ class SkeletonProfileCard extends StatelessWidget {
                 SizedBox(height: 12),
                 Row(
                   children: [
-                    SkeletonBox(width: 60, height: 24, borderRadius: DsRadius.round),
+                    SkeletonBox(
+                        width: 60, height: 24, borderRadius: DsRadius.round),
                     SizedBox(width: 8),
-                    SkeletonBox(width: 80, height: 24, borderRadius: DsRadius.round),
+                    SkeletonBox(
+                        width: 80, height: 24, borderRadius: DsRadius.round),
                     SizedBox(width: 8),
-                    SkeletonBox(width: 70, height: 24, borderRadius: DsRadius.round),
+                    SkeletonBox(
+                        width: 70, height: 24, borderRadius: DsRadius.round),
                   ],
                 ),
               ],

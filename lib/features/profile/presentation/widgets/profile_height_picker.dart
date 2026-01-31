@@ -55,8 +55,10 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
 
     // Initialize feet/inches controllers
     final feetInches = ProfileFieldOptions.cmToFeetInchesValues(_heightCm);
-    _feetController = FixedExtentScrollController(initialItem: feetInches.feet - 3);
-    _inchesController = FixedExtentScrollController(initialItem: feetInches.inches);
+    _feetController =
+        FixedExtentScrollController(initialItem: feetInches.feet - 3);
+    _inchesController =
+        FixedExtentScrollController(initialItem: feetInches.inches);
   }
 
   @override
@@ -209,9 +211,12 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
           // Picker
           SizedBox(
             height: 200,
-            child: _useCm ? _buildCmPicker(textPrimary) : _buildFeetInchesPicker(textPrimary),
+            child: _useCm
+                ? _buildCmPicker(textPrimary)
+                : _buildFeetInchesPicker(textPrimary),
           ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + DsSpacing.lg),
+          SizedBox(
+              height: MediaQuery.of(context).padding.bottom + DsSpacing.lg),
         ],
       ),
     );
@@ -236,7 +241,9 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
               style: TextStyle(
                 fontSize: isSelected ? 28 : 20,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? DsColors.primary : textColor.withValues(alpha: 0.5),
+                color: isSelected
+                    ? DsColors.primary
+                    : textColor.withValues(alpha: 0.5),
               ),
             ),
           );
@@ -269,8 +276,11 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
                     "$feet'",
                     style: TextStyle(
                       fontSize: isSelected ? 28 : 20,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? DsColors.primary : textColor.withValues(alpha: 0.5),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? DsColors.primary
+                          : textColor.withValues(alpha: 0.5),
                     ),
                   ),
                 );
@@ -298,8 +308,11 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
                     '$index"',
                     style: TextStyle(
                       fontSize: isSelected ? 28 : 20,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? DsColors.primary : textColor.withValues(alpha: 0.5),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? DsColors.primary
+                          : textColor.withValues(alpha: 0.5),
                     ),
                   ),
                 );

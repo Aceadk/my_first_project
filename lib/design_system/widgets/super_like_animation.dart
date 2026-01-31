@@ -46,15 +46,18 @@ class _SuperLikeAnimationState extends State<SuperLikeAnimation>
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.3).chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween(begin: 0.0, end: 1.3)
+            .chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.3, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(begin: 1.3, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)),
+        tween:
+            Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)),
         weight: 20,
       ),
     ]).animate(_scaleController);
@@ -137,7 +140,8 @@ class _SuperLikeAnimationState extends State<SuperLikeAnimation>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      starColor.withValues(alpha: 0.3 * (1 - _particleController.value)),
+                      starColor.withValues(
+                          alpha: 0.3 * (1 - _particleController.value)),
                       Colors.transparent,
                     ],
                   ),

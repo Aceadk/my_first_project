@@ -23,8 +23,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   bool _phoneTouched = false;
   bool _dialTouched = false;
   bool _submitted = false;
-  _CountryCode _selectedCountry =
-      _countries.firstWhere((c) => c.name == 'United States', orElse: () => _countries.first);
+  _CountryCode _selectedCountry = _countries.firstWhere(
+      (c) => c.name == 'United States',
+      orElse: () => _countries.first);
 
   @override
   void initState() {
@@ -134,7 +135,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.phone_iphone_outlined),
                           labelText: 'Dial code',
-                          helperText: 'You can edit this if your country code differs.',
+                          helperText:
+                              'You can edit this if your country code differs.',
                           errorText: _dialErrorText(),
                         ),
                         onTap: () => _markDialTouched(),
@@ -148,7 +150,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               ? null
                               : '${_dialCodeController.text} ',
                           labelText: 'Phone number',
-                          helperText: 'SMS rates may apply. We only use this to secure your account.',
+                          helperText:
+                              'SMS rates may apply. We only use this to secure your account.',
                           errorText: _phoneErrorText(),
                         ),
                         onTap: () => _markPhoneTouched(),
@@ -290,8 +293,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   }
 }
 
-String _digitsOnly(String input) =>
-    input.replaceAll(RegExp(r'[^0-9]'), '');
+String _digitsOnly(String input) => input.replaceAll(RegExp(r'[^0-9]'), '');
 
 class _CountryCode {
   const _CountryCode({
@@ -336,7 +338,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Bosnia and Herzegovina', dialCode: '+387', flag: '🇧🇦'),
   _CountryCode(name: 'Botswana', dialCode: '+267', flag: '🇧🇼'),
   _CountryCode(name: 'Brazil', dialCode: '+55', flag: '🇧🇷'),
-  _CountryCode(name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
+  _CountryCode(
+      name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
   _CountryCode(name: 'British Virgin Islands', dialCode: '+1284', flag: '🇻🇬'),
   _CountryCode(name: 'Brunei', dialCode: '+673', flag: '🇧🇳'),
   _CountryCode(name: 'Bulgaria', dialCode: '+359', flag: '🇧🇬'),
@@ -347,7 +350,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Canada', dialCode: '+1', flag: '🇨🇦'),
   _CountryCode(name: 'Cape Verde', dialCode: '+238', flag: '🇨🇻'),
   _CountryCode(name: 'Cayman Islands', dialCode: '+1345', flag: '🇰🇾'),
-  _CountryCode(name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
+  _CountryCode(
+      name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
   _CountryCode(name: 'Chad', dialCode: '+235', flag: '🇹🇩'),
   _CountryCode(name: 'Chile', dialCode: '+56', flag: '🇨🇱'),
   _CountryCode(name: 'China', dialCode: '+86', flag: '🇨🇳'),
@@ -363,7 +367,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Curacao', dialCode: '+599', flag: '🇨🇼'),
   _CountryCode(name: 'Cyprus', dialCode: '+357', flag: '🇨🇾'),
   _CountryCode(name: 'Czech Republic', dialCode: '+420', flag: '🇨🇿'),
-  _CountryCode(name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
+  _CountryCode(
+      name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
   _CountryCode(name: 'Denmark', dialCode: '+45', flag: '🇩🇰'),
   _CountryCode(name: 'Djibouti', dialCode: '+253', flag: '🇩🇯'),
   _CountryCode(name: 'Dominica', dialCode: '+1767', flag: '🇩🇲'),
@@ -464,7 +469,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Norfolk Island', dialCode: '+672', flag: '🇳🇫'),
   _CountryCode(name: 'North Korea', dialCode: '+850', flag: '🇰🇵'),
   _CountryCode(name: 'North Macedonia', dialCode: '+389', flag: '🇲🇰'),
-  _CountryCode(name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
+  _CountryCode(
+      name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
   _CountryCode(name: 'Norway', dialCode: '+47', flag: '🇳🇴'),
   _CountryCode(name: 'Oman', dialCode: '+968', flag: '🇴🇲'),
   _CountryCode(name: 'Pakistan', dialCode: '+92', flag: '🇵🇰'),
@@ -489,8 +495,12 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Saint Kitts and Nevis', dialCode: '+1869', flag: '🇰🇳'),
   _CountryCode(name: 'Saint Lucia', dialCode: '+1758', flag: '🇱🇨'),
   _CountryCode(name: 'Saint Martin', dialCode: '+590', flag: '🇲🇫'),
-  _CountryCode(name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
-  _CountryCode(name: 'Saint Vincent and the Grenadines', dialCode: '+1784', flag: '🇻🇨'),
+  _CountryCode(
+      name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
+  _CountryCode(
+      name: 'Saint Vincent and the Grenadines',
+      dialCode: '+1784',
+      flag: '🇻🇨'),
   _CountryCode(name: 'Samoa', dialCode: '+685', flag: '🇼🇸'),
   _CountryCode(name: 'San Marino', dialCode: '+378', flag: '🇸🇲'),
   _CountryCode(name: 'Sao Tome and Principe', dialCode: '+239', flag: '🇸🇹'),
@@ -527,7 +537,8 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Tunisia', dialCode: '+216', flag: '🇹🇳'),
   _CountryCode(name: 'Turkey', dialCode: '+90', flag: '🇹🇷'),
   _CountryCode(name: 'Turkmenistan', dialCode: '+993', flag: '🇹🇲'),
-  _CountryCode(name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
+  _CountryCode(
+      name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
   _CountryCode(name: 'Tuvalu', dialCode: '+688', flag: '🇹🇻'),
   _CountryCode(name: 'Uganda', dialCode: '+256', flag: '🇺🇬'),
   _CountryCode(name: 'Ukraine', dialCode: '+380', flag: '🇺🇦'),
