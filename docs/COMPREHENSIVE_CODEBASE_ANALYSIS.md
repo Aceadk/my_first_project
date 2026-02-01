@@ -52,8 +52,8 @@
 ### Tech Stack
 
 ```yaml
-Framework: Flutter >=3.24.0
-Language: Dart >=3.4.0 <4.0.0
+Framework: Flutter >=3.35.0
+Language: Dart >=3.9.0 <4.0.0
 State Management: flutter_bloc ^9.1.1
 Routing: go_router ^14.6.0
 Backend: Firebase (Firestore, Auth, Functions, Storage, Analytics, Crashlytics)
@@ -194,7 +194,7 @@ The app supports 4 backend modes (configurable in `lib/core/di.dart`):
 | upsell_widgets.dart:97-99 | 2 | prefer_const_constructors |
 
 #### Null Safety: ✅ Fully Implemented
-- SDK constraint: `>=3.4.0 <4.0.0`
+- SDK constraint: `>=3.9.0 <4.0.0`
 - All files use sound null safety
 
 #### Deprecated APIs Found (10 files)

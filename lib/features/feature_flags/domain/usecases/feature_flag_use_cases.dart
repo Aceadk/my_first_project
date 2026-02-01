@@ -1,7 +1,7 @@
 /// Feature flags domain use cases.
 ///
 /// This barrel file exports all feature flag-related use cases for clean imports.
-library feature_flag_use_cases;
+library;
 
 export 'initialize_flags.dart';
 export 'fetch_and_activate_flags.dart';

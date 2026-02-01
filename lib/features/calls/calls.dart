@@ -1,6 +1,6 @@
 /// Calls feature barrel export.
 /// Re-exports all calls-related components.
-library calls;
+library;
 
 // Data (Repositories)
 export 'data/repositories/call_repository.dart';

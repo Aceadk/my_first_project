@@ -1,7 +1,7 @@
 /// Safety domain use cases.
 ///
 /// This barrel file exports all safety-related use cases for clean imports.
-library safety_use_cases;
+library;
 
 export 'create_date_plan.dart';
 export 'add_emergency_contact.dart';

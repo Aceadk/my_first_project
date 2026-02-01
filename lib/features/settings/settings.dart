@@ -1,6 +1,6 @@
 /// Settings feature barrel export.
 /// Re-exports all settings-related components.
-library settings;
+library;
 
 // Domain (Cubits)
 export 'presentation/bloc/theme_cubit.dart';

@@ -1,6 +1,6 @@
 # Project Understanding — CRUSH Dating App
 
-*Last updated: 2026-01-20*
+*Last updated: 2026-02-01*
 
 ---
 
@@ -9,6 +9,7 @@
 **Project Name:** CRUSH
 **Platform:** Flutter (iOS & Android)
 **Architecture:** Feature-first Clean Architecture + BLoC/Cubit
+**Minimum toolchain:** Flutter 3.35 / Dart 3.9 (dependency requirements)
 
 **High-level goal:**
 Provide a modern, safe, fast, and trustworthy dating experience with clean UX and scalable architecture.
@@ -165,7 +166,7 @@ lib/
 
 ## 6. Routing System
 
-* **Router used:** go_router ^14.6.0
+* **Router used:** go_router ^17.0.1
 * **Auth guarding:** Redirect-based via `GoRoute.redirect()` checking AuthBloc state
 * **Deep linking:** Firebase dynamic links (`/lib/core/routing/deep_links.dart`)
 * **Navigation pattern:** Declarative with custom fade+slide transitions

@@ -24,8 +24,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription? _authSubscription;
 
   static const int _pageSize = 30;
-  static const bool _e2eeEnabled =
-      bool.fromEnvironment('ENABLE_CHAT_E2EE', defaultValue: false);
+  // E2EE is enabled by default (recommended for privacy)
+  static const bool _e2eeEnabledDefault =
+      bool.fromEnvironment('ENABLE_CHAT_E2EE', defaultValue: true);
+
+  bool _e2eeEnabled = _e2eeEnabledDefault;
 
   FirebaseChatRepository? get _firebaseChatRepo =>
       chatRepository is FirebaseChatRepository
@@ -57,6 +60,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatNewMessagesReceived>(_onNewMessagesReceived);
     on<ChatMessageRetryRequested>(_onMessageRetryRequested);
     on<ChatResetRequested>(_onResetRequested);
+    on<ChatE2eeToggled>(_onE2eeToggled);
 
     // Subscribe to auth state changes to reset on logout
     _authSubscription = authRepository.authStateChanges().listen((user) {
@@ -84,6 +88,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       isInitialLoading: true,
       messages: const [],
       hasMoreMessages: true,
+      isE2eeEnabled: _e2eeEnabled,
     ));
     _sub?.cancel();
     _newMessagesSub?.cancel();
@@ -765,7 +770,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<List<Message>> _maybeDecryptMessages(List<Message> messages) async {
     if (messages.isEmpty) return messages;
     final repo = _firebaseChatRepo;
-    if (repo == null || !repo.isE2eeEnabled) return messages;
+    if (repo == null) return messages;
+    final shouldAttemptDecrypt = repo.isE2eeEnabled ||
+        messages.any((m) => repo.isEncryptedContent(m.content));
+    if (!shouldAttemptDecrypt) return messages;
     return Future.wait(messages.map(repo.decryptMessage));
   }
 
@@ -790,6 +798,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _presenceSub = null;
     _mediaSub = null;
     emit(const ChatState()); // Reset to initial empty state
+  }
+
+  /// Toggle end-to-end encryption for chat messages.
+  void _onE2eeToggled(ChatE2eeToggled event, Emitter<ChatState> emit) {
+    _e2eeEnabled = event.enabled;
+    final firebaseRepo = _firebaseChatRepo;
+    if (firebaseRepo != null) {
+      firebaseRepo.setE2eeEnabled(event.enabled);
+    }
+    debugPrint('ChatBloc: E2EE ${event.enabled ? "enabled" : "disabled"}');
+    emit(state.copyWith(isE2eeEnabled: event.enabled));
   }
 
   @override

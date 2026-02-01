@@ -1,7 +1,7 @@
 /// Analytics domain use cases.
 ///
 /// This barrel file exports all analytics-related use cases for clean imports.
-library analytics_use_cases;
+library;
 
 export 'load_insights.dart';
 export 'get_insights_for_range.dart';

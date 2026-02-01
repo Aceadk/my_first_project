@@ -102,8 +102,8 @@ class DeepLinkConfig {
         return DeepLinkResult(
           route: CrushRoutes.emailVerification,
           queryParams: {
-            if (email != null) 'email': email,
-            if (token != null) 'token': token,
+            'email': ?email,
+            'token': ?token,
           },
         );
 

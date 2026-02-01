@@ -281,7 +281,7 @@ class HttpAuthRepository implements AuthRepository {
       body: {
         'identifier': identifier,
         'purpose': purpose.value,
-        if (email != null) 'email': email,
+        'email': ?email,
       },
       requiresAuth: purpose != EmailOtpPurpose.login,
     );
@@ -305,8 +305,8 @@ class HttpAuthRepository implements AuthRepository {
         'identifier': identifier,
         'otp': otp,
         'purpose': purpose.value,
-        if (newEmail != null) 'new_email': newEmail,
-        if (newPassword != null) 'new_password': newPassword,
+        'new_email': ?newEmail,
+        'new_password': ?newPassword,
       },
       requiresAuth: purpose != EmailOtpPurpose.login,
       parser: (data) => data as Map<String, dynamic>,

@@ -63,7 +63,7 @@ Dating-style Flutter app with Firebase backend, Stripe billing, and optional Big
 - **Data Connect**: Generated client for example operations (list users, posts, likes); lint ignores kept because generated.
 
 ## Setup
-1) Install Flutter (3.24+), Dart SDK, Xcode/Android toolchains.
+1) Install Flutter (3.35+), Dart SDK, Xcode/Android toolchains.
 2) `flutter pub get`
 3) Firebase config: ensure `firebase_options.dart` is generated via `flutterfire configure`.
 4) Stripe: set `BillingConfig.plusPriceId/successUrl/cancelUrl` in `lib/config/billing_config.dart`; set function config `stripe.secret` and `stripe.webhook_secret`.

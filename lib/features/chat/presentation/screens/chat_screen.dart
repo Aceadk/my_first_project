@@ -2001,7 +2001,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 220,
                     height: 260,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildMediaErrorPlaceholder(
+                    errorBuilder: (_, _, _) => _buildMediaErrorPlaceholder(
                       Icons.broken_image_outlined,
                       'Image unavailable',
                     ),

@@ -1,5 +1,5 @@
 /// Mappers for converting between DTOs and domain models.
-library mappers;
+library;
 
 export 'auth_mapper.dart';
 export 'profile_mapper.dart';

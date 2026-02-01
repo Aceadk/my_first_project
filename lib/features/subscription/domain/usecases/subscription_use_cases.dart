@@ -1,7 +1,7 @@
 /// Subscription domain use cases.
 ///
 /// This barrel file exports all subscription-related use cases for clean imports.
-library subscription_use_cases;
+library;
 
 export 'get_current_plan.dart';
 export 'watch_plan_changes.dart';

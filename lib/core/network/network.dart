@@ -6,7 +6,7 @@
 /// - [ApiConfig] - API configuration (dev, staging, prod)
 /// - DTOs - Data Transfer Objects for API communication
 /// - Real-time - WebSocket and Firebase real-time sync
-library network;
+library;
 
 // API Client
 export 'api_client.dart';

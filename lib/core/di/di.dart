@@ -1,6 +1,6 @@
 /// Dependency Injection barrel export.
 /// Contains service locator and dependency configuration.
-library di;
+library;
 
 // Re-export repository interfaces
 export '../../features/auth/data/repositories/auth_repository.dart';

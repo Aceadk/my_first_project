@@ -1,6 +1,6 @@
 /// Profile feature barrel export.
 /// Re-exports all profile-related components.
-library profile;
+library;
 
 // Domain (BLoCs, Events, States)
 export 'presentation/bloc/profile_bloc.dart';

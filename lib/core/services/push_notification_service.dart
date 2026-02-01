@@ -98,7 +98,7 @@ class PushNotificationService {
     );
 
     await _localNotifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: _onNotificationResponse,
     );
   }
@@ -198,10 +198,10 @@ class PushNotificationService {
     );
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      details,
+      id: notification.hashCode,
+      title: notification.title,
+      body: notification.body,
+      notificationDetails: details,
       payload: jsonEncode(message.data),
     );
   }
@@ -363,12 +363,18 @@ class PushNotificationService {
       iOS: iosDetails,
     );
 
-    await _localNotifications.show(id, title, body, details, payload: payload);
+    await _localNotifications.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+      payload: payload,
+    );
   }
 
   /// Cancel a notification
   Future<void> cancelNotification(int id) async {
-    await _localNotifications.cancel(id);
+    await _localNotifications.cancel(id: id);
   }
 
   /// Cancel all notifications

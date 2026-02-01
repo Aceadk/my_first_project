@@ -23,7 +23,6 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_s
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
@@ -656,7 +655,7 @@ class _SectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
@@ -714,7 +713,7 @@ class _LikesYouSection extends StatelessWidget {
                   padding: DsEdgeInsets.horizontalLg,
                   scrollDirection: Axis.horizontal,
                   itemCount: 3,
-                  separatorBuilder: (_, __) => DsGap.mdH,
+                  separatorBuilder: (_, _) => DsGap.mdH,
                   itemBuilder: (context, index) {
                     return const SkeletonBox(
                       width: 150,
@@ -849,7 +848,7 @@ class _LikesYouSection extends StatelessWidget {
                 padding: DsEdgeInsets.horizontalLg,
                 scrollDirection: Axis.horizontal,
                 itemCount: profiles.length,
-                separatorBuilder: (_, __) => DsGap.mdH,
+                separatorBuilder: (_, _) => DsGap.mdH,
                 itemBuilder: (context, index) {
                   final profile = profiles[index];
                   final blurred = !isPlus;

@@ -1,7 +1,7 @@
 /// Verification domain use cases.
 ///
 /// This barrel file exports all verification-related use cases for clean imports.
-library verification_use_cases;
+library;
 
 export 'start_verification.dart';
 export 'submit_selfie.dart';

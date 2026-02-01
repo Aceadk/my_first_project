@@ -1,6 +1,6 @@
 /// Subscription feature barrel export.
 /// Re-exports all subscription-related components.
-library subscription;
+library;
 
 // Domain (BLoCs, Events, States)
 export 'presentation/bloc/subscription_bloc.dart';

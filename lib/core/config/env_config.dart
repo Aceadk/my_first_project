@@ -21,7 +21,7 @@ import 'package:crushhour/core/app_logger.dart';
 /// For CI/CD, set these as secrets and inject them during build.
 class EnvConfig {
   static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   );
 

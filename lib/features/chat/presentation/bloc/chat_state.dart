@@ -34,6 +34,11 @@ class ChatState extends Equatable {
   /// Messages that failed to send (keyed by temp ID).
   final Map<String, Message> failedMessages;
 
+  /// Whether end-to-end encryption is enabled for this chat.
+  /// When enabled, text messages are encrypted before sending and
+  /// decrypted when received. Media URLs are not encrypted.
+  final bool isE2eeEnabled;
+
   const ChatState({
     this.messages = const [],
     this.sendStatus = SendStatus.idle,
@@ -54,6 +59,7 @@ class ChatState extends Equatable {
     this.isLoadingMore = false,
     this.hasMoreMessages = true,
     this.failedMessages = const {},
+    this.isE2eeEnabled = true,
   });
 
   /// Combined list of messages including failed ones for display.
@@ -84,6 +90,7 @@ class ChatState extends Equatable {
     bool? isLoadingMore,
     bool? hasMoreMessages,
     Map<String, Message>? failedMessages,
+    bool? isE2eeEnabled,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -106,6 +113,7 @@ class ChatState extends Equatable {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
       failedMessages: failedMessages ?? this.failedMessages,
+      isE2eeEnabled: isE2eeEnabled ?? this.isE2eeEnabled,
     );
   }
 
@@ -130,5 +138,6 @@ class ChatState extends Equatable {
         isLoadingMore,
         hasMoreMessages,
         failedMessages,
+        isE2eeEnabled,
       ];
 }

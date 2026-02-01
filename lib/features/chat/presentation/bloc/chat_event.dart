@@ -256,3 +256,14 @@ class ChatMessageRetryRequested extends ChatEvent {
 /// Reset chat state on logout.
 /// CRITICAL: Prevents data leakage to next user.
 class ChatResetRequested extends ChatEvent {}
+
+/// Toggle end-to-end encryption for chat messages.
+/// When enabled, text messages are encrypted client-side before sending.
+class ChatE2eeToggled extends ChatEvent {
+  final bool enabled;
+
+  ChatE2eeToggled(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}

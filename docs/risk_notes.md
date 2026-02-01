@@ -4,6 +4,36 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-120 — Minimum Flutter/Dart toolchain bumped by dependency upgrades
+
+Category: Build / Tooling
+
+Description:
+Upgrading go_router (17) and google_fonts (8) raises the minimum required
+toolchain to Flutter 3.35 and Dart 3.9. Developers using older SDKs will see
+dependency resolution failures.
+
+Impact: Medium
+
+Likelihood: Medium
+
+Affected Areas:
+* pubspec.yaml environment constraints
+* Local developer toolchains / CI images
+
+Mitigation:
+* ✅ Documented new minimum toolchain in `pubspec.yaml` and project docs
+* ✅ CI pinned to Flutter 3.35.0
+* ✅ Notify collaborators to update Flutter/Dart or use FVM
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-02-01
+
+---
+
 ### R-117 — Tokens exposed in logs/crash reports (RESOLVED)
 
 Category: Security / Privacy

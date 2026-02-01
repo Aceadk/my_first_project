@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
 import 'package:crushhour/features/social/data/models/date_idea.dart';
 

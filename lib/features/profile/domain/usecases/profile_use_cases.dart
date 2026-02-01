@@ -1,7 +1,7 @@
 /// Profile domain use cases.
 ///
 /// This barrel file exports all profile-related use cases for clean imports.
-library profile_use_cases;
+library;
 
 export 'get_current_user.dart';
 export 'save_basic_info.dart';

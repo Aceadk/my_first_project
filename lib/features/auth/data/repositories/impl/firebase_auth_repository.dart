@@ -635,7 +635,7 @@ class FirebaseAuthRepository implements AuthRepository {
       await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'purpose': purpose.value,
-        if (email != null) 'email': email,
+        'email': ?email,
       });
 
       AppLogger.logInfo('Email OTP requested for $normalizedIdentifier');
@@ -665,8 +665,8 @@ class FirebaseAuthRepository implements AuthRepository {
         'identifier': normalizedIdentifier,
         'otp': otp.trim(),
         'purpose': purpose.value,
-        if (newEmail != null) 'newEmail': newEmail,
-        if (newPassword != null) 'newPassword': newPassword,
+        'newEmail': ?newEmail,
+        'newPassword': ?newPassword,
       });
 
       final data = result.data;

@@ -362,7 +362,7 @@ class ApiHeaders {
       clientVersion: ApiVersion.current.toString(),
       ApiHeaders.appVersion: appVersion,
       ApiHeaders.platform: platform,
-      if (requestId != null) ApiHeaders.requestId: requestId,
+      ApiHeaders.requestId: ?requestId,
     };
   }
 }

@@ -8,7 +8,6 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
 class EmailAuthScreen extends StatefulWidget {
   const EmailAuthScreen({super.key});

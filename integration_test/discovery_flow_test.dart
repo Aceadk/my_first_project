@@ -19,25 +19,14 @@ void main() {
 
       await tester.pumpWidget(TestApp(preferences: prefs));
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
+      final l10n = TestHelpers.l10n(tester);
 
       // Login with dev admin
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
-      await tester.enterText(identifierField, 'admin123');
-
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      await tester.enterText(passwordField, 'admin123');
-
-      final signInButton = find.widgetWithText(FilledButton, 'Sign In');
-      await tester.tap(signInButton);
-      await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
+      await _loginWithAdmin(tester);
 
       // Should be on home screen, not login screen
-      expect(find.text('Welcome back'), findsNothing);
-      expect(find.text('Sign In'), findsNothing);
+      expect(find.text(l10n.authWelcomeBack), findsNothing);
+      expect(find.text(l10n.authSignIn), findsNothing);
     });
 
     testWidgets('deck screen shows loading state initially', (tester) async {
@@ -47,18 +36,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
-      await tester.enterText(identifierField, 'admin123');
-
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      await tester.enterText(passwordField, 'admin123');
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
-      await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
+      await _loginWithAdmin(tester);
 
       // The home screen should load - either showing deck or empty state
       // Look for common home screen elements
@@ -73,18 +51,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
-      await tester.enterText(identifierField, 'admin123');
-
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      await tester.enterText(passwordField, 'admin123');
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
-      await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
+      await _loginWithAdmin(tester);
 
       // Look for profile icon or navigation element
       final profileIcon = find.byIcon(Icons.person);
@@ -106,18 +73,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
-      await tester.enterText(identifierField, 'admin123');
-
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      await tester.enterText(passwordField, 'admin123');
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
-      await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
+      await _loginWithAdmin(tester);
 
       // Look for settings icon
       final settingsIcon = find.byIcon(Icons.settings);
@@ -142,18 +98,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login - the dev admin has a complete profile, so we might not see the gate
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
-      await tester.enterText(identifierField, 'admin123');
-
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      await tester.enterText(passwordField, 'admin123');
-
-      await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
-      await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
+      await _loginWithAdmin(tester);
 
       // The test verifies that home screen is accessible
       // Profile completeness checking is handled by the deck screen
@@ -224,15 +169,18 @@ void main() {
 
 /// Helper function to login with admin credentials
 Future<void> _loginWithAdmin(WidgetTester tester) async {
-  await tester.tap(find.text('Sign In'));
+  final l10n = TestHelpers.l10n(tester);
+  await tester.tap(TestHelpers.authGatewaySignInButton(tester));
   await tester.pumpAndSettle();
 
-  final identifierField = find.widgetWithText(TextField, 'Email or username');
+  final identifierField =
+      TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
   await tester.enterText(identifierField, 'admin123');
 
-  final passwordField = find.widgetWithText(TextField, 'Password');
+  final passwordField =
+      TestHelpers.textFieldByLabel(tester, l10n.authPassword);
   await tester.enterText(passwordField, 'admin123');
 
-  await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
+  await tester.tap(TestHelpers.loginSignInButton(tester));
   await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
 }

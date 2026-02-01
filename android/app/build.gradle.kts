@@ -103,6 +103,11 @@ dependencies {
     // Google Play Services Auth (required for Email Link Authentication)
     implementation("com.google.android.gms:play-services-auth:21.5.0")
 
+    // Play Core modular libraries (required for deferred components / dynamic delivery)
+    // Using modular libraries instead of monolithic play:core to avoid conflicts
+    implementation("com.google.android.play:feature-delivery:2.1.0")
+    implementation("com.google.android.play:app-update:2.1.0")
+
     // Add other Firebase dependencies as needed:
     // implementation("com.google.firebase:firebase-firestore")
     // implementation("com.google.firebase:firebase-messaging")

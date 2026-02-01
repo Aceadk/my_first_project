@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
 import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
 

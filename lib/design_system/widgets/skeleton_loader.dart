@@ -276,7 +276,7 @@ class SkeletonList extends StatelessWidget {
   factory SkeletonList.chat({int itemCount = 5}) {
     return SkeletonList(
       itemCount: itemCount,
-      itemBuilder: (_, __) => const SkeletonChatTile(),
+      itemBuilder: (_, _) => const SkeletonChatTile(),
     );
   }
 
@@ -284,7 +284,7 @@ class SkeletonList extends StatelessWidget {
   factory SkeletonList.matches({int itemCount = 5}) {
     return SkeletonList(
       itemCount: itemCount,
-      itemBuilder: (_, __) => const SkeletonMatchCard(),
+      itemBuilder: (_, _) => const SkeletonMatchCard(),
     );
   }
 

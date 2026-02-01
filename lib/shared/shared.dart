@@ -1,6 +1,6 @@
 /// Shared components barrel export.
 /// Re-exports shared widgets, models, and utilities.
-library shared;
+library;
 
 // Shared Widgets
 export 'widgets/async_state_scaffold.dart';

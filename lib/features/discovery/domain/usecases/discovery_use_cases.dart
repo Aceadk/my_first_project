@@ -1,5 +1,5 @@
 /// Discovery use cases barrel export.
-library discovery_use_cases;
+library;
 
 export 'fetch_discovery_deck.dart';
 export 'swipe_right.dart';

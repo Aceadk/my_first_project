@@ -19,14 +19,15 @@ void main() {
 
       await tester.pumpWidget(TestApp(preferences: prefs));
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
+      final l10n = TestHelpers.l10n(tester);
 
       // Should show auth gateway with CrushHour branding
-      expect(find.text('CrushHour'), findsOneWidget);
-      expect(find.text('Find your perfect match'), findsOneWidget);
+      expect(find.text('Crush'), findsOneWidget);
+      expect(find.text('Find your Perfect Match'), findsOneWidget);
 
       // Should have Create Account and Sign In buttons
-      expect(find.text('Create Account'), findsOneWidget);
-      expect(find.text('Sign In'), findsOneWidget);
+      expect(find.text(l10n.authCreateAccount), findsOneWidget);
+      expect(find.text(l10n.authSignIn), findsOneWidget);
     });
 
     testWidgets('navigates to login screen from auth gateway', (tester) async {
@@ -34,14 +35,15 @@ void main() {
 
       await tester.pumpWidget(TestApp(preferences: prefs));
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
+      final l10n = TestHelpers.l10n(tester);
 
       // Tap Sign In button
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Should show login screen
-      expect(find.text('Welcome back'), findsOneWidget);
-      expect(find.text('Sign in to continue to CrushHour'), findsOneWidget);
+      expect(find.text(l10n.authWelcomeBack), findsOneWidget);
+      expect(find.text(l10n.authSignInToContinue), findsOneWidget);
     });
 
     testWidgets('shows validation errors on empty login', (tester) async {
@@ -51,12 +53,11 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Find and tap the Sign In button (on login page, not the auth gateway)
-      final signInButtons = find.widgetWithText(FilledButton, 'Sign In');
-      await tester.tap(signInButtons);
+      await tester.tap(TestHelpers.loginSignInButton(tester));
       await tester.pumpAndSettle();
 
       // Should show validation errors
@@ -70,31 +71,32 @@ void main() {
 
       await tester.pumpWidget(TestApp(preferences: prefs));
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
+      final l10n = TestHelpers.l10n(tester);
 
       // Navigate to login
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Enter dev admin credentials
       final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
+          TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
       await tester.enterText(identifierField, 'admin123');
       await tester.pumpAndSettle();
 
-      final passwordField = find.widgetWithText(TextField, 'Password');
+      final passwordField =
+          TestHelpers.textFieldByLabel(tester, l10n.authPassword);
       await tester.enterText(passwordField, 'admin123');
       await tester.pumpAndSettle();
 
       // Tap Sign In
-      final signInButton = find.widgetWithText(FilledButton, 'Sign In');
-      await tester.tap(signInButton);
+      await tester.tap(TestHelpers.loginSignInButton(tester));
 
       // Wait for navigation
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
 
       // Should navigate to home screen (look for home screen indicators)
       // The home screen typically shows the deck or navigation
-      expect(find.text('Welcome back'), findsNothing);
+      expect(find.text(l10n.authWelcomeBack), findsNothing);
     });
 
     testWidgets('navigates to sign up screen from auth gateway',
@@ -105,8 +107,13 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Tap Create Account button
-      await tester.tap(find.text('Create Account'));
+      await tester.tap(TestHelpers.authGatewayCreateAccountButton(tester));
       await tester.pumpAndSettle();
+      final ageGateConfirm = find.text('Yes, I am 18+');
+      if (ageGateConfirm.evaluate().isNotEmpty) {
+        await tester.tap(ageGateConfirm);
+        await tester.pumpAndSettle();
+      }
 
       // Should show sign up screen - look for sign up form elements
       // Sign up screens typically have phone or email input fields
@@ -120,7 +127,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Tap Phone login option
@@ -139,7 +146,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Tap Email OTP login option
@@ -158,7 +165,7 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
       // Tap Forgot password link
@@ -166,7 +173,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should navigate away from login screen
-      expect(find.text('Sign in to continue to CrushHour'), findsNothing);
+      expect(find.text(TestHelpers.l10n(tester).authSignInToContinue),
+          findsNothing);
     });
   });
 
@@ -180,22 +188,23 @@ void main() {
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login first
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(TestHelpers.authGatewaySignInButton(tester));
       await tester.pumpAndSettle();
 
+      final l10n = TestHelpers.l10n(tester);
       final identifierField =
-          find.widgetWithText(TextField, 'Email or username');
+          TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
       await tester.enterText(identifierField, 'admin123');
 
-      final passwordField = find.widgetWithText(TextField, 'Password');
+      final passwordField =
+          TestHelpers.textFieldByLabel(tester, l10n.authPassword);
       await tester.enterText(passwordField, 'admin123');
 
-      final signInButton = find.widgetWithText(FilledButton, 'Sign In');
-      await tester.tap(signInButton);
+      await tester.tap(TestHelpers.loginSignInButton(tester));
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
 
       // Verify we're logged in (not on login screen)
-      expect(find.text('Welcome back'), findsNothing);
+      expect(find.text(l10n.authWelcomeBack), findsNothing);
     });
   });
 
@@ -208,7 +217,7 @@ void main() {
 
       // This test would require being logged in first and finding the logout option
       // For now, just verify the auth gateway is accessible
-      expect(find.text('CrushHour'), findsOneWidget);
+      expect(find.text('Crush'), findsOneWidget);
     });
   });
 }

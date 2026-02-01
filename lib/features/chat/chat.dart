@@ -1,6 +1,6 @@
 /// Chat feature barrel export.
 /// Re-exports all chat-related components.
-library chat;
+library;
 
 // Domain (BLoCs, Events, States)
 export 'presentation/bloc/chat_bloc.dart';

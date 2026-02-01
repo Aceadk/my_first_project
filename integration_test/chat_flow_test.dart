@@ -202,15 +202,18 @@ void main() {
 
 /// Helper function to login with admin credentials
 Future<void> _loginWithAdmin(WidgetTester tester) async {
-  await tester.tap(find.text('Sign In'));
+  final l10n = TestHelpers.l10n(tester);
+  await tester.tap(TestHelpers.authGatewaySignInButton(tester));
   await tester.pumpAndSettle();
 
-  final identifierField = find.widgetWithText(TextField, 'Email or username');
+  final identifierField =
+      TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
   await tester.enterText(identifierField, 'admin123');
 
-  final passwordField = find.widgetWithText(TextField, 'Password');
+  final passwordField =
+      TestHelpers.textFieldByLabel(tester, l10n.authPassword);
   await tester.enterText(passwordField, 'admin123');
 
-  await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
+  await tester.tap(TestHelpers.loginSignInButton(tester));
   await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 3));
 }

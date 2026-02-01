@@ -433,7 +433,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             ? Image.network(
                 widget.matchPhotoUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildAvatarPlaceholder(),
+                errorBuilder: (_, _, _) => _buildAvatarPlaceholder(),
               )
             : _buildAvatarPlaceholder(),
       ),

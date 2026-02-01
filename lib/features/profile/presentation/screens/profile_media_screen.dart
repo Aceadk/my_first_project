@@ -114,7 +114,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
               ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: videos.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final controller = _videoControllers[index];
                   final init = _videoInits[index];

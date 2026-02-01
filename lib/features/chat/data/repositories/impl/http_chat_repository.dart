@@ -289,10 +289,10 @@ class HttpChatRepository implements ChatRepository {
         'reporter_id': reporterId,
         'reported_id': reportedId,
         'reason': reason,
-        if (matchId != null) 'match_id': matchId,
-        if (messageId != null) 'message_id': messageId,
-        if (source != null) 'source': source,
-        if (description != null) 'description': description,
+        'match_id': ?matchId,
+        'message_id': ?messageId,
+        'source': ?source,
+        'description': ?description,
       },
     );
 
@@ -349,8 +349,8 @@ class HttpChatRepository implements ChatRepository {
       body: {
         'user_id': userId,
         'reason': reason,
-        if (targetType != null) 'target_type': targetType,
-        if (targetId != null) 'target_id': targetId,
+        'target_type': ?targetType,
+        'target_id': ?targetId,
       },
     );
 

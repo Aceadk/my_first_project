@@ -1,6 +1,6 @@
 /// Features barrel export.
 /// Provides access to all feature modules.
-library features;
+library;
 
 export 'auth/auth.dart';
 export 'discovery/discovery.dart';

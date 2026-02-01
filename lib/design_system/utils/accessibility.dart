@@ -5,6 +5,71 @@ import 'package:flutter/semantics.dart';
 class DsAccessibility {
   DsAccessibility._();
 
+  // ==========================================================================
+  // WCAG CONTRAST RATIOS
+  // ==========================================================================
+
+  /// WCAG AA minimum contrast for normal text (4.5:1)
+  static const double contrastAA = 4.5;
+
+  /// WCAG AA minimum contrast for large text (3.0:1)
+  static const double contrastAALarge = 3.0;
+
+  /// WCAG AAA minimum contrast for normal text (7.0:1)
+  static const double contrastAAA = 7.0;
+
+  /// WCAG AAA minimum contrast for large text (4.5:1)
+  static const double contrastAAALarge = 4.5;
+
+  /// Calculate contrast ratio between two colors.
+  /// Returns a value between 1 and 21.
+  static double contrastRatio(Color foreground, Color background) {
+    final fgLuminance = foreground.computeLuminance();
+    final bgLuminance = background.computeLuminance();
+
+    final lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+    final darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
+
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /// Check if contrast meets WCAG AA for normal text.
+  static bool meetsContrastAA(Color foreground, Color background) {
+    return contrastRatio(foreground, background) >= contrastAA;
+  }
+
+  /// Check if contrast meets WCAG AAA for normal text.
+  static bool meetsContrastAAA(Color foreground, Color background) {
+    return contrastRatio(foreground, background) >= contrastAAA;
+  }
+
+  /// Get an accessible text color (black or white) for a given background.
+  static Color accessibleTextColor(Color background) {
+    return background.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  }
+
+  // ==========================================================================
+  // REDUCED MOTION
+  // ==========================================================================
+
+  /// Check if user prefers reduced motion.
+  static bool prefersReducedMotion(BuildContext context) {
+    return MediaQuery.of(context).disableAnimations;
+  }
+
+  /// Get animation duration respecting reduced motion preference.
+  static Duration animationDuration(
+    BuildContext context, {
+    Duration normal = const Duration(milliseconds: 300),
+    Duration reduced = Duration.zero,
+  }) {
+    return prefersReducedMotion(context) ? reduced : normal;
+  }
+
+  // ==========================================================================
+  // SCREEN READER ANNOUNCEMENTS
+  // ==========================================================================
+
   /// Announces a message to screen readers.
   static void announce(BuildContext context, String message) {
     // ignore: deprecated_member_use
@@ -246,6 +311,248 @@ class SemanticProgress extends StatelessWidget {
           LinearProgressIndicator(
             value: value,
           ),
+    );
+  }
+}
+
+/// Semantic wrapper for loading states with proper announcements.
+class SemanticLoading extends StatelessWidget {
+  const SemanticLoading({
+    super.key,
+    required this.label,
+    required this.child,
+    this.isLoading = true,
+  });
+
+  final String label;
+  final Widget child;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: isLoading ? label : null,
+      liveRegion: isLoading,
+      enabled: !isLoading,
+      child: child,
+    );
+  }
+}
+
+/// Semantic wrapper for dialogs and modals.
+class SemanticDialog extends StatelessWidget {
+  const SemanticDialog({
+    super.key,
+    required this.title,
+    required this.child,
+    this.isAlert = false,
+  });
+
+  final String title;
+  final Widget child;
+  final bool isAlert;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: title,
+      namesRoute: true,
+      scopesRoute: true,
+      explicitChildNodes: true,
+      child: child,
+    );
+  }
+}
+
+/// Semantic wrapper for buttons ensuring proper tap target.
+class SemanticButton extends StatelessWidget {
+  const SemanticButton({
+    super.key,
+    required this.label,
+    required this.child,
+    this.hint,
+    this.onTap,
+    this.enabled = true,
+    this.minSize = 44.0,
+  });
+
+  final String label;
+  final Widget child;
+  final String? hint;
+  final VoidCallback? onTap;
+  final bool enabled;
+  final double minSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      hint: hint,
+      button: true,
+      enabled: enabled,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: minSize,
+          minHeight: minSize,
+        ),
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          behavior: HitTestBehavior.opaque,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Semantic wrapper for images.
+class SemanticImage extends StatelessWidget {
+  const SemanticImage({
+    super.key,
+    required this.label,
+    required this.child,
+    this.isDecorative = false,
+  });
+
+  final String label;
+  final Widget child;
+  final bool isDecorative;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDecorative) {
+      return Semantics(
+        excludeSemantics: true,
+        child: child,
+      );
+    }
+
+    return Semantics(
+      label: label,
+      image: true,
+      child: child,
+    );
+  }
+}
+
+/// Focus traversal group for managing keyboard navigation order.
+class AccessibleFocusGroup extends StatelessWidget {
+  const AccessibleFocusGroup({
+    super.key,
+    required this.children,
+    this.policy,
+  });
+
+  final List<Widget> children;
+  final FocusTraversalPolicy? policy;
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusTraversalGroup(
+      policy: policy ?? OrderedTraversalPolicy(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+}
+
+/// A widget that provides a visible focus indicator.
+class FocusIndicator extends StatelessWidget {
+  const FocusIndicator({
+    super.key,
+    required this.child,
+    this.focusColor,
+    this.borderRadius = 8.0,
+    this.borderWidth = 2.0,
+  });
+
+  final Widget child;
+  final Color? focusColor;
+  final double borderRadius;
+  final double borderWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      child: Builder(
+        builder: (context) {
+          final hasFocus = Focus.of(context).hasFocus;
+          final color =
+              focusColor ?? Theme.of(context).colorScheme.primary;
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: hasFocus
+                  ? Border.all(color: color, width: borderWidth)
+                  : null,
+            ),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Skip link for keyboard navigation (commonly at top of page).
+class SkipToContentLink extends StatelessWidget {
+  const SkipToContentLink({
+    super.key,
+    required this.targetKey,
+    this.label = 'Skip to main content',
+  });
+
+  final GlobalKey targetKey;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      button: true,
+      child: Focus(
+        child: Builder(
+          builder: (context) {
+            final hasFocus = Focus.of(context).hasFocus;
+
+            // Only visible when focused (via keyboard)
+            if (!hasFocus) {
+              return const SizedBox.shrink();
+            }
+
+            return Material(
+              color: Theme.of(context).colorScheme.primary,
+              child: InkWell(
+                onTap: () {
+                  // Scroll to target and focus it
+                  final targetContext = targetKey.currentContext;
+                  if (targetContext != null) {
+                    Scrollable.ensureVisible(
+                      targetContext,
+                      duration: const Duration(milliseconds: 300),
+                    );
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

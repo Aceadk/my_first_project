@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/core/theme.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:crushhour/design_system/widgets/glass_button.dart';
+import 'package:crushhour/design_system/widgets/glass_text_field.dart';
 
 // Repositories
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
@@ -196,6 +199,9 @@ class _TestRouterHostState extends State<_TestRouterHost> {
           theme: CrushTheme.light(),
           darkTheme: CrushTheme.dark(),
           themeMode: materialMode,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: _router,
           debugShowCheckedModeBanner: false,
         );
@@ -221,6 +227,42 @@ class TestHelpers {
       EnginePhase.sendSemanticsUpdate,
       timeout,
     );
+  }
+
+  /// Access localized strings for the current test app.
+  static AppLocalizations l10n(WidgetTester tester) {
+    final locale = tester.binding.platformDispatcher.locale;
+    return lookupAppLocalizations(locale);
+  }
+
+  /// Finder for the primary auth button on the auth gateway (Create account).
+  static Finder authGatewayCreateAccountButton(WidgetTester tester) {
+    return find.widgetWithText(
+      GlassPrimaryButton,
+      l10n(tester).authCreateAccount,
+    );
+  }
+
+  /// Finder for the auth gateway sign-in button.
+  static Finder authGatewaySignInButton(WidgetTester tester) {
+    return find.widgetWithText(
+      GlassOutlinedButton,
+      l10n(tester).authSignIn,
+    );
+  }
+
+  /// Finder for the login screen sign-in button.
+  static Finder loginSignInButton(WidgetTester tester) {
+    return find.widgetWithText(
+      GlassPrimaryButton,
+      l10n(tester).authSignIn,
+    );
+  }
+
+  /// Finder for a TextField inside a GlassTextField by its label.
+  static Finder textFieldByLabel(WidgetTester tester, String label) {
+    final field = find.widgetWithText(GlassTextField, label);
+    return find.descendant(of: field, matching: find.byType(TextField));
   }
 
   /// Wait for async operations and settle

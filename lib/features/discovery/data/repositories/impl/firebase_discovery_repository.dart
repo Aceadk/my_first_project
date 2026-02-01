@@ -41,7 +41,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     final callable = _functions.httpsCallable('swipeRight');
     final result = await callable.call<Map<String, dynamic>>({
       'targetUserId': targetUserId,
-      if (attachedMessage != null) 'attachedMessage': attachedMessage,
+      'attachedMessage': ?attachedMessage,
     });
 
     final data = result.data;

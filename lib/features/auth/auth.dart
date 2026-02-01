@@ -1,6 +1,6 @@
 /// Auth feature barrel export.
 /// Re-exports all auth-related components.
-library auth;
+library;
 
 // Domain (BLoCs, Events, States)
 export 'presentation/bloc/auth_bloc.dart';

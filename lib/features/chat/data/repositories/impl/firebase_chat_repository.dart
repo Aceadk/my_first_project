@@ -26,9 +26,11 @@ class FirebaseChatRepository implements ChatRepository {
     'CHAT_E2EE_PEPPER',
     defaultValue: 'crushhour_e2ee_v1',
   );
+  // E2EE is enabled by default (recommended for privacy)
+  // Can be disabled via environment variable if needed
   static const bool _e2eeDefaultEnabled = bool.fromEnvironment(
     'ENABLE_CHAT_E2EE',
-    defaultValue: false,
+    defaultValue: true,
   );
   bool _e2eeEnabled = _e2eeDefaultEnabled;
 
@@ -38,6 +40,10 @@ class FirebaseChatRepository implements ChatRepository {
 
   void setE2eeEnabled(bool enabled) {
     _e2eeEnabled = enabled;
+  }
+
+  bool isEncryptedContent(String content) {
+    return _isEncryptedContent(content);
   }
 
   @override
@@ -288,10 +294,10 @@ class FirebaseChatRepository implements ChatRepository {
     await callable.call<Map<String, dynamic>>({
       'reportedId': reportedId,
       'reason': reason,
-      if (matchId != null) 'matchId': matchId,
-      if (messageId != null) 'messageId': messageId,
-      if (source != null) 'source': source,
-      if (description != null) 'description': description,
+      'matchId': ?matchId,
+      'messageId': ?messageId,
+      'source': ?source,
+      'description': ?description,
     });
   }
 
@@ -338,8 +344,8 @@ class FirebaseChatRepository implements ChatRepository {
     final callable = _functions.httpsCallable('submitSafetyAppeal');
     await callable.call<Map<String, dynamic>>({
       'reason': reason,
-      if (targetType != null) 'targetType': targetType,
-      if (targetId != null) 'targetId': targetId,
+      'targetType': ?targetType,
+      'targetId': ?targetId,
     });
   }
 
@@ -779,7 +785,10 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   Future<Message> decryptMessage(Message message) async {
-    if (!_e2eeEnabled || message.type != MessageType.text) {
+    if (message.type != MessageType.text) {
+      return message;
+    }
+    if (!_isEncryptedContent(message.content)) {
       return message;
     }
     final decrypted = await _decryptContent(

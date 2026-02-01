@@ -1,5 +1,5 @@
 /// Auth use cases barrel export.
-library auth_use_cases;
+library;
 
 export 'sign_in_with_password.dart';
 export 'send_phone_otp.dart';

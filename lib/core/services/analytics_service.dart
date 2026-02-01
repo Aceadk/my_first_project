@@ -10,12 +10,29 @@ import 'package:flutter/foundation.dart';
 /// - Monetization (paywall views, conversions, subscription events)
 /// - Profile completion & quality
 class AnalyticsService {
-  static final AnalyticsService _instance = AnalyticsService._();
+  static AnalyticsService _instance = AnalyticsService._();
   static AnalyticsService get instance => _instance;
+
+  /// For testing: replace the singleton instance with a mock/stub.
+  /// Call [resetInstance] after tests to restore the real instance.
+  @visibleForTesting
+  static void setInstance(AnalyticsService instance) {
+    _instance = instance;
+  }
+
+  /// For testing: reset to the real instance after tests.
+  @visibleForTesting
+  static void resetInstance() {
+    _instance = AnalyticsService._();
+  }
 
   AnalyticsService._();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  /// Protected constructor for creating test stubs.
+  @visibleForTesting
+  AnalyticsService.forTesting();
+
+  late final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   FirebaseAnalyticsObserver get observer =>
       FirebaseAnalyticsObserver(analytics: _analytics);
@@ -249,7 +266,7 @@ class AnalyticsService {
     await _analytics.logEvent(
       name: 'boost_expired',
       parameters: {
-        if (profileViewsGained != null) 'profile_views': profileViewsGained,
+        'profile_views': ?profileViewsGained,
       },
     );
     _log('boost_expired', {'profile_views': profileViewsGained});
@@ -535,9 +552,9 @@ class AnalyticsService {
     await _analytics.logEvent(
       name: 'discovery_preferences_updated',
       parameters: {
-        if (minAge != null) 'min_age': minAge,
-        if (maxAge != null) 'max_age': maxAge,
-        if (maxDistance != null) 'max_distance': maxDistance,
+        'min_age': ?minAge,
+        'max_age': ?maxAge,
+        'max_distance': ?maxDistance,
         if (genders != null) 'genders': genders.join(','),
       },
     );
@@ -586,7 +603,7 @@ class AnalyticsService {
       parameters: {
         'error_type': errorType,
         'error_message': errorMessage.take(100),
-        if (screen != null) 'screen': screen,
+        'screen': ?screen,
       },
     );
     _log('app_error', {'type': errorType, 'message': errorMessage});

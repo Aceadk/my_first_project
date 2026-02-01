@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/data/models/message_request.dart';
@@ -247,7 +246,7 @@ class _MessageRequestsView extends StatelessWidget {
             child: ListView.separated(
               padding: DsEdgeInsets.allLg,
               itemCount: state.requests.length,
-              separatorBuilder: (_, __) => DsGap.md,
+              separatorBuilder: (_, _) => DsGap.md,
               itemBuilder: (context, index) {
                 final request = state.requests[index];
                 return _MessageRequestCard(

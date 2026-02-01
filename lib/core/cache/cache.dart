@@ -1,6 +1,6 @@
 /// Cache module barrel export.
 /// Provides caching infrastructure for offline-first support.
-library cache;
+library;
 
 export 'cache_policy.dart';
 export 'cache_store.dart';

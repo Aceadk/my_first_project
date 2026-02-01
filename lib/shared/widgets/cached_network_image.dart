@@ -146,7 +146,7 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
           height: widget.height,
           fit: widget.fit,
           alignment: widget.alignment,
-          errorBuilder: (_, __, ___) =>
+          errorBuilder: (_, _, _) =>
               widget.errorWidget ?? _buildErrorWidget(),
         ),
       );

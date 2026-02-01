@@ -1,6 +1,6 @@
 /// Discovery feature barrel export.
 /// Re-exports all discovery-related components.
-library discovery;
+library;
 
 // Domain (BLoCs, Events, States)
 export 'presentation/bloc/discovery_bloc.dart';

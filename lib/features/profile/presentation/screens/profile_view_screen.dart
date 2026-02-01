@@ -10,7 +10,6 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 

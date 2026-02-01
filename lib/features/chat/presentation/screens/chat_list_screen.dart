@@ -251,7 +251,7 @@ class _ChatListView extends StatelessWidget {
             child: ListView.separated(
               padding: DsEdgeInsets.allLg,
               itemCount: state.matches.length + 1,
-              separatorBuilder: (_, __) => DsGap.sm,
+              separatorBuilder: (_, _) => DsGap.sm,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _MessageRequestsTile(

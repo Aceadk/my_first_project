@@ -1,7 +1,7 @@
 /// Social domain use cases.
 ///
 /// This barrel file exports all social-related use cases for clean imports.
-library social_use_cases;
+library;
 
 // Quiz use cases
 export 'get_all_quizzes.dart';

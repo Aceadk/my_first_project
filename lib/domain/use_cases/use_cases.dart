@@ -1,6 +1,6 @@
 /// Use cases barrel export.
 /// Provides access to all business logic use cases.
-library use_cases;
+library;
 
 export 'use_case.dart';
 export 'package:crushhour/features/auth/domain/usecases/auth_use_cases.dart';
