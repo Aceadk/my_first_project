@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -43,6 +44,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _usernameTouched = false;
   bool _usernameInitialized = false;
   bool _isEditingUsername = false;
+
+  /// Flag to track when profile setup is complete and waiting for auth refresh
+  bool _awaitingAuthRefresh = false;
 
   // Favourites
   String? _favouriteAthlete;
@@ -407,39 +411,62 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
         ),
         child: SafeArea(
-          child: BlocConsumer<ProfileBloc, ProfileState>(
-            listenWhen: (previous, current) =>
-                (previous.isSaving && !current.isSaving) ||
-                previous.errorMessage != current.errorMessage,
-            listener: (context, state) {
-              // Only navigate when save just completed successfully (was saving, now not saving)
-              if (!state.isSaving &&
-                  state.user?.hasCompletedProfileSetup == true &&
-                  state.errorMessage == null) {
-                // Refresh auth state so router has updated user data
-                context.read<AuthBloc>().add(AuthUserRefreshRequested());
+          child: MultiBlocListener(
+            listeners: [
+              // Listen for auth state changes to navigate after refresh
+              BlocListener<AuthBloc, AuthState>(
+                listenWhen: (previous, current) =>
+                    _awaitingAuthRefresh &&
+                    current.user?.hasCompletedProfileSetup == true,
+                listener: (context, authState) {
+                  if (!_awaitingAuthRefresh) return;
+                  _awaitingAuthRefresh = false;
 
-                if (context.canPop()) {
-                  context.pop();
-                  return;
-                }
+                  // Check if coming from settings (can pop back)
+                  if (context.canPop()) {
+                    context.pop();
+                    return;
+                  }
 
-                // Check if we need email verification first
-                final user = state.user;
-                if (user != null &&
-                    user.email != null &&
-                    user.email!.isNotEmpty &&
-                    !user.isEmailVerified) {
-                  context.go(CrushRoutes.emailVerification);
-                  return;
-                }
-                context.go(CrushRoutes.home);
-              }
-              final error = state.errorMessage;
-              if (error != null && error.isNotEmpty) {
-                showErrorSnackBar(context, error);
-              }
-            },
+                  // Check if we need email verification first
+                  final user = authState.user;
+                  if (user != null &&
+                      user.email != null &&
+                      user.email!.isNotEmpty &&
+                      !user.isEmailVerified) {
+                    context.go(CrushRoutes.emailVerification);
+                    return;
+                  }
+
+                  // Navigate to home - onboarding complete!
+                  context.go(CrushRoutes.home);
+                },
+              ),
+              // Listen for profile save completion
+              BlocListener<ProfileBloc, ProfileState>(
+                listenWhen: (previous, current) =>
+                    (previous.isSaving && !current.isSaving) ||
+                    previous.errorMessage != current.errorMessage,
+                listener: (context, state) {
+                  // Profile save completed successfully
+                  if (!state.isSaving &&
+                      state.user?.hasCompletedProfileSetup == true &&
+                      state.errorMessage == null) {
+                    // Set flag and trigger auth refresh
+                    // Navigation will happen in AuthBloc listener after refresh
+                    setState(() => _awaitingAuthRefresh = true);
+                    context.read<AuthBloc>().add(AuthUserRefreshRequested());
+                  }
+
+                  // Show error if any
+                  final error = state.errorMessage;
+                  if (error != null && error.isNotEmpty) {
+                    showErrorSnackBar(context, error);
+                  }
+                },
+              ),
+            ],
+            child: BlocBuilder<ProfileBloc, ProfileState>(
             builder: (context, state) {
               if (state.isLoading && state.user == null) {
                 return const Center(
@@ -654,6 +681,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ],
               );
             },
+          ),
           ),
         ),
       ),
