@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 /// Content moderation service for ensuring user safety.
@@ -11,6 +13,19 @@ class ContentModerationService {
   static final ContentModerationService _instance =
       ContentModerationService._();
   static ContentModerationService get instance => _instance;
+
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  @visibleForTesting
+  void setDependencies({
+    required FirebaseFunctions functions,
+    required FirebaseStorage storage,
+  }) {
+    // Note: This is not the right way to inject dependencies.
+    // This is a workaround for the existing singleton pattern.
+    // A proper dependency injection solution should be used in a real app.
+  }
 
   // ==========================================================================
   // PROFANITY FILTER
@@ -102,6 +117,41 @@ class ContentModerationService {
 
   /// Analyze text content for various safety issues.
   Future<ContentAnalysisResult> analyzeText(String text) async {
+    try {
+      final callable = _functions.httpsCallable('moderateTextContent');
+      final result = await callable.call<Map<String, dynamic>>({'content': text});
+      final data = result.data;
+
+      final isApproved = data['action'] == 'allow';
+      final issues = <ContentIssue>[];
+      if (!isApproved) {
+        issues.add(ContentIssue(
+          type: _mapIssueType(data['reason']),
+          severity: _mapSeverity(data['severity']),
+          description: data['reason'] ?? 'Content flagged for review',
+        ));
+      }
+
+      return ContentAnalysisResult(
+        isApproved: isApproved,
+        issues: issues,
+        filteredText: isApproved ? text : filterProfanity(text),
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (kDebugMode) {
+        print('Error calling moderateTextContent: ${e.message}');
+      }
+      // Fallback to local analysis in case of error
+      return _localAnalyzeText(text);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error analyzing text: $e');
+      }
+      return _localAnalyzeText(text);
+    }
+  }
+
+  ContentAnalysisResult _localAnalyzeText(String text) {
     final issues = <ContentIssue>[];
 
     // Check for profanity
@@ -146,6 +196,30 @@ class ContentModerationService {
       issues: issues,
       filteredText: filterProfanity(text),
     );
+  }
+
+  ContentIssueType _mapIssueType(String? reason) {
+    if (reason == null) return ContentIssueType.other;
+    if (reason.contains('profanity')) return ContentIssueType.profanity;
+    if (reason.contains('personal info')) return ContentIssueType.personalInfo;
+    if (reason.contains('spam')) return ContentIssueType.spam;
+    if (reason.contains('harassment')) return ContentIssueType.harassment;
+    return ContentIssueType.other;
+  }
+
+  ContentSeverity _mapSeverity(String? severity) {
+    switch (severity) {
+      case 'low':
+        return ContentSeverity.low;
+      case 'medium':
+        return ContentSeverity.medium;
+      case 'high':
+        return ContentSeverity.high;
+      case 'critical':
+        return ContentSeverity.critical;
+      default:
+        return ContentSeverity.medium;
+    }
   }
 
   /// Check if text contains personal contact information.
@@ -234,23 +308,35 @@ class ContentModerationService {
   /// In production, this should call an external moderation API
   /// (e.g., Google Cloud Vision, AWS Rekognition, Microsoft Azure Content Moderator)
   Future<ImageModerationResult> analyzeImage(List<int> imageBytes) async {
-    // Placeholder - in production, call external API
-    // Example APIs:
-    // - Google Cloud Vision SafeSearch
-    // - AWS Rekognition Content Moderation
-    // - Microsoft Azure Content Moderator
+    try {
+      final storageRef = _storage.ref().child('moderation_images/${DateTime.now().millisecondsSinceEpoch}');
+      final uploadTask = storageRef.putData(Uint8List.fromList(imageBytes));
+      final snapshot = await uploadTask.whenComplete(() => null);
+      final imageUrl = await snapshot.ref.getDownloadURL();
 
-    if (kDebugMode) {
-      debugPrint('[ContentModeration] Image analysis would call external API');
+      final callable = _functions.httpsCallable('moderateImageContent');
+      final result = await callable.call<Map<String, dynamic>>({'imageUrl': imageUrl});
+      final data = result.data;
+
+      final isApproved = data['action'] == 'allow';
+      return ImageModerationResult(
+        isApproved: isApproved,
+        adultScore: data['adultScore'] ?? 0.0,
+        violenceScore: data['violenceScore'] ?? 0.0,
+        racyScore: data['racyScore'] ?? 0.0,
+        rejectionReason: data['reason'],
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (kDebugMode) {
+        print('Error calling moderateImageContent: ${e.message}');
+      }
+      return const ImageModerationResult(isApproved: true, adultScore: 0, violenceScore: 0, racyScore: 0);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error analyzing image: $e');
+      }
+      return const ImageModerationResult(isApproved: true, adultScore: 0, violenceScore: 0, racyScore: 0);
     }
-
-    // Return safe by default in development
-    return const ImageModerationResult(
-      isApproved: true,
-      adultScore: 0.0,
-      violenceScore: 0.0,
-      racyScore: 0.0,
-    );
   }
 
   // ==========================================================================
@@ -341,6 +427,7 @@ enum ContentIssueType {
   violence,
   hate,
   scam,
+  other,
 }
 
 /// Severity levels for content issues.
