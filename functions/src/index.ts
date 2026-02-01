@@ -2789,6 +2789,37 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
   }
 );
 
+export const moderateTextContent = callable<{
+  content?: string;
+}>(async (data, context) => {
+  const content = requireString(data?.content, "content");
+  const decision = moderateContent(content, "text");
+  return {
+    status: decision.status,
+    action: decision.action,
+    reason: decision.reason ?? null,
+    severity: decision.severity,
+  };
+});
+
+export const moderateImageContent = callable<{
+  imageUrl?: string;
+}>(async (data, context) => {
+  const imageUrl = requireString(data?.imageUrl, "imageUrl");
+
+  // In a real implementation, you would call an image moderation API here.
+  // For example, Google Cloud Vision API, AWS Rekognition, etc.
+  // For now, we'll just return a "clean" status as a placeholder.
+
+  return {
+    status: "clean",
+    action: "allow",
+    reason: null,
+    severity: "low",
+  };
+});
+
+
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
   const reportedId = requireString(data?.reportedId, "reportedId");
