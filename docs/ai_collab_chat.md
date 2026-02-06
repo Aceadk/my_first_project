@@ -9,3 +9,6 @@ Notes and handoffs between AI agents working on this repo.
 - Integration tests updated to use AppLocalizations and Glass button selectors; age gate handled. Device run timed out after build/install—rerun with longer timeout if needed.
 - TestHelpers.l10n now uses lookupAppLocalizations with platformDispatcher locale to avoid Localizations context nulls; `flutter test integration_test/app_test.dart -d R9PT70YAHJE` still timing out after build/install with no test output.
 - Post‑Blaze: Functions config set for OTP/CORS/email.from; removed redundant Firestore indexes; deployed Firestore rules/indexes + Functions + Hosting to `crush-265f7`; Storage deploy blocked because Firebase Storage not initialized in console. Added Artifact Registry cleanup policy (30 days).
+- Functions updated to use firebase-functions params (no functions.config), avoiding v7 deploy failure. Functions redeployed successfully; Storage still needs console setup.
+- Resend config verified in `functions/.env` (API key + EMAIL_FROM present). Backend already wired via params; reminder to verify sender domain in Resend console.
+- New task: set up Resend API key/name/permissions + verified sender domain; awaiting exact values from developer.

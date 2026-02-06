@@ -4,6 +4,30 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-06] Task: Resend API Key/Domain Setup
+
+**Summary:**
+- Logged Resend API key/domain setup task and prepared wiring steps
+
+**Files Modified:**
+- Docs only (task tracking)
+
+---
+
+## [2026-02-06] Task: Connect Resend API
+
+**Summary:**
+- Verified Resend configuration is present in Functions env (API key + sender)
+- Confirmed backend already sends via Resend using params-based configuration
+
+**Files Modified:**
+- Docs only (no code changes)
+
+**Why / Notes:**
+- Resend integration lives in Cloud Functions; API key + sender are required and now confirmed
+
+---
+
 ## [2026-02-06] Task: Post‑Blaze Firebase Setup
 
 **Summary:**
@@ -11,10 +35,13 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 - Removed redundant single-field Firestore indexes that blocked deployment
 - Deployed Firestore rules, Firestore indexes, Cloud Functions, and Hosting to `crush-265f7`
 - Added Artifact Registry cleanup policy to avoid container image storage costs
+- Migrated Functions config to Firebase params (.env-backed) to avoid functions.config() deprecation
+- Refactored Functions to resolve params at runtime and lazily instantiate Stripe
 - Storage deployment blocked because Firebase Storage is not initialized for the project
 
 **Files Modified:**
 - `/firestore.indexes.json` — removed single‑field indexes for `users.profile.preferences.hideFromDiscovery` and `messages.createdAt`
+- `/functions/src/index.ts` — replaced functions.config usage with params; added runtime getters
 
 **Deployment / Ops Notes:**
 - Functions config set: `auth.otp_secret`, `cors.allowed_origins`, `email.from`
@@ -23,6 +50,7 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 **Why / Notes:**
 - Blaze upgrade enables Functions/Hosting deployment; index cleanup required for successful Firestore deployment
+- Functions deploy initially failed after firebase-functions v7 removed functions.config; switched to params
 - Storage remains unconfigured in Firebase console; photo uploads will fail until Storage is initialized
 
 **Follow-ups / TODO:**

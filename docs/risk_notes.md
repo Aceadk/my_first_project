@@ -39,7 +39,7 @@ Created: 2026-02-01
 Category: Build / Operations
 
 Description:
-Cloud Functions still use `functions.config()` for runtime config (Stripe, Agora, OTP, email). Firebase is deprecating the legacy config API in March 2026, which will block future deployments unless migrated.
+Cloud Functions previously used `functions.config()` for runtime config (Stripe, Agora, OTP, email). Firebase is deprecating the legacy config API in March 2026.
 
 Impact: Medium
 
@@ -50,10 +50,10 @@ Affected Areas:
 * functions deployment pipeline
 
 Mitigation:
-* ⏳ Migrate to dotenv / environment variables or Secrets Manager per Firebase guidance
-* ✅ Track deprecation warning surfaced by Firebase CLI during deploy
+* ✅ Migrated to `firebase-functions/params` with .env-backed values
+* ✅ Removed `functions.config()` usage from functions code
 
-Status: Open
+Status: Mitigated
 
 Owner: AI
 

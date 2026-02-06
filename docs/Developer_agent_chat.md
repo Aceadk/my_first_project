@@ -1931,6 +1931,108 @@ firebase deploy --only firestore:rules,firestore:indexes,storage,functions
 **Related Task ID:** T-2026-02-06-01
 
 **Outcome:**
-- Files changed: `firestore.indexes.json`, docs
-- Result: Functions config set for OTP/CORS/email.from; Firestore rules/indexes + Functions + Hosting deployed; Storage deploy blocked (Storage not initialized)
-- Notes: Removed redundant single-field indexes that caused deploy errors; Artifact Registry cleanup policy set for us-central1 (30 days)
+- Files changed: `firestore.indexes.json`, `functions/src/index.ts`, docs
+- Result: Functions redeployed successfully using params; Firestore rules/indexes + Hosting deployed; Storage deploy still blocked (Storage not initialized)
+- Notes: Migrated from functions.config to params to fix firebase-functions v7 deploy error; Artifact Registry cleanup policy set for us-central1 (30 days)
+
+### Task #010 — Connect Resend API
+**Date:** 2026-02-06
+**Agent:** Codex
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- **Primary goal:** Ensure Resend API is connected and working for transactional emails.
+- **Secondary goals:** Validate configuration and deployment steps for production.
+- **Implicit requirements:** Avoid exposing secrets; keep email sending in Cloud Functions.
+- **Quality expectations:** Clear setup steps and verification guidance.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Connect Resend for transactional emails by ensuring API key and sender configuration are wired in Cloud Functions and deploying updated configuration safely.
+
+### Technical Requirements
+1. Verify Cloud Functions use `RESEND_API_KEY` and `EMAIL_FROM` from environment/params.
+2. Ensure `functions/.env` includes valid Resend configuration (without committing secrets).
+3. Redeploy Functions if configuration changes are made.
+4. Provide verification steps to test email delivery without exposing secrets.
+
+### Implementation Plan
+**Step 1:** Confirm Functions email senders use Resend via env/params.
+**Step 2:** Validate `.env`/`.env.example` documentation for required Resend keys.
+**Step 3:** (If needed) redeploy functions to pick up updated env.
+**Step 4:** Document how to test an email OTP flow to verify Resend.
+
+### Files to Modify/Create
+- `functions/src/index.ts` — only if Resend wiring changes are required
+- `functions/.env.example` — if documentation updates are needed
+- `docs/*` — update status and notes
+
+### Success Criteria
+- [ ] Resend config is present and used by Functions.
+- [ ] Clear verification steps provided.
+
+### Edge Cases & Error Handling
+- Unverified sender domain → instruct to verify domain in Resend.
+- Missing API key → provide safe setup steps without exposing secrets.
+
+### Verification Commands
+```
+firebase deploy --only functions
+```
+
+**Related Task ID:** T-2026-02-06-02
+
+**Outcome:**
+- Files changed: docs only
+- Result: Resend env config verified in `functions/.env` (API key + EMAIL_FROM present); backend already wired to Resend via params
+- Notes: Verify sender domain in Resend console and test by triggering email OTP flow
+
+### Task #011 — Resend API Key/Domain Setup
+**Date:** 2026-02-06
+**Agent:** Codex
+**Status:** In Progress
+
+**Developer Intent Analysis:**
+- **Primary goal:** Add Resend API key with correct name, permissions, and domain.
+- **Secondary goals:** Ensure email sender domain is verified and matches EMAIL_FROM.
+- **Implicit requirements:** Keep secrets out of git, deploy updated config safely.
+- **Quality expectations:** Clear instructions for Resend dashboard + verified deliverability.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Create/attach a Resend API key with the correct permission scope and bind a verified sender domain, then wire the key into Functions config.
+
+### Technical Requirements
+1. Resend API key should be scoped to sending-only if supported.
+2. Sender domain must be verified in Resend and match `EMAIL_FROM`.
+3. Store API key in `functions/.env` (gitignored) or migrate to secrets if requested.
+4. Redeploy Functions after updating env values.
+
+### Implementation Plan
+**Step 1:** Confirm desired domain (e.g., `crushhour.app`) and sender address.
+**Step 2:** Create API key in Resend with sending permissions.
+**Step 3:** Add/update `RESEND_API_KEY` and `EMAIL_FROM` in `functions/.env`.
+**Step 4:** Deploy Functions to apply updated env.
+
+### Files to Modify/Create
+- `functions/.env` — update Resend values (not committed)
+- Docs — record setup status
+
+### Success Criteria
+- [ ] Resend API key created with correct scope.
+- [ ] Sender domain verified and aligned to EMAIL_FROM.
+- [ ] Functions deployed with updated Resend config.
+
+### Verification Commands
+```
+firebase deploy --only functions
+```
+
+**Related Task ID:** T-2026-02-06-03
+
+**Outcome:**
+- Files changed: TBD
+- Result: TBD
+- Notes: TBD
