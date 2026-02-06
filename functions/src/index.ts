@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions/v1";
+import { defineString } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 import * as crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -42,12 +43,54 @@ const deleteField = () => (fieldValue?.delete ? fieldValue.delete() : null);
 
 // =============================================================================
 // ENVIRONMENT VARIABLES CONFIGURATION
-// All config now uses .env file (functions.config() is deprecated)
-// Set these in functions/.env or via Firebase secrets
+// Uses Firebase params (.env-backed) to avoid functions.config() deprecation
 // =============================================================================
 
-// CORS configuration - comma-separated list of allowed origins
-const corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? "").split(",").filter(Boolean);
+const corsAllowedOriginsParam = defineString("CORS_ALLOWED_ORIGINS", {
+  default: "",
+});
+const stripeSecretParam = defineString("STRIPE_SECRET", { default: "" });
+const stripeWebhookSecretParam = defineString("STRIPE_WEBHOOK_SECRET", {
+  default: "",
+});
+const agoraAppIdParam = defineString("AGORA_APP_ID", { default: "" });
+const agoraCertificateParam = defineString("AGORA_APP_CERTIFICATE", {
+  default: "",
+});
+const otpSecretParam = defineString("OTP_SECRET");
+const resendApiKeyParam = defineString("RESEND_API_KEY", { default: "" });
+const emailFromParam = defineString("EMAIL_FROM", {
+  default: "CrushHour <no-reply@crushhour.app>",
+});
+
+const getCorsAllowedOrigins = () =>
+  corsAllowedOriginsParam
+    .value()
+    .split(",")
+    .filter(Boolean);
+const getStripeSecret = () => stripeSecretParam.value();
+const getStripeWebhookSecret = () => stripeWebhookSecretParam.value();
+const getAgoraAppId = () => agoraAppIdParam.value();
+const getAgoraCertificate = () => agoraCertificateParam.value();
+const getOtpSecret = () => otpSecretParam.value();
+const getEmailResendKey = () => resendApiKeyParam.value();
+const getEmailFrom = () => emailFromParam.value();
+const getEmailConfig = () => ({
+  resendKey: getEmailResendKey(),
+  from: getEmailFrom(),
+});
+
+let stripeClient: Stripe | null = null;
+let stripeClientSecret = "";
+const getStripeClient = (secret: string) => {
+  if (!stripeClient || stripeClientSecret !== secret) {
+    stripeClientSecret = secret;
+    stripeClient = new Stripe(secret, {
+      apiVersion: "2024-06-20",
+    });
+  }
+  return stripeClient;
+};
 
 // Default to strict CORS in production, allow localhost in development
 const isDevelopment = process.env.FUNCTIONS_EMULATOR === "true";
@@ -65,6 +108,7 @@ const corsOriginValidator = (
     callback(null, true);
     return;
   }
+  const corsAllowedOrigins = getCorsAllowedOrigins();
   // Check against whitelist
   if (corsAllowedOrigins.length === 0 || corsAllowedOrigins.includes(origin)) {
     callback(null, true);
@@ -73,24 +117,7 @@ const corsOriginValidator = (
   callback(new Error(`Origin ${origin} not allowed by CORS`), false);
 };
 
-// Stripe configuration
-const stripeSecret = process.env.STRIPE_SECRET ?? "";
-const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
-
-// Agora configuration (video calls)
-const agoraAppId = process.env.AGORA_APP_ID ?? "";
-const agoraCertificate = process.env.AGORA_APP_CERTIFICATE ?? "";
-
-// Auth configuration
-const authOtpSecret = process.env.OTP_SECRET ?? "";
-
-// Email configuration (Resend)
-const emailResendKey = process.env.RESEND_API_KEY ?? "";
-const emailFrom = process.env.EMAIL_FROM ?? "CrushHour <no-reply@crushhour.app>";
-
-const stripe = new Stripe(stripeSecret, {
-  apiVersion: "2024-06-20",
-});
+// Configuration values are resolved at runtime via getters above.
 
 type UserDoc = {
   id: string;
@@ -416,10 +443,15 @@ const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 // OTP secret is required - never fall back to a predictable value
-const otpSecret = authOtpSecret;
-if (!authOtpSecret) {
-  console.error("CRITICAL: auth.otp_secret not configured. OTP functions will fail.");
-}
+const getOtpSecretChecked = () => {
+  const otpSecret = getOtpSecret();
+  if (!otpSecret) {
+    console.error(
+      "CRITICAL: OTP_SECRET not configured in .env file. OTP functions will fail."
+    );
+  }
+  return otpSecret;
+};
 
 type RateLimitResult = {
   allowed: boolean;
@@ -446,6 +478,7 @@ function generateOtp(): string {
 }
 
 function hashWithSecret(value: string, salt: string): string {
+  const otpSecret = getOtpSecretChecked();
   if (!otpSecret) {
     throw new functions.https.HttpsError(
       "internal",
@@ -575,7 +608,8 @@ async function sendOtpEmail(params: {
   otp: string;
   purpose: string;
 }) {
-  if (!emailResendKey) {
+  const { resendKey, from } = getEmailConfig();
+  if (!resendKey) {
     console.warn("RESEND_API_KEY not set; skipping email send.");
     return;
   }
@@ -594,11 +628,11 @@ async function sendOtpEmail(params: {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${emailResendKey}`,
+      Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: emailFrom,
+      from,
       to: [params.to],
       subject,
       text,
@@ -615,7 +649,8 @@ async function sendPasswordChangedEmail(params: {
   to: string;
   method: "in_app" | "forgot_password";
 }) {
-  if (!emailResendKey) {
+  const { resendKey, from } = getEmailConfig();
+  if (!resendKey) {
     console.warn("RESEND_API_KEY not set; skipping email send.");
     return;
   }
@@ -644,11 +679,11 @@ async function sendPasswordChangedEmail(params: {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${emailResendKey}`,
+      Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: emailFrom,
+      from,
       to: [params.to],
       subject,
       text,
@@ -671,7 +706,8 @@ async function sendDatePlanEmail(params: {
   location: string;
   notes?: string;
 }) {
-  if (!emailResendKey) {
+  const { resendKey, from } = getEmailConfig();
+  if (!resendKey) {
     throw new functions.https.HttpsError(
       "failed-precondition",
       "Email notifications are not configured."
@@ -700,11 +736,11 @@ async function sendDatePlanEmail(params: {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${emailResendKey}`,
+      Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: emailFrom,
+      from,
       to: [params.to],
       subject,
       text: lines.join("\\n"),
@@ -835,6 +871,7 @@ function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
 }
 
 function hashIdentifier(identifier: string): string {
+  const otpSecret = getOtpSecretChecked();
   if (!otpSecret) {
     throw new functions.https.HttpsError(
       "internal",
@@ -2519,6 +2556,7 @@ async function blockedUserIds(uid: string): Promise<Set<string>> {
 function setCorsHeaders(res: functions.Response, req?: functions.Request) {
   // Use whitelisted origin or default for server-to-server requests
   const origin = req?.headers?.origin;
+  const corsAllowedOrigins = getCorsAllowedOrigins();
   const allowedOrigin = origin && corsAllowedOrigins.includes(origin) ? origin : corsAllowedOrigins[0] || "";
   if (allowedOrigin) {
     res.set("Access-Control-Allow-Origin", allowedOrigin);
@@ -3976,6 +4014,14 @@ export const createCheckoutSession = callable<CheckoutSessionRequest>(
     const priceId = requireString(data?.priceId, "priceId");
     const successUrl = requireString(data?.successUrl, "successUrl");
     const cancelUrl = requireString(data?.cancelUrl, "cancelUrl");
+    const stripeSecret = getStripeSecret();
+    if (!stripeSecret) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Stripe not configured."
+      );
+    }
+    const stripe = getStripeClient(stripeSecret);
 
     const user = await getUser(uid);
 
@@ -4031,6 +4077,8 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
     return;
   }
 
+  const stripe = getStripeClient(getStripeSecret());
+  const stripeWebhookSecret = getStripeWebhookSecret();
   const signature = req.headers["stripe-signature"];
   if (!signature || Array.isArray(signature) || !stripeWebhookSecret) {
     res.status(400).send("Missing webhook signature or secret");
@@ -4109,12 +4157,14 @@ interface AgoraTokenRequest {
 // Sync subscription against Stripe and update Firestore if needed.
 export const syncSubscriptionStatus = callable(async (_data, context) => {
   const uid = requireAuth(context, "sync subscription");
+  const stripeSecret = getStripeSecret();
   if (!stripeSecret) {
     throw new functions.https.HttpsError(
       "failed-precondition",
       "Stripe not configured."
     );
   }
+  const stripe = getStripeClient(stripeSecret);
   const user = await getUser(uid);
   const subscriptionId = optionalString(user.stripeSubscriptionId);
   const customerId = optionalString(user.stripeCustomerId);
@@ -4181,6 +4231,8 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
 
     const channelName = requireString(data?.channelName, "channelName");
     const uid = typeof data?.uid === "number" ? data.uid : 0;
+    const agoraAppId = getAgoraAppId();
+    const agoraCertificate = getAgoraCertificate();
 
     if (!agoraAppId || !agoraCertificate) {
       throw new functions.https.HttpsError(
@@ -4218,6 +4270,8 @@ export const getAgoraToken = callable<AgoraTokenRequest>(async (data, context) =
 
   const channelName = requireString(data?.channelName, "channelName");
   const isVideoCall = (data?.isVideoCall as boolean | undefined) ?? true;
+  const agoraAppId = getAgoraAppId();
+  const agoraCertificate = getAgoraCertificate();
 
   if (!agoraAppId || !agoraCertificate) {
     throw new functions.https.HttpsError(
@@ -5406,8 +5460,10 @@ app.post(
       const userDoc = await db.collection("users").doc(req.uid!).get();
       const userData = userDoc.data() || {};
       let customerId = userData.stripeCustomerId;
+      const stripeSecret = getStripeSecret();
+      const stripe = stripeSecret ? getStripeClient(stripeSecret) : null;
 
-      if (!customerId && stripeSecret) {
+      if (!customerId && stripe) {
         const customer = await stripe.customers.create({
           metadata: { firebaseUid: req.uid! },
           email: userData.email,
@@ -5420,7 +5476,7 @@ app.post(
       }
 
       // Create checkout session
-      if (stripeSecret) {
+      if (stripe) {
         const session = await stripe.checkout.sessions.create({
           customer: customerId,
           payment_method_types: ["card"],

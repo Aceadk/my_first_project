@@ -98,16 +98,9 @@ service cloud.firestore {
       // - Plus users: 7 days after read
       // Each user sees messages based on their own retention, enforced via visibleTo array
       match /messages/{messageId} {
-        // Helper to get the other user in the match
+        // Helper to get the match document data
         function getMatchData() {
           return get(/databases/$(database)/documents/matches/$(matchId)).data;
-        }
-
-        function getOtherUserId() {
-          let matchData = getMatchData();
-          return matchData.userIds[0] == request.auth.uid
-            ? matchData.userIds[1]
-            : matchData.userIds[0];
         }
 
         // Validate participant can access chat:
