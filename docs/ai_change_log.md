@@ -4,6 +4,33 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-06] Task: Post‑Blaze Firebase Setup
+
+**Summary:**
+- Set Firebase Functions runtime config for OTP secret, CORS, and email from address
+- Removed redundant single-field Firestore indexes that blocked deployment
+- Deployed Firestore rules, Firestore indexes, Cloud Functions, and Hosting to `crush-265f7`
+- Added Artifact Registry cleanup policy to avoid container image storage costs
+- Storage deployment blocked because Firebase Storage is not initialized for the project
+
+**Files Modified:**
+- `/firestore.indexes.json` — removed single‑field indexes for `users.profile.preferences.hideFromDiscovery` and `messages.createdAt`
+
+**Deployment / Ops Notes:**
+- Functions config set: `auth.otp_secret`, `cors.allowed_origins`, `email.from`
+- Functions/hosting deployed successfully; Firebase CLI previously failed due to missing cleanup policy (now configured)
+- Firebase Storage must be enabled in console before deploying `storage.rules`
+
+**Why / Notes:**
+- Blaze upgrade enables Functions/Hosting deployment; index cleanup required for successful Firestore deployment
+- Storage remains unconfigured in Firebase console; photo uploads will fail until Storage is initialized
+
+**Follow-ups / TODO:**
+- Enable Firebase Storage in console and run `firebase deploy --only storage`
+- Decide on migration away from `functions.config()` before March 2026 deprecation deadline
+
+---
+
 ## [2026-02-01] Task: Phase 8 Release Readiness
 
 **Summary:**

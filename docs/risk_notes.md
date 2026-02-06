@@ -34,6 +34,60 @@ Created: 2026-02-01
 
 ---
 
+### R-122 — Firebase Functions config deprecation (March 2026)
+
+Category: Build / Operations
+
+Description:
+Cloud Functions still use `functions.config()` for runtime config (Stripe, Agora, OTP, email). Firebase is deprecating the legacy config API in March 2026, which will block future deployments unless migrated.
+
+Impact: Medium
+
+Likelihood: High
+
+Affected Areas:
+* functions/src/index.ts (config usage)
+* functions deployment pipeline
+
+Mitigation:
+* ⏳ Migrate to dotenv / environment variables or Secrets Manager per Firebase guidance
+* ✅ Track deprecation warning surfaced by Firebase CLI during deploy
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-06
+
+---
+
+### R-121 — Firebase Storage not initialized in production project
+
+Category: Product / Infrastructure
+
+Description:
+Firebase Storage is not enabled for project `crush-265f7`, blocking deployment of `storage.rules` and preventing profile photo uploads.
+
+Impact: High
+
+Likelihood: High
+
+Affected Areas:
+* storage.rules
+* Profile photo uploads
+* Media features
+
+Mitigation:
+* ⏳ Enable Firebase Storage in console and run `firebase deploy --only storage`
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-06
+
+---
+
 ### R-117 — Tokens exposed in logs/crash reports (RESOLVED)
 
 Category: Security / Privacy

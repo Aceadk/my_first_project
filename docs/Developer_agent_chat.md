@@ -1875,3 +1875,62 @@ flutter test integration_test/app_test.dart -d <device>
 - Files changed: `integration_test/test_app.dart`, `integration_test/auth_flow_test.dart`, `integration_test/discovery_flow_test.dart`, `integration_test/chat_flow_test.dart`, `integration_test/e2e_onboarding_to_chat_test.dart`, `lib/design_system/utils/accessibility.dart`, `lib/core/services/content_moderation_service.dart`, plus 21 screens with removed unnecessary imports
 - Result: `flutter analyze --no-pub` clean; integration test runs keep timing out after build/install with no test output
 - Notes: Tests now use l10n + Glass button selectors; age gate dialog handled; TestHelpers.l10n uses lookupAppLocalizations to avoid context nulls
+
+### Task #009 — Post‑Blaze Firebase Setup
+**Date:** 2026-02-06
+**Agent:** Codex
+**Status:** In Progress
+
+**Developer Intent Analysis:**
+- **Primary goal:** Perform the necessary project steps now that Firebase billing has been upgraded to Blaze.
+- **Secondary goals:** Ensure production Firebase services (Functions, App Check, etc.) are configured and deployed.
+- **Implicit requirements:** Keep repo configuration aligned with production; avoid breaking existing environments.
+- **Quality expectations:** Safe, verified deployment steps and config updates documented.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Finalize the Firebase production setup now that the project is on the Blaze plan: configure required services, update environment/config where needed, and deploy Firebase resources (Functions, Firestore rules, Storage rules, indexes, hosting if applicable).
+
+### Technical Requirements
+1. Identify Firebase resources in this repo (`functions`, `firestore.rules`, `storage.rules`, `firestore.indexes.json`, `firebase.json`) and ensure they are ready for production deployment.
+2. Validate Functions environment variables using `/functions/.env.example` and `.env.example` for app config; document any required secrets.
+3. Ensure App Check enforcement is correctly configured for production (respect `ENFORCE_APP_CHECK`).
+4. Deploy Firebase resources using CLI commands where possible; capture any errors and update configs as needed.
+5. Update docs (`ai_change_log`, `ai_tasks_board`, `ai_collab_chat`, `risk_notes`) with deployment status and any newly discovered risks.
+
+### Implementation Plan
+**Step 1:** Inspect Firebase configuration files and functions to verify readiness for production (rules, indexes, functions env).
+**Step 2:** Confirm environment variables and required secrets; update `.env.example`/functions `.env.example` if missing.
+**Step 3:** Run Firebase deployment commands for rules, indexes, and functions.
+**Step 4:** Validate any required configuration changes and update documentation.
+
+### Files to Modify/Create
+- `firebase.json` — if deployment targets need adjustment
+- `firestore.rules`, `storage.rules`, `firestore.indexes.json` — if deployment readiness changes are needed
+- `functions/.env.example` — ensure required env keys are listed
+- `docs/ai_change_log.md`, `docs/ai_tasks_board.md`, `docs/ai_collab_chat.md`, `docs/risk_notes.md`
+
+### Success Criteria
+- [ ] Firebase resources deployed without errors (or errors captured with next actions).
+- [ ] App Check enforcement state clearly documented.
+- [ ] Deployment and configuration steps recorded in AI docs.
+
+### Edge Cases & Error Handling
+- Missing Firebase CLI login/project selection → document required steps.
+- Missing env vars/secrets → list explicit keys needed before deploy.
+- Functions deployment fails due to billing/APIs → document required console enablement.
+
+### Verification Commands
+```
+firebase projects:list
+firebase use
+firebase deploy --only firestore:rules,firestore:indexes,storage,functions
+```
+
+**Related Task ID:** T-2026-02-06-01
+
+**Outcome:**
+- Files changed: `firestore.indexes.json`, docs
+- Result: Functions config set for OTP/CORS/email.from; Firestore rules/indexes + Functions + Hosting deployed; Storage deploy blocked (Storage not initialized)
+- Notes: Removed redundant single-field indexes that caused deploy errors; Artifact Registry cleanup policy set for us-central1 (30 days)

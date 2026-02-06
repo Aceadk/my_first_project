@@ -18,3 +18,4 @@ Tracking active and completed AI tasks for the CRUSH app.
 | T-2026-02-01-11 | 2026-02-01 | Phase 8.5 iOS Archive configuration | Completed | Build config ready; documented Xcode archive process |
 | T-2026-02-01-12 | 2026-02-01 | Phase 8.6 Prepare store assets | Completed | STORE_ASSETS.md with descriptions, screenshots, keywords |
 | T-2026-02-01-13 | 2026-02-01 | Phase 8.9 Set up customer support | Completed | SupportConfig, SupportScreen, FAQ, contact integration |
+| T-2026-02-06-01 | 2026-02-06 | Post‑Blaze Firebase setup | In progress | Functions/hosting/rules/indexes deployed; Storage not initialized in console |

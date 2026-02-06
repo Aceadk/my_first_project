@@ -40,22 +40,14 @@ const incrementBy = (value: number) =>
   fieldValue?.increment ? fieldValue.increment(value) : value;
 const deleteField = () => (fieldValue?.delete ? fieldValue.delete() : null);
 
-const config = ((functions as unknown as { config?: () => unknown }).config?.() ??
-  {}) as {
-    stripe?: { secret?: string; webhook_secret?: string };
-    agora?: { appid?: string; certificate?: string };
-    auth?: { otp_secret?: string };
-    email?: { resend_key?: string; from?: string };
-    cors?: { allowed_origins?: string };
-  };
+// =============================================================================
+// ENVIRONMENT VARIABLES CONFIGURATION
+// All config now uses .env file (functions.config() is deprecated)
+// Set these in functions/.env or via Firebase secrets
+// =============================================================================
 
 // CORS configuration - comma-separated list of allowed origins
-// Set via: firebase functions:config:set cors.allowed_origins="https://crushhour.app,https://app.crushhour.app"
-const corsAllowedOrigins = (
-  config.cors?.allowed_origins ??
-  process.env.CORS_ALLOWED_ORIGINS ??
-  ""
-).split(",").filter(Boolean);
+const corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? "").split(",").filter(Boolean);
 
 // Default to strict CORS in production, allow localhost in development
 const isDevelopment = process.env.FUNCTIONS_EMULATOR === "true";
@@ -80,14 +72,21 @@ const corsOriginValidator = (
   }
   callback(new Error(`Origin ${origin} not allowed by CORS`), false);
 };
-const stripeSecret = config.stripe?.secret ?? "";
-const stripeWebhookSecret = config.stripe?.webhook_secret ?? "";
-const agoraAppId = config.agora?.appid ?? process.env.AGORA_APP_ID;
-const agoraCertificate =
-  config.agora?.certificate ?? process.env.AGORA_APP_CERTIFICATE;
-const authOtpSecret = config.auth?.otp_secret ?? process.env.OTP_SECRET ?? "";
-const emailResendKey = config.email?.resend_key ?? process.env.RESEND_API_KEY;
-const emailFrom = config.email?.from ?? process.env.EMAIL_FROM ?? "CrushHour <no-reply@crushhour.app>";
+
+// Stripe configuration
+const stripeSecret = process.env.STRIPE_SECRET ?? "";
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+
+// Agora configuration (video calls)
+const agoraAppId = process.env.AGORA_APP_ID ?? "";
+const agoraCertificate = process.env.AGORA_APP_CERTIFICATE ?? "";
+
+// Auth configuration
+const authOtpSecret = process.env.OTP_SECRET ?? "";
+
+// Email configuration (Resend)
+const emailResendKey = process.env.RESEND_API_KEY ?? "";
+const emailFrom = process.env.EMAIL_FROM ?? "CrushHour <no-reply@crushhour.app>";
 
 const stripe = new Stripe(stripeSecret, {
   apiVersion: "2024-06-20",
