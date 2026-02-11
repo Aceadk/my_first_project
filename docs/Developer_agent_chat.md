@@ -87,6 +87,155 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #013 — Fix black-box audit findings (Firestore P0, auth routes, redirects, docs re-baseline)
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix all findings from the developer's own black-box audit of the live site
+- Secondary goals: Clean up documentation drift, ensure all routes work, fix production Firestore
+- Implicit requirements: Deploy and verify all fixes, update TODO_WEBAPP.md to reflect actual state
+- Quality expectations: Production-ready fixes with defensive coding
+
+**Refined Prompt:**
+
+### Objective
+Address the developer's prioritized black-box audit findings:
+1. P0: Fix Firestore projectId contamination (%0A newline in env vars causing "client offline")
+2. P1: Add missing /auth/verify route for email verification
+3. P1: Add redirects for /likes-you→/likes, /reset-password→/auth/forgot-password
+4. P2: Re-baseline TODO_WEBAPP.md to match live state (remove 652-item parity backlog noise)
+
+### Implementation Plan
+**Step 1:** Add `.trim()` to all Firebase config env var reads for defensive whitespace handling
+**Step 2:** Fix tab character in `.env.crush-web-web` FIREBASE_API_KEY
+**Step 3:** Remove and re-add all 8 Firebase env vars in Vercel cleanly
+**Step 4:** Create `/auth/verify` page using Firebase applyActionCode
+**Step 5:** Add redirect rules in next.config.js
+**Step 6:** Deploy and smoke test
+**Step 7:** Re-baseline TODO_WEBAPP.md with accurate phase percentages
+
+### Success Criteria
+- [x] Firestore config reads trimmed env vars
+- [x] /auth/verify returns 200
+- [x] /likes-you redirects 308 to /likes
+- [x] /auth/reset-password redirects 308 to /auth/forgot-password
+- [x] /verify redirects 308 to /auth/verify
+- [x] 48 pages build successfully
+- [x] TODO_WEBAPP.md reflects actual live state
+- [x] Parity backlog noise removed
+
+**Outcome:**
+- Files changed: packages/core/src/firebase/config.ts, apps/web/next.config.js, .env.crush-web-web, apps/web/src/app/auth/verify/page.tsx (new), docs/TODO_WEBAPP.md
+- Vercel env vars: All 8 Firebase vars removed and re-added cleanly
+- Result: All fixes deployed, all routes verified, TODO re-baselined from 1307 to ~350 lines
+- Commit: b41b5df
+
+---
+
+### Task #012 — GDPR Cookie Consent, CSRF, Rate Limiting, HttpOnly Auth Cookie
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Implement the 4 deferred security/compliance items from the audit remediation
+- Implicit requirements: Production-ready, no breaking changes to existing auth flow
+
+**Refined Prompt:**
+
+### Objective
+Implement remaining audit remediation items:
+1. GDPR cookie consent banner (accept/decline, localStorage persistence)
+2. CSRF protection on all mutating API routes (Origin/Referer verification)
+3. Rate limiting on API endpoints (in-memory sliding window)
+4. Migrate auth cookie from client-side document.cookie to server-side HttpOnly
+
+### Success Criteria
+- [x] Cookie consent banner renders on first visit, respects user choice
+- [x] CSRF blocks requests without valid Origin header (403)
+- [x] Rate limiter returns 429 after threshold exceeded
+- [x] Auth cookie set via HttpOnly server-side API, not accessible to XSS
+- [x] 24/24 smoke tests pass
+
+**Outcome:**
+- Files added: cookie-consent.tsx, csrf.ts, rate-limit.ts, api/auth/session/route.ts
+- Files modified: app-providers.tsx, stripe/route.ts, (app)/layout.tsx, stores/auth.ts
+- Result: All 4 items implemented, deployed (47 pages), 24/24 smoke tests pass
+- Commit: 9ba6f04
+
+---
+
+### Task #011 — Critical Audit Remediation (JSON-LD, Security, SEO, Accessibility)
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix all critical and high-priority issues from the 3-part web app audit
+- Implicit requirements: Clean deployment, no regressions, verifiable via smoke tests
+
+**Refined Prompt:**
+
+### Objective
+Fix 14 issues identified in the audit: JSON-LD problems, broken SEO assets, accessibility violations, security gaps, and dead download links.
+
+### Success Criteria
+- [x] JSON-LD: No fabricated data, no non-existent routes referenced
+- [x] OG/Twitter images: PNG format via Next.js edge generators
+- [x] WCAG: Viewport allows pinch-to-zoom
+- [x] CSP header present on all responses
+- [x] Download section has #download anchor
+- [x] Store buttons show "Coming Soon" (not broken href="#")
+- [x] 24/24 smoke tests pass
+
+**Outcome:**
+- Files added: opengraph-image.tsx, twitter-image.tsx, icon.tsx, apple-icon.tsx
+- Files modified: layout.tsx (3), page.tsx, next.config.js, manifest.json, stripe route, providers
+- Result: All issues fixed, deployed (46 pages), 24/24 smoke tests, all image routes return 200 PNG
+- Commit: 1d10754
+
+---
+
+### Task #010 — Senior Frontend/UX Audit of crush-web Homepage
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Comprehensive frontend/UX audit of the live homepage at crush-web-chi.vercel.app
+- Secondary goals: Identify broken links, missing resources, SEO issues, accessibility concerns, structural problems
+- Implicit requirements: Actionable findings with severity levels, covering 10 specific audit areas
+- Quality expectations: Senior-level analysis with concrete recommendations
+
+**Refined Prompt:**
+
+### Objective
+Perform a thorough senior frontend developer / UX audit of https://crush-web-chi.vercel.app/ covering:
+1. Internal link validation (Next.js Link components, dead links)
+2. Meta tag completeness (title, description, OG, Twitter cards)
+3. JSON-LD structured data validity
+4. Heading hierarchy (h1 > h2 > h3)
+5. Console-visible HTML issues (inline scripts, missing resources)
+6. Download section anchor (#download) existence
+7. Footer link validation
+8. Missing resource references (images, fonts)
+9. Pricing section CTA routing
+10. Mobile responsiveness indicators
+
+### Success Criteria
+- [x] All 10 audit areas analyzed with findings documented
+- [x] Each issue categorized by severity (Critical/High/Medium/Low)
+- [x] Actionable fix recommendations provided
+
+**Outcome:**
+- Files changed: docs/ai_change_log.md, docs/ai_tasks_board.md, docs/Developer_agent_chat.md
+- Result: 14 issues found across 10 audit areas — see full analysis in response
+- Notes: Most critical issues: missing id="download" anchor, logo.png 404 in JSON-LD, SVG OG image incompatibility, placeholder store download links, fabricated ratings in structured data
+
+---
+
 ### Task #001 — Implement Bidirectional Chat Messaging
 **Date:** 2026-01-23
 **Agent:** Claude
@@ -2036,3 +2185,50 @@ firebase deploy --only functions
 - Files changed: TBD
 - Result: TBD
 - Notes: TBD
+
+---
+
+### Task #011 — Create Web App Public Assets (favicon, manifest, OG image)
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Create essential public assets for the crush-web Next.js app (favicon, PWA manifest, OG social image)
+- Secondary goals: Establish brand-consistent visual identity with rose-600 (#E11D48) color
+- Implicit requirements: Files must be valid SVG/JSON, properly structured for web standards
+- Quality expectations: Clean, well-structured files ready for production use
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Create three public asset files for the Crush dating web app in `/Users/ace/crush-web/apps/web/public/`: an SVG favicon, a PWA manifest, and an SVG OG image placeholder.
+
+### Technical Requirements
+1. `favicon.svg` — 32x32 viewBox, rounded rectangle background filled #E11D48, white heart path centered
+2. `manifest.json` — Valid PWA manifest with name "Crush", standalone display, theme_color #E11D48, referencing the SVG favicon
+3. `og-image.svg` — 1200x630 viewport, rose-to-purple linear gradient, centered "Crush" text, heart icon, "Find Your Perfect Match" tagline
+
+### Implementation Plan
+**Step 1:** Verify target directory exists at `/Users/ace/crush-web/apps/web/public/`
+**Step 2:** Create `favicon.svg` with heart SVG path on rounded pink background
+**Step 3:** Create `manifest.json` with PWA metadata and SVG icon reference
+**Step 4:** Create `og-image.svg` with gradient, typography, and heart decoration
+
+### Files to Create
+- `apps/web/public/favicon.svg` — SVG favicon
+- `apps/web/public/manifest.json` — PWA manifest
+- `apps/web/public/og-image.svg` — Open Graph social sharing image
+
+### Success Criteria
+- [x] All three files created in correct directory
+- [x] favicon.svg renders a white heart on rose background
+- [x] manifest.json is valid JSON with correct PWA fields
+- [x] og-image.svg has gradient, text, and heart elements
+
+**Related Task ID:** T-2026-02-11-02
+
+**Outcome:**
+- Files created: `favicon.svg` (342B), `manifest.json` (413B), `og-image.svg` (1891B)
+- Result: All files created successfully
+- Notes: SVG format used since binary .ico/.png cannot be generated directly; layout.tsx should be updated to reference these assets; rasterized PNG versions needed for full browser/social platform compatibility

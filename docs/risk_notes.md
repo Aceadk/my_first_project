@@ -4,6 +4,37 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-123 — Firestore env var contamination (%0A in projectId) (RESOLVED)
+
+Category: Infrastructure / Production
+
+Description:
+Firebase environment variables set in Vercel 15 days ago contained trailing whitespace/newline characters. This caused Firestore project path to include `%0A` (URL-encoded newline), resulting in "client is offline" errors for all Firestore operations in production.
+
+Impact: Critical (P0)
+
+Likelihood: Confirmed (was actively breaking production)
+
+Affected Areas:
+* packages/core/src/firebase/config.ts
+* All Firestore reads/writes in production
+* User authentication persistence
+
+Resolution:
+* ✅ Added `.trim()` to all 7 Firebase env var reads in config.ts (defensive)
+* ✅ Removed and re-added all 8 Firebase env vars in Vercel (clean values)
+* ✅ Fixed tab character in `.env.crush-web-web` API key value
+* ✅ Deployed and verified — 48 pages build, all routes return expected status
+
+Status: Resolved
+
+Owner: AI
+
+Created: 2026-02-11
+Resolved: 2026-02-11
+
+---
+
 ### R-120 — Minimum Flutter/Dart toolchain bumped by dependency upgrades
 
 Category: Build / Tooling

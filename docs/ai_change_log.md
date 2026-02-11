@@ -4,6 +4,362 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-11] Task: Fix Firestore env contamination, /auth/verify, redirects, re-baseline TODO (crush-web)
+
+**Summary:**
+- Fixed P0 Firestore env var contamination: added `.trim()` to all Firebase config reads
+- Fixed tab character in `.env.crush-web-web` FIREBASE_API_KEY value
+- Re-set all 8 Firebase environment variables in Vercel (clean, no whitespace)
+- Created `/auth/verify` page for email verification (Firebase applyActionCode)
+- Added redirects: `/likes-you`→`/likes`, `/reset-password`→`/auth/forgot-password`, `/auth/reset-password`→`/auth/forgot-password`, `/verify`→`/auth/verify`
+- Re-baselined `TODO_WEBAPP.md`: removed 652-item Dart parity backlog noise, updated all phase percentages, marked security/SEO/GDPR items done, added change log entries
+
+**Repository:** Aceadk/crush-web + my_first_project (docs)
+
+**Files Added:**
+- `apps/web/src/app/auth/verify/page.tsx` — Email verification page (Suspense + Firebase applyActionCode)
+
+**Files Modified:**
+- `packages/core/src/firebase/config.ts` — Added .trim() to all 7 env var reads
+- `apps/web/next.config.js` — Added 4 redirect rules
+- `.env.crush-web-web` — Removed tab character from API key value
+- `/docs/TODO_WEBAPP.md` — Full re-baseline (1307→~350 lines)
+
+**Vercel Environment Changes:**
+- Removed and re-added all 8 Firebase env vars (NEXT_PUBLIC_FIREBASE_*) to eliminate whitespace contamination
+
+**Verification:**
+- Build: 48 pages compiled, 0 errors
+- /auth/verify → 200
+- /likes-you → 308 redirect to /likes
+- /auth/reset-password → 308 redirect to /auth/forgot-password
+- /reset-password → 308 redirect to /auth/forgot-password
+- /verify → 308 redirect to /auth/verify
+
+**Risks & Mitigations:**
+- Risk: Existing sessions may have stale projectId in cached Firebase config
+  - Mitigation: .trim() is applied at config read time; users will get clean config on next page load
+- Risk: Re-set Vercel env vars could have typos
+  - Mitigation: Values copied directly from Firebase console; confirmed via `vercel env pull`
+
+**Follow-ups / TODO:**
+- Monitor Firestore "client offline" errors in production to confirm P0 fix
+- Consider server-side Firebase Admin SDK token verification for /auth/verify
+
+---
+
+## [2026-02-11] Task: GDPR Cookie Consent, CSRF Protection, Rate Limiting, HttpOnly Auth Cookie (crush-web)
+
+**Summary:**
+- Added GDPR/CCPA cookie consent banner with accept/decline, persisted in localStorage
+- Added CSRF protection via Origin/Referer header verification on all mutating API endpoints
+- Added in-memory sliding-window rate limiter (10 checkout/15min, 20 session/15min per IP)
+- Migrated auth cookie from client-side document.cookie to server-side HttpOnly cookie
+  - New POST /api/auth/session endpoint sets HttpOnly+Secure+SameSite=Lax cookie
+  - New DELETE /api/auth/session endpoint clears cookie on sign-out
+- Updated auth store (packages/core) to call session API instead of document.cookie
+- Updated (app) layout to use session API for stale cookie cleanup
+
+**Repository:** Aceadk/crush-web
+
+**Files Added:**
+- `apps/web/src/shared/components/cookie-consent.tsx` — GDPR cookie consent banner component
+- `apps/web/src/shared/lib/csrf.ts` — Origin/Referer CSRF verification utility
+- `apps/web/src/shared/lib/rate-limit.ts` — In-memory sliding window rate limiter
+- `apps/web/src/app/api/auth/session/route.ts` — HttpOnly auth cookie API (POST/DELETE)
+
+**Files Modified:**
+- `apps/web/src/shared/providers/app-providers.tsx` — Added CookieConsent component
+- `apps/web/src/app/api/stripe/create-checkout-session/route.ts` — Added CSRF + rate limiting
+- `apps/web/src/app/(app)/layout.tsx` — Use session API for cookie cleanup
+- `packages/core/src/stores/auth.ts` — Replaced document.cookie with fetch /api/auth/session
+
+**Verification:**
+- Build: 47 pages, 0 errors
+- Smoke tests: 24/24 PASS
+- CSRF blocks requests without Origin header (verified)
+- Session endpoint returns 405 on GET, 403 on CSRF failure (verified)
+
+**Risks & Mitigations:**
+- Risk: In-memory rate limiter resets on serverless cold starts
+  - Mitigation: Adequate for Vercel hobby plan; upgrade to Upstash Redis for production scale
+- Risk: CSRF Origin check may block legitimate cross-origin integrations
+  - Mitigation: Allowed origins list includes production URL, Vercel preview, and localhost
+- Risk: HttpOnly cookie migration may break existing sessions
+  - Mitigation: Auth store has fallback to document.cookie clear if API call fails
+
+**Follow-ups / TODO:**
+- Consider Upstash Redis for distributed rate limiting at scale
+- Add cookie consent preference to analytics (respect declined consent)
+
+---
+
+## [2026-02-11] Task: Critical Audit Remediation — JSON-LD, Security, SEO, Accessibility (crush-web)
+
+**Summary:**
+- Fixed all critical and high-priority issues from the comprehensive 3-part web app audit
+- Removed fabricated aggregateRating from JSON-LD (Google penalty risk)
+- Removed non-existent SearchAction from WebSite JSON-LD
+- Fixed logo.png 404 in Organization schema (changed to favicon.svg)
+- Added `id="download"` anchor to homepage download section
+- Fixed WCAG violation: removed `user-scalable=no` and `maximumScale: 1` from viewport
+- Replaced App Store/Play Store `href="#"` buttons with "Coming Soon" spans
+- Added Content Security Policy (CSP) header covering Firebase, Stripe, Google Fonts
+- Added auth token check to Stripe checkout API endpoint
+- Added input validation for discount percent in Stripe endpoint
+- Conditionally load ReactQueryDevtools (dev only)
+- Created Next.js `opengraph-image.tsx` and `twitter-image.tsx` for auto-generated PNG OG images
+- Created `icon.tsx` (32x32 PNG) and `apple-icon.tsx` (180x180 PNG) for favicon fallbacks
+- Removed static SVG OG image references from metadata (Next.js auto-discovers .tsx image files)
+- Updated manifest.json with PNG icon entries
+- All deployed and verified: 24/24 smoke tests pass, all 4 new image routes return 200 image/png
+
+**Repository:** Aceadk/crush-web
+
+**Files Added:**
+- `apps/web/src/app/opengraph-image.tsx` — Next.js OG image generator (1200x630 PNG)
+- `apps/web/src/app/twitter-image.tsx` — Next.js Twitter card image generator (1200x630 PNG)
+- `apps/web/src/app/icon.tsx` — Next.js favicon generator (32x32 PNG)
+- `apps/web/src/app/apple-icon.tsx` — Next.js Apple touch icon generator (180x180 PNG)
+
+**Files Modified:**
+- `apps/web/src/app/layout.tsx` — Removed fabricated aggregateRating, SearchAction, logo.png→favicon.svg, removed SVG OG image refs, fixed viewport a11y, simplified icon metadata
+- `apps/web/src/app/(marketing)/layout.tsx` — Removed SVG OG image references
+- `apps/web/src/app/(marketing)/page.tsx` — Added `id="download"` anchor, replaced store buttons with Coming Soon spans
+- `apps/web/src/app/api/stripe/create-checkout-session/route.ts` — Added auth token check + discount validation
+- `apps/web/src/shared/providers/app-providers.tsx` — ReactQueryDevtools conditional on NODE_ENV=development
+- `apps/web/next.config.js` — Added CSP header
+- `apps/web/public/manifest.json` — Added PNG icon entries
+
+**Verification:**
+- Build: 46 pages compiled, 0 errors
+- Smoke tests: 24/24 PASS
+- New image routes: /opengraph-image, /twitter-image, /icon, /apple-icon all return 200 image/png
+- CSP header confirmed on all responses
+
+**Risks & Mitigations:**
+- Risk: CSP may block legitimate third-party scripts not yet whitelisted
+  - Mitigation: Includes Firebase, Stripe, Google Fonts, Google APIs — comprehensive coverage
+- Risk: ReactQueryDevtools still imported but tree-shaken in prod
+  - Mitigation: Conditional render ensures component never mounts in production
+
+**Follow-ups / TODO:**
+- Cookie consent banner (GDPR) — deferred to next sprint
+- CSRF protection on API routes — deferred to next sprint
+- Rate limiting on API endpoints — deferred to next sprint
+- HttpOnly auth cookie (requires server-side cookie setting) — architectural change needed
+
+---
+
+## [2026-02-11] Task: Senior Frontend/UX Audit of crush-web Homepage
+
+**Summary:**
+- Performed comprehensive 10-point audit of https://crush-web-chi.vercel.app/
+- Identified 14 issues across meta tags, JSON-LD, links, resources, accessibility, and responsiveness
+- No code changes — audit-only task producing actionable findings
+
+**Repository:** Aceadk/crush-web (analysis of live deployment)
+
+**Files Added:** None
+**Files Modified:** Documentation only (this repo)
+**Files Deleted:** None
+
+**Key Findings (14 issues):**
+1. CRITICAL: logo.png referenced in JSON-LD Organization schema returns 404
+2. CRITICAL: Missing `id="download"` anchor — footer links to `/#download` but no matching element exists
+3. HIGH: OG/Twitter image is SVG — most social platforms (Facebook, Twitter, LinkedIn) require PNG/JPG
+4. HIGH: JSON-LD SoftwareApplication has fabricated aggregateRating (4.8 stars, 150K reviews) — may cause Google penalty
+5. HIGH: JSON-LD WebSite SearchAction references /search?q= route which returns 404
+6. HIGH: App Store/Google Play download buttons are placeholder `href="#"`
+7. MEDIUM: Page title has redundant branding — contains "Crush" twice
+8. MEDIUM: viewport meta uses `user-scalable=no` — accessibility concern (WCAG violation)
+9. MEDIUM: favicon uses SVG only — no .ico/.png fallback for older browsers
+10. MEDIUM: Social media accounts (crushapp) may not exist — links could 404
+11. LOW: No explicit `<img>` tags found — icons likely use SVG inline or CSS
+12. LOW: og:url meta tag not explicitly set (Next.js may auto-generate)
+13. LOW: Facebook link only in JSON-LD sameAs, not visible in footer
+14. INFO: Proper heading hierarchy maintained (h1 > h2 > h3 > h4)
+
+**Risks & Mitigations:**
+- Risk: Google may penalize or remove rich results for fabricated ratings
+  - Mitigation: Remove aggregateRating from JSON-LD until real app store data exists
+- Risk: Social sharing previews broken due to SVG OG image
+  - Mitigation: Generate PNG version of og-image (1200x630)
+- Risk: logo.png 404 degrades Organization schema validity
+  - Mitigation: Create logo.png or update JSON-LD to reference favicon.svg
+
+**Follow-ups / TODO:**
+- Fix logo.png 404 (create file or update JSON-LD reference)
+- Add `id="download"` to the download section
+- Generate PNG og-image for social sharing
+- Remove or correct aggregateRating in SoftwareApplication schema
+- Remove SearchAction from WebSite schema (no /search route exists)
+- Replace placeholder store download links with real App Store/Play Store URLs
+- Add PNG/ICO favicon fallback
+- Remove `user-scalable=no` from viewport meta
+- Fix duplicate "Crush" in page title
+
+---
+
+## [2026-02-11] Task: Web App SEO, Auth Routes, Assets & Smoke Test (crush-web)
+
+**Summary:**
+- Fixed JSON-LD newline bug: NEXT_PUBLIC_APP_URL env var had trailing \n. Added .trim() in code and re-set env var in Vercel.
+- Created public assets: favicon.svg, manifest.json, og-image.svg in apps/web/public/
+- Updated layout.tsx metadata to reference SVG assets instead of missing PNGs
+- Created /finishSignIn route for Firebase email-link auth completion
+- Created /auth/callback route for OAuth provider redirect handling
+- Fixed /download footer links to /#download in features, pricing, faq pages
+- Fixed placeholder social media href="#" links with actual URLs across homepage, features, contact pages
+- Added /guidelines to sitemap.ts
+- Added .trim() to baseUrl in sitemap.ts and robots.ts
+- Created CI smoke test script (scripts/smoke-test.sh) — 24/24 checks pass
+- All deployed to Vercel production, verified live
+
+**Repository:** Aceadk/crush-web
+
+**Files Added:**
+- `apps/web/public/favicon.svg` — SVG heart favicon
+- `apps/web/public/manifest.json` — PWA manifest
+- `apps/web/public/og-image.svg` — Open Graph image
+- `apps/web/src/app/finishSignIn/page.tsx` — Firebase email-link auth completion
+- `apps/web/src/app/auth/callback/page.tsx` — OAuth callback handler
+- `scripts/smoke-test.sh` — CI smoke test (24 checks: routes, assets, redirects, TLS)
+
+**Files Modified:**
+- `apps/web/src/app/layout.tsx` — Trimmed appUrl, updated favicon/OG refs to SVG
+- `apps/web/src/app/(marketing)/layout.tsx` — Updated OG image to SVG
+- `apps/web/src/app/(marketing)/page.tsx` — Fixed social media links
+- `apps/web/src/app/(marketing)/features/features-content.tsx` — Fixed download + social links
+- `apps/web/src/app/(marketing)/pricing/pricing-content.tsx` — Fixed download link
+- `apps/web/src/app/(marketing)/faq/faq-content.tsx` — Fixed download link
+- `apps/web/src/app/(marketing)/contact/contact-content.tsx` — Fixed social links
+- `apps/web/src/app/sitemap.ts` — Added /guidelines, trimmed baseUrl
+- `apps/web/src/app/robots.ts` — Trimmed baseUrl
+
+**Vercel Env Change:**
+- `NEXT_PUBLIC_APP_URL`: Removed and re-added without trailing newline
+
+**Release Gate Results (24/24 PASS):**
+- 14 page routes: all 200
+- 5 static assets: all 200
+- 4 redirects: all working (308/307)
+- 1 TLS check: valid
+
+**Risks & Mitigations:**
+- Risk: SVG OG images not supported by all social platforms — need PNG versions for production
+- Risk: Social media accounts (crushapp) may not exist yet
+- Risk: finishSignIn uses dynamic import of firebase/auth — may fail if Firebase not initialized
+
+**Follow-ups / TODO:**
+- Generate rasterized PNG versions of favicon and OG image
+- Create/claim social media accounts
+- Verify Firebase email-link auth action URL points to /finishSignIn
+
+---
+
+## [2026-02-11] Task: Fix Placeholder Social Media Links (crush-web)
+
+**Summary:**
+- Replaced placeholder `href="#"` social media links with real URLs in two marketing pages
+- Added `target="_blank"`, `rel="noopener noreferrer"`, and `aria-label` attributes to all social links for security and accessibility
+
+**Repository:** Aceadk/crush-web (separate from main Flutter repo)
+
+**Files Modified:**
+- `apps/web/src/app/(marketing)/features/features-content.tsx` — Updated 2 social links in footer (Twitter, Instagram)
+- `apps/web/src/app/(marketing)/contact/contact-content.tsx` — Updated 4 social links in "Follow Us" section (Twitter, Instagram, YouTube, TikTok)
+
+**Why / Notes:**
+- Social media links were placeholder `href="#"` which provided no navigation and poor UX
+- Added `target="_blank"` so links open in new tab (standard for external links)
+- Added `rel="noopener noreferrer"` for security (prevents tab-napping)
+- Added `aria-label` for screen reader accessibility
+
+**Social URLs Applied:**
+- Twitter: https://twitter.com/crushapp
+- Instagram: https://instagram.com/crushapp
+- YouTube: https://youtube.com/@crushapp (contact page only)
+- TikTok: https://tiktok.com/@crushapp (contact page only)
+
+**Risks & Mitigations:**
+- Risk: Social accounts may not exist yet — links will 404 until accounts are created
+- Mitigation: URLs follow standard platform patterns and can be claimed
+
+**Follow-ups / TODO:**
+- Create/claim the social media accounts if not already done
+- Verify same placeholder links don't exist on other marketing pages
+
+---
+
+## [2026-02-11] Task: Create Web App Public Assets (favicon, manifest, OG image)
+
+**Summary:**
+- Created SVG favicon with heart icon on rose-600 (#E11D48) rounded background
+- Created PWA manifest.json for "Crush" dating app with standalone display mode
+- Created OG image SVG placeholder (1200x630) with rose-to-purple gradient, heart icon, app name, and tagline
+
+**Repository:** Aceadk/crush-web (separate from main Flutter repo)
+
+**Files Added:**
+- `apps/web/public/favicon.svg` — SVG favicon with white heart on #E11D48 rounded rectangle
+- `apps/web/public/manifest.json` — PWA manifest with app metadata, theme/background colors, and SVG icon reference
+- `apps/web/public/og-image.svg` — Open Graph social sharing image with gradient background, heart, "Crush" title, and "Find Your Perfect Match" tagline
+
+**Why / Notes:**
+- Web app needs favicon, PWA manifest, and OG image for proper browser display and social sharing
+- SVG format chosen because binary .ico and .png cannot be created directly by AI
+- Layout file should be updated to reference favicon.svg and manifest.json
+
+**Risks & Mitigations:**
+- Risk: Some older browsers don't support SVG favicons — fallback would require a real .ico file generated from the SVG
+- Risk: OG image is SVG but social platforms (Twitter, Facebook) prefer PNG/JPG — will need rasterized version for production
+
+**Follow-ups / TODO:**
+- Update Next.js layout to reference favicon.svg and manifest.json in <head>
+- Generate rasterized PNG versions of favicon and OG image for broader compatibility
+- Add apple-touch-icon.png for iOS home screen
+
+---
+
+## [2026-02-11] Task: Fix Web App Bugs (crush-web / Vercel)
+
+**Summary:**
+- Fixed 7 bugs found during testing of crush-web-chi.vercel.app
+- Added URL redirects for common route patterns (/login, /signup, /chat, /download, etc.)
+- Created public /safety marketing page (safety features, dating tips, emergency resources)
+- Created public /guidelines marketing page (community dos/donts, content standards)
+- Fixed footer dead link (/download → /#download)
+- Resolved Next.js build conflict between (app)/safety and (marketing)/safety by renaming authenticated safety tool to /date-safety
+- Successfully deployed to Vercel production
+
+**Repository:** Aceadk/crush-web (separate from main Flutter repo)
+
+**Files Added:**
+- `apps/web/src/app/(marketing)/safety/page.tsx` — Public safety info page
+- `apps/web/src/app/(marketing)/guidelines/page.tsx` — Community guidelines page
+
+**Files Modified:**
+- `apps/web/next.config.js` — Added 7 URL redirects
+- `apps/web/src/app/(marketing)/page.tsx` — Fixed /download footer link to /#download
+- `apps/web/src/middleware.ts` — Changed /safety to /date-safety in protected routes
+- `apps/web/src/app/(app)/safety/page.tsx` → renamed to `apps/web/src/app/(app)/date-safety/page.tsx`
+
+**Why / Notes:**
+- Web app testing revealed broken routes, missing public pages, and dead footer links
+- The /safety URL was auth-protected but linked from all marketing pages; created public version
+- Next.js parallel routes cannot have two pages resolving to the same path
+
+**Risks & Mitigations:**
+- Risk: Authenticated /safety page moved to /date-safety — no internal app links referenced /safety
+- Risk: Redirects are permanent (301) — appropriate since these are canonical URL corrections
+
+**Follow-ups / TODO:**
+- Monitor Vercel deployment for any build issues
+- Test remaining routes from the web testing plan
+
+---
+
 ## [2026-02-06] Task: Resend API Key/Domain Setup
 
 **Summary:**
