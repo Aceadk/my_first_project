@@ -4,6 +4,35 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-11] Task: Investigate 5 Failing Flutter Tests (Analysis Only)
+
+**Summary:**
+- Ran `flutter test` and identified all 5 failing tests out of 302 passing, 6 skipped
+- Analysis-only task — no code changes made
+- Root causes: 3 tests fail due to AnalyticsService.instance accessing FirebaseAnalytics without Firebase mock; 1 fails due to UI widget icon change; 1 fails due to SwipeCard text expectation mismatch
+
+**Files Added:** None
+**Files Modified:** Documentation only (this repo)
+**Files Deleted:** None
+
+**Findings:**
+1. `chat_bloc_media_limit_test.dart` — "allows media for Plus users" — AnalyticsService.logMediaSent calls FirebaseAnalytics.instance
+2. `safety_cubit_test.dart` — "blocks and unblocks users" — AnalyticsService.logUserBlocked calls FirebaseAnalytics.instance
+3. `safety_cubit_test.dart` — "reports users via backend" — AnalyticsService.logUserReported calls FirebaseAnalytics.instance
+4. `deck_gating_test.dart` — "deck shows gating dialog" — ProfileBloc._onLoadRequested calls AnalyticsService.logProfileViewed + icon finder fails
+5. `swipe_card_test.dart` — "shows fallbacks when data is missing" — expects 'has not added a bio' but compact card filters out fallback bio text
+
+**Risks & Mitigations:**
+- These 5 tests have been failing since at least the last code changes touching AnalyticsService and SwipeCard
+- No production risk — tests only
+
+**Follow-ups / TODO:**
+- Fix tests by either: (a) calling setupFirebaseAnalyticsMocks() or AnalyticsService.setInstance(StubAnalyticsService()) in setUp, or (b) wrapping analytics calls in try-catch in production code
+- Fix swipe_card_test expectation to match actual widget rendering
+- Fix deck_gating_test icon finder to match actual DeckScreen icons
+
+---
+
 ## [2026-02-11] Task: Fix Discovery Visibility & Age Display
 
 **Summary:**

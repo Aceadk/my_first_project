@@ -87,6 +87,39 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #016 — Investigate 5 Failing Flutter Tests
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Identify all 5 failing Flutter tests, their error messages, root causes, and what needs to be fixed
+- Secondary goals: Understand the Firebase mock infrastructure and how tests should be set up
+- Implicit requirements: Read test files, mock files, and production code to trace failure chains
+- Quality expectations: Detailed analysis with exact test names, error messages, code references, and fix recommendations
+
+**Refined Prompt:**
+
+### Objective
+Run `flutter test`, capture output, identify all 5 failing tests with exact names and error messages, read relevant test and mock files, and produce a root cause analysis.
+
+### Technical Requirements
+1. Run `flutter test 2>&1` and capture full output
+2. Identify all 5 failing test cases (file + test name + error message)
+3. Read each failing test file and its mock/setup code
+4. Read the AnalyticsService singleton and Firebase mock infrastructure
+5. Trace each failure from error to root cause
+6. Categorize failures (Firebase mock issues vs. UI text mismatches)
+
+### Outcome
+- 5 failing tests identified with root causes documented
+- 3 failures caused by AnalyticsService.instance accessing FirebaseAnalytics.instance without Firebase mock setup
+- 1 failure caused by icon not found (DeckScreen UI changed)
+- 1 failure caused by SwipeCard text expectation mismatch
+- Full analysis provided to developer
+
+---
+
 ### Task #015 — Fix Age Display Showing "0 years old"
 **Date:** 2026-02-11
 **Agent:** Claude
