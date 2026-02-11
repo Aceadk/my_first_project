@@ -80,6 +80,7 @@ void main() {
 
     expect(find.textContaining('Someone new'), findsOneWidget);
     expect(find.text('Location unavailable'), findsOneWidget);
-    expect(find.textContaining('has not added a bio'), findsOneWidget);
+    // Compact card intentionally hides the fallback bio text
+    expect(find.textContaining('has not added a bio'), findsNothing);
   });
 }

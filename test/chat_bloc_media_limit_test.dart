@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
@@ -14,6 +15,8 @@ import 'package:crushhour/features/subscription/data/repositories/subscription_r
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
+
+import 'mock/stub_analytics_service.dart';
 
 class _FakeChatRepository implements ChatRepository {
   final List<Message> sent = [];
@@ -426,6 +429,14 @@ Message _mediaMessage(String userId, MessageType type) => Message(
 
 void main() {
   group('ChatBloc media limits', () {
+    setUp(() {
+      AnalyticsService.setInstance(StubAnalyticsService());
+    });
+
+    tearDown(() {
+      AnalyticsService.resetInstance();
+    });
+
     test('blocks media when non-Plus user exceeds limit', () async {
       final chatRepo = _FakeChatRepository();
       final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.free);

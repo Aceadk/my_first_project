@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
@@ -14,6 +15,8 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
@@ -28,8 +31,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'mock/stub_analytics_service.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    AnalyticsService.setInstance(StubAnalyticsService());
+  });
+
+  tearDown(() {
+    AnalyticsService.resetInstance();
+  });
 
   const prefs = DiscoveryPreferences(
     minAge: 18,
@@ -117,6 +130,11 @@ void main() {
                 subscriptionRepository: _StubSubscriptionRepository(),
               ),
             ),
+            BlocProvider<BoostCubit>(
+              create: (_) => BoostCubit(
+                boostRepository: _StubBoostRepository(),
+              ),
+            ),
           ],
           child: const MaterialApp(home: DeckScreen()),
         ),
@@ -125,7 +143,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.favorite));
+    await tester.tap(find.byIcon(Icons.favorite_rounded));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Complete your profile'), findsOneWidget);
@@ -639,4 +657,21 @@ class _NoopChatRepository implements ChatRepository {
     required List<CrushMatch> matches,
   }) async =>
       0;
+}
+
+class _StubBoostRepository implements BoostRepository {
+  @override
+  Future<BoostStatus> getBoostStatus(String userId) async =>
+      const BoostStatus(canBoost: false, nextBoostAvailableAt: null);
+
+  @override
+  Future<BoostSession> activateBoost(String userId) async =>
+      BoostSession(
+        startedAt: DateTime.now(),
+        endsAt: DateTime.now().add(const Duration(minutes: 30)),
+        isActive: true,
+      );
+
+  @override
+  Future<List<BoostSession>> getBoostHistory(String userId) async => [];
 }
