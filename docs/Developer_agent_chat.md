@@ -87,6 +87,122 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #015 — Fix Age Display Showing "0 years old"
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix the age display that shows "0 years old" on profile views and swipe cards in the web app
+- Secondary goals: Ensure age calculation works reliably across all components that display user age
+- Implicit requirements: Handle edge cases like missing or invalid birthDate gracefully; don't break existing functionality
+- Quality expectations: Reusable utility function, proper TypeScript types, fallback behavior
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Fix the web app's age display which shows "0 years old" because it reads a static `age` field (which is 0 or missing for web-created profiles) instead of dynamically calculating age from the user's `birthDate` field.
+
+### Technical Requirements
+1. Create a `calculateAge(birthDate)` utility function in `packages/core/src/types/user.ts` that computes age from a birthDate (Timestamp or Date)
+2. Export the function from `packages/core/src/index.ts`
+3. Add `birthDate` to the `DiscoveryProfile` interface in `packages/core/src/types/match.ts`
+4. Include `birthDate` in the discovery profile mapping in `packages/core/src/services/match.ts`
+5. Update `profile-view.tsx` to use `calculateAge()` instead of the static `age` field
+6. Update `swipe-card.tsx` to use `calculateAge()` instead of the static `age` field
+7. Fix the discover page to show errors instead of hiding them in the empty state
+
+### Implementation Plan
+**Step 1:** Add `calculateAge()` to `packages/core/src/types/user.ts` — handles Firestore Timestamps and JS Dates, returns undefined for invalid input
+**Step 2:** Export from `packages/core/src/index.ts`
+**Step 3:** Add `birthDate?: any` to `DiscoveryProfile` in `packages/core/src/types/match.ts`
+**Step 4:** Map `birthDate` from Firestore doc in `packages/core/src/services/match.ts`
+**Step 5:** Update `profile-view.tsx` to call `calculateAge(user.birthDate)` with fallback to `user.age`
+**Step 6:** Update `swipe-card.tsx` to call `calculateAge(profile.birthDate)` with fallback to `profile.age`
+**Step 7:** Update `discover/page.tsx` to display error message when profiles array is empty but an error exists
+
+### Files to Modify/Create
+- `packages/core/src/types/user.ts` — Add calculateAge() utility
+- `packages/core/src/index.ts` — Export calculateAge
+- `packages/core/src/types/match.ts` — Add birthDate to DiscoveryProfile
+- `packages/core/src/services/match.ts` — Map birthDate in discovery profiles
+- `apps/web/src/app/(app)/profile/profile-view.tsx` — Use calculateAge()
+- `apps/web/src/features/discover/components/swipe-card.tsx` — Use calculateAge()
+- `apps/web/src/app/(app)/discover/page.tsx` — Show errors in empty state
+
+### Success Criteria
+- [x] Age displays correctly (calculated from birthDate) on profile view
+- [x] Age displays correctly on swipe cards in discovery
+- [x] Falls back to stored `age` field if birthDate is missing/invalid
+- [x] calculateAge() returns undefined for invalid dates
+- [x] Discover page shows error messages when they exist
+
+### Edge Cases & Error Handling
+- Missing birthDate field → falls back to stored age field
+- Invalid birthDate (not a Date or Timestamp) → calculateAge returns undefined
+- birthDate in the future → would return negative age, but this shouldn't happen with valid data
+
+**Related Task ID:** T-2026-02-11-14
+
+**Outcome:**
+- Files changed: 7 files across crush-web packages/core and apps/web
+- Result: Success — age now displays correctly using dynamic calculation from birthDate
+- Notes: The root cause was that web-created profiles store birthDate but don't compute a static `age` field; mobile profiles may have a static `age` but dynamic calculation is more reliable for both
+
+---
+
+### Task #014 — Fix Discovery Visibility (Firestore Rules Blocking Web Profiles)
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix discovery being completely broken for web-created users — other users cannot see their profiles
+- Secondary goals: Ensure Firestore security rules work for both web and mobile profile structures
+- Implicit requirements: Don't break mobile app's existing functionality; rules must be backward-compatible
+- Quality expectations: Null-safe rules that handle both document structures without ambiguity
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Fix Firestore security rules that block web-created user profiles from being read by other authenticated users. Web profiles use a flat document structure (fields at root level) while mobile profiles use a nested structure (fields under `profile` sub-object). The existing rules only check the nested path, causing null reference errors for web profiles.
+
+### Technical Requirements
+1. Make the user document read rule null-safe for both flat and nested structures
+2. The read rule checks `hideFromDiscovery` — must check `resource.data.profile.hideFromDiscovery` (mobile) OR `resource.data.hideFromDiscovery` (web)
+3. Fix the `isFemale()` helper function to check `resource.data.profile.gender` (mobile) OR `resource.data.gender` (web)
+4. Ensure all null checks use proper Firestore rules syntax (no short-circuit evaluation issues)
+
+### Implementation Plan
+**Step 1:** Update the user read rule to check `hideFromDiscovery` at both paths with null fallback
+**Step 2:** Update `isFemale()` to check gender at both paths with null fallback
+**Step 3:** Test that mobile profiles (nested) still work correctly
+**Step 4:** Test that web profiles (flat) now become readable
+
+### Files to Modify
+- `firestore.rules` — Update read rules and isFemale() helper to handle both structures
+
+### Success Criteria
+- [x] Web-created profiles are visible in discovery for other users
+- [x] Mobile-created profiles continue to work as before
+- [x] Users with hideFromDiscovery=true are still hidden regardless of structure
+- [x] isFemale() works for both flat and nested gender fields
+- [x] No null reference errors in Firestore rule evaluation
+
+### Edge Cases & Error Handling
+- Profile with neither flat nor nested gender → isFemale() returns false (safe default)
+- Profile with hideFromDiscovery missing entirely → treated as not hidden (safe for discovery)
+- Profile with both flat and nested fields → nested (mobile) takes precedence
+
+**Related Task ID:** T-2026-02-11-13
+
+**Outcome:**
+- Files changed: `firestore.rules` in my_first_project
+- Result: Success — web-created profiles now visible in discovery; mobile profiles unaffected
+- Notes: Root cause was structural mismatch between web SDK (flat docs) and mobile SDK (nested docs). Long-term fix should normalize the structure. See risk R-124 in risk_notes.md.
+
+---
+
 ### Task #013 — Fix black-box audit findings (Firestore P0, auth routes, redirects, docs re-baseline)
 **Date:** 2026-02-11
 **Agent:** Claude

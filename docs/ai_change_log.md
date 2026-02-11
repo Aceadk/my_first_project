@@ -4,6 +4,35 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-11] Task: Fix Discovery Visibility & Age Display
+
+**Summary:**
+- Fixed Firestore security rules that blocked web-created user profiles from being read by other users (discovery was broken)
+- Fixed age display showing "0 years old" by adding dynamic age calculation from birthDate
+- Fixed discover page hiding errors in empty state
+
+**Repository:** Aceadk/crush-web + my_first_project (Firestore rules)
+
+**Files Modified:**
+- `/Users/ace/my_first_project/firestore.rules` — Made user read rule null-safe for flat (web) vs nested (mobile) doc structures; fixed isFemale() for both structures
+- `/Users/ace/crush-web/packages/core/src/types/user.ts` — Added calculateAge() utility function
+- `/Users/ace/crush-web/packages/core/src/types/match.ts` — Added birthDate to DiscoveryProfile interface
+- `/Users/ace/crush-web/packages/core/src/index.ts` — Exported calculateAge
+- `/Users/ace/crush-web/packages/core/src/services/match.ts` — Include birthDate in discovery profile mapping
+- `/Users/ace/crush-web/apps/web/src/app/(app)/profile/profile-view.tsx` — Use calculateAge() for dynamic age display
+- `/Users/ace/crush-web/apps/web/src/features/discover/components/swipe-card.tsx` — Use calculateAge() for dynamic age display
+- `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` — Show errors in empty state
+
+**Risks & Mitigations:**
+- Risk: Firestore rules change could affect mobile app — Mitigated: rules are null-safe, mobile app's nested structure still works as before
+- Risk: calculateAge() edge case with invalid dates — Mitigated: returns undefined for invalid dates, falls back to stored age
+
+**Follow-ups / TODO:**
+- Consider normalizing web profile structure to match mobile (or vice versa) long-term
+- Monitor discovery queries for any remaining permission issues
+
+---
+
 ## [2026-02-11] Task: Fix location service errors (CSP + geolocation settings) (crush-web)
 
 **Summary:**

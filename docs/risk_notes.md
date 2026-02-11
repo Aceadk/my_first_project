@@ -4,6 +4,40 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-124 — Flat vs nested Firestore document structure mismatch (web vs mobile)
+
+Category: Architecture / Data Integrity
+
+Description:
+Web-created user profiles store fields at the document root (flat structure: `doc.displayName`, `doc.birthDate`, etc.) while mobile-created profiles store them nested under a `profile` sub-object (`doc.profile.displayName`, `doc.profile.birthDate`, etc.). This caused Firestore security rules to fail for web profiles because rules assumed the nested structure. The `isFemale()` helper and user read rules were also affected.
+
+Impact: High
+
+Likelihood: High (confirmed — discovery was completely broken for web users)
+
+Affected Areas:
+* `firestore.rules` — read rules and helper functions must handle both structures
+* `packages/core/src/services/match.ts` — discovery profile mapping
+* Any new Firestore rules or Cloud Functions that access user profile fields
+
+Resolution (Partial):
+* Made Firestore security rules null-safe: checks `resource.data.profile.hideFromDiscovery` with null fallback to `resource.data.hideFromDiscovery`
+* Fixed `isFemale()` to check both `resource.data.profile.gender` and `resource.data.gender`
+* Discovery now works for both web and mobile users
+
+Remaining Risk:
+* Any NEW Firestore rules or Cloud Functions that access user profile fields must handle both flat and nested structures
+* Long-term fix: normalize the document structure across web and mobile (either both flat or both nested)
+* Until normalized, every rule/function touching user docs is a potential regression point
+
+Status: Mitigated (short-term fix applied, structural normalization still needed)
+
+Owner: AI
+
+Created: 2026-02-11
+
+---
+
 ### R-123 — Firestore env var contamination (%0A in projectId) (RESOLVED)
 
 Category: Infrastructure / Production
