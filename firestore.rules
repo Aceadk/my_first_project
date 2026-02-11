@@ -31,8 +31,11 @@ service cloud.firestore {
     }
 
     // Check if user is female (for stories posting)
+    // Handles both nested (mobile: profile.gender) and flat (web: gender) structures
     function isFemale() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.gender == 'female';
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return ('profile' in userData && userData.profile.gender == 'female')
+          || (!('profile' in userData) && userData.gender == 'female');
     }
 
     // USERS
@@ -47,7 +50,10 @@ service cloud.firestore {
             && !hasBlockRelationship(uid)
             && (
               // Profile is visible (not hidden)
-              resource.data.profile.privacySettings.isProfileVisible != false
+              // Handle both nested (mobile) and flat (web) user document structures
+              !('profile' in resource.data)
+              || !('privacySettings' in resource.data.profile)
+              || resource.data.profile.privacySettings.isProfileVisible != false
               // OR viewer is a match (check if match exists between users)
               || exists(/databases/$(database)/documents/matches/$(request.auth.uid < uid ? request.auth.uid + '_' + uid : uid + '_' + request.auth.uid))
             ));
