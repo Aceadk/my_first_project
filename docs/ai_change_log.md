@@ -4,6 +4,33 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-11] Task: Fix location service errors (CSP + geolocation settings) (crush-web)
+
+**Summary:**
+- Fixed two bugs causing "location error" even when user grants location permission
+- Bug 1: CSP `connect-src` blocked `nominatim.openstreetmap.org` reverse geocoding API — added to whitelist
+- Bug 2: `enableHighAccuracy: true` with 10s timeout fails on desktops without GPS — changed to low-accuracy first (30s timeout), with automatic high-accuracy retry
+- Extracted `getPosition()` helper to avoid code duplication
+
+**Repository:** Aceadk/crush-web
+
+**Files Modified:**
+- `apps/web/next.config.js` — Added `https://nominatim.openstreetmap.org` to CSP `connect-src`
+- `packages/core/src/services/location.ts` — Rewrote `requestLocation()` with two-attempt strategy: low accuracy first (30s timeout, 5min cache), then high accuracy retry (15s timeout). Extracted `getPosition()` private helper.
+
+**Verification:**
+- Build: 48 pages, 0 errors
+- CSP header confirmed: `connect-src` now includes `https://nominatim.openstreetmap.org`
+- Deployed to production
+
+**Risks & Mitigations:**
+- Risk: Low-accuracy first attempt may give less precise location
+  - Mitigation: For a dating app, city-level accuracy is sufficient; high-accuracy retry follows if needed
+- Risk: 30s timeout may feel slow to user
+  - Mitigation: Most browsers resolve low-accuracy position in 1-3 seconds; 30s is the safety net
+
+---
+
 ## [2026-02-11] Task: Fix Firestore env contamination, /auth/verify, redirects, re-baseline TODO (crush-web)
 
 **Summary:**

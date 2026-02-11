@@ -32,3 +32,4 @@ Tracking active and completed AI tasks for the CRUSH app.
 | T-2026-02-11-09 | 2026-02-11 | P0: Fix Firestore env var contamination | Completed | Added .trim() to all Firebase config reads, re-set all Vercel env vars cleanly, fixed tab in .env file |
 | T-2026-02-11-10 | 2026-02-11 | P1: Add /auth/verify + route redirects | Completed | Created email verification page, added redirects for /likes-you, /reset-password, /auth/reset-password, /verify — 48 pages, all routes verified |
 | T-2026-02-11-11 | 2026-02-11 | P2: Re-baseline TODO_WEBAPP.md | Completed | Updated all phase statuses, removed 652-item parity backlog noise, 1307→~350 lines, added change log entries |
+| T-2026-02-11-12 | 2026-02-11 | Fix location service errors | Completed | CSP blocked Nominatim API (added to connect-src), geolocation timeout too short for desktops (30s + retry), deployed |
