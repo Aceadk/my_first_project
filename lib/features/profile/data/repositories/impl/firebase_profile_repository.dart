@@ -21,26 +21,26 @@ class FirebaseProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser?> getCurrentUser() async {
-    AppLogger.logInfo('[FirebaseProfileRepo] getCurrentUser() called');
+    AppLogger.info('[FirebaseProfileRepo] getCurrentUser() called');
 
     final userId = _currentUserId;
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] Current Firebase Auth userId: $userId');
 
     if (userId == null) {
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] No authenticated user - returning null');
       return null;
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] Fetching Firestore doc: users/$userId');
     final doc = await _firestore.collection('users').doc(userId).get();
 
-    AppLogger.logInfo('[FirebaseProfileRepo] Doc exists: ${doc.exists}');
+    AppLogger.info('[FirebaseProfileRepo] Doc exists: ${doc.exists}');
 
     if (!doc.exists) {
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] User document does not exist in Firestore - creating minimal profile from auth data');
       // User is authenticated but has no Firestore document yet
       // Return a CrushUser with a minimal profile from auth data so they can see their profile screen
@@ -93,25 +93,25 @@ class FirebaseProfileRepository implements ProfileRepository {
     }
 
     final data = doc.data()!;
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] Doc data keys: ${data.keys.toList()}');
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] Has profile field: ${data.containsKey('profile')}');
 
     if (data.containsKey('profile')) {
       final profileData = data['profile'];
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] Profile data type: ${profileData.runtimeType}');
       if (profileData is Map) {
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseProfileRepo] Profile keys: ${profileData.keys.toList()}');
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseProfileRepo] Profile name: ${profileData['name']}, age: ${profileData['age']}');
       }
     }
 
     final user = _userFromFirestore(userId, data);
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] Parsed user: id=${user.id}, hasProfile=${user.profile != null}');
 
     return user;
@@ -195,7 +195,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         // Set the new username and update the change timestamp
         docData['username'] = sanitizedUsername;
         docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseProfileRepo] saveBasicInfo: Username changed from "$existingUsername" to "$sanitizedUsername"');
       } else {
         // Username unchanged, just include it without updating timestamp
@@ -205,17 +205,17 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     // Always use set with merge to ensure nested structure is created properly
     final docRef = _firestore.collection('users').doc(userId);
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] saveBasicInfo: Saving to users/$userId with profile data: $profileData');
     await docRef.set(docData, SetOptions(merge: true));
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] saveBasicInfo: Firestore write completed, now fetching user');
 
     final user = await getCurrentUser();
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] saveBasicInfo: getCurrentUser returned user=${user != null}, profile=${user?.profile != null}');
     if (user?.profile != null) {
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] saveBasicInfo: profile firstName=${user!.profile!.name}, lastName=${user.profile!.lastName}, age=${user.profile!.age}, gender=${user.profile!.gender}');
     }
     return user!;
@@ -313,19 +313,19 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     try {
       final docSnapshot = await docRef.get();
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] saveProfileDetails: docExists=${docSnapshot.exists}, userId=$userId');
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseProfileRepo] saveProfileDetails: photoUrls=${sanitizedPhotoUrls.length}, city=$sanitizedCity, country=$sanitizedCountry');
 
       if (docSnapshot.exists) {
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseProfileRepo] Updating existing document with dot notation');
         await docRef.update(updateData);
-        AppLogger.logInfo('[FirebaseProfileRepo] Update successful');
+        AppLogger.info('[FirebaseProfileRepo] Update successful');
       } else {
         // Fallback: create document if it doesn't exist (shouldn't happen in normal flow)
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseProfileRepo] Document does not exist, creating with set()');
         await docRef.set({
           'profile': {
@@ -346,11 +346,11 @@ class FirebaseProfileRepository implements ProfileRepository {
           },
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        AppLogger.logInfo('[FirebaseProfileRepo] Set successful');
+        AppLogger.info('[FirebaseProfileRepo] Set successful');
       }
     } catch (e, stackTrace) {
-      AppLogger.logError('[FirebaseProfileRepo] saveProfileDetails FAILED', e);
-      AppLogger.logInfo('[FirebaseProfileRepo] Stack trace: $stackTrace');
+      AppLogger.error('[FirebaseProfileRepo] saveProfileDetails FAILED', error: e);
+      AppLogger.info('[FirebaseProfileRepo] Stack trace: $stackTrace');
       rethrow;
     }
 
@@ -434,7 +434,7 @@ class FirebaseProfileRepository implements ProfileRepository {
     final docRef = _firestore.collection('users').doc(userId);
     await docRef.set(docData, SetOptions(merge: true));
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername, changed=$usernameChanged');
 
     return (await getCurrentUser())!;
@@ -452,7 +452,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
-    AppLogger.logInfo('[FirebaseProfileRepo] skipProfileSetup');
+    AppLogger.info('[FirebaseProfileRepo] skipProfileSetup');
 
     return (await getCurrentUser())!;
   }
@@ -683,8 +683,8 @@ class FirebaseProfileRepository implements ProfileRepository {
           try {
             return ProfilePrompt.fromJson(json);
           } catch (e) {
-            AppLogger.logError(
-                '[FirebaseProfileRepository] Error parsing prompt', e);
+            AppLogger.error(
+                '[FirebaseProfileRepository] Error parsing prompt', error: e);
             return null;
           }
         })

@@ -211,22 +211,30 @@ const HOURLY_LIKE_LIMIT_PLUS = 50; // Hourly throttle for plus users
 const DISCOVERY_PAGE_SIZE = 120;
 
 // Content moderation - comprehensive banned terms list
+// Includes leetspeak and common substitution variations
 const BANNED_TERMS = [
-  // Violence and threats
-  "kill", "murder", "threat", "terror", "bomb", "attack", "weapon", "shoot",
-  // Hate speech
-  "hate", "racist", "nazi", "supremacist",
-  // Explicit profanity (core)
-  "shit", "fuck", "bitch", "cunt", "ass hole", "bastard",
+  // Violence and threats (+ leetspeak)
+  "kill", "k1ll", "murder", "threat", "terror", "bomb", "attack", "weapon", "shoot",
+  "sh00t", "stab", "strangle",
+  // Hate speech (+ variations)
+  "hate", "racist", "rac1st", "nazi", "naz1", "supremacist", "bigot",
+  // Explicit profanity (core + common substitutions)
+  "shit", "sh1t", "sh!t", "fuck", "f*ck", "fck", "fuk", "fuq",
+  "bitch", "b1tch", "b!tch", "cunt", "c*nt", "ass hole", "a$$hole",
+  "bastard", "d1ck", "stfu", "gtfo",
   // Spam and scam indicators
   "spam", "scam", "wire money", "western union", "moneygram", "bitcoin wallet",
   "crypto investment", "forex trading", "click here", "act now",
+  "free money", "guaranteed profit", "double your",
   // Solicitation
   "escort", "prostitute", "pay for sex", "sugar daddy arrangement",
-  // Contact info harvesting
+  "onlyfans", "cashapp me",
+  // Contact info harvesting (push to off-platform)
   "whatsapp me", "telegram me", "kik me", "snapchat me",
+  "add me on", "text me at", "call me at",
   // Drugs
   "buy drugs", "sell drugs", "cocaine", "heroin", "meth",
+  "mdma", "ecstasy", "fentanyl",
 ];
 
 type CallableContext = functions.https.CallableContext;
@@ -354,12 +362,32 @@ function requireAuth(context: CallableContext, action: string): string {
   return uid;
 }
 
-function requireString(value: unknown, field: string): string {
+function requireString(value: unknown, field: string, maxLength = 5000): string {
   const str = typeof value === "string" ? value.trim() : "";
   if (!str) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       `${field} is required.`
+    );
+  }
+  if (str.length > maxLength) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} exceeds maximum length of ${maxLength} characters.`
+    );
+  }
+  return str;
+}
+
+// Firebase UIDs are typically 28 alphanumeric characters
+const FIREBASE_UID_REGEX = /^[a-zA-Z0-9]{20,128}$/;
+
+function requireUid(value: unknown, field: string): string {
+  const str = requireString(value, field, 128);
+  if (!FIREBASE_UID_REGEX.test(str)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} is not a valid user ID.`
     );
   }
   return str;

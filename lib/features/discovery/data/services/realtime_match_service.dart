@@ -63,7 +63,7 @@ class RealtimeMatchService {
 
     _currentUserId = userId;
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[RealtimeMatchService] Starting match listener for user: $userId');
 
     // Listen to /users/{userId}/newMatches
@@ -74,7 +74,7 @@ class RealtimeMatchService {
         final data = event.snapshot.value;
 
         if (matchId != null && data != null && data is Map) {
-          AppLogger.logInfo(
+          AppLogger.info(
               '[RealtimeMatchService] New match detected: $matchId');
 
           final notification = RealtimeMatchNotification.fromRtdb(
@@ -87,14 +87,14 @@ class RealtimeMatchService {
 
           // Clear the notification from RTDB (so it doesn't show again)
           event.snapshot.ref.remove().catchError((e) {
-            AppLogger.logError(
-                '[RealtimeMatchService] Failed to clear match notification', e);
+            AppLogger.error(
+                '[RealtimeMatchService] Failed to clear match notification', error: e);
           });
         }
       },
       onError: (error) {
-        AppLogger.logError(
-            '[RealtimeMatchService] Match listener error', error);
+        AppLogger.error(
+            '[RealtimeMatchService] Match listener error', error: error);
       },
     );
   }
@@ -105,7 +105,7 @@ class RealtimeMatchService {
     _matchSubscription?.cancel();
     _matchSubscription = null;
     _currentUserId = null;
-    AppLogger.logInfo('[RealtimeMatchService] Stopped match listener');
+    AppLogger.info('[RealtimeMatchService] Stopped match listener');
   }
 
   /// Dispose the service.

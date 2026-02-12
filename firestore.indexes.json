@@ -99,6 +99,22 @@
         { "fieldPath": "blockerId", "order": "ASCENDING" },
         { "fieldPath": "blockedId", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibleTo", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "auth_rate_limits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "blockedUntil", "order": "ASCENDING" },
+        { "fieldPath": "windowStart", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -29,7 +29,7 @@ class Result<T> {
       final value = await run();
       return Result._(data: value);
     } catch (error, stackTrace) {
-      AppLogger.logError(logLabel ?? 'Operation failed', error, stackTrace);
+      AppLogger.error(logLabel ?? 'Operation failed', error: error, stackTrace: stackTrace);
       String? message =
           fallbackError ?? 'Something went wrong. Please try again.';
       String? code;

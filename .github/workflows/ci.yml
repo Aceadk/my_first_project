@@ -22,6 +22,9 @@ jobs:
         run: flutter analyze
       - name: Run unit tests
         run: flutter test --coverage
+      - name: Check for dependency vulnerabilities
+        run: flutter pub audit
+        continue-on-error: true
 
   functions:
     name: Functions - build & test
@@ -33,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Cache npm
         uses: actions/cache@v4
         with:
@@ -52,3 +55,43 @@ jobs:
       - name: Run functions tests (build included)
         working-directory: functions
         run: npm test
+      - name: Check for dependency vulnerabilities
+        working-directory: functions
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for secrets in code
+        run: |
+          # Search for common secret patterns (fail if found)
+          if grep -rn --include='*.ts' --include='*.dart' --include='*.js' \
+            -E '(sk_live_[a-zA-Z0-9]{20,}|re_[a-zA-Z0-9]{20,}|whsec_[a-zA-Z0-9]{20,})' \
+            --exclude-dir=node_modules --exclude-dir=.dart_tool \
+            lib/ functions/src/ 2>/dev/null; then
+            echo "::error::Live secrets found in source code!"
+            exit 1
+          fi
+          echo "No secrets found in source code."
+      - name: Verify .env files are not tracked
+        run: |
+          # Ensure no .env files with secrets are tracked
+          tracked_envs=$(git ls-files '*.env' 'functions/.env' '.env.local' 2>/dev/null || true)
+          if [ -n "$tracked_envs" ]; then
+            echo "::warning::The following .env files are tracked by git: $tracked_envs"
+          fi
+      - name: Validate Firestore rules syntax
+        run: |
+          # Basic syntax check for Firestore rules
+          if [ -f "firestore.rules" ]; then
+            echo "Firestore rules file found - checking for common issues..."
+            # Check for overly permissive rules
+            if grep -q 'allow read, write: if true' firestore.rules; then
+              echo "::error::Overly permissive Firestore rule found (allow read, write: if true)"
+              exit 1
+            fi
+            echo "Basic Firestore rules check passed."
+          fi

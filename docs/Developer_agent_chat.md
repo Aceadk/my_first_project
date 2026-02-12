@@ -87,6 +87,56 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #017 — Web Help Page Answers + Mobile Features/Pricing/Legal Pages
+**Date:** 2026-02-11
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fill in actual answers for all 24 questions in the web app "How can we help?" page (currently non-functional)
+- Secondary goal: Ensure the mobile app has Product Features, Pricing, and full Legal section (Privacy, Terms, Safety, Guidelines) matching the web app
+- Implicit requirements: Answers should be comprehensive and consistent with existing FAQ content; mobile screens should match web app design quality
+- Quality expectations: Working accordion UI on web, clean Flutter screens using existing design system
+
+**Refined Prompt:**
+
+### Objective
+1. Web app: Convert the static help center page to an interactive accordion with comprehensive answers for all 24 questions across 6 categories
+2. Mobile app: Create Product Features and Pricing screens, add missing legal links (Community Guidelines, Safety) to settings, add Help & Support and About Crush sections
+
+### Technical Requirements
+1. Web: Split help/page.tsx into server (metadata) + client (help-content.tsx) component — same pattern as features/pricing pages
+2. Web: Change data structure from `items: string[]` to `items: { question: string; answer: string }[]`
+3. Web: Add useState<Set<string>> for accordion state with toggleItem function
+4. Mobile: Create `ProductFeaturesScreen` with Core/Premium/Safety/Communication feature sections
+5. Mobile: Create `PricingScreen` with Free/Crush+/Platinum tiers and billing period toggle
+6. Mobile: Add 4 routes (support, communityGuidelines, productFeatures, pricing) to router.dart
+7. Mobile: Add Help & Support, Community Guidelines, Safety to settings; add About Crush section
+
+### Files to Modify/Create
+- `crush-web/apps/web/src/app/(marketing)/help/page.tsx` — Strip to server component
+- `crush-web/apps/web/src/app/(marketing)/help/help-content.tsx` — New client component with 24 Q&A
+- `lib/features/about/presentation/screens/product_features_screen.dart` — New
+- `lib/features/about/presentation/screens/pricing_screen.dart` — New
+- `lib/core/router.dart` — Add routes + imports + public route access
+- `lib/features/settings/presentation/screens/settings_screen.dart` — Add new tiles/sections
+
+### Success Criteria
+- [x] All 24 web help questions expand with comprehensive answers
+- [x] Mobile Product Features screen shows all features matching web app
+- [x] Mobile Pricing screen shows 3 tiers with billing toggle
+- [x] Settings screen has Help & Support, Community Guidelines, Safety, Features, Pricing links
+- [x] All new routes registered and accessible
+
+**Related Task ID:** T-2026-02-11-16
+
+**Outcome:**
+- Files changed: 6 files (2 web, 4 mobile) — 3 new, 3 modified
+- Result: Success — all changes implemented per plan
+- Notes: No BLoC/auth/navigation guard changes; purely presentational additions
+
+---
+
 ### Task #016 — Investigate 5 Failing Flutter Tests
 **Date:** 2026-02-11
 **Agent:** Claude
@@ -1562,6 +1612,7 @@ grep "chat_media" storage.rules
 | 023 | Enable Firebase App Check / Device Attestation | 2026-01-31 | Claude | Completed |
 | 024 | Review Secure Token Flow - Prevent Token Leaks | 2026-01-31 | Claude | Completed |
 | 025 | Confirm Rate Limiting - OTP, Login, Report/Block | 2026-01-31 | Claude | Completed |
+| 026 | Write Critical Path Unit Tests (5 Service Areas) | 2026-02-12 | Claude | Completed |
 
 ---
 
@@ -1906,6 +1957,121 @@ Confirm existing rate limiting for OTP and login operations. Add rate limiting f
   - Unblock: 30/hour, 30min block
 - Result: All safety actions now rate limited
 - Notes: Deploy with `firebase deploy --only functions`
+
+---
+
+### Task #026 — Write Critical Path Unit Tests (5 Service Areas)
+**Date:** 2026-02-12
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- **Primary goal:** Write comprehensive unit tests for 5 critical service areas to improve test coverage (R-118: 4.6% ratio)
+- **Secondary goals:** Verify service logic correctness, discover edge cases, establish test patterns for future development
+- **Implicit requirements:** Tests must use existing mock infrastructure, follow project conventions, actually pass, and cover meaningful logic
+- **Quality expectations:** All tests green, proper Firebase mocking, meaningful assertions, edge case coverage
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Write 100+ unit tests across 5 high-priority service areas: Content Moderation, Consent, Tracking Consent, Data Export, and Subscription/Premium logic. Use existing test infrastructure (firebase_mock.dart, StubAnalyticsService). Run each test file after writing and fix any failures before moving on.
+
+### Technical Requirements
+1. **Content Moderation Service** (`lib/core/services/content_moderation_service.dart`)
+   - Test profanity detection with `containsProfanity()` and `filterProfanity()`
+   - Test text analysis via `_localAnalyzeText()` fallback (spam, personal info, harassment detection)
+   - Test report validation with `validateReport()`
+   - Test `ImageModerationResult.fromApiResponse()` parsing
+   - Test `ReportCategory` display names
+   - Handle Firebase singleton initialization via `setupFirebaseAnalyticsMocks()`
+   - Handle FirebaseStorage initialization requiring `storageBucket` in MockFirebaseApp
+
+2. **Consent Service** (`lib/core/services/consent_service.dart`)
+   - Test initialization states (empty, true, false)
+   - Test grant/revoke consent with SharedPreferences persistence
+   - Test timestamp creation and retrieval
+   - Test grant/revoke cycle
+
+3. **Tracking Consent Service** (`lib/core/services/tracking_consent_service.dart`)
+   - Test initial state (notDetermined)
+   - Test isAuthorized logic
+   - Test non-iOS platform behavior (macOS test runner)
+   - Test TrackingStatus enum values
+
+4. **Data Export Service** (`lib/core/services/data_export_service.dart`)
+   - Test DataExportResult model (success/failure constructors)
+   - Test data formatting for user/profile/preferences/matches/messages
+   - Test error handling (null data, callback exceptions)
+   - Test progress callbacks
+   - Work around path_provider unavailability in tests
+
+5. **Subscription/Premium Logic** (`lib/data/models/subscription.dart`, `lib/core/utils/constants.dart`, BLoC)
+   - Test SubscriptionPlan enum extensions (isFree, isPlus)
+   - Test SubscriptionStatus model
+   - Test SubscriptionState copyWith and equatable
+   - Test CrushConstants feature gating values per tier
+   - Test CrushUser premium state properties
+   - Test BLoC transitions: upgrade, downgrade, expire, stream, checkout/restore failure
+
+### Implementation Plan
+**Step 1:** Read source files and existing test patterns
+**Step 2:** Write content_moderation_test.dart, run, fix failures
+**Step 3:** Write consent_service_test.dart, run, fix failures
+**Step 4:** Write tracking_consent_test.dart, run, fix failures
+**Step 5:** Write data_export_test.dart, run, fix failures
+**Step 6:** Write subscription_test.dart, run, fix failures
+**Step 7:** Run all 5 files together to confirm no conflicts
+**Step 8:** Update AI collaboration docs
+
+### Files to Create
+- `test/content_moderation_test.dart` — 56 tests
+- `test/consent_service_test.dart` — 14 tests
+- `test/tracking_consent_test.dart` — 6 tests
+- `test/data_export_test.dart` — 19 tests
+- `test/subscription_test.dart` — 42 tests
+
+### Files to Modify
+- `test/mock/firebase_mock.dart` — Add storageBucket to FirebaseOptions
+
+### Success Criteria
+- [x] All 137 tests pass across all 5 files
+- [x] Content moderation profanity detection works correctly
+- [x] Consent service grant/revoke/timestamp lifecycle tested
+- [x] Tracking consent non-iOS behavior verified
+- [x] Data export error handling and data formatting tested
+- [x] Subscription model, constants, and BLoC transitions tested
+- [x] firebase_mock.dart updated without breaking existing tests
+- [x] AI collaboration docs updated
+
+### Edge Cases & Error Handling
+- Leetspeak normalization makes 'badword1' unmatchable -> use 'badword2' in tests
+- path_provider unavailable in tests -> test error handling path + data formatting separately
+- Platform.isIOS false on macOS -> verify no-op/fallback behavior
+- Singleton services (ContentModerationService, ConsentService) -> initialize Firebase first
+
+### Verification Commands
+```
+flutter test test/content_moderation_test.dart
+flutter test test/consent_service_test.dart
+flutter test test/tracking_consent_test.dart
+flutter test test/data_export_test.dart
+flutter test test/subscription_test.dart
+flutter test test/content_moderation_test.dart test/consent_service_test.dart test/tracking_consent_test.dart test/data_export_test.dart test/subscription_test.dart
+```
+
+**Related Task ID:** T-2026-02-12-01, R-118 (test coverage improvement)
+
+**Outcome:**
+- Files created:
+  - `test/content_moderation_test.dart` — 56 tests (profanity, text analysis, reports, models)
+  - `test/consent_service_test.dart` — 14 tests (init, grant, revoke, timestamps, cycles)
+  - `test/tracking_consent_test.dart` — 6 tests (initial state, non-iOS, enum)
+  - `test/data_export_test.dart` — 19 tests (result model, data formatting, errors, progress)
+  - `test/subscription_test.dart` — 42 tests (enum, model, state, constants, user, BLoC)
+- Files modified:
+  - `test/mock/firebase_mock.dart` — Added storageBucket to FirebaseOptions
+- Result: All 137 tests pass. Test-to-code ratio improved.
+- Notes: Discovered profanity filter normalization issue (R-125): leetspeak map converts '1' to 'i', making pattern 'badword1' unmatchable. Filed as new risk.
 
 ---
 

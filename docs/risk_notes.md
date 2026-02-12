@@ -4,6 +4,36 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-125 — Profanity filter leetspeak normalization makes some patterns unmatchable (RESOLVED)
+
+Category: Content Moderation / Safety
+
+Description:
+ContentModerationService._normalizeText() applies a leetspeak map that converts characters like '1' to 'i', '3' to 'e', '4' to 'a', etc. This normalization was applied to input text but NOT to the profanity patterns, making patterns containing mapped characters (e.g., 'badword1') unmatchable dead code.
+
+Impact: Medium
+
+Likelihood: High (confirmed via unit tests — 'badword1' never matched any input)
+
+Affected Areas:
+* `lib/core/services/content_moderation_service.dart` — `_profanityPatterns` set and `_normalizeText()` method
+
+Resolution:
+* ✅ Applied Option A+D: Pre-normalize patterns at initialization via `_normalizedProfanityPatterns` static set
+* ✅ Both `containsProfanity()` and `filterProfanity()` now use normalized patterns
+* ✅ Added `_buildLeetAwarePattern()` for replacement regex — handles all leetspeak variants in original text (e.g., 'b4dw0rd1' is correctly filtered)
+* ✅ 58 content moderation tests pass including new R-125 regression tests
+* ✅ Full suite: 446 passed, 6 skipped, 0 failures
+
+Status: Closed
+
+Owner: AI
+
+Created: 2026-02-12
+Resolved: 2026-02-12
+
+---
+
 ### R-124 — Flat vs nested Firestore document structure mismatch (web vs mobile)
 
 Category: Architecture / Data Integrity
@@ -456,12 +486,12 @@ Resolved: 2026-01-31
 
 ---
 
-### R-105 — Missing chat callables in Firebase Functions
+### R-105 — Missing chat callables in Firebase Functions (RESOLVED)
 
 Category: Backend dependencies
 
 Description:
-Client calls `sendMessage`, `markMessagesRead`, and `editMessage` callables that are not defined in Functions.
+Client calls `sendMessage`, `markMessagesRead`, `editMessage`, and `unsendMessage` callables that were originally not defined in Functions.
 
 Impact: High
 
@@ -471,14 +501,20 @@ Affected Areas:
 * functions/src/index.ts
 * lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
 
-Mitigation:
-* Implement the missing callables or switch the client to Firestore writes with matching rules.
+Resolution:
+* ✅ `sendMessage` — Line 3846: Creates message doc, validates match membership/blocks, updates match metadata (lastMessageAt, lastMessageContent, etc.)
+* ✅ `markMessagesRead` — Line 3930: Batch marks unread messages as read, updates match readBy timestamp
+* ✅ `editMessage` — Line 3985: Sender-only edit with isEdited flag and editedAt timestamp
+* ✅ `unsendMessage` — Line 3778: Soft delete (Plus plan required), sets isDeletedForSender + unsentAt
+* ✅ Cloud Functions build succeeds (`npm run build`)
+* Deploy with: `firebase deploy --only functions`
 
-Status: Open
+Status: Closed
 
 Owner: AI
 
 Created: 2026-01-22
+Resolved: 2026-02-12
 
 ---
 
@@ -779,32 +815,34 @@ Note: Requires `firebase deploy --only hosting` to publish pages
 
 ---
 
-### R-118 — Low Test Coverage (4.6%)
+### R-118 — Low Test Coverage (improving)
 
 Category: Quality
 
 Description:
-Only 21 test files for 457 Dart files (~200,330 LOC). This represents 4.6% test-to-code ratio, well below industry standard of 60%+. Increases regression risk.
+Originally only 21 test files for 457 Dart files (~200,330 LOC), representing 4.6% test-to-code ratio. As of 2026-02-12, added 5 new test files with 137 tests covering critical service areas (content moderation, consent, tracking consent, data export, subscription). Total now ~26 test files.
 
 Impact: Medium
 
-Likelihood: High
+Likelihood: Medium (improving)
 
 Affected Areas:
 * test/
 * All feature modules
 
 Mitigation Plan:
-* Add BLoC unit tests for all 24 BLoCs/Cubits
+* ~~Add service-layer unit tests~~ (done: 5 critical service areas covered with 137 tests)
+* Add BLoC unit tests for remaining 22+ BLoCs/Cubits
 * Add repository integration tests
 * Add widget tests for design system
 * Target 40% coverage for MVP, 60% for v1.0
 
-Status: Open
+Status: In Progress (partially mitigated)
 
-Owner: Developer
+Owner: Developer / AI
 
 Created: 2026-01-31
+Updated: 2026-02-12
 
 ---
 

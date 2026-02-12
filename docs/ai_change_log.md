@@ -4,6 +4,163 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+## [2026-02-12] Task: Fix R-125 — Profanity Filter Leetspeak Normalization Bug
+
+**Summary:**
+- Fixed bug where profanity patterns containing leetspeak-mapped characters (e.g., 'badword1') were unmatchable dead code
+- Pre-normalize patterns via `_normalizedProfanityPatterns` static set so both input and patterns use same normalization
+- Added `_buildLeetAwarePattern()` for `filterProfanity()` to build regexes that match all leetspeak variants in original text (e.g., 'b4dw0rd1' → character class regex `[b8][a4@][d][w][o0][r][d][1i]`)
+
+**Files Modified:**
+- `lib/core/services/content_moderation_service.dart` — Added `_normalizedProfanityPatterns`, `_normalizePattern()`, `_buildLeetAwarePattern()`; updated `containsProfanity()` and `filterProfanity()` to use normalized patterns
+- `test/content_moderation_test.dart` — Updated test for 'badword1' (now expects `isTrue`); added tests for leetspeak variants and filtering
+
+**Verification:**
+- `flutter analyze --no-pub` → "No issues found!"
+- `flutter test` → 446 passed, 6 skipped, 0 failures
+- Content moderation tests: 58 all passing (up from 56)
+
+---
+
+## [2026-02-12] Task: Comprehensive CRUSH App Audit — Phase 3.1 AppLogger Migration
+
+**Summary:**
+- Migrated all callers from deprecated `AppLogger.logInfo()`/`AppLogger.logError()` to modern `AppLogger.info()`/`AppLogger.error()` API
+- Removed deprecated LEGACY METHODS section from `app_logger.dart`
+- Key API change: `logError(context, error, [stackTrace])` → `error(message, {error:, stackTrace:})` (positional to named params)
+
+**Files Modified:**
+- `lib/core/app_logger.dart` — Removed deprecated `logInfo()` and `logError()` methods
+- `lib/core/result.dart` — Updated `logError` → `error` with named params
+- `lib/core/utils/result.dart` — Updated `logError` → `error` with named params
+- `lib/core/app_env.dart` — `logInfo` → `info`
+- `lib/features/profile/presentation/bloc/profile_bloc.dart` — 17+ `logInfo` → `info`
+- `lib/features/profile/presentation/screens/profile_view_screen.dart` — 4 `logInfo` → `info`
+- `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` — 20+ `logInfo` → `info`, 2 `logError` → `error`
+- `lib/features/discovery/data/services/realtime_match_service.dart` — 2 `logInfo` → `info`, 2 `logError` → `error`
+- `lib/features/auth/presentation/screens/email_verification_screen.dart` — 2 `logInfo` → `info`, 3 `logError` → `error`
+- `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` — 20+ `logInfo` → `info`, 13 `logError` → `error`
+
+**Verification:** `flutter analyze --no-pub` → "No issues found!"
+
+---
+
+## [2026-02-12] Task: Comprehensive CRUSH App Audit — Phase 3.4 Stripe Checkout Security
+
+**Summary:**
+- Fixed security vulnerability where clients could specify arbitrary discount percentages
+- Removed client-controlled `promoCode` and `discountPercent` from checkout API
+- Migrated to Stripe's native `allow_promotion_codes: true` for secure promotion handling
+
+**Files Modified:**
+- `crush-web/apps/web/src/app/api/stripe/create-checkout-session/route.ts` — Removed promoCode/discountPercent parsing, removed custom coupon creation, added `allow_promotion_codes: true`
+- `crush-web/apps/web/src/app/(app)/premium/premium-view.tsx` — Removed promoCode/discountPercent from checkout request body
+
+**Risks & Mitigations:**
+- Risk: Existing promo codes may stop working → Mitigation: Create Stripe-native promotion codes in Stripe Dashboard
+- Risk: Less flexible than custom coupon system → Mitigation: Stripe promotions support same discount types
+
+---
+
+## [2026-02-12] Task: Comprehensive CRUSH App Audit — Phase 4.1 Web Accessibility Fixes
+
+**Summary:**
+- Added alt text to images, aria-labels to icon buttons, dialog roles to modals
+- Replaced `alert()` with `console.error()` for screen reader compatibility
+- Applied fixes across 8 web component files
+
+**Files Modified:**
+- `crush-web/apps/web/src/app/onboarding/onboarding-flow.tsx` — Empty `alt=""` → descriptive alt text for profile photos
+- `crush-web/apps/web/src/app/(app)/profile/profile-view.tsx` — Empty `alt=""` → `alt="Profile photo N"` for photo grid
+- `crush-web/apps/web/src/features/messages/components/voice-note-recorder.tsx` — `alert()` → `console.error()` for microphone access error
+- `crush-web/apps/web/src/features/discover/components/match-modal.tsx` — Added `role="dialog"`, `aria-modal="true"`, `aria-label` to overlay and close button
+- `crush-web/apps/web/src/app/(app)/settings/settings-view.tsx` — Added `aria-label="Go back"` to back button
+- `crush-web/apps/web/src/app/(app)/discover/page.tsx` — Added `aria-label="Close keyboard shortcuts"` to close button
+- `crush-web/apps/web/src/features/discover/components/action-buttons.tsx` — Added `aria-label` to Undo, Pass, Super Like, Like buttons
+- `crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` — Added `aria-label` to Go back, Voice call, Video call, More options buttons
+
+---
+
+## [2026-02-12] Task: Write Critical Path Unit Tests (5 Service Areas)
+
+**Summary:**
+- Wrote 137 unit tests across 5 critical service areas: Content Moderation, Consent, Tracking Consent, Data Export, and Subscription/Premium logic
+- All 137 tests pass (`flutter test` across all 5 files)
+- Fixed Firebase mock infrastructure (added storageBucket to MockFirebaseApp)
+- Discovered a subtle profanity filter normalization issue where leetspeak normalization makes pattern 'badword1' unmatchable
+
+**Files Added:**
+- `test/content_moderation_test.dart` — 56 tests: profanity detection/filtering, text analysis (spam, personal info, harassment), report validation, ImageModerationResult.fromApiResponse, data model serialization, ReportCategory display names
+- `test/consent_service_test.dart` — 14 tests: initialization states, grant/revoke consent, timestamp persistence, SharedPreferences integration, grant/revoke cycles
+- `test/tracking_consent_test.dart` — 6 tests: initial state, isAuthorized logic, non-iOS platform behavior, TrackingStatus enum values
+- `test/data_export_test.dart` — 19 tests: DataExportResult model (success/failure), data formatting for user/profile/preferences/matches/messages, error handling (null data, exceptions), progress callbacks
+- `test/subscription_test.dart` — 42 tests: SubscriptionPlan enum extensions, SubscriptionStatus model, SubscriptionState copyWith/equatable, CrushConstants feature gating values, CrushUser premium state properties, BLoC premium transitions (upgrade, downgrade, expire, stream, checkout/restore failure)
+
+**Files Modified:**
+- `test/mock/firebase_mock.dart` — Added `storageBucket: 'mock-project-id.appspot.com'` to MockFirebaseApp's FirebaseOptions to fix FirebaseStorage initialization in tests
+
+**Files Deleted:** None
+
+**Why / Notes:**
+- Test coverage was critically low (R-118: 4.6% ratio). These tests cover the most important service-layer logic.
+- Content Moderation tests revealed that leetspeak normalization converts '1' to 'i', making the pattern 'badword1' unmatchable against normalized input. Tests use 'badword2' instead (since '2' is not in the leetspeak map).
+- Data Export tests work around path_provider unavailability by testing error handling paths and data formatting logic separately.
+- Tracking Consent tests run on macOS (non-iOS) and verify the Platform.isIOS fallback behavior.
+- Subscription tests complement existing subscription_bloc_test.dart with model, constant, and additional BLoC transition coverage.
+
+**Risks & Mitigations:**
+- Risk: Profanity filter has blind spots due to leetspeak normalization (see R-125)
+  - Mitigation: Documented in risk notes; consider adding '1' as standalone pattern or post-normalization pattern matching
+- Risk: firebase_mock.dart change could affect existing tests
+  - Mitigation: storageBucket is additive; all pre-existing tests still pass
+
+**Follow-ups / TODO:**
+- Fix profanity filter patterns to work with leetspeak normalization (R-125)
+- Add more BLoC unit tests for remaining 22+ BLoCs/Cubits
+- Add widget tests for design system components
+- Target 40% coverage for MVP
+
+---
+
+## [2026-02-11] Task: Web Help Page Answers + Mobile Features/Pricing/Legal Pages
+
+**Summary:**
+- Filled in answers for all 24 questions in the web app "How can we help?" help center page (was previously non-functional buttons with no answers)
+- Created Product Features and Pricing screens for the mobile app
+- Added Help & Support, Community Guidelines, and Safety links to mobile settings
+- Added "About Crush" section with Features and Pricing links in mobile settings
+- Added 4 new routes to the mobile router (support, communityGuidelines, productFeatures, pricing)
+
+**Files Added:**
+- `crush-web/apps/web/src/app/(marketing)/help/help-content.tsx` — Client component with 24 Q&A items, accordion UI, all answers written
+- `lib/features/about/presentation/screens/product_features_screen.dart` — Product Features screen with Core, Premium, Safety, Communication sections
+- `lib/features/about/presentation/screens/pricing_screen.dart` — Pricing screen with 3 tiers, billing period toggle, feature comparison
+
+**Files Modified:**
+- `crush-web/apps/web/src/app/(marketing)/help/page.tsx` — Converted to server/client split (metadata stays server-side, UI moved to help-content.tsx)
+- `lib/core/router.dart` — Added 4 route constants + GoRoute entries + public route access for new screens + 3 new imports
+- `lib/features/settings/presentation/screens/settings_screen.dart` — Added Help & Support tile, Community Guidelines + Safety in Legal section, new "About Crush" section with Features + Pricing
+
+**Files Deleted:** None
+
+**Why / Notes:**
+- User requested web help page answers be filled in and mobile app have matching pages for Features, Pricing, and Legal (Privacy, Terms, Safety, Guidelines)
+- Web help page followed same server/client split pattern as features and pricing pages
+- Mobile screens use existing design system (DsColors, DsSpacing, DsGap)
+- Pricing data matches web app exactly (Free, Crush+ $9.99/mo, Platinum $19.99/mo)
+
+**Risks & Mitigations:**
+- Route conflicts: `/community-guidelines` added alongside existing `/safety-guidelines` (both render CommunityGuidelinesScreen) — no conflict, just different entry points
+- All new routes added to `isPublicRoute` check so they're accessible during onboarding
+- No BLoC changes, no auth changes — all purely presentational
+
+**Follow-ups / TODO:**
+- Verify web build passes with `pnpm build`
+- Verify Flutter build passes
+- Test all new screens in both dark/light mode
+
+---
+
 ## [2026-02-11] Task: Investigate 5 Failing Flutter Tests (Analysis Only)
 
 **Summary:**

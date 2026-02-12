@@ -38,6 +38,19 @@ service cloud.firestore {
           || (!('profile' in userData) && userData.gender == 'female');
     }
 
+    // Check if current user has a verified account (email or phone)
+    function isAccountVerified() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userData.isEmailVerified == true
+          || userData.emailVerifiedViaOtp == true
+          || ('phoneNumber' in userData && userData.phoneNumber != null);
+    }
+
+    // Validate message type is an allowed value
+    function isValidMessageType(type) {
+      return type in ['text', 'image', 'video', 'voice', 'gift', 'audio'];
+    }
+
     // USERS
     match /users/{uid} {
       // Owner can always read their own profile
@@ -62,9 +75,12 @@ service cloud.firestore {
       allow create: if isOwner(uid);
 
       // Owner can update their own document, but cannot change protected fields.
-      // Protected fields (plan, isIdVerified) can only be changed by admin/backend.
+      // These fields can only be changed by admin/backend (Cloud Functions).
       allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'isIdVerified']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'plan', 'isIdVerified', 'stripeCustomerId', 'stripeSubscriptionId',
+          'isEmailVerified', 'emailVerified', 'createdAt', 'kycVerificationStatus'
+        ]);
 
       // No client deletes; handled via admin.
       allow delete: if false;
@@ -138,20 +154,32 @@ service cloud.firestore {
 
         // Allow create if:
         // 1. Both participants are in the match
-        // 2. Match is active
-        // 3. Neither user has blocked the other
+        // 2. Match is active, neither user blocked the other
+        // 3. Sender's fromUserId matches auth uid
         // 4. Both users are ID verified
-        // 5. Video messages require Crush Plus (premium)
-        // 6. Must include visibleTo array with both participants
+        // 5. Sender has a verified account (email or phone)
+        // 6. Message type is valid
+        // 7. Content length is within limits (if text)
+        // 8. Video messages require Crush Plus (premium)
+        // 9. Must include visibleTo array with both participants
         allow create: if isSignedIn()
           && canAccessChat()
+          // Sender must match authenticated user
+          && request.resource.data.fromUserId == request.auth.uid
           && getMatchData().userIds.hasAll(
               [request.auth.uid, request.resource.data.toUserId]
             )
+          // Both users must be ID verified
           && get(/databases/$(database)/documents/users/$(request.auth.uid))
             .data.isIdVerified == true
           && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
             .data.isIdVerified == true
+          // Sender must have verified account (email or phone)
+          && isAccountVerified()
+          // Validate message type
+          && isValidMessageType(request.resource.data.type)
+          // Validate content length for text messages (max 5000 chars)
+          && (!('content' in request.resource.data) || request.resource.data.content.size() <= 5000)
           // Video messages are premium-only (cost savings)
           && (request.resource.data.type != 'video' || isPremium())
           // Must include visibleTo with both participants for retention tracking
@@ -199,27 +227,44 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // Likes: only creator can write; everyone signed-in can read (adjust as needed).
+    // Likes: only creator can write; everyone signed-in can read.
     match /likes/{likeId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn()
-        && request.resource.data.fromUserId == request.auth.uid;
+        && request.resource.data.fromUserId == request.auth.uid
+        // Cannot like yourself
+        && request.resource.data.toUserId != request.auth.uid
+        // Must have required fields
+        && 'toUserId' in request.resource.data;
       allow update, delete: if false;
     }
 
-    // Reports: reporter can create; no client updates/deletes.
+    // Reports: reporter can create; no client reads/updates/deletes.
     match /reports/{reportId} {
       allow read: if false;
       allow create: if isSignedIn()
-        && request.resource.data.reporterId == request.auth.uid;
+        && request.resource.data.reporterId == request.auth.uid
+        // Cannot report yourself
+        && request.resource.data.reportedId != request.auth.uid
+        // Must have required fields
+        && 'reportedId' in request.resource.data
+        && 'reason' in request.resource.data
+        // Reason must not be empty and within limits
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 1000;
       allow update, delete: if false;
     }
 
-    // Blocks: blocker can create; no client updates/deletes.
+    // Blocks: blocker can create; no client reads/updates/deletes.
     match /blocks/{blockId} {
       allow read: if false;
       allow create: if isSignedIn()
-        && request.resource.data.blockerId == request.auth.uid;
+        && request.resource.data.blockerId == request.auth.uid
+        // Cannot block yourself
+        && request.resource.data.blockedId != request.auth.uid
+        // Must have required field
+        && 'blockedId' in request.resource.data;
       allow update, delete: if false;
     }
 

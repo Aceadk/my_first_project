@@ -54,11 +54,27 @@ class ContentModerationService {
     '\$': 's',
   };
 
+  /// Pre-normalized profanity patterns (leetspeak chars resolved to their
+  /// letter equivalents). Fixes R-125: patterns like 'badword1' are normalized
+  /// to 'badwordi' so they match against normalized input text.
+  static final Set<String> _normalizedProfanityPatterns = {
+    for (final p in _profanityPatterns) _normalizePattern(p),
+  };
+
+  /// Normalize a pattern string using the leetspeak map.
+  static String _normalizePattern(String pattern) {
+    var normalized = pattern.toLowerCase();
+    for (final entry in _leetSpeakMap.entries) {
+      normalized = normalized.replaceAll(entry.key, entry.value);
+    }
+    return normalized;
+  }
+
   /// Check if text contains profanity.
   bool containsProfanity(String text) {
     final normalizedText = _normalizeText(text);
 
-    for (final pattern in _profanityPatterns) {
+    for (final pattern in _normalizedProfanityPatterns) {
       if (normalizedText.contains(pattern)) {
         return true;
       }
@@ -72,11 +88,12 @@ class ContentModerationService {
     var result = text;
     final normalizedText = _normalizeText(text);
 
-    for (final pattern in _profanityPatterns) {
+    for (final pattern in _normalizedProfanityPatterns) {
       if (normalizedText.contains(pattern)) {
-        // Find and replace the original word (case-insensitive)
+        // Build a regex that matches the pattern including leetspeak variants
+        // e.g., 'bad' → '[b8][a4@][d]' to match 'b4d', 'b@d', etc.
         final regex = RegExp(
-          _escapeRegex(pattern),
+          _buildLeetAwarePattern(pattern),
           caseSensitive: false,
         );
         result = result.replaceAll(regex, '*' * pattern.length);
@@ -84,6 +101,27 @@ class ContentModerationService {
     }
 
     return result;
+  }
+
+  /// Build a regex that matches a normalized pattern with any leetspeak variant.
+  /// For each character that has leetspeak equivalents, creates a character class.
+  /// E.g., 'bad' → '[b8][a4@][d]' matches 'bad', 'b4d', 'b@d', '84d', etc.
+  String _buildLeetAwarePattern(String normalizedPattern) {
+    final buffer = StringBuffer();
+    for (final char in normalizedPattern.split('')) {
+      final variants = <String>[char];
+      for (final entry in _leetSpeakMap.entries) {
+        if (entry.value == char) {
+          variants.add(_escapeRegex(entry.key));
+        }
+      }
+      if (variants.length > 1) {
+        buffer.write('[${variants.join()}]');
+      } else {
+        buffer.write(_escapeRegex(char));
+      }
+    }
+    return buffer.toString();
   }
 
   /// Normalize text for comparison (lowercase, remove leetspeak).

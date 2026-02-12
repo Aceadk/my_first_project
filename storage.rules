@@ -12,11 +12,18 @@ service firebase.storage {
     }
 
     function isImage() {
-      return request.resource.contentType.matches('image/.*');
+      // Whitelist safe image types — block SVG (can contain scripts)
+      return request.resource.contentType == 'image/jpeg'
+          || request.resource.contentType == 'image/png'
+          || request.resource.contentType == 'image/webp'
+          || request.resource.contentType == 'image/heic'
+          || request.resource.contentType == 'image/heif';
     }
 
     function isVideo() {
-      return request.resource.contentType.matches('video/.*');
+      return request.resource.contentType == 'video/mp4'
+          || request.resource.contentType == 'video/quicktime'
+          || request.resource.contentType == 'video/webm';
     }
 
     function isValidMediaType() {
@@ -66,9 +73,10 @@ service firebase.storage {
 
     // Chat media (images, videos in messages) - legacy path
     match /chats/{matchId}/{messageId}/{fileName} {
-      // Only match participants can read
-      // Note: Full validation requires Firestore lookup which isn't available
-      // in Storage rules, so we rely on the signed-in check + client-side validation
+      // LIMITATION: Storage rules cannot do Firestore lookups to verify match
+      // participation. Access is restricted to authenticated users only.
+      // TODO: Migrate to signed download URLs via Cloud Functions for proper
+      // per-match access control (see Phase 0.3 of audit plan).
       allow read: if isSignedIn();
 
       // Only signed-in users can upload chat media
@@ -80,7 +88,8 @@ service firebase.storage {
     // Chat media - current path used by Firebase repository
     // Path: chat_media/{matchId}/{userId}/{fileName}
     match /chat_media/{matchId}/{userId}/{fileName} {
-      // Only match participants can read
+      // LIMITATION: Storage rules cannot verify match participation via Firestore.
+      // TODO: Migrate to signed download URLs for proper access control.
       allow read: if isSignedIn();
 
       // Only the uploader (matching userId) can upload

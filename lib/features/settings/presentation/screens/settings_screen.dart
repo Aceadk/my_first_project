@@ -408,6 +408,14 @@ class SettingsScreen extends StatelessWidget {
               ),
               const Divider(height: 1),
               _SettingsTile(
+                icon: Icons.help_outline,
+                iconColor: DsColors.info,
+                title: 'Help & Support',
+                subtitle: 'FAQ, contact support, and more',
+                onTap: () => context.push(CrushRoutes.support),
+              ),
+              const Divider(height: 1),
+              _SettingsTile(
                 icon: Icons.logout,
                 iconColor: DsColors.ink300,
                 title: context.l10n.authSignOut,
@@ -442,6 +450,19 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(CrushRoutes.privacyPolicy),
               ),
               ListTile(
+                leading: const Icon(Icons.people_outlined),
+                title: const Text('Community Guidelines'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    context.push(CrushRoutes.communityGuidelines),
+              ),
+              ListTile(
+                leading: const Icon(Icons.health_and_safety_outlined),
+                title: const Text('Safety'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.safetyGuidelines),
+              ),
+              ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: Text(context.l10n.settingsVersion),
                 trailing: Text(
@@ -452,6 +473,33 @@ class SettingsScreen extends StatelessWidget {
                             : DsColors.textMutedLight,
                       ),
                 ),
+              ),
+              DsGap.lg,
+              // About section
+              Padding(
+                padding: DsEdgeInsets.horizontalLg,
+                child: Text(
+                  'About Crush',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
+                ),
+              ),
+              DsGap.sm,
+              ListTile(
+                leading: const Icon(Icons.auto_awesome_outlined),
+                title: const Text('Features'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.productFeatures),
+              ),
+              ListTile(
+                leading: const Icon(Icons.sell_outlined),
+                title: const Text('Pricing'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.pricing),
               ),
               DsGap.xxl,
             ],

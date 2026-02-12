@@ -12,6 +12,8 @@ import 'core/services/crash_reporting_service.dart';
 import 'core/services/app_update_service.dart';
 import 'core/services/gradual_rollout_service.dart';
 import 'core/services/app_check_service.dart';
+import 'core/services/tracking_consent_service.dart';
+import 'core/services/consent_service.dart';
 import 'core/performance/performance_monitor.dart';
 
 Future<void> main() async {
@@ -46,10 +48,17 @@ Future<void> main() async {
     // Set up background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+    // Request App Tracking Transparency consent (iOS only)
+    // Must be called before Firebase Analytics starts collecting IDFA
+    await TrackingConsentService.instance.requestConsent();
+
     // Initialize push notifications
     await PushNotificationService.instance.initialize();
 
     final preferences = await SharedPreferences.getInstance();
+
+    // Initialize GDPR consent service
+    await ConsentService.instance.initialize(preferences);
 
     // Initialize gradual rollout service
     await GradualRolloutService.instance.initialize(preferences);

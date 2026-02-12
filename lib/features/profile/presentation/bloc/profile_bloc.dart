@@ -50,13 +50,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onLoadRequested(
       ProfileLoadRequested event, Emitter<ProfileState> emit) async {
-    AppLogger.logInfo('[ProfileBloc] _onLoadRequested called');
+    AppLogger.info('[ProfileBloc] _onLoadRequested called');
 
     // Track if this is a manual refresh (user-triggered) vs auto-retry
     final isManualRefresh =
         _isManualRefresh || state.status != ProfileStatus.error;
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] isManualRefresh: $isManualRefresh, retryCount: $_retryCount');
 
     if (isManualRefresh) {
@@ -73,7 +73,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       nextRetrySeconds: null,
     ));
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] Calling profileRepository.getCurrentUser()...');
 
     final result = await Result.guard(
@@ -82,24 +82,24 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       fallbackError: ErrorMessages.loadProfileFailed,
     );
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] Result: isSuccess=${result.isSuccess}, data=${result.data}, error=${result.errorMessage}');
 
     if (!result.isSuccess) {
       _retryCount++;
       final errorMsg = result.errorMessage;
 
-      AppLogger.logInfo(
+      AppLogger.info(
           '[ProfileBloc] Load failed: $errorMsg (retryCount: $_retryCount)');
 
       // Check if error indicates "no profile" rather than actual failure
       final isNoProfileError = _isNoProfileError(errorMsg);
 
-      AppLogger.logInfo('[ProfileBloc] isNoProfileError: $isNoProfileError');
+      AppLogger.info('[ProfileBloc] isNoProfileError: $isNoProfileError');
 
       // If we've retried enough times or error indicates no profile, show empty state
       if (_retryCount > _maxAutoRetries || isNoProfileError) {
-        AppLogger.logInfo('[ProfileBloc] Emitting ProfileStatus.empty');
+        AppLogger.info('[ProfileBloc] Emitting ProfileStatus.empty');
         emit(state.copyWith(
           isLoading: false,
           status: ProfileStatus.empty,
@@ -110,7 +110,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
 
       // Otherwise show error and schedule retry
-      AppLogger.logInfo(
+      AppLogger.info(
           '[ProfileBloc] Emitting ProfileStatus.error, scheduling retry');
       emit(state.copyWith(
         isLoading: false,
@@ -128,11 +128,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     final user = result.data;
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] User loaded: id=${user?.id}, hasProfile=${user?.profile != null}');
     final profile = user?.profile;
     if (profile != null) {
-      AppLogger.logInfo(
+      AppLogger.info(
           '[ProfileBloc] Profile: name=${profile.name}, age=${profile.age}');
     }
 
@@ -144,7 +144,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // If user is null or has no profile, they need to create one
     final hasProfile = user?.profile != null;
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] Emitting status: ${hasProfile ? 'loaded' : 'empty'}');
 
     emit(state.copyWith(
@@ -185,7 +185,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   Future<void> _onBasicInfoSubmitted(
       ProfileBasicInfoSubmitted event, Emitter<ProfileState> emit) async {
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] _onBasicInfoSubmitted: firstName=${event.name}, lastName=${event.lastName}, age=${event.age}, gender=${event.gender}');
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final result = await Result.guard(
@@ -204,7 +204,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       fallbackError: 'Could not save basic info. Please try again.',
     );
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] saveBasicInfo result: isSuccess=${result.isSuccess}, error=${result.errorMessage}');
 
     // Track profile update
@@ -221,10 +221,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
 
     final user = result.data;
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] After save: hasUser=${user != null}, hasProfile=${user?.profile != null}');
     if (user != null) {
-      AppLogger.logInfo(
+      AppLogger.info(
           '[ProfileBloc] User profile: firstName=${user.profile?.name}, lastName=${user.profile?.lastName}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}');
     }
 
@@ -375,7 +375,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final currentProfile = state.profile;
     if (currentProfile == null) return;
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileBloc] Updating location: ${event.latitude}, ${event.longitude}');
 
     // Update profile with new location
@@ -448,7 +448,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   /// CRITICAL: This prevents the next user from seeing the previous user's profile data.
   void _onResetRequested(
       ProfileResetRequested event, Emitter<ProfileState> emit) {
-    AppLogger.logInfo('[ProfileBloc] Resetting profile state on logout');
+    AppLogger.info('[ProfileBloc] Resetting profile state on logout');
     _retryTimer?.cancel();
     _retryCount = 0;
     _retryDelayMs = 1000;

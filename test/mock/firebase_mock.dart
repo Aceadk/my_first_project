@@ -196,6 +196,7 @@ class MockFirebaseApp extends FirebaseAppPlatform {
     appId: 'mock-app-id',
     messagingSenderId: 'mock-sender-id',
     projectId: 'mock-project-id',
+    storageBucket: 'mock-project-id.appspot.com',
   );
 
   @override

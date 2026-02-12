@@ -142,14 +142,14 @@ class FirebaseAuthRepository implements AuthRepository {
           hasSkippedBasicInfo: hasSkippedBasicInfo,
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
         return true;
       }
       return false;
     } catch (e) {
       // Don't log error for expected document-not-found cases
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseAuthRepo] Could not check Firestore verification: $e');
       return false;
     }
@@ -190,7 +190,7 @@ class FirebaseAuthRepository implements AuthRepository {
   /// Creates the document with minimal data if it doesn't exist.
   Future<void> _ensureUserDocumentExists(fb.User firebaseUser) async {
     final userId = firebaseUser.uid;
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Ensuring user document exists for: $userId');
 
     try {
@@ -198,7 +198,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final doc = await docRef.get();
 
       if (!doc.exists) {
-        AppLogger.logInfo('[FirebaseAuthRepo] Creating new user document');
+        AppLogger.info('[FirebaseAuthRepo] Creating new user document');
         final displayName = firebaseUser.displayName ??
             firebaseUser.email?.split('@').first ??
             'User';
@@ -231,13 +231,13 @@ class FirebaseAuthRepository implements AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseAuthRepo] User document created successfully');
       } else {
-        AppLogger.logInfo('[FirebaseAuthRepo] User document already exists');
+        AppLogger.info('[FirebaseAuthRepo] User document already exists');
       }
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error ensuring user document', e);
+      AppLogger.error('[FirebaseAuthRepo] Error ensuring user document', error: e);
       // Don't throw - auth succeeded, document creation is secondary
     }
   }
@@ -478,7 +478,7 @@ class FirebaseAuthRepository implements AuthRepository {
     } on fb.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         // User doesn't exist - create account automatically
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseAuthRepo] User not found, creating account for: $email');
         try {
           final credential = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -490,12 +490,12 @@ class FirebaseAuthRepository implements AuthRepository {
           // Send email verification for new accounts
           if (firebaseUser != null && !firebaseUser.emailVerified) {
             await firebaseUser.sendEmailVerification();
-            AppLogger.logInfo(
+            AppLogger.info(
                 '[FirebaseAuthRepo] Verification email sent to: $email');
           }
         } catch (createError) {
-          AppLogger.logError(
-              '[FirebaseAuthRepo] Failed to create account', createError);
+          AppLogger.error(
+              '[FirebaseAuthRepo] Failed to create account', error: createError);
           rethrow;
         }
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
@@ -572,7 +572,7 @@ class FirebaseAuthRepository implements AuthRepository {
       await _ensureUserDocumentExists(firebaseUser);
       return _mapFirebaseUser(firebaseUser);
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Apple sign-in failed', e);
+      AppLogger.error('[FirebaseAuthRepo] Apple sign-in failed', error: e);
       rethrow;
     }
   }
@@ -638,9 +638,9 @@ class FirebaseAuthRepository implements AuthRepository {
         'email': ?email,
       });
 
-      AppLogger.logInfo('Email OTP requested for $normalizedIdentifier');
+      AppLogger.info('Email OTP requested for $normalizedIdentifier');
     } on FirebaseFunctionsException catch (e) {
-      AppLogger.logError('requestEmailOtp', e);
+      AppLogger.error('requestEmailOtp', error: e);
       // Rethrow with user-friendly message
       throw Exception(
           e.message ?? 'Failed to send verification code. Please try again.');
@@ -686,7 +686,7 @@ class FirebaseAuthRepository implements AuthRepository {
       // For non-login purposes, return current user
       return _currentUser;
     } on FirebaseFunctionsException catch (e) {
-      AppLogger.logError('verifyEmailOtp', e);
+      AppLogger.error('verifyEmailOtp', error: e);
       throw Exception(e.message ?? 'Failed to verify code. Please try again.');
     }
   }
@@ -747,13 +747,13 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     if (firebaseUser.emailVerified) {
-      AppLogger.logInfo('[FirebaseAuthRepo] Email already verified');
+      AppLogger.info('[FirebaseAuthRepo] Email already verified');
       return;
     }
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Sending email verification');
+    AppLogger.info('[FirebaseAuthRepo] Sending email verification');
     await firebaseUser.sendEmailVerification();
-    AppLogger.logInfo('[FirebaseAuthRepo] Email verification sent');
+    AppLogger.info('[FirebaseAuthRepo] Email verification sent');
   }
 
   @override
@@ -771,7 +771,7 @@ class FirebaseAuthRepository implements AuthRepository {
       return null;
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}');
 
     // Check Firebase SDK verification first
@@ -782,12 +782,12 @@ class FirebaseAuthRepository implements AuthRepository {
           'isEmailVerified': true,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseAuthRepo] Updated Firestore isEmailVerified to true');
       } catch (e) {
-        AppLogger.logError(
+        AppLogger.error(
             '[FirebaseAuthRepo] Error updating Firestore verification status',
-            e);
+            error: e);
       }
 
       // Update the stored user and emit new state
@@ -824,7 +824,7 @@ class FirebaseAuthRepository implements AuthRepository {
           ? _profileFromFirestore(updatedUser.uid, userData)
           : _currentUser?.profile;
 
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
 
       if (firestoreEmailVerified || emailVerifiedViaOtp) {
@@ -847,13 +847,13 @@ class FirebaseAuthRepository implements AuthRepository {
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
         _authStateController.add(_currentUser);
-        AppLogger.logInfo(
+        AppLogger.info(
             '[FirebaseAuthRepo] User verified via OTP, returning verified status');
         return _currentUser;
       }
     } catch (e) {
-      AppLogger.logError(
-          '[FirebaseAuthRepo] Error checking Firestore verification status', e);
+      AppLogger.error(
+          '[FirebaseAuthRepo] Error checking Firestore verification status', error: e);
     }
 
     return null;
@@ -880,7 +880,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No phone number to delete');
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}');
 
     // Calculate deletion time: 2 days 23 hours from now (just under 3 days)
@@ -911,7 +911,7 @@ class FirebaseAuthRepository implements AuthRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime');
 
     // Update local state
@@ -941,7 +941,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No email associated with account');
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}');
 
     // Re-authenticate with current password
@@ -953,7 +953,7 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       await firebaseUser.reauthenticateWithCredential(credential);
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Re-authentication failed', e);
+      AppLogger.error('[FirebaseAuthRepo] Re-authentication failed', error: e);
       throw Exception('Current password is incorrect');
     }
 
@@ -975,7 +975,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'Your password was successfully changed. If you did not make this change, please contact support immediately.',
     );
 
-    AppLogger.logInfo('[FirebaseAuthRepo] Password changed successfully');
+    AppLogger.info('[FirebaseAuthRepo] Password changed successfully');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -989,7 +989,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No user logged in');
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}');
 
     // Calculate auto-deletion date: 6 months from now
@@ -1022,7 +1022,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'If you don\'t sign in within 6 months, your account will be permanently deleted.',
     );
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate');
 
     // Sign out the user
@@ -1048,7 +1048,7 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('No email associated with account');
     }
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}');
 
     // Re-authenticate with password
@@ -1060,8 +1060,8 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       await firebaseUser.reauthenticateWithCredential(credential);
     } catch (e) {
-      AppLogger.logError(
-          '[FirebaseAuthRepo] Re-authentication failed for deletion', e);
+      AppLogger.error(
+          '[FirebaseAuthRepo] Re-authentication failed for deletion', error: e);
       throw Exception('Password is incorrect');
     }
 
@@ -1096,7 +1096,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'Sign in within 14 days to cancel the deletion and recover your account.',
     );
 
-    AppLogger.logInfo(
+    AppLogger.info(
         '[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate');
 
     // Sign out the user
@@ -1133,10 +1133,10 @@ class FirebaseAuthRepository implements AuthRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseAuthRepo] Account notification queued for user: $userId');
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error sending notification', e);
+      AppLogger.error('[FirebaseAuthRepo] Error sending notification', error: e);
       // Don't throw - notification failure shouldn't block the action
     }
   }
@@ -1169,8 +1169,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
       return querySnapshot2.docs.isNotEmpty;
     } catch (e) {
-      AppLogger.logError(
-          '[FirebaseAuthRepo] Error checking email existence', e);
+      AppLogger.error(
+          '[FirebaseAuthRepo] Error checking email existence', error: e);
       return false;
     }
   }
@@ -1290,7 +1290,7 @@ class FirebaseAuthRepository implements AuthRepository {
           try {
             return ProfilePrompt.fromJson(json);
           } catch (e) {
-            AppLogger.logError('[FirebaseAuthRepo] Error parsing prompt', e);
+            AppLogger.error('[FirebaseAuthRepo] Error parsing prompt', error: e);
             return null;
           }
         })
@@ -1329,11 +1329,11 @@ class FirebaseAuthRepository implements AuthRepository {
           );
 
       _authStateController.add(_currentUser);
-      AppLogger.logInfo(
+      AppLogger.info(
           '[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}');
       return _currentUser!;
     } catch (e) {
-      AppLogger.logError('[FirebaseAuthRepo] Error accepting terms', e);
+      AppLogger.error('[FirebaseAuthRepo] Error accepting terms', error: e);
       throw Exception('Failed to accept terms. Please try again.');
     }
   }
@@ -1399,8 +1399,8 @@ class FirebaseAuthRepository implements AuthRepository {
         return _currentUser;
       }
     } catch (e) {
-      AppLogger.logError(
-          '[FirebaseAuthRepo] Error refreshing user from Firestore', e);
+      AppLogger.error(
+          '[FirebaseAuthRepo] Error refreshing user from Firestore', error: e);
     }
 
     // Fall back to basic Firebase user

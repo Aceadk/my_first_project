@@ -20,7 +20,7 @@ class AppEnvConfig {
   static void logBypassIfActive() {
     if (!bypassVerification || _loggedBypass) return;
     _loggedBypass = true;
-    AppLogger.logInfo('DEV mode: auth verification bypass is active.');
+    AppLogger.info('DEV mode: auth verification bypass is active.');
   }
 
   static AppEnv _parse(String value) {

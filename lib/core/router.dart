@@ -61,6 +61,9 @@ import 'package:crushhour/features/analytics/presentation/screens/profile_insigh
 import '../presentation/screens/privacy_policy_screen.dart';
 import '../presentation/screens/terms_of_service_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
+import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
+import 'package:crushhour/features/about/presentation/screens/product_features_screen.dart';
+import 'package:crushhour/features/about/presentation/screens/pricing_screen.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -118,6 +121,10 @@ class CrushRoutes {
   static const profileInsights = '/profile-insights';
   static const privacyPolicy = '/privacy-policy';
   static const termsOfService = '/terms-of-service';
+  static const support = '/support';
+  static const communityGuidelines = '/community-guidelines';
+  static const productFeatures = '/product-features';
+  static const pricing = '/pricing';
 }
 
 GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
@@ -156,6 +163,10 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
       final isPublicRoute = path == CrushRoutes.privacyPolicy ||
           path == CrushRoutes.termsOfService ||
           path == CrushRoutes.safetyGuidelines ||
+          path == CrushRoutes.communityGuidelines ||
+          path == CrushRoutes.productFeatures ||
+          path == CrushRoutes.pricing ||
+          path == CrushRoutes.support ||
           path == CrushRoutes.weeklyPicks ||
           path == CrushRoutes.safety ||
           path == CrushRoutes.logout;
@@ -696,6 +707,26 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
         path: CrushRoutes.termsOfService,
         pageBuilder: (context, state) =>
             _buildPage(state, const TermsOfServiceScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.support,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const SupportScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.communityGuidelines,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const CommunityGuidelinesScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.productFeatures,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const ProductFeaturesScreen()),
+      ),
+      GoRoute(
+        path: CrushRoutes.pricing,
+        pageBuilder: (context, state) =>
+            _buildPage(state, const PricingScreen()),
       ),
       // Widget catalog - debug builds only
       if (kDebugMode)

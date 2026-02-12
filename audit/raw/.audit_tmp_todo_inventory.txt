@@ -1,0 +1,56 @@
+/Users/ace/my_first_project/functions/src/index.ts:3386:    // NOTE: Don't enforce profile quality for browsing - let users discover others
+/Users/ace/my_first_project/functions/src/index.ts:3461:      // NOTE: Don't filter out incomplete profiles - let all users appear in discovery
+/Users/ace/my_first_project/docs/ai_tasks_board.md:34:| T-2026-02-11-11 | 2026-02-11 | P2: Re-baseline TODO_WEBAPP.md | Completed | Updated all phase statuses, removed 652-item parity backlog noise, 1307→~350 lines, added change log entries |
+/Users/ace/my_first_project/docs/ai_change_log.md:117:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:157:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:186:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:216:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:249:## [2026-02-11] Task: Fix Firestore env contamination, /auth/verify, redirects, re-baseline TODO (crush-web)
+/Users/ace/my_first_project/docs/ai_change_log.md:257:- Re-baselined `TODO_WEBAPP.md`: removed 652-item Dart parity backlog noise, updated all phase percentages, marked security/SEO/GDPR items done, added change log entries
+/Users/ace/my_first_project/docs/ai_change_log.md:268:- `/docs/TODO_WEBAPP.md` — Full re-baseline (1307→~350 lines)
+/Users/ace/my_first_project/docs/ai_change_log.md:287:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:333:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:388:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:433:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:496:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:531:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:560:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:599:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:654:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:733:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:822:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:863:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:897:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:927:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:964:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:993:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1023:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1048:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1075:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1108:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1135:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1165:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/ai_change_log.md:1295:**Follow-ups / TODO:**
+/Users/ace/my_first_project/docs/WEBAPP_EXECUTION_BOARD_2026-02-11.md:56:| WB-010 | P2 | Rebaseline docs and backlog (`TODO_WEBAPP`, task board) to live state | PM + WEB-FE | Feb 15, 2026 | Completion of P0/P1 | 1) remove stale tasks 2) only actionable gaps remain 3) board matches production | In Progress |
+/Users/ace/my_first_project/docs/risk_notes.md:693:### Risk ID: R-XXX
+/Users/ace/my_first_project/docs/PROJECT_STRUCTURE.txt:16:docs/TODO_WEBAPP.md
+/Users/ace/my_first_project/docs/PROJECT_STRUCTURE.txt:17:docs/TODO_FINDINGS.txt
+/Users/ace/my_first_project/docs/WEBAPP_PARITY_MATRIX.md:444:| docs/TODO_WEBAPP.md | Doc |  | Docs | Docs | Docs | Doc: TODO WEBAPP. Documentation reference. Non-runtime web task. |
+/Users/ace/my_first_project/docs/TODO_WEBAPP.md:1:# CRUSH Web Platform - Implementation TODO
+/Users/ace/my_first_project/docs/TODO_WEBAPP.md:451:| 2026-01-26 | Initial TODO created | AI |
+/Users/ace/my_first_project/docs/TODO_WEBAPP.md:460:| 2026-02-11 | Re-baselined TODO_WEBAPP.md (removed 652-item parity backlog noise) | AI |
+/Users/ace/my_first_project/docs/TODO_FINDINGS.txt:1:lib/core/di.dart:93:  /// NOTE: Set to [BackendMode.hybrid] to show both real Firebase profiles AND
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:32:### Task #XXX — [Short Title]
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:78:**Related Task ID:** T-XXX (if applicable)
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:297:- Implicit requirements: Deploy and verify all fixes, update TODO_WEBAPP.md to reflect actual state
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:307:4. P2: Re-baseline TODO_WEBAPP.md to match live state (remove 652-item parity backlog noise)
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:316:**Step 7:** Re-baseline TODO_WEBAPP.md with accurate phase percentages
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:325:- [x] TODO_WEBAPP.md reflects actual live state
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:329:- Files changed: packages/core/src/firebase/config.ts, apps/web/next.config.js, .env.crush-web-web, apps/web/src/app/auth/verify/page.tsx (new), docs/TODO_WEBAPP.md
+/Users/ace/my_first_project/docs/Developer_agent_chat.md:331:- Result: All fixes deployed, all routes verified, TODO re-baselined from 1307 to ~350 lines
+/Users/ace/my_first_project/docs/COMPREHENSIVE_CODEBASE_ANALYSIS.md:580:## PHASE 8: TODO LIST ANALYSIS
+/Users/ace/my_first_project/docs/COMPREHENSIVE_CODEBASE_ANALYSIS.md:582:### TODOs Found: 0 in codebase
+/Users/ace/my_first_project/docs/COMPREHENSIVE_CODEBASE_ANALYSIS.md:583:*(This is unusual - either well-maintained or TODOs are in external tracking)*
+/Users/ace/my_first_project/docs/COMPREHENSIVE_CODEBASE_ANALYSIS.md:585:### Recommended TODOs to Add
+/Users/ace/my_first_project/lib/config/app_config.dart:123:    'ENABLE_VOICE_NOTES',
+/Users/ace/my_first_project/lib/core/di.dart:93:  /// NOTE: Set to [BackendMode.hybrid] to show both real Firebase profiles AND

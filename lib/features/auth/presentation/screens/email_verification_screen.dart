@@ -52,7 +52,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       // App came back to foreground - immediately check verification
-      AppLogger.logInfo(
+      AppLogger.info(
           '[EmailVerificationScreen] App resumed, checking verification...');
       _checkVerification();
     }
@@ -75,7 +75,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       final user = await authRepo.checkEmailVerification();
 
       if (user != null && user.isEmailVerified) {
-        AppLogger.logInfo(
+        AppLogger.info(
             '[EmailVerificationScreen] Email verified! Navigating to home...');
         _checkTimer?.cancel();
 
@@ -96,8 +96,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         }
       }
     } catch (e) {
-      AppLogger.logError(
-          '[EmailVerificationScreen] Error checking verification', e);
+      AppLogger.error(
+          '[EmailVerificationScreen] Error checking verification', error: e);
     } finally {
       if (mounted) {
         setState(() => _isChecking = false);
@@ -125,8 +125,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         _startCooldownTimer();
       }
     } catch (e) {
-      AppLogger.logError(
-          '[EmailVerificationScreen] Error sending verification', e);
+      AppLogger.error(
+          '[EmailVerificationScreen] Error sending verification', error: e);
       if (mounted) {
         setState(() {
           _message = 'Failed to send email. Please try again.';
@@ -158,7 +158,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         context.go(CrushRoutes.authGateway);
       }
     } catch (e) {
-      AppLogger.logError('[EmailVerificationScreen] Error signing out', e);
+      AppLogger.error('[EmailVerificationScreen] Error signing out', error: e);
     }
   }
 

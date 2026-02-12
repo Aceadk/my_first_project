@@ -24,7 +24,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   @override
   void initState() {
     super.initState();
-    AppLogger.logInfo(
+    AppLogger.info(
         '[ProfileViewScreen] initState - requesting profile load');
     context.read<ProfileBloc>().add(ProfileLoadRequested());
   }
@@ -33,11 +33,11 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        AppLogger.logInfo(
+        AppLogger.info(
             '[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
 
         if (state.isLoading && state.profile == null) {
-          AppLogger.logInfo('[ProfileViewScreen] Showing loading skeleton');
+          AppLogger.info('[ProfileViewScreen] Showing loading skeleton');
           return const Scaffold(
             body: GlassSkeletonProfile(),
           );
@@ -48,7 +48,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         // Handle empty state - user exists but hasn't created profile yet
         if (state.status == ProfileStatus.empty || profile == null) {
           final isEmpty = state.status == ProfileStatus.empty;
-          AppLogger.logInfo(
+          AppLogger.info(
               '[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile');
           return Scaffold(
             body: Center(

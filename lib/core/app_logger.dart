@@ -147,20 +147,6 @@ class AppLogger {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // LEGACY METHODS (for backward compatibility)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// @deprecated Use [info] instead.
-  static void logInfo(String message) {
-    info(message);
-  }
-
-  /// @deprecated Use [error] instead.
-  static void logError(String context, Object error, [StackTrace? stackTrace]) {
-    AppLogger.error(context, error: error, stackTrace: stackTrace);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
