@@ -12,6 +12,7 @@ module.exports = {
   ],
   ignorePatterns: [
     '/lib/**/*',
+    'src/dataconnect-admin-generated/**/*',
   ],
   rules: {
     quotes: ['error', 'double'],

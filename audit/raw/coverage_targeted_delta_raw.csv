@@ -1,0 +1,5 @@
+file,before_pct,after_pct,delta_pct
+lib/core/theme/app_theme_mode.dart,0.00,100.00,100.00
+lib/features/settings/presentation/bloc/theme_cubit.dart,0.00,100.00,100.00
+lib/features/discovery/presentation/bloc/discovery_settings_cubit.dart,0.00,85.78,85.78
+lib/features/safety/data/models/date_plan.dart,0.00,83.74,83.74

@@ -29,3 +29,6 @@ Code marker entries:
 
 ## Required Next Action
 Convert the 3 active code markers into tracked backlog items and update comments to reference ticket IDs.
+
+## Status Update (2026-02-12)
+- All three active markers were updated to reference `CR-AUD-013`.

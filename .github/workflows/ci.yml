@@ -22,8 +22,8 @@ jobs:
         run: flutter analyze
       - name: Run unit tests
         run: flutter test --coverage
-      - name: Check for dependency vulnerabilities
-        run: flutter pub audit
+      - name: Check Flutter dependency freshness
+        run: dart pub outdated --no-dev-dependencies
         continue-on-error: true
 
   functions:

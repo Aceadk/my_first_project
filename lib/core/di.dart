@@ -90,7 +90,7 @@ class CrushDI {
   /// In production builds, this should be [BackendMode.firebase] or [BackendMode.http].
   /// For development/demo, use [BackendMode.stub] or [BackendMode.hybrid].
   ///
-  /// NOTE: Set to [BackendMode.hybrid] to show both real Firebase profiles AND
+  /// NOTE (CR-AUD-013): Set to [BackendMode.hybrid] to show both real Firebase profiles AND
   /// stub/demo profiles in the discovery feed. Great for testing and demos.
   static const BackendMode backendMode = BackendMode.hybrid;
 

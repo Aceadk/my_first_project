@@ -92,8 +92,11 @@ const getStripeClient = (secret: string) => {
   return stripeClient;
 };
 
-// Default to strict CORS in production, allow localhost in development
+// Default to strict CORS/App Check in production runtimes.
 const isDevelopment = process.env.FUNCTIONS_EMULATOR === "true";
+const isProductionRuntime =
+  !isDevelopment &&
+  (process.env.NODE_ENV === "production" || Boolean(process.env.K_SERVICE));
 const corsOriginValidator = (
   origin: string | undefined,
   callback: (err: Error | null, allow?: boolean) => void
@@ -109,8 +112,17 @@ const corsOriginValidator = (
     return;
   }
   const corsAllowedOrigins = getCorsAllowedOrigins();
+  // In production, fail closed if allowlist isn't configured.
+  if (corsAllowedOrigins.length === 0) {
+    if (isDevelopment) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error("CORS allowlist not configured"), false);
+    return;
+  }
   // Check against whitelist
-  if (corsAllowedOrigins.length === 0 || corsAllowedOrigins.includes(origin)) {
+  if (corsAllowedOrigins.includes(origin)) {
     callback(null, true);
     return;
   }
@@ -284,17 +296,11 @@ function toAuthHttpsError(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Enable App Check enforcement globally.
- * When true, requests without valid App Check tokens will be rejected.
- *
- * IMPORTANT: Before enabling in production:
- * 1. Configure App Check in Firebase Console
- * 2. Register iOS app with DeviceCheck/App Attest
- * 3. Register Android app with Play Integrity
- * 4. Deploy and test with enforcement disabled first
- * 5. Enable gradually using Firebase Console's enforcement settings
+ * App Check enforcement policy:
+ * - Production runtime: enforce
+ * - Emulator/local runtime: monitor-only
  */
-const ENFORCE_APP_CHECK = false; // Set to true after App Check is fully configured
+const ENFORCE_APP_CHECK = isProductionRuntime;
 
 /**
  * Verify App Check token and optionally enforce it.
@@ -374,20 +380,6 @@ function requireString(value: unknown, field: string, maxLength = 5000): string 
     throw new functions.https.HttpsError(
       "invalid-argument",
       `${field} exceeds maximum length of ${maxLength} characters.`
-    );
-  }
-  return str;
-}
-
-// Firebase UIDs are typically 28 alphanumeric characters
-const FIREBASE_UID_REGEX = /^[a-zA-Z0-9]{20,128}$/;
-
-function requireUid(value: unknown, field: string): string {
-  const str = requireString(value, field, 128);
-  if (!FIREBASE_UID_REGEX.test(str)) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      `${field} is not a valid user ID.`
     );
   }
   return str;
@@ -1057,7 +1049,9 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
         if (existing.uid !== uid) {
           targetEmail = undefined;
         }
-      } catch (_) {}
+      } catch (_) {
+        // Ignore: email does not exist yet.
+      }
     } else {
       const resolved = await resolveUserByIdentifier(identifierRaw);
       resolvedUid = resolved?.uid;
@@ -1537,7 +1531,9 @@ async function signUpWithPasswordCore(params: {
   try {
     await admin.auth().getUserByEmail(emailLower);
     emailInUse = true;
-  } catch (_) {}
+  } catch (_) {
+    // Ignore: email is available.
+  }
 
   const usernameRef = db.collection("usernames").doc(usernameLower);
   const usernameSnap = await usernameRef.get();
@@ -2461,6 +2457,123 @@ function moderateContent(content: string, type: string): ModerationDecision {
   return { status: "clean", action: "allow", severity: "low" };
 }
 
+type ProfileCompletenessSummary = {
+  score: number;
+  breakdown: Record<string, number>;
+  missing: string[];
+  requiredMissing: string[];
+  recommended: string[];
+  meetsSwipeMinimum: boolean;
+  meetsMessagingMinimum: boolean;
+  meetsRequiredFields: boolean;
+};
+
+const SWIPE_MIN_COMPLETENESS = 0.8;
+const MESSAGING_MIN_COMPLETENESS = 0.8;
+const PROFILE_RECOMMENDED_PROMPTS = 2;
+
+function evaluateProfileCompleteness(
+  profile: ProfileData | null
+): ProfileCompletenessSummary {
+  if (!profile) {
+    const requiredMissing = [
+      `Add at least ${PROFILE_MIN_PHOTOS} photo.`,
+      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
+      "Add your city and country.",
+    ];
+    return {
+      score: 0,
+      breakdown: {},
+      missing: [
+        ...requiredMissing,
+        `Add at least ${PROFILE_MIN_INTERESTS} interests.`,
+        "Add work or school.",
+      ],
+      requiredMissing,
+      recommended: ["Answer prompts to stand out."],
+      meetsSwipeMinimum: false,
+      meetsMessagingMinimum: false,
+      meetsRequiredFields: false,
+    };
+  }
+
+  const photos = toStringArray(profile.photoUrls);
+  const prompts = toStringArray(profile.prompts);
+  const interests = toStringArray(profile.interests);
+  const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
+  const country = typeof profile.country === "string" ? profile.country.trim() : "";
+  const city = typeof profile.city === "string" ? profile.city.trim() : "";
+  const jobTitle = typeof profile.jobTitle === "string" ? profile.jobTitle.trim() : "";
+  const company = typeof profile.company === "string" ? profile.company.trim() : "";
+  const school = typeof profile.school === "string" ? profile.school.trim() : "";
+  const hasWorkOrSchool = Boolean(jobTitle || company || school);
+
+  const breakdown: Record<string, number> = {};
+  const missing: string[] = [];
+  const requiredMissing: string[] = [];
+  const recommended: string[] = [];
+
+  // Required core fields.
+  const photosScore = Math.min(1, photos.length / PROFILE_MIN_PHOTOS);
+  breakdown.photos = photosScore * 0.35;
+  if (photos.length < PROFILE_MIN_PHOTOS) {
+    const msg = `Add at least ${PROFILE_MIN_PHOTOS} photo.`;
+    missing.push(msg);
+    requiredMissing.push(msg);
+  }
+
+  const bioScore = Math.min(1, bio.length / PROFILE_MIN_BIO_LENGTH);
+  breakdown.bio = bioScore * 0.25;
+  if (bio.length < PROFILE_MIN_BIO_LENGTH) {
+    const msg = `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`;
+    missing.push(msg);
+    requiredMissing.push(msg);
+  }
+
+  const hasLocation = country.length > 0 && city.length > 0;
+  breakdown.location = hasLocation ? 0.1 : 0;
+  if (!hasLocation) {
+    const msg = "Add your city and country.";
+    missing.push(msg);
+    requiredMissing.push(msg);
+  }
+
+  // Optional quality boosts.
+  const interestsScore = Math.min(1, interests.length / PROFILE_MIN_INTERESTS);
+  breakdown.interests = interestsScore * 0.1;
+  if (interests.length < PROFILE_MIN_INTERESTS) {
+    missing.push(`Add at least ${PROFILE_MIN_INTERESTS} interests.`);
+  }
+
+  breakdown.workEducation = hasWorkOrSchool ? 0.1 : 0;
+  if (!hasWorkOrSchool) {
+    missing.push("Add work or school.");
+  }
+
+  const promptsScore = Math.min(1, prompts.length / PROFILE_RECOMMENDED_PROMPTS);
+  breakdown.prompts = promptsScore * 0.1;
+  if (prompts.length < PROFILE_RECOMMENDED_PROMPTS) {
+    recommended.push("Answer prompts to stand out.");
+  }
+
+  const rawScore = Object.values(breakdown).reduce((acc, value) => acc + value, 0);
+  const score = Math.round(rawScore * 1000) / 1000;
+  const meetsRequiredFields = requiredMissing.length === 0;
+  const meetsSwipeMinimum = score >= SWIPE_MIN_COMPLETENESS;
+  const meetsMessagingMinimum = score >= MESSAGING_MIN_COMPLETENESS;
+
+  return {
+    score,
+    breakdown,
+    missing,
+    requiredMissing,
+    recommended,
+    meetsSwipeMinimum,
+    meetsMessagingMinimum,
+    meetsRequiredFields,
+  };
+}
+
 function ensureProfileQuality(profile: ProfileData | null, action: string) {
   const photos = toStringArray(profile?.photoUrls);
   const prompts = toStringArray(profile?.prompts);
@@ -2591,17 +2704,6 @@ function setCorsHeaders(res: functions.Response, req?: functions.Request) {
   }
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, stripe-signature");
-}
-
-function getRequestIp(req: functions.Request): string | undefined {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (Array.isArray(forwarded)) {
-    return forwarded[0]?.toString();
-  }
-  if (typeof forwarded === "string") {
-    return forwarded.split(",")[0]?.trim();
-  }
-  return req.ip;
 }
 
 async function ensureUserInMatch(matchId: string, uid: string) {
@@ -2856,7 +2958,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
 
 export const moderateTextContent = callable<{
   content?: string;
-}>(async (data, context) => {
+}>(async (data) => {
   const content = requireString(data?.content, "content");
   const decision = moderateContent(content, "text");
   return {
@@ -2869,8 +2971,8 @@ export const moderateTextContent = callable<{
 
 export const moderateImageContent = callable<{
   imageUrl?: string;
-}>(async (data, context) => {
-  const imageUrl = requireString(data?.imageUrl, "imageUrl");
+}>(async (data) => {
+  requireString(data?.imageUrl, "imageUrl");
 
   // In a real implementation, you would call an image moderation API here.
   // For example, Google Cloud Vision API, AWS Rekognition, etc.
@@ -3383,7 +3485,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const me = await getUser(uid);
     const profile = (me.profile as ProfileData | null) ?? null;
-    // NOTE: Don't enforce profile quality for browsing - let users discover others
+    // NOTE (CR-AUD-013): Don't enforce profile quality for browsing - let users discover others
     // even if their own profile is incomplete. This encourages engagement.
     // ensureProfileQuality(profile, "browsing");
 
@@ -3399,7 +3501,6 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     const myLat = toNumber(profile?.latitude);
     const myLon = toNumber(profile?.longitude);
     const myCountry = typeof profile?.country === "string" ? profile?.country : "";
-    const myCity = typeof profile?.city === "string" ? profile?.city : "";
     const myInterests = new Set(toStringArray(profile?.interests));
 
     const blockedIds = await blockedUserIds(uid);
@@ -3456,13 +3557,11 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       if (prefs?.incognitoMode === true) return;
 
       // Get profile completeness info for scoring (but don't exclude incomplete profiles)
-      const photos = toStringArray(candidateProfile.photoUrls);
-      const name = typeof candidateProfile.name === "string" ? candidateProfile.name : "";
-      // NOTE: Don't filter out incomplete profiles - let all users appear in discovery
+      // NOTE (CR-AUD-013): Don't filter out incomplete profiles - let all users appear in discovery
       // Users without photos will just have lower priority in the sorting
       // This helps new users see that there are people on the app
 
-      const age = toNumber((candidateProfile as any).age);
+      const age = toNumber(candidateProfile.age);
       if (age && (age < minAge || age > maxAge)) return;
       const lat = toNumber(candidateProfile.latitude);
       const lon = toNumber(candidateProfile.longitude);
@@ -4250,6 +4349,8 @@ export const __test__helpers = {
   requireAuth,
   requireString,
   optionalString,
+  evaluateProfileCompleteness,
+  ensureProfileQuality,
 };
 
 // Callable function to generate an Agora token for authenticated users
@@ -4479,26 +4580,6 @@ async function authMiddleware(
     console.error("Auth error:", err);
     res.status(401).json({ error: "Invalid or expired token" });
   }
-}
-
-// Optional auth middleware (doesn't fail if no token)
-async function optionalAuth(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.split("Bearer ")[1];
-    try {
-      const decoded = await admin.auth().verifyIdToken(token);
-      req.uid = decoded.uid;
-      req.user = decoded;
-    } catch (err) {
-      // Ignore auth errors for optional auth
-    }
-  }
-  next();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4839,7 +4920,6 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
 app.patch("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const updates: Record<string, unknown> = {};
-    const profileUpdates: Record<string, unknown> = {};
 
     // Map request fields to profile fields
     const fieldMap: Record<string, string> = {

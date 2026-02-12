@@ -6,11 +6,13 @@
 - Evidence: `functions/src/index.ts:297` sets `ENFORCE_APP_CHECK = false`.
 - Impact: Backend callable endpoints accept requests without enforced App Check, increasing abuse and automation risk.
 - Recommendation: Roll out staged enforcement (monitor -> partial -> full) and set enforcement true per environment.
+- Status update (2026-02-12): Mitigated in current branch. Enforcement now activates in production runtime; local/emulator remains monitor-only.
 
 ### P0-002 CORS fallback allows all origins when allowlist is empty
 - Evidence: `functions/src/index.ts:113` allows request when `corsAllowedOrigins.length === 0`.
 - Impact: Misconfiguration or missing env value can silently expose API to broad cross-origin access.
 - Recommendation: Fail closed in production when allowlist is empty; keep localhost exception only for emulator/dev.
+- Status update (2026-02-12): Mitigated in current branch. Empty allowlist now fails closed in production.
 
 ## P1 (High)
 
@@ -18,11 +20,13 @@
 - Evidence: `npm test` in `functions` reports 3 failures in `profile completeness helpers`.
 - Impact: Backend quality gate is red; profile quality logic contracts are currently broken or test/export mismatch exists.
 - Recommendation: Fix export/contract for `evaluateProfileCompleteness` and `ensureProfileQuality`, then re-run tests.
+- Status update (2026-02-12): Mitigated in current branch. `npm test` is now green.
 
 ### P1-002 Functions lint gate failing
 - Evidence: `npm run lint` in `functions` reports 14 errors.
 - Impact: CI merge confidence degraded; typed lint pipeline currently unstable.
 - Recommendation: Resolve ESLint project include mismatch for generated d.ts, remove unused vars, and clean strict typing issues.
+- Status update (2026-02-12): Mitigated in current branch. `npm run lint` is now green.
 
 ### P1-003 Test coverage baseline far below directive target
 - Evidence: `flutter test --coverage` => 7.10% line coverage (4185/58952).
