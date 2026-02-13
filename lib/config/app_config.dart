@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Centralized application configuration for different environments.
 /// Use --dart-define to override values at build time.
@@ -197,15 +198,15 @@ class AppConfig {
   /// Print configuration summary (only in debug mode)
   static void printConfig() {
     if (kDebugMode) {
-      debugPrint('=== AppConfig ===');
-      debugPrint('Flavor: $flavor');
-      debugPrint('API URL: $apiBaseUrl');
-      debugPrint('Firebase Project: $firebaseProjectId');
-      debugPrint('Use Emulators: $useEmulators');
-      debugPrint('Agora Configured: $isAgoraConfigured');
-      debugPrint('E2EE Enabled: $enableChatE2EE');
-      debugPrint('App Check Enforced: $enforceAppCheck');
-      debugPrint('=================');
+      AppLogger.debug('=== AppConfig ===');
+      AppLogger.debug('Flavor: $flavor');
+      AppLogger.debug('API URL: $apiBaseUrl');
+      AppLogger.debug('Firebase Project: $firebaseProjectId');
+      AppLogger.debug('Use Emulators: $useEmulators');
+      AppLogger.debug('Agora Configured: $isAgoraConfigured');
+      AppLogger.debug('E2EE Enabled: $enableChatE2EE');
+      AppLogger.debug('App Check Enforced: $enforceAppCheck');
+      AppLogger.debug('=================');
     }
   }
 }

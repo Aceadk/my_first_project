@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/chat_dto.dart' as dto;
@@ -113,7 +112,7 @@ class HttpChatRepository implements ChatRepository {
 
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
-      debugPrint(
+      AppLogger.debug(
           'HttpChatRepository: WebSocket connected, skipping message polling');
       return;
     }
@@ -217,7 +216,7 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpChatRepository: Failed to mark messages read - ${result.error}');
     }
   }
@@ -414,7 +413,7 @@ class HttpChatRepository implements ChatRepository {
 
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
-      debugPrint(
+      AppLogger.debug(
           'HttpChatRepository: WebSocket connected, skipping presence polling');
       return;
     }
@@ -562,7 +561,7 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpChatRepository: Failed to fetch matches - ${result.error}');
       return const PaginatedResult(items: [], total: 0, hasMore: false);
     }
@@ -675,4 +674,18 @@ class HttpChatRepository implements ChatRepository {
     }
     _mediaSendingControllers.clear();
   }
+
+  // ── E2EE stubs (not supported in HTTP implementation) ───────────────
+
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }

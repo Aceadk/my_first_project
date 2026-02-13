@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
 import '../call_repository.dart';
@@ -67,7 +67,7 @@ class HttpCallRepository implements CallRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpCallRepository: Failed to end call - ${result.error}');
+      AppLogger.error('HttpCallRepository: Failed to end call - ${result.error}');
     }
 
     _currentSession = null;

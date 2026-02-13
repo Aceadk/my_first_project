@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Secure logger for development that handles sensitive data properly.
 ///
@@ -125,13 +126,13 @@ class SecureLogger {
     final contextStr = context != null ? ' ($context)' : '';
 
     if (token == null || token.isEmpty) {
-      debugPrint('[$type Token]$contextStr: <null or empty>');
+      AppLogger.debug('[$type Token]$contextStr: <null or empty>');
       return;
     }
 
     // SECURITY: Always redact tokens, regardless of settings
     final redacted = _redactToken(token);
-    debugPrint('[$type Token]$contextStr: $redacted');
+    AppLogger.debug('[$type Token]$contextStr: $redacted');
   }
 
   /// Log a token refresh event (safe - only logs metadata).
@@ -142,12 +143,12 @@ class SecureLogger {
     if (!kDebugMode) return;
 
     if (token == null || token.isEmpty) {
-      debugPrint('[$type] Token refresh: <null or empty>');
+      AppLogger.debug('[$type] Token refresh: <null or empty>');
       return;
     }
 
     // Only log that refresh happened and token length (not the token itself)
-    debugPrint('[$type] Token refreshed (${token.length} chars)');
+    AppLogger.debug('[$type] Token refreshed (${token.length} chars)');
   }
 
   /// Log a token error (safe - doesn't include the token).
@@ -158,7 +159,7 @@ class SecureLogger {
   }) {
     if (!kDebugMode) return;
 
-    debugPrint('[$type] $operation failed${error != null ? ': $error' : ''}');
+    AppLogger.error('[$type] $operation failed${error != null ? ': $error' : ''}');
   }
 
   /// Redact a token, showing only first 4 and last 4 chars + length.
@@ -200,7 +201,7 @@ class SecureLogger {
 
     final userStr = userId != null ? ' user=${_redact(userId)}' : '';
     final metaStr = metadata != null ? ' $metadata' : '';
-    debugPrint('[AUTH] $event$userStr$metaStr');
+    AppLogger.debug('[AUTH] $event$userStr$metaStr');
   }
 
   /// Log a security event (always logs, even in release for audit trail).
@@ -212,6 +213,6 @@ class SecureLogger {
     // Security events are important enough to log metadata even in release
     // but NEVER log sensitive data
     final detailsStr = details != null ? ' $details' : '';
-    debugPrint('[SECURITY:$severity] $event$detailsStr');
+    AppLogger.debug('[SECURITY:$severity] $event$detailsStr');
   }
 }

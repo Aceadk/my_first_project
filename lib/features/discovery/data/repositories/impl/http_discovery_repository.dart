@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart';
-
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/discovery_dto.dart';
@@ -42,7 +41,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Failed to fetch deck - ${result.error}');
       return [];
     }
@@ -72,7 +71,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Swipe right failed - ${result.error}');
       return null;
     }
@@ -103,7 +102,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Swipe left failed - ${result.error}');
     }
   }
@@ -116,7 +115,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Failed to fetch top picks - ${result.error}');
       return [];
     }
@@ -140,7 +139,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Failed to fetch likes - ${result.error}');
       return [];
     }
@@ -164,7 +163,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Failed to fetch matches - ${result.error}');
       return [];
     }
@@ -183,7 +182,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Failed to fetch profile - ${result.error}');
       return null;
     }
@@ -212,7 +211,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpDiscoveryRepository: Super like failed - ${result.error}');
       return null;
     }
@@ -234,7 +233,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      debugPrint('HttpDiscoveryRepository: Rewind failed - ${result.error}');
+      AppLogger.error('HttpDiscoveryRepository: Rewind failed - ${result.error}');
       return null;
     }
 

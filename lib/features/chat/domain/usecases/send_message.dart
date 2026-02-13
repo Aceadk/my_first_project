@@ -1,6 +1,6 @@
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/domain/use_cases/use_case.dart';
 
 /// Parameters for sending a text message.

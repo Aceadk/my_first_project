@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -68,7 +69,7 @@ class InAppReviewService {
 
     // Check if user has already reviewed
     if (prefs.getBool(_keyHasReviewed) ?? false) {
-      debugPrint('InAppReviewService: User has already reviewed');
+      AppLogger.debug('InAppReviewService: User has already reviewed');
       return false;
     }
 
@@ -79,7 +80,7 @@ class InAppReviewService {
       final daysSinceLastPrompt = DateTime.now().difference(lastPrompt).inDays;
 
       if (daysSinceLastPrompt < _minDaysBetweenPrompts) {
-        debugPrint(
+        AppLogger.debug(
           'InAppReviewService: Too soon since last prompt '
           '($daysSinceLastPrompt days, need $_minDaysBetweenPrompts)',
         );
@@ -90,13 +91,13 @@ class InAppReviewService {
     // Check if in-app review is available
     final isAvailable = await _inAppReview.isAvailable();
     if (!isAvailable) {
-      debugPrint('InAppReviewService: In-app review not available');
+      AppLogger.debug('InAppReviewService: In-app review not available');
       return false;
     }
 
     // Request the review
     try {
-      debugPrint('InAppReviewService: Requesting in-app review');
+      AppLogger.debug('InAppReviewService: Requesting in-app review');
       await _inAppReview.requestReview();
 
       // Record that we prompted (we can't know if they actually reviewed)
@@ -107,7 +108,7 @@ class InAppReviewService {
 
       return true;
     } catch (e) {
-      debugPrint('InAppReviewService: Error requesting review: $e');
+      AppLogger.error('InAppReviewService: Error requesting review: $e');
       return false;
     }
   }
@@ -125,7 +126,7 @@ class InAppReviewService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyHasReviewed, true);
     } catch (e) {
-      debugPrint('InAppReviewService: Error opening store listing: $e');
+      AppLogger.error('InAppReviewService: Error opening store listing: $e');
     }
   }
 

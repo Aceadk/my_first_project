@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
@@ -1225,7 +1225,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     try {
       return _mockProfiles.firstWhere((p) => p.id == profileId);
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
           'StubDiscoveryRepository: Profile not found for id $profileId: $e');
       return null;
     }
@@ -1298,7 +1298,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     try {
       return _mockProfiles.firstWhere((p) => p.id == lastSwipedId);
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
           'StubDiscoveryRepository: Rewound profile not found for id $lastSwipedId: $e');
       return null;
     }

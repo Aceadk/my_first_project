@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Performance monitoring service for tracking app performance metrics.
 ///
@@ -19,6 +20,9 @@ class PerformanceMonitor {
   static final PerformanceMonitor instance = PerformanceMonitor._();
 
   FirebasePerformance? _performance;
+  Trace Function(String name)? _traceFactory;
+  HttpMetric Function(String url, HttpMethod method)? _httpMetricFactory;
+  Future<void> Function(bool enabled)? _setCollectionEnabled;
   bool _isInitialized = false;
   DateTime? _appStartTime;
   DateTime? _firstFrameTime;
@@ -37,21 +41,38 @@ class PerformanceMonitor {
 
     try {
       _performance = FirebasePerformance.instance;
+      _traceFactory = _performance?.newTrace;
+      _httpMetricFactory = _performance?.newHttpMetric;
+      _setCollectionEnabled = _performance?.setPerformanceCollectionEnabled;
 
       // Enable performance collection (can be toggled for debugging)
-      await _performance?.setPerformanceCollectionEnabled(!kDebugMode);
+      await _setCollectionEnabled?.call(!kDebugMode);
 
       _isInitialized = true;
-      debugPrint('PerformanceMonitor: Initialized');
+      AppLogger.debug('PerformanceMonitor: Initialized');
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to initialize - $e');
+      AppLogger.error('PerformanceMonitor: Failed to initialize - $e');
     }
+  }
+
+  @visibleForTesting
+  void configureForTesting({
+    required bool initialized,
+    Trace Function(String name)? traceFactory,
+    HttpMetric Function(String url, HttpMethod method)? httpMetricFactory,
+    Future<void> Function(bool enabled)? setCollectionEnabled,
+  }) {
+    _isInitialized = initialized;
+    _performance = null;
+    _traceFactory = traceFactory;
+    _httpMetricFactory = httpMetricFactory;
+    _setCollectionEnabled = setCollectionEnabled;
   }
 
   /// Record the app start time. Call this at the very beginning of main().
   void recordAppStartTime() {
     _appStartTime = DateTime.now();
-    debugPrint('PerformanceMonitor: App start time recorded');
+    AppLogger.debug('PerformanceMonitor: App start time recorded');
   }
 
   /// Record when the first frame is rendered.
@@ -60,21 +81,22 @@ class PerformanceMonitor {
     _firstFrameTime = DateTime.now();
 
     if (_appStartTime != null) {
-      final coldStartMs =
-          _firstFrameTime!.difference(_appStartTime!).inMilliseconds;
+      final coldStartMs = _firstFrameTime!
+          .difference(_appStartTime!)
+          .inMilliseconds;
 
       // Log custom trace for cold start
       _logColdStartTrace(coldStartMs);
 
-      debugPrint('PerformanceMonitor: Cold start time: ${coldStartMs}ms');
+      AppLogger.debug('PerformanceMonitor: Cold start time: ${coldStartMs}ms');
     }
   }
 
   Future<void> _logColdStartTrace(int durationMs) async {
-    if (!_isInitialized || _performance == null) return;
+    if (!_isInitialized || _traceFactory == null) return;
 
     try {
-      final trace = _performance!.newTrace('cold_start');
+      final trace = _traceFactory!.call('cold_start');
       await trace.start();
 
       // Add metrics
@@ -86,7 +108,7 @@ class PerformanceMonitor {
 
       await trace.stop();
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to log cold start trace - $e');
+      AppLogger.error('PerformanceMonitor: Failed to log cold start trace - $e');
     }
   }
 
@@ -96,21 +118,21 @@ class PerformanceMonitor {
 
   /// Start a custom trace for measuring specific operations.
   Future<void> startTrace(String name) async {
-    if (!_isInitialized || _performance == null) return;
+    if (!_isInitialized || _traceFactory == null) return;
 
     try {
       if (_activeTraces.containsKey(name)) {
-        debugPrint('PerformanceMonitor: Trace "$name" already active');
+        AppLogger.debug('PerformanceMonitor: Trace "$name" already active');
         return;
       }
 
-      final trace = _performance!.newTrace(name);
+      final trace = _traceFactory!.call(name);
       await trace.start();
       _activeTraces[name] = trace;
 
-      debugPrint('PerformanceMonitor: Started trace "$name"');
+      AppLogger.debug('PerformanceMonitor: Started trace "$name"');
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to start trace "$name" - $e');
+      AppLogger.error('PerformanceMonitor: Failed to start trace "$name" - $e');
     }
   }
 
@@ -121,7 +143,7 @@ class PerformanceMonitor {
     try {
       final trace = _activeTraces.remove(name);
       if (trace == null) {
-        debugPrint('PerformanceMonitor: Trace "$name" not found');
+        AppLogger.debug('PerformanceMonitor: Trace "$name" not found');
         return;
       }
 
@@ -131,9 +153,9 @@ class PerformanceMonitor {
       });
 
       await trace.stop();
-      debugPrint('PerformanceMonitor: Stopped trace "$name"');
+      AppLogger.debug('PerformanceMonitor: Stopped trace "$name"');
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to stop trace "$name" - $e');
+      AppLogger.error('PerformanceMonitor: Failed to stop trace "$name" - $e');
     }
   }
 
@@ -175,18 +197,18 @@ class PerformanceMonitor {
   void startMemoryMonitoring({Duration interval = const Duration(minutes: 5)}) {
     _memoryMonitorTimer?.cancel();
     _memoryMonitorTimer = Timer.periodic(interval, (_) => _logMemoryUsage());
-    debugPrint('PerformanceMonitor: Started memory monitoring');
+    AppLogger.debug('PerformanceMonitor: Started memory monitoring');
   }
 
   /// Stop memory monitoring.
   void stopMemoryMonitoring() {
     _memoryMonitorTimer?.cancel();
     _memoryMonitorTimer = null;
-    debugPrint('PerformanceMonitor: Stopped memory monitoring');
+    AppLogger.debug('PerformanceMonitor: Stopped memory monitoring');
   }
 
   Future<void> _logMemoryUsage() async {
-    if (!_isInitialized || _performance == null) return;
+    if (!_isInitialized || _traceFactory == null) return;
 
     try {
       final memoryInfo = await _getMemoryInfo();
@@ -198,7 +220,7 @@ class PerformanceMonitor {
       }
 
       // Log as a trace
-      final trace = _performance!.newTrace('memory_snapshot');
+      final trace = _traceFactory!.call('memory_snapshot');
       await trace.start();
 
       trace.setMetric('used_memory_mb', memoryInfo.usedMemoryMB);
@@ -208,12 +230,12 @@ class PerformanceMonitor {
 
       await trace.stop();
 
-      debugPrint(
+      AppLogger.debug(
         'PerformanceMonitor: Memory usage: ${memoryInfo.usedMemoryMB}MB '
         '(peak: ${_peakMemoryUsage}MB)',
       );
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to log memory usage - $e');
+      AppLogger.error('PerformanceMonitor: Failed to log memory usage - $e');
     }
   }
 
@@ -228,20 +250,20 @@ class PerformanceMonitor {
         maxMemoryMB: (maxRss / (1024 * 1024)).round(),
       );
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to get memory info - $e');
+      AppLogger.error('PerformanceMonitor: Failed to get memory info - $e');
       return null;
     }
   }
 
   /// Log current memory usage immediately.
   Future<void> logMemorySnapshot(String label) async {
-    if (!_isInitialized || _performance == null) return;
+    if (!_isInitialized || _traceFactory == null) return;
 
     try {
       final memoryInfo = await _getMemoryInfo();
       if (memoryInfo == null) return;
 
-      final trace = _performance!.newTrace('memory_$label');
+      final trace = _traceFactory!.call('memory_$label');
       await trace.start();
 
       trace.setMetric('used_memory_mb', memoryInfo.usedMemoryMB);
@@ -249,7 +271,7 @@ class PerformanceMonitor {
 
       await trace.stop();
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to log memory snapshot - $e');
+      AppLogger.error('PerformanceMonitor: Failed to log memory snapshot - $e');
     }
   }
 
@@ -261,12 +283,12 @@ class PerformanceMonitor {
   /// Note: Firebase Performance automatically tracks HTTP requests made via
   /// standard Flutter HTTP clients. Use this for custom tracking.
   Future<HttpMetric?> createHttpMetric(String url, HttpMethod method) async {
-    if (!_isInitialized || _performance == null) return null;
+    if (!_isInitialized || _httpMetricFactory == null) return null;
 
     try {
-      return _performance!.newHttpMetric(url, method);
+      return _httpMetricFactory!.call(url, method);
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to create HTTP metric - $e');
+      AppLogger.error('PerformanceMonitor: Failed to create HTTP metric - $e');
       return null;
     }
   }
@@ -313,8 +335,11 @@ class PerformanceMonitor {
       stopwatch.stop();
 
       // Log the measurement
-      _logSyncMeasurement(operationName, stopwatch.elapsedMilliseconds,
-          attributes: attributes);
+      _logSyncMeasurement(
+        operationName,
+        stopwatch.elapsedMilliseconds,
+        attributes: attributes,
+      );
 
       return result;
     } catch (e) {
@@ -333,10 +358,10 @@ class PerformanceMonitor {
     int durationMs, {
     Map<String, String>? attributes,
   }) async {
-    if (!_isInitialized || _performance == null) return;
+    if (!_isInitialized || _traceFactory == null) return;
 
     try {
-      final trace = _performance!.newTrace(name);
+      final trace = _traceFactory!.call(name);
       await trace.start();
 
       trace.setMetric('duration_ms', durationMs);
@@ -346,7 +371,7 @@ class PerformanceMonitor {
 
       await trace.stop();
     } catch (e) {
-      debugPrint('PerformanceMonitor: Failed to log sync measurement - $e');
+      AppLogger.error('PerformanceMonitor: Failed to log sync measurement - $e');
     }
   }
 
@@ -366,15 +391,17 @@ class PerformanceMonitor {
   void dispose() {
     stopMemoryMonitoring();
     _activeTraces.clear();
+    _traceFactory = null;
+    _httpMetricFactory = null;
+    _setCollectionEnabled = null;
+    _performance = null;
+    _isInitialized = false;
   }
 }
 
 /// Memory information snapshot.
 class MemoryInfo {
-  const MemoryInfo({
-    required this.usedMemoryMB,
-    required this.maxMemoryMB,
-  });
+  const MemoryInfo({required this.usedMemoryMB, required this.maxMemoryMB});
 
   final int usedMemoryMB;
   final int maxMemoryMB;

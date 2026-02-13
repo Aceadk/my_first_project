@@ -9,8 +9,8 @@ import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
@@ -815,6 +815,19 @@ class _FakeChatRepository implements ChatRepository {
     required List<CrushMatch> matches,
   }) async =>
       0;
+
+  // ── E2EE stubs ──
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {

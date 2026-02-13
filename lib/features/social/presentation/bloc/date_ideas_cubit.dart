@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 import 'package:crushhour/features/social/data/models/date_idea.dart';
 

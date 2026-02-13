@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
@@ -75,7 +75,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     DiscoveryResetRequested event,
     Emitter<DiscoveryState> emit,
   ) {
-    debugPrint('DiscoveryBloc: Resetting discovery state on logout');
+    AppLogger.debug('DiscoveryBloc: Resetting discovery state on logout');
     _retryTimer?.cancel();
     _retryCount = 0;
     _retryDelayMs = 1000;

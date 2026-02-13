@@ -1,0 +1,6 @@
+file,before_pct,after_pct,delta_pct
+lib/config/support_config.dart,23.68,92.11,68.43
+lib/core/app_logger.dart,42.11,94.74,52.63
+lib/core/services/analytics_service.dart,3.12,100.00,96.88
+lib/core/services/location_service.dart,8.82,91.18,82.36
+lib/features/chat/data/services/voice_recorder_service.dart,0.00,94.83,94.83

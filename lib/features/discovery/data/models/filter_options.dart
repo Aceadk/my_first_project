@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Filter options for advanced discovery filters.
 class DiscoveryFilterOptions {
@@ -155,7 +155,7 @@ class DiscoveryFilterOptions {
     try {
       return options.firstWhere((o) => o.id == id).label;
     } catch (e) {
-      debugPrint('DiscoveryFilterOptions: Option not found for id $id: $e');
+      AppLogger.error('DiscoveryFilterOptions: Option not found for id $id: $e');
       return null;
     }
   }

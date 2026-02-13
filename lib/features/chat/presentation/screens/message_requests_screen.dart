@@ -10,7 +10,7 @@ import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_state.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';

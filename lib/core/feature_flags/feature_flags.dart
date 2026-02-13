@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Feature flag definitions for the app.
@@ -98,7 +99,7 @@ class FeatureFlagService {
           }
         }
       } catch (e) {
-        debugPrint('FeatureFlags: Error parsing local overrides: $e');
+        AppLogger.error('FeatureFlags: Error parsing local overrides: $e');
       }
     }
   }

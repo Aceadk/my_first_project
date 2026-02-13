@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/constants/validation_constants.dart';
 
 /// Input sanitization utilities for security.
@@ -164,7 +165,7 @@ class InputSanitizer {
 
       return sanitized;
     } catch (e) {
-      debugPrint('InputSanitizer: URL sanitization error: $e');
+      AppLogger.error('InputSanitizer: URL sanitization error: $e');
       return null;
     }
   }

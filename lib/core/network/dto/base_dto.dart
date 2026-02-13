@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Base class for all Data Transfer Objects.
 ///
@@ -472,6 +473,6 @@ abstract class DtoMapper<D extends BaseDto, M> {
 /// Debug helper for DTO inspection.
 void debugDto(String tag, BaseDto dto) {
   if (kDebugMode) {
-    debugPrint('[$tag] ${dto.runtimeType}: ${dto.toJson()}');
+    AppLogger.debug('[$tag] ${dto.runtimeType}: ${dto.toJson()}');
   }
 }

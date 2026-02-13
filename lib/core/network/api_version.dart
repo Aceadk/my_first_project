@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// API version management for backward compatibility.
 ///
@@ -244,7 +244,7 @@ class ApiFeatures {
     final required = _featureVersions[feature];
     if (required == null) {
       // Unknown feature - assume available
-      debugPrint('ApiFeatures: Unknown feature "$feature"');
+      AppLogger.debug('ApiFeatures: Unknown feature "$feature"');
       return true;
     }
     return current >= required;

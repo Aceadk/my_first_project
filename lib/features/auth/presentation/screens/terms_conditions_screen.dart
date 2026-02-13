@@ -5,7 +5,7 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 

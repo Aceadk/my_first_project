@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
@@ -176,7 +177,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
         }
       });
     } catch (e) {
-      debugPrint('Error initializing preview player: $e');
+      AppLogger.error('Error initializing preview player: $e');
     }
   }
 

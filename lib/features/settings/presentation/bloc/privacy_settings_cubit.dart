@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
@@ -18,7 +18,7 @@ class PrivacySettingsCubit extends Cubit<ProfilePrivacySettings> {
     try {
       return ProfilePrivacySettings.fromJson(jsonDecode(json));
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
           'PrivacySettingsCubit: Error parsing saved settings, using defaults: $e');
       return const ProfilePrivacySettings();
     }

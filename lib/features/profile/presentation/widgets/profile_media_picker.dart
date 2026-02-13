@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:crushhour/design_system/tokens/colors.dart';
@@ -128,7 +129,7 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       }
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
-      debugPrint('Image picker error: ${e.code} - ${e.message}');
+      AppLogger.error('Image picker error: ${e.code} - ${e.message}');
     } finally {
       _isPickingMedia = false;
     }
@@ -155,7 +156,7 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       _notify();
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
-      debugPrint('Video picker error: ${e.code} - ${e.message}');
+      AppLogger.error('Video picker error: ${e.code} - ${e.message}');
     } finally {
       _isPickingMedia = false;
     }

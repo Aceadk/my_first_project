@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -149,7 +149,7 @@ class VoiceRecorderService {
         }
       }
     } catch (e) {
-      debugPrint('VoiceRecorderService: Error canceling recording: $e');
+      AppLogger.error('VoiceRecorderService: Error canceling recording: $e');
       _recordingStartTime = null;
     }
   }

@@ -48,11 +48,7 @@ import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_c
 /// Test app configuration for integration tests.
 /// Uses stub repositories for isolated, repeatable testing.
 class TestApp extends StatelessWidget {
-  const TestApp({
-    super.key,
-    required this.preferences,
-    this.initialLocation,
-  });
+  const TestApp({super.key, required this.preferences, this.initialLocation});
 
   final SharedPreferences preferences;
   final String? initialLocation;
@@ -89,14 +85,13 @@ class TestApp extends StatelessWidget {
   static List<BlocProvider> _buildTestBlocs(SharedPreferences preferences) {
     return [
       BlocProvider<AuthBloc>(
-        create: (context) => AuthBloc(
-          authRepository: context.read<AuthRepository>(),
-        )..add(AuthStarted()),
+        create: (context) =>
+            AuthBloc(authRepository: context.read<AuthRepository>())
+              ..add(AuthStarted()),
       ),
       BlocProvider<SessionBloc>(
-        create: (context) => SessionBloc(
-          authRepository: context.read<AuthRepository>(),
-        ),
+        create: (context) =>
+            SessionBloc(authRepository: context.read<AuthRepository>()),
       ),
       BlocProvider<SubscriptionBloc>(
         create: (context) => SubscriptionBloc(
@@ -124,9 +119,8 @@ class TestApp extends StatelessWidget {
         ),
       ),
       BlocProvider<CallBloc>(
-        create: (context) => CallBloc(
-          callRepository: context.read<CallRepository>(),
-        ),
+        create: (context) =>
+            CallBloc(callRepository: context.read<CallRepository>()),
       ),
       BlocProvider<ThemeCubit>(
         create: (context) => ThemeCubit(
@@ -245,18 +239,12 @@ class TestHelpers {
 
   /// Finder for the auth gateway sign-in button.
   static Finder authGatewaySignInButton(WidgetTester tester) {
-    return find.widgetWithText(
-      GlassOutlinedButton,
-      l10n(tester).authSignIn,
-    );
+    return find.widgetWithText(GlassOutlinedButton, l10n(tester).authSignIn);
   }
 
   /// Finder for the login screen sign-in button.
   static Finder loginSignInButton(WidgetTester tester) {
-    return find.widgetWithText(
-      GlassPrimaryButton,
-      l10n(tester).authSignIn,
-    );
+    return find.widgetWithText(GlassPrimaryButton, l10n(tester).authSignIn);
   }
 
   /// Finder for a TextField inside a GlassTextField by its label.
@@ -271,7 +259,11 @@ class TestHelpers {
     Duration wait = const Duration(milliseconds: 500),
   }) async {
     await tester.pump(wait);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 20),
+    );
   }
 
   /// Find widget by key and tap
@@ -311,11 +303,7 @@ class TestHelpers {
     Finder? scrollable,
     double delta = 100,
   }) async {
-    await tester.scrollUntilVisible(
-      finder,
-      delta,
-      scrollable: scrollable,
-    );
+    await tester.scrollUntilVisible(finder, delta, scrollable: scrollable);
     await tester.pumpAndSettle();
   }
 }

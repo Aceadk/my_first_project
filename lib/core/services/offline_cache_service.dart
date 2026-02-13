@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/constants/cache_constants.dart';
 import 'package:crushhour/data/models/profile.dart';
@@ -44,9 +44,9 @@ class OfflineCacheService {
       );
 
       await _saveCachedProfiles(prefs, cachedProfiles);
-      debugPrint('[OfflineCache] Cached profile: ${profile.id}');
+      AppLogger.debug('[OfflineCache] Cached profile: ${profile.id}');
     } catch (e) {
-      debugPrint('[OfflineCache] Error caching profile: $e');
+      AppLogger.error('[OfflineCache] Error caching profile: $e');
     }
   }
 
@@ -64,9 +64,9 @@ class OfflineCacheService {
       }
 
       await _saveCachedProfiles(prefs, cachedProfiles);
-      debugPrint('[OfflineCache] Cached ${profiles.length} profiles');
+      AppLogger.debug('[OfflineCache] Cached ${profiles.length} profiles');
     } catch (e) {
-      debugPrint('[OfflineCache] Error caching profiles: $e');
+      AppLogger.error('[OfflineCache] Error caching profiles: $e');
     }
   }
 
@@ -78,11 +78,11 @@ class OfflineCacheService {
       final cached = cachedProfiles[userId];
 
       if (cached != null && !_isExpired(cached.cachedAt)) {
-        debugPrint('[OfflineCache] Retrieved cached profile: $userId');
+        AppLogger.debug('[OfflineCache] Retrieved cached profile: $userId');
         return cached.profile;
       }
     } catch (e) {
-      debugPrint('[OfflineCache] Error retrieving cached profile: $e');
+      AppLogger.error('[OfflineCache] Error retrieving cached profile: $e');
     }
     return null;
   }
@@ -98,7 +98,7 @@ class OfflineCacheService {
           .map((cached) => cached.profile)
           .toList();
     } catch (e) {
-      debugPrint('[OfflineCache] Error retrieving all cached profiles: $e');
+      AppLogger.error('[OfflineCache] Error retrieving all cached profiles: $e');
     }
     return [];
   }
@@ -119,9 +119,9 @@ class OfflineCacheService {
       await prefs.setString(_deckCacheKey, jsonEncode(jsonList));
       await prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
 
-      debugPrint('[OfflineCache] Cached ${profiles.length} deck profiles');
+      AppLogger.debug('[OfflineCache] Cached ${profiles.length} deck profiles');
     } catch (e) {
-      debugPrint('[OfflineCache] Error caching deck profiles: $e');
+      AppLogger.error('[OfflineCache] Error caching deck profiles: $e');
     }
   }
 
@@ -140,10 +140,10 @@ class OfflineCacheService {
           .map((cached) => cached.profile)
           .toList();
 
-      debugPrint('[OfflineCache] Retrieved ${cachedList.length} deck profiles');
+      AppLogger.debug('[OfflineCache] Retrieved ${cachedList.length} deck profiles');
       return cachedList;
     } catch (e) {
-      debugPrint('[OfflineCache] Error retrieving deck profiles: $e');
+      AppLogger.error('[OfflineCache] Error retrieving deck profiles: $e');
     }
     return [];
   }
@@ -157,7 +157,7 @@ class OfflineCacheService {
         return DateTime.parse(syncStr);
       }
     } catch (e) {
-      debugPrint('[OfflineCache] Error getting last sync time: $e');
+      AppLogger.error('[OfflineCache] Error getting last sync time: $e');
     }
     return null;
   }
@@ -171,9 +171,9 @@ class OfflineCacheService {
       cachedProfiles.remove(userId);
       await _saveCachedProfiles(prefs, cachedProfiles);
 
-      debugPrint('[OfflineCache] Removed profile from cache: $userId');
+      AppLogger.debug('[OfflineCache] Removed profile from cache: $userId');
     } catch (e) {
-      debugPrint('[OfflineCache] Error removing from cache: $e');
+      AppLogger.error('[OfflineCache] Error removing from cache: $e');
     }
   }
 
@@ -185,9 +185,9 @@ class OfflineCacheService {
       await prefs.remove(_deckCacheKey);
       await prefs.remove(_lastSyncKey);
 
-      debugPrint('[OfflineCache] Cache cleared');
+      AppLogger.debug('[OfflineCache] Cache cleared');
     } catch (e) {
-      debugPrint('[OfflineCache] Error clearing cache: $e');
+      AppLogger.error('[OfflineCache] Error clearing cache: $e');
     }
   }
 
@@ -206,11 +206,11 @@ class OfflineCacheService {
 
       if (validProfiles.length != cachedProfiles.length) {
         await _saveCachedProfiles(prefs, validProfiles);
-        debugPrint(
+        AppLogger.debug(
             '[OfflineCache] Cleaned up ${cachedProfiles.length - validProfiles.length} expired entries');
       }
     } catch (e) {
-      debugPrint('[OfflineCache] Error cleaning up cache: $e');
+      AppLogger.error('[OfflineCache] Error cleaning up cache: $e');
     }
   }
 
@@ -234,7 +234,7 @@ class OfflineCacheService {
         lastSyncTime: lastSync,
       );
     } catch (e) {
-      debugPrint('[OfflineCache] Error getting cache stats: $e');
+      AppLogger.error('[OfflineCache] Error getting cache stats: $e');
     }
     return const CacheStats(profileCount: 0, deckProfileCount: 0);
   }

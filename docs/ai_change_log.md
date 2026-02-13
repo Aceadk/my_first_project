@@ -4,6 +4,431 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+### [2026-02-13] Task: P1 Remediation — ChatBloc Split, Clean Arch Refactor, Final Cubit Tests, Verification (CR-AUD-027, CR-AUD-028, CR-AUD-029)
+**Summary:**
+- Completed ChatBloc split into 3 sub-BLoCs with facade pattern (CR-AUD-028)
+- Created domain repository interfaces for auth and chat (CR-AUD-027)
+- Fixed presentation→data layer import violations across auth and chat features
+- Wrote tests for MessageRequestsCubit + WeeklyPicksCubit (CR-AUD-029: 24/24 BLoCs covered)
+- Fixed ChatBloc `emit` warning by routing through `ChatSubBlocChanged` event
+- Fixed ChatBloc unmatch test failure by emitting intermediate states from handler
+- All E2EE method stubs added to test ChatRepository implementations
+- **Final result: 1058 tests passing, 6 skipped, 0 failures; analyzer: 0 errors, 0 warnings**
+
+**Files Added:**
+- `lib/features/chat/presentation/bloc/realtime_state_cubit.dart` — typing, presence, media permissions
+- `lib/features/chat/presentation/bloc/chat_session_cubit.dart` — unmatch, E2EE, session state
+- `lib/features/chat/presentation/bloc/message_handling_bloc.dart` — messages, send/edit/unsend/delete
+- `lib/features/auth/domain/repositories/auth_repository.dart` — domain interface
+- `lib/features/chat/domain/repositories/chat_repository.dart` — domain interface
+- `test/message_requests_cubit_test.dart` — MessageRequestsCubit unit tests
+- `test/weekly_picks_cubit_test.dart` — WeeklyPicksCubit unit tests
+
+**Files Modified:**
+- `lib/features/chat/presentation/bloc/chat_bloc.dart` — rewritten as facade; event-based state aggregation
+- `lib/features/chat/presentation/bloc/chat_event.dart` — added ChatSubBlocChanged event
+- `test/chat_bloc_test.dart` — updated for facade pattern
+- `test/deck_gating_test.dart` — added E2EE stubs to _NoopChatRepository
+- `test/message_requests_cubit_test.dart` — added E2EE stubs to MockChatRepository
+- `test/safety_cubit_test.dart` — added E2EE stubs to _StubChatRepository
+- Multiple auth/chat presentation files — imports updated to domain layer
+
+**Risks & Mitigations:**
+- ChatBloc facade uses event-based aggregation; intermediate states in async operations (like unmatch) require inline stream listeners — mitigated with per-handler subscriptions
+- `ChatSubBlocChanged` events may queue during event processing — acceptable tradeoff for eliminating `emit` warning
+
+**Follow-ups / TODO:**
+- CR-AUD-006: Raise test coverage to >=40% (currently tracking well with 1058 tests)
+- CR-AUD-008: Integration test validation still pending CI/device
+- P2 items ready for execution
+
+---
+
+## [2026-02-13] Task: P1 Remediation Batch — Account Deletion, CSP Nonces, Redis Rate Limiting (CR-AUD-010, CR-AUD-025, CR-AUD-026)
+
+**Summary:**
+- Built complete account deletion Cloud Function infrastructure with cascading data erasure
+- Migrated web CSP from unsafe-inline to nonce-based for script-src
+- Implemented Redis-backed distributed rate limiting with Upstash
+- Aligned web and mobile account deletion flows to use 14-day grace period
+- Added account recovery on sign-in within grace period (mobile)
+
+**Files Added:**
+- `lib/features/chat/presentation/bloc/realtime_state_cubit.dart` — RealtimeStateCubit (ChatBloc split, in progress)
+- `lib/features/chat/presentation/bloc/chat_session_cubit.dart` — ChatSessionCubit (ChatBloc split, in progress)
+
+**Files Modified (Flutter):**
+- `functions/src/index.ts` — Added `cascadeDeleteUserData()` helper, `processScheduledAccountDeletions` (scheduled every 6h), `requestAccountDeletion` callable, `cancelAccountDeletion` callable
+- `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` — Added `_recoverAccountIfWithinGracePeriod()` for account recovery on sign-in
+
+**Files Modified (crush-web):**
+- `apps/web/src/middleware.ts` — Rewrote with per-request nonce generation via crypto.randomUUID(); CSP nonce-based for script-src
+- `apps/web/next.config.js` — Removed static CSP header (now in middleware)
+- `apps/web/src/shared/lib/rate-limit.ts` — Rewrote with Upstash Redis REST client (INCR+EXPIRE pattern); graceful in-memory fallback; async API
+- `apps/web/src/app/api/auth/session/route.ts` — Added `await` to checkRateLimit (now async)
+- `apps/web/src/app/api/stripe/create-checkout-session/route.ts` — Added `await` to checkRateLimit (now async)
+- `packages/core/src/services/user.ts` — Changed deleteAccount to call requestAccountDeletion callable; added cancelAccountDeletion method
+- `apps/web/src/app/(app)/settings/settings-view.tsx` — Updated handleDeleteAccount for scheduled approach with grace period; updated dialog text
+
+**Files Modified (Audit Docs):**
+- `audit/03_backlog/REMEDIATION_BACKLOG_2026-02-12.md` — Updated 8 items (CR-AUD-010/025/026/027/028/029/033/036/037)
+- `audit/05_role_deliverables/STORE_COMPLIANCE_CHECKLIST_2026-02-12.md` — Updated account deletion evidence (Apple #7, Google #6, Shared #5)
+
+**Why / Notes:**
+- CR-AUD-010: Account deletion was incomplete — mobile only flagged accounts, no Cloud Function processed them; web deleted immediately without cascade
+- CR-AUD-025: CSP unsafe-inline in script-src is a significant XSS attack surface
+- CR-AUD-026: In-memory rate limiting resets on Vercel serverless cold starts, rendering it ineffective
+
+**Risks & Mitigations:**
+- Risk: Nonce-based CSP may break inline scripts from third-party libraries
+  - Mitigation: Only script-src uses nonces; style-src keeps unsafe-inline for Tailwind CSS compatibility
+- Risk: Redis unavailability could disable rate limiting
+  - Mitigation: Graceful fallback to in-memory rate limiting when Redis is unreachable
+- Risk: Account deletion cascade could fail partially
+  - Mitigation: Detailed error tracking in cascadeDeleteUserData; errors logged per step without halting other steps
+
+**Verification:**
+- `cd functions && npm run build` → passes
+- All web API routes compile with async checkRateLimit
+- Cloud Functions build verified
+
+**Follow-ups / TODO:**
+- CR-AUD-027: Clean architecture refactor (in progress via background agent)
+- CR-AUD-028: ChatBloc split (in progress via background agent)
+- CR-AUD-029: Final 2 cubit tests (in progress via background agent)
+- Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in Vercel env vars for production Redis
+
+---
+
+## [2026-02-13] Task: Web Code Quality — Console.log Guards & TypeScript `any` Removal (CR-AUD-036, CR-AUD-037)
+
+**Summary:**
+- Applied `process.env.NODE_ENV === 'development'` guards to ALL remaining console.log calls in web source files
+- Replaced all TypeScript `catch (err: any)` with `catch (err: unknown)` and proper type narrowing
+- Removed unnecessary `as any` cast in compatibility-quiz page
+- Final flutter test suite: 916 passed, 6 skipped, 0 failures
+
+**Files Modified (crush-web):**
+- `apps/web/src/lib/sentry.ts` — Wrapped 9 console.log calls in dev guards (setTag, setExtra, startTransaction, transaction.finish, transaction.setStatus, plus 4 already done in previous session: DSN check, init, captureMessage, setUser, addBreadcrumb)
+- `apps/web/src/lib/performance.ts` — Wrapped console.log in dev guard (previous session)
+- `apps/web/src/app/(app)/compatibility-quiz/page.tsx` — Removed `as any` cast on empty object (line 351); `{}` is already valid `Partial<UserProfile>`
+- `apps/web/src/app/auth/verify/page.tsx` — Changed `catch (err: any)` to `catch (err: unknown)` with `as { code?: string; message?: string }` for Firebase error codes + `instanceof Error` fallback
+- `apps/web/src/app/auth/callback/page.tsx` — Changed `catch (err: any)` to `catch (err: unknown)` with `instanceof Error` type narrowing
+- `apps/web/src/app/finishSignIn/page.tsx` — Changed `catch (err: any)` to `catch (err: unknown)` with `instanceof Error` type narrowing
+
+**Why / Notes:**
+- CR-AUD-036: console.log statements in production web code leak diagnostic info and clutter browser console
+- CR-AUD-037: TypeScript `any` bypasses type safety; `unknown` forces proper type narrowing before use
+- Firebase error objects have `.code` and `.message` properties — typed via inline cast rather than `any`
+
+**Risks & Mitigations:**
+- Risk: Dev guard could hide errors in production monitoring
+  - Mitigation: Only console.log/debug calls are guarded; actual error handling (catch blocks, throw) is unchanged
+- Risk: `instanceof Error` check could miss non-Error thrown values
+  - Mitigation: Fallback strings provided for all catch blocks (e.g., 'Authentication failed. Please try again.')
+
+**Verification:**
+- `flutter test` → 916 passed, 6 skipped, 0 failures
+- `flutter analyze --no-pub` → 0 errors, 0 warnings
+
+**Follow-ups / TODO:**
+- None — CR-AUD-036 and CR-AUD-037 complete
+
+---
+
+## [2026-02-13] Task: Fix R-130 — CallState.copyWith Nullable Field Bug
+
+**Summary:**
+- Applied sentinel pattern to CallState.copyWith so nullable fields (remoteUid, errorMessage) can be explicitly set to null
+- Added 20 call_bloc_test.dart tests verifying the fix
+
+**Files Modified:**
+- `lib/features/calls/presentation/bloc/call_state.dart` — Added `const _sentinel = Object()` and changed copyWith to use sentinel defaults instead of null coalescing
+- `test/call_bloc_test.dart` — Updated tests to verify nullable field clearing works
+
+**Why / Notes:**
+- R-130: `copyWith(remoteUid: null)` previously kept the old value because `null ?? this.remoteUid` evaluates to `this.remoteUid`
+- Sentinel pattern: `Object remoteUid = _sentinel` → `remoteUid: remoteUid == _sentinel ? this.remoteUid : remoteUid as String?`
+
+**Risks & Mitigations:**
+- Risk: Breaking callers that pass null explicitly expecting "keep current"
+  - Mitigation: Standard Dart copyWith convention is "omit = keep, null = clear"; no callers were passing null to mean "keep"
+
+**Verification:**
+- `flutter test test/call_bloc_test.dart` → 20 passed
+- Full suite: 916 passed, 6 skipped, 0 failures
+
+---
+
+## [2026-02-13] Task: Migrate all debugPrint() to AppLogger across entire codebase
+
+**Summary:**
+- Replaced ALL `debugPrint(...)` calls with `AppLogger.debug(...)` or `AppLogger.error(...)` across ~54 files in `lib/`
+- `lib/core/app_logger.dart` was excluded (it uses debugPrint internally as its implementation)
+- Error-related messages (in catch blocks, containing "error", "failed", "exception") use `AppLogger.error()`
+- Informational/debug messages use `AppLogger.debug()`
+- Removed unused `import 'package:flutter/foundation.dart'` where possible
+- Kept `foundation.dart` import in files that still use `kDebugMode`, `kReleaseMode`, `@visibleForTesting`, etc.
+- Fixed `hybrid_discovery_repository.dart` which needed `foundation.dart` re-added for `kReleaseMode`
+- Fixed unused `foundation.dart` imports in `api_version.dart` and `gradual_rollout_service.dart` left from previous session
+- `flutter analyze --no-pub` passes with 0 errors, 0 warnings (only 5 pre-existing info-level hints in test files)
+
+**Files Modified (this session, continuation from previous session):**
+- `lib/core/services/data_export_service.dart` — 1 error call
+- `lib/core/services/app_update_service.dart` — 1 debug, 2 error calls
+- `lib/core/services/in_app_review_service.dart` — 4 debug, 2 error calls
+- `lib/core/security/input_sanitizer.dart` — 1 error call
+- `lib/core/network/realtime/realtime_connection.dart` — 6 debug, 4 error calls
+- `lib/core/network/realtime/firebase_realtime_service.dart` — 2 debug, 5 error calls
+- `lib/core/network/dto/base_dto.dart` — 1 debug call
+- `lib/core/network/api_client.dart` — 4 debug, 5 error calls
+- `lib/core/network/api_version.dart` — removed unused foundation.dart import
+- `lib/core/feature_flags/feature_flags.dart` — 1 error call
+- `lib/core/deep_link_bootstrap.dart` — 1 error call
+- `lib/core/cache/offline_queue.dart` — 2 error calls
+- `lib/core/cache/cached_repository.dart` — 2 error calls
+- `lib/core/services/offline_cache_service.dart` — 1 debug call, removed unused foundation.dart
+- `lib/core/performance/performance_monitor.dart` — 1 debug call
+- `lib/config/app_config.dart` — 9 debug calls
+- `lib/data/repositories/fake_repositories.dart` — 1 error call
+- `lib/data/models/profile_prompt.dart` — 1 error call
+- `lib/features/profile/data/services/profile_media_service.dart` — ~20 calls (error for upload/delete failures, debug for rest)
+- `lib/features/discovery/presentation/bloc/discovery_bloc.dart` — 1 debug call
+- `lib/features/auth/presentation/screens/basic_info_screen.dart` — 3 debug calls
+- `lib/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart` — ~10 debug, 3 error calls
+- `lib/features/feature_flags/data/repositories/impl/stub_feature_flag_repository.dart` — 1 debug call
+- `lib/features/settings/presentation/bloc/privacy_settings_cubit.dart` — 1 error call
+- `lib/features/profile/presentation/widgets/profile_media_picker.dart` — 2 error calls
+- `lib/features/settings/presentation/bloc/safety_cubit.dart` — 1 error call
+- `lib/features/settings/presentation/bloc/storage_settings_cubit.dart` — 1 error, 3 debug calls
+- `lib/features/profile/presentation/screens/profile_setup_screen.dart` — 1 error call
+- `lib/features/auth/data/repositories/impl/http_auth_repository.dart` — 2 error calls
+- `lib/features/chat/presentation/bloc/matches_bloc.dart` — 2 debug calls
+- `lib/features/profile/data/services/profile_validation_service.dart` — 2 error calls
+- `lib/features/discovery/data/services/profile_reaction_service.dart` — 1 debug call
+- `lib/features/chat/presentation/bloc/chat_bloc.dart` — 4 debug calls
+- `lib/features/discovery/data/models/filter_options.dart` — 1 error call
+- `lib/features/profile/data/repositories/impl/http_profile_repository.dart` — 3 debug calls
+- `lib/features/chat/presentation/widgets/voice_note_recorder.dart` — 1 error call
+- `lib/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart` — ~12 debug, 1 error call; re-added foundation.dart for kReleaseMode
+- `lib/features/calls/data/repositories/impl/http_call_repository.dart` — 1 error call
+- `lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart` — 2 error calls
+- `lib/features/discovery/data/repositories/impl/http_discovery_repository.dart` — 9 error calls
+- `lib/features/chat/presentation/screens/chat_screen.dart` — 2 error calls
+- `lib/features/chat/data/services/voice_recorder_service.dart` — 1 error call
+- `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart` — 2 error calls
+- `lib/features/chat/data/repositories/impl/http_chat_repository.dart` — 2 debug, 2 error calls
+- `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart` — 3 error calls
+- `lib/core/services/gradual_rollout_service.dart` — removed unused foundation.dart import
+
+**Files Modified (previous session, before continuation):**
+- `lib/core/services/push_notification_service.dart`, `lib/core/performance/performance_monitor.dart`, `lib/core/services/tracking_consent_service.dart`, `lib/core/services/analytics_service.dart`, `lib/core/network/api_version.dart`, `lib/core/network/certificate_pinning.dart`, `lib/core/services/app_check_service.dart`, `lib/core/security/secure_logger.dart`, `lib/core/services/crash_reporting_service.dart`, `lib/features/profile/data/services/photo_verification_service.dart`, `lib/core/services/offline_cache_service.dart`, `lib/core/services/gradual_rollout_service.dart`
+
+**Files NOT Modified (correct):**
+- `lib/core/app_logger.dart` — uses debugPrint internally (do not modify)
+- `lib/core/config/env_config.dart` — has method named `debugPrintStatus` but no `debugPrint(` calls
+
+**Why / Notes:**
+- Centralizes all logging through AppLogger for consistent formatting and future log management
+- Enables structured logging with metadata support
+- Makes it easy to filter/search logs by level (debug vs error)
+- Preserves same message strings, only changes the function call
+
+**Risks & Mitigations:**
+- Risk: Removing foundation.dart from files that need kReleaseMode/kDebugMode
+  - Mitigation: Verified every file for kDebugMode/@visibleForTesting usage before removing; fixed hybrid_discovery_repository.dart kReleaseMode error caught by analyzer
+- Risk: Incorrect error vs debug classification
+  - Mitigation: Applied consistent rule: catch blocks and failure messages use error(), informational messages use debug()
+
+**Verification:**
+- `flutter analyze --no-pub` → 0 errors, 0 warnings, 5 info (pre-existing test hints)
+- `grep -r 'debugPrint(' lib/` → only matches in `lib/core/app_logger.dart` (expected)
+
+**Follow-ups / TODO:**
+- None — migration complete
+
+---
+
+## [2026-02-13] Task: Write Unit Tests for 3 Untested BLoCs/Cubits (95 tests)
+
+**Summary:**
+- Wrote 95 unit tests across 3 previously untested state management classes: SessionBloc (25), BoostCubit (32), ProfileInsightsCubit (38)
+- Added Firebase Messaging mock to shared firebase_mock.dart for tests that trigger PushNotificationService
+- Configured PushNotificationService test overrides (tokenProvider, saveToken, deleteToken) to avoid Firestore calls in tests
+- All 95 tests passing; full test suite verified (no regressions)
+
+**Files Added:**
+- `test/session_bloc_test.dart` — 25 tests: SessionState (factory, copyWith, clearError, Equatable), SessionEvent (5 event types with props), SessionBloc (initial state, SessionStarted with auth subscription/user emit/null emit/bootstrap failure, SessionUserChanged auth/unauth, SessionSignOutRequested success/failure, SessionTimeoutOccurred, SessionActivityRecorded, lifecycle)
+- `test/boost_cubit_test.dart` — 32 tests: BoostState (defaults, canBoost logic, isBoostActive, copyWith, Equatable), BoostStatus (isBoostActive, cooldownRemaining scenarios), BoostSession (remainingDuration, hasExpired, profileViewsGained), BoostCubit (initial state, initialize success/failure, activateBoost success/no-userId/canBoost-false/failure, lifecycle with countdown timer)
+- `test/profile_insights_cubit_test.dart` — 38 tests: ProfileInsightsState (defaults, convenience getters null/populated, copyWith, Equatable), ProfileInsightsCubit (initial state, loadInsights, refreshInsights, getInsightsForRange, recordProfileView, recordLikeReceived/superLike, recordLikeSent, getBestTimeToBeActive, auth logout reset, lifecycle), ProfileInsights model (display formatters, viewsChange, JSON round-trip), DailyMetric, DemographicBreakdown
+
+**Files Modified:**
+- `test/mock/firebase_mock.dart` — Added `_setupFirebaseMessagingMock()` for `plugins.flutter.io/firebase_messaging` channel (getToken, deleteToken, requestPermission, getNotificationSettings)
+- `docs/ai_change_log.md` — This entry
+- `docs/ai_tasks_board.md` — Added T-2026-02-13-01
+
+**Why / Notes:**
+- SessionBloc, BoostCubit, and ProfileInsightsCubit were identified as the 3 most testable untested BLoCs/Cubits
+- MessageRequestsCubit and MatchChatSettingsCubit were skipped because they use `FirebaseFirestore.instance` and `FirebaseFunctions.instance` directly (hard to mock without dependency injection)
+- PushNotificationService singleton required test overrides for tokenProvider, saveToken, deleteToken to avoid MissingPluginException during SessionBloc sign-out tests
+- Firebase Messaging mock returns Map type for `Messaging#getToken` (not String) since `invokeMapMethod` casts the result
+
+**Risks & Mitigations:**
+- Firebase Messaging mock added to shared mock file benefits all future tests
+- PushNotificationService overrides are set in setUpAll/tearDownAll to ensure clean state
+
+**Follow-ups / TODO:**
+- Add BLoC tests for remaining untested BLoCs/Cubits (R-118)
+- Refactor MessageRequestsCubit and MatchChatSettingsCubit to use repository pattern (would enable testing)
+
+---
+
+## [2026-02-12] Task: Comprehensive Audit Round 2 — Final Verification & Documentation
+
+**Summary:**
+- Completed full-stack re-audit per 29-page directive
+- Final test suite: **820 tests passing, 6 skipped, 0 failures** (up from 444)
+- Added 376 new tests across this audit round (service tests, feature tests, performance monitor tests)
+- Testing score improved from 5.0/10 to ~6.5/10
+- All 7 audit deliverables updated with current metrics
+- Risk register expanded: R-125 through R-130 documented (R-125, R-127 resolved)
+
+**Files Added (this session):**
+- `test/performance_monitor_test.dart` — 14 tests for PerformanceMonitor (cold start, trace management, measureAsync/measureSync, HTTP metrics, memory monitoring, screen traces)
+- `test/feature_flags_test.dart` — 27 tests
+- `test/call_bloc_test.dart` — 18 tests
+- `test/social_cubits_test.dart` — 64 tests
+- `test/verification_test.dart` — 46 tests
+
+**Files Modified (this session):**
+- `docs/risk_notes.md` — Added R-126 (architecture violations), R-127 (orphaned result.dart - resolved), R-128 (large files), R-129 (Play Integrity), R-130 (CallState.copyWith bug)
+- `docs/ai_tasks_board.md` — Updated task statuses, added T-2026-02-12-10, T-2026-02-12-11
+- `docs/ai_change_log.md` — This entry
+- `audit/02_findings/AUDIT_FINDINGS_P0_P3_2026-02-12.md` — Updated with all findings
+- `audit/02_findings/EXECUTIVE_AUDIT_REPORT_2026-02-12.md` — Updated scores
+- `audit/03_backlog/REMEDIATION_BACKLOG_2026-02-12.md` — 42-item backlog
+- `audit/04_quality/QUALITY_BASELINE_2026-02-12.md` — Updated test counts
+- `audit/05_role_deliverables/FLUTTER_INFORMATION_ARCHITECTURE_PACKET_2026-02-12.md` — Updated
+- `audit/05_role_deliverables/STORE_COMPLIANCE_CHECKLIST_2026-02-12.md` — Updated
+- `audit/05_role_deliverables/SECURITY_AUDIT_REPORT_2026-02-12.md` — Created
+
+**Files Deleted:**
+- `lib/core/result.dart` — Orphaned dead code (0 imports); active version at `lib/core/utils/result.dart` (80 imports)
+
+**Risks & Mitigations:**
+- R-130: CallState.copyWith cannot set nullable fields to null — documented, test covers actual behavior
+- R-126: 73 presentation files import data layer directly — documented for future refactoring
+- R-128: Several files exceed 1000+ lines — documented for future splitting
+- R-129: Play Integrity may not be fully configured — requires manual console action
+
+**Verification:**
+- `flutter test` → 820 passed, 6 skipped, 0 failures
+- `flutter analyze --no-pub` → No issues found
+- All existing tests continue to pass after changes
+
+**Follow-ups / TODO:**
+- Fix CallState.copyWith to support nullable field clearing (R-130)
+- Add BLoC tests for remaining 22+ untested BLoCs/Cubits (R-118)
+- Configure Play Integrity in Google Play Console (R-129)
+- Enable Firebase Storage in Firebase Console (manual action)
+- Target 40% test coverage for MVP
+
+---
+
+## [2026-02-12] Task: Add PerformanceMonitor Unit Tests (14 tests)
+
+**Summary:**
+- Wrote 14 unit tests for the PerformanceMonitor singleton using spy/fake pattern
+- Tests cover cold start recording, trace management, duplicate safety, async/sync measurements, HTTP metrics, memory monitoring, and screen trace helpers
+- Created _SpyTrace implementing firebase_performance Trace interface and _FakeHttpMetric implementing HttpMetric
+
+**Files Added:**
+- `test/performance_monitor_test.dart` — 14 tests with _SpyTrace and _FakeHttpMetric test doubles
+
+**Why / Notes:**
+- PerformanceMonitor is a core infrastructure component used across the app
+- Tests validate the `configureForTesting()` pattern allowing full unit testing without Firebase SDK
+- Memory monitoring test uses short intervals (10ms) to verify periodic snapshots work
+
+---
+
+## [2026-02-12] Task: Write Unit Tests for 4 Untested Feature Areas (155 tests)
+
+**Summary:**
+- Wrote 155 unit tests across 4 previously untested feature areas: Feature Flags, Call BLoC, Social Cubits (DateIdeas + CompatibilityQuiz), and Verification
+- All 155 tests pass
+- Discovered and documented CallState.copyWith limitation where nullable fields (remoteUid) cannot be set to null
+
+**Files Added:**
+- `test/feature_flags_test.dart` — 27 tests: FeatureFlags model (defaults, fromMap, toMap round-trip, copyWith), FeatureFlagState (initial, isLoading, copyWith), FeatureFlagCubit (initialize success/error, refresh success/fetchFail/exception, forceRefresh success/error, isEnabled, convenience getters, flagsStream updates, close lifecycle), MockFeatureFlagRepository typed getters
+- `test/call_bloc_test.dart` — 18 tests: CallState (defaults, copyWith, equatable), CallBloc (initial state, CallStarted success/audio-only/error, CallEnded, engine events: joinedChannel, userJoined, userOffline copyWith limitation, error, close lifecycle, full call flow integration), CallSession model, CallEngineEvent model, CallEngineEventType enum
+- `test/social_cubits_test.dart` — 64 tests: DateIdea model, DateIdeas static helpers, DateIdeaService, DateIdeasCubit (loadIdeas, filter, search, save/remove, logout reset), CompatibilityQuiz model, CompatibilityQuizService, CompatibilityQuizCubit (startQuiz, select/submit answers, navigation, completeQuiz, reset, progress tracking), enum extensions
+- `test/verification_test.dart` — 46 tests: PhotoVerification model (defaults, status checks, canRetry, copyWith, JSON, equatable), enums, PhotoVerificationService (getRandomPose, startVerification, submitSelfie, status, reset), 6 use cases with validation, full flow integration tests
+
+**Files Modified:** None
+
+**Files Deleted:** None
+
+**Why / Notes:**
+- Test coverage was critically low (R-118). These 155 tests cover 4 previously untested feature areas.
+- Used manual stream listening pattern instead of bloc_test package (not available in project)
+- Discovered CallState.copyWith limitation: `copyWith(remoteUid: null)` cannot clear remoteUid because `remoteUid ?? this.remoteUid` treats null as "keep current value"
+- Social cubit tests call clearUserData() in setUp to prevent singleton state pollution
+- Verification tests handle simulated 2s AI delay in submitSelfie
+
+**Risks & Mitigations:**
+- Risk: CallState.copyWith cannot nullify remoteUid — production code issue
+  - Mitigation: Documented in test comments; suggest explicit nullable parameter pattern
+- Risk: Tests depend on singleton service state
+  - Mitigation: setUp calls clearUserData/resetVerification to isolate tests
+
+**Follow-ups / TODO:**
+- Fix CallState.copyWith to support setting remoteUid to null
+- Add more BLoC unit tests for remaining untested BLoCs/Cubits
+- Target 40% test coverage for MVP
+
+---
+
+## [2026-02-12] Task: Generate Comprehensive Audit Deliverables
+
+**Summary:**
+- Created/updated 7 audit deliverable documents based on comprehensive audit findings
+- Covers security (7.5/10), architecture (7.2/10), web (7.8/10), and testing (5.0/10) domains
+- Organized 26 findings by severity (P0-P3) with remediation backlog of 42 items
+
+**Files Modified:**
+- `audit/02_findings/AUDIT_FINDINGS_P0_P3_2026-02-12.md` — Updated with all P0-P3 findings organized by severity (26 findings total)
+- `audit/02_findings/EXECUTIVE_AUDIT_REPORT_2026-02-12.md` — Updated with executive summary, domain scores, key findings, recommendations
+- `audit/03_backlog/REMEDIATION_BACKLOG_2026-02-12.md` — Updated with 42-item prioritized backlog with execution phases
+- `audit/04_quality/QUALITY_BASELINE_2026-02-12.md` — Updated with test counts, coverage, analyzer results, architecture compliance
+- `audit/05_role_deliverables/FLUTTER_INFORMATION_ARCHITECTURE_PACKET_2026-02-12.md` — Updated with architecture diagram, 56 routes, 25 BLoCs/Cubits, 13 features, 50 dependencies
+- `audit/05_role_deliverables/STORE_COMPLIANCE_CHECKLIST_2026-02-12.md` — Updated with 51 Apple/Google requirements mapped to implementation status
+
+**Files Added:**
+- `audit/05_role_deliverables/SECURITY_AUDIT_REPORT_2026-02-12.md` — NEW: Authentication, secrets, validation, privacy, storage, encryption, logging assessments with 7.5/10 score
+
+**Files Deleted:** None
+
+**Why / Notes:**
+- Developer requested comprehensive audit deliverables generation based on audit findings summary
+- All existing files were read before updating to preserve context and add new information
+- Security report is the only new file; all others were updates to existing documents
+
+**Risks & Mitigations:**
+- Risk: Audit numbers are point-in-time snapshots and will drift as code changes
+  - Mitigation: Documents are date-stamped and should be re-baselined weekly
+- Risk: Some findings reference manual verification needed (store compliance, IAP, etc.)
+  - Mitigation: Clearly marked as `not_verified` in checklists
+
+**Follow-ups / TODO:**
+- Weekly re-baseline of quality metrics
+- Complete not_verified items in store compliance checklist
+- Generate actual screenshots and store assets
+- Configure Play Integrity (P0 blocker)
+- Enable Firebase Storage (P0 blocker)
+
+---
+
 ## [2026-02-12] Task: Fix R-125 — Profanity Filter Leetspeak Normalization Bug
 
 **Summary:**

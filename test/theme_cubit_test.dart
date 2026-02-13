@@ -8,7 +8,7 @@ import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 

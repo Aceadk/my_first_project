@@ -6,7 +6,7 @@ import 'package:crushhour/design_system/tokens/gradients.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
+import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
 
 /// Empty chat state with match celebration and ice breaker suggestions.
 class ChatEmptyState extends StatelessWidget {

@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/profile.dart';
 import '../discovery_repository.dart';
@@ -16,10 +17,10 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
       : _firebaseRepo = FirebaseDiscoveryRepository(),
         _stubRepo = kReleaseMode ? null : StubDiscoveryRepository() {
     if (kReleaseMode) {
-      debugPrint(
+      AppLogger.debug(
           '⚠️ HybridDiscoveryRepository: Running in RELEASE mode - stub data DISABLED');
     } else {
-      debugPrint(
+      AppLogger.debug(
           '🧪 HybridDiscoveryRepository: Running in DEBUG mode - stub data enabled');
     }
   }
@@ -37,7 +38,7 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
   }) async {
     // SECURITY: In release mode, only return real Firebase profiles
     if (!_includeStubData) {
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: RELEASE mode - returning Firebase only');
       return _firebaseRepo.fetchDeck(userId, filter: filter);
     }
@@ -47,20 +48,20 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     late List<Profile> stubProfiles;
 
     try {
-      debugPrint('HybridDiscoveryRepository: Fetching deck for user $userId');
+      AppLogger.debug('HybridDiscoveryRepository: Fetching deck for user $userId');
       final results = await Future.wait([
         _firebaseRepo.fetchDeck(userId, filter: filter),
         _stubRepo!.fetchDeck(userId, filter: filter),
       ]);
       firebaseProfiles = results[0];
       stubProfiles = results[1];
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: Firebase returned ${firebaseProfiles.length} profiles');
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: Stub returned ${stubProfiles.length} profiles (DEBUG ONLY)');
     } catch (e) {
       // If Firebase fails, just use stub profiles (debug only)
-      debugPrint('HybridDiscoveryRepository: Firebase error: $e');
+      AppLogger.error('HybridDiscoveryRepository: Firebase error: $e');
       firebaseProfiles = [];
       stubProfiles = await _stubRepo!.fetchDeck(userId, filter: filter);
     }
@@ -122,7 +123,7 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     try {
       firebaseTopPicks = await _firebaseRepo.fetchTopPicks(userId);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: Firebase fetchTopPicks error (using stub fallback): $e');
     }
     final stubTopPicks = await _stubRepo!.fetchTopPicks(userId);
@@ -142,7 +143,7 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     try {
       firebaseLikes = await _firebaseRepo.fetchLikesYou(userId);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: Firebase fetchLikesYou error (using stub fallback): $e');
     }
     final stubLikes = await _stubRepo!.fetchLikesYou(userId);
@@ -162,7 +163,7 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
     try {
       firebaseMatches = await _firebaseRepo.fetchMatches(userId);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'HybridDiscoveryRepository: Firebase fetchMatches error (using stub fallback): $e');
     }
     final stubMatches = await _stubRepo!.fetchMatches(userId);

@@ -22,6 +22,9 @@ void setupFirebaseAnalyticsMocks() {
 
   // Setup FlutterSecureStorage mock
   _setupFlutterSecureStorageMock();
+
+  // Setup Firebase Messaging mock
+  _setupFirebaseMessagingMock();
 }
 
 void _setupFirebaseAuthMock() {
@@ -118,6 +121,53 @@ const Map<String, dynamic> _mockUserData = {
   'tenantId': null,
   'providerData': [],
 };
+
+void _setupFirebaseMessagingMock() {
+  const channel = MethodChannel('plugins.flutter.io/firebase_messaging');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'Messaging#getToken':
+        return <dynamic, dynamic>{'token': 'mock-fcm-token'};
+      case 'Messaging#deleteToken':
+        return null;
+      case 'Messaging#getInitialMessage':
+        return null;
+      case 'Messaging#subscribeToTopic':
+        return null;
+      case 'Messaging#unsubscribeFromTopic':
+        return null;
+      case 'Messaging#requestPermission':
+        return {
+          'authorizationStatus': 1, // authorized
+          'alert': 1,
+          'badge': 1,
+          'sound': 1,
+          'announcement': 0,
+          'carPlay': 0,
+          'criticalAlert': 0,
+          'provisional': 0,
+          'showPreviews': 1,
+          'timeSensitive': 0,
+        };
+      case 'Messaging#getNotificationSettings':
+        return {
+          'authorizationStatus': 1,
+          'alert': 1,
+          'badge': 1,
+          'sound': 1,
+          'announcement': 0,
+          'carPlay': 0,
+          'criticalAlert': 0,
+          'provisional': 0,
+          'showPreviews': 1,
+          'timeSensitive': 0,
+        };
+      default:
+        return null;
+    }
+  });
+}
 
 void _setupFirebaseAnalyticsMock() {
   const channel = MethodChannel(

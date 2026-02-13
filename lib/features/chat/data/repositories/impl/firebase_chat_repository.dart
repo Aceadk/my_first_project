@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,12 +36,15 @@ class FirebaseChatRepository implements ChatRepository {
 
   String? get _currentUserId => _auth.currentUser?.uid;
 
+  @override
   bool get isE2eeEnabled => _e2eeEnabled;
 
+  @override
   void setE2eeEnabled(bool enabled) {
     _e2eeEnabled = enabled;
   }
 
+  @override
   bool isEncryptedContent(String content) {
     return _isEncryptedContent(content);
   }
@@ -252,7 +255,7 @@ class FirebaseChatRepository implements ChatRepository {
           );
         }
       } catch (e) {
-        debugPrint('FirebaseChatRepository: E2EE edit lookup failed: $e');
+        AppLogger.error('FirebaseChatRepository: E2EE edit lookup failed: $e');
       }
     }
     final callable = _functions.httpsCallable('editMessage');
@@ -673,7 +676,7 @@ class FirebaseChatRepository implements ChatRepository {
         migrated++;
       } catch (e) {
         // Ignore failures; keep request for retry.
-        debugPrint(
+        AppLogger.error(
             'FirebaseChatRepository: Message request migration failed (will retry): $e');
       }
     }
@@ -758,7 +761,7 @@ class FirebaseChatRepository implements ChatRepository {
           await _cipher.decrypt(secretBox, secretKey: secretKey);
       return utf8.decode(clearText);
     } catch (e) {
-      debugPrint('FirebaseChatRepository: E2EE decrypt failed: $e');
+      AppLogger.error('FirebaseChatRepository: E2EE decrypt failed: $e');
       return null;
     }
   }
@@ -784,6 +787,7 @@ class FirebaseChatRepository implements ChatRepository {
     );
   }
 
+  @override
   Future<Message> decryptMessage(Message message) async {
     if (message.type != MessageType.text) {
       return message;

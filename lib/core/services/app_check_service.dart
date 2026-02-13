@@ -1,6 +1,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/security/secure_logger.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Service for Firebase App Check / Device Attestation.
 ///
@@ -62,8 +63,8 @@ class AppCheckService {
       _initialized = true;
 
       if (kDebugMode) {
-        debugPrint('AppCheckService: Initialized with DEBUG provider');
-        debugPrint(
+        AppLogger.debug('AppCheckService: Initialized with DEBUG provider');
+        AppLogger.debug(
             '  WARNING: Debug provider should NEVER be used in production!');
 
         // Log debug token info (redacted) for Firebase Console registration
@@ -75,7 +76,7 @@ class AppCheckService {
           context: 'Debug token for Firebase Console',
         );
       } else {
-        debugPrint(
+        AppLogger.debug(
             'AppCheckService: Initialized with device attestation (RELEASE)');
       }
 
@@ -84,8 +85,8 @@ class AppCheckService {
         SecureLogger.logTokenRefresh(type: 'AppCheck', token: token);
       });
     } catch (e, stack) {
-      debugPrint('AppCheckService: Failed to initialize - $e');
-      debugPrint('Stack: $stack');
+      AppLogger.error('AppCheckService: Failed to initialize - $e');
+      AppLogger.error('Stack: $stack');
       // Don't rethrow - app should still work, but backend calls may fail
       // if App Check enforcement is enabled
     }

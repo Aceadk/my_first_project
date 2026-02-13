@@ -10,7 +10,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/theme/theme_extensions.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthGatewayScreen extends StatefulWidget {
   const AuthGatewayScreen({super.key});

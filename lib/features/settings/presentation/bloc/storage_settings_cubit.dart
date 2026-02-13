@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,7 +78,7 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
               await file.delete(recursive: true);
             }
           } catch (e) {
-            debugPrint(
+            AppLogger.debug(
                 'StorageSettingsCubit: Failed to delete ${file.path}: $e');
           }
         }
@@ -96,15 +96,15 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
               await file.delete(recursive: true);
             }
           } catch (e) {
-            debugPrint(
+            AppLogger.debug(
                 'StorageSettingsCubit: Failed to delete ${file.path}: $e');
           }
         }
       }
 
-      debugPrint('StorageSettingsCubit: Cache cleared successfully');
+      AppLogger.debug('StorageSettingsCubit: Cache cleared successfully');
     } catch (e) {
-      debugPrint('StorageSettingsCubit: Failed to clear cache: $e');
+      AppLogger.error('StorageSettingsCubit: Failed to clear cache: $e');
     }
 
     // Reset tracked cache size to default

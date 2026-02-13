@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
@@ -30,7 +30,7 @@ class HttpProfileRepository implements ProfileRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.debug(
           'HttpProfileRepository: Failed to get current user - ${result.error}');
       return _cachedUser;
     }
@@ -156,7 +156,7 @@ class HttpProfileRepository implements ProfileRepository {
     // ID document upload requires a file path parameter
     // This method signature would need to be updated in the interface
     // to accept a file path or File object
-    debugPrint(
+    AppLogger.debug(
         'HttpProfileRepository: uploadIdDocument - update interface to accept file path');
   }
 
@@ -267,7 +267,7 @@ class HttpProfileRepository implements ProfileRepository {
       throw Exception('No photo URL returned from server');
     }
 
-    debugPrint(
+    AppLogger.debug(
         'HttpProfileRepository: Photo uploaded successfully - $photoUrl');
     return photoUrl;
   }

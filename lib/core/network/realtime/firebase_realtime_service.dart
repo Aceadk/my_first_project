@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Firebase Firestore real-time sync service.
 ///
@@ -34,9 +34,9 @@ class FirebaseRealtimeService {
       );
 
       _isInitialized = true;
-      debugPrint('FirebaseRealtimeService: Initialized');
+      AppLogger.debug('FirebaseRealtimeService: Initialized');
     } catch (e) {
-      debugPrint('FirebaseRealtimeService: Initialization failed - $e');
+      AppLogger.error('FirebaseRealtimeService: Initialization failed - $e');
     }
   }
 
@@ -78,7 +78,7 @@ class FirebaseRealtimeService {
       (snapshot) {
         onData(snapshot.data());
       },
-      onError: onError ?? (e) => debugPrint('Firestore error: $e'),
+      onError: onError ?? (e) => AppLogger.error('Firestore error: $e'),
     );
 
     _subscriptions[subscriptionId] = subscription;
@@ -160,7 +160,7 @@ class FirebaseRealtimeService {
       (snapshot) {
         onChanges(snapshot.docChanges);
       },
-      onError: onError ?? (e) => debugPrint('Firestore error: $e'),
+      onError: onError ?? (e) => AppLogger.error('Firestore error: $e'),
     );
 
     _subscriptions[subscriptionId] = subscription;
@@ -324,7 +324,7 @@ class FirebaseRealtimeService {
         'last_seen': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('FirebaseRealtimeService: Update presence failed - $e');
+      AppLogger.error('FirebaseRealtimeService: Update presence failed - $e');
     }
   }
 
@@ -345,7 +345,7 @@ class FirebaseRealtimeService {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('FirebaseRealtimeService: Update typing failed - $e');
+      AppLogger.error('FirebaseRealtimeService: Update typing failed - $e');
     }
   }
 
@@ -365,7 +365,7 @@ class FirebaseRealtimeService {
       subscription.cancel();
     }
     _subscriptions.clear();
-    debugPrint('FirebaseRealtimeService: Cancelled all subscriptions');
+    AppLogger.debug('FirebaseRealtimeService: Cancelled all subscriptions');
   }
 
   /// Get count of active subscriptions.

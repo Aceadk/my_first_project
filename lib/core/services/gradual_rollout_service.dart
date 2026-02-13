@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for gradual feature rollouts based on user cohorts.
@@ -45,7 +45,7 @@ class GradualRolloutService {
     }
 
     _isInitialized = true;
-    debugPrint('GradualRolloutService: Initialized - bucket $_bucket');
+    AppLogger.debug('GradualRolloutService: Initialized - bucket $_bucket');
   }
 
   String _generateUserId() {

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'cache_policy.dart';
 import 'cache_store.dart';
 
@@ -56,7 +56,7 @@ mixin CachingMixin {
         try {
           return await _fetchAndCache(key, fetch, config);
         } catch (e) {
-          debugPrint(
+          AppLogger.error(
               'CachedRepository: Network fetch failed, falling back to cache: $e');
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;
@@ -69,7 +69,7 @@ mixin CachingMixin {
         try {
           return await _fetchAndCache(key, fetch, config);
         } catch (e) {
-          debugPrint(
+          AppLogger.error(
               'CachedRepository: Network fetch failed, falling back to cache: $e');
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;

@@ -1,5 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Centralized analytics service for tracking user behavior and product insights.
 ///
@@ -615,7 +616,7 @@ class AnalyticsService {
 
   void _log(String event, [Map<String, dynamic>? params]) {
     if (kDebugMode) {
-      debugPrint('📊 Analytics: $event ${params ?? ''}');
+      AppLogger.debug('Analytics: $event ${params ?? ''}');
     }
   }
 }

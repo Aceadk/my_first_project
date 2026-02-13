@@ -1,0 +1,198 @@
+import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/message_request.dart';
+
+abstract class ChatRepository {
+  /// Watch all messages in a match (legacy - loads all at once).
+  /// @deprecated Use watchNewMessages + fetchMessagesPaginated instead.
+  Stream<List<Message>> watchMessages(String matchId);
+
+  /// Fetch paginated messages for a match.
+  /// Messages are ordered by sentAt descending (newest first).
+  /// Use [beforeTimestamp] for cursor-based pagination (fetch older messages).
+  Future<PaginatedResult<Message>> fetchMessagesPaginated(
+    String matchId, {
+    int limit = 30,
+    DateTime? beforeTimestamp,
+  });
+
+  /// Watch only NEW messages (messages sent after [afterTimestamp]).
+  /// Use this for real-time updates after initial load.
+  Stream<List<Message>> watchNewMessages(
+    String matchId, {
+    required DateTime afterTimestamp,
+  });
+
+  Future<void> sendMessage({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+  });
+
+  Future<String> uploadMedia({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  });
+
+  Future<void> markMessagesRead(String matchId, String userId);
+
+  Future<void> unsendMessage({
+    required String matchId,
+    required String messageId,
+  });
+
+  /// Edit a message's content. Only text messages can be edited.
+  /// Premium feature - must be called within 15 minutes of sending.
+  Future<void> editMessage({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  });
+
+  Future<void> deleteForMe({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  });
+
+  Future<void> reportUser({
+    required String reporterId,
+    required String reportedId,
+    required String reason,
+    String? matchId,
+    String? messageId,
+    String? source,
+    String? description,
+  });
+
+  Future<void> addReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  });
+
+  Future<void> removeReaction({
+    required String matchId,
+    required String messageId,
+    required String userId,
+  });
+
+  Future<void> submitSafetyAppeal({
+    required String userId,
+    required String reason,
+    String? targetType,
+    String? targetId,
+  });
+
+  Stream<Set<String>> watchTyping(String matchId);
+
+  Future<void> setTyping({
+    required String matchId,
+    required String userId,
+    required bool isTyping,
+  });
+
+  Stream<bool> watchPresence(String userId);
+
+  Future<void> setPresence({
+    required String userId,
+    required bool isOnline,
+  });
+
+  Stream<bool> watchMediaSendingEnabled(String matchId);
+
+  Future<void> setMediaSendingEnabled({
+    required String matchId,
+    required bool enabled,
+    required String requesterId,
+  });
+
+  Future<void> blockUser({
+    required String blockerId,
+    required String blockedId,
+  });
+
+  Future<void> unblockUser({
+    required String blockerId,
+    required String blockedId,
+  });
+
+  Future<void> unmatch({
+    required String matchId,
+    required String userId,
+  });
+
+  Future<List<CrushMatch>> fetchUserMatches(String userId);
+
+  /// Fetch paginated matches for a user.
+  ///
+  /// [offset] - Number of matches to skip.
+  /// [limit] - Maximum number of matches to return.
+  Future<PaginatedResult<CrushMatch>> fetchUserMatchesPaginated(
+    String userId, {
+    int offset = 0,
+    int limit = 20,
+  });
+
+  /// Send a pre-match message request to another user.
+  /// Returns null if a pending request already exists between the pair.
+  Future<MessageRequest?> sendMessageRequest({
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+    String? fromUserName,
+    String? fromUserPhotoUrl,
+    String? toUserName,
+    String? toUserPhotoUrl,
+  });
+
+  /// Fetch message requests involving the user (sent or received).
+  Future<List<MessageRequest>> fetchMessageRequests(String userId);
+
+  /// Check if a pending message request already exists between two users.
+  Future<bool> hasPendingMessageRequest({
+    required String userId,
+    required String otherUserId,
+  });
+
+  /// Migrate eligible message requests into chats when matches exist.
+  /// Returns the number of requests migrated.
+  Future<int> migrateMessageRequestsForMatches({
+    required String userId,
+    required List<CrushMatch> matches,
+  });
+
+  // ── E2EE (End-to-End Encryption) ──────────────────────────────────────
+
+  /// Whether E2EE is currently enabled for this repository.
+  /// Returns false by default (implementations that support E2EE override).
+  bool get isE2eeEnabled => false;
+
+  /// Enable or disable E2EE for outgoing messages.
+  void setE2eeEnabled(bool enabled) {}
+
+  /// Check if a message content string is encrypted.
+  bool isEncryptedContent(String content) => false;
+
+  /// Decrypt a message if it is encrypted. Returns the message unchanged
+  /// if encryption is not supported or the message is not encrypted.
+  Future<Message> decryptMessage(Message message) async => message;
+}
+
+/// Result wrapper for paginated data.
+class PaginatedResult<T> {
+  final List<T> items;
+  final int total;
+  final bool hasMore;
+
+  const PaginatedResult({
+    required this.items,
+    required this.total,
+    required this.hasMore,
+  });
+}

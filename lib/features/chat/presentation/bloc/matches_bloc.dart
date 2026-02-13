@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'matches_event.dart';
 import 'matches_state.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 
 class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
@@ -167,7 +167,7 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
         );
       } catch (e) {
         // Ignore migration errors to avoid blocking matches view.
-        debugPrint(
+        AppLogger.debug(
             'MatchesBloc: Message request migration failed (non-blocking): $e');
       }
     } else {
@@ -230,7 +230,7 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     MatchesResetRequested event,
     Emitter<MatchesState> emit,
   ) {
-    debugPrint('MatchesBloc: Resetting matches state on logout');
+    AppLogger.debug('MatchesBloc: Resetting matches state on logout');
     _retryTimer?.cancel();
     _retryCount = 0;
     _retryDelayMs = 1000;

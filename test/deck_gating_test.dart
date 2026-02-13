@@ -10,10 +10,10 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/favourites.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
@@ -81,8 +81,9 @@ void main() {
 
   final deckProfile = incompleteProfile.copyWith(id: 'deck-1', name: 'Taylor');
 
-  testWidgets('deck shows gating dialog when profile incomplete on like tap',
-      (tester) async {
+  testWidgets('deck shows gating dialog when profile incomplete on like tap', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefsInstance = await SharedPreferences.getInstance();
 
@@ -131,9 +132,8 @@ void main() {
               ),
             ),
             BlocProvider<BoostCubit>(
-              create: (_) => BoostCubit(
-                boostRepository: _StubBoostRepository(),
-              ),
+              create: (_) =>
+                  BoostCubit(boostRepository: _StubBoostRepository()),
             ),
           ],
           child: const MaterialApp(home: DeckScreen()),
@@ -180,15 +180,13 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<CrushUser> signInWithApple() async => user;
@@ -197,16 +195,14 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
     required String password,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<void> requestEmailOtp({
@@ -222,15 +218,13 @@ class _StubAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<void> signOut() async {}
@@ -248,8 +242,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) async =>
-      'reset-token';
+  }) async => 'reset-token';
 
   @override
   Future<void> resetPasswordWithToken({
@@ -306,8 +299,7 @@ class _StubProfileRepository implements ProfileRepository {
     DateTime? dateOfBirth,
     bool? showFirstName,
     bool? showLastName,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<CrushUser> saveProfileDetails({
@@ -325,8 +317,7 @@ class _StubProfileRepository implements ProfileRepository {
     List<String>? showMeGenders,
     double? latitude,
     double? longitude,
-  }) async =>
-      user;
+  }) async => user;
 
   @override
   Future<void> uploadIdDocument() async {}
@@ -359,8 +350,7 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async =>
-      deck;
+  }) async => deck;
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -399,8 +389,7 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => null;
@@ -439,40 +428,46 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
 
 class _StubAuthBloc extends AuthBloc {
   _StubAuthBloc(CrushUser user, AuthRepository authRepo)
-      : super(authRepository: authRepo) {
-    emit(AuthState(
-      status: AuthStatus.authenticated,
-      user: user,
-      phoneInProgress: null,
-      emailInProgress: null,
-      emailOtpIdentifier: null,
-    ));
+    : super(authRepository: authRepo) {
+    emit(
+      AuthState(
+        status: AuthStatus.authenticated,
+        user: user,
+        phoneInProgress: null,
+        emailInProgress: null,
+        emailOtpIdentifier: null,
+      ),
+    );
   }
 }
 
 class _StubProfileBloc extends ProfileBloc {
   _StubProfileBloc(ProfileRepository repo, AuthRepository authRepo)
-      : super(profileRepository: repo, authRepository: authRepo) {
-    emit(ProfileState(
-      user: (repo as _StubProfileRepository).user,
-      profile: (repo).user.profile,
-    ));
+    : super(profileRepository: repo, authRepository: authRepo) {
+    emit(
+      ProfileState(
+        user: (repo as _StubProfileRepository).user,
+        profile: (repo).user.profile,
+      ),
+    );
   }
 }
 
 class _StubDiscoveryBloc extends DiscoveryBloc {
   _StubDiscoveryBloc(Profile profile, AuthRepository authRepo)
-      : super(
-          discoveryRepository: _StubDiscoveryRepository([profile]),
-          subscriptionRepository: _StubSubscriptionRepository(),
-          authRepository: authRepo,
-        ) {
-    emit(DiscoveryState(
-      deck: [profile],
-      status: DeckStatus.ready,
-      isLoading: false,
-      currentIndex: 0,
-    ));
+    : super(
+        discoveryRepository: _StubDiscoveryRepository([profile]),
+        subscriptionRepository: _StubSubscriptionRepository(),
+        authRepository: authRepo,
+      ) {
+    emit(
+      DiscoveryState(
+        deck: [profile],
+        status: DeckStatus.ready,
+        isLoading: false,
+        currentIndex: 0,
+      ),
+    );
   }
 }
 
@@ -498,8 +493,7 @@ class _NoopChatRepository implements ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchMessages(String matchId) => const Stream.empty();
@@ -584,8 +578,7 @@ class _NoopChatRepository implements ChatRepository {
     required String matchId,
     required String filePath,
     required MessageType type,
-  }) async =>
-      '';
+  }) async => '';
 
   @override
   Future<void> unsendMessage({
@@ -617,15 +610,13 @@ class _NoopChatRepository implements ChatRepository {
     String matchId, {
     int limit = 30,
     DateTime? beforeTimestamp,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchNewMessages(
     String matchId, {
     required DateTime afterTimestamp,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Future<MessageRequest?> sendMessageRequest({
@@ -637,8 +628,7 @@ class _NoopChatRepository implements ChatRepository {
     String? fromUserPhotoUrl,
     String? toUserName,
     String? toUserPhotoUrl,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<List<MessageRequest>> fetchMessageRequests(String userId) async =>
@@ -648,15 +638,25 @@ class _NoopChatRepository implements ChatRepository {
   Future<bool> hasPendingMessageRequest({
     required String userId,
     required String otherUserId,
-  }) async =>
-      false;
+  }) async => false;
 
   @override
   Future<int> migrateMessageRequestsForMatches({
     required String userId,
     required List<CrushMatch> matches,
-  }) async =>
-      0;
+  }) async => 0;
+
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }
 
 class _StubBoostRepository implements BoostRepository {
@@ -665,12 +665,11 @@ class _StubBoostRepository implements BoostRepository {
       const BoostStatus(canBoost: false, nextBoostAvailableAt: null);
 
   @override
-  Future<BoostSession> activateBoost(String userId) async =>
-      BoostSession(
-        startedAt: DateTime.now(),
-        endsAt: DateTime.now().add(const Duration(minutes: 30)),
-        isActive: true,
-      );
+  Future<BoostSession> activateBoost(String userId) async => BoostSession(
+    startedAt: DateTime.now(),
+    endsAt: DateTime.now().add(const Duration(minutes: 30)),
+    isActive: true,
+  );
 
   @override
   Future<List<BoostSession>> getBoostHistory(String userId) async => [];

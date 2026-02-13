@@ -8,7 +8,7 @@ import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/presentation/widgets/primary_button.dart';
 

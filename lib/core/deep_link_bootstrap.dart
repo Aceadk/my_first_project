@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,7 +42,7 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
       if (!mounted) return;
       _handleUri(initial);
     } catch (e) {
-      debugPrint('DeepLinkBootstrap: Failed to get initial link: $e');
+      AppLogger.error('DeepLinkBootstrap: Failed to get initial link: $e');
     }
   }
 

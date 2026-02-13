@@ -368,6 +368,31 @@ function requireAuth(context: CallableContext, action: string): string {
   return uid;
 }
 
+/**
+ * Require email verification for sensitive operations (CR-AUD-031).
+ * Blocks unverified users from chat, discovery, and other sensitive actions.
+ * Phone-auth users are exempt (no email to verify).
+ */
+function requireEmailVerified(context: CallableContext, action: string): void {
+  const token = context.auth?.token;
+  if (!token) return; // Already handled by requireAuth
+
+  // Phone-auth users don't have an email to verify — exempt them
+  const signInProvider = token.firebase?.sign_in_provider;
+  if (signInProvider === "phone") return;
+
+  // Apple/Google sign-in providers are inherently verified
+  if (signInProvider === "apple.com" || signInProvider === "google.com") return;
+
+  // For email/password users, check email_verified
+  if (token.email && !token.email_verified) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      `Email verification required to ${action}. Please verify your email first.`
+    );
+  }
+}
+
 function requireString(value: unknown, field: string, maxLength = 5000): string {
   const str = typeof value === "string" ? value.trim() : "";
   if (!str) {
@@ -2989,6 +3014,7 @@ export const moderateImageContent = callable<{
 
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
+  requireEmailVerified(context, "report a user");
   const reportedId = requireString(data?.reportedId, "reportedId");
   const reason = requireString(data?.reason, "reason");
   const matchId = optionalString(data?.matchId);
@@ -3067,6 +3093,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
 
 export const blockUser = callable<BlockRequest>(async (data, context) => {
   const blockerId = requireAuth(context, "block a user");
+  requireEmailVerified(context, "block a user");
   const blockedId = requireString(data?.blockedId, "blockedId");
   const blockerIdFromClient = optionalString(data?.blockerId);
 
@@ -3276,6 +3303,7 @@ export const removeReaction = callable<{
 
 export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
   const uid = requireAuth(context, "unmatch");
+  requireEmailVerified(context, "unmatch");
   const matchId = requireString(data?.matchId, "matchId");
   const { otherUserId } = await ensureUserInMatch(matchId, uid);
 
@@ -3480,6 +3508,7 @@ export const onSubscriptionUpdated = functions.firestore
 export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "fetch discovery candidates");
+    requireEmailVerified(context, "browse discovery");
     const limitRaw = typeof data?.limit === "number" ? data.limit : 30;
     const limit = Math.min(Math.max(limitRaw, 5), 50);
 
@@ -3645,6 +3674,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 // Swipe right (double opt-in + match creation)
 export const swipeRight = callable<SwipeRequest>(async (data, context) => {
   const uid = requireAuth(context, "swipe right");
+  requireEmailVerified(context, "swipe right");
   const targetUserId = requireString(data?.targetUserId, "targetUserId");
   const attachedMessage = optionalString(data?.attachedMessage);
 
@@ -3777,6 +3807,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
 // Swipe left (log only)
 export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   const uid = requireAuth(context, "swipe left");
+  requireEmailVerified(context, "swipe left");
   const targetUserId = requireString(data?.targetUserId, "targetUserId");
 
   if (targetUserId === uid) {
@@ -3809,6 +3840,7 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
 export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "send a pre-match message");
+    requireEmailVerified(context, "send a pre-match message");
     const targetUserId = requireString(data?.targetUserId, "targetUserId");
     const content = requireString(data?.content, "content");
 
@@ -3876,6 +3908,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
 // Unsend message (Plus only, sender-only)
 export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   const uid = requireAuth(context, "unsend messages");
+  requireEmailVerified(context, "unsend messages");
   const matchId = requireString(data?.matchId, "matchId");
   const messageId = requireString(data?.messageId, "messageId");
 
@@ -3944,6 +3977,7 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
 // Send message (for matched users)
 export const sendMessage = callable<SendMessageRequest>(async (data, context) => {
   const uid = requireAuth(context, "send messages");
+  requireEmailVerified(context, "send messages");
   const matchId = requireString(data?.matchId, "matchId");
   const toUserId = requireString(data?.toUserId, "toUserId");
   const content = optionalString(data?.content);
@@ -4083,6 +4117,7 @@ export const markMessagesRead = callable<MarkMessagesReadRequest>(async (data, c
 // Edit message (sender only)
 export const editMessage = callable<EditMessageRequest>(async (data, context) => {
   const uid = requireAuth(context, "edit messages");
+  requireEmailVerified(context, "edit messages");
   const matchId = requireString(data?.matchId, "matchId");
   const messageId = requireString(data?.messageId, "messageId");
   const content = requireString(data?.content, "content");
@@ -4138,6 +4173,7 @@ export const editMessage = callable<EditMessageRequest>(async (data, context) =>
 export const createCheckoutSession = callable<CheckoutSessionRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "start checkout");
+    requireEmailVerified(context, "start checkout");
     const priceId = requireString(data?.priceId, "priceId");
     const successUrl = requireString(data?.successUrl, "successUrl");
     const cancelUrl = requireString(data?.cancelUrl, "cancelUrl");
@@ -6197,5 +6233,450 @@ app.get(
       console.error("Get chat settings error:", err);
       return res.status(500).json({ error: "Failed to get chat settings" });
     }
+  }
+);
+
+// =============================================================================
+// ACCOUNT DELETION — Scheduled + Callable (CR-AUD-010)
+// =============================================================================
+
+const DELETION_GRACE_PERIOD_DAYS = 14;
+const DEACTIVATION_AUTO_DELETE_DAYS = 180;
+
+/**
+ * Helper: Cascading deletion of all user data across Firestore, RTDB, Storage, and Auth.
+ * This is the nuclear option — permanently removes all traces of a user.
+ */
+async function cascadeDeleteUserData(uid: string): Promise<{
+  deleted: string[];
+  errors: string[];
+}> {
+  const deleted: string[] = [];
+  const errors: string[] = [];
+
+  // 1. Delete user's matches and related subcollections
+  try {
+    const matchesSnapshot = await db
+      .collection("matches")
+      .where("participants", "array-contains", uid)
+      .get();
+
+    for (const matchDoc of matchesSnapshot.docs) {
+      // Delete messages subcollection
+      const messagesSnapshot = await matchDoc.ref
+        .collection("messages")
+        .limit(500)
+        .get();
+      const batch = db.batch();
+      messagesSnapshot.docs.forEach((msgDoc) => batch.delete(msgDoc.ref));
+      if (messagesSnapshot.size > 0) {
+        await batch.commit();
+        deleted.push(
+          `matches/${matchDoc.id}/messages (${messagesSnapshot.size} docs)`
+        );
+      }
+
+      // Delete the match document itself
+      await matchDoc.ref.delete();
+      deleted.push(`matches/${matchDoc.id}`);
+    }
+  } catch (error) {
+    errors.push(
+      `matches cleanup: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 2. Delete user's blocks, reports, likes
+  for (const subcollection of ["blocked", "reports", "likes_given", "likes_received"]) {
+    try {
+      const subcollRef = db.collection("users").doc(uid).collection(subcollection);
+      const snapshot = await subcollRef.limit(500).get();
+      if (snapshot.size > 0) {
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        deleted.push(`users/${uid}/${subcollection} (${snapshot.size} docs)`);
+      }
+    } catch (error) {
+      errors.push(
+        `${subcollection}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 3. Delete message_requests involving this user
+  try {
+    const sentRequests = await db
+      .collection("message_requests")
+      .where("senderId", "==", uid)
+      .get();
+    const receivedRequests = await db
+      .collection("message_requests")
+      .where("recipientId", "==", uid)
+      .get();
+    const batch = db.batch();
+    sentRequests.docs.forEach((doc) => batch.delete(doc.ref));
+    receivedRequests.docs.forEach((doc) => batch.delete(doc.ref));
+    const total = sentRequests.size + receivedRequests.size;
+    if (total > 0) {
+      await batch.commit();
+      deleted.push(`message_requests (${total} docs)`);
+    }
+  } catch (error) {
+    errors.push(
+      `message_requests: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 4. Delete account tracking records
+  for (const collection of ["account_deletions", "account_deactivations"]) {
+    try {
+      const docRef = db.collection(collection).doc(uid);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        await docRef.delete();
+        deleted.push(`${collection}/${uid}`);
+      }
+    } catch (error) {
+      errors.push(
+        `${collection}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 5. Delete auth credentials
+  try {
+    const credRef = db.collection("auth_credentials").doc(uid);
+    const credSnap = await credRef.get();
+    if (credSnap.exists) {
+      await credRef.delete();
+      deleted.push(`auth_credentials/${uid}`);
+    }
+  } catch (error) {
+    errors.push(
+      `auth_credentials: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 6. Delete Cloud Storage files (profile photos + chat media)
+  try {
+    const bucket = admin.storage().bucket();
+    const [profileFiles] = await bucket.getFiles({ prefix: `photos/${uid}/` });
+    for (const file of profileFiles) {
+      await file.delete();
+    }
+    if (profileFiles.length > 0) {
+      deleted.push(`storage:photos/${uid}/ (${profileFiles.length} files)`);
+    }
+
+    const [chatFiles] = await bucket.getFiles({ prefix: `chat_media/${uid}/` });
+    for (const file of chatFiles) {
+      await file.delete();
+    }
+    if (chatFiles.length > 0) {
+      deleted.push(`storage:chat_media/${uid}/ (${chatFiles.length} files)`);
+    }
+  } catch (error) {
+    errors.push(
+      `storage: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 7. Delete RTDB data (presence, typing indicators, etc.)
+  try {
+    await rtdb.ref(`presence/${uid}`).remove();
+    await rtdb.ref(`typing/${uid}`).remove();
+    await rtdb.ref(`last_seen/${uid}`).remove();
+    deleted.push("rtdb:presence,typing,last_seen");
+  } catch (error) {
+    errors.push(
+      `rtdb: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 8. Delete the user document from Firestore
+  try {
+    await db.collection("users").doc(uid).delete();
+    deleted.push(`users/${uid}`);
+  } catch (error) {
+    errors.push(
+      `users doc: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // 9. Delete Firebase Auth user (last step — no recovery after this)
+  try {
+    await admin.auth().deleteUser(uid);
+    deleted.push(`auth:${uid}`);
+  } catch (error) {
+    // auth/user-not-found is OK — user may have already been deleted
+    const authError = error as { code?: string; message?: string };
+    if (authError?.code !== "auth/user-not-found") {
+      errors.push(
+        `auth delete: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  return { deleted, errors };
+}
+
+/**
+ * Scheduled function: Process pending account deletions.
+ * Runs every 6 hours. Finds accounts where:
+ * - isPendingDeletion=true AND deletionScheduledAt has passed
+ * - isDeactivated=true AND scheduledDeletionAt has passed (6-month auto-delete)
+ */
+export const processScheduledAccountDeletions = functions.pubsub
+  .schedule("every 6 hours")
+  .onRun(async () => {
+    const now = new Date();
+    let processedCount = 0;
+    let errorCount = 0;
+
+    // Process pending deletions (14-day grace period expired)
+    try {
+      const pendingSnapshot = await db
+        .collection("users")
+        .where("isPendingDeletion", "==", true)
+        .where("deletionScheduledAt", "<", now)
+        .limit(50)
+        .get();
+
+      for (const userDoc of pendingSnapshot.docs) {
+        const uid = userDoc.id;
+        console.log(`Processing scheduled deletion for user: ${uid}`);
+
+        const result = await cascadeDeleteUserData(uid);
+
+        if (result.errors.length > 0) {
+          console.error(`Deletion errors for ${uid}:`, result.errors);
+          errorCount++;
+        } else {
+          console.log(`Successfully deleted all data for user: ${uid}`, result.deleted);
+          processedCount++;
+        }
+      }
+    } catch (error) {
+      console.error("Error processing pending deletions:", error);
+    }
+
+    // Process deactivated accounts (6-month auto-delete)
+    try {
+      const deactivatedSnapshot = await db
+        .collection("users")
+        .where("isDeactivated", "==", true)
+        .where("scheduledDeletionAt", "<", now)
+        .limit(50)
+        .get();
+
+      for (const userDoc of deactivatedSnapshot.docs) {
+        const uid = userDoc.id;
+        console.log(`Processing auto-deletion for deactivated user: ${uid}`);
+
+        const result = await cascadeDeleteUserData(uid);
+
+        if (result.errors.length > 0) {
+          console.error(`Auto-deletion errors for ${uid}:`, result.errors);
+          errorCount++;
+        } else {
+          console.log(
+            `Successfully auto-deleted deactivated user: ${uid}`,
+            result.deleted
+          );
+          processedCount++;
+        }
+      }
+    } catch (error) {
+      console.error("Error processing deactivated account deletions:", error);
+    }
+
+    console.log(
+      `Account deletion run complete: ${processedCount} processed, ${errorCount} errors`
+    );
+    return null;
+  });
+
+/**
+ * Callable: Request account deletion (with 14-day grace period).
+ * Called from both web and mobile apps.
+ * Sets isPendingDeletion=true and schedules deletion for 14 days later.
+ */
+export const requestAccountDeletion = functions.https.onCall(
+  async (data, context) => {
+    verifyAppCheck(context, "requestAccountDeletion");
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Must be signed in to delete account."
+      );
+    }
+
+    const uid = context.auth.uid;
+    const reason = typeof data?.reason === "string" ? data.reason.slice(0, 500) : "Not specified";
+
+    const deletionDate = new Date();
+    deletionDate.setDate(deletionDate.getDate() + DELETION_GRACE_PERIOD_DAYS);
+
+    try {
+      // Mark account for scheduled deletion
+      await db.collection("users").doc(uid).update({
+        isPendingDeletion: true,
+        deletionRequestedAt: serverTimestamp(),
+        deletionScheduledAt: deletionDate,
+        deletionReason: reason,
+      });
+
+      // Create tracking record
+      await db.collection("account_deletions").doc(uid).set({
+        uid,
+        reason,
+        requestedAt: serverTimestamp(),
+        scheduledAt: deletionDate,
+        status: "pending",
+      });
+
+      console.log(
+        `Account deletion requested for ${uid}, scheduled for ${deletionDate.toISOString()}`
+      );
+
+      return {
+        success: true,
+        scheduledAt: deletionDate.toISOString(),
+        gracePeriodDays: DELETION_GRACE_PERIOD_DAYS,
+        message: `Your account is scheduled for deletion on ${deletionDate.toLocaleDateString()}. Sign back in within ${DELETION_GRACE_PERIOD_DAYS} days to cancel.`,
+      };
+    } catch (error) {
+      console.error("requestAccountDeletion error:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to process deletion request."
+      );
+    }
+  }
+);
+
+/**
+ * Callable: Cancel a pending account deletion (recovery within grace period).
+ * Called when a user signs in while their account is pending deletion.
+ */
+export const cancelAccountDeletion = functions.https.onCall(
+  async (_data, context) => {
+    verifyAppCheck(context, "cancelAccountDeletion");
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Must be signed in."
+      );
+    }
+
+    const uid = context.auth.uid;
+
+    try {
+      const userDoc = await db.collection("users").doc(uid).get();
+      const userData = userDoc.data();
+
+      if (!userData?.isPendingDeletion) {
+        return { success: true, message: "No pending deletion to cancel." };
+      }
+
+      // Check if still within grace period
+      const scheduledAt = userData.deletionScheduledAt?.toDate?.() || userData.deletionScheduledAt;
+      if (scheduledAt && new Date() > new Date(scheduledAt)) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Grace period has expired. Account deletion cannot be cancelled."
+        );
+      }
+
+      // Clear deletion flags
+      await db.collection("users").doc(uid).update({
+        isPendingDeletion: false,
+        deletionRequestedAt: deleteField(),
+        deletionScheduledAt: deleteField(),
+        deletionReason: deleteField(),
+      });
+
+      // Update tracking record
+      await db.collection("account_deletions").doc(uid).update({
+        status: "cancelled",
+        cancelledAt: serverTimestamp(),
+      });
+
+      console.log(`Account deletion cancelled for ${uid}`);
+
+      return {
+        success: true,
+        message: "Account deletion has been cancelled. Welcome back!",
+      };
+    } catch (error) {
+      if (error instanceof functions.https.HttpsError) throw error;
+      console.error("cancelAccountDeletion error:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to cancel deletion."
+      );
+    }
+  }
+);
+
+// =============================================================================
+// CR-AUD-030: Chat media signed URL endpoint
+// Verifies match participation before returning a time-limited signed URL
+// =============================================================================
+
+interface ChatMediaUrlRequest {
+  matchId?: string;
+  filePath?: string;
+}
+
+export const getChatMediaSignedUrl = callable<ChatMediaUrlRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "access chat media");
+    requireEmailVerified(context, "access chat media");
+    const matchId = requireString(data?.matchId, "matchId");
+    const filePath = requireString(data?.filePath, "filePath", 500);
+
+    // Verify the user is a participant in this match
+    const matchDoc = await db.collection("matches").doc(matchId).get();
+    if (!matchDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "Match not found.");
+    }
+
+    const matchData = matchDoc.data();
+    const participants: string[] = matchData?.users ?? matchData?.participants ?? [];
+    if (!participants.includes(uid)) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You are not a participant in this match."
+      );
+    }
+
+    // Validate the file path is within the expected chat media paths
+    const isValidPath =
+      filePath.startsWith(`chat_media/${matchId}/`) ||
+      filePath.startsWith(`chats/${matchId}/`);
+    if (!isValidPath) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Invalid file path for this match."
+      );
+    }
+
+    // Generate a signed URL (1 hour expiry)
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(filePath);
+
+    const [exists] = await file.exists();
+    if (!exists) {
+      throw new functions.https.HttpsError("not-found", "File not found.");
+    }
+
+    const [signedUrl] = await file.getSignedUrl({
+      action: "read",
+      expires: Date.now() + 60 * 60 * 1000, // 1 hour
+    });
+
+    return { url: signedUrl };
   }
 );

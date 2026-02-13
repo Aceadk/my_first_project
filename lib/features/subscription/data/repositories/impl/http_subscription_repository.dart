@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
@@ -55,7 +55,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
         _planController.add(plan);
       }
     } catch (e) {
-      debugPrint('HttpSubscriptionRepository: Failed to fetch plan - $e');
+      AppLogger.error('HttpSubscriptionRepository: Failed to fetch plan - $e');
     }
   }
 
@@ -67,7 +67,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     );
 
     if (result.isFailure) {
-      debugPrint(
+      AppLogger.error(
           'HttpSubscriptionRepository: Failed to get plan - ${result.error}');
       return _currentPlan;
     }

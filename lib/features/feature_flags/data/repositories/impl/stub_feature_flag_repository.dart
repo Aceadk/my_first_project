@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import '../../models/feature_flags.dart';
 import '../feature_flag_repository.dart';
 
@@ -24,7 +24,7 @@ class StubFeatureFlagRepository implements FeatureFlagRepository {
     _isInitialized = true;
     _lastFetchTime = DateTime.now();
     _flagsController.add(_currentFlags);
-    debugPrint('StubFeatureFlagRepository initialized with defaults');
+    AppLogger.debug('StubFeatureFlagRepository initialized with defaults');
   }
 
   @override

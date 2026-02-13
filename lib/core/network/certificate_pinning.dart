@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Certificate pinning configuration and HTTP client factory.
 ///
@@ -68,7 +69,7 @@ class CertificatePinning {
   }) {
     // If no pins are configured, fall back to the default client.
     if (!_hasPinsConfigured) {
-      debugPrint(
+      AppLogger.debug(
         'CertificatePinning: No pinned hosts/fingerprints configured. '
         'Pinning is disabled.',
       );
@@ -77,7 +78,7 @@ class CertificatePinning {
 
     // Skip pinning in debug mode if allowed
     if (kDebugMode && bypassInDebug) {
-      debugPrint('CertificatePinning: Bypassed in debug mode');
+      AppLogger.debug('CertificatePinning: Bypassed in debug mode');
       return http.Client();
     }
 
@@ -93,7 +94,7 @@ class CertificatePinning {
     Duration? connectionTimeout,
   }) {
     if (!_hasPinsConfigured) {
-      debugPrint(
+      AppLogger.debug(
         'CertificatePinning: Strict pinning requested but no pins are configured.',
       );
       return http.Client();
@@ -120,7 +121,7 @@ class CertificatePinning {
     // Get the certificate fingerprint
     final fingerprint = _getCertificateFingerprint(cert);
     if (fingerprint == null) {
-      debugPrint('CertificatePinning: Failed to compute fingerprint for $host');
+      AppLogger.error('CertificatePinning: Failed to compute fingerprint for $host');
       return false;
     }
 
@@ -129,9 +130,9 @@ class CertificatePinning {
     final isValid = expectedFingerprints.contains(fingerprint);
 
     if (!isValid) {
-      debugPrint('CertificatePinning: Certificate mismatch for $host');
-      debugPrint('  Expected: ${expectedFingerprints.join(', ')}');
-      debugPrint('  Got: $fingerprint');
+      AppLogger.error('CertificatePinning: Certificate mismatch for $host');
+      AppLogger.error('  Expected: ${expectedFingerprints.join(', ')}');
+      AppLogger.error('  Got: $fingerprint');
     }
 
     return isValid;
@@ -167,7 +168,7 @@ class CertificatePinning {
       final digest = sha256.convert(derBytes);
       return base64.encode(digest.bytes);
     } catch (e) {
-      debugPrint('CertificatePinning: Error computing fingerprint: $e');
+      AppLogger.error('CertificatePinning: Error computing fingerprint: $e');
       return null;
     }
   }

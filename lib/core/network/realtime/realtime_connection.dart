@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Connection state for real-time connections.
@@ -106,9 +106,9 @@ class WebSocketConnection {
       _reconnectCount = 0;
       _startHeartbeat();
 
-      debugPrint('WebSocketConnection: Connected to $url');
+      AppLogger.debug('WebSocketConnection: Connected to $url');
     } catch (e) {
-      debugPrint('WebSocketConnection: Connection failed - $e');
+      AppLogger.error('WebSocketConnection: Connection failed - $e');
       _setState(ConnectionState.failed);
       _errorController.add(e);
       _scheduleReconnect();
@@ -128,13 +128,13 @@ class WebSocketConnection {
     _channel = null;
 
     _setState(ConnectionState.disconnected);
-    debugPrint('WebSocketConnection: Disconnected');
+    AppLogger.debug('WebSocketConnection: Disconnected');
   }
 
   /// Send a message to the server.
   void send(Map<String, dynamic> message) {
     if (!isConnected || _channel == null) {
-      debugPrint('WebSocketConnection: Cannot send - not connected');
+      AppLogger.debug('WebSocketConnection: Cannot send - not connected');
       return;
     }
 
@@ -142,7 +142,7 @@ class WebSocketConnection {
       final encoded = jsonEncode(message);
       _channel!.sink.add(encoded);
     } catch (e) {
-      debugPrint('WebSocketConnection: Send error - $e');
+      AppLogger.error('WebSocketConnection: Send error - $e');
       _errorController.add(e);
     }
   }
@@ -163,7 +163,7 @@ class WebSocketConnection {
       } else if (data is Map<String, dynamic>) {
         message = data;
       } else {
-        debugPrint('WebSocketConnection: Unknown message format');
+        AppLogger.debug('WebSocketConnection: Unknown message format');
         return;
       }
 
@@ -174,18 +174,18 @@ class WebSocketConnection {
 
       _messageController.add(message);
     } catch (e) {
-      debugPrint('WebSocketConnection: Parse error - $e');
+      AppLogger.error('WebSocketConnection: Parse error - $e');
       _errorController.add(e);
     }
   }
 
   void _onError(dynamic error) {
-    debugPrint('WebSocketConnection: Error - $error');
+    AppLogger.error('WebSocketConnection: Error - $error');
     _errorController.add(error);
   }
 
   void _onDone() {
-    debugPrint('WebSocketConnection: Connection closed');
+    AppLogger.debug('WebSocketConnection: Connection closed');
     _stopHeartbeat();
 
     if (!_intentionalDisconnect) {
@@ -230,7 +230,7 @@ class WebSocketConnection {
 
     // Exponential backoff with jitter
     final delay = _calculateReconnectDelay();
-    debugPrint(
+    AppLogger.debug(
         'WebSocketConnection: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectCount + 1}/$reconnectAttempts)');
 
     _reconnectTimer = Timer(delay, () {

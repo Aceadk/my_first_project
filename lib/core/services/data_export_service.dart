@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -102,7 +102,7 @@ class DataExportService {
         messageCount: messages.length,
       );
     } catch (e, stackTrace) {
-      debugPrint('DataExportService: Export failed - $e\n$stackTrace');
+      AppLogger.error('DataExportService: Export failed - $e\n$stackTrace');
       return DataExportResult.failure(error: e.toString());
     }
   }

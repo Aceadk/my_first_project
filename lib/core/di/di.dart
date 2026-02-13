@@ -3,10 +3,10 @@
 library;
 
 // Re-export repository interfaces
-export '../../features/auth/data/repositories/auth_repository.dart';
+export '../../features/auth/domain/repositories/auth_repository.dart';
 export '../../features/profile/data/repositories/profile_repository.dart';
 export '../../features/discovery/data/repositories/discovery_repository.dart';
-export '../../features/chat/data/repositories/chat_repository.dart';
+export '../../features/chat/domain/repositories/chat_repository.dart';
 export '../../features/subscription/data/repositories/subscription_repository.dart';
 export '../../features/calls/data/repositories/call_repository.dart';
 

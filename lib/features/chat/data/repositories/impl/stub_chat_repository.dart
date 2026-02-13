@@ -770,4 +770,18 @@ class StubChatRepository implements ChatRepository {
       controller.close();
     }
   }
+
+  // ── E2EE stubs (not supported in stub implementation) ───────────────
+
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }

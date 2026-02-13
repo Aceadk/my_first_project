@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
@@ -10,7 +11,8 @@ import 'package:uuid/uuid.dart';
 /// it will fall back to using local file paths. This allows development to continue
 /// while Firebase Storage rules are being configured.
 class ProfileMediaService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  FirebaseStorage? _storage;
+  FirebaseStorage get _storageInstance => _storage ??= FirebaseStorage.instance;
   final _uuid = const Uuid();
 
   /// Whether to use local file fallback when Firebase Storage fails (debug only)
@@ -34,7 +36,7 @@ class ProfileMediaService {
       final storagePath = 'users/$userId/photos/$filename';
 
       // Upload to Firebase Storage
-      final ref = _storage.ref().child(storagePath);
+      final ref = _storageInstance.ref().child(storagePath);
       final uploadTask = ref.putFile(
         file,
         SettableMetadata(
@@ -50,38 +52,43 @@ class ProfileMediaService {
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      debugPrint('ProfileMediaService: Photo uploaded - $downloadUrl');
+      AppLogger.debug('ProfileMediaService: Photo uploaded - $downloadUrl');
       return downloadUrl;
     } on FirebaseException catch (e) {
-      debugPrint(
-          'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
-      debugPrint(
-          'ProfileMediaService: Make sure Firebase Storage rules allow uploads for authenticated users.');
-      debugPrint('ProfileMediaService: Example rules:');
-      debugPrint('  rules_version = "2";');
-      debugPrint('  service firebase.storage {');
-      debugPrint('    match /b/{bucket}/o {');
-      debugPrint('      match /users/{userId}/{allPaths=**} {');
-      debugPrint(
-          '        allow read, write: if request.auth != null && request.auth.uid == userId;');
-      debugPrint('      }');
-      debugPrint('    }');
-      debugPrint('  }');
+      AppLogger.debug(
+        'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}',
+      );
+      AppLogger.debug(
+        'ProfileMediaService: Make sure Firebase Storage rules allow uploads for authenticated users.',
+      );
+      AppLogger.debug('ProfileMediaService: Example rules:');
+      AppLogger.debug('  rules_version = "2";');
+      AppLogger.debug('  service firebase.storage {');
+      AppLogger.debug('    match /b/{bucket}/o {');
+      AppLogger.debug('      match /users/{userId}/{allPaths=**} {');
+      AppLogger.debug(
+        '        allow read, write: if request.auth != null && request.auth.uid == userId;',
+      );
+      AppLogger.debug('      }');
+      AppLogger.debug('    }');
+      AppLogger.debug('  }');
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint(
-            'ProfileMediaService: Using local file fallback for development');
+        AppLogger.debug(
+          'ProfileMediaService: Using local file fallback for development',
+        );
         return filePath;
       }
       rethrow;
     } catch (e) {
-      debugPrint('ProfileMediaService: Photo upload failed - $e');
+      AppLogger.error('ProfileMediaService: Photo upload failed - $e');
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint(
-            'ProfileMediaService: Using local file fallback for development');
+        AppLogger.debug(
+          'ProfileMediaService: Using local file fallback for development',
+        );
         return filePath;
       }
       rethrow;
@@ -106,7 +113,7 @@ class ProfileMediaService {
       final storagePath = 'users/$userId/videos/$filename';
 
       // Upload to Firebase Storage
-      final ref = _storage.ref().child(storagePath);
+      final ref = _storageInstance.ref().child(storagePath);
       final uploadTask = ref.putFile(
         file,
         SettableMetadata(
@@ -122,26 +129,29 @@ class ProfileMediaService {
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      debugPrint('ProfileMediaService: Video uploaded - $downloadUrl');
+      AppLogger.debug('ProfileMediaService: Video uploaded - $downloadUrl');
       return downloadUrl;
     } on FirebaseException catch (e) {
-      debugPrint(
-          'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}');
+      AppLogger.debug(
+        'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}',
+      );
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint(
-            'ProfileMediaService: Using local file fallback for development');
+        AppLogger.debug(
+          'ProfileMediaService: Using local file fallback for development',
+        );
         return filePath;
       }
       rethrow;
     } catch (e) {
-      debugPrint('ProfileMediaService: Video upload failed - $e');
+      AppLogger.error('ProfileMediaService: Video upload failed - $e');
 
       // In debug mode, fall back to local path
       if (kDebugMode && useFallbackInDebug) {
-        debugPrint(
-            'ProfileMediaService: Using local file fallback for development');
+        AppLogger.debug(
+          'ProfileMediaService: Using local file fallback for development',
+        );
         return filePath;
       }
       rethrow;
@@ -156,11 +166,11 @@ class ProfileMediaService {
         return;
       }
 
-      final ref = _storage.refFromURL(url);
+      final ref = _storageInstance.refFromURL(url);
       await ref.delete();
-      debugPrint('ProfileMediaService: Media deleted - $url');
+      AppLogger.debug('ProfileMediaService: Media deleted - $url');
     } catch (e) {
-      debugPrint('ProfileMediaService: Media delete failed - $e');
+      AppLogger.error('ProfileMediaService: Media delete failed - $e');
       // Don't rethrow - deletion failures shouldn't block user operations
     }
   }
@@ -185,16 +195,18 @@ class ProfileMediaService {
         // Check if local file still exists
         final file = File(filePath);
         if (!await file.exists()) {
-          debugPrint(
-              'ProfileMediaService: Skipping missing local photo: $filePath');
+          AppLogger.debug(
+            'ProfileMediaService: Skipping missing local photo: $filePath',
+          );
           continue; // Skip missing files instead of failing
         }
         try {
           final url = await uploadPhoto(userId: userId, filePath: filePath);
           photoUrls.add(url);
         } catch (e) {
-          debugPrint(
-              'ProfileMediaService: Failed to upload photo, skipping: $e');
+          AppLogger.debug(
+            'ProfileMediaService: Failed to upload photo, skipping: $e',
+          );
           // In debug mode with fallback, still add the local path
           if (kDebugMode && useFallbackInDebug) {
             photoUrls.add(filePath);
@@ -211,16 +223,18 @@ class ProfileMediaService {
         // Check if local file still exists
         final file = File(filePath);
         if (!await file.exists()) {
-          debugPrint(
-              'ProfileMediaService: Skipping missing local video: $filePath');
+          AppLogger.debug(
+            'ProfileMediaService: Skipping missing local video: $filePath',
+          );
           continue; // Skip missing files instead of failing
         }
         try {
           final url = await uploadVideo(userId: userId, filePath: filePath);
           videoUrls.add(url);
         } catch (e) {
-          debugPrint(
-              'ProfileMediaService: Failed to upload video, skipping: $e');
+          AppLogger.debug(
+            'ProfileMediaService: Failed to upload video, skipping: $e',
+          );
           // In debug mode with fallback, still add the local path
           if (kDebugMode && useFallbackInDebug) {
             videoUrls.add(filePath);

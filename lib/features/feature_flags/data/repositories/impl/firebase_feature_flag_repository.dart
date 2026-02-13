@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import '../../models/feature_flags.dart';
 import '../feature_flag_repository.dart';
 
@@ -39,15 +40,15 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
 
       // Listen for real-time updates (if available)
       _remoteConfig.onConfigUpdated.listen((event) async {
-        debugPrint('Remote Config updated, activating...');
+        AppLogger.debug('Remote Config updated, activating...');
         await _remoteConfig.activate();
         _updateFlags();
       });
 
       _isInitialized = true;
-      debugPrint('FirebaseFeatureFlagRepository initialized');
+      AppLogger.debug('FirebaseFeatureFlagRepository initialized');
     } catch (e) {
-      debugPrint('Error initializing Remote Config: $e');
+      AppLogger.error('Error initializing Remote Config: $e');
       // Use defaults if initialization fails
       _currentFlags = FeatureFlags.defaults;
       _isInitialized = true;
@@ -66,10 +67,10 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       final activated = await _remoteConfig.fetchAndActivate();
       _lastFetchTime = DateTime.now();
       _updateFlags();
-      debugPrint('Remote Config fetched and activated: $activated');
+      AppLogger.debug('Remote Config fetched and activated: $activated');
       return activated;
     } catch (e) {
-      debugPrint('Error fetching Remote Config: $e');
+      AppLogger.error('Error fetching Remote Config: $e');
       return false;
     }
   }
@@ -116,7 +117,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getBool(key);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e');
       return defaultValue;
     }
@@ -127,7 +128,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getInt(key);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e');
       return defaultValue;
     }
@@ -138,7 +139,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getString(key);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e');
       return defaultValue;
     }
@@ -149,7 +150,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     try {
       return _remoteConfig.getDouble(key);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e');
       return defaultValue;
     }
@@ -173,7 +174,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
             kDebugMode ? const Duration(minutes: 1) : const Duration(hours: 12),
       ));
     } catch (e) {
-      debugPrint('Error force refreshing Remote Config: $e');
+      AppLogger.error('Error force refreshing Remote Config: $e');
     }
   }
 

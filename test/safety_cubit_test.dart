@@ -5,7 +5,7 @@ import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,19 +40,11 @@ void main() {
     });
 
     test('blocks and unblocks users with backend calls', () async {
-      await cubit.toggleBlock(
-        'target',
-        block: true,
-        currentUserId: 'me',
-      );
+      await cubit.toggleBlock('target', block: true, currentUserId: 'me');
       expect(cubit.state.blockedUsers, contains('target'));
       expect(chatRepo.blockedPairs, contains(('me', 'target')));
 
-      await cubit.toggleBlock(
-        'target',
-        block: false,
-        currentUserId: 'me',
-      );
+      await cubit.toggleBlock('target', block: false, currentUserId: 'me');
       expect(cubit.state.blockedUsers, isNot(contains('target')));
       expect(chatRepo.unblockedPairs, contains(('me', 'target')));
     });
@@ -67,14 +59,12 @@ void main() {
 
       expect(
         chatRepo.reports,
-        contains(
-          (
-            reporterId: 'me',
-            reportedId: 'target',
-            reason: 'spam',
-            source: 'deck'
-          ),
-        ),
+        contains((
+          reporterId: 'me',
+          reportedId: 'target',
+          reason: 'spam',
+          source: 'deck',
+        )),
       );
       expect(cubit.state.errorMessage, isNull);
     });
@@ -98,12 +88,9 @@ class _StubChatRepository implements ChatRepository {
   final List<(String, String)> blockedPairs = [];
   final List<(String, String)> unblockedPairs = [];
   final List<
-      ({
-        String reporterId,
-        String reportedId,
-        String reason,
-        String? source
-      })> reports = [];
+    ({String reporterId, String reportedId, String reason, String? source})
+  >
+  reports = [];
 
   void _maybeThrow() {
     if (shouldThrow) throw Exception('network failed');
@@ -142,7 +129,7 @@ class _StubChatRepository implements ChatRepository {
       reporterId: reporterId,
       reportedId: reportedId,
       reason: reason,
-      source: source
+      source: source,
     ));
   }
 
@@ -295,8 +282,7 @@ class _StubChatRepository implements ChatRepository {
   Stream<List<Message>> watchNewMessages(
     String matchId, {
     required DateTime afterTimestamp,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Future<MessageRequest?> sendMessageRequest({
@@ -336,6 +322,18 @@ class _StubChatRepository implements ChatRepository {
     _maybeThrow();
     return 0;
   }
+
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }
 
 class _StubDiscoveryRepository implements DiscoveryRepository {
@@ -343,16 +341,14 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async =>
-      [];
+  }) async => [];
 
   @override
   Future<CrushMatch?> swipeRight({
     required String userId,
     required String targetUserId,
     String? attachedMessage,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<void> swipeLeft({
@@ -376,8 +372,7 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => null;

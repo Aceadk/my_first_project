@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
@@ -98,7 +99,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 previous.errorMessage != current.errorMessage,
             listener: (context, state) {
               // Debug logging
-              debugPrint(
+              AppLogger.debug(
                   '[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}');
 
               // Navigate when our save completes successfully (no error)
@@ -106,7 +107,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 _isSubmitting = false; // Reset the flag
 
                 if (state.errorMessage == null) {
-                  debugPrint(
+                  AppLogger.debug(
                       '[BasicInfo] Save successful, navigating to idVerification');
                   context.read<AuthBloc>().add(AuthUserRefreshRequested());
                   if (context.canPop()) {
@@ -121,7 +122,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               // Show error if any
               final error = state.errorMessage;
               if (error != null && error.isNotEmpty) {
-                debugPrint('[BasicInfo] Showing error: $error');
+                AppLogger.debug('[BasicInfo] Showing error: $error');
                 showErrorSnackBar(context, error);
               }
             },

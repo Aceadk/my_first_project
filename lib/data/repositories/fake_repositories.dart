@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../core/security/secure_logger.dart';
@@ -73,7 +73,7 @@ class FakeAuthRepository implements AuthRepository {
           )
           .timeout(const Duration(seconds: 5));
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
           'FakeAuthRepository: Backend OTP send failed (expected in local dev): $e');
     }
 
@@ -1755,4 +1755,18 @@ class FakeChatRepository implements ChatRepository {
       controller.close();
     }
   }
+
+  // ── E2EE stubs (not supported in fake implementation) ───────────────
+
+  @override
+  bool get isE2eeEnabled => false;
+
+  @override
+  void setE2eeEnabled(bool enabled) {}
+
+  @override
+  bool isEncryptedContent(String content) => false;
+
+  @override
+  Future<Message> decryptMessage(Message message) async => message;
 }

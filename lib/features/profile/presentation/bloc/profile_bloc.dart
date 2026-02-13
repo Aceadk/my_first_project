@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';

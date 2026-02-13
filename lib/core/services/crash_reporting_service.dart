@@ -3,6 +3,7 @@ import 'dart:isolate';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Service for crash reporting and error tracking using Firebase Crashlytics.
 ///
@@ -38,9 +39,9 @@ class CrashReportingService {
       _setupIsolateErrorHandling();
 
       _isInitialized = true;
-      debugPrint('CrashReportingService: Initialized');
+      AppLogger.debug('CrashReportingService: Initialized');
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to initialize - $e');
+      AppLogger.error('CrashReportingService: Failed to initialize - $e');
     }
   }
 
@@ -59,7 +60,7 @@ class CrashReportingService {
     // Catch async errors not handled by Flutter
     PlatformDispatcher.instance.onError = (error, stack) {
       if (kDebugMode) {
-        debugPrint('PlatformDispatcher error: $error\n$stack');
+        AppLogger.error('PlatformDispatcher error: $error\n$stack');
       } else {
         _crashlytics?.recordError(error, stack, fatal: true);
       }
@@ -113,9 +114,9 @@ class CrashReportingService {
         fatal: fatal,
       );
 
-      debugPrint('CrashReportingService: Recorded error - $exception');
+      AppLogger.debug('CrashReportingService: Recorded error - $exception');
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to record error - $e');
+      AppLogger.error('CrashReportingService: Failed to record error - $e');
     }
   }
 
@@ -126,7 +127,7 @@ class CrashReportingService {
     try {
       await _crashlytics!.recordFlutterError(details);
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to record Flutter error - $e');
+      AppLogger.error('CrashReportingService: Failed to record Flutter error - $e');
     }
   }
 
@@ -140,9 +141,9 @@ class CrashReportingService {
 
     try {
       await _crashlytics!.setUserIdentifier(userId);
-      debugPrint('CrashReportingService: Set user ID');
+      AppLogger.debug('CrashReportingService: Set user ID');
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to set user ID - $e');
+      AppLogger.error('CrashReportingService: Failed to set user ID - $e');
     }
   }
 
@@ -153,7 +154,7 @@ class CrashReportingService {
     try {
       await _crashlytics!.setUserIdentifier('');
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to clear user ID - $e');
+      AppLogger.error('CrashReportingService: Failed to clear user ID - $e');
     }
   }
 
@@ -168,7 +169,7 @@ class CrashReportingService {
     try {
       await _crashlytics!.setCustomKey(key, value);
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to set custom key - $e');
+      AppLogger.error('CrashReportingService: Failed to set custom key - $e');
     }
   }
 
@@ -186,7 +187,7 @@ class CrashReportingService {
     try {
       await _crashlytics!.log(message);
     } catch (e) {
-      debugPrint('CrashReportingService: Failed to log message - $e');
+      AppLogger.error('CrashReportingService: Failed to log message - $e');
     }
   }
 
@@ -228,7 +229,7 @@ class CrashReportingService {
   /// Only works in release mode.
   void testCrash() {
     if (kDebugMode) {
-      debugPrint('CrashReportingService: Test crash ignored in debug mode');
+      AppLogger.debug('CrashReportingService: Test crash ignored in debug mode');
       return;
     }
     _crashlytics?.crash();
@@ -268,7 +269,7 @@ extension CrashReportingExtension on Object {
 /// A zone error handler that reports errors to Crashlytics.
 void crashlyticsErrorHandler(Object error, StackTrace stack) {
   if (kDebugMode) {
-    debugPrint('Zone error: $error\n$stack');
+    AppLogger.error('Zone error: $error\n$stack');
   } else {
     CrashReportingService.instance.recordError(error, stack, fatal: false);
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
@@ -117,7 +118,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     } catch (e) {
       // Location capture failed - user can still complete profile
       // They just won't appear in distance-based discovery
-      debugPrint('Location capture failed: $e');
+      AppLogger.error('Location capture failed: $e');
     }
   }
 

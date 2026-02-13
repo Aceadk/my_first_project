@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,7 +36,7 @@ import 'package:crushhour/features/calls/presentation/screens/video_call_screen.
 import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
-import 'package:crushhour/features/chat/data/services/ice_breaker_service.dart';
+import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
 import 'package:crushhour/features/chat/presentation/bloc/match_chat_settings_cubit.dart';
 import 'package:crushhour/data/models/chat_settings.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -2383,7 +2384,7 @@ class _ChatScreenState extends State<ChatScreen> {
           );
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully - picker from another screen may still be active
-      debugPrint('Image picker error: ${e.code} - ${e.message}');
+      AppLogger.error('Image picker error: ${e.code} - ${e.message}');
     } finally {
       _isPickingMedia = false;
     }
@@ -2421,7 +2422,7 @@ class _ChatScreenState extends State<ChatScreen> {
           );
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully - picker from another screen may still be active
-      debugPrint('Video picker error: ${e.code} - ${e.message}');
+      AppLogger.error('Video picker error: ${e.code} - ${e.message}');
     } finally {
       _isPickingMedia = false;
     }

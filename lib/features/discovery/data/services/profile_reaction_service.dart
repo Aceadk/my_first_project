@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
 import 'package:uuid/uuid.dart';
 
@@ -146,7 +146,7 @@ class ProfileReactionService {
           r.contentType == contentType &&
           r.contentIndex == contentIndex);
     } catch (e) {
-      debugPrint(
+      AppLogger.debug(
           'ProfileReactionService: Reaction not found for user $fromUserId -> $toUserId: $e');
       return null;
     }

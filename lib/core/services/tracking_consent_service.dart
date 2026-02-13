@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Manages App Tracking Transparency (ATT) consent on iOS.
 ///
@@ -41,7 +42,7 @@ class TrackingConsentService {
       // Adjust Firebase Analytics based on consent
       await _applyConsentToAnalytics();
     } catch (e) {
-      debugPrint('TrackingConsentService: ATT request failed: $e');
+      AppLogger.error('TrackingConsentService: ATT request failed: $e');
       // Default to limited data collection if ATT fails
       await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
     }
@@ -59,7 +60,7 @@ class TrackingConsentService {
     await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
 
     if (kDebugMode) {
-      debugPrint(
+      AppLogger.debug(
         'TrackingConsentService: ATT status=$_status, '
         'analytics collection=${enabled ? "enabled" : "disabled"}',
       );

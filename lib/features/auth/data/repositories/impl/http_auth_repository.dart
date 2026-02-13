@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
@@ -74,7 +75,7 @@ class HttpAuthRepository implements AuthRepository {
         _emitAuthState(null);
       }
     } catch (e) {
-      debugPrint('HttpAuthRepository: Bootstrap failed - $e');
+      AppLogger.error('HttpAuthRepository: Bootstrap failed - $e');
       _emitAuthState(null);
     }
   }
@@ -413,7 +414,7 @@ class HttpAuthRepository implements AuthRepository {
     try {
       await _apiClient.post<void>(ApiEndpoints.authLogout);
     } catch (e) {
-      debugPrint('HttpAuthRepository: Logout API call failed - $e');
+      AppLogger.error('HttpAuthRepository: Logout API call failed - $e');
     }
 
     await _clearTokens();

@@ -25,6 +25,7 @@ import 'auth_flow_test.dart' as auth_tests;
 import 'discovery_flow_test.dart' as discovery_tests;
 import 'chat_flow_test.dart' as chat_tests;
 import 'e2e_onboarding_to_chat_test.dart' as e2e_tests;
+import 'e2e_onboarding_discovery_chat_safety_test.dart' as e2e_safety_tests;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -34,5 +35,6 @@ void main() {
     discovery_tests.main();
     chat_tests.main();
     e2e_tests.main();
+    e2e_safety_tests.main();
   });
 }

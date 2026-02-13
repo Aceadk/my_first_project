@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Enhanced photo verification service for identity confirmation.
 /// Provides selfie-based verification with pose matching and
@@ -127,9 +128,9 @@ class PhotoVerificationService {
     // 5. Compare against profile photos
 
     if (kDebugMode) {
-      debugPrint('[PhotoVerification] Would call face comparison API');
-      debugPrint('[PhotoVerification] Session: ${session.sessionId}');
-      debugPrint('[PhotoVerification] Required pose: ${session.requiredPose.id}');
+      AppLogger.debug('[PhotoVerification] Would call face comparison API');
+      AppLogger.debug('[PhotoVerification] Session: ${session.sessionId}');
+      AppLogger.debug('[PhotoVerification] Required pose: ${session.requiredPose.id}');
     }
 
     // Simulate verification for development
@@ -216,8 +217,8 @@ class PhotoVerificationService {
     // 6. Verify document authenticity
 
     if (kDebugMode) {
-      debugPrint('[PhotoVerification] Would call ID verification API');
-      debugPrint('[PhotoVerification] Document type: $documentType');
+      AppLogger.debug('[PhotoVerification] Would call ID verification API');
+      AppLogger.debug('[PhotoVerification] Document type: $documentType');
     }
 
     // Simulate verification for development

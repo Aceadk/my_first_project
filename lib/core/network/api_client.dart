@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_version.dart';
@@ -236,7 +237,7 @@ class ApiClient {
     } on TimeoutException {
       return ApiResult.failure(ApiError.timeout('Upload timed out'));
     } catch (e, stackTrace) {
-      debugPrint('ApiClient: Upload failed - $e\n$stackTrace');
+      AppLogger.error('ApiClient: Upload failed - $e\n$stackTrace');
       return ApiResult.failure(ApiError.unknown(e.toString()));
     }
   }
@@ -304,7 +305,7 @@ class ApiClient {
     } on TimeoutException {
       return ApiResult.failure(ApiError.timeout('Upload timed out'));
     } catch (e, stackTrace) {
-      debugPrint('ApiClient: Multi-file upload failed - $e\n$stackTrace');
+      AppLogger.error('ApiClient: Multi-file upload failed - $e\n$stackTrace');
       return ApiResult.failure(ApiError.unknown(e.toString()));
     }
   }
@@ -464,7 +465,7 @@ class ApiClient {
         }
         return ApiResult.failure(ApiError.timeout('Request timed out'));
       } catch (e, stackTrace) {
-        debugPrint('ApiClient: Request failed - $e\n$stackTrace');
+        AppLogger.error('ApiClient: Request failed - $e\n$stackTrace');
         return ApiResult.failure(ApiError.unknown(e.toString()));
       }
     }
@@ -549,7 +550,7 @@ class ApiClient {
       message = json['error'] as String? ?? json['message'] as String?;
       errorCode = json['error_code'] as String?;
     } catch (e) {
-      debugPrint('ApiClient: Error parsing error response body: $e');
+      AppLogger.error('ApiClient: Error parsing error response body: $e');
       message = response.body;
     }
 
@@ -591,7 +592,7 @@ class ApiClient {
         headers[ApiHeaders.deprecationWarning.toLowerCase()];
 
     if (deprecationWarning != null) {
-      debugPrint('API Deprecation Warning: $deprecationWarning');
+      AppLogger.debug('API Deprecation Warning: $deprecationWarning');
     }
 
     if (serverMinVersion != null && serverMaxVersion != null) {
@@ -845,9 +846,9 @@ class LoggingInterceptor implements RequestInterceptor, ResponseInterceptor {
   @override
   Future<ApiRequest> onRequest(ApiRequest request) async {
     if (kDebugMode) {
-      debugPrint('→ ${request.method.name.toUpperCase()} ${request.url}');
+      AppLogger.debug('→ ${request.method.name.toUpperCase()} ${request.url}');
       if (request.body != null) {
-        debugPrint('  Body: ${jsonEncode(request.body)}');
+        AppLogger.debug('  Body: ${jsonEncode(request.body)}');
       }
     }
     return request;
@@ -856,9 +857,9 @@ class LoggingInterceptor implements RequestInterceptor, ResponseInterceptor {
   @override
   Future<ApiResponse> onResponse(ApiResponse response) async {
     if (kDebugMode) {
-      debugPrint('← ${response.statusCode}');
+      AppLogger.debug('← ${response.statusCode}');
       if (response.body.isNotEmpty && response.body.length < 1000) {
-        debugPrint('  Body: ${response.body}');
+        AppLogger.debug('  Body: ${response.body}');
       }
     }
     return response;

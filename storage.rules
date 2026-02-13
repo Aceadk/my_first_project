@@ -73,13 +73,12 @@ service firebase.storage {
 
     // Chat media (images, videos in messages) - legacy path
     match /chats/{matchId}/{messageId}/{fileName} {
-      // LIMITATION: Storage rules cannot do Firestore lookups to verify match
-      // participation. Access is restricted to authenticated users only.
-      // TODO: Migrate to signed download URLs via Cloud Functions for proper
-      // per-match access control (see Phase 0.3 of audit plan).
+      // Direct reads restricted to authenticated users.
+      // For proper per-match access control, use getChatMediaSignedUrl
+      // Cloud Function which verifies match participation (CR-AUD-030).
       allow read: if isSignedIn();
 
-      // Only signed-in users can upload chat media
+      // Only signed-in users can upload chat media with valid types
       allow write: if isSignedIn()
                    && isValidMediaType()
                    && isUnderSizeLimit();
@@ -88,9 +87,10 @@ service firebase.storage {
     // Chat media - current path used by Firebase repository
     // Path: chat_media/{matchId}/{userId}/{fileName}
     match /chat_media/{matchId}/{userId}/{fileName} {
-      // LIMITATION: Storage rules cannot verify match participation via Firestore.
-      // TODO: Migrate to signed download URLs for proper access control.
-      allow read: if isSignedIn();
+      // Read: only the uploader can read directly. Other match participant
+      // must use getChatMediaSignedUrl Cloud Function for verified access
+      // (CR-AUD-030: match-membership verification).
+      allow read: if isOwner(userId);
 
       // Only the uploader (matching userId) can upload
       allow write: if isOwner(userId)

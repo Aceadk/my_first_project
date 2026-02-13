@@ -1,0 +1,22 @@
+CR-AUD-008 integration validation log (2026-02-13)
+
+Commands attempted (latest pass):
+1) flutter test -d macos integration_test/e2e_onboarding_discovery_chat_safety_test.dart --plain-name "signup onboarding leads to chat safety actions" -r expanded
+2) flutter test -d macos integration_test/e2e_onboarding_discovery_chat_safety_test.dart --plain-name "signup onboarding leads to chat safety actions" --ignore-timeouts -r expanded
+3) flutter drive -d macos --driver=test_driver/integration_test.dart --target=integration_test/e2e_onboarding_discovery_chat_safety_test.dart
+
+Observed blockers:
+- Build database lock occurred during one run:
+  error: accessing build database .../build.db: database is locked
+  - Mitigation applied: terminated stale xcodebuild/flutter_tester processes and ran flutter clean + flutter pub get.
+- After lock cleanup, local macOS integration execution still did not reach test assertions.
+  - Pattern observed: prolonged "Building macOS application..." with repeated linker warnings and no test-case execution output.
+  - In non-ignore-timeout mode, this manifests as:
+    TimeoutException after 0:12:00.000000 while loading integration_test/e2e_onboarding_discovery_chat_safety_test.dart
+
+Current state:
+- Flow implementation is present and analyzer-clean:
+  integration_test/e2e_onboarding_discovery_chat_safety_test.dart
+- Added deterministic coverage surrogate for the same business flow:
+  test/e2e_onboarding_discovery_chat_safety_flow_test.dart (green)
+- Device-level deterministic green run remains pending CI/device runner with stable macOS build execution budget.

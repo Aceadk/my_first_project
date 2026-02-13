@@ -80,6 +80,13 @@ class FirebaseAuthRepository implements AuthRepository {
       final userData = userDoc.data();
       if (userData == null) return false;
 
+      // CR-AUD-010: Check for pending deletion and auto-recover within grace period
+      final isPendingDeletion = userData['isPendingDeletion'] as bool? ?? false;
+      final isDeactivated = userData['isDeactivated'] as bool? ?? false;
+      if (isPendingDeletion || isDeactivated) {
+        await _recoverAccountIfWithinGracePeriod(firebaseUser.uid, userData);
+      }
+
       final firestoreEmailVerified =
           userData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp =
@@ -152,6 +159,55 @@ class FirebaseAuthRepository implements AuthRepository {
       AppLogger.info(
           '[FirebaseAuthRepo] Could not check Firestore verification: $e');
       return false;
+    }
+  }
+
+  /// CR-AUD-010: Auto-recover account if user signs in during grace period.
+  /// Clears isPendingDeletion/isDeactivated flags so the account is restored.
+  Future<void> _recoverAccountIfWithinGracePeriod(
+      String uid, Map<String, dynamic> userData) async {
+    try {
+      final isPendingDeletion =
+          userData['isPendingDeletion'] as bool? ?? false;
+      final isDeactivated = userData['isDeactivated'] as bool? ?? false;
+
+      final updates = <String, dynamic>{
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (isPendingDeletion) {
+        // Check if within 14-day grace period
+        final scheduledAt = userData['deletionScheduledAt'] ??
+            userData['scheduledPermanentDeletionAt'];
+        final scheduledDate = scheduledAt is Timestamp
+            ? scheduledAt.toDate()
+            : (scheduledAt is DateTime ? scheduledAt : null);
+
+        if (scheduledDate != null && DateTime.now().isBefore(scheduledDate)) {
+          updates['isPendingDeletion'] = false;
+          updates['deletionRequestedAt'] = FieldValue.delete();
+          updates['deletionScheduledAt'] = FieldValue.delete();
+          updates['scheduledPermanentDeletionAt'] = FieldValue.delete();
+          updates['deletionReason'] = FieldValue.delete();
+          AppLogger.info(
+              '[FirebaseAuthRepo] Recovered account from pending deletion: $uid');
+        }
+      }
+
+      if (isDeactivated) {
+        updates['isDeactivated'] = false;
+        updates['deactivatedAt'] = FieldValue.delete();
+        updates['deactivationReason'] = FieldValue.delete();
+        updates['scheduledDeletionAt'] = FieldValue.delete();
+        AppLogger.info(
+            '[FirebaseAuthRepo] Reactivated deactivated account: $uid');
+      }
+
+      if (updates.length > 1) {
+        await _firestore.collection('users').doc(uid).update(updates);
+      }
+    } catch (e) {
+      AppLogger.error('[FirebaseAuthRepo] Account recovery failed: $e');
     }
   }
 

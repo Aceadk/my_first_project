@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -34,10 +34,10 @@ class AppUpdateService {
     try {
       _packageInfo = await PackageInfo.fromPlatform();
       _isInitialized = true;
-      debugPrint(
+      AppLogger.debug(
           'AppUpdateService: Initialized - version ${_packageInfo?.version}');
     } catch (e) {
-      debugPrint('AppUpdateService: Failed to initialize - $e');
+      AppLogger.error('AppUpdateService: Failed to initialize - $e');
     }
   }
 
@@ -168,7 +168,7 @@ class AppUpdateService {
       }
       return false;
     } catch (e) {
-      debugPrint('AppUpdateService: Failed to open store - $e');
+      AppLogger.error('AppUpdateService: Failed to open store - $e');
       return false;
     }
   }

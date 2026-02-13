@@ -257,6 +257,9 @@ class ChatMessageRetryRequested extends ChatEvent {
 /// CRITICAL: Prevents data leakage to next user.
 class ChatResetRequested extends ChatEvent {}
 
+/// Internal event: a sub-BLoC emitted a new state. Re-aggregates ChatState.
+class ChatSubBlocChanged extends ChatEvent {}
+
 /// Toggle end-to-end encryption for chat messages.
 /// When enabled, text messages are encrypted client-side before sending.
 class ChatE2eeToggled extends ChatEvent {

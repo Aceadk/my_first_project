@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Represents a pending action that should be executed when online.
@@ -118,7 +118,7 @@ class OfflineActionQueue {
       _emitStatus();
     } catch (e) {
       // Corrupted data, clear it
-      debugPrint('OfflineQueue: Corrupted queue data, clearing: $e');
+      AppLogger.error('OfflineQueue: Corrupted queue data, clearing: $e');
       await prefs.remove(_storageKey);
     }
   }
@@ -163,7 +163,7 @@ class OfflineActionQueue {
         }
       } catch (e) {
         // Network error, stop processing and schedule retry
-        debugPrint(
+        AppLogger.error(
             'OfflineQueue: Network error processing action, scheduling retry: $e');
         _scheduleRetry();
         break;

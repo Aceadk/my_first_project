@@ -15,7 +15,7 @@ import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/core/router.dart';
 

@@ -13,7 +13,7 @@ import 'package:crushhour/features/discovery/data/repositories/discovery_reposit
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/core/router.dart';

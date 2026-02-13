@@ -1,5 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// Profile completeness data returned from the server.
 ///
@@ -106,7 +106,7 @@ class ProfileValidationService {
       }).timeout(
         _callTimeout,
         onTimeout: () {
-          debugPrint(
+          AppLogger.error(
               'ProfileValidationService.validate: timeout after $_callTimeout');
           throw TimeoutException('Profile validation timed out');
         },
@@ -116,7 +116,7 @@ class ProfileValidationService {
         Map<String, dynamic>.from(result.data),
       );
     } catch (e) {
-      debugPrint('ProfileValidationService.validate error: $e');
+      AppLogger.error('ProfileValidationService.validate error: $e');
       // Return a permissive default on error to not block the user
       // Score 1.0 = 100% complete (normalized 0.0-1.0 range)
       return RemoteProfileCompleteness(

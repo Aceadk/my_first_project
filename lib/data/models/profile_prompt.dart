@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 
 /// A profile prompt with a question and user's answer.
 /// Used as conversation starters on dating profiles.
@@ -390,7 +390,7 @@ class PromptQuestions {
     try {
       return allQuestions.firstWhere((q) => q.id == questionId);
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
           'ProfilePromptQuestions: Question not found for id $questionId: $e');
       return null;
     }

@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
 
 /// Minimal profile info for safety displays (blocked users, etc.)
@@ -310,7 +310,7 @@ class SafetyCubit extends Cubit<SafetyState> {
         }
       } catch (e) {
         // Use placeholder on error
-        debugPrint(
+        AppLogger.error(
             'SafetyCubit: Error fetching profile for $userId, using placeholder: $e');
         newCache[userId] = SafetyProfileInfo.placeholder(userId);
       }

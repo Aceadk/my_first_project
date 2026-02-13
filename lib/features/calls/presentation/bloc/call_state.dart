@@ -2,6 +2,10 @@ import 'package:equatable/equatable.dart';
 
 enum CallStatus { idle, connecting, inCall, ended, error }
 
+/// Sentinel used by [CallState.copyWith] to distinguish "not provided" from
+/// "explicitly set to null" for nullable fields.
+const _sentinel = Object();
+
 class CallState extends Equatable {
   final CallStatus status;
   final String? matchId;
@@ -19,21 +23,28 @@ class CallState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a copy of this state with the given fields replaced.
+  ///
+  /// Nullable fields ([remoteUid], [errorMessage], [matchId], [localUid]) can
+  /// be explicitly set to `null` to clear them. Omitting a field keeps the
+  /// current value.
   CallState copyWith({
     CallStatus? status,
-    String? matchId,
+    Object? matchId = _sentinel,
     bool? isVideoCall,
-    int? localUid,
-    int? remoteUid,
-    String? errorMessage,
+    Object? localUid = _sentinel,
+    Object? remoteUid = _sentinel,
+    Object? errorMessage = _sentinel,
   }) {
     return CallState(
       status: status ?? this.status,
-      matchId: matchId ?? this.matchId,
+      matchId: matchId == _sentinel ? this.matchId : matchId as String?,
       isVideoCall: isVideoCall ?? this.isVideoCall,
-      localUid: localUid ?? this.localUid,
-      remoteUid: remoteUid ?? this.remoteUid,
-      errorMessage: errorMessage ?? this.errorMessage,
+      localUid: localUid == _sentinel ? this.localUid : localUid as int?,
+      remoteUid: remoteUid == _sentinel ? this.remoteUid : remoteUid as int?,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
