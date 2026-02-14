@@ -1,70 +1,137 @@
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:crushhour/core/services/tracking_consent_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('TrackingConsentService', () {
-    late TrackingConsentService service;
+    test('initial state is not determined and unauthorized', () {
+      final service = TrackingConsentService(isIosPlatform: () => false);
 
-    setUp(() {
-      service = TrackingConsentService.instance;
+      expect(service.status, TrackingStatus.notDetermined);
+      expect(service.isAuthorized, isFalse);
     });
 
-    group('Initial State', () {
-      test('initial status is notDetermined', () {
-        expect(service.status, TrackingStatus.notDetermined);
-      });
+    test('requestConsent is a no-op on non-iOS platforms', () async {
+      var analyticsCalls = 0;
 
-      test('isAuthorized returns false when status is notDetermined', () {
-        expect(service.isAuthorized, isFalse);
-      });
+      final service = TrackingConsentService(
+        isIosPlatform: () => false,
+        trackingStatusProvider: () async {
+          fail('trackingStatusProvider should not be called on non-iOS');
+        },
+        trackingAuthorizationRequester: () async {
+          fail(
+            'trackingAuthorizationRequester should not be called on non-iOS',
+          );
+        },
+        analyticsCollectionSetter: (_) async {
+          analyticsCalls++;
+        },
+      );
+
+      await service.requestConsent();
+
+      expect(service.status, TrackingStatus.notDetermined);
+      expect(service.isAuthorized, isFalse);
+      expect(analyticsCalls, 0);
     });
 
-    group('isAuthorized logic', () {
-      // TrackingConsentService.isAuthorized checks _status == TrackingStatus.authorized
-      // Since _status is private and set by requestConsent/checkStatus,
-      // we verify the getter logic relative to the status enum.
+    test(
+      'requestConsent on iOS with authorized status enables analytics',
+      () async {
+        var requestCalls = 0;
+        final analyticsEnabled = <bool>[];
 
-      test('TrackingStatus.authorized is the only authorized state', () {
-        // Verify the enum values exist and the authorized logic
-        expect(TrackingStatus.authorized, isNotNull);
-        expect(TrackingStatus.denied, isNotNull);
-        expect(TrackingStatus.notDetermined, isNotNull);
-        expect(TrackingStatus.restricted, isNotNull);
-        expect(TrackingStatus.notSupported, isNotNull);
-      });
-    });
+        final service = TrackingConsentService(
+          isIosPlatform: () => true,
+          trackingStatusProvider: () async => TrackingStatus.authorized,
+          trackingAuthorizationRequester: () async {
+            requestCalls++;
+            return TrackingStatus.authorized;
+          },
+          analyticsCollectionSetter: (enabled) async {
+            analyticsEnabled.add(enabled);
+          },
+        );
 
-    group('Platform behavior (non-iOS)', () {
-      // On non-iOS platforms (macOS test runner), requestConsent and
-      // checkStatus should return early without modifying state.
-      // Platform.isIOS will be false on macOS test environment.
-
-      test('requestConsent is a no-op on non-iOS', () async {
-        // On macOS (test runner), Platform.isIOS is false
-        // so requestConsent should return immediately
         await service.requestConsent();
-        // Status should remain notDetermined because iOS check skips
-        expect(service.status, TrackingStatus.notDetermined);
-      });
 
-      test('checkStatus returns authorized on non-iOS', () async {
-        // On non-iOS, checkStatus returns TrackingStatus.authorized
-        final status = await service.checkStatus();
-        expect(status, TrackingStatus.authorized);
-      });
+        expect(service.status, TrackingStatus.authorized);
+        expect(service.isAuthorized, isTrue);
+        expect(requestCalls, 0);
+        expect(analyticsEnabled, [true]);
+      },
+    );
+
+    test('requestConsent requests ATT when status is not determined', () async {
+      var requestCalls = 0;
+      final analyticsEnabled = <bool>[];
+
+      final service = TrackingConsentService(
+        isIosPlatform: () => true,
+        trackingStatusProvider: () async => TrackingStatus.notDetermined,
+        trackingAuthorizationRequester: () async {
+          requestCalls++;
+          return TrackingStatus.denied;
+        },
+        analyticsCollectionSetter: (enabled) async {
+          analyticsEnabled.add(enabled);
+        },
+      );
+
+      await service.requestConsent();
+
+      expect(requestCalls, 1);
+      expect(service.status, TrackingStatus.denied);
+      expect(service.isAuthorized, isFalse);
+      expect(analyticsEnabled, [false]);
     });
 
-    group('TrackingStatus enum', () {
-      test('has all expected values', () {
-        expect(TrackingStatus.values.length, greaterThanOrEqualTo(4));
-        expect(TrackingStatus.values, contains(TrackingStatus.notDetermined));
-        expect(TrackingStatus.values, contains(TrackingStatus.restricted));
-        expect(TrackingStatus.values, contains(TrackingStatus.denied));
-        expect(TrackingStatus.values, contains(TrackingStatus.authorized));
-      });
+    test(
+      'requestConsent falls back to disabled analytics on exceptions',
+      () async {
+        final analyticsEnabled = <bool>[];
+
+        final service = TrackingConsentService(
+          isIosPlatform: () => true,
+          trackingStatusProvider: () async {
+            throw Exception('ATT provider failure');
+          },
+          trackingAuthorizationRequester: () async => TrackingStatus.authorized,
+          analyticsCollectionSetter: (enabled) async {
+            analyticsEnabled.add(enabled);
+          },
+        );
+
+        await service.requestConsent();
+
+        expect(service.isAuthorized, isFalse);
+        expect(analyticsEnabled, [false]);
+      },
+    );
+
+    test('checkStatus returns authorized on non-iOS', () async {
+      final service = TrackingConsentService(isIosPlatform: () => false);
+
+      final status = await service.checkStatus();
+
+      expect(status, TrackingStatus.authorized);
+    });
+
+    test('checkStatus on iOS updates and returns current ATT status', () async {
+      final service = TrackingConsentService(
+        isIosPlatform: () => true,
+        trackingStatusProvider: () async => TrackingStatus.restricted,
+      );
+
+      final status = await service.checkStatus();
+
+      expect(status, TrackingStatus.restricted);
+      expect(service.status, TrackingStatus.restricted);
+      expect(service.isAuthorized, isFalse);
     });
   });
 }

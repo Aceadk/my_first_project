@@ -5,14 +5,52 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
 
+typedef IsIosPlatform = bool Function();
+typedef TrackingStatusProvider = Future<TrackingStatus> Function();
+typedef TrackingAuthorizationRequester = Future<TrackingStatus> Function();
+typedef AnalyticsCollectionSetter = Future<void> Function(bool enabled);
+
 /// Manages App Tracking Transparency (ATT) consent on iOS.
 ///
 /// On iOS 14.5+, apps must request permission before collecting IDFA.
 /// This service handles the ATT prompt and adjusts Firebase Analytics
 /// data collection based on the user's response.
 class TrackingConsentService {
-  TrackingConsentService._();
-  static final TrackingConsentService instance = TrackingConsentService._();
+  TrackingConsentService({
+    IsIosPlatform? isIosPlatform,
+    TrackingStatusProvider? trackingStatusProvider,
+    TrackingAuthorizationRequester? trackingAuthorizationRequester,
+    AnalyticsCollectionSetter? analyticsCollectionSetter,
+  }) : _isIosPlatform = isIosPlatform ?? _defaultIsIosPlatform,
+       _trackingStatusProvider =
+           trackingStatusProvider ?? _defaultTrackingStatusProvider,
+       _trackingAuthorizationRequester =
+           trackingAuthorizationRequester ?? _defaultTrackingRequester,
+       _analyticsCollectionSetter =
+           analyticsCollectionSetter ?? _defaultAnalyticsCollectionSetter;
+
+  TrackingConsentService._singleton() : this();
+  static final TrackingConsentService instance =
+      TrackingConsentService._singleton();
+
+  static bool _defaultIsIosPlatform() => Platform.isIOS;
+
+  static Future<TrackingStatus> _defaultTrackingStatusProvider() {
+    return AppTrackingTransparency.trackingAuthorizationStatus;
+  }
+
+  static Future<TrackingStatus> _defaultTrackingRequester() {
+    return AppTrackingTransparency.requestTrackingAuthorization();
+  }
+
+  static Future<void> _defaultAnalyticsCollectionSetter(bool enabled) {
+    return FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+  }
+
+  final IsIosPlatform _isIosPlatform;
+  final TrackingStatusProvider _trackingStatusProvider;
+  final TrackingAuthorizationRequester _trackingAuthorizationRequester;
+  final AnalyticsCollectionSetter _analyticsCollectionSetter;
 
   TrackingStatus _status = TrackingStatus.notDetermined;
 
@@ -28,15 +66,15 @@ class TrackingConsentService {
   /// Do NOT call during splash screen — Apple may reject apps that show
   /// the ATT prompt before the user has context.
   Future<void> requestConsent() async {
-    if (!Platform.isIOS) return;
+    if (!_isIosPlatform()) return;
 
     try {
       // Check current status first
-      _status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      _status = await _trackingStatusProvider();
 
       if (_status == TrackingStatus.notDetermined) {
         // Show the ATT dialog
-        _status = await AppTrackingTransparency.requestTrackingAuthorization();
+        _status = await _trackingAuthorizationRequester();
       }
 
       // Adjust Firebase Analytics based on consent
@@ -44,20 +82,20 @@ class TrackingConsentService {
     } catch (e) {
       AppLogger.error('TrackingConsentService: ATT request failed: $e');
       // Default to limited data collection if ATT fails
-      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
+      await _analyticsCollectionSetter(false);
     }
   }
 
   /// Check current ATT status without showing a dialog.
   Future<TrackingStatus> checkStatus() async {
-    if (!Platform.isIOS) return TrackingStatus.authorized;
-    _status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (!_isIosPlatform()) return TrackingStatus.authorized;
+    _status = await _trackingStatusProvider();
     return _status;
   }
 
   Future<void> _applyConsentToAnalytics() async {
     final enabled = _status == TrackingStatus.authorized;
-    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+    await _analyticsCollectionSetter(enabled);
 
     if (kDebugMode) {
       AppLogger.debug(

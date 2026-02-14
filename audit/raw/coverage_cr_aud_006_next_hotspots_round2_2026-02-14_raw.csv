@@ -1,0 +1,8 @@
+file,pct,hit,found
+lib/core/router.dart,64.24,212,330
+lib/features/discovery/data/services/realtime_match_service.dart,83.33,40,48
+lib/core/services/tracking_consent_service.dart,66.67,20,30
+lib/core/services/crash_reporting_service.dart,76.27,90,118
+lib/features/auth/data/repositories/impl/stub_auth_repository.dart,96.31,365,379
+lib/features/discovery/data/services/daily_likes_service.dart,98.59,70,71
+lib/core/security/input_sanitizer.dart,98.94,93,94

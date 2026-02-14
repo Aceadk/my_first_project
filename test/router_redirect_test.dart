@@ -72,6 +72,10 @@ void main() {
           resolveRouteRedirect(authState: unauth, path: CrushRoutes.login),
           isNull,
         );
+        expect(
+          resolveRouteRedirect(authState: unauth, path: CrushRoutes.splash),
+          CrushRoutes.authGateway,
+        );
       },
     );
 
@@ -164,6 +168,10 @@ void main() {
           resolveRouteRedirect(authState: state, path: CrushRoutes.home),
           CrushRoutes.termsConditions,
         );
+        expect(
+          resolveRouteRedirect(authState: state, path: CrushRoutes.login),
+          isNull,
+        );
       },
     );
 
@@ -189,6 +197,17 @@ void main() {
         );
         expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.pricing),
+          isNull,
+        );
+        expect(
+          resolveRouteRedirect(
+            authState: state,
+            path: CrushRoutes.termsConditions,
+          ),
+          isNull,
+        );
+        expect(
+          resolveRouteRedirect(authState: state, path: CrushRoutes.login),
           isNull,
         );
         expect(
@@ -227,6 +246,10 @@ void main() {
         );
         expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.support),
+          isNull,
+        );
+        expect(
+          resolveRouteRedirect(authState: state, path: CrushRoutes.login),
           isNull,
         );
         expect(
@@ -270,6 +293,10 @@ void main() {
         );
         expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.support),
+          isNull,
+        );
+        expect(
+          resolveRouteRedirect(authState: state, path: CrushRoutes.login),
           isNull,
         );
         expect(
@@ -338,6 +365,40 @@ void main() {
           path: CrushRoutes.root,
         ),
         CrushRoutes.emailVerification,
+      );
+
+      final needsTerms = buildState(
+        status: AuthStatus.authenticated,
+        user: buildUser(hasAcceptedTerms: false),
+      );
+      expect(
+        resolveRouteRedirect(authState: needsTerms, path: CrushRoutes.root),
+        CrushRoutes.termsConditions,
+      );
+
+      final needsBasicInfo = buildState(
+        status: AuthStatus.authenticated,
+        user: buildUser(hasAcceptedTerms: true, hasSkippedBasicInfo: false),
+      );
+      expect(
+        resolveRouteRedirect(authState: needsBasicInfo, path: CrushRoutes.root),
+        CrushRoutes.basicInfo,
+      );
+
+      final needsProfileSetup = buildState(
+        status: AuthStatus.authenticated,
+        user: buildUser(
+          hasAcceptedTerms: true,
+          hasSkippedBasicInfo: true,
+          hasSkippedProfileSetup: false,
+        ),
+      );
+      expect(
+        resolveRouteRedirect(
+          authState: needsProfileSetup,
+          path: CrushRoutes.root,
+        ),
+        CrushRoutes.profileSetup,
       );
     });
   });

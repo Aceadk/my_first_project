@@ -1,6 +1,22 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
+
+typedef RealtimeChildAddedStreamFactory =
+    Stream<RealtimeChildAddedEvent> Function(String path);
+
+class RealtimeChildAddedEvent {
+  const RealtimeChildAddedEvent({
+    required this.key,
+    required this.value,
+    required this.remove,
+  });
+
+  final String? key;
+  final dynamic value;
+  final Future<void> Function() remove;
+}
 
 /// Data class for real-time match notification.
 class RealtimeMatchNotification {
@@ -19,7 +35,9 @@ class RealtimeMatchNotification {
   });
 
   factory RealtimeMatchNotification.fromRtdb(
-      String matchId, Map<dynamic, dynamic> data) {
+    String matchId,
+    Map<dynamic, dynamic> data,
+  ) {
     return RealtimeMatchNotification(
       matchId: matchId,
       otherUserId: data['otherUserId'] as String? ?? '',
@@ -36,9 +54,34 @@ class RealtimeMatchNotification {
 /// When a match is detected, notifies subscribers and clears the notification.
 class RealtimeMatchService {
   static final RealtimeMatchService instance = RealtimeMatchService._();
-  RealtimeMatchService._();
+  RealtimeMatchService._({
+    RealtimeChildAddedStreamFactory? childAddedStreamFactory,
+  }) : _childAddedStreamFactory =
+           childAddedStreamFactory ?? _defaultChildAddedStreamFactory;
 
-  final FirebaseDatabase _rtdb = FirebaseDatabase.instance;
+  @visibleForTesting
+  factory RealtimeMatchService.test({
+    required RealtimeChildAddedStreamFactory childAddedStreamFactory,
+  }) {
+    return RealtimeMatchService._(
+      childAddedStreamFactory: childAddedStreamFactory,
+    );
+  }
+
+  static Stream<RealtimeChildAddedEvent> _defaultChildAddedStreamFactory(
+    String path,
+  ) {
+    final ref = FirebaseDatabase.instance.ref(path);
+    return ref.onChildAdded.map((event) {
+      return RealtimeChildAddedEvent(
+        key: event.snapshot.key,
+        value: event.snapshot.value,
+        remove: () => event.snapshot.ref.remove(),
+      );
+    });
+  }
+
+  final RealtimeChildAddedStreamFactory _childAddedStreamFactory;
   StreamSubscription? _matchSubscription;
   String? _currentUserId;
 
@@ -64,39 +107,44 @@ class RealtimeMatchService {
     _currentUserId = userId;
 
     AppLogger.info(
-        '[RealtimeMatchService] Starting match listener for user: $userId');
-
-    // Listen to /users/{userId}/newMatches
-    final ref = _rtdb.ref('users/$userId/newMatches');
-    _matchSubscription = ref.onChildAdded.listen(
-      (event) {
-        final matchId = event.snapshot.key;
-        final data = event.snapshot.value;
-
-        if (matchId != null && data != null && data is Map) {
-          AppLogger.info(
-              '[RealtimeMatchService] New match detected: $matchId');
-
-          final notification = RealtimeMatchNotification.fromRtdb(
-            matchId,
-            data,
-          );
-
-          // Emit the notification
-          _matchController.add(notification);
-
-          // Clear the notification from RTDB (so it doesn't show again)
-          event.snapshot.ref.remove().catchError((e) {
-            AppLogger.error(
-                '[RealtimeMatchService] Failed to clear match notification', error: e);
-          });
-        }
-      },
-      onError: (error) {
-        AppLogger.error(
-            '[RealtimeMatchService] Match listener error', error: error);
-      },
+      '[RealtimeMatchService] Starting match listener for user: $userId',
     );
+
+    _matchSubscription = _childAddedStreamFactory('users/$userId/newMatches')
+        .listen(
+          (event) {
+            final matchId = event.key;
+            final data = event.value;
+
+            if (matchId != null && data != null && data is Map) {
+              AppLogger.info(
+                '[RealtimeMatchService] New match detected: $matchId',
+              );
+
+              final notification = RealtimeMatchNotification.fromRtdb(
+                matchId,
+                data,
+              );
+
+              // Emit the notification
+              _matchController.add(notification);
+
+              // Clear the notification from RTDB (so it doesn't show again)
+              event.remove().catchError((e) {
+                AppLogger.error(
+                  '[RealtimeMatchService] Failed to clear match notification',
+                  error: e,
+                );
+              });
+            }
+          },
+          onError: (error) {
+            AppLogger.error(
+              '[RealtimeMatchService] Match listener error',
+              error: error,
+            );
+          },
+        );
   }
 
   /// Stop listening for new matches.

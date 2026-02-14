@@ -26,7 +26,6 @@
 0.00,0,31,lib/features/chat/presentation/widgets/chat_reaction_button.dart
 0.00,0,42,lib/design_system/widgets/glass_container.dart
 0.00,0,43,lib/features/profile/presentation/widgets/profile_field_tile.dart
-0.00,0,46,lib/design_system/tokens/typography.dart
 0.00,0,46,lib/features/chat/presentation/widgets/chat_date_separator.dart
 0.00,0,47,lib/features/chat/presentation/widgets/chat_typing_indicator.dart
 0.00,0,53,lib/design_system/widgets/crush_icon_button.dart
@@ -47,7 +46,6 @@
 0.00,0,101,lib/features/chat/presentation/widgets/chat_empty_state.dart
 0.00,0,107,lib/design_system/widgets/glass_text_field.dart
 0.00,0,116,lib/design_system/widgets/verification_badge.dart
-0.00,0,121,lib/design_system/theme/app_theme.dart
 0.00,0,137,lib/features/chat/presentation/widgets/voice_note_player.dart
 0.00,0,141,lib/features/profile/presentation/widgets/profile_height_picker.dart
 0.00,0,147,lib/design_system/widgets/adaptive_layout.dart
@@ -175,12 +173,8 @@
 37.30,182,488,lib/features/discovery/presentation/widgets/swipe_card.dart
 38.10,8,21,lib/core/services/tracking_consent_service.dart
 39.53,68,172,lib/features/discovery/presentation/widgets/deck_ui_helpers.dart
-41.94,13,31,lib/design_system/tokens/colors.dart
-42.25,30,71,lib/core/security/session_manager.dart
 44.30,35,79,lib/core/services/crash_reporting_service.dart
-47.85,78,163,lib/features/social/data/models/compatibility_quiz.dart
 47.92,23,48,lib/features/chat/presentation/bloc/chat_state.dart
-49.25,33,67,lib/features/discovery/data/models/daily_likes_limit.dart
 50.00,1,2,lib/dev/widget_catalog/showcases/avatars_showcase.dart
 50.43,59,117,lib/features/settings/presentation/bloc/safety_cubit.dart
 50.52,49,97,lib/design_system/widgets/crush_badge.dart
@@ -198,6 +192,7 @@
 68.75,55,80,lib/design_system/widgets/glass_card.dart
 68.82,64,93,lib/design_system/widgets/skeleton_loader.dart
 69.70,46,66,lib/features/discovery/data/services/daily_likes_service.dart
+69.94,114,163,lib/features/social/data/models/compatibility_quiz.dart
 71.43,5,7,lib/features/chat/presentation/bloc/matches_event.dart
 73.37,124,169,lib/features/feature_flags/data/models/feature_flags.dart
 73.68,42,57,lib/shared/utils/profile_completeness.dart
@@ -223,6 +218,7 @@
 84.80,106,125,lib/features/safety/data/services/date_plan_service.dart
 85.71,18,21,lib/features/calls/data/repositories/impl/stub_call_repository.dart
 85.78,187,218,lib/features/discovery/presentation/bloc/discovery_settings_cubit.dart
+85.92,61,71,lib/core/security/session_manager.dart
 86.36,19,22,lib/data/models/match.dart
 86.54,45,52,lib/features/discovery/presentation/bloc/discovery_state.dart
 86.60,84,97,lib/features/social/presentation/bloc/date_ideas_cubit.dart
@@ -244,6 +240,7 @@
 92.86,13,14,lib/core/utils/result.dart
 93.33,42,45,lib/features/verification/data/services/photo_verification_service.dart
 93.48,43,46,lib/core/accessibility/semantics_helper.dart
+93.55,29,31,lib/design_system/tokens/colors.dart
 93.75,60,64,lib/features/discovery/data/services/weekly_picks_service.dart
 94.12,64,68,lib/design_system/utils/page_transitions.dart
 94.29,33,35,lib/design_system/widgets/app_text_field.dart
@@ -259,6 +256,7 @@
 96.15,25,26,lib/design_system/tokens/breakpoints.dart
 96.23,51,53,lib/core/services/in_app_review_service.dart
 96.23,51,53,lib/data/models/profile_prompt.dart
+96.43,81,84,lib/features/analytics/data/services/profile_insights_service.dart
 96.61,57,59,lib/core/security/secure_logger.dart
 96.70,88,91,lib/features/chat/presentation/bloc/matches_bloc.dart
 96.88,31,32,lib/features/profile/presentation/widgets/profile_completeness_meter.dart
@@ -268,13 +266,13 @@
 97.26,71,73,lib/data/models/profile_story.dart
 97.30,36,37,lib/features/chat/presentation/bloc/chat_session_cubit.dart
 97.50,39,40,lib/features/chat/domain/services/ice_breaker_service.dart
-97.62,82,84,lib/features/analytics/data/services/profile_insights_service.dart
 97.62,82,84,lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart
 97.83,90,92,lib/features/calls/data/models/call.dart
 98.10,155,158,lib/features/auth/presentation/bloc/auth_bloc.dart
 98.21,55,56,lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart
 98.31,58,59,lib/core/services/haptic_service.dart
 98.37,121,123,lib/features/safety/data/models/date_plan.dart
+98.51,66,67,lib/features/discovery/data/models/daily_likes_limit.dart
 98.57,69,70,lib/shared/utils/profile_field_options.dart
 98.65,73,74,lib/core/services/photo_verification_service.dart
 98.65,73,74,lib/features/auth/presentation/bloc/session_bloc.dart
@@ -300,12 +298,14 @@
 100.00,35,35,lib/features/calls/presentation/bloc/call_bloc.dart
 100.00,37,37,lib/data/models/message.dart
 100.00,39,39,lib/features/settings/presentation/bloc/notification_settings_cubit.dart
+100.00,46,46,lib/design_system/tokens/typography.dart
 100.00,47,47,lib/features/subscription/presentation/bloc/subscription_bloc.dart
 100.00,51,51,lib/data/models/promo_code.dart
 100.00,53,53,lib/design_system/utils/debouncer.dart
 100.00,53,53,lib/features/feature_flags/presentation/bloc/feature_flag_cubit.dart
 100.00,56,56,lib/features/discovery/data/models/incognito_settings.dart
 100.00,71,71,lib/features/settings/presentation/bloc/privacy_settings_cubit.dart
+100.00,121,121,lib/design_system/theme/app_theme.dart
 100.00,127,127,lib/data/models/privacy_settings.dart
 100.00,130,130,lib/features/analytics/data/models/profile_insights.dart
 100.00,225,225,lib/core/services/analytics_service.dart

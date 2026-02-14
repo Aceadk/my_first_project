@@ -14,11 +14,61 @@ import 'package:crushhour/core/app_logger.dart';
 /// - Custom keys and logs for debugging
 /// - Flutter error handling integration
 class CrashReportingService {
-  CrashReportingService._();
+  CrashReportingService._({
+    CrashlyticsClient? crashlytics,
+    CrashlyticsClient Function()? crashlyticsFactory,
+    bool Function()? isDebugMode,
+    PlatformDispatcher? platformDispatcher,
+    void Function(SendPort)? addIsolateErrorListener,
+  }) : _crashlytics = crashlytics,
+       _crashlyticsFactory =
+           crashlyticsFactory ?? _defaultCrashlyticsClientFactory,
+       _isDebugMode = isDebugMode ?? _defaultIsDebugMode,
+       _platformDispatcher = platformDispatcher ?? PlatformDispatcher.instance,
+       _addIsolateErrorListener =
+           addIsolateErrorListener ?? Isolate.current.addErrorListener;
 
-  static final CrashReportingService instance = CrashReportingService._();
+  static CrashReportingService _singleton = CrashReportingService._();
 
-  FirebaseCrashlytics? _crashlytics;
+  static CrashReportingService get instance => _singleton;
+
+  @visibleForTesting
+  static void setInstanceForTesting(CrashReportingService service) {
+    _singleton = service;
+  }
+
+  @visibleForTesting
+  static void resetInstanceForTesting() {
+    _singleton = CrashReportingService._();
+  }
+
+  factory CrashReportingService.test({
+    CrashlyticsClient? crashlytics,
+    CrashlyticsClient Function()? crashlyticsFactory,
+    bool Function()? isDebugMode,
+    PlatformDispatcher? platformDispatcher,
+    void Function(SendPort)? addIsolateErrorListener,
+  }) {
+    return CrashReportingService._(
+      crashlytics: crashlytics,
+      crashlyticsFactory: crashlyticsFactory,
+      isDebugMode: isDebugMode,
+      platformDispatcher: platformDispatcher,
+      addIsolateErrorListener: addIsolateErrorListener,
+    );
+  }
+
+  static CrashlyticsClient _defaultCrashlyticsClientFactory() {
+    return _FirebaseCrashlyticsClient(FirebaseCrashlytics.instance);
+  }
+
+  static bool _defaultIsDebugMode() => kDebugMode;
+
+  CrashlyticsClient? _crashlytics;
+  final CrashlyticsClient Function() _crashlyticsFactory;
+  final bool Function() _isDebugMode;
+  final PlatformDispatcher _platformDispatcher;
+  final void Function(SendPort) _addIsolateErrorListener;
   bool _isInitialized = false;
 
   /// Initialize the crash reporting service.
@@ -27,10 +77,10 @@ class CrashReportingService {
     if (_isInitialized) return;
 
     try {
-      _crashlytics = FirebaseCrashlytics.instance;
+      _crashlytics ??= _crashlyticsFactory();
 
       // Disable crash collection in debug mode
-      await _crashlytics?.setCrashlyticsCollectionEnabled(!kDebugMode);
+      await _crashlytics?.setCrashlyticsCollectionEnabled(!_isDebugMode());
 
       // Set up Flutter error handling
       _setupFlutterErrorHandling();
@@ -48,7 +98,7 @@ class CrashReportingService {
   void _setupFlutterErrorHandling() {
     // Catch Flutter framework errors
     FlutterError.onError = (FlutterErrorDetails details) {
-      if (kDebugMode) {
+      if (_isDebugMode()) {
         // In debug mode, print to console
         FlutterError.dumpErrorToConsole(details);
       } else {
@@ -58,8 +108,8 @@ class CrashReportingService {
     };
 
     // Catch async errors not handled by Flutter
-    PlatformDispatcher.instance.onError = (error, stack) {
-      if (kDebugMode) {
+    _platformDispatcher.onError = (error, stack) {
+      if (_isDebugMode()) {
         AppLogger.error('PlatformDispatcher error: $error\n$stack');
       } else {
         _crashlytics?.recordError(error, stack, fatal: true);
@@ -70,15 +120,19 @@ class CrashReportingService {
 
   void _setupIsolateErrorHandling() {
     // Catch errors from other isolates
-    Isolate.current.addErrorListener(RawReceivePort((pair) {
-      final List<dynamic> errorAndStacktrace = pair;
-      final error = errorAndStacktrace[0];
-      final stackTrace = StackTrace.fromString(errorAndStacktrace[1] as String);
+    _addIsolateErrorListener(
+      RawReceivePort((pair) {
+        final List<dynamic> errorAndStacktrace = pair;
+        final error = errorAndStacktrace[0];
+        final stackTrace = StackTrace.fromString(
+          errorAndStacktrace[1] as String,
+        );
 
-      if (!kDebugMode) {
-        _crashlytics?.recordError(error, stackTrace, fatal: true);
-      }
-    }).sendPort);
+        if (!_isDebugMode()) {
+          _crashlytics?.recordError(error, stackTrace, fatal: true);
+        }
+      }).sendPort,
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -127,7 +181,9 @@ class CrashReportingService {
     try {
       await _crashlytics!.recordFlutterError(details);
     } catch (e) {
-      AppLogger.error('CrashReportingService: Failed to record Flutter error - $e');
+      AppLogger.error(
+        'CrashReportingService: Failed to record Flutter error - $e',
+      );
     }
   }
 
@@ -201,17 +257,23 @@ class CrashReportingService {
   }
 
   /// Log a user action as a breadcrumb.
-  Future<void> logUserAction(String action,
-      {Map<String, dynamic>? params}) async {
+  Future<void> logUserAction(
+    String action, {
+    Map<String, dynamic>? params,
+  }) async {
     final paramsStr =
         params?.entries.map((e) => '${e.key}=${e.value}').join(', ') ?? '';
     await log(
-        'User action: $action${paramsStr.isNotEmpty ? ' ($paramsStr)' : ''}');
+      'User action: $action${paramsStr.isNotEmpty ? ' ($paramsStr)' : ''}',
+    );
   }
 
   /// Log an API call as a breadcrumb.
-  Future<void> logApiCall(String endpoint,
-      {int? statusCode, String? error}) async {
+  Future<void> logApiCall(
+    String endpoint, {
+    int? statusCode,
+    String? error,
+  }) async {
     if (error != null) {
       await log('API Error: $endpoint - $error');
     } else if (statusCode != null) {
@@ -228,8 +290,10 @@ class CrashReportingService {
   /// Force a crash for testing purposes.
   /// Only works in release mode.
   void testCrash() {
-    if (kDebugMode) {
-      AppLogger.debug('CrashReportingService: Test crash ignored in debug mode');
+    if (_isDebugMode()) {
+      AppLogger.debug(
+        'CrashReportingService: Test crash ignored in debug mode',
+      );
       return;
     }
     _crashlytics?.crash();
@@ -247,6 +311,9 @@ class CrashReportingService {
 
   /// Check if the service is initialized.
   bool get isInitialized => _isInitialized;
+
+  /// Whether service is running in debug mode.
+  bool get isDebugMode => _isDebugMode();
 }
 
 /// Extension for easy error reporting in try-catch blocks.
@@ -268,9 +335,86 @@ extension CrashReportingExtension on Object {
 
 /// A zone error handler that reports errors to Crashlytics.
 void crashlyticsErrorHandler(Object error, StackTrace stack) {
-  if (kDebugMode) {
+  if (CrashReportingService.instance.isDebugMode) {
     AppLogger.error('Zone error: $error\n$stack');
   } else {
     CrashReportingService.instance.recordError(error, stack, fatal: false);
   }
+}
+
+abstract class CrashlyticsClient {
+  Future<void> setCrashlyticsCollectionEnabled(bool enabled);
+  Future<void> recordError(
+    dynamic exception,
+    StackTrace? stackTrace, {
+    String? reason,
+    bool fatal = false,
+  });
+  Future<void> recordFlutterError(FlutterErrorDetails details);
+  void recordFlutterFatalError(FlutterErrorDetails details);
+  Future<void> setUserIdentifier(String userId);
+  Future<void> setCustomKey(String key, String value);
+  Future<void> log(String message);
+  void crash();
+  bool get isCrashlyticsCollectionEnabled;
+}
+
+class _FirebaseCrashlyticsClient implements CrashlyticsClient {
+  _FirebaseCrashlyticsClient(this._delegate);
+
+  final FirebaseCrashlytics _delegate;
+
+  @override
+  Future<void> setCrashlyticsCollectionEnabled(bool enabled) {
+    return _delegate.setCrashlyticsCollectionEnabled(enabled);
+  }
+
+  @override
+  Future<void> recordError(
+    dynamic exception,
+    StackTrace? stackTrace, {
+    String? reason,
+    bool fatal = false,
+  }) {
+    return _delegate.recordError(
+      exception,
+      stackTrace,
+      reason: reason,
+      fatal: fatal,
+    );
+  }
+
+  @override
+  Future<void> recordFlutterError(FlutterErrorDetails details) {
+    return _delegate.recordFlutterError(details);
+  }
+
+  @override
+  void recordFlutterFatalError(FlutterErrorDetails details) {
+    _delegate.recordFlutterFatalError(details);
+  }
+
+  @override
+  Future<void> setUserIdentifier(String userId) {
+    return _delegate.setUserIdentifier(userId);
+  }
+
+  @override
+  Future<void> setCustomKey(String key, String value) {
+    return _delegate.setCustomKey(key, value);
+  }
+
+  @override
+  Future<void> log(String message) {
+    return _delegate.log(message);
+  }
+
+  @override
+  void crash() {
+    _delegate.crash();
+  }
+
+  @override
+  bool get isCrashlyticsCollectionEnabled =>
+      _delegate.isCrashlyticsCollectionEnabled;
 }

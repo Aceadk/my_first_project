@@ -3,13 +3,31 @@ import '../models/daily_likes_limit.dart';
 
 /// Service for managing daily likes limit.
 class DailyLikesService {
-  DailyLikesService._();
+  DailyLikesService._({
+    Future<void> Function(Duration)? delayExecutor,
+    Timer Function(Duration, void Function())? resetScheduler,
+  }) : _delayExecutor = delayExecutor ?? Future.delayed,
+       _resetScheduler =
+           resetScheduler ?? ((delay, callback) => Timer(delay, callback));
   static final DailyLikesService instance = DailyLikesService._();
 
+  factory DailyLikesService.test({
+    Future<void> Function(Duration)? delayExecutor,
+    Timer Function(Duration, void Function())? resetScheduler,
+  }) {
+    return DailyLikesService._(
+      delayExecutor: delayExecutor,
+      resetScheduler: resetScheduler,
+    );
+  }
+
+  final Future<void> Function(Duration) _delayExecutor;
+  final Timer Function(Duration, void Function()) _resetScheduler;
   final _limitController = StreamController<DailyLikesLimit>.broadcast();
   Stream<DailyLikesLimit> get limitStream => _limitController.stream;
 
   DailyLikesLimit? _currentLimit;
+  Timer? _resetTimer;
 
   DailyLikesLimit? get currentLimit => _currentLimit;
   bool get canLike => _currentLimit?.canLike ?? false;
@@ -24,7 +42,7 @@ class DailyLikesService {
     int bonusLikes = 0,
   }) async {
     // In production, fetch from backend
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _delayExecutor(const Duration(milliseconds: 300));
 
     _currentLimit = DailyLikesLimit.forToday(
       userId: userId,
@@ -152,11 +170,12 @@ class DailyLikesService {
 
   void _scheduleReset() {
     final delay = _currentLimit?.timeUntilReset ?? Duration.zero;
+    _resetTimer?.cancel();
     if (delay.isNegative || delay == Duration.zero) {
       return;
     }
 
-    Future.delayed(delay, () {
+    _resetTimer = _resetScheduler(delay, () {
       resetLimits();
     });
   }
@@ -166,6 +185,7 @@ class DailyLikesService {
   }
 
   void dispose() {
+    _resetTimer?.cancel();
     _limitController.close();
   }
 }
