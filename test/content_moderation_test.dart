@@ -1,4 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_functions_platform_interface/cloud_functions_platform_interface.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -415,7 +414,7 @@ void main() {
     test(
       'falls back when callable throws FirebaseFunctionsException',
       () async {
-        fakeFunctionsPlatform.onCall = (_, __) async {
+        fakeFunctionsPlatform.onCall = (_, _) async {
           throw FirebaseFunctionsException(
             code: 'internal',
             message: 'forced failure',
@@ -432,7 +431,7 @@ void main() {
     );
 
     test('falls back when callable throws generic exception', () async {
-      fakeFunctionsPlatform.onCall = (_, __) async {
+      fakeFunctionsPlatform.onCall = (_, _) async {
         throw StateError('forced generic failure');
       };
 

@@ -8,35 +8,43 @@ class DateIdeaService implements DateIdeaRepository {
   static final DateIdeaService instance = DateIdeaService._();
 
   final _ideasController = StreamController<List<DateIdea>>.broadcast();
+  @override
   Stream<List<DateIdea>> get ideasStream => _ideasController.stream;
 
   final List<DateIdea> _savedIdeas = [];
   List<DateIdea> _suggestedIdeas = [];
 
+  @override
   List<DateIdea> get savedIdeas => _savedIdeas;
+  @override
   List<DateIdea> get suggestedIdeas => _suggestedIdeas;
 
   /// Get all available date ideas.
+  @override
   List<DateIdea> getAllIdeas() {
     return DateIdeas.suggestions;
   }
 
   /// Get date ideas by category.
+  @override
   List<DateIdea> getIdeasByCategory(DateCategory category) {
     return DateIdeas.byCategory(category);
   }
 
   /// Get date ideas for a specific date type.
+  @override
   List<DateIdea> getIdeasForDateType(DateType type) {
     return DateIdeas.forDateType(type);
   }
 
   /// Get date ideas within a budget.
+  @override
   List<DateIdea> getIdeasByBudget(DateCostLevel maxCost) {
     return DateIdeas.byCost(maxCost);
   }
 
   /// Get random suggestions.
+  @override
   List<DateIdea> getRandomSuggestions(int count) {
     _suggestedIdeas = DateIdeas.random(count);
     _ideasController.add(_suggestedIdeas);
@@ -44,6 +52,7 @@ class DateIdeaService implements DateIdeaRepository {
   }
 
   /// Get personalized suggestions based on preferences.
+  @override
   Future<List<DateIdea>> getPersonalizedSuggestions({
     DateType? dateType,
     DateCostLevel? maxBudget,
@@ -94,6 +103,7 @@ class DateIdeaService implements DateIdeaRepository {
   }
 
   /// Save a date idea.
+  @override
   Future<void> saveIdea(DateIdea idea) async {
     if (!_savedIdeas.any((i) => i.id == idea.id)) {
       _savedIdeas.add(idea);
@@ -102,17 +112,20 @@ class DateIdeaService implements DateIdeaRepository {
   }
 
   /// Remove saved idea.
+  @override
   Future<void> removeSavedIdea(String ideaId) async {
     _savedIdeas.removeWhere((i) => i.id == ideaId);
     // In production, sync with backend
   }
 
   /// Check if idea is saved.
+  @override
   bool isIdeaSaved(String ideaId) {
     return _savedIdeas.any((i) => i.id == ideaId);
   }
 
   /// Send date idea to match.
+  @override
   Future<void> sendIdeaToMatch({
     required String matchId,
     required DateIdea idea,
@@ -123,6 +136,7 @@ class DateIdeaService implements DateIdeaRepository {
   }
 
   /// Get current season.
+  @override
   Season getCurrentSeason() {
     final month = DateTime.now().month;
     if (month >= 3 && month <= 5) return Season.spring;
@@ -132,6 +146,7 @@ class DateIdeaService implements DateIdeaRepository {
   }
 
   /// Search ideas by text.
+  @override
   List<DateIdea> searchIdeas(String query) {
     final lowerQuery = query.toLowerCase();
     return DateIdeas.suggestions.where((idea) {
@@ -141,12 +156,14 @@ class DateIdeaService implements DateIdeaRepository {
     }).toList();
   }
 
+  @override
   void clearUserData() {
     _savedIdeas.clear();
     _suggestedIdeas = [];
     _ideasController.add(_suggestedIdeas);
   }
 
+  @override
   void dispose() {
     _ideasController.close();
   }

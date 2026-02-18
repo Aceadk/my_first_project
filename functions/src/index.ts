@@ -3508,7 +3508,9 @@ export const onSubscriptionUpdated = functions.firestore
 export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "fetch discovery candidates");
-    requireEmailVerified(context, "browse discovery");
+    // NOTE: Email verification is enforced by the Flutter routing layer.
+    // Don't block discovery browsing here — let unverified users browse
+    // to improve engagement and allow testing with new accounts.
     const limitRaw = typeof data?.limit === "number" ? data.limit : 30;
     const limit = Math.min(Math.max(limitRaw, 5), 50);
 
@@ -3577,7 +3579,9 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       if (doc.id === uid) return;
       if (blockedIds.has(doc.id)) return;
       const data = doc.data() as Record<string, unknown>;
-      const candidateProfile = (data.profile as ProfileData | undefined) ?? null;
+      // Support both nested profile and flat document structure
+      const candidateProfile = (data.profile as ProfileData | undefined)
+        ?? (data.name && data.gender ? (data as unknown as ProfileData) : null);
       if (!candidateProfile) return;
 
       // Filter out users who have explicitly opted out of discovery

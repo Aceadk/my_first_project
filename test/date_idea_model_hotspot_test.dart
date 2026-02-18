@@ -12,10 +12,10 @@ void main() {
         'emoji': 'x',
         'estimatedCost': 'unknown-cost',
         'estimatedDuration': 15,
-        'tags': const <String>['a'],
-        'requirements': const <String>['b'],
-        'bestFor': const <String>['unknown-date-type'],
-        'seasonalAvailability': const <String>['unknown-season'],
+        'tags': <String>['a'],
+        'requirements': <String>['b'],
+        'bestFor': <String>['unknown-date-type'],
+        'seasonalAvailability': <String>['unknown-season'],
       });
 
       expect(restored.category, DateCategory.casual);

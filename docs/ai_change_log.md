@@ -4,6 +4,57 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+### [2026-02-18] Task: Sync isEmailVerified to Firestore in Web App
+**Summary:**
+- Added `isEmailVerified` and `isPhoneVerified` fields to web app's UserProfile type and profile creation
+- When email verification succeeds (both via polling and via email link), the web app now syncs `isEmailVerified: true` to the Firestore document
+- This ensures cross-platform consistency — mobile app reads `isEmailVerified` from Firestore
+
+**Files Modified:**
+- `crush-web/packages/core/src/types/user.ts` — Added `isEmailVerified?: boolean` and `isPhoneVerified?: boolean` to UserProfile interface
+- `crush-web/packages/core/src/services/user.ts` — Set `isEmailVerified: false` and `isPhoneVerified` on profile creation; read fields in `mapDocToUserProfile`
+- `crush-web/apps/web/src/app/auth/verify-email/page.tsx` — Sync `isEmailVerified: true` to Firestore when polling detects verification
+- `crush-web/apps/web/src/app/auth/verify/page.tsx` — Sync `isEmailVerified: true` to Firestore when email link `oobCode` is applied
+
+**Why / Notes:**
+- Web app previously only checked Firebase Auth's `emailVerified` flag but never updated Firestore
+- Mobile app reads `isEmailVerified` from Firestore document, causing cross-platform state mismatch
+- Users who verified on web would be prompted to verify again on mobile
+
+**Risks & Mitigations:**
+- Risk: Firestore update fails after verification. Mitigation: Update is non-blocking (try/catch), Firebase Auth remains source of truth. Next login on mobile will also trigger verification check.
+
+---
+
+### [2026-02-18] Task: Fix App Store Rejection + Discovery Visibility Bug
+**Summary:**
+- Changed BackendMode from hybrid to firebase in DI config for production
+- Removed `requireEmailVerified` from `fetchDiscoveryCandidates` Cloud Function (Flutter routing already handles verification gating; this was blocking test accounts and new users from browsing discovery)
+- Added fallback profile extraction in Cloud Function to handle flat document structures (users without nested `profile` field)
+- Fixed CocoaPods Firebase/Messaging version mismatch (12.6.0 → 12.8.0) by regenerating Podfile.lock
+
+**Files Modified:**
+- `lib/core/di.dart` — Changed `BackendMode.hybrid` to `BackendMode.firebase` (line 106)
+- `functions/src/index.ts` — Removed `requireEmailVerified` from fetchDiscoveryCandidates (line 3511); added flat profile fallback in candidate extraction (line 3582)
+- `ios/Podfile.lock` — Regenerated with all Firebase pods at 12.8.0
+
+**Why / Notes:**
+- App Store rejection (Guideline 2.1): App "failed to load any content" — hybrid mode + email verification blocking contributed to empty screens
+- Discovery showing no users: `requireEmailVerified` blocked email/password users who hadn't verified from calling the Cloud Function at all, returning a permission-denied error instead of candidates
+- Flat profile fallback: Some user documents may have profile data at the top level instead of nested under a `profile` field — this handles both cases gracefully
+
+**Risks & Mitigations:**
+- Risk: Removing email verification from discovery browsing. Mitigation: Only affects read-only browsing; all write operations (swipe, message, report) still require email verification. Flutter routing also enforces verification before reaching discovery.
+- Risk: BackendMode change removes stub data from debug builds. Mitigation: Developers can temporarily switch back to hybrid for local testing if needed.
+
+**Follow-ups / TODO:**
+- Deploy updated Cloud Functions to production (`firebase deploy --only functions`)
+- Rebuild and resubmit iOS app to App Store
+- Verify discovery shows users after deployment
+- Consider adding logging/analytics to track discovery empty states
+
+---
+
 ### [2026-02-18] Task: CR-AUD-027d — Clean Architecture Refactor for Social/Analytics Features + DI + Tests
 **Summary:**
 - Created abstract domain interfaces for 3 singleton services: CompatibilityQuizService → CompatibilityQuizRepository, DateIdeaService → DateIdeaRepository, ProfileInsightsService → ProfileInsightsRepository

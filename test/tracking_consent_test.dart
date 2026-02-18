@@ -237,10 +237,7 @@ void main() {
 
       final service = TrackingConsentService(isIosPlatform: () => true);
 
-      await expectLater(
-        service.requestConsent(),
-        throwsA(isA<PlatformException>()),
-      );
+      await expectLater(service.requestConsent(), completes);
       expect(service.status, TrackingStatus.authorized);
     });
 

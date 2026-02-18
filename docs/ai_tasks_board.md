@@ -4,6 +4,8 @@ Tracking active and completed AI tasks for the CRUSH app.
 
 | Task ID | Date | Title | Status | Notes |
 | --- | --- | --- | --- | --- |
+| T-2026-02-18-12 | 2026-02-18 | Sync isEmailVerified to Firestore in Web App | Completed | Added isEmailVerified/isPhoneVerified to UserProfile type, profile creation, and verification flow — ensures cross-platform consistency |
+| T-2026-02-18-11 | 2026-02-18 | Fix App Store Rejection + Discovery Visibility Bug | Completed | BackendMode→firebase, removed requireEmailVerified from discovery CF, flat profile fallback, CocoaPods 12.8.0 |
 | T-2026-02-18-10 | 2026-02-18 | CR-AUD-027b: Domain layer for Profile/Discovery/Boost repos | Completed | 3 abstract classes moved to domain; 5 presentation imports updated; re-exports for backward compat |
 | T-2026-02-18-09 | 2026-02-18 | Next.js Bundle Analysis (crush-web) | Completed | Client JS: 2.15 MB uncompressed across 70 chunks; Firebase SDK largest at ~329 KB; 8 optimization recommendations provided |
 | T-2026-02-01-01 | 2026-02-01 | Phase 5 dependency updates (major versions) | Completed | Updated toolchain minimums; verified analyze output |

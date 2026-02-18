@@ -9,11 +9,11 @@ void main() {
         'id': 'quiz-1',
         'title': 'Quiz',
         'description': 'Desc',
-        'questions': const [
+        'questions': [
           {
             'id': 'q1',
             'question': 'Q?',
-            'options': const [
+            'options': [
               {'id': 'a', 'text': 'A'},
             ],
           },
@@ -30,7 +30,7 @@ void main() {
       final nullCategory = QuizQuestion.fromJson(const {
         'id': 'q1',
         'question': 'Q1',
-        'options': const [
+        'options': [
           {'id': 'a', 'text': 'A'},
         ],
       });
@@ -39,7 +39,7 @@ void main() {
       final unknownCategory = QuizQuestion.fromJson(const {
         'id': 'q2',
         'question': 'Q2',
-        'options': const [
+        'options': [
           {'id': 'b', 'text': 'B'},
         ],
         'category': 'not-a-real-category',

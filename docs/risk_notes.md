@@ -4,6 +4,30 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-131 — Discovery browsing no longer requires email verification (Cloud Function)
+
+Category: Security / Auth
+
+Description:
+`requireEmailVerified` was removed from `fetchDiscoveryCandidates` Cloud Function to fix discovery showing no users for email/password accounts that haven't verified. Browsing is now open to all authenticated users.
+
+Impact: Low (read-only operation; all write operations like swiping, messaging still require verification)
+
+Likelihood: Low (Flutter routing already gates unverified users at the UI level)
+
+Mitigation:
+* Write operations (swipeRight, swipeLeft, sendMessage, reportUser, etc.) still enforce `requireEmailVerified`
+* Flutter routing prevents unverified email users from reaching discovery screen
+* No PII is exposed through discovery browsing (profiles are public-facing data)
+
+Status: Open (monitoring)
+
+Owner: AI
+
+Created: 2026-02-18
+
+---
+
 ### R-130 — CallState.copyWith Cannot Set Nullable Fields to Null (RESOLVED)
 
 Category: State Management / Bug

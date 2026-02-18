@@ -9,13 +9,16 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   static final ProfileInsightsService instance = ProfileInsightsService._();
 
   final _insightsController = StreamController<ProfileInsights>.broadcast();
+  @override
   Stream<ProfileInsights> get insightsStream => _insightsController.stream;
 
   ProfileInsights? _currentInsights;
 
+  @override
   ProfileInsights? get currentInsights => _currentInsights;
 
   /// Load insights for user.
+  @override
   Future<ProfileInsights> loadInsights(String userId) async {
     // In production, fetch from backend
     await Future.delayed(const Duration(milliseconds: 500));
@@ -46,11 +49,13 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Refresh insights.
+  @override
   Future<ProfileInsights> refreshInsights(String userId) async {
     return loadInsights(userId);
   }
 
   /// Get insights for a specific date range.
+  @override
   Future<ProfileInsights> getInsightsForRange({
     required String userId,
     required DateTime start,
@@ -80,6 +85,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Record a profile view.
+  @override
   Future<void> recordProfileView(String viewerUserId) async {
     if (_currentInsights == null) return;
 
@@ -92,6 +98,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Record a like received.
+  @override
   Future<void> recordLikeReceived({bool isSuperLike = false}) async {
     if (_currentInsights == null) return;
 
@@ -106,6 +113,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Record a like sent.
+  @override
   Future<void> recordLikeSent() async {
     if (_currentInsights == null) return;
 
@@ -117,6 +125,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Get photo performance ranking.
+  @override
   List<PhotoPerformance> getPhotoPerformance() {
     if (_currentInsights == null) return [];
 
@@ -133,6 +142,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
   }
 
   /// Get best time to be active.
+  @override
   String getBestTimeToBeActive() {
     if (_currentInsights?.peakActivityHour == null) return 'Evening';
 
@@ -172,12 +182,13 @@ class ProfileInsightsService implements ProfileInsightsRepository {
     });
   }
 
+  @override
   void clearUserData() {
     _currentInsights = null;
   }
 
+  @override
   void dispose() {
     _insightsController.close();
   }
 }
-

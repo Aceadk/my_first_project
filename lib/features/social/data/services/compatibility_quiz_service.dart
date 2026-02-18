@@ -10,18 +10,22 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   final _quizController = StreamController<CompatibilityQuiz>.broadcast();
   final _resultController = StreamController<QuizResult>.broadcast();
 
+  @override
   Stream<CompatibilityQuiz> get quizStream => _quizController.stream;
+  @override
   Stream<QuizResult> get resultStream => _resultController.stream;
 
   final Map<String, QuizResult> _results = {};
   final Map<String, Map<String, String>> _pendingAnswers = {};
 
   /// Get all available quizzes.
+  @override
   List<CompatibilityQuiz> getAllQuizzes() {
     return CompatibilityQuizzes.all;
   }
 
   /// Get quiz by ID.
+  @override
   CompatibilityQuiz? getQuiz(String quizId) {
     return CompatibilityQuizzes.all.firstWhere(
       (q) => q.id == quizId,
@@ -30,6 +34,7 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   }
 
   /// Start a quiz session.
+  @override
   Future<CompatibilityQuiz> startQuiz({
     required String quizId,
     required String matchId,
@@ -46,6 +51,7 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   }
 
   /// Submit an answer for a question.
+  @override
   Future<void> submitAnswer({
     required String matchId,
     required String questionId,
@@ -56,6 +62,7 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   }
 
   /// Complete quiz and calculate results.
+  @override
   Future<QuizResult> completeQuiz({
     required String quizId,
     required String matchId,
@@ -93,11 +100,13 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   }
 
   /// Get quiz result for a match.
+  @override
   QuizResult? getResult(String matchId, String quizId) {
     return _results['${matchId}_$quizId'];
   }
 
   /// Get all results for a match.
+  @override
   List<QuizResult> getAllResultsForMatch(String matchId) {
     return _results.entries
         .where((e) => e.key.startsWith(matchId))
@@ -106,6 +115,7 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
   }
 
   /// Invite match to take a quiz.
+  @override
   Future<void> inviteToQuiz({
     required String matchId,
     required String quizId,
@@ -232,11 +242,13 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
     return insights;
   }
 
+  @override
   void clearUserData() {
     _results.clear();
     _pendingAnswers.clear();
   }
 
+  @override
   void dispose() {
     _quizController.close();
     _resultController.close();

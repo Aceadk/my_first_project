@@ -79,10 +79,17 @@ class TrackingConsentService {
 
       // Adjust Firebase Analytics based on consent
       await _applyConsentToAnalytics();
-    } catch (e) {
-      AppLogger.error('TrackingConsentService: ATT request failed: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'TrackingConsentService: ATT request failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       // Default to limited data collection if ATT fails
-      await _analyticsCollectionSetter(false);
+      await _setAnalyticsCollectionSafely(
+        false,
+        reason: 'fallback-after-att-error',
+      );
     }
   }
 
@@ -95,12 +102,28 @@ class TrackingConsentService {
 
   Future<void> _applyConsentToAnalytics() async {
     final enabled = _status == TrackingStatus.authorized;
-    await _analyticsCollectionSetter(enabled);
+    await _setAnalyticsCollectionSafely(enabled, reason: 'apply-att-consent');
 
     if (kDebugMode) {
       AppLogger.debug(
         'TrackingConsentService: ATT status=$_status, '
         'analytics collection=${enabled ? "enabled" : "disabled"}',
+      );
+    }
+  }
+
+  Future<void> _setAnalyticsCollectionSafely(
+    bool enabled, {
+    required String reason,
+  }) async {
+    try {
+      await _analyticsCollectionSetter(enabled);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'TrackingConsentService: Failed to set analytics collection '
+        '(enabled=$enabled, reason=$reason)',
+        error: e,
+        stackTrace: stackTrace,
       );
     }
   }
