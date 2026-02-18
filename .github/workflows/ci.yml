@@ -22,6 +22,8 @@ jobs:
         run: flutter analyze
       - name: Run unit tests
         run: flutter test --coverage
+      - name: Run startup cold-launch guard
+        run: flutter test test/startup_cold_launch_guard_test.dart -r compact
       - name: Check Flutter dependency freshness
         run: dart pub outdated --no-dev-dependencies
         continue-on-error: true

@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
+import 'core/app_logger.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/services/crash_reporting_service.dart';
 import 'core/services/app_update_service.dart';
@@ -20,62 +21,271 @@ Future<void> main() async {
   // Record app start time immediately for cold start tracking
   PerformanceMonitor.instance.recordAppStartTime();
 
-  // Run the app in a zone that catches errors
-  await runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize Firebase
-    await Firebase.initializeApp();
+  // Run the app in a guarded zone so uncaught startup/build errors are reported.
+  await runZonedGuarded(
+    () async {
+      runApp(const _StartupBootstrapApp());
+    },
+    (error, stackTrace) {
+      AppLogger.error(
+        'Uncaught error in main zone',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      CrashReportingService.instance.recordError(
+        error,
+        stackTrace,
+        reason: 'Uncaught error in main zone',
+        fatal: true,
+      );
+    },
+  );
+}
 
-    // Initialize App Check for device attestation (SECURITY)
-    // Must be initialized before any Firebase service calls
-    await AppCheckService.instance.initialize();
+enum _StartupPhase { loading, ready, failed }
 
-    // Initialize crash reporting early
-    await CrashReportingService.instance.initialize();
+class _StartupBootstrapApp extends StatefulWidget {
+  const _StartupBootstrapApp();
 
-    // Initialize performance monitoring
-    await PerformanceMonitor.instance.initialize();
+  @override
+  State<_StartupBootstrapApp> createState() => _StartupBootstrapAppState();
+}
 
-    // Start memory monitoring in production
-    if (!kDebugMode) {
-      PerformanceMonitor.instance.startMemoryMonitoring();
+class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
+  _StartupPhase _phase = _StartupPhase.loading;
+  SharedPreferences? _preferences;
+  String? _errorMessage;
+  bool _postLaunchTasksScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_bootstrap());
+  }
+
+  Future<void> _bootstrap() async {
+    if (mounted) {
+      setState(() {
+        _phase = _StartupPhase.loading;
+        _errorMessage = null;
+      });
     }
 
-    // Initialize app update service
-    await AppUpdateService.instance.initialize();
+    final preferences = await _loadSharedPreferences();
+    if (!mounted) return;
+    if (preferences == null) {
+      setState(() {
+        _phase = _StartupPhase.failed;
+        _errorMessage = 'Unable to load local app settings.';
+      });
+      return;
+    }
 
-    // Set up background message handler
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    final startupError = await _initializeCoreServices(preferences);
+    if (!mounted) return;
+    if (startupError != null) {
+      setState(() {
+        _phase = _StartupPhase.failed;
+        _errorMessage = startupError;
+      });
+      return;
+    }
 
-    // Request App Tracking Transparency consent (iOS only)
-    // Must be called before Firebase Analytics starts collecting IDFA
-    await TrackingConsentService.instance.requestConsent();
+    setState(() {
+      _preferences = preferences;
+      _phase = _StartupPhase.ready;
+      _errorMessage = null;
+    });
 
-    // Initialize push notifications
-    await PushNotificationService.instance.initialize();
+    if (_postLaunchTasksScheduled) return;
+    _postLaunchTasksScheduled = true;
 
-    final preferences = await SharedPreferences.getInstance();
-
-    // Initialize GDPR consent service
-    await ConsentService.instance.initialize(preferences);
-
-    // Initialize gradual rollout service
-    await GradualRolloutService.instance.initialize(preferences);
-
-    runApp(CrushApp(preferences: preferences));
-
-    // Record first frame for cold start measurement
     SchedulerBinding.instance.addPostFrameCallback((_) {
       PerformanceMonitor.instance.recordFirstFrame();
+      unawaited(
+        _runStartupTask(
+          name: 'TrackingConsentService.requestConsent',
+          action: TrackingConsentService.instance.requestConsent,
+          timeout: const Duration(seconds: 12),
+        ),
+      );
+      unawaited(
+        _runStartupTask(
+          name: 'PushNotificationService.initialize',
+          action: PushNotificationService.instance.initialize,
+          timeout: const Duration(seconds: 15),
+        ),
+      );
     });
-  }, (error, stackTrace) {
-    // Report uncaught errors to Crashlytics
-    CrashReportingService.instance.recordError(
+  }
+
+  Future<SharedPreferences?> _loadSharedPreferences() async {
+    try {
+      return await SharedPreferences.getInstance().timeout(
+        const Duration(seconds: 8),
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'SharedPreferences initialization failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      await CrashReportingService.instance.recordError(
+        error,
+        stackTrace,
+        reason: 'SharedPreferences initialization failed',
+        fatal: true,
+      );
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_phase == _StartupPhase.ready && _preferences != null) {
+      return CrushApp(preferences: _preferences!);
+    }
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: _phase == _StartupPhase.failed
+                  ? _StartupFailureContent(
+                      message:
+                          _errorMessage ??
+                          'Crush could not start. Please try again.',
+                      onRetry: _bootstrap,
+                    )
+                  : const _StartupLoadingContent(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupLoadingContent extends StatelessWidget {
+  const _StartupLoadingContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      key: Key('startup_loading_content'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularProgressIndicator(),
+        SizedBox(height: 16),
+        Text('Starting Crush...', textAlign: TextAlign.center),
+      ],
+    );
+  }
+}
+
+class _StartupFailureContent extends StatelessWidget {
+  const _StartupFailureContent({required this.message, required this.onRetry});
+
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      key: const Key('startup_failure_content'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error_outline, size: 40),
+        const SizedBox(height: 16),
+        Text(message, textAlign: TextAlign.center),
+        const SizedBox(height: 20),
+        FilledButton(
+          onPressed: () {
+            unawaited(onRetry());
+          },
+          child: const Text('Retry'),
+        ),
+      ],
+    );
+  }
+}
+
+Future<String?> _initializeCoreServices(SharedPreferences preferences) async {
+  final firebaseReady = await _runStartupTask(
+    name: 'Firebase.initializeApp',
+    action: () => Firebase.initializeApp(),
+    timeout: const Duration(seconds: 15),
+    critical: true,
+  );
+  if (!firebaseReady) {
+    return 'Unable to connect secure app services. Check your network and try again.';
+  }
+
+  await _runStartupTask(
+    name: 'AppCheckService.initialize',
+    action: AppCheckService.instance.initialize,
+  );
+  await _runStartupTask(
+    name: 'CrashReportingService.initialize',
+    action: CrashReportingService.instance.initialize,
+  );
+  await _runStartupTask(
+    name: 'PerformanceMonitor.initialize',
+    action: PerformanceMonitor.instance.initialize,
+  );
+
+  if (!kDebugMode) {
+    PerformanceMonitor.instance.startMemoryMonitoring();
+  }
+
+  await _runStartupTask(
+    name: 'AppUpdateService.initialize',
+    action: AppUpdateService.instance.initialize,
+  );
+  await _runStartupTask(
+    name: 'FirebaseMessaging.onBackgroundMessage',
+    action: () async {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    },
+  );
+  await _runStartupTask(
+    name: 'ConsentService.initialize',
+    action: () => ConsentService.instance.initialize(preferences),
+  );
+  await _runStartupTask(
+    name: 'GradualRolloutService.initialize',
+    action: () => GradualRolloutService.instance.initialize(preferences),
+  );
+
+  return null;
+}
+
+Future<bool> _runStartupTask({
+  required String name,
+  required Future<void> Function() action,
+  Duration timeout = const Duration(seconds: 10),
+  bool critical = false,
+}) async {
+  try {
+    await action().timeout(timeout);
+    return true;
+  } catch (error, stackTrace) {
+    AppLogger.error(
+      'Startup task failed: $name',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    await CrashReportingService.instance.recordError(
       error,
       stackTrace,
-      reason: 'Uncaught error in main zone',
-      fatal: true,
+      reason: 'Startup task failed: $name',
+      fatal: critical,
     );
-  });
+    return false;
+  }
 }

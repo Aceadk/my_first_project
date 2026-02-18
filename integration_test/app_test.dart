@@ -26,11 +26,13 @@ import 'discovery_flow_test.dart' as discovery_tests;
 import 'chat_flow_test.dart' as chat_tests;
 import 'e2e_onboarding_to_chat_test.dart' as e2e_tests;
 import 'e2e_onboarding_discovery_chat_safety_test.dart' as e2e_safety_tests;
+import 'startup_cold_launch_test.dart' as startup_tests;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('CrushHour Integration Tests', () {
+    startup_tests.main();
     auth_tests.main();
     discovery_tests.main();
     chat_tests.main();
