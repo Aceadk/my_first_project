@@ -38,7 +38,7 @@ void main() {
     });
 
     test('includes profile-based categories when profile has rich data', () {
-      final profile = Profile(
+      const profile = Profile(
         id: 'u1',
         name: 'Alex',
         age: 28,
@@ -91,7 +91,7 @@ void main() {
     });
 
     test('respects maxCount cap', () {
-      final profile = Profile(
+      const profile = Profile(
         id: 'u2',
         name: 'Taylor',
         age: 26,

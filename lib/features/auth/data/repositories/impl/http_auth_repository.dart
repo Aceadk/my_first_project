@@ -8,6 +8,7 @@ import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/auth_dto.dart';
 import 'package:crushhour/core/network/mappers/auth_mapper.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/user.dart';
 import '../auth_repository.dart';
 
@@ -611,6 +612,68 @@ class HttpAuthRepository implements AuthRepository {
     }
 
     return _currentUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  //
+  // These methods return Result<T> instead of throwing exceptions, making
+  // error handling explicit at the call site. They wrap the existing throwing
+  // methods so both APIs can coexist during incremental migration.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Result<CrushUser>> signInWithEmailPasswordResult({
+    required String email,
+    required String password,
+  }) {
+    return Result.guard(
+      () => signInWithEmailPassword(email: email, password: password),
+      logLabel: 'HttpAuthRepository.signInWithEmailPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<Result<CrushUser>> loginWithPasswordResult({
+    required String identifier,
+    required String password,
+  }) {
+    return Result.guard(
+      () => loginWithPassword(identifier: identifier, password: password),
+      logLabel: 'HttpAuthRepository.loginWithPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<Result<CrushUser>> signUpWithPasswordResult({
+    required String username,
+    required String email,
+    required String password,
+  }) {
+    return Result.guard(
+      () => signUpWithPassword(
+        username: username,
+        email: email,
+        password: password,
+      ),
+      logLabel: 'HttpAuthRepository.signUpWithPasswordResult',
+      fallbackError: 'Unable to create account. Please try again.',
+    );
+  }
+
+  Future<Result<void>> signOutResult() {
+    return Result.guard(
+      () => signOut(),
+      logLabel: 'HttpAuthRepository.signOutResult',
+      fallbackError: 'Unable to sign out. Please try again.',
+    );
+  }
+
+  Future<Result<CrushUser>> signInWithAppleResult() {
+    return Result.guard(
+      () => signInWithApple(),
+      logLabel: 'HttpAuthRepository.signInWithAppleResult',
+      fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
   }
 
   /// Dispose resources.

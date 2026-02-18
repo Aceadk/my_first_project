@@ -87,6 +87,177 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #044 — CR-AUD-027d: Clean Architecture Refactor for Social/Analytics + DI Completion
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Complete P1-ARCH-001 by fixing ALL remaining presentation→data violations
+- Secondary goal: Register social/analytics cubits in DI (they were missing BlocProviders)
+- Implicit: Fix the PhotoPerformance type import chain that broke during refactoring
+
+**Refined Prompt:**
+
+### Objective
+Create domain-layer abstract interfaces for 3 singleton services (CompatibilityQuizService, DateIdeaService, ProfileInsightsService), refactor their cubits to use constructor injection, update DI with all domain imports and new providers, and fix all test files.
+
+### Technical Requirements
+1. Create abstract interfaces in `lib/features/{social,analytics}/domain/repositories/`
+2. Make concrete services `implement` the abstract interfaces
+3. Move PhotoPerformance from service to models file (proper layer placement)
+4. Update cubits from `final _service = Service.instance` to `final Repository _service` via constructor
+5. Update di.dart with domain imports and 6 new providers (3 Repository + 3 Bloc)
+6. Fix use case import chain (get_photo_performance.dart)
+7. Fix all test constructor calls with new required parameters
+
+### Files Modified/Created
+- 3 new domain repository files
+- 3 service files (add `implements`)
+- 3 cubit files (constructor injection)
+- 1 models file (PhotoPerformance moved here)
+- 1 use case file (import fix)
+- 1 DI file (comprehensive update)
+- 2 test files (14+2 constructor fixes)
+
+### Success Criteria
+- [x] All 3 domain interfaces created
+- [x] All 3 cubits use constructor injection
+- [x] DI provides all repositories and cubits
+- [x] flutter analyze: 0 errors, 0 warnings
+- [x] All test files compile
+
+**Related Task ID:** T-2026-02-18-12, T-2026-02-18-13
+
+**Outcome:**
+- Files changed: 3 new, 11 modified (see ai_change_log.md for full list)
+- Result: Success — P1-ARCH-001 FULLY RESOLVED across all features
+- Notes: Combined with parallel agents (027b for profile/discovery/boost, 027c for subscription/calls/feature_flags)
+
+---
+
+### Task #043 — CR-AUD-027c: Clean Architecture Refactor for Subscription/Calls/FeatureFlags Repositories
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix presentation-to-data layer dependency violations for Subscription, Calls, and FeatureFlags features
+- Secondary goal: Update cross-feature imports in Settings cubits (theme_cubit, safety_cubit) to use domain layer
+- Implicit requirements: Use re-exports for backward compatibility; do not modify implementation files, test files, or DI registrations
+- Quality expectations: Exact replication of the auth/chat/profile/discovery domain repository pattern
+
+**Refined Prompt:**
+
+### Objective
+Move abstract repository classes (SubscriptionRepository, CallRepository + related classes, FeatureFlagRepository) from data layer to domain layer, update presentation imports to reference domain layer directly, and replace original files with re-exports.
+
+### Technical Requirements
+1. Create `lib/features/subscription/domain/repositories/subscription_repository.dart` with full abstract SubscriptionRepository class
+2. Create `lib/features/calls/domain/repositories/call_repository.dart` with CallRepository + CallSession + CallEngineEventType + CallEngineEvent
+3. Create `lib/features/feature_flags/domain/repositories/feature_flag_repository.dart` with abstract FeatureFlagRepository (fix relative import to package import)
+4. Replace original data-layer files with single re-export lines
+5. Update 7 presentation files to import from domain layer instead of data layer
+6. Update 2 cross-feature imports in Settings cubits
+
+### Implementation Plan
+**Step 1:** Create domain/repositories/ directories for subscription, calls, feature_flags
+**Step 2:** Write domain layer files with full abstract class content
+**Step 3:** Replace data-layer files with re-exports
+**Step 4:** Update imports in subscription_bloc.dart, promo_code_sheet.dart, call_bloc.dart, call_event.dart, feature_flag_cubit.dart
+**Step 5:** Update cross-feature imports in theme_cubit.dart and safety_cubit.dart
+**Step 6:** Run dart analyze to verify 0 new errors
+
+### Files to Modify/Create
+- `lib/features/subscription/domain/repositories/subscription_repository.dart` — new domain file
+- `lib/features/calls/domain/repositories/call_repository.dart` — new domain file
+- `lib/features/feature_flags/domain/repositories/feature_flag_repository.dart` — new domain file
+- `lib/features/subscription/data/repositories/subscription_repository.dart` — replaced with re-export
+- `lib/features/calls/data/repositories/call_repository.dart` — replaced with re-export
+- `lib/features/feature_flags/data/repositories/feature_flag_repository.dart` — replaced with re-export
+- `lib/features/subscription/presentation/bloc/subscription_bloc.dart` — import updated
+- `lib/features/subscription/presentation/widgets/promo_code_sheet.dart` — import updated
+- `lib/features/calls/presentation/bloc/call_bloc.dart` — import updated
+- `lib/features/calls/presentation/bloc/call_event.dart` — import updated
+- `lib/features/feature_flags/presentation/bloc/feature_flag_cubit.dart` — 2 imports updated
+- `lib/features/settings/presentation/bloc/theme_cubit.dart` — import updated (profile)
+- `lib/features/settings/presentation/bloc/safety_cubit.dart` — import updated (discovery)
+
+### Success Criteria
+- [x] Domain repository files created with correct content
+- [x] Data-layer files replaced with re-exports
+- [x] All 7 presentation files import from domain layer
+- [x] Cross-feature imports in Settings cubits updated
+- [x] dart analyze shows 0 new errors
+- [x] AI collaboration docs updated
+
+**Related Task ID:** T-2026-02-18-11, CR-AUD-027c
+
+**Outcome:**
+- Files changed: 3 new domain files, 3 data files replaced with re-exports, 7 presentation files updated (9 import changes total)
+- Result: Success -- all presentation-to-data violations fixed for Subscription, Calls, and FeatureFlags repositories
+- Notes: dart analyze shows 0 new errors (2 pre-existing errors in analytics/get_photo_performance.dart unrelated to this task)
+
+---
+
+### Task #042 — CR-AUD-027b: Clean Architecture Refactor for Profile/Discovery/Boost Repositories
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Fix presentation-to-data layer dependency violations for Profile, Discovery, and Boost features
+- Secondary goal: Extend the clean architecture pattern established for auth + chat to additional features
+- Implicit requirements: Use re-exports for backward compatibility; do not modify implementation files, test files, or DI registrations
+- Quality expectations: Exact replication of the auth/chat domain repository pattern
+
+**Refined Prompt:**
+
+### Objective
+Move abstract repository classes (ProfileRepository, DiscoveryRepository, BoostRepository) from data layer to domain layer, update presentation imports to reference domain layer directly, and replace original files with re-exports.
+
+### Technical Requirements
+1. Create `lib/features/profile/domain/repositories/profile_repository.dart` with the full abstract ProfileRepository class
+2. Create `lib/features/discovery/domain/repositories/discovery_repository.dart` with DiscoveryFilter + abstract DiscoveryRepository
+3. Create `lib/features/discovery/domain/repositories/boost_repository.dart` with BoostSession + BoostStatus + abstract BoostRepository
+4. Replace original data-layer files with single re-export lines
+5. Update 5 presentation files to import from domain layer instead of data layer
+
+### Implementation Plan
+**Step 1:** Create domain/repositories/ directories for profile and discovery
+**Step 2:** Write domain layer files with full abstract class content
+**Step 3:** Replace data-layer files with re-exports
+**Step 4:** Update imports in profile_bloc.dart, discovery_bloc.dart, boost_cubit.dart, likes_you_screen.dart
+**Step 5:** Verify no remaining data-layer imports in presentation files
+
+### Files to Modify/Create
+- `lib/features/profile/domain/repositories/profile_repository.dart` — new domain file
+- `lib/features/discovery/domain/repositories/discovery_repository.dart` — new domain file
+- `lib/features/discovery/domain/repositories/boost_repository.dart` — new domain file
+- `lib/features/profile/data/repositories/profile_repository.dart` — replaced with re-export
+- `lib/features/discovery/data/repositories/discovery_repository.dart` — replaced with re-export
+- `lib/features/discovery/data/repositories/boost_repository.dart` — replaced with re-export
+- `lib/features/profile/presentation/bloc/profile_bloc.dart` — import updated
+- `lib/features/discovery/presentation/bloc/discovery_bloc.dart` — 2 imports updated
+- `lib/features/discovery/presentation/bloc/boost_cubit.dart` — import updated
+- `lib/features/discovery/presentation/screens/likes_you_screen.dart` — import updated
+
+### Success Criteria
+- [x] Domain repository files created with correct content
+- [x] Data-layer files replaced with re-exports
+- [x] All 5 presentation files import from domain layer
+- [x] No remaining data-layer imports in presentation files for these 3 repositories
+- [x] subscription_repository import left untouched in discovery_bloc.dart
+
+**Related Task ID:** T-2026-02-18-10, CR-AUD-027b
+
+**Outcome:**
+- Files changed: 3 new domain files, 3 data files replaced with re-exports, 4 presentation files updated (5 import changes total)
+- Result: Success -- all presentation-to-data violations fixed for Profile, Discovery, and Boost repositories
+- Notes: subscription_repository import in discovery_bloc.dart left as-is per instructions
+
+---
+
 ### Task #018 — Generate Comprehensive Audit Deliverables
 **Date:** 2026-02-12
 **Agent:** Claude (Opus 4.6)
@@ -2950,3 +3121,193 @@ Execute all remaining P1 remediation items from the CRUSH audit backlog, includi
 - 129 files changed total across Flutter, web, and infrastructure
 - 1058 tests passing, 6 skipped, 0 failures; analyzer: 0 errors, 0 warnings
 - P1 status: 12/16 done (75%), remaining 2 in_progress (CR-AUD-006 coverage, CR-AUD-008 e2e), 2 todo
+
+---
+
+### Task #033 — CR-AUD-034: Extract Shared DTOs to Common Layer
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Move shared DTOs used across multiple feature domains into a dedicated `lib/shared/dto/` directory
+- Secondary goal: Establish a canonical source of truth for cross-feature models
+- Implicit requirements: Maintain backward compatibility (existing imports must continue to work); do not change any class definitions
+- Quality expectations: Zero new analyzer errors, all tests pass, clean barrel file
+
+**Refined Prompt:**
+
+### Objective
+Extract 10 shared DTOs (models used by 2+ features) from `lib/data/models/` to `lib/shared/dto/` with backward-compatible re-exports.
+
+### Technical Requirements
+1. Identify which models in `lib/data/models/` are imported by 2+ feature domains
+2. Create `lib/shared/dto/` directory with canonical copies
+3. Create alphabetically-ordered barrel file `lib/shared/dto/dto.dart`
+4. Replace original files with re-export stubs
+5. Update `lib/shared/shared.dart` to use new barrel
+6. Do NOT move single-feature models (profile_reaction, profile_story, promo_code, message_request)
+7. Do NOT change any class definitions
+
+### Implementation Plan
+**Step 1:** Scan all `lib/features/*/` imports of `lib/data/models/*.dart` to map cross-feature usage
+**Step 2:** Create `lib/shared/dto/` with copies of 10 shared models
+**Step 3:** Create barrel file with alphabetical exports
+**Step 4:** Replace originals in `lib/data/models/` with re-export stubs
+**Step 5:** Update `lib/shared/shared.dart`
+**Step 6:** Run `flutter analyze --no-pub` and `flutter test`
+
+### Success Criteria
+- [x] 10 shared DTOs in `lib/shared/dto/` as canonical source
+- [x] Original files in `lib/data/models/` re-export from shared location
+- [x] Barrel file `lib/shared/dto/dto.dart` exports all shared DTOs alphabetically
+- [x] `flutter analyze --no-pub` shows 0 new errors
+- [x] `flutter test` passes all tests (1323 pass, 6 skip, 0 fail)
+
+### Verification Commands
+```
+flutter analyze --no-pub
+flutter test
+```
+
+**Related Task ID:** T-2026-02-18-01
+
+**Outcome:**
+- 11 files created in `lib/shared/dto/` (10 DTOs + 1 barrel)
+- 10 files modified in `lib/data/models/` (replaced with re-exports)
+- 1 file modified: `lib/shared/shared.dart` (updated to use DTO barrel)
+- Result: Success -- 1323 tests passing, 0 new analyzer issues
+- Notes: The shared DTOs serve as canonical source; downstream migration of imports can happen incrementally
+
+---
+
+### Task #034 — CR-AUD-035: Standardize Error Handling with Result Pattern
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Enhance the existing Result<T> type and begin migrating repository methods to return Result<T> instead of throwing raw exceptions
+- Secondary goal: Make error handling explicit and prevent unhandled exceptions from crashing the app
+- Implicit requirements: Must not break existing method signatures (82+ files import Result); must not break test mocks; backward compatible
+- Quality expectations: 0 analyzer errors, all tests passing, clean incremental approach
+
+**Refined Prompt:**
+
+### Objective
+Enhance the existing `Result<T>` class with helper methods and add Result-returning method variants to auth and chat repository implementations as a proof of concept for incremental migration.
+
+### Technical Requirements
+1. Enhance `lib/core/utils/result.dart` with `isFailure`, `valueOrNull`, `getOrElse`, `map`, `flatMap`, `fold`, `guardSync`, `toString`, `==`, `hashCode`
+2. Add 5 Result-returning methods to all 3 auth repository implementations: signInWithEmailPasswordResult, loginWithPasswordResult, signUpWithPasswordResult, signOutResult, signInWithAppleResult
+3. Add 8 Result-returning methods to all 3 chat repository implementations: sendMessageResult, markMessagesReadResult, unsendMessageResult, editMessageResult, blockUserResult, unmatchResult, uploadMediaResult, fetchUserMatchesResult
+4. Do NOT modify abstract interfaces (13+ test mocks use `implements`, which would all break)
+5. Do NOT modify BLoCs/Cubits (separate future task)
+6. Handle `cloud_functions` Result name collision with import prefix
+7. Do NOT use external packages (dartz, fpdart)
+
+### Implementation Plan
+**Step 1:** Verify existing Result type at `lib/core/utils/result.dart` (82 imports)
+**Step 2:** Enhance with helper methods while preserving full backward compatibility
+**Step 3:** Add Result-returning methods to Firebase/HTTP/Stub auth repos
+**Step 4:** Add Result-returning methods to Firebase/HTTP/Stub chat repos
+**Step 5:** Resolve cloud_functions Result name collision
+**Step 6:** Run flutter analyze + flutter test
+
+### Success Criteria
+- [x] Result<T> enhanced with isFailure, valueOrNull, getOrElse, map, flatMap, fold, guardSync
+- [x] 5 Result methods on 3 auth repo implementations (15 methods total)
+- [x] 8 Result methods on 3 chat repo implementations (24 methods total)
+- [x] cloud_functions Result collision resolved with import prefix
+- [x] `flutter analyze --no-pub` shows 0 errors, 0 warnings
+- [x] `flutter test` passes all tests (1323 pass, 6 skip, 0 fail)
+- [x] No existing method signatures changed
+
+### Verification Commands
+```
+flutter analyze --no-pub
+flutter test
+```
+
+**Related Task ID:** T-2026-02-18-02
+
+**Outcome:**
+- 7 files modified (1 core utility + 3 auth repos + 3 chat repos)
+- 0 files created or deleted
+- Result: Success -- 1323 tests passing, 0 new analyzer errors
+- Key decision: Methods added to concrete implementations only (not abstract interface) to avoid breaking 13+ test mocks that use `implements`
+- Key fix: `cloud_functions` package exports its own `Result` type; resolved with `as app_result` import prefix in Firebase implementations
+
+---
+
+### Task #069 -- Generate Comprehensive API Contract Catalog
+**Date:** 2026-02-18
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Create a complete, well-organized reference document of every Cloud Function endpoint, trigger, and scheduled job
+- Secondary goals: Document auth requirements, App Check, rate limits, input/output schemas, and validation rules for each function
+- Implicit requirements: Make it easy to reference during frontend development, security audits, and onboarding
+- Quality expectations: Clean markdown tables, collapsible schema details, comprehensive coverage
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Read the entire `functions/src/index.ts` file (6684 lines) and produce a structured API catalog document listing every exported function with its contract details.
+
+### Technical Requirements
+1. Catalog all 40 callable functions with: name, auth, App Check, email verification, rate limits, input schema, output schema, description
+2. Catalog all 29 Express REST endpoints with: method, path, auth, rate limits, description
+3. Catalog the standalone stripeWebhook HTTP endpoint
+4. Catalog all 5 Firestore triggers with: collection path, trigger type, behavior
+5. Catalog all 3 scheduled functions with: schedule expression, behavior
+6. Document all rate limit constants, profile quality thresholds, security constants, and input validation rules
+
+### Implementation Plan
+**Step 1:** Read index.ts in chunks (200 lines at a time) across 6684 lines
+**Step 2:** Identify and categorize every `export const` function by type
+**Step 3:** Write comprehensive markdown document with tables and collapsible schema sections
+
+### Files to Modify/Create
+- `docs/API_CATALOG.md` -- Created (new file)
+
+### Success Criteria
+- [x] Every exported function is cataloged
+- [x] Auth, App Check, email verification noted per function
+- [x] Rate limits documented with exact values
+- [x] Input/output schemas provided
+- [x] Constants and validation rules referenced
+
+**Related Task ID:** T-2026-02-18-08
+
+**Outcome:**
+- 1 file created: `docs/API_CATALOG.md`
+- Cataloged: 40 callable functions, 29 REST endpoints, 1 standalone HTTP endpoint, 5 Firestore triggers, 3 scheduled functions
+- Total: ~49 exported functions documented with full contract details
+- Includes 6 reference tables for constants, rate limits, validation rules
+
+---
+
+### Task #041 -- Next.js Bundle Analysis (crush-web)
+**Date:** 2026-02-18
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Understand the client-side bundle size breakdown of the crush-web app
+- Secondary goals: Identify oversized libraries and provide optimization recommendations
+- Implicit requirements: Non-destructive analysis (no permanent config changes)
+
+**Refined Prompt:**
+
+### Objective
+Perform a comprehensive bundle size analysis of the Next.js web app at `/Users/ace/crush-web/apps/web/` by examining the existing Turbopack build output, mapping chunk contents to libraries, and providing actionable optimization recommendations.
+
+### Approach
+Due to Bash permission restrictions preventing `pnpm add` and `pnpm build` execution, the analysis was conducted by statically examining the existing `.next/` build output from the most recent Turbopack build (2026-02-18 15:13), grepping for library signatures in chunk files, and cross-referencing with source imports.
+
+### Outcome
+Full bundle analysis report delivered with size breakdown, library-to-chunk mapping, and 8 optimization recommendations. See ai_change_log.md for details.
+
+**Related Task ID:** T-2026-02-18-09

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -9,6 +10,37 @@ import '../chat_repository.dart';
 /// Mock implementation of ChatRepository with local storage.
 /// Stores messages locally and provides simulated real-time updates.
 class StubChatRepository implements ChatRepository {
+  StubChatRepository({
+    Future<void> Function(Duration)? delayExecutor,
+    DateTime Function()? nowProvider,
+    bool Function(DateTime now)? shouldAutoReply,
+    Duration Function(DateTime now)? autoReplyDelayBuilder,
+    Duration? watchNewMessagesInterval,
+    Timer Function(Duration, void Function(Timer))? periodicTimerFactory,
+  }) : _delayExecutor = delayExecutor ?? Future.delayed,
+       _nowProvider = nowProvider ?? DateTime.now,
+       _shouldAutoReply = shouldAutoReply ?? _defaultShouldAutoReply,
+       _autoReplyDelayBuilder = autoReplyDelayBuilder ?? _defaultAutoReplyDelay,
+       _watchNewMessagesInterval =
+           watchNewMessagesInterval ?? const Duration(seconds: 1),
+       _periodicTimerFactory =
+           periodicTimerFactory ?? _defaultPeriodicTimerFactory;
+
+  static bool _defaultShouldAutoReply(DateTime now) {
+    return now.millisecond % 2 == 0;
+  }
+
+  static Duration _defaultAutoReplyDelay(DateTime now) {
+    return Duration(milliseconds: 2000 + (now.millisecond % 1000));
+  }
+
+  static Timer _defaultPeriodicTimerFactory(
+    Duration duration,
+    void Function(Timer) callback,
+  ) {
+    return Timer.periodic(duration, callback);
+  }
+
   static const _messagesKeyPrefix = 'mock_messages_';
   static const _blockedKeyPrefix = 'mock_blocked_';
   static const _matchesKey = 'mock_matches_';
@@ -25,6 +57,12 @@ class StubChatRepository implements ChatRepository {
   final Map<String, Set<String>> _typingUsers = {};
   final Map<String, bool> _userPresence = {};
   final Map<String, bool> _mediaEnabled = {};
+  final Future<void> Function(Duration) _delayExecutor;
+  final DateTime Function() _nowProvider;
+  final bool Function(DateTime now) _shouldAutoReply;
+  final Duration Function(DateTime now) _autoReplyDelayBuilder;
+  final Duration _watchNewMessagesInterval;
+  final Timer Function(Duration, void Function(Timer)) _periodicTimerFactory;
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -54,8 +92,9 @@ class StubChatRepository implements ChatRepository {
 
     // Apply cursor filter
     if (beforeTimestamp != null) {
-      messages =
-          messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+      messages = messages
+          .where((m) => m.sentAt.isBefore(beforeTimestamp))
+          .toList();
     }
 
     // Check if there's more
@@ -77,22 +116,29 @@ class StubChatRepository implements ChatRepository {
   }) {
     // ignore: close_sinks - controller lifecycle managed by stream consumer
     final controller = StreamController<List<Message>>.broadcast();
+    late Timer pollTimer;
 
     // Check for new messages periodically (simulated real-time)
-    Timer.periodic(const Duration(seconds: 1), (timer) async {
+    pollTimer = _periodicTimerFactory(_watchNewMessagesInterval, (timer) async {
       if (controller.isClosed) {
         timer.cancel();
         return;
       }
       final messages = await _loadMessages(matchId);
-      final newMessages = messages
-          .where((m) => m.sentAt.isAfter(afterTimestamp))
-          .toList()
-        ..sort((a, b) => a.sentAt.compareTo(b.sentAt));
+      final newMessages =
+          messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList()
+            ..sort((a, b) => a.sentAt.compareTo(b.sentAt));
       if (newMessages.isNotEmpty) {
         controller.add(newMessages);
       }
     });
+
+    controller.onCancel = () {
+      pollTimer.cancel();
+      if (!controller.isClosed) {
+        controller.close();
+      }
+    };
 
     return controller.stream;
   }
@@ -105,16 +151,17 @@ class StubChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 30));
+    await _delayExecutor(const Duration(milliseconds: 30));
+    final sentAt = _nowProvider();
 
     final message = Message(
-      id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'msg_${sentAt.millisecondsSinceEpoch}',
       matchId: matchId,
       fromUserId: fromUserId,
       toUserId: toUserId,
       content: content,
       type: type,
-      sentAt: DateTime.now(),
+      sentAt: sentAt,
       isRead: false,
       isDeletedForSender: false,
       reactions: const {},
@@ -124,18 +171,19 @@ class StubChatRepository implements ChatRepository {
     await _notifyMessageUpdate(matchId);
 
     // Simulate auto-reply after 2-3 seconds (50% chance)
-    if (DateTime.now().millisecond % 2 == 0) {
-      Future.delayed(
-          Duration(milliseconds: 2000 + (DateTime.now().millisecond % 1000)),
-          () async {
+    if (_shouldAutoReply(sentAt)) {
+      unawaited(() async {
+        await _delayExecutor(_autoReplyDelayBuilder(sentAt));
+
         // Show typing indicator
         await setTyping(matchId: matchId, userId: toUserId, isTyping: true);
 
-        await Future.delayed(const Duration(milliseconds: 1500));
+        await _delayExecutor(const Duration(milliseconds: 1500));
 
         // Stop typing and send reply
         await setTyping(matchId: matchId, userId: toUserId, isTyping: false);
 
+        final replyTime = _nowProvider();
         final replies = [
           'Hey! How are you? 😊',
           'That sounds great!',
@@ -146,16 +194,17 @@ class StubChatRepository implements ChatRepository {
           'What are you up to today?',
           'That\'s awesome!',
         ];
-        final reply = replies[DateTime.now().millisecond % replies.length];
+        final reply = replies[replyTime.millisecond % replies.length];
 
+        final autoReplySentAt = _nowProvider();
         final autoReply = Message(
-          id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+          id: 'msg_${autoReplySentAt.millisecondsSinceEpoch}',
           matchId: matchId,
           fromUserId: toUserId,
           toUserId: fromUserId,
           content: reply,
           type: MessageType.text,
-          sentAt: DateTime.now(),
+          sentAt: autoReplySentAt,
           isRead: false,
           isDeletedForSender: false,
           reactions: const {},
@@ -163,7 +212,7 @@ class StubChatRepository implements ChatRepository {
 
         await _saveMessage(matchId, autoReply);
         await _notifyMessageUpdate(matchId);
-      });
+      }());
     }
   }
 
@@ -173,7 +222,7 @@ class StubChatRepository implements ChatRepository {
     required String filePath,
     required MessageType type,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await _delayExecutor(const Duration(milliseconds: 100));
 
     // Return the local file path as the URL for demo purposes
     // In a real app, this would upload to cloud storage
@@ -267,16 +316,18 @@ class StubChatRepository implements ChatRepository {
     // Store report locally (in real app, send to backend)
     final prefs = await SharedPreferences.getInstance();
     final reports = prefs.getStringList('mock_reports') ?? [];
-    reports.add(jsonEncode({
-      'reporterId': reporterId,
-      'reportedId': reportedId,
-      'reason': reason,
-      'matchId': matchId,
-      'messageId': messageId,
-      'source': source,
-      'description': description,
-      'timestamp': DateTime.now().toIso8601String(),
-    }));
+    reports.add(
+      jsonEncode({
+        'reporterId': reporterId,
+        'reportedId': reportedId,
+        'reason': reason,
+        'matchId': matchId,
+        'messageId': messageId,
+        'source': source,
+        'description': description,
+        'timestamp': _nowProvider().toIso8601String(),
+      }),
+    );
     await prefs.setStringList('mock_reports', reports);
   }
 
@@ -331,13 +382,15 @@ class StubChatRepository implements ChatRepository {
     // Store appeal locally
     final prefs = await SharedPreferences.getInstance();
     final appeals = prefs.getStringList('mock_appeals') ?? [];
-    appeals.add(jsonEncode({
-      'userId': userId,
-      'reason': reason,
-      'targetType': targetType,
-      'targetId': targetId,
-      'timestamp': DateTime.now().toIso8601String(),
-    }));
+    appeals.add(
+      jsonEncode({
+        'userId': userId,
+        'reason': reason,
+        'targetType': targetType,
+        'targetId': targetId,
+        'timestamp': _nowProvider().toIso8601String(),
+      }),
+    );
     await prefs.setStringList('mock_appeals', appeals);
   }
 
@@ -347,7 +400,12 @@ class StubChatRepository implements ChatRepository {
     _typingUsers[matchId] ??= {};
 
     // Emit current state
-    _typingControllers[matchId]!.add(_typingUsers[matchId]!);
+    Future.microtask(() {
+      if (_typingControllers[matchId] != null &&
+          !_typingControllers[matchId]!.isClosed) {
+        _typingControllers[matchId]!.add(Set.from(_typingUsers[matchId]!));
+      }
+    });
 
     return _typingControllers[matchId]!.stream;
   }
@@ -378,7 +436,12 @@ class StubChatRepository implements ChatRepository {
 
     // For demo, mock users are always "online"
     final isOnline = _userPresence[userId] ?? true;
-    _presenceControllers[userId]!.add(isOnline);
+    Future.microtask(() {
+      if (_presenceControllers[userId] != null &&
+          !_presenceControllers[userId]!.isClosed) {
+        _presenceControllers[userId]!.add(isOnline);
+      }
+    });
 
     return _presenceControllers[userId]!.stream;
   }
@@ -401,7 +464,12 @@ class StubChatRepository implements ChatRepository {
     _mediaEnabledControllers[matchId] ??= StreamController<bool>.broadcast();
 
     final enabled = _mediaEnabled[matchId] ?? true;
-    _mediaEnabledControllers[matchId]!.add(enabled);
+    Future.microtask(() {
+      if (_mediaEnabledControllers[matchId] != null &&
+          !_mediaEnabledControllers[matchId]!.isClosed) {
+        _mediaEnabledControllers[matchId]!.add(enabled);
+      }
+    });
 
     return _mediaEnabledControllers[matchId]!.stream;
   }
@@ -473,23 +541,26 @@ class StubChatRepository implements ChatRepository {
     final matchesJson = prefs.getString('mock_matches_$userId');
     if (matchesJson == null) return [];
 
-    final matchesList =
-        List<Map<String, dynamic>>.from(jsonDecode(matchesJson));
+    final matchesList = List<Map<String, dynamic>>.from(
+      jsonDecode(matchesJson),
+    );
     return matchesList
-        .map((m) => CrushMatch(
-              id: m['id'],
-              userId: m['userId'],
-              otherUserId: m['otherUserId'],
-              status: MatchStatus.values.firstWhere(
-                (s) => s.name == m['status'],
-                orElse: () => MatchStatus.mutual,
-              ),
-              preMatchMessageRequestsCount:
-                  m['preMatchMessageRequestsCount'] ?? 0,
-              pinnedForUser: m['pinnedForUser'] ?? false,
-              otherUserName: m['otherUserName'],
-              otherUserPhotoUrl: m['otherUserPhotoUrl'],
-            ))
+        .map(
+          (m) => CrushMatch(
+            id: m['id'],
+            userId: m['userId'],
+            otherUserId: m['otherUserId'],
+            status: MatchStatus.values.firstWhere(
+              (s) => s.name == m['status'],
+              orElse: () => MatchStatus.mutual,
+            ),
+            preMatchMessageRequestsCount:
+                m['preMatchMessageRequestsCount'] ?? 0,
+            pinnedForUser: m['pinnedForUser'] ?? false,
+            otherUserName: m['otherUserName'],
+            otherUserPhotoUrl: m['otherUserPhotoUrl'],
+          ),
+        )
         .toList();
   }
 
@@ -502,13 +573,10 @@ class StubChatRepository implements ChatRepository {
     final allMatches = await fetchUserMatches(userId);
     final total = allMatches.length;
     final end = (offset + limit).clamp(0, total);
-    final items =
-        offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
-    return PaginatedResult(
-      items: items,
-      total: total,
-      hasMore: end < total,
-    );
+    final items = offset < total
+        ? allMatches.sublist(offset, end)
+        : <CrushMatch>[];
+    return PaginatedResult(items: items, total: total, hasMore: end < total);
   }
 
   @override
@@ -522,7 +590,7 @@ class StubChatRepository implements ChatRepository {
     String? toUserName,
     String? toUserPhotoUrl,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 50));
+    await _delayExecutor(const Duration(milliseconds: 50));
 
     final requests = await _loadMessageRequests();
     final activeRequests = _pruneExpiredRequests(requests);
@@ -536,7 +604,7 @@ class StubChatRepository implements ChatRepository {
       return null;
     }
 
-    final now = DateTime.now();
+    final now = _nowProvider();
     final request = MessageRequest(
       id: 'request_${now.millisecondsSinceEpoch}',
       fromUserId: fromUserId,
@@ -562,10 +630,11 @@ class StubChatRepository implements ChatRepository {
     final activeRequests = _pruneExpiredRequests(requests);
     await _saveMessageRequests(activeRequests);
 
-    final visible = activeRequests
-        .where((r) => r.fromUserId == userId || r.toUserId == userId)
-        .toList()
-      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    final visible =
+        activeRequests
+            .where((r) => r.fromUserId == userId || r.toUserId == userId)
+            .toList()
+          ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
     return visible;
   }
 
@@ -605,7 +674,7 @@ class StubChatRepository implements ChatRepository {
       final request = activeRequests[requestIndex];
 
       final message = Message(
-        id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'msg_${_nowProvider().millisecondsSinceEpoch}',
         matchId: match.id,
         fromUserId: request.fromUserId,
         toUserId: request.toUserId,
@@ -636,28 +705,31 @@ class StubChatRepository implements ChatRepository {
     final messagesJson = prefs.getString('$_messagesKeyPrefix$matchId');
     if (messagesJson == null) return [];
 
-    final messagesList =
-        List<Map<String, dynamic>>.from(jsonDecode(messagesJson));
+    final messagesList = List<Map<String, dynamic>>.from(
+      jsonDecode(messagesJson),
+    );
     return messagesList
-        .map((m) => Message(
-              id: m['id'],
-              matchId: m['matchId'],
-              fromUserId: m['fromUserId'],
-              toUserId: m['toUserId'],
-              content: m['content'],
-              type: MessageType.values.firstWhere(
-                (t) => t.name == m['type'],
-                orElse: () => MessageType.text,
-              ),
-              sentAt: DateTime.parse(m['sentAt']),
-              isRead: m['isRead'] ?? false,
-              isDeletedForSender: m['isDeletedForSender'] ?? false,
-              reactions: Map<String, String>.from(m['reactions'] ?? {}),
-              moderationStatus: m['moderationStatus'],
-              moderationReason: m['moderationReason'],
-              moderationAction: m['moderationAction'],
-              isFlagged: m['isFlagged'] ?? false,
-            ))
+        .map(
+          (m) => Message(
+            id: m['id'],
+            matchId: m['matchId'],
+            fromUserId: m['fromUserId'],
+            toUserId: m['toUserId'],
+            content: m['content'],
+            type: MessageType.values.firstWhere(
+              (t) => t.name == m['type'],
+              orElse: () => MessageType.text,
+            ),
+            sentAt: DateTime.parse(m['sentAt']),
+            isRead: m['isRead'] ?? false,
+            isDeletedForSender: m['isDeletedForSender'] ?? false,
+            reactions: Map<String, String>.from(m['reactions'] ?? {}),
+            moderationStatus: m['moderationStatus'],
+            moderationReason: m['moderationReason'],
+            moderationAction: m['moderationAction'],
+            isFlagged: m['isFlagged'] ?? false,
+          ),
+        )
         .toList();
   }
 
@@ -670,25 +742,29 @@ class StubChatRepository implements ChatRepository {
   Future<void> _saveAllMessages(String matchId, List<Message> messages) async {
     final prefs = await SharedPreferences.getInstance();
     final messagesList = messages
-        .map((m) => {
-              'id': m.id,
-              'matchId': m.matchId,
-              'fromUserId': m.fromUserId,
-              'toUserId': m.toUserId,
-              'content': m.content,
-              'type': m.type.name,
-              'sentAt': m.sentAt.toIso8601String(),
-              'isRead': m.isRead,
-              'isDeletedForSender': m.isDeletedForSender,
-              'reactions': m.reactions,
-              'moderationStatus': m.moderationStatus,
-              'moderationReason': m.moderationReason,
-              'moderationAction': m.moderationAction,
-              'isFlagged': m.isFlagged,
-            })
+        .map(
+          (m) => {
+            'id': m.id,
+            'matchId': m.matchId,
+            'fromUserId': m.fromUserId,
+            'toUserId': m.toUserId,
+            'content': m.content,
+            'type': m.type.name,
+            'sentAt': m.sentAt.toIso8601String(),
+            'isRead': m.isRead,
+            'isDeletedForSender': m.isDeletedForSender,
+            'reactions': m.reactions,
+            'moderationStatus': m.moderationStatus,
+            'moderationReason': m.moderationReason,
+            'moderationAction': m.moderationAction,
+            'isFlagged': m.isFlagged,
+          },
+        )
         .toList();
     await prefs.setString(
-        '$_messagesKeyPrefix$matchId', jsonEncode(messagesList));
+      '$_messagesKeyPrefix$matchId',
+      jsonEncode(messagesList),
+    );
   }
 
   Future<void> _notifyMessageUpdate(String matchId) async {
@@ -708,8 +784,9 @@ class StubChatRepository implements ChatRepository {
     final requestsJson = prefs.getString(_messageRequestsKey);
     if (requestsJson == null) return [];
 
-    final requestsList =
-        List<Map<String, dynamic>>.from(jsonDecode(requestsJson));
+    final requestsList = List<Map<String, dynamic>>.from(
+      jsonDecode(requestsJson),
+    );
     return requestsList.map((r) {
       return MessageRequest(
         id: r['id'],
@@ -731,7 +808,7 @@ class StubChatRepository implements ChatRepository {
   }
 
   List<MessageRequest> _pruneExpiredRequests(List<MessageRequest> requests) {
-    final now = DateTime.now();
+    final now = _nowProvider();
     return requests.where((r) => r.expiresAt.isAfter(now)).toList();
   }
 
@@ -784,4 +861,105 @@ class StubChatRepository implements ChatRepository {
 
   @override
   Future<Message> decryptMessage(Message message) async => message;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Result<void>> sendMessageResult({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+  }) {
+    return Result.guard(
+      () => sendMessage(
+        matchId: matchId,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        content: content,
+        type: type,
+      ),
+      logLabel: 'StubChatRepository.sendMessageResult',
+      fallbackError: 'Could not send message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> markMessagesReadResult(String matchId, String userId) {
+    return Result.guard(
+      () => markMessagesRead(matchId, userId),
+      logLabel: 'StubChatRepository.markMessagesReadResult',
+      fallbackError: 'Could not mark messages as read.',
+    );
+  }
+
+  Future<Result<void>> unsendMessageResult({
+    required String matchId,
+    required String messageId,
+  }) {
+    return Result.guard(
+      () => unsendMessage(matchId: matchId, messageId: messageId),
+      logLabel: 'StubChatRepository.unsendMessageResult',
+      fallbackError: 'Could not unsend message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> editMessageResult({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) {
+    return Result.guard(
+      () => editMessage(
+        matchId: matchId,
+        messageId: messageId,
+        newContent: newContent,
+      ),
+      logLabel: 'StubChatRepository.editMessageResult',
+      fallbackError: 'Could not edit message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> blockUserResult({
+    required String blockerId,
+    required String blockedId,
+  }) {
+    return Result.guard(
+      () => blockUser(blockerId: blockerId, blockedId: blockedId),
+      logLabel: 'StubChatRepository.blockUserResult',
+      fallbackError: 'Could not block user. Please try again.',
+    );
+  }
+
+  Future<Result<void>> unmatchResult({
+    required String matchId,
+    required String userId,
+  }) {
+    return Result.guard(
+      () => unmatch(matchId: matchId, userId: userId),
+      logLabel: 'StubChatRepository.unmatchResult',
+      fallbackError: 'Could not unmatch. Please try again.',
+    );
+  }
+
+  Future<Result<String>> uploadMediaResult({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  }) {
+    return Result.guard(
+      () => uploadMedia(matchId: matchId, filePath: filePath, type: type),
+      logLabel: 'StubChatRepository.uploadMediaResult',
+      fallbackError: 'Could not upload media. Please try again.',
+    );
+  }
+
+  Future<Result<List<CrushMatch>>> fetchUserMatchesResult(String userId) {
+    return Result.guard(
+      () => fetchUserMatches(userId),
+      logLabel: 'StubChatRepository.fetchUserMatchesResult',
+      fallbackError: 'Could not load matches. Please try again.',
+    );
+  }
 }

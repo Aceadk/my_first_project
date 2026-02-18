@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/social/data/services/date_idea_service.dart';
+import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
 import 'package:crushhour/features/social/data/models/date_idea.dart';
 
 /// State for date ideas.
@@ -80,7 +80,9 @@ class DateIdeasState extends Equatable {
 class DateIdeasCubit extends Cubit<DateIdeasState> {
   DateIdeasCubit({
     required AuthRepository authRepository,
+    required DateIdeaRepository dateIdeaRepository,
   })  : _authRepository = authRepository,
+        _service = dateIdeaRepository,
         super(const DateIdeasState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
@@ -90,7 +92,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
   }
 
   final AuthRepository _authRepository;
-  final _service = DateIdeaService.instance;
+  final DateIdeaRepository _service;
   StreamSubscription<List<DateIdea>>? _ideasSubscription;
   StreamSubscription<CrushUser?>? _authSubscription;
 

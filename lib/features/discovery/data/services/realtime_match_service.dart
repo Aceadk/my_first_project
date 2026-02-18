@@ -84,6 +84,7 @@ class RealtimeMatchService {
   final RealtimeChildAddedStreamFactory _childAddedStreamFactory;
   StreamSubscription? _matchSubscription;
   String? _currentUserId;
+  bool _isDisposed = false;
 
   /// Stream controller for new match notifications.
   final _matchController =
@@ -93,9 +94,26 @@ class RealtimeMatchService {
   /// Subscribe to this to receive instant match notifications.
   Stream<RealtimeMatchNotification> get onNewMatch => _matchController.stream;
 
+  @visibleForTesting
+  bool get isListening => _matchSubscription != null;
+
+  @visibleForTesting
+  String? get currentUserId => _currentUserId;
+
+  @visibleForTesting
+  bool get isDisposed => _isDisposed;
+
   /// Start listening for new matches for the given user.
   /// Call this when the user logs in.
   void startListening(String userId) {
+    if (_isDisposed) {
+      AppLogger.warning(
+        '[RealtimeMatchService] startListening called after dispose',
+        data: {'userId': userId},
+      );
+      return;
+    }
+
     if (_currentUserId == userId && _matchSubscription != null) {
       // Already listening for this user
       return;
@@ -158,6 +176,10 @@ class RealtimeMatchService {
 
   /// Dispose the service.
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
     stopListening();
     _matchController.close();
   }

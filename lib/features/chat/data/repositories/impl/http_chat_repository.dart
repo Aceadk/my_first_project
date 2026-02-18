@@ -9,6 +9,7 @@ import 'package:crushhour/core/network/dto/discovery_dto.dart';
 import 'package:crushhour/core/network/mappers/chat_mapper.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
 import 'package:crushhour/core/network/realtime/realtime_connection.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -688,4 +689,105 @@ class HttpChatRepository implements ChatRepository {
 
   @override
   Future<Message> decryptMessage(Message message) async => message;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Result<void>> sendMessageResult({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+  }) {
+    return Result.guard(
+      () => sendMessage(
+        matchId: matchId,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        content: content,
+        type: type,
+      ),
+      logLabel: 'HttpChatRepository.sendMessageResult',
+      fallbackError: 'Could not send message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> markMessagesReadResult(String matchId, String userId) {
+    return Result.guard(
+      () => markMessagesRead(matchId, userId),
+      logLabel: 'HttpChatRepository.markMessagesReadResult',
+      fallbackError: 'Could not mark messages as read.',
+    );
+  }
+
+  Future<Result<void>> unsendMessageResult({
+    required String matchId,
+    required String messageId,
+  }) {
+    return Result.guard(
+      () => unsendMessage(matchId: matchId, messageId: messageId),
+      logLabel: 'HttpChatRepository.unsendMessageResult',
+      fallbackError: 'Could not unsend message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> editMessageResult({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) {
+    return Result.guard(
+      () => editMessage(
+        matchId: matchId,
+        messageId: messageId,
+        newContent: newContent,
+      ),
+      logLabel: 'HttpChatRepository.editMessageResult',
+      fallbackError: 'Could not edit message. Please try again.',
+    );
+  }
+
+  Future<Result<void>> blockUserResult({
+    required String blockerId,
+    required String blockedId,
+  }) {
+    return Result.guard(
+      () => blockUser(blockerId: blockerId, blockedId: blockedId),
+      logLabel: 'HttpChatRepository.blockUserResult',
+      fallbackError: 'Could not block user. Please try again.',
+    );
+  }
+
+  Future<Result<void>> unmatchResult({
+    required String matchId,
+    required String userId,
+  }) {
+    return Result.guard(
+      () => unmatch(matchId: matchId, userId: userId),
+      logLabel: 'HttpChatRepository.unmatchResult',
+      fallbackError: 'Could not unmatch. Please try again.',
+    );
+  }
+
+  Future<Result<String>> uploadMediaResult({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  }) {
+    return Result.guard(
+      () => uploadMedia(matchId: matchId, filePath: filePath, type: type),
+      logLabel: 'HttpChatRepository.uploadMediaResult',
+      fallbackError: 'Could not upload media. Please try again.',
+    );
+  }
+
+  Future<Result<List<CrushMatch>>> fetchUserMatchesResult(String userId) {
+    return Result.guard(
+      () => fetchUserMatches(userId),
+      logLabel: 'HttpChatRepository.fetchUserMatchesResult',
+      fallbackError: 'Could not load matches. Please try again.',
+    );
+  }
 }

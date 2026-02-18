@@ -326,7 +326,7 @@ void main() {
         userId: _testUserId,
         weekStart: DateTime(2020, 1, 1),
         weekEnd: DateTime(2020, 1, 7),
-        picks: [],
+        picks: const [],
       );
       expect(pastPicks.isCurrentWeek, isFalse);
     });
@@ -374,7 +374,7 @@ void main() {
         userId: _testUserId,
         weekStart: DateTime(2020, 1, 1),
         weekEnd: DateTime(2020, 1, 7),
-        picks: [],
+        picks: const [],
       );
       expect(pastPicks.newPicksTimeDisplay, 'New picks available!');
     });

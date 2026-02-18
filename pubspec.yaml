@@ -84,6 +84,10 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   firebase_core_platform_interface: ^6.0.2
+  firebase_analytics_platform_interface: any
+  cloud_functions_platform_interface: any
+  geocoding_platform_interface: any
+  geolocator_platform_interface: any
   flutter_launcher_icons: ^0.14.3
   image: ^4.2.0
   mockito: ^5.4.4
@@ -92,6 +96,8 @@ dev_dependencies:
 # App launcher icon configuration
 # To generate icons, add your icon image to assets/icons/ then run:
 # dart run flutter_launcher_icons
+  firebase_database_platform_interface: any
+  plugin_platform_interface: any
 flutter_launcher_icons:
   android: true
   ios: true

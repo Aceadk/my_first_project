@@ -33,7 +33,7 @@ void main() {
     );
 
     test('fromJson handles invalid createdAt safely', () {
-      final prompt = ProfilePrompt.fromJson({
+      final prompt = ProfilePrompt.fromJson(const {
         'questionId': 'looking_for',
         'answer': 'Something real',
         'createdAt': 'not-a-date',

@@ -5,15 +5,15 @@ import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
 void main() {
   group('CompatibilityQuiz model', () {
     test('fromJson falls back to default category and estimated minutes', () {
-      final quiz = CompatibilityQuiz.fromJson({
+      final quiz = CompatibilityQuiz.fromJson(const {
         'id': 'quiz-1',
         'title': 'Quiz',
         'description': 'Desc',
-        'questions': [
+        'questions': const [
           {
             'id': 'q1',
             'question': 'Q?',
-            'options': [
+            'options': const [
               {'id': 'a', 'text': 'A'},
             ],
           },
@@ -27,19 +27,19 @@ void main() {
     });
 
     test('QuizQuestion fromJson handles null/unknown category values', () {
-      final nullCategory = QuizQuestion.fromJson({
+      final nullCategory = QuizQuestion.fromJson(const {
         'id': 'q1',
         'question': 'Q1',
-        'options': [
+        'options': const [
           {'id': 'a', 'text': 'A'},
         ],
       });
       expect(nullCategory.category, isNull);
 
-      final unknownCategory = QuizQuestion.fromJson({
+      final unknownCategory = QuizQuestion.fromJson(const {
         'id': 'q2',
         'question': 'Q2',
-        'options': [
+        'options': const [
           {'id': 'b', 'text': 'B'},
         ],
         'category': 'not-a-real-category',
@@ -69,8 +69,8 @@ void main() {
         'quizId': 'quiz-2',
         'user1Id': 'u1',
         'user2Id': 'u2',
-        'user1Answers': {'q1': 'a'},
-        'user2Answers': {'q1': 'b'},
+        'user1Answers': const {'q1': 'a'},
+        'user2Answers': const {'q1': 'b'},
         'completedAt': DateTime(2026, 2, 13).toIso8601String(),
       });
       expect(restored.categoryScores, isEmpty);
@@ -81,7 +81,7 @@ void main() {
     test(
       'CompatibilityInsight fromJson falls back to general insight type',
       () {
-        final insight = CompatibilityInsight.fromJson({
+        final insight = CompatibilityInsight.fromJson(const {
           'type': 'not-real',
           'title': 'Insight',
           'description': 'Desc',
@@ -91,6 +91,123 @@ void main() {
         expect(insight.isPositive, isTrue);
       },
     );
+
+    test(
+      'quiz/question/option toJson+fromJson round-trip and equatable props',
+      () {
+        const option = QuizOption(
+          id: 'o1',
+          text: 'Option',
+          emoji: '😀',
+          value: 2,
+        );
+        const question = QuizQuestion(
+          id: 'q1',
+          question: 'What is your style?',
+          options: [option],
+          emoji: '🧠',
+          category: QuestionCategory.communication,
+        );
+        const quiz = CompatibilityQuiz(
+          id: 'quiz-rt',
+          title: 'Round Trip',
+          description: 'Round-trip serialization',
+          questions: [question],
+          category: QuizCategory.communication,
+          estimatedMinutes: 7,
+          imageUrl: 'https://example.com/quiz.png',
+        );
+
+        final json = quiz.toJson();
+        expect(json['category'], 'communication');
+        expect(json['estimatedMinutes'], 7);
+        expect(json['imageUrl'], 'https://example.com/quiz.png');
+
+        final restored = CompatibilityQuiz.fromJson(json);
+        expect(restored, equals(quiz));
+        expect(
+          restored.props,
+          containsAll(<Object?>[
+            'quiz-rt',
+            'Round Trip',
+            'Round-trip serialization',
+            QuizCategory.communication,
+            7,
+            'https://example.com/quiz.png',
+          ]),
+        );
+
+        expect(
+          question.props,
+          containsAll(<Object?>[
+            'q1',
+            'What is your style?',
+            '🧠',
+            QuestionCategory.communication,
+          ]),
+        );
+        expect(option.props, containsAll(<Object?>['o1', 'Option', '😀', 2]));
+
+        final restoredOption = QuizOption.fromJson(option.toJson());
+        expect(restoredOption, equals(option));
+      },
+    );
+
+    test('QuizResult and CompatibilityInsight serialize full payloads', () {
+      const insight = CompatibilityInsight(
+        type: InsightType.strength,
+        title: 'Strong communication',
+        description: 'You resolve conflicts quickly.',
+        emoji: '💬',
+        isPositive: false,
+      );
+
+      final result = QuizResult(
+        quizId: 'quiz-1',
+        user1Id: 'u1',
+        user2Id: 'u2',
+        user1Answers: const {'q1': 'a', 'q2': 'b'},
+        user2Answers: const {'q1': 'a', 'q2': 'c'},
+        completedAt: DateTime(2026, 2, 17, 12),
+        overallScore: 88,
+        categoryScores: const {'communication': 90, 'lifestyle': 80},
+        insights: const [insight],
+      );
+
+      final insightJson = insight.toJson();
+      expect(insightJson['type'], 'strength');
+      expect(insightJson['isPositive'], isFalse);
+      expect(CompatibilityInsight.fromJson(insightJson), equals(insight));
+      expect(
+        insight.props,
+        containsAll(<Object?>[
+          InsightType.strength,
+          'Strong communication',
+          'You resolve conflicts quickly.',
+          '💬',
+          false,
+        ]),
+      );
+
+      final resultJson = result.toJson();
+      expect(resultJson['overallScore'], 88);
+      expect(resultJson['categoryScores'], containsPair('communication', 90));
+      expect((resultJson['insights'] as List<dynamic>).length, 1);
+
+      final restored = QuizResult.fromJson(resultJson);
+      expect(restored, equals(result));
+      expect(restored.scoreDisplay, '88%');
+      expect(restored.rating, ScoreRating.great);
+      expect(
+        restored.props,
+        containsAll(<Object?>[
+          'quiz-1',
+          'u1',
+          'u2',
+          const {'communication': 90, 'lifestyle': 80},
+        ]),
+      );
+    });
   });
 
   group('Compatibility enums/extensions', () {
@@ -126,6 +243,33 @@ void main() {
       expect(quizzes.first.id, 'basic_compatibility');
       expect(quizzes.last.id, 'lifestyle');
       expect(quizzes.last.category, QuizCategory.lifestyle);
+    });
+
+    test('predefined quizzes contain valid non-empty question banks', () {
+      const basic = CompatibilityQuizzes.basicCompatibility;
+      const lifestyle = CompatibilityQuizzes.lifestyleQuiz;
+
+      expect(basic.questions.length, 5);
+      expect(lifestyle.questions.length, 4);
+      expect(CompatibilityQuizzes.all, containsAll([basic, lifestyle]));
+
+      for (final quiz in CompatibilityQuizzes.all) {
+        expect(quiz.id, isNotEmpty);
+        expect(quiz.title, isNotEmpty);
+        expect(quiz.description, isNotEmpty);
+        expect(quiz.estimatedMinutes, greaterThan(0));
+        expect(quiz.questions, isNotEmpty);
+
+        for (final question in quiz.questions) {
+          expect(question.id, isNotEmpty);
+          expect(question.question, isNotEmpty);
+          expect(question.options, isNotEmpty);
+          for (final option in question.options) {
+            expect(option.id, isNotEmpty);
+            expect(option.text, isNotEmpty);
+          }
+        }
+      }
     });
   });
 }

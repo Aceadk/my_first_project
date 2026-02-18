@@ -10,6 +10,7 @@ import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_state.dart'
     as bloc_state;
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
 
 class CallScreenArgs {
   final String matchId;
@@ -430,10 +431,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       ),
       child: ClipOval(
         child: widget.matchPhotoUrl != null
-            ? Image.network(
-                widget.matchPhotoUrl!,
+            ? CachedImage(
+                imageUrl: widget.matchPhotoUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _buildAvatarPlaceholder(),
               )
             : _buildAvatarPlaceholder(),
       ),

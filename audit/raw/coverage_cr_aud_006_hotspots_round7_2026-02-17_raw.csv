@@ -1,0 +1,4 @@
+file,before_pct,after_pct,delta_pct,source
+lib/features/social/data/models/compatibility_quiz.dart,69.94,99.39,29.45,full-suite
+lib/features/feature_flags/data/models/feature_flags.dart,73.37,100.00,26.63,full-suite
+lib/shared/utils/profile_completeness.dart,73.68,98.25,24.57,targeted(test/profile_completeness_test.dart)

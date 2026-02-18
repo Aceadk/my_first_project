@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
+import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
 import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
 
 /// State for compatibility quiz.
@@ -73,7 +73,9 @@ class CompatibilityQuizState extends Equatable {
 class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   CompatibilityQuizCubit({
     required AuthRepository authRepository,
+    required CompatibilityQuizRepository quizRepository,
   })  : _authRepository = authRepository,
+        _service = quizRepository,
         super(const CompatibilityQuizState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
@@ -83,7 +85,7 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   }
 
   final AuthRepository _authRepository;
-  final _service = CompatibilityQuizService.instance;
+  final CompatibilityQuizRepository _service;
   String? _currentMatchId;
   StreamSubscription<CrushUser?>? _authSubscription;
 

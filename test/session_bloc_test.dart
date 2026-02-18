@@ -48,7 +48,7 @@ void main() {
     });
 
     test('copyWith preserves existing values when no overrides', () {
-      final state = SessionState(
+      const state = SessionState(
         status: SessionStatus.authenticated,
         user: _testUser,
         isLoading: true,
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('copyWith clearError removes error message', () {
-      final state = SessionState(
+      const state = SessionState(
         status: SessionStatus.authenticated,
         errorMessage: 'old error',
       );
@@ -85,9 +85,9 @@ void main() {
     });
 
     test('Equatable compares correctly', () {
-      final a = SessionState(status: SessionStatus.unknown);
-      final b = SessionState(status: SessionStatus.unknown);
-      final c = SessionState(status: SessionStatus.authenticated);
+      const a = SessionState(status: SessionStatus.unknown);
+      const b = SessionState(status: SessionStatus.unknown);
+      const c = SessionState(status: SessionStatus.authenticated);
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
     });

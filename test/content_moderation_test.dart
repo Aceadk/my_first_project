@@ -1,3 +1,6 @@
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_functions_platform_interface/cloud_functions_platform_interface.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/core/services/content_moderation_service.dart';
 
@@ -6,9 +9,22 @@ import 'mock/firebase_mock.dart';
 void main() {
   setupFirebaseAnalyticsMocks();
 
+  late FirebaseFunctionsPlatform originalFunctionsPlatform;
+  late _FakeFunctionsPlatform fakeFunctionsPlatform;
   late ContentModerationService service;
 
+  setUpAll(() {
+    originalFunctionsPlatform = FirebaseFunctionsPlatform.instance;
+    fakeFunctionsPlatform = _FakeFunctionsPlatform();
+    FirebaseFunctionsPlatform.instance = fakeFunctionsPlatform;
+  });
+
+  tearDownAll(() {
+    FirebaseFunctionsPlatform.instance = originalFunctionsPlatform;
+  });
+
   setUp(() {
+    fakeFunctionsPlatform.reset();
     service = ContentModerationService.instance;
   });
 
@@ -147,103 +163,97 @@ void main() {
 
     test('flags text containing profanity', () async {
       final result = await service.analyzeText('This contains badword2');
-      expect(result.issues.any((i) => i.type == ContentIssueType.profanity),
-          isTrue);
+      expect(
+        result.issues.any((i) => i.type == ContentIssueType.profanity),
+        isTrue,
+      );
     });
 
     test('detects phone numbers as personal info', () async {
-      final result =
-          await service.analyzeText('Call me at 555-123-4567');
+      final result = await service.analyzeText('Call me at 555-123-4567');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
       expect(result.isApproved, isFalse);
     });
 
     test('detects email addresses as personal info', () async {
-      final result =
-          await service.analyzeText('Email me at john@example.com');
+      final result = await service.analyzeText('Email me at john@example.com');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
       expect(result.isApproved, isFalse);
     });
 
     test('detects social media handles as personal info', () async {
-      final result =
-          await service.analyzeText('Follow me @johndoe on instagram.com');
+      final result = await service.analyzeText(
+        'Follow me @johndoe on instagram.com',
+      );
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
 
     test('detects excessive caps as spam', () async {
-      final result =
-          await service.analyzeText('THIS IS ALL CAPS SPAM TEXT HERE');
-      expect(
-          result.issues.any((i) => i.type == ContentIssueType.spam),
-          isTrue);
+      final result = await service.analyzeText(
+        'THIS IS ALL CAPS SPAM TEXT HERE',
+      );
+      expect(result.issues.any((i) => i.type == ContentIssueType.spam), isTrue);
     });
 
     test('detects repeated characters as spam', () async {
-      final result =
-          await service.analyzeText('hellooooooo there');
-      expect(
-          result.issues.any((i) => i.type == ContentIssueType.spam),
-          isTrue);
+      final result = await service.analyzeText('hellooooooo there');
+      expect(result.issues.any((i) => i.type == ContentIssueType.spam), isTrue);
     });
 
     test('detects URLs as spam', () async {
-      final result =
-          await service.analyzeText('Check out https://scam-site.com');
-      expect(
-          result.issues.any((i) => i.type == ContentIssueType.spam),
-          isTrue);
+      final result = await service.analyzeText(
+        'Check out https://scam-site.com',
+      );
+      expect(result.issues.any((i) => i.type == ContentIssueType.spam), isTrue);
     });
 
     test('detects threat language as harassment', () async {
       final result = await service.analyzeText('I will kill you');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.harassment),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.harassment),
+        isTrue,
+      );
       expect(result.isApproved, isFalse);
     });
 
     test('detects "hurt you" as harassment', () async {
       final result = await service.analyzeText('I will hurt you badly');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.harassment),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.harassment),
+        isTrue,
+      );
     });
 
     test('detects "find you" as harassment', () async {
       final result = await service.analyzeText('I will find you');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.harassment),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.harassment),
+        isTrue,
+      );
     });
 
     test('detects "you will regret" as harassment', () async {
       final result = await service.analyzeText('you will regret this');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.harassment),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.harassment),
+        isTrue,
+      );
     });
 
     test('approves text with only low-severity spam issues', () async {
       // Spam issues have low severity => still approved
       final result = await service.analyzeText('Check out https://example.com');
       expect(result.isApproved, isTrue);
-      expect(
-          result.issues.any((i) => i.type == ContentIssueType.spam),
-          isTrue);
+      expect(result.issues.any((i) => i.type == ContentIssueType.spam), isTrue);
     });
 
     test('handles empty string gracefully', () async {
@@ -262,48 +272,176 @@ void main() {
       // Less than 10 characters, even all caps, should not trigger spam
       final result = await service.analyzeText('HELLO');
       expect(
-          result.issues.any((i) => i.type == ContentIssueType.spam),
-          isFalse);
+        result.issues.any((i) => i.type == ContentIssueType.spam),
+        isFalse,
+      );
     });
 
     test('detects international phone format', () async {
-      final result = await service.analyzeText('My number is +1 (555) 123-4567');
+      final result = await service.analyzeText(
+        'My number is +1 (555) 123-4567',
+      );
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
 
     test('detects snapchat mention as personal info', () async {
       final result = await service.analyzeText('Add me on snapchat');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
 
     test('detects whatsapp mention as personal info', () async {
       final result = await service.analyzeText('Message me on whatsapp');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
 
     test('detects telegram mention as personal info', () async {
       final result = await service.analyzeText('Find me on telegram');
       expect(
-          result.issues
-              .any((i) => i.type == ContentIssueType.personalInfo),
-          isTrue);
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
 
     test('multiple issues can be detected simultaneously', () async {
       // Text with profanity + personal info + harassment
       final result = await service.analyzeText(
-          'badword2 email me john@test.com I will kill you');
+        'badword2 email me john@test.com I will kill you',
+      );
       expect(result.issues.length, greaterThanOrEqualTo(3));
       expect(result.isApproved, isFalse);
+    });
+  });
+
+  group('Text Analysis (cloud callable path)', () {
+    test('uses callable allow response directly', () async {
+      fakeFunctionsPlatform.onCall = (functionName, parameters) async {
+        expect(functionName, 'moderateTextContent');
+        expect(parameters, containsPair('content', 'hello there'));
+        return <String, dynamic>{'action': 'allow'};
+      };
+
+      final result = await service.analyzeText('hello there');
+
+      expect(result.isApproved, isTrue);
+      expect(result.issues, isEmpty);
+      expect(result.filteredText, 'hello there');
+    });
+
+    test('maps callable reason/severity branches', () async {
+      final cases =
+          <
+            ({
+              String reason,
+              String severity,
+              ContentIssueType expectedType,
+              ContentSeverity expectedSeverity,
+            })
+          >[
+            (
+              reason: 'profanity',
+              severity: 'low',
+              expectedType: ContentIssueType.profanity,
+              expectedSeverity: ContentSeverity.low,
+            ),
+            (
+              reason: 'personal info',
+              severity: 'medium',
+              expectedType: ContentIssueType.personalInfo,
+              expectedSeverity: ContentSeverity.medium,
+            ),
+            (
+              reason: 'spam',
+              severity: 'high',
+              expectedType: ContentIssueType.spam,
+              expectedSeverity: ContentSeverity.high,
+            ),
+            (
+              reason: 'harassment',
+              severity: 'critical',
+              expectedType: ContentIssueType.harassment,
+              expectedSeverity: ContentSeverity.critical,
+            ),
+          ];
+
+      for (final c in cases) {
+        fakeFunctionsPlatform.onCall = (functionName, parameters) async {
+          expect(functionName, 'moderateTextContent');
+          expect(parameters, containsPair('content', 'callable-input'));
+          return <String, dynamic>{
+            'action': 'block',
+            'reason': c.reason,
+            'severity': c.severity,
+          };
+        };
+
+        final result = await service.analyzeText('callable-input');
+
+        expect(result.isApproved, isFalse);
+        expect(result.issues, hasLength(1));
+        expect(result.issues.first.type, c.expectedType);
+        expect(result.issues.first.severity, c.expectedSeverity);
+        expect(result.issues.first.description, c.reason);
+      }
+    });
+
+    test('defaults unknown reason/severity and fallback description', () async {
+      fakeFunctionsPlatform.onCall = (functionName, parameters) async {
+        expect(functionName, 'moderateTextContent');
+        expect(parameters, containsPair('content', 'anything'));
+        return <String, dynamic>{
+          'action': 'block',
+          'severity': 'unexpected-severity',
+        };
+      };
+
+      final result = await service.analyzeText('anything');
+
+      expect(result.isApproved, isFalse);
+      expect(result.issues, hasLength(1));
+      expect(result.issues.first.type, ContentIssueType.other);
+      expect(result.issues.first.severity, ContentSeverity.medium);
+      expect(result.issues.first.description, 'Content flagged for review');
+    });
+
+    test(
+      'falls back when callable throws FirebaseFunctionsException',
+      () async {
+        fakeFunctionsPlatform.onCall = (_, __) async {
+          throw FirebaseFunctionsException(
+            code: 'internal',
+            message: 'forced failure',
+          );
+        };
+
+        final result = await service.analyzeText('badword2');
+
+        expect(
+          result.issues.any((i) => i.type == ContentIssueType.profanity),
+          isTrue,
+        );
+      },
+    );
+
+    test('falls back when callable throws generic exception', () async {
+      fakeFunctionsPlatform.onCall = (_, __) async {
+        throw StateError('forced generic failure');
+      };
+
+      final result = await service.analyzeText('Call me at 555-123-4567');
+
+      expect(
+        result.issues.any((i) => i.type == ContentIssueType.personalInfo),
+        isTrue,
+      );
     });
   });
 
@@ -327,8 +465,10 @@ void main() {
         description: 'bad',
       );
       expect(result.isValid, isFalse);
-      expect(result.issues,
-          contains('Please provide more detail about the issue'));
+      expect(
+        result.issues,
+        contains('Please provide more detail about the issue'),
+      );
     });
 
     test('rejects description that is too long', () {
@@ -337,8 +477,10 @@ void main() {
         description: 'a' * 1001,
       );
       expect(result.isValid, isFalse);
-      expect(result.issues,
-          contains('Description is too long (max 1000 characters)'));
+      expect(
+        result.issues,
+        contains('Description is too long (max 1000 characters)'),
+      );
     });
 
     test('requires "who" for impersonation reports', () {
@@ -348,9 +490,11 @@ void main() {
       );
       expect(result.isValid, isFalse);
       expect(
-          result.issues,
-          contains(
-              'For impersonation reports, please specify who is being impersonated'));
+        result.issues,
+        contains(
+          'For impersonation reports, please specify who is being impersonated',
+        ),
+      );
     });
 
     test('passes impersonation report that mentions "who"', () {
@@ -368,8 +512,10 @@ void main() {
         description: '       hi',
       );
       expect(result.isValid, isFalse);
-      expect(result.issues,
-          contains('Please provide more detail about the issue'));
+      expect(
+        result.issues,
+        contains('Please provide more detail about the issue'),
+      );
     });
 
     test('accepts description exactly at minimum length', () {
@@ -533,8 +679,72 @@ void main() {
       expect(ReportCategory.hateSpeech.displayName, 'Hate speech');
       expect(ReportCategory.other.displayName, 'Other');
       expect(
-          ReportCategory.inappropriateContent.displayName,
-          'Inappropriate content');
+        ReportCategory.inappropriateContent.displayName,
+        'Inappropriate content',
+      );
     });
   });
+}
+
+class _FakeFunctionsPlatform extends FirebaseFunctionsPlatform {
+  _FakeFunctionsPlatform() : super(null, 'us-central1');
+
+  Future<dynamic> Function(String functionName, Object? parameters)? onCall;
+
+  void reset() {
+    onCall = null;
+  }
+
+  @override
+  FirebaseFunctionsPlatform delegateFor({
+    FirebaseApp? app,
+    required String region,
+  }) {
+    return this;
+  }
+
+  @override
+  HttpsCallablePlatform httpsCallable(
+    String? origin,
+    String name,
+    HttpsCallableOptions options,
+  ) {
+    return _FakeHttpsCallable(this, origin, name, options, null);
+  }
+
+  @override
+  HttpsCallablePlatform httpsCallableWithUri(
+    String? origin,
+    Uri uri,
+    HttpsCallableOptions options,
+  ) {
+    return _FakeHttpsCallable(this, origin, null, options, uri);
+  }
+}
+
+class _FakeHttpsCallable extends HttpsCallablePlatform {
+  _FakeHttpsCallable(
+    super.functions,
+    super.origin,
+    super.name,
+    super.options,
+    super.uri,
+  );
+
+  _FakeFunctionsPlatform get _functions => functions as _FakeFunctionsPlatform;
+
+  @override
+  Future<dynamic> call([dynamic parameters]) async {
+    final handler = _functions.onCall;
+    if (handler == null) {
+      throw FirebaseFunctionsException(
+        code: 'unavailable',
+        message: 'No fake callable response configured',
+      );
+    }
+    return handler(name ?? uri.toString(), parameters);
+  }
+
+  @override
+  Stream<dynamic> stream(Object? parameters) => const Stream<dynamic>.empty();
 }

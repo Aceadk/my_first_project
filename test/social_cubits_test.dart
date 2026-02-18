@@ -376,7 +376,7 @@ void main() {
 
     setUp(() {
       authRepo = MockAuthRepository();
-      cubit = DateIdeasCubit(authRepository: authRepo);
+      cubit = DateIdeasCubit(authRepository: authRepo, dateIdeaRepository: DateIdeaService.instance);
       // Clear singleton state between tests
       DateIdeaService.instance.clearUserData();
     });
@@ -735,7 +735,7 @@ void main() {
 
     setUp(() {
       authRepo = MockAuthRepository();
-      cubit = CompatibilityQuizCubit(authRepository: authRepo);
+      cubit = CompatibilityQuizCubit(authRepository: authRepo, quizRepository: CompatibilityQuizService.instance);
       CompatibilityQuizService.instance.clearUserData();
     });
 

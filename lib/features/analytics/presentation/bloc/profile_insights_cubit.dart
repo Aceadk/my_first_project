@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
+import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
 
 /// State for profile insights.
@@ -64,7 +64,9 @@ class ProfileInsightsState extends Equatable {
 class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
   ProfileInsightsCubit({
     required AuthRepository authRepository,
+    required ProfileInsightsRepository insightsRepository,
   })  : _authRepository = authRepository,
+        _service = insightsRepository,
         super(const ProfileInsightsState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
@@ -74,7 +76,7 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
   }
 
   final AuthRepository _authRepository;
-  final _service = ProfileInsightsService.instance;
+  final ProfileInsightsRepository _service;
   StreamSubscription<ProfileInsights>? _subscription;
   StreamSubscription<CrushUser?>? _authSubscription;
 

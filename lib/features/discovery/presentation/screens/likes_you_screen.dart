@@ -12,7 +12,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';

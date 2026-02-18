@@ -119,6 +119,7 @@ void main() {
       test('starts with empty default state', () {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
         expect(cubit.state.insights, isNull);
         expect(cubit.state.isLoading, false);
@@ -131,6 +132,7 @@ void main() {
       test('emits loading then loaded state with insights', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         final states = <ProfileInsightsState>[];
@@ -164,6 +166,7 @@ void main() {
       test('insights data has expected fields populated', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');
@@ -191,6 +194,7 @@ void main() {
       test('emits refreshing then updated state', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         // Load first
@@ -224,6 +228,7 @@ void main() {
       test('loads insights for specific date range', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         final start = DateTime(2026, 1, 1);
@@ -259,6 +264,7 @@ void main() {
       test('increments profile views in current insights', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         // Load first
@@ -281,6 +287,7 @@ void main() {
       test('increments likes received', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');
@@ -299,6 +306,7 @@ void main() {
       test('increments super likes when isSuperLike is true', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');
@@ -319,6 +327,7 @@ void main() {
       test('increments likes sent', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');
@@ -339,6 +348,7 @@ void main() {
       test('returns a non-empty string', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');
@@ -358,6 +368,7 @@ void main() {
           authRepository: _StubAuthRepository(
             userStreamController: authController,
           ),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         // Load insights
@@ -388,6 +399,7 @@ void main() {
       test('can close cleanly', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
         await expectLater(cubit.close(), completes);
       });
@@ -395,6 +407,7 @@ void main() {
       test('can close after loading insights', () async {
         final cubit = ProfileInsightsCubit(
           authRepository: _StubAuthRepository(),
+          insightsRepository: ProfileInsightsService.instance,
         );
 
         await cubit.loadInsights('user-1');

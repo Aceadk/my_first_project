@@ -1,6 +1,6 @@
 # Project Flowchart — CrushHour Dating App
 
-*Last updated: 2026-01-23*
+*Last updated: 2026-02-18*
 
 ---
 
@@ -236,8 +236,14 @@ flowchart TD
 | `/home` | Home Screen | Bottom navigation hub |
 | `/profile` | Profile View | User's own profile |
 | `/profile/edit` | Profile Edit | Edit profile details |
+| `/profile/media` | Profile Media | Photo gallery & management |
 | `/user-profile` | Other User Profile | View other profiles |
+| `/user-profile/:userId` | Other User Profile (deep link) | Deep link to user profile |
 | `/chat/:matchId` | Chat Screen | Individual conversation |
+| `/message-requests` | Message Requests | Pending message requests |
+| `/call` | Call Screen | Audio/video call |
+| `/video-call` | Video Call Screen | WebRTC video call |
+| `/story-viewer` | Story Viewer | View user stories |
 
 ### Discovery Routes
 | Route | Screen | Description |
@@ -252,6 +258,7 @@ flowchart TD
 | Route | Screen | Description |
 |-------|--------|-------------|
 | `/settings` | Settings Hub | Main settings |
+| `/settings/appearance` | Appearance | Theme & display |
 | `/settings/privacy` | Privacy | Profile visibility |
 | `/settings/notifications` | Notifications | Push, email, sound, vibration |
 | `/settings/discovery` | Discovery Filters | Distance, age filters |
@@ -259,6 +266,8 @@ flowchart TD
 | `/settings/storage` | Data & Storage | Cache management |
 | `/settings/security` | Account Security | Password, email |
 | `/settings/account` | Account Actions | Delete, deactivate |
+| `/settings/chat` | Chat Settings | Chat preferences |
+| `/settings/id-verification` | ID Verification | Re-verify identity |
 
 ### Other Routes
 | Route | Screen | Description |
@@ -266,8 +275,12 @@ flowchart TD
 | `/safety` | Safety | Safety settings & blocking |
 | `/logout` | Logout | Logout confirmation |
 | `/safety-guidelines` | Community Guidelines | Rules |
+| `/community-guidelines` | Community Guidelines | Rules |
 | `/privacy-policy` | Privacy Policy | Legal |
 | `/terms-of-service` | Terms of Service | Legal |
+| `/support` | Support | Help & support |
+| `/product-features` | Product Features | Feature showcase |
+| `/pricing` | Pricing | Subscription plans |
 
 ---
 
@@ -296,26 +309,39 @@ flowchart TD
 
 ---
 
-## 9) Architecture and Data Flow
+## 9) Architecture and Data Flow (Clean Architecture)
 
 ```mermaid
 flowchart LR
-  APP[main.dart] --> DI[CrushDI]
-  DI --> ROUTER[GoRouter]
+  APP[main.dart] --> DI[CrushDI - di.dart]
+  DI --> ROUTER[GoRouter - router.dart]
   ROUTER --> UI[Screens / Widgets]
-  UI --> BL[BLoC / Cubit]
-  BL --> UC[Use Cases]
-  UC --> REPO[Repository Interfaces]
-  REPO --> IMPL{Implementation}
-  IMPL --> FB[Firebase]
-  IMPL --> HTTP[HTTP API]
-  IMPL --> STUB[Stub / Local]
+
+  subgraph "Presentation Layer"
+    UI --> BL[BLoC / Cubit]
+  end
+
+  subgraph "Domain Layer"
+    BL --> UC[Use Cases]
+    UC --> REPO["Repository Interfaces<br/>(abstract classes)"]
+  end
+
+  subgraph "Data Layer"
+    REPO --> IMPL{Implementation}
+    IMPL --> FB[Firebase Repos]
+    IMPL --> HTTP[HTTP Repos]
+    IMPL --> STUB[Stub / Local Repos]
+    IMPL --> SVC["Singleton Services<br/>(Quiz, DateIdea, Insights)"]
+  end
+
   BL --> CORE[Core Services]
   CORE --> CACHE[Cache / Offline Queue]
   CORE --> SEC[Security / Input Sanitizer]
   CORE --> ANALYTICS[Analytics / Feature Flags]
   CORE --> NOTIF[Push Notifications]
 ```
+
+**Dependency rule:** Presentation → Domain → Data. Presentation never imports from Data directly. All cubits receive abstract repository interfaces via constructor injection. DI (di.dart) wires concrete implementations to abstract interfaces via `RepositoryProvider<AbstractType>`.
 
 ---
 
@@ -327,6 +353,20 @@ flowchart TD
   MODE --> H[HTTP]
   MODE --> S[Stub]
 
+  subgraph "Domain Interfaces (lib/features/*/domain/repositories/)"
+    AUTH_I[AuthRepository]
+    PROF_I[ProfileRepository]
+    DISC_I[DiscoveryRepository]
+    CHAT_I[ChatRepository]
+    SUB_I[SubscriptionRepository]
+    CALL_I[CallRepository]
+    BOOST_I[BoostRepository]
+    FF_I[FeatureFlagRepository]
+    QUIZ_I[CompatibilityQuizRepository]
+    DATE_I[DateIdeaRepository]
+    INS_I[ProfileInsightsRepository]
+  end
+
   F --> AUTHF[FirebaseAuthRepository]
   F --> PROF[FirebaseProfileRepository]
   F --> DISC[FirebaseDiscoveryRepository]
@@ -334,14 +374,12 @@ flowchart TD
 
   H --> AUTHH[HttpAuthRepository]
   H --> PROH[HttpProfileRepository]
-  H --> DISH[HttpDiscoveryRepository]
-  H --> CHATH[HttpChatRepository]
 
   S --> AUTHS[StubAuthRepository]
   S --> PROS[StubProfileRepository]
-  S --> DISS[StubDiscoveryRepository]
-  S --> CHATS[StubChatRepository]
 ```
+
+All concrete implementations live in `lib/features/*/data/repositories/impl/` or `lib/features/*/data/services/`. Social/analytics features use singleton services that implement domain interfaces.
 
 ---
 
@@ -350,17 +388,42 @@ flowchart TD
 ```
 lib/features/
 ├── auth/                    → Authentication & Sign-up
+│   ├── domain/repositories/   → AuthRepository (abstract)
+│   ├── data/repositories/impl/→ FirebaseAuthRepository, StubAuthRepository
+│   └── presentation/bloc/     → AuthBloc, SessionBloc
 ├── discovery/               → Swiping, Likes You, Weekly Picks
+│   ├── domain/repositories/   → DiscoveryRepository, BoostRepository (abstract)
+│   ├── data/repositories/impl/→ FirebaseDiscoveryRepository
+│   └── presentation/bloc/     → DiscoveryBloc, BoostCubit, WeeklyPicksCubit
 ├── chat/                    → Messaging & Matches
+│   ├── domain/repositories/   → ChatRepository (abstract)
+│   ├── data/repositories/impl/→ FirebaseChatRepository
+│   └── presentation/bloc/     → ChatBloc (facade), sub-BLoCs
 ├── profile/                 → User Profile Management
+│   ├── domain/repositories/   → ProfileRepository (abstract)
+│   ├── data/repositories/impl/→ FirebaseProfileRepository
+│   └── presentation/bloc/     → ProfileBloc
 ├── settings/                → App Settings & Preferences
+│   └── presentation/bloc/     → ThemeCubit, SafetyCubit, LocaleCubit
 ├── calls/                   → Video Calling (Agora)
+│   ├── domain/repositories/   → CallRepository (abstract)
+│   └── presentation/bloc/     → CallBloc
 ├── social/                  → Date Ideas, Compatibility Quiz
+│   ├── domain/repositories/   → DateIdeaRepository, CompatibilityQuizRepository (abstract)
+│   ├── data/services/         → DateIdeaService, CompatibilityQuizService (impl)
+│   └── presentation/bloc/     → DateIdeasCubit, CompatibilityQuizCubit
 ├── analytics/               → Profile Insights & Stats
+│   ├── domain/repositories/   → ProfileInsightsRepository (abstract)
+│   ├── data/services/         → ProfileInsightsService (impl)
+│   └── presentation/bloc/     → ProfileInsightsCubit
 ├── subscription/            → Premium/Plus Management
+│   ├── domain/repositories/   → SubscriptionRepository (abstract)
+│   └── presentation/bloc/     → SubscriptionBloc
 ├── safety/                  → Safety & Blocking
 ├── verification/            → Email/Phone Verification
 └── feature_flags/           → Feature Toggle Management
+    ├── domain/repositories/   → FeatureFlagRepository (abstract)
+    └── presentation/bloc/     → FeatureFlagCubit
 ```
 
 ---
@@ -369,13 +432,16 @@ lib/features/
 
 | Metric | Count |
 |--------|-------|
-| Total Screens | 50+ |
+| Total Screens | 55+ |
 | Feature Modules | 12 |
+| Domain Repository Interfaces | 11 |
 | Onboarding Steps | 4-5 |
 | Bottom Nav Tabs | 4 |
-| Settings Sub-screens | 8 |
+| Settings Sub-screens | 10 |
 | Auth Methods | 3 (Email, Phone, Username) |
-| Routes | 40+ |
+| Routes | 50+ |
+| BLoCs/Cubits | 24+ |
+| Unit Tests | 900+ |
 
 ---
 

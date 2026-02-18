@@ -4,6 +4,8 @@ Tracking active and completed AI tasks for the CRUSH app.
 
 | Task ID | Date | Title | Status | Notes |
 | --- | --- | --- | --- | --- |
+| T-2026-02-18-10 | 2026-02-18 | CR-AUD-027b: Domain layer for Profile/Discovery/Boost repos | Completed | 3 abstract classes moved to domain; 5 presentation imports updated; re-exports for backward compat |
+| T-2026-02-18-09 | 2026-02-18 | Next.js Bundle Analysis (crush-web) | Completed | Client JS: 2.15 MB uncompressed across 70 chunks; Firebase SDK largest at ~329 KB; 8 optimization recommendations provided |
 | T-2026-02-01-01 | 2026-02-01 | Phase 5 dependency updates (major versions) | Completed | Updated toolchain minimums; verified analyze output |
 | T-2026-02-01-02 | 2026-02-01 | Lint cleanup + toolchain pinning | Completed | Fixed new lints; pinned CI Flutter 3.35.0; analyze clean |
 | T-2026-02-01-03 | 2026-02-01 | Integration test failures (localization + auth UI) | In progress | Switched l10n lookup to lookupAppLocalizations; integration test rerun still timing out after build/install |
@@ -61,3 +63,15 @@ Tracking active and completed AI tasks for the CRUSH app.
 | T-2026-02-13-10 | 2026-02-13 | CR-AUD-028: ChatBloc split into sub-BLoCs | Completed | RealtimeStateCubit + ChatSessionCubit + MessageHandlingBloc; ChatBloc rewritten as facade; ChatSubBlocChanged event-based aggregation; 0 warnings; 20/20 chat_bloc tests pass |
 | T-2026-02-13-11 | 2026-02-13 | CR-AUD-029: Write last 2 cubit tests | Completed | MessageRequestsCubit + WeeklyPicksCubit tests written; 24/24 BLoCs now covered |
 | T-2026-02-13-12 | 2026-02-13 | Final P1 verification: analyze + test | Completed | 1058 tests passing, 6 skipped, 0 failures; flutter analyze: 0 errors, 0 warnings, 7 infos |
+| T-2026-02-18-01 | 2026-02-18 | CR-AUD-034: Extract shared DTOs to common layer | Completed | 10 shared DTOs moved to lib/shared/dto/; barrel file created; re-exports for backward compatibility; 1323 tests pass; 0 new analyzer issues |
+| T-2026-02-18-02 | 2026-02-18 | CR-AUD-035: Standardize error handling with Result pattern | Completed | Enhanced Result<T> with helper methods; added Result-returning methods to auth (5) and chat (8) repo implementations; 0 errors; 1323 tests pass |
+| T-2026-02-18-03 | 2026-02-18 | CR-AUD-030/031/032: P2 Security (storage rules, email verify, App Check) | Completed | Match-membership verification in storage rules; email verification server-side; App Check on remaining callables |
+| T-2026-02-18-04 | 2026-02-18 | CR-AUD-040: Set up web unit test framework (Vitest) | Completed | Vitest + jsdom + @testing-library; 34 tests: rate-limit (10), CSRF (7), accessibility (17) |
+| T-2026-02-18-05 | 2026-02-18 | CR-AUD-039: Optimize web images with next/image | Completed | 9 TSX files: replaced raw img tags with Next.js Image component; WebP, lazy loading, responsive sizes |
+| T-2026-02-18-06 | 2026-02-18 | CR-AUD-038: Message list virtualization | Completed | react-virtuoso in chat-room.tsx; smooth prepend, auto-follow, startReached pagination |
+| T-2026-02-18-07 | 2026-02-18 | CR-AUD-011: Dependency upgrade sweep | Completed | Flutter 69 packages upgraded; Node.js functions updated; 1323 Flutter tests + 11 function tests passing |
+| T-2026-02-18-08 | 2026-02-18 | P3-ARCH-001: Split router.dart into modular route files | Completed | 6 new files in lib/core/routing/; router.dart 885→320 lines; 1323 tests pass; 0 analyzer issues |
+| T-2026-02-18-09 | 2026-02-18 | Generate comprehensive API contract catalog | Completed | docs/API_CATALOG.md: 40 callables, 29 REST endpoints, 1 webhook, 5 Firestore triggers, 3 scheduled functions |
+| T-2026-02-18-11 | 2026-02-18 | CR-AUD-027c: Clean architecture refactor (Subscription/Calls/FeatureFlags) | Completed | 3 domain repo files created; 3 data files replaced with re-exports; 7 presentation imports fixed; 0 new analyzer errors |
+| T-2026-02-18-12 | 2026-02-18 | CR-AUD-027d: Clean architecture refactor (Social/Analytics + DI) | Completed | 3 domain interfaces created; 3 services implement interfaces; DI updated with all domain imports + 6 new providers; 14 test fixes; PhotoPerformance moved to models; 0 analyzer errors |
+| T-2026-02-18-13 | 2026-02-18 | P1-ARCH-001 FULLY RESOLVED | Completed | All features now use domain-layer interfaces: auth, chat, profile, discovery, boost, subscription, calls, feature_flags, social, analytics. Audit finding updated to RESOLVED. |

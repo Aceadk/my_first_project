@@ -1,8 +1,9 @@
 import 'dart:async';
 import '../models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
 
 /// Service for managing compatibility quizzes between matches.
-class CompatibilityQuizService {
+class CompatibilityQuizService implements CompatibilityQuizRepository {
   CompatibilityQuizService._();
   static final CompatibilityQuizService instance = CompatibilityQuizService._();
 

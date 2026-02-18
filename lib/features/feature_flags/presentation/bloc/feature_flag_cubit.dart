@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/feature_flags.dart';
-import '../../data/repositories/feature_flag_repository.dart';
+import 'package:crushhour/features/feature_flags/data/models/feature_flags.dart';
+import '../../domain/repositories/feature_flag_repository.dart';
 
 /// Cubit for managing feature flag state reactively.
 ///

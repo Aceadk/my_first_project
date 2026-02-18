@@ -92,3 +92,88 @@ Current baseline:
   - `lib/features/chat/data/repositories/impl/stub_chat_repository.dart`: **61.22%** (`150/245`)
   - Raw evidence: `audit/raw/coverage_targeted_delta_raw.csv`
   - Integration blocker log: `audit/raw/cr_aud_008_integration_blocker_2026-02-13_raw.txt`
+
+## Tranche Update (2026-02-17, router/realtime/tracking)
+
+- `lib/core/router.dart`: **67.88%** (`224/330`) in focused coverage run
+- `lib/features/discovery/data/services/realtime_match_service.dart`: **88.14%** (`52/59`)
+- `lib/core/services/tracking_consent_service.dart`: **93.33%** (`28/30`)
+- Delta appended to: `audit/raw/coverage_targeted_delta_raw.csv`
+- Raw evidence: `audit/raw/coverage_cr_aud_006_router_realtime_tracking_round4_2026-02-17_raw.csv`
+
+## Tranche Update (2026-02-17, CR-AUD-008 deterministic flow assertions)
+
+- Strengthened deterministic integration-surrogate checkpoints in:
+  - `test/e2e_onboarding_discovery_chat_safety_flow_test.dart`
+- New assertions now cover:
+  - onboarding completion state transitions (`terms -> basic info -> profile setup`)
+  - discovery deck mutation after swipe (matched profile no longer appears)
+  - reciprocal match persistence for both users
+  - chat realtime signals (typing, presence, media toggle) with deterministic setup (auto-reply disabled)
+  - `watchNewMessages` checkpoint event verification
+  - report/block persistence integrity (single report entry, valid timestamp, idempotent block set)
+- Validation:
+  - `flutter test test/e2e_onboarding_discovery_chat_safety_flow_test.dart -r expanded` (green)
+
+## Tranche Update (2026-02-17, CR-AUD-008 integration_test deterministic expansion)
+
+- Strengthened integration flow checkpoints in:
+  - `integration_test/e2e_onboarding_discovery_chat_safety_test.dart`
+- Added deterministic integration harness behavior in:
+  - `integration_test/test_app.dart`
+- New integration assertions now cover:
+  - post-signup onboarding baseline + stepwise state transitions across terms/basic/profile setup
+  - deterministic candidate-to-match correlation (deck candidate ID -> resulting match ID/user IDs)
+  - discovery side effects after like (matched candidate removed from deck + reciprocal match persistence)
+  - realtime chat state signals (typing/presence/media toggle streams) via repository-level checkpoints
+  - deterministic chat message checkpoints (`watchMessages`, `watchNewMessages`, paginated persistence, read state)
+  - safety persistence integrity (single report row, parseable timestamp, idempotent block set)
+- Validation:
+  - `flutter analyze integration_test/e2e_onboarding_discovery_chat_safety_test.dart integration_test/test_app.dart` (green)
+  - `flutter test test/e2e_onboarding_discovery_chat_safety_flow_test.dart -r expanded` (green)
+  - `flutter test integration_test/e2e_onboarding_discovery_chat_safety_test.dart -d macos -r expanded` (blocked in local runner: macOS build can hang and/or fail due build-db lock contention; requires CI/device harness lane)
+
+## Tranche Update (2026-02-17, CR-AUD-006 next hotspot pass: stub profile + user model)
+
+- Added focused hotspot tests:
+  - `test/stub_profile_repository_hotspot_test.dart`
+  - `test/user_model_hotspot_test.dart`
+- Branches covered in `StubProfileRepository`:
+  - auth preconditions and missing storage states
+  - basic-info validation/sanitization and username cooldown enforcement
+  - profile-details preconditions and persistence
+  - ID verification transitions
+  - profile/theme updates
+  - skip flows (`skipBasicInfo`, `skipProfileSetup`) including cooldown and input validation paths
+- Coverage evidence (targeted run):
+  - `lib/features/profile/data/repositories/impl/stub_profile_repository.dart`: **94.58%** (`262/277`) from **66.43%**
+  - `lib/data/models/user.dart`: **69.09%** (`38/55`) in targeted-only run (full-suite comparable percentage pending)
+  - Raw: `audit/raw/coverage_cr_aud_006_stub_profile_user_round5_2026-02-17_raw.csv`
+  - Delta appended: `audit/raw/coverage_targeted_delta_raw.csv`
+- Validation:
+  - `flutter test test/stub_profile_repository_hotspot_test.dart test/user_model_hotspot_test.dart -r expanded` (green)
+  - `flutter test --coverage test/stub_profile_repository_hotspot_test.dart test/user_model_hotspot_test.dart` (green)
+  - Full-suite `flutter test --coverage` attempted but aborted due excessive runtime for this tranche; use CI lane for canonical aggregate figures
+
+## Tranche Update (2026-02-17, CR-AUD-006 hotspot continuation: crash/auth + deterministic chat time)
+
+- Determinism hardening applied in:
+  - `lib/features/chat/data/repositories/impl/stub_chat_repository.dart`
+  - Replaced remaining `DateTime.now()` branches with injected clock provider for:
+    - report timestamp persistence
+    - safety appeal timestamp persistence
+    - message-request prune cutoff
+    - migrated message IDs
+- Hotspot tests adjusted for deterministic time-seeded pruning:
+  - `test/stub_chat_repository_hotspot_test.dart`
+- Coverage evidence (combined targeted run):
+  - `lib/core/services/crash_reporting_service.dart`: **76.27%** (`90/118`) from **44.30%**
+  - `lib/features/auth/data/repositories/impl/stub_auth_repository.dart`: **94.99%** (`360/379`) from **51.45%**
+  - `lib/features/chat/data/repositories/impl/stub_chat_repository.dart`: **95.92%** (`376/392`) from **61.22%**
+  - `lib/features/profile/data/services/profile_media_service.dart`: **84.21%** (`96/114`) from **61.39%**
+  - Raw: `audit/raw/coverage_cr_aud_006_hotspots_round6_2026-02-17_raw.csv`
+  - Delta appended: `audit/raw/coverage_targeted_delta_raw.csv`
+- Validation:
+  - `flutter analyze lib/features/chat/data/repositories/impl/stub_chat_repository.dart test/stub_chat_repository_hotspot_test.dart` (green)
+  - `flutter test test/stub_chat_repository_hotspot_test.dart test/profile_media_service_hotspot_test.dart -r expanded` (green)
+  - `flutter test --coverage test/profile_media_service_hotspot_test.dart test/stub_chat_repository_hotspot_test.dart test/crash_reporting_service_test.dart test/stub_auth_repository_hotspot_test.dart` (green)

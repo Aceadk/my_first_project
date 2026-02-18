@@ -89,12 +89,16 @@ class _ContentReactionButtonState extends State<ContentReactionButton>
       clipBehavior: Clip.none,
       children: [
         // Main button
-        GestureDetector(
-          onTap: _toggleReactions,
-          child: _GlassIconButton(
-            icon: Icons.add_reaction_outlined,
-            size: buttonSize,
-            isActive: _showReactions,
+        Semantics(
+          button: true,
+          label: 'Add reaction',
+          child: GestureDetector(
+            onTap: _toggleReactions,
+            child: _GlassIconButton(
+              icon: Icons.add_reaction_outlined,
+              size: buttonSize,
+              isActive: _showReactions,
+            ),
           ),
         ),
 

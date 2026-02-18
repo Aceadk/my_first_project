@@ -276,3 +276,18 @@ class DemographicBreakdown extends Equatable {
   @override
   List<Object?> get props => [ageRanges, topLocations, genderSplit];
 }
+
+/// Photo performance data.
+class PhotoPerformance {
+  const PhotoPerformance({
+    required this.photoIndex,
+    required this.views,
+    required this.likes,
+    required this.likeRate,
+  });
+
+  final int photoIndex;
+  final int views;
+  final int likes;
+  final double likeRate;
+}

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';

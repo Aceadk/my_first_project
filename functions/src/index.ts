@@ -6241,7 +6241,8 @@ app.get(
 // =============================================================================
 
 const DELETION_GRACE_PERIOD_DAYS = 14;
-const DEACTIVATION_AUTO_DELETE_DAYS = 180;
+// Reserved for future scheduled auto-deletion of deactivated accounts
+// const DEACTIVATION_AUTO_DELETE_DAYS = 180;
 
 /**
  * Helper: Cascading deletion of all user data across Firestore, RTDB, Storage, and Auth.

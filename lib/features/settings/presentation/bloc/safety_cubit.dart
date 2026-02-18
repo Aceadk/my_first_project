@@ -5,7 +5,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 
 /// Minimal profile info for safety displays (blocked users, etc.)
 class SafetyProfileInfo {

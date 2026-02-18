@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../data/repositories/call_repository.dart';
+import '../../domain/repositories/call_repository.dart';
 
 abstract class CallEvent extends Equatable {
   @override

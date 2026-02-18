@@ -62,7 +62,7 @@ class MessageHandlingState extends Equatable {
     bool? isLoadingMore,
     bool? hasMoreMessages,
     SendStatus? sendStatus,
-    String? uploadingAttachmentName,
+    Object? uploadingAttachmentName = _unset,
     bool? isUnsendInProgress,
     bool? isEditInProgress,
     bool? canUnsend,
@@ -77,8 +77,9 @@ class MessageHandlingState extends Equatable {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
       sendStatus: sendStatus ?? this.sendStatus,
-      uploadingAttachmentName:
-          uploadingAttachmentName ?? this.uploadingAttachmentName,
+      uploadingAttachmentName: identical(uploadingAttachmentName, _unset)
+          ? this.uploadingAttachmentName
+          : uploadingAttachmentName as String?,
       isUnsendInProgress: isUnsendInProgress ?? this.isUnsendInProgress,
       isEditInProgress: isEditInProgress ?? this.isEditInProgress,
       canUnsend: canUnsend ?? this.canUnsend,
@@ -89,22 +90,24 @@ class MessageHandlingState extends Equatable {
     );
   }
 
+  static const _unset = Object();
+
   @override
   List<Object?> get props => [
-        messages,
-        failedMessages,
-        isInitialLoading,
-        isLoadingMore,
-        hasMoreMessages,
-        sendStatus,
-        uploadingAttachmentName,
-        isUnsendInProgress,
-        isEditInProgress,
-        canUnsend,
-        canEdit,
-        canSeeReadReceipts,
-        errorMessage,
-      ];
+    messages,
+    failedMessages,
+    isInitialLoading,
+    isLoadingMore,
+    hasMoreMessages,
+    sendStatus,
+    uploadingAttachmentName,
+    isUnsendInProgress,
+    isEditInProgress,
+    canUnsend,
+    canEdit,
+    canSeeReadReceipts,
+    errorMessage,
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -162,8 +165,14 @@ class MsgMediaSendRequested extends MessageHandlingEvent {
   });
 
   @override
-  List<Object?> get props =>
-      [matchId, fromUserId, toUserId, filePath, type, mediaSendingEnabled];
+  List<Object?> get props => [
+    matchId,
+    fromUserId,
+    toUserId,
+    filePath,
+    type,
+    mediaSendingEnabled,
+  ];
 }
 
 class MsgUnsendRequested extends MessageHandlingEvent {
@@ -314,12 +323,14 @@ class MessageHandlingBloc
     MsgInitialLoadRequested event,
     Emitter<MessageHandlingState> emit,
   ) async {
-    emit(state.copyWith(
-      isInitialLoading: true,
-      messages: const [],
-      hasMoreMessages: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        isInitialLoading: true,
+        messages: const [],
+        hasMoreMessages: true,
+        errorMessage: null,
+      ),
+    );
 
     _sub?.cancel();
     _newMessagesSub?.cancel();
@@ -330,10 +341,12 @@ class MessageHandlingBloc
       fallbackError: 'Could not load chat.',
     );
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        errorMessage: planResult.errorMessage,
-        isInitialLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: planResult.errorMessage,
+          isInitialLoading: false,
+        ),
+      );
       return;
     }
     final plan = planResult.data ?? SubscriptionPlan.free;
@@ -351,40 +364,46 @@ class MessageHandlingBloc
     if (initialResult.isSuccess && initialResult.data != null) {
       final paginated = initialResult.data!;
       final decrypted = await _maybeDecryptMessages(paginated.items);
-      emit(state.copyWith(
-        messages: decrypted,
-        hasMoreMessages: paginated.hasMore,
-        isInitialLoading: false,
-        canUnsend: plan.isPlus,
-        canEdit: plan.isPlus,
-        canSeeReadReceipts: plan.isPlus,
-      ));
+      emit(
+        state.copyWith(
+          messages: decrypted,
+          hasMoreMessages: paginated.hasMore,
+          isInitialLoading: false,
+          canUnsend: plan.isPlus,
+          canEdit: plan.isPlus,
+          canSeeReadReceipts: plan.isPlus,
+        ),
+      );
 
       // Watch for NEW messages only (after initial load)
-      final latestTimestamp =
-          decrypted.isNotEmpty ? decrypted.last.sentAt : DateTime.now();
+      final latestTimestamp = decrypted.isNotEmpty
+          ? decrypted.last.sentAt
+          : DateTime.now();
       _newMessagesSub = chatRepository
           .watchNewMessages(event.matchId, afterTimestamp: latestTimestamp)
           .listen((newMessages) {
-        if (newMessages.isNotEmpty) {
-          add(MsgNewMessagesReceived(newMessages));
-        }
-      });
+            if (newMessages.isNotEmpty) {
+              add(MsgNewMessagesReceived(newMessages));
+            }
+          });
     } else {
       // Fallback to legacy stream if pagination fails
       AppLogger.debug(
-          'MessageHandlingBloc: Pagination failed, falling back to legacy watchMessages');
+        'MessageHandlingBloc: Pagination failed, falling back to legacy watchMessages',
+      );
       _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
         add(MsgLegacyMessagesUpdated(messages, plan));
       });
-      emit(state.copyWith(
-        isInitialLoading: false,
-        hasMoreMessages: false,
-        canUnsend: plan.isPlus,
-        canEdit: plan.isPlus,
-        canSeeReadReceipts: plan.isPlus,
-        errorMessage: initialResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          isInitialLoading: false,
+          hasMoreMessages: false,
+          canUnsend: plan.isPlus,
+          canEdit: plan.isPlus,
+          canSeeReadReceipts: plan.isPlus,
+          errorMessage: initialResult.errorMessage,
+        ),
+      );
     }
 
     // Track conversation opened
@@ -426,11 +445,13 @@ class MessageHandlingBloc
     final pendingMessages = Map<String, Message>.from(state.failedMessages);
     pendingMessages[tempId] = optimisticMessage;
 
-    emit(state.copyWith(
-      sendStatus: SendStatus.sendingText,
-      errorMessage: null,
-      failedMessages: pendingMessages,
-    ));
+    emit(
+      state.copyWith(
+        sendStatus: SendStatus.sendingText,
+        errorMessage: null,
+        failedMessages: pendingMessages,
+      ),
+    );
 
     final result = await Result.guard(
       () => chatRepository.sendMessage(
@@ -460,20 +481,21 @@ class MessageHandlingBloc
       );
       final newPending = Map<String, Message>.from(state.failedMessages);
       newPending.remove(tempId);
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        failedMessages: newPending,
-      ));
+      emit(
+        state.copyWith(sendStatus: SendStatus.idle, failedMessages: newPending),
+      );
     } else {
       final newFailed = Map<String, Message>.from(state.failedMessages);
       newFailed[tempId] = optimisticMessage.copyWith(
         sendStatus: MessageSendStatus.failed,
       );
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        errorMessage: result.errorMessage,
-        failedMessages: newFailed,
-      ));
+      emit(
+        state.copyWith(
+          sendStatus: SendStatus.idle,
+          errorMessage: result.errorMessage,
+          failedMessages: newFailed,
+        ),
+      );
     }
   }
 
@@ -484,18 +506,22 @@ class MessageHandlingBloc
     Emitter<MessageHandlingState> emit,
   ) async {
     if (!event.mediaSendingEnabled) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-        errorMessage: 'Media sending is disabled for this match.',
-      ));
+      emit(
+        state.copyWith(
+          sendStatus: SendStatus.idle,
+          uploadingAttachmentName: null,
+          errorMessage: 'Media sending is disabled for this match.',
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      sendStatus: SendStatus.uploadingAttachment,
-      uploadingAttachmentName: _filename(event.filePath),
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        sendStatus: SendStatus.uploadingAttachment,
+        uploadingAttachmentName: _filename(event.filePath),
+        errorMessage: null,
+      ),
+    );
     final planResult = await Result.guard(
       () => subscriptionRepository.getCurrentPlan(),
       logLabel: 'SubscriptionRepository.getCurrentPlan',
@@ -503,20 +529,24 @@ class MessageHandlingBloc
     );
     final plan = planResult.data ?? SubscriptionPlan.free;
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-        errorMessage: planResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          sendStatus: SendStatus.idle,
+          uploadingAttachmentName: null,
+          errorMessage: planResult.errorMessage,
+        ),
+      );
       return;
     }
     if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-        errorMessage:
-            'Media limit reached. Upgrade to Plus for unlimited media.',
-      ));
+      emit(
+        state.copyWith(
+          sendStatus: SendStatus.idle,
+          uploadingAttachmentName: null,
+          errorMessage:
+              'Media limit reached. Upgrade to Plus for unlimited media.',
+        ),
+      );
       return;
     }
 
@@ -532,11 +562,13 @@ class MessageHandlingBloc
     );
     final url = uploadResult.data;
     if (!uploadResult.isSuccess || url == null) {
-      emit(state.copyWith(
-        sendStatus: SendStatus.idle,
-        uploadingAttachmentName: null,
-        errorMessage: uploadResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          sendStatus: SendStatus.idle,
+          uploadingAttachmentName: null,
+          errorMessage: uploadResult.errorMessage,
+        ),
+      );
       return;
     }
 
@@ -560,11 +592,13 @@ class MessageHandlingBloc
       );
     }
 
-    emit(state.copyWith(
-      sendStatus: SendStatus.idle,
-      uploadingAttachmentName: null,
-      errorMessage: sendResult.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        sendStatus: SendStatus.idle,
+        uploadingAttachmentName: null,
+        errorMessage: sendResult.errorMessage,
+      ),
+    );
   }
 
   // ---- Unsend ----
@@ -582,17 +616,21 @@ class MessageHandlingBloc
     );
     final plan = planResult.data ?? SubscriptionPlan.free;
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        isUnsendInProgress: false,
-        errorMessage: planResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          isUnsendInProgress: false,
+          errorMessage: planResult.errorMessage,
+        ),
+      );
       return;
     }
     if (!plan.isPlus) {
-      emit(state.copyWith(
-        isUnsendInProgress: false,
-        errorMessage: 'Upgrade to Plus to unsend messages.',
-      ));
+      emit(
+        state.copyWith(
+          isUnsendInProgress: false,
+          errorMessage: 'Upgrade to Plus to unsend messages.',
+        ),
+      );
       return;
     }
 
@@ -604,10 +642,12 @@ class MessageHandlingBloc
       logLabel: 'ChatRepository.unsendMessage',
       fallbackError: 'Could not unsend message.',
     );
-    emit(state.copyWith(
-      isUnsendInProgress: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        isUnsendInProgress: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   // ---- Edit ----
@@ -625,17 +665,21 @@ class MessageHandlingBloc
     );
     final plan = planResult.data ?? SubscriptionPlan.free;
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        isEditInProgress: false,
-        errorMessage: planResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          isEditInProgress: false,
+          errorMessage: planResult.errorMessage,
+        ),
+      );
       return;
     }
     if (!plan.isPlus) {
-      emit(state.copyWith(
-        isEditInProgress: false,
-        errorMessage: 'Upgrade to Plus to edit messages.',
-      ));
+      emit(
+        state.copyWith(
+          isEditInProgress: false,
+          errorMessage: 'Upgrade to Plus to edit messages.',
+        ),
+      );
       return;
     }
 
@@ -651,13 +695,16 @@ class MessageHandlingBloc
 
     if (result.isSuccess) {
       AppLogger.debug(
-          'MessageHandlingBloc: Message edited in match ${event.matchId}');
+        'MessageHandlingBloc: Message edited in match ${event.matchId}',
+      );
     }
 
-    emit(state.copyWith(
-      isEditInProgress: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        isEditInProgress: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   // ---- Delete For Me ----
@@ -731,8 +778,9 @@ class MessageHandlingBloc
 
     emit(state.copyWith(isLoadingMore: true));
 
-    final oldestMessage =
-        state.messages.isNotEmpty ? state.messages.first : null;
+    final oldestMessage = state.messages.isNotEmpty
+        ? state.messages.first
+        : null;
     final beforeTimestamp = oldestMessage?.sentAt;
 
     final result = await Result.guard(
@@ -749,16 +797,17 @@ class MessageHandlingBloc
       final paginated = result.data!;
       final decrypted = await _maybeDecryptMessages(paginated.items);
       final allMessages = [...decrypted, ...state.messages];
-      emit(state.copyWith(
-        messages: allMessages,
-        isLoadingMore: false,
-        hasMoreMessages: paginated.hasMore,
-      ));
+      emit(
+        state.copyWith(
+          messages: allMessages,
+          isLoadingMore: false,
+          hasMoreMessages: paginated.hasMore,
+        ),
+      );
     } else {
-      emit(state.copyWith(
-        isLoadingMore: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(isLoadingMore: false, errorMessage: result.errorMessage),
+      );
     }
   }
 
@@ -771,13 +820,13 @@ class MessageHandlingBloc
     if (event.newMessages.isEmpty) return;
 
     final existingIds = state.messages.map((m) => m.id).toSet();
-    final uniqueNewMessages =
-        event.newMessages.where((m) => !existingIds.contains(m.id)).toList();
+    final uniqueNewMessages = event.newMessages
+        .where((m) => !existingIds.contains(m.id))
+        .toList();
 
     if (uniqueNewMessages.isEmpty) return;
 
-    final decryptedNewMessages =
-        await _maybeDecryptMessages(uniqueNewMessages);
+    final decryptedNewMessages = await _maybeDecryptMessages(uniqueNewMessages);
     final allMessages = [...state.messages, ...decryptedNewMessages];
     emit(state.copyWith(messages: allMessages));
   }
@@ -791,8 +840,9 @@ class MessageHandlingBloc
     final decryptedMessages = await _maybeDecryptMessages(event.messages);
 
     // Remove optimistic messages that now have real counterparts from server
-    final updatedFailedMessages =
-        Map<String, Message>.from(state.failedMessages);
+    final updatedFailedMessages = Map<String, Message>.from(
+      state.failedMessages,
+    );
     final serverMessageSignatures = decryptedMessages
         .map((m) => '${m.fromUserId}_${m.content}_${m.type.name}')
         .toSet();
@@ -802,8 +852,7 @@ class MessageHandlingBloc
           '${optimisticMsg.fromUserId}_${optimisticMsg.content}_${optimisticMsg.type.name}';
       if (serverMessageSignatures.contains(signature)) {
         final matchingServerMsg = decryptedMessages.firstWhere(
-          (m) =>
-              '${m.fromUserId}_${m.content}_${m.type.name}' == signature,
+          (m) => '${m.fromUserId}_${m.content}_${m.type.name}' == signature,
           orElse: () => optimisticMsg,
         );
         final timeDiff = matchingServerMsg.sentAt
@@ -815,13 +864,15 @@ class MessageHandlingBloc
       return false;
     });
 
-    emit(state.copyWith(
-      messages: decryptedMessages,
-      canUnsend: event.plan.isPlus,
-      canEdit: event.plan.isPlus,
-      canSeeReadReceipts: event.plan.isPlus,
-      failedMessages: updatedFailedMessages,
-    ));
+    emit(
+      state.copyWith(
+        messages: decryptedMessages,
+        canUnsend: event.plan.isPlus,
+        canEdit: event.plan.isPlus,
+        canSeeReadReceipts: event.plan.isPlus,
+        failedMessages: updatedFailedMessages,
+      ),
+    );
   }
 
   // ---- Retry ----
@@ -832,9 +883,11 @@ class MessageHandlingBloc
   ) async {
     final failedMessage = state.failedMessages[event.messageId];
     if (failedMessage == null) {
-      emit(state.copyWith(
-        errorMessage: 'Message not found. It may have already been sent.',
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: 'Message not found. It may have already been sent.',
+        ),
+      );
       return;
     }
 
@@ -842,11 +895,13 @@ class MessageHandlingBloc
     updatedFailed[event.messageId] = failedMessage.copyWith(
       sendStatus: MessageSendStatus.sending,
     );
-    emit(state.copyWith(
-      failedMessages: updatedFailed,
-      sendStatus: SendStatus.sendingText,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        failedMessages: updatedFailed,
+        sendStatus: SendStatus.sendingText,
+        errorMessage: null,
+      ),
+    );
 
     final result = await Result.guard(
       () => chatRepository.sendMessage(
@@ -863,10 +918,9 @@ class MessageHandlingBloc
     if (result.isSuccess) {
       final newFailed = Map<String, Message>.from(state.failedMessages);
       newFailed.remove(event.messageId);
-      emit(state.copyWith(
-        failedMessages: newFailed,
-        sendStatus: SendStatus.idle,
-      ));
+      emit(
+        state.copyWith(failedMessages: newFailed, sendStatus: SendStatus.idle),
+      );
 
       AnalyticsService.instance.logMessageSent(
         matchId: failedMessage.matchId,
@@ -877,11 +931,13 @@ class MessageHandlingBloc
       newFailed[event.messageId] = failedMessage.copyWith(
         sendStatus: MessageSendStatus.failed,
       );
-      emit(state.copyWith(
-        failedMessages: newFailed,
-        sendStatus: SendStatus.idle,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          failedMessages: newFailed,
+          sendStatus: SendStatus.idle,
+          errorMessage: result.errorMessage,
+        ),
+      );
     }
   }
 
@@ -900,15 +956,18 @@ class MessageHandlingBloc
 
   int _mediaCountForUser(String userId) {
     return state.messages
-        .where((m) =>
-            m.fromUserId == userId &&
-            (m.type == MessageType.image || m.type == MessageType.video))
+        .where(
+          (m) =>
+              m.fromUserId == userId &&
+              (m.type == MessageType.image || m.type == MessageType.video),
+        )
         .length;
   }
 
   Future<List<Message>> _maybeDecryptMessages(List<Message> messages) async {
     if (messages.isEmpty) return messages;
-    final shouldAttemptDecrypt = chatRepository.isE2eeEnabled ||
+    final shouldAttemptDecrypt =
+        chatRepository.isE2eeEnabled ||
         messages.any((m) => chatRepository.isEncryptedContent(m.content));
     if (!shouldAttemptDecrypt) return messages;
     return Future.wait(messages.map(chatRepository.decryptMessage));

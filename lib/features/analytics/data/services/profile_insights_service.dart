@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import '../models/profile_insights.dart';
+import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 
 /// Service for managing profile insights and analytics.
-class ProfileInsightsService {
+class ProfileInsightsService implements ProfileInsightsRepository {
   ProfileInsightsService._();
   static final ProfileInsightsService instance = ProfileInsightsService._();
 
@@ -180,17 +181,3 @@ class ProfileInsightsService {
   }
 }
 
-/// Photo performance data.
-class PhotoPerformance {
-  const PhotoPerformance({
-    required this.photoIndex,
-    required this.views,
-    required this.likes,
-    required this.likeRate,
-  });
-
-  final int photoIndex;
-  final int views;
-  final int likes;
-  final double likeRate;
-}

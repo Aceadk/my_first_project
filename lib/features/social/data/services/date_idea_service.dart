@@ -1,8 +1,9 @@
 import 'dart:async';
 import '../models/date_idea.dart';
+import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
 
 /// Service for managing date idea suggestions.
-class DateIdeaService {
+class DateIdeaService implements DateIdeaRepository {
   DateIdeaService._();
   static final DateIdeaService instance = DateIdeaService._();
 

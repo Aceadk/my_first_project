@@ -29,6 +29,7 @@
 |  |  Use Cases (77)           |                                         |
 |  |  Entity Definitions       |   +---------------------------+         |
 |  |  Repository Interfaces    |   |     EXTERNAL SERVICES      |         |
+|  |    (11 abstract classes)  |   |                           |         |
 |  |                           |   |                           |         |
 |  +-----------+---------------+   |  Firebase Auth             |         |
 |              |                   |  Cloud Firestore           |         |
@@ -333,8 +334,8 @@ ACTUAL (73 violations):
 ## 7. Required Remediation
 
 ### Architecture
-- [ ] Split router.dart into modular route files by feature domain
-- [ ] Fix 73 presentation-to-data layer violations (introduce domain-layer intermediaries)
+- [x] Split router.dart into modular route files by feature domain (CR-AUD-027, P3-ARCH-001)
+- [x] Fix 73 presentation-to-data layer violations — 11 domain repository interfaces created, all presentation imports fixed (CR-AUD-027/027b/027c/027d, P1-ARCH-001)
 - [ ] Split ChatBloc into sub-BLoCs (target: under 300 LOC each)
 - [ ] Extract shared DTOs to common layer
 - [ ] Standardize error handling on Result/Either pattern

@@ -4,6 +4,449 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+### [2026-02-18] Task: CR-AUD-027d — Clean Architecture Refactor for Social/Analytics Features + DI + Tests
+**Summary:**
+- Created abstract domain interfaces for 3 singleton services: CompatibilityQuizService → CompatibilityQuizRepository, DateIdeaService → DateIdeaRepository, ProfileInsightsService → ProfileInsightsRepository
+- Made concrete services implement their abstract interfaces
+- Moved PhotoPerformance class from service file to models file (proper data layer placement)
+- Updated all 3 cubits to use constructor injection with abstract repository types
+- Updated di.dart: changed all repository imports to domain paths, added 3 RepositoryProviders + 3 BlocProviders for social/analytics
+- Fixed use case import for PhotoPerformance (get_photo_performance.dart)
+- Fixed all test files with new required constructor parameters (14 instances)
+
+**Files Added:**
+- `lib/features/social/domain/repositories/compatibility_quiz_repository.dart` — abstract interface
+- `lib/features/social/domain/repositories/date_idea_repository.dart` — abstract interface
+- `lib/features/analytics/domain/repositories/profile_insights_repository.dart` — abstract interface
+
+**Files Modified:**
+- `lib/features/social/data/services/compatibility_quiz_service.dart` — added `implements CompatibilityQuizRepository`
+- `lib/features/social/data/services/date_idea_service.dart` — added `implements DateIdeaRepository`
+- `lib/features/analytics/data/services/profile_insights_service.dart` — added `implements ProfileInsightsRepository`, removed PhotoPerformance class
+- `lib/features/analytics/data/models/profile_insights.dart` — added PhotoPerformance class
+- `lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart` — constructor injection, domain import
+- `lib/features/social/presentation/bloc/date_ideas_cubit.dart` — constructor injection, domain import
+- `lib/features/analytics/presentation/bloc/profile_insights_cubit.dart` — constructor injection, domain import
+- `lib/features/analytics/domain/usecases/get_photo_performance.dart` — fixed import for PhotoPerformance + use abstract type
+- `lib/core/di.dart` — all repository imports changed to domain paths, added 6 new providers
+- `test/profile_insights_cubit_test.dart` — added insightsRepository param (14 instances)
+- `test/social_cubits_test.dart` — added dateIdeaRepository and quizRepository params (2 instances)
+
+**Risks & Mitigations:**
+- Risk: Singleton services still accessed directly in DI. Mitigation: Re-export pattern at old paths ensures backward compat.
+- Risk: Tests use concrete service instances. Mitigation: Constructor injection enables mock injection for future test improvements.
+
+**Follow-ups / TODO:**
+- P3-QUAL-001: Update project diagrams for architecture changes
+
+---
+
+### [2026-02-18] Task: CR-AUD-027c — Clean Architecture Refactor for Subscription/Calls/FeatureFlags Repositories
+**Summary:**
+- Moved abstract repository classes for Subscription, Calls, and FeatureFlags from data layer to domain layer
+- Created domain/repositories/ directories for all three features
+- Replaced original data-layer files with re-exports for backward compatibility
+- Updated 7 presentation files to import from domain layer instead of data layer
+- Fixed cross-feature imports in Settings cubits (theme_cubit → profile domain, safety_cubit → discovery domain)
+
+**Files Added:**
+- `lib/features/subscription/domain/repositories/subscription_repository.dart` — abstract SubscriptionRepository (canonical location)
+- `lib/features/calls/domain/repositories/call_repository.dart` — abstract CallRepository + CallSession + CallEngineEventType + CallEngineEvent
+- `lib/features/feature_flags/domain/repositories/feature_flag_repository.dart` — abstract FeatureFlagRepository
+
+**Files Modified:**
+- `lib/features/subscription/data/repositories/subscription_repository.dart` — replaced with re-export
+- `lib/features/calls/data/repositories/call_repository.dart` — replaced with re-export
+- `lib/features/feature_flags/data/repositories/feature_flag_repository.dart` — replaced with re-export
+- `lib/features/subscription/presentation/bloc/subscription_bloc.dart` — import updated to domain layer
+- `lib/features/subscription/presentation/widgets/promo_code_sheet.dart` — import updated to domain layer
+- `lib/features/calls/presentation/bloc/call_bloc.dart` — import updated to domain layer
+- `lib/features/calls/presentation/bloc/call_event.dart` — import updated to domain layer
+- `lib/features/feature_flags/presentation/bloc/feature_flag_cubit.dart` — both imports updated (feature_flags model to package import, repository to domain layer)
+- `lib/features/settings/presentation/bloc/theme_cubit.dart` — import updated from profile data to profile domain
+- `lib/features/settings/presentation/bloc/safety_cubit.dart` — import updated from discovery data to discovery domain
+
+**Files Deleted:**
+- None
+
+**Why / Notes:**
+- Part of CR-AUD-027 clean architecture refactor (R-126 remediation)
+- Parallel to Task #042 (CR-AUD-027b) which handled Profile/Discovery/Boost
+- Re-exports ensure all existing data-layer imports (impl files, DI, tests) continue working
+- The FeatureFlagRepository import fix also converted a relative model import to a package import
+
+**Risks & Mitigations:**
+- Risk: Settings cubits import profile/discovery domain repos that were created by another agent (Task #042)
+  - Mitigation: Re-exports at old data paths ensure backward compatibility regardless of execution order
+- Risk: Implementation files still import from data layer
+  - Mitigation: Re-exports at old paths guarantee these still resolve correctly
+
+**Follow-ups / TODO:**
+- Parent task should handle DI updates in lib/core/di.dart
+- Remaining presentation→data violations for other features still need addressing (R-126)
+
+---
+
+### [2026-02-18] Task: CR-AUD-027b — Clean architecture refactor for Profile, Discovery, Boost repositories
+**Summary:**
+- Extended the clean architecture domain layer pattern (established for auth + chat in CR-AUD-027) to Profile, Discovery, and Boost features
+- Moved abstract repository interfaces from data layer to domain layer
+- Updated presentation imports to reference domain layer directly
+- Original data-layer files replaced with re-exports for backward compatibility
+
+**Files Added:**
+- `lib/features/profile/domain/repositories/profile_repository.dart` — ProfileRepository abstract class (moved from data layer)
+- `lib/features/discovery/domain/repositories/discovery_repository.dart` — DiscoveryFilter + DiscoveryRepository abstract classes (moved from data layer)
+- `lib/features/discovery/domain/repositories/boost_repository.dart` — BoostSession + BoostStatus + BoostRepository abstract classes (moved from data layer)
+
+**Files Modified:**
+- `lib/features/profile/data/repositories/profile_repository.dart` — Replaced with re-export of domain layer
+- `lib/features/discovery/data/repositories/discovery_repository.dart` — Replaced with re-export of domain layer
+- `lib/features/discovery/data/repositories/boost_repository.dart` — Replaced with re-export of domain layer
+- `lib/features/profile/presentation/bloc/profile_bloc.dart` — Import changed from data to domain layer
+- `lib/features/discovery/presentation/bloc/discovery_bloc.dart` — Two imports changed (discovery_repository + profile_repository) from data to domain layer
+- `lib/features/discovery/presentation/bloc/boost_cubit.dart` — Import changed from data to domain layer
+- `lib/features/discovery/presentation/screens/likes_you_screen.dart` — Import changed from data to domain layer
+
+**Files Deleted:**
+- None (re-exports preserve backward compatibility)
+
+**Why / Notes:**
+- Fixes presentation-to-data layer dependency violations (R-126) for Profile, Discovery, and Boost features
+- Follows the same pattern established by CR-AUD-027 for auth + chat
+- subscription_repository import in discovery_bloc.dart left as-is (to be handled by another agent)
+- Data model imports (e.g., `lib/data/models/profile.dart`) left as-is (shared DTOs, not violations)
+
+**Risks & Mitigations:**
+- Risk: Files importing from old data-layer path could break if re-exports are removed
+  - Mitigation: Re-exports provide full backward compatibility; existing imports in DI, tests, and implementations continue to work unchanged
+- Risk: Implementation files in `impl/` that reference the old location
+  - Mitigation: They import the data-layer path which now re-exports from domain; no breakage
+
+**Follow-ups / TODO:**
+- Move SubscriptionRepository abstract class to `lib/features/subscription/domain/repositories/` (separate task)
+- Update remaining presentation files that still import from data layer (R-126 has 73 total files)
+- Parent task will run `flutter analyze` and tests to verify
+
+---
+
+### [2026-02-18] Task: Next.js Bundle Analysis (crush-web)
+**Summary:**
+- Performed comprehensive static analysis of the existing Turbopack build output at `crush-web/apps/web/.next/`
+- Mapped client-side JS chunks to their library contents using grep-based identification
+- Identified total client JS at 2.15 MB (uncompressed), CSS at 82 KB, fonts at 305 KB
+- Identified Firebase SDK (~329 KB), React/Next.js runtime (~368 KB), framer-motion (~131 KB) as largest contributors
+- Provided 8 actionable optimization recommendations
+
+**Files Added:**
+- None
+
+**Files Modified:**
+- `/docs/Developer_agent_chat.md` -- Added Task #041 entry
+- `/docs/ai_change_log.md` -- This entry
+- `/docs/ai_tasks_board.md` -- Added T-2026-02-18-09
+
+**Files Deleted:**
+- None
+
+**Why / Notes:**
+- Analysis was read-only; no changes were made to the crush-web codebase
+- Bash permission restrictions prevented `pnpm add` and `pnpm build` execution, so analysis used static examination of existing build artifacts
+- The build was generated by Turbopack (Next.js 16.1.4) on 2026-02-18 15:13
+
+**Risks & Mitigations:**
+- No risks -- this was a read-only analysis task
+
+**Follow-ups / TODO:**
+- Implement dynamic imports for Firebase auth (already partially done in 3 auth pages)
+- Consider replacing framer-motion with CSS animations for simpler use cases
+- Lazy-load react-confetti, @dnd-kit, and react-virtuoso
+- Consider using `import('firebase/auth')` pattern for all Firebase modules
+
+---
+
+### [2026-02-18] Task: Generate Comprehensive API Contract Catalog
+**Summary:**
+- Read the entire `functions/src/index.ts` (6684 lines) and generated a comprehensive API contract catalog
+- Documented all 40 callable functions, 29 REST endpoints, 1 standalone HTTP endpoint, 5 Firestore triggers, and 3 scheduled functions
+- Each function cataloged with: auth requirements, App Check enforcement, email verification, rate limits, input/output schemas
+- Includes reference tables for all constants, rate limits, validation rules, and security parameters
+
+**Files Added:**
+- `docs/API_CATALOG.md` — Comprehensive API contract catalog (~750 lines)
+
+**Files Modified:**
+- `docs/Developer_agent_chat.md` — Logged task
+- `docs/ai_change_log.md` — This entry
+- `docs/ai_tasks_board.md` — Task status
+
+**Files Deleted:**
+- None
+
+**Why / Notes:**
+- Developer requested a complete API reference document for the Cloud Functions backend
+- Document serves as a contract reference for frontend development, security audits, and team onboarding
+- All data extracted directly from source code analysis (no assumptions)
+
+**Risks & Mitigations:**
+- Document may become stale as functions change — consider regenerating periodically
+- Some REST endpoints lack rate limiting (documented as-is)
+
+**Follow-ups / TODO:**
+- Keep catalog in sync when new functions are added
+- Consider auto-generating from TypeScript types in the future
+
+---
+
+### [2026-02-18] Task: P3-ARCH-001 — Split router.dart into modular route files
+**Summary:**
+- Split monolithic `lib/core/router.dart` (885 lines) into 6 modular route files under `lib/core/routing/`
+- Extracted `CrushRoutes` path constants, `resolveRouteRedirect()` auth guard, `buildPage()` transition helper
+- Organized routes by domain: auth, settings, public/legal
+- Main `router.dart` reduced to ~320 lines, composing from modular files with spread operator
+- Backward compatibility preserved via `export` statements for `CrushRoutes` and `resolveRouteRedirect`
+
+**Files Added:**
+- `lib/core/routing/crush_routes.dart` — Route path constants (56+ routes)
+- `lib/core/routing/route_redirect.dart` — Auth redirect logic (~195 lines)
+- `lib/core/routing/auth_routes.dart` — Auth/onboarding/verification routes
+- `lib/core/routing/settings_routes.dart` — Settings routes (11 screens + ChatSettingsCubit)
+- `lib/core/routing/public_routes.dart` — Legal/public routes (7 screens)
+- `lib/core/routing/page_builder.dart` — Shared buildPage() with fade+slide transition
+
+**Files Modified:**
+- `lib/core/router.dart` — Rewritten to import and compose from modular route files
+
+**Verification:**
+- `flutter analyze` — 0 errors, 0 warnings
+- `flutter test` — 1323 tests passing, 6 skipped, 0 failures
+
+**Risks & Mitigations:**
+- Risk: Import path changes could break downstream files
+  - Mitigation: Used `export` in router.dart for backward compatibility; all existing imports still work
+- Risk: Route ordering changes could affect redirect logic
+  - Mitigation: Pure file reorganization; no behavioral changes to route matching
+
+---
+
+### [2026-02-18] Task: CR-AUD-038 — Implement message list virtualization
+**Summary:**
+- Replaced manual scroll container in chat-room.tsx with react-virtuoso `<Virtuoso>` component
+- Supports smooth prepending of older messages via `firstItemIndex` without scroll jumps
+- Auto-follows new messages at bottom via `followOutput="smooth"`
+- Uses `startReached` callback for loading older messages (replaces manual scroll threshold detection)
+- Typing indicator moved to Virtuoso `Footer` component; loading spinner in `Header`
+- Empty state (match intro card) rendered outside Virtuoso when no messages exist
+- Flat chatItems array with `date-header` and `message` item types replaces grouped rendering
+
+**Files Added:**
+- None
+
+**Files Modified:**
+- `crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` — Virtuoso integration, removed manual scroll refs
+- `crush-web/apps/web/package.json` — Added react-virtuoso 4.18.1
+
+**Risks & Mitigations:**
+- Risk: Virtuoso SSR hydration mismatch (renders nothing on server)
+  - Mitigation: chat-room.tsx is already `'use client'` and behind auth; no SSR concern
+- Risk: Variable-height items (images, voice notes) may cause measurement issues
+  - Mitigation: Virtuoso auto-measures items; `overscan={300}` provides buffer
+
+**Verification:**
+- `pnpm build` — all routes compiled successfully
+- `pnpm test` — 34/34 web tests passing
+
+---
+
+### [2026-02-18] Task: CR-AUD-039 — Optimize chat media images with next/image
+**Summary:**
+- Replaced raw `<img>` tags with Next.js `<Image>` component across 9 TSX files
+- Enables automatic WebP conversion, responsive sizing, lazy loading
+- Used `fill` for container-relative images, explicit `width`/`height` for fixed sizes
+- Used `unoptimized` for blob URLs (chat image preview) that can't be processed by Next.js optimizer
+
+**Files Modified:**
+- `crush-web/apps/web/src/features/discover/components/match-modal.tsx` — 2 img→Image (128px circles)
+- `crush-web/apps/web/src/shared/components/layout/app-sidebar.tsx` — 1 img→Image (40px avatar)
+- `crush-web/apps/web/src/app/(app)/likes/page.tsx` — 2 img→Image (premium + blurred)
+- `crush-web/apps/web/src/app/(app)/weekly-picks/page.tsx` — 1 img→Image (pick card)
+- `crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` — 2 img→Image (preview + shared)
+- `crush-web/apps/web/src/app/(app)/profile/profile-view.tsx` — 2 img→Image (main + grid photos)
+- `crush-web/apps/web/src/app/(app)/profile/preview/profile-preview.tsx` — 1 img→Image (preview card)
+- `crush-web/apps/web/src/app/onboarding/onboarding-flow.tsx` — 1 img→Image (64x64 profile)
+
+**Intentionally skipped:**
+- `protected-image.tsx` — anti-screenshot protection; Image would break it
+- `photo-grid-reorder.tsx` — DnD Kit drag context; Image causes transform issues
+
+**Verification:**
+- `pnpm build` — all routes compiled successfully
+
+---
+
+### [2026-02-18] Task: CR-AUD-040 — Set up web unit test framework (Vitest)
+**Summary:**
+- Set up Vitest with jsdom, @testing-library/react, @testing-library/jest-dom
+- Created 3 test suites with 34 total tests: rate-limit (10), CSRF (7), accessibility (17)
+- Configured path aliases matching tsconfig for `@/`, `@/features`, `@/shared`
+- Added matchMedia polyfill for jsdom environment
+
+**Files Added:**
+- `crush-web/apps/web/vitest.config.ts` — Vitest configuration
+- `crush-web/apps/web/src/__tests__/setup.ts` — Test setup with jest-dom + matchMedia polyfill
+- `crush-web/apps/web/src/shared/lib/__tests__/rate-limit.test.ts` — 10 tests
+- `crush-web/apps/web/src/shared/lib/__tests__/csrf.test.ts` — 7 tests
+- `crush-web/apps/web/src/lib/__tests__/accessibility.test.ts` — 17 tests
+
+**Files Modified:**
+- `crush-web/apps/web/package.json` — Added test scripts and vitest devDependencies
+
+**Verification:**
+- `pnpm test` — 34/34 tests passing
+
+---
+
+### [2026-02-18] Task: CR-AUD-030/031/032 — P2 Security (storage rules, email verification, App Check)
+**Summary:**
+- CR-AUD-030: Added match-membership verification to storage rules for chat media
+- CR-AUD-031: Added server-side email verification enforcement to Cloud Functions
+- CR-AUD-032: Enabled App Check on remaining callable functions
+
+**Files Modified:**
+- `storage.rules` — Added match participant verification for chat media read/write
+- `functions/src/index.ts` — Added email verification check, App Check enforcement
+
+**Verification:**
+- `npm run build` — Cloud Functions compile successfully
+- `npm run lint` — 0 errors
+
+---
+
+### [2026-02-18] Task: CR-AUD-011 — Dependency upgrade sweep
+**Summary:**
+- Flutter: `flutter pub upgrade` — 69 dependencies upgraded within semver constraints
+- Node.js functions: `npm update --save` — All dependencies updated
+- Verified no regressions across both codebases
+
+**Verification:**
+- `flutter test` — 1323 passed, 6 skipped, 0 failures
+- Functions: `npm run build && npm run lint && npm test` — 11/11 tests passing, 0 lint errors
+
+---
+
+### [2026-02-18] Task: CR-AUD-035 — Standardize error handling with Result pattern
+**Summary:**
+- Enhanced existing `Result<T>` type at `lib/core/utils/result.dart` with helper methods: `isFailure`, `valueOrNull`, `getOrElse`, `map`, `flatMap`, `fold`, `guardSync`, `toString`, `==`, `hashCode`
+- Added Result-returning methods to all 3 auth repository implementations (Firebase, HTTP, Stub) as proof of concept: `signInWithEmailPasswordResult`, `loginWithPasswordResult`, `signUpWithPasswordResult`, `signOutResult`, `signInWithAppleResult`
+- Added Result-returning methods to all 3 chat repository implementations (Firebase, HTTP, Stub) as proof of concept: `sendMessageResult`, `markMessagesReadResult`, `unsendMessageResult`, `editMessageResult`, `blockUserResult`, `unmatchResult`, `uploadMediaResult`, `fetchUserMatchesResult`
+- Methods are added directly to concrete implementations (not the abstract interface) to avoid breaking 13+ test mocks and FakeAuthRepository
+- Resolved `cloud_functions` Result name collision using `as app_result` import prefix in Firebase implementations
+- No existing method signatures changed; full backward compatibility maintained
+
+**Files Modified:**
+- `lib/core/utils/result.dart` — Enhanced with `isFailure`, `valueOrNull`, `getOrElse`, `map`, `flatMap`, `fold`, `guardSync`, `toString`, `==`, `hashCode`
+- `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` — Added 5 Result-returning methods + `app_result` import prefix
+- `lib/features/auth/data/repositories/impl/stub_auth_repository.dart` — Added 5 Result-returning methods
+- `lib/features/auth/data/repositories/impl/http_auth_repository.dart` — Added 5 Result-returning methods
+- `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart` — Added 8 Result-returning methods + `app_result` import prefix
+- `lib/features/chat/data/repositories/impl/http_chat_repository.dart` — Added 8 Result-returning methods
+- `lib/features/chat/data/repositories/impl/stub_chat_repository.dart` — Added 8 Result-returning methods
+
+**Files Added:**
+- None
+
+**Files Deleted:**
+- None
+
+**Why / Notes:**
+- Existing `Result<T>` class was already in use by 82+ files (mostly use cases via `Result.guard`)
+- Did NOT convert to sealed class since existing API (`result.data`, `result.errorMessage`, `result.isSuccess`) is deeply embedded across the codebase; a sealed migration would be a separate large task
+- Did NOT add methods to abstract interfaces because test mocks use `implements` (not `extends`) and would all need updating; keeping methods on concrete classes avoids breaking changes
+- `cloud_functions` package exports its own `Result` type, requiring import prefix in Firebase repository implementations
+- The existing `Result.guard` pattern from use cases is the recommended way to wrap throwing repo calls; the new `*Result` methods on concrete implementations are an alternative for direct callers
+
+**Risks & Mitigations:**
+- Risk: New Result methods are on concrete types, not the abstract interface, so callers must know the concrete type
+  - Mitigation: Use cases already use `Result.guard` to wrap interface calls; the new methods are a convenience for direct repo access. A future task can add them to the interface when test mocks are migrated to `extends`
+- Risk: `cloud_functions` Result name collision could recur in new files
+  - Mitigation: Documented the `as app_result` import prefix pattern
+
+**Verification:**
+- `flutter analyze --no-pub` → 0 errors, 0 warnings (only pre-existing info hints)
+- `flutter test` → 1323 passed, 6 skipped, 0 failures
+
+**Follow-ups / TODO:**
+- Migrate abstract interfaces to include Result methods (requires converting test mocks from `implements` to `extends`, or using `noSuchMethod`)
+- Migrate BLoCs/Cubits to use Result-returning methods instead of try/catch
+- Consider converting Result to sealed class in a dedicated migration task
+- Add Result-returning methods to other repositories (profile, discovery, subscription)
+
+---
+
+### [2026-02-18] Task: CR-AUD-034 — Extract shared DTOs to common layer
+**Summary:**
+- Identified 10 shared DTOs (used by 2+ feature domains) in `lib/data/models/`
+- Created `lib/shared/dto/` directory as canonical source for shared models
+- Moved shared DTOs to `lib/shared/dto/` and set up re-exports from original locations
+- Updated `lib/shared/shared.dart` barrel to export from new DTO barrel
+- 4 models NOT moved (single-feature only): `profile_reaction.dart`, `profile_story.dart`, `promo_code.dart`, `message_request.dart`
+
+**Files Added:**
+- `lib/shared/dto/dto.dart` — barrel file re-exporting all shared DTOs (alphabetically ordered)
+- `lib/shared/dto/chat_settings.dart` — ChatSettings, MessageRetention (canonical)
+- `lib/shared/dto/favourites.dart` — ProfileFavourites, FavouritesOptions (canonical)
+- `lib/shared/dto/match.dart` — CrushMatch, MatchStatus (canonical)
+- `lib/shared/dto/message.dart` — Message, MessageType, MessageSendStatus (canonical)
+- `lib/shared/dto/preferences.dart` — DiscoveryPreferences (canonical)
+- `lib/shared/dto/privacy_settings.dart` — ProfilePrivacySettings (canonical)
+- `lib/shared/dto/profile.dart` — Profile (canonical)
+- `lib/shared/dto/profile_prompt.dart` — ProfilePrompt, PromptQuestions, PromptQuestion (canonical)
+- `lib/shared/dto/subscription.dart` — SubscriptionPlan, SubscriptionPlanX, SubscriptionStatus (canonical)
+- `lib/shared/dto/user.dart` — CrushUser (canonical)
+
+**Files Modified:**
+- `lib/data/models/chat_settings.dart` — replaced with re-export from `lib/shared/dto/chat_settings.dart`
+- `lib/data/models/favourites.dart` — replaced with re-export from `lib/shared/dto/favourites.dart`
+- `lib/data/models/match.dart` — replaced with re-export from `lib/shared/dto/match.dart`
+- `lib/data/models/message.dart` — replaced with re-export from `lib/shared/dto/message.dart`
+- `lib/data/models/preferences.dart` — replaced with re-export from `lib/shared/dto/preferences.dart`
+- `lib/data/models/privacy_settings.dart` — replaced with re-export from `lib/shared/dto/privacy_settings.dart`
+- `lib/data/models/profile.dart` — replaced with re-export from `lib/shared/dto/profile.dart`
+- `lib/data/models/profile_prompt.dart` — replaced with re-export from `lib/shared/dto/profile_prompt.dart`
+- `lib/data/models/subscription.dart` — replaced with re-export from `lib/shared/dto/subscription.dart`
+- `lib/data/models/user.dart` — replaced with re-export from `lib/shared/dto/user.dart`
+- `lib/shared/shared.dart` — updated to export from `dto/dto.dart` barrel instead of individual `../data/models/` paths
+
+**Files Deleted:**
+- None (backward compatibility maintained via re-exports)
+
+**Why / Notes:**
+- Shared DTOs were scattered in `lib/data/models/` with no clear distinction between shared and feature-specific models
+- Multiple features imported the same models, creating implicit coupling without an explicit shared layer
+- The new `lib/shared/dto/` directory establishes a canonical source for cross-feature DTOs
+- All existing imports continue to work via re-exports from the old locations
+- No class definitions were changed -- only file locations and import paths
+
+**Risks & Mitigations:**
+- Risk: Re-export chain could cause confusion about canonical source
+  - Mitigation: Comments in each re-export file clearly state the canonical location
+- Risk: Dart analyzer could flag duplicate exports
+  - Mitigation: Verified with `flutter analyze --no-pub` -- 0 new issues introduced
+- Risk: Tests could break due to import resolution changes
+  - Mitigation: All 1323 tests pass, 6 skipped, 0 failures
+
+**Verification:**
+- `flutter analyze --no-pub` — 91 issues (all pre-existing; 10 fewer than before due to fixing dangling doc comments)
+- `flutter test` — 1323 passed, 6 skipped, 0 failures
+- No new errors or warnings introduced
+
+**Follow-ups / TODO:**
+- Gradually migrate feature imports from `lib/data/models/` to `lib/shared/dto/` or `package:crushhour/shared/dto/dto.dart`
+- Consider adding more DTOs to shared layer as cross-feature usage grows
+- R-126 (73 presentation files importing data layer) remains open -- shared DTOs help but don't fully resolve
+
+---
+
 ### [2026-02-13] Task: P1 Remediation — ChatBloc Split, Clean Arch Refactor, Final Cubit Tests, Verification (CR-AUD-027, CR-AUD-028, CR-AUD-029)
 **Summary:**
 - Completed ChatBloc split into 3 sub-BLoCs with facade pattern (CR-AUD-028)

@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:crushhour/core/utils/result.dart' as app_result;
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -914,5 +915,112 @@ class FirebaseChatRepository implements ChatRepository {
       if (request.toUserPhotoUrl != null)
         'toUserPhotoUrl': request.toUserPhotoUrl,
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  //
+  // These methods return Result<T> instead of throwing exceptions, making
+  // error handling explicit at the call site. They wrap the existing throwing
+  // methods so both APIs can coexist during incremental migration.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<app_result.Result<void>> sendMessageResult({
+    required String matchId,
+    required String fromUserId,
+    required String toUserId,
+    required String content,
+    required MessageType type,
+  }) {
+    return app_result.Result.guard(
+      () => sendMessage(
+        matchId: matchId,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        content: content,
+        type: type,
+      ),
+      logLabel: 'FirebaseChatRepository.sendMessageResult',
+      fallbackError: 'Could not send message. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<void>> markMessagesReadResult(
+      String matchId, String userId) {
+    return app_result.Result.guard(
+      () => markMessagesRead(matchId, userId),
+      logLabel: 'FirebaseChatRepository.markMessagesReadResult',
+      fallbackError: 'Could not mark messages as read.',
+    );
+  }
+
+  Future<app_result.Result<void>> unsendMessageResult({
+    required String matchId,
+    required String messageId,
+  }) {
+    return app_result.Result.guard(
+      () => unsendMessage(matchId: matchId, messageId: messageId),
+      logLabel: 'FirebaseChatRepository.unsendMessageResult',
+      fallbackError: 'Could not unsend message. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<void>> editMessageResult({
+    required String matchId,
+    required String messageId,
+    required String newContent,
+  }) {
+    return app_result.Result.guard(
+      () => editMessage(
+        matchId: matchId,
+        messageId: messageId,
+        newContent: newContent,
+      ),
+      logLabel: 'FirebaseChatRepository.editMessageResult',
+      fallbackError: 'Could not edit message. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<void>> blockUserResult({
+    required String blockerId,
+    required String blockedId,
+  }) {
+    return app_result.Result.guard(
+      () => blockUser(blockerId: blockerId, blockedId: blockedId),
+      logLabel: 'FirebaseChatRepository.blockUserResult',
+      fallbackError: 'Could not block user. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<void>> unmatchResult({
+    required String matchId,
+    required String userId,
+  }) {
+    return app_result.Result.guard(
+      () => unmatch(matchId: matchId, userId: userId),
+      logLabel: 'FirebaseChatRepository.unmatchResult',
+      fallbackError: 'Could not unmatch. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<String>> uploadMediaResult({
+    required String matchId,
+    required String filePath,
+    required MessageType type,
+  }) {
+    return app_result.Result.guard(
+      () => uploadMedia(matchId: matchId, filePath: filePath, type: type),
+      logLabel: 'FirebaseChatRepository.uploadMediaResult',
+      fallbackError: 'Could not upload media. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<List<CrushMatch>>> fetchUserMatchesResult(
+      String userId) {
+    return app_result.Result.guard(
+      () => fetchUserMatches(userId),
+      logLabel: 'FirebaseChatRepository.fetchUserMatchesResult',
+      fallbackError: 'Could not load matches. Please try again.',
+    );
   }
 }

@@ -16,6 +16,7 @@ import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import '../auth_repository.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/utils/result.dart' as app_result;
 import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
@@ -1477,6 +1478,68 @@ class FirebaseAuthRepository implements AuthRepository {
     final bytes = utf8.encode(input);
     final digest = sha256.convert(bytes);
     return digest.toString();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  //
+  // These methods return Result<T> instead of throwing exceptions, making
+  // error handling explicit at the call site. They wrap the existing throwing
+  // methods so both APIs can coexist during incremental migration.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<app_result.Result<CrushUser>> signInWithEmailPasswordResult({
+    required String email,
+    required String password,
+  }) {
+    return app_result.Result.guard(
+      () => signInWithEmailPassword(email: email, password: password),
+      logLabel: 'FirebaseAuthRepository.signInWithEmailPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<app_result.Result<CrushUser>> loginWithPasswordResult({
+    required String identifier,
+    required String password,
+  }) {
+    return app_result.Result.guard(
+      () => loginWithPassword(identifier: identifier, password: password),
+      logLabel: 'FirebaseAuthRepository.loginWithPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<app_result.Result<CrushUser>> signUpWithPasswordResult({
+    required String username,
+    required String email,
+    required String password,
+  }) {
+    return app_result.Result.guard(
+      () => signUpWithPassword(
+        username: username,
+        email: email,
+        password: password,
+      ),
+      logLabel: 'FirebaseAuthRepository.signUpWithPasswordResult',
+      fallbackError: 'Unable to create account. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<void>> signOutResult() {
+    return app_result.Result.guard(
+      () => signOut(),
+      logLabel: 'FirebaseAuthRepository.signOutResult',
+      fallbackError: 'Unable to sign out. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<CrushUser>> signInWithAppleResult() {
+    return app_result.Result.guard(
+      () => signInWithApple(),
+      logLabel: 'FirebaseAuthRepository.signInWithAppleResult',
+      fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
   }
 
   void dispose() {

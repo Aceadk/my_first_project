@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/repositories/call_repository.dart';
+import '../../domain/repositories/call_repository.dart';
 import 'call_event.dart';
 import 'call_state.dart';
 

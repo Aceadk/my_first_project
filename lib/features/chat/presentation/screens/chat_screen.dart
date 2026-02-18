@@ -220,6 +220,13 @@ class _ChatScreenState extends State<ChatScreen> {
         final selfVerified = userProfile?.isVerified ?? false;
 
         return BlocBuilder<ChatBloc, ChatState>(
+          buildWhen: (prev, curr) =>
+              prev.allMessages.length != curr.allMessages.length ||
+              prev.isInitialLoading != curr.isInitialLoading ||
+              prev.isUnmatched != curr.isUnmatched ||
+              prev.typingUserIds != curr.typingUserIds ||
+              prev.otherUserOnline != curr.otherUserOnline ||
+              prev.otherUserPhotoUrl != curr.otherUserPhotoUrl,
           builder: (context, state) {
             final messages = state.allMessages;
             final showSkeleton = state.isInitialLoading && messages.isEmpty;
@@ -1036,7 +1043,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     // User avatar with online indicator - tappable to view profile
-                    GestureDetector(
+                    Semantics(
+                      button: true,
+                      label: 'View ${widget.args.otherName} profile',
+                      child: GestureDetector(
                       onTap: _navigateToProfile,
                       child: Stack(
                         children: [
@@ -1114,10 +1124,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         ],
                       ),
                     ),
+                    ),
                     const SizedBox(width: DsSpacing.sm),
                     // User info - tappable to view profile
                     Expanded(
-                      child: GestureDetector(
+                      child: Semantics(
+                        button: true,
+                        label: 'View ${widget.args.otherName} profile',
+                        child: GestureDetector(
                         onTap: _navigateToProfile,
                         behavior: HitTestBehavior.opaque,
                         child: Row(
@@ -1190,6 +1204,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ],
                           ],
                         ),
+                      ),
                       ),
                     ),
                     // Action buttons

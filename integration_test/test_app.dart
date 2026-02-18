@@ -69,7 +69,11 @@ class TestApp extends StatelessWidget {
     final profileRepo = StubProfileRepository();
     final subRepo = StubSubscriptionRepository();
     final discoveryRepo = StubDiscoveryRepository();
-    final chatRepo = StubChatRepository();
+    final chatRepo = StubChatRepository(
+      delayExecutor: (_) async {},
+      shouldAutoReply: (_) => false,
+      watchNewMessagesInterval: const Duration(milliseconds: 10),
+    );
     final callRepo = StubCallRepository();
 
     return [

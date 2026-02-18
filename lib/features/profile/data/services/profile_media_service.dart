@@ -5,15 +5,40 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
+typedef MediaUploadHandler =
+    Future<String> Function({
+      required String storagePath,
+      required File file,
+      required SettableMetadata metadata,
+    });
+
+typedef MediaDeleteHandler = Future<void> Function(String url);
+
 /// ProfileMediaService handles uploading profile photos and videos to Firebase Storage.
 ///
 /// In debug mode, if Firebase Storage upload fails (e.g., due to security rules),
 /// it will fall back to using local file paths. This allows development to continue
 /// while Firebase Storage rules are being configured.
 class ProfileMediaService {
+  ProfileMediaService({
+    MediaUploadHandler? uploadHandler,
+    MediaDeleteHandler? deleteHandler,
+    bool Function()? isDebugMode,
+    String Function()? uuidGenerator,
+  }) : _isDebugMode = isDebugMode ?? _defaultIsDebugMode,
+       _uuidGenerator = uuidGenerator ?? const Uuid().v4 {
+    _uploadHandler = uploadHandler ?? _uploadWithFirebase;
+    _deleteHandler = deleteHandler ?? _deleteWithFirebase;
+  }
+
+  static bool _defaultIsDebugMode() => kDebugMode;
+
   FirebaseStorage? _storage;
   FirebaseStorage get _storageInstance => _storage ??= FirebaseStorage.instance;
-  final _uuid = const Uuid();
+  late final MediaUploadHandler _uploadHandler;
+  late final MediaDeleteHandler _deleteHandler;
+  final bool Function() _isDebugMode;
+  final String Function() _uuidGenerator;
 
   /// Whether to use local file fallback when Firebase Storage fails (debug only)
   static bool useFallbackInDebug = true;
@@ -32,14 +57,14 @@ class ProfileMediaService {
     try {
       // Generate unique filename
       final extension = path.extension(filePath).toLowerCase();
-      final filename = '${_uuid.v4()}$extension';
+      final filename = '${_uuidGenerator()}$extension';
       final storagePath = 'users/$userId/photos/$filename';
 
       // Upload to Firebase Storage
-      final ref = _storageInstance.ref().child(storagePath);
-      final uploadTask = ref.putFile(
-        file,
-        SettableMetadata(
+      final downloadUrl = await _uploadHandler(
+        storagePath: storagePath,
+        file: file,
+        metadata: SettableMetadata(
           contentType: _getContentType(extension),
           customMetadata: {
             'uploadedAt': DateTime.now().toIso8601String(),
@@ -47,10 +72,6 @@ class ProfileMediaService {
           },
         ),
       );
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
 
       AppLogger.debug('ProfileMediaService: Photo uploaded - $downloadUrl');
       return downloadUrl;
@@ -74,7 +95,7 @@ class ProfileMediaService {
       AppLogger.debug('  }');
 
       // In debug mode, fall back to local path
-      if (kDebugMode && useFallbackInDebug) {
+      if (_isDebugMode() && useFallbackInDebug) {
         AppLogger.debug(
           'ProfileMediaService: Using local file fallback for development',
         );
@@ -85,7 +106,7 @@ class ProfileMediaService {
       AppLogger.error('ProfileMediaService: Photo upload failed - $e');
 
       // In debug mode, fall back to local path
-      if (kDebugMode && useFallbackInDebug) {
+      if (_isDebugMode() && useFallbackInDebug) {
         AppLogger.debug(
           'ProfileMediaService: Using local file fallback for development',
         );
@@ -109,14 +130,14 @@ class ProfileMediaService {
     try {
       // Generate unique filename
       final extension = path.extension(filePath).toLowerCase();
-      final filename = '${_uuid.v4()}$extension';
+      final filename = '${_uuidGenerator()}$extension';
       final storagePath = 'users/$userId/videos/$filename';
 
       // Upload to Firebase Storage
-      final ref = _storageInstance.ref().child(storagePath);
-      final uploadTask = ref.putFile(
-        file,
-        SettableMetadata(
+      final downloadUrl = await _uploadHandler(
+        storagePath: storagePath,
+        file: file,
+        metadata: SettableMetadata(
           contentType: _getVideoContentType(extension),
           customMetadata: {
             'uploadedAt': DateTime.now().toIso8601String(),
@@ -124,10 +145,6 @@ class ProfileMediaService {
           },
         ),
       );
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
 
       AppLogger.debug('ProfileMediaService: Video uploaded - $downloadUrl');
       return downloadUrl;
@@ -137,7 +154,7 @@ class ProfileMediaService {
       );
 
       // In debug mode, fall back to local path
-      if (kDebugMode && useFallbackInDebug) {
+      if (_isDebugMode() && useFallbackInDebug) {
         AppLogger.debug(
           'ProfileMediaService: Using local file fallback for development',
         );
@@ -148,7 +165,7 @@ class ProfileMediaService {
       AppLogger.error('ProfileMediaService: Video upload failed - $e');
 
       // In debug mode, fall back to local path
-      if (kDebugMode && useFallbackInDebug) {
+      if (_isDebugMode() && useFallbackInDebug) {
         AppLogger.debug(
           'ProfileMediaService: Using local file fallback for development',
         );
@@ -166,8 +183,7 @@ class ProfileMediaService {
         return;
       }
 
-      final ref = _storageInstance.refFromURL(url);
-      await ref.delete();
+      await _deleteHandler(url);
       AppLogger.debug('ProfileMediaService: Media deleted - $url');
     } catch (e) {
       AppLogger.error('ProfileMediaService: Media delete failed - $e');
@@ -208,7 +224,7 @@ class ProfileMediaService {
             'ProfileMediaService: Failed to upload photo, skipping: $e',
           );
           // In debug mode with fallback, still add the local path
-          if (kDebugMode && useFallbackInDebug) {
+          if (_isDebugMode() && useFallbackInDebug) {
             photoUrls.add(filePath);
           }
           // In release mode, skip the failed photo rather than failing entire save
@@ -236,7 +252,7 @@ class ProfileMediaService {
             'ProfileMediaService: Failed to upload video, skipping: $e',
           );
           // In debug mode with fallback, still add the local path
-          if (kDebugMode && useFallbackInDebug) {
+          if (_isDebugMode() && useFallbackInDebug) {
             videoUrls.add(filePath);
           }
           // In release mode, skip the failed video rather than failing entire save
@@ -281,5 +297,20 @@ class ProfileMediaService {
       default:
         return 'video/mp4';
     }
+  }
+
+  Future<String> _uploadWithFirebase({
+    required String storagePath,
+    required File file,
+    required SettableMetadata metadata,
+  }) async {
+    final ref = _storageInstance.ref().child(storagePath);
+    final snapshot = await ref.putFile(file, metadata);
+    return snapshot.ref.getDownloadURL();
+  }
+
+  Future<void> _deleteWithFirebase(String url) async {
+    final ref = _storageInstance.refFromURL(url);
+    await ref.delete();
   }
 }

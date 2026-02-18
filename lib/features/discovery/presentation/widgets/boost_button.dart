@@ -86,7 +86,11 @@ class BoostButton extends StatelessWidget {
     final color =
         isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: enabled,
+      child: GestureDetector(
       onTap: enabled ? onTap : null,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(DsSpacing.md),
@@ -147,6 +151,7 @@ class BoostButton extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 

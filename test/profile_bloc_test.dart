@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/errors.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -88,8 +89,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsThrough(
-            isA<ProfileState>()
-                .having((s) => s.status, 'status', ProfileStatus.empty),
+            isA<ProfileState>().having(
+              (s) => s.status,
+              'status',
+              ProfileStatus.empty,
+            ),
           ),
         );
 
@@ -128,12 +132,14 @@ void main() {
           authRepository: authRepo,
         );
 
-        bloc.add(ProfileBasicInfoSubmitted(
-          name: 'John',
-          lastName: 'Doe',
-          age: 25,
-          gender: 'male',
-        ));
+        bloc.add(
+          ProfileBasicInfoSubmitted(
+            name: 'John',
+            lastName: 'Doe',
+            age: 25,
+            gender: 'male',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -156,11 +162,9 @@ void main() {
           authRepository: authRepo,
         );
 
-        bloc.add(ProfileBasicInfoSubmitted(
-          name: 'John',
-          age: 25,
-          gender: 'male',
-        ));
+        bloc.add(
+          ProfileBasicInfoSubmitted(name: 'John', age: 25, gender: 'male'),
+        );
 
         await expectLater(
           bloc.stream,
@@ -184,12 +188,14 @@ void main() {
           authRepository: authRepo,
         );
 
-        bloc.add(ProfileDetailsSubmitted(
-          bio: 'Hello, I am John!',
-          photoUrls: const ['https://example.com/photo.jpg'],
-          videoUrls: const [],
-          interests: const ['music', 'travel'],
-        ));
+        bloc.add(
+          ProfileDetailsSubmitted(
+            bio: 'Hello, I am John!',
+            photoUrls: const ['https://example.com/photo.jpg'],
+            videoUrls: const [],
+            interests: const ['music', 'travel'],
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -302,13 +308,266 @@ void main() {
           bloc.stream,
           emitsInOrder([
             isA<ProfileState>().having((s) => s.isSaving, 'saving', true),
-            isA<ProfileState>()
-                .having((s) => s.isSaving, 'saving', false),
+            isA<ProfileState>().having((s) => s.isSaving, 'saving', false),
           ]),
         );
 
         await bloc.close();
       });
+    });
+
+    group('Hotspot branches', () {
+      test('treats no-profile load errors as empty state', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(
+          shouldFailLoad: true,
+          loadFailureMessage: 'No profile found for this user',
+          loadFailureAsRepositoryException: true,
+        );
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileLoadRequested());
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(repo.getCurrentUserCallCount, 1);
+        expect(bloc.state.status, ProfileStatus.empty);
+        expect(bloc.state.errorMessage, isNull);
+
+        await bloc.close();
+      });
+
+      test('auto-retries transient load failures', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(
+          shouldFailLoad: true,
+          loadFailureMessage: 'Temporary backend failure',
+        );
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileLoadRequested());
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+
+        expect(repo.getCurrentUserCallCount, greaterThanOrEqualTo(2));
+        expect(
+          bloc.state.status,
+          anyOf(ProfileStatus.error, ProfileStatus.empty),
+        );
+
+        await bloc.close();
+      });
+
+      test('manualRefresh triggers a fresh load request', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(userToReturn: _testUser);
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.manualRefresh();
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(repo.getCurrentUserCallCount, 1);
+        expect(bloc.state.status, ProfileStatus.loaded);
+
+        await bloc.close();
+      });
+
+      test('ProfileDetailsSubmitted executes photo-removed branch', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        const existingProfile = Profile(
+          id: 'profile-existing',
+          name: 'Jane',
+          age: 27,
+          gender: 'female',
+          photoUrls: ['a.jpg', 'b.jpg'],
+          videoUrls: [],
+          bio: 'Existing bio',
+          interests: ['music'],
+          country: 'US',
+          city: 'New York',
+          isVerified: false,
+          preferences: _testPreferences,
+        );
+        final seededUser = _testUser.copyWith(profile: existingProfile);
+        final repo = _StubProfileRepository(userToReturn: seededUser);
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileLoadRequested());
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(bloc.state.profile?.photoUrls.length, 2);
+
+        bloc.add(
+          ProfileDetailsSubmitted(
+            bio: 'Updated bio',
+            photoUrls: const ['a.jpg'],
+            videoUrls: const [],
+            interests: const ['music'],
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(bloc.state.isSaving, isFalse);
+        expect(bloc.state.errorMessage, isNull);
+
+        await bloc.close();
+      });
+
+      test('ProfileIdDocumentUploaded handles upload failure', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(shouldFailUploadId: true);
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileIdDocumentUploaded());
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(repo.uploadIdDocumentCallCount, 1);
+        expect(repo.markIdVerifiedCallCount, 0);
+        expect(bloc.state.isSaving, isFalse);
+        expect(bloc.state.errorMessage, isNotNull);
+
+        await bloc.close();
+      });
+
+      test('ProfileIdDocumentUploaded handles mark-id failure', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(shouldFailMarkId: true);
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileIdDocumentUploaded());
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(repo.uploadIdDocumentCallCount, 1);
+        expect(repo.markIdVerifiedCallCount, 1);
+        expect(bloc.state.isSaving, isFalse);
+        expect(bloc.state.errorMessage, isNotNull);
+
+        await bloc.close();
+      });
+
+      test('ProfileIdVerifiedMarked records repository failures', () async {
+        final authRepo = _StubAuthRepository();
+        addTearDown(authRepo.dispose);
+        final repo = _StubProfileRepository(shouldFailMarkId: true);
+        final bloc = ProfileBloc(
+          profileRepository: repo,
+          authRepository: authRepo,
+        );
+
+        bloc.add(ProfileIdVerifiedMarked());
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(repo.markIdVerifiedCallCount, 1);
+        expect(bloc.state.errorMessage, isNotNull);
+
+        await bloc.close();
+      });
+
+      test(
+        'ProfileSaveRequested keeps loaded status on update failure',
+        () async {
+          final authRepo = _StubAuthRepository();
+          addTearDown(authRepo.dispose);
+          final repo = _StubProfileRepository(shouldFailUpdateProfile: true);
+          final bloc = ProfileBloc(
+            profileRepository: repo,
+            authRepository: authRepo,
+          );
+
+          bloc.add(ProfileSaveRequested(profile: _testProfile));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+
+          expect(repo.updateProfileCallCount, 1);
+          expect(bloc.state.status, ProfileStatus.loaded);
+          expect(bloc.state.errorMessage, isNotNull);
+
+          await bloc.close();
+        },
+      );
+
+      test(
+        'ProfileLocationUpdateRequested returns early with no profile',
+        () async {
+          final authRepo = _StubAuthRepository();
+          addTearDown(authRepo.dispose);
+          final repo = _StubProfileRepository(userToReturn: _testUser);
+          final bloc = ProfileBloc(
+            profileRepository: repo,
+            authRepository: authRepo,
+          );
+
+          bloc.add(
+            ProfileLocationUpdateRequested(
+              latitude: 40.7128,
+              longitude: -74.0060,
+            ),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+
+          expect(repo.updateProfileCallCount, 0);
+
+          await bloc.close();
+        },
+      );
+
+      test(
+        'ProfileLocationUpdateRequested updates and persists location',
+        () async {
+          final authRepo = _StubAuthRepository();
+          addTearDown(authRepo.dispose);
+          final repo = _StubProfileRepository(userToReturn: _testUser);
+          final bloc = ProfileBloc(
+            profileRepository: repo,
+            authRepository: authRepo,
+          );
+
+          bloc.add(ProfileLoadRequested());
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+
+          bloc.add(
+            ProfileLocationUpdateRequested(
+              latitude: 34.0522,
+              longitude: -118.2437,
+            ),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+
+          expect(repo.updateProfileCallCount, 1);
+          expect(repo.lastUpdatedProfile, isNotNull);
+          expect(repo.lastUpdatedProfile!.latitude, closeTo(34.0522, 0.0001));
+          expect(
+            repo.lastUpdatedProfile!.longitude,
+            closeTo(-118.2437, 0.0001),
+          );
+          expect(repo.lastUpdatedProfile!.city, _testProfile.city);
+          expect(repo.lastUpdatedProfile!.country, _testProfile.country);
+          expect(bloc.state.profile?.latitude, closeTo(34.0522, 0.0001));
+          expect(bloc.state.profile?.longitude, closeTo(-118.2437, 0.0001));
+
+          await bloc.close();
+        },
+      );
     });
 
     group('Auth State Changes', () {
@@ -365,10 +624,10 @@ const _testProfile = Profile(
   lastName: 'Doe',
   age: 25,
   gender: 'male',
-  photoUrls:  [],
-  videoUrls:  [],
+  photoUrls: [],
+  videoUrls: [],
   bio: 'Hello!',
-  interests:  [],
+  interests: [],
   country: 'US',
   city: 'New York',
   isVerified: false,
@@ -397,16 +656,38 @@ class _StubProfileRepository implements ProfileRepository {
     this.userToReturn,
     this.shouldFailLoad = false,
     this.shouldFailSave = false,
+    this.loadFailureMessage,
+    this.loadFailureAsRepositoryException = false,
+    this.shouldFailUploadId = false,
+    this.shouldFailMarkId = false,
+    this.shouldFailUpdateProfile = false,
   });
 
   final CrushUser? userToReturn;
   final bool shouldFailLoad;
   final bool shouldFailSave;
+  final String? loadFailureMessage;
+  final bool loadFailureAsRepositoryException;
+  final bool shouldFailUploadId;
+  final bool shouldFailMarkId;
+  final bool shouldFailUpdateProfile;
+  int getCurrentUserCallCount = 0;
+  int uploadIdDocumentCallCount = 0;
+  int markIdVerifiedCallCount = 0;
+  int updateProfileCallCount = 0;
+  Profile? lastUpdatedProfile;
 
   @override
   Future<CrushUser?> getCurrentUser() async {
+    getCurrentUserCallCount++;
     if (shouldFailLoad) {
-      throw Exception('Failed to load profile');
+      if (loadFailureAsRepositoryException) {
+        throw RepositoryException(
+          'profile_not_found',
+          loadFailureMessage ?? 'Failed to load profile',
+        );
+      }
+      throw Exception(loadFailureMessage ?? 'Failed to load profile');
     }
     return userToReturn;
   }
@@ -454,15 +735,20 @@ class _StubProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> updateProfile(Profile profile) async {
-    if (shouldFailSave) {
+    updateProfileCallCount++;
+    lastUpdatedProfile = profile;
+    if (shouldFailSave || shouldFailUpdateProfile) {
       throw Exception('Failed to save');
     }
-    return userToReturn ?? _testUser;
+    return (userToReturn ?? _testUser).copyWith(profile: profile);
   }
 
   @override
   Future<void> uploadIdDocument() async {
-    // No-op for testing
+    uploadIdDocumentCallCount++;
+    if (shouldFailUploadId) {
+      throw Exception('Failed to upload ID');
+    }
   }
 
   @override
@@ -472,6 +758,10 @@ class _StubProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> markIdVerified() async {
+    markIdVerifiedCallCount++;
+    if (shouldFailMarkId) {
+      throw Exception('Failed to mark ID');
+    }
     return userToReturn ?? _testUser;
   }
 
@@ -526,8 +816,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> sendEmailSignInLink(String email) async =>
@@ -537,15 +826,13 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithApple() async => throw UnimplementedError();
@@ -554,24 +841,21 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestEmailOtp({
     required String identifier,
     required EmailOtpPurpose purpose,
     String? email,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser?> verifyEmailOtp({
@@ -580,8 +864,7 @@ class _StubAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset({required String email}) async =>
@@ -591,16 +874,14 @@ class _StubAuthRepository implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> resetPasswordWithToken({
     required String email,
     required String resetToken,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> signOut() async {
@@ -621,8 +902,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> deactivateAccount({required String reason}) async =>
@@ -632,8 +912,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> deleteAccount({
     required String password,
     required String reason,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> isEmailRegistered(String email) async =>

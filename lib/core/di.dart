@@ -2,12 +2,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
-import 'package:crushhour/features/calls/data/repositories/call_repository.dart';
-import 'package:crushhour/features/feature_flags/data/repositories/feature_flag_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_repository.dart';
+import 'package:crushhour/features/feature_flags/domain/repositories/feature_flag_repository.dart';
+import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
+import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
+import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 
 // Firebase implementations
 import 'package:crushhour/features/auth/data/repositories/impl/firebase_auth_repository.dart';
@@ -17,8 +20,13 @@ import 'package:crushhour/features/discovery/data/repositories/impl/firebase_dis
 import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/firebase_call_repository.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/impl/firebase_boost_repository.dart';
+
+// Social/Analytics concrete service implementations
+import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
+import 'package:crushhour/features/social/data/services/date_idea_service.dart';
+import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
 
 // Stub implementations (for development/demo without backend)
 import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
@@ -62,6 +70,9 @@ import 'package:crushhour/features/settings/presentation/bloc/storage_settings_c
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 import 'package:crushhour/features/feature_flags/presentation/bloc/feature_flag_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
+import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
+import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
+import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
 
 /// Backend configuration for the app.
@@ -198,6 +209,12 @@ class CrushDI {
       RepositoryProvider<CallRepository>.value(value: callRepo),
       RepositoryProvider<FeatureFlagRepository>.value(value: featureFlagRepo),
       RepositoryProvider<BoostRepository>.value(value: boostRepo),
+      RepositoryProvider<CompatibilityQuizRepository>.value(
+          value: CompatibilityQuizService.instance),
+      RepositoryProvider<DateIdeaRepository>.value(
+          value: DateIdeaService.instance),
+      RepositoryProvider<ProfileInsightsRepository>.value(
+          value: ProfileInsightsService.instance),
     ];
   }
 
@@ -283,6 +300,24 @@ class CrushDI {
       BlocProvider<BoostCubit>(
         create: (context) => BoostCubit(
           boostRepository: context.read<BoostRepository>(),
+        ),
+      ),
+      BlocProvider<CompatibilityQuizCubit>(
+        create: (context) => CompatibilityQuizCubit(
+          authRepository: context.read<AuthRepository>(),
+          quizRepository: context.read<CompatibilityQuizRepository>(),
+        ),
+      ),
+      BlocProvider<DateIdeasCubit>(
+        create: (context) => DateIdeasCubit(
+          authRepository: context.read<AuthRepository>(),
+          dateIdeaRepository: context.read<DateIdeaRepository>(),
+        ),
+      ),
+      BlocProvider<ProfileInsightsCubit>(
+        create: (context) => ProfileInsightsCubit(
+          authRepository: context.read<AuthRepository>(),
+          insightsRepository: context.read<ProfileInsightsRepository>(),
         ),
       ),
       BlocProvider<BadgeCounterCubit>(

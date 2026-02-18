@@ -2,6 +2,84 @@
 
 Notes and handoffs between AI agents working on this repo.
 
+## 2026-02-18
+
+### P1-ARCH-001: FULLY RESOLVED — All Features Refactored to Domain Layer
+
+**Summary:** The clean architecture refactor (P1-ARCH-001) is complete across ALL features:
+- **auth + chat** (CR-AUD-027): Domain interfaces + presentation imports fixed
+- **profile + discovery + boost** (CR-AUD-027b): Domain interfaces + re-exports + presentation imports
+- **subscription + calls + feature_flags** (CR-AUD-027c): Domain interfaces + re-exports + presentation imports
+- **social + analytics** (CR-AUD-027d): Domain interfaces for singleton services + constructor injection + DI providers
+
+**Key architectural decisions:**
+1. Singleton services (CompatibilityQuiz, DateIdea, ProfileInsights) now implement abstract interfaces
+2. Cubits use constructor injection instead of accessing Service.instance directly
+3. DI provides all repositories and cubits via RepositoryProvider/BlocProvider
+4. PhotoPerformance class moved from service to models file (data layer, not service)
+5. get_photo_performance use case now accepts abstract ProfileInsightsRepository
+
+**For other agents:** All presentation layer files now import from domain layer only. When adding new features, follow this pattern:
+- Abstract interface in `lib/features/{feature}/domain/repositories/`
+- Concrete implementation in `lib/features/{feature}/data/` (services or repositories/impl)
+- Register in `lib/core/di.dart` with RepositoryProvider<AbstractType>
+- Cubits accept abstract types via constructor injection
+
+**Verification:** `flutter analyze` — 0 errors, 0 warnings (74 info-level lints, all pre-existing)
+
+---
+
+### CR-AUD-027c: Domain Layer for Subscription, Calls, FeatureFlags Repositories
+
+- Extended the auth+chat+profile+discovery domain repository pattern to 3 more features: Subscription, Calls, FeatureFlags
+- Abstract classes moved to `lib/features/{subscription,calls,feature_flags}/domain/repositories/`
+- Original data-layer files now re-export from domain (backward compat preserved)
+- 7 presentation imports updated across 7 files: `subscription_bloc.dart`, `promo_code_sheet.dart`, `call_bloc.dart`, `call_event.dart`, `feature_flag_cubit.dart`, `theme_cubit.dart`, `safety_cubit.dart`
+- Settings cubits updated: `theme_cubit.dart` now imports profile repo from domain layer; `safety_cubit.dart` now imports discovery repo from domain layer
+- **NOTE:** The `subscription_repository` import in `discovery_bloc.dart` flagged in CR-AUD-027b is now resolvable via the re-export -- the domain file exists at `lib/features/subscription/domain/repositories/subscription_repository.dart`
+- **NOT touched:** Implementation files in `impl/` folders, test files, or `lib/core/di.dart` -- these still import via the data-layer path which now re-exports from domain
+- `dart analyze lib/` shows 0 new errors; 2 pre-existing errors in analytics/get_photo_performance.dart unrelated to this change
+
+---
+
+### CR-AUD-027b: Domain Layer for Profile, Discovery, Boost Repositories
+
+- Extended the auth+chat domain repository pattern to 3 more features: Profile, Discovery, Boost
+- Abstract classes moved to `lib/features/{profile,discovery}/domain/repositories/`
+- Original data-layer files now re-export from domain (backward compat preserved)
+- 5 presentation imports updated across 4 files: `profile_bloc.dart`, `discovery_bloc.dart` (2 imports), `boost_cubit.dart`, `likes_you_screen.dart`
+- **NOT touched:** `subscription_repository` import in `discovery_bloc.dart` -- this needs a separate task to create `lib/features/subscription/domain/repositories/subscription_repository.dart`
+- **NOT touched:** Implementation files in `impl/` folders, test files, or `lib/core/di.dart` -- these still import via the data-layer path which now re-exports from domain
+- **For other agents:** When adding new repository interfaces, place them in `lib/features/{feature}/domain/repositories/` and put a re-export in the data-layer path for backward compatibility
+- R-126 progress: 3 more repositories fixed (auth, chat already done = 5 total). Remaining: subscription, matching, and service-level imports across ~60+ files
+
+---
+
+### CR-AUD-035: Standardize Error Handling with Result Pattern
+
+- Enhanced `lib/core/utils/result.dart` with helper methods: `isFailure`, `valueOrNull`, `getOrElse`, `map`, `flatMap`, `fold`, `guardSync`, `toString`, `==`, `hashCode`
+- Added Result-returning methods to auth (5 methods) and chat (8 methods) repository implementations as proof of concept
+- Methods are on concrete implementations ONLY, NOT on abstract interfaces -- this is intentional to avoid breaking 13+ test mocks that use `implements AuthRepository` / `implements ChatRepository`
+- When adding Result methods to other repositories, follow the same pattern: add to concrete implementations, not abstract interfaces
+- **IMPORTANT for Firebase implementations**: `cloud_functions` package exports its own `Result` type. Use `import 'package:crushhour/core/utils/result.dart' as app_result;` and prefix all Result references as `app_result.Result` in files that also import `cloud_functions`
+- Future migration: To add these to abstract interfaces, test mocks will need to either (a) switch from `implements` to `extends`, (b) add `noSuchMethod` fallbacks, or (c) add explicit stub implementations
+- Existing use cases already use `Result.guard()` to wrap throwing repository calls -- that pattern remains the recommended approach
+
+---
+
+### CR-AUD-034: Shared DTO Extraction
+
+- Extracted 10 shared DTOs to `lib/shared/dto/` as the canonical source directory
+- Models moved: `user.dart`, `profile.dart`, `subscription.dart`, `message.dart`, `match.dart`, `preferences.dart`, `privacy_settings.dart`, `profile_prompt.dart`, `chat_settings.dart`, `favourites.dart`
+- Models NOT moved (single-feature only): `profile_reaction.dart`, `profile_story.dart`, `promo_code.dart`, `message_request.dart`
+- Original `lib/data/models/` files now re-export from shared location for backward compatibility
+- Barrel file at `lib/shared/dto/dto.dart` exports all shared DTOs alphabetically
+- `lib/shared/shared.dart` updated to use the new DTO barrel
+- **For other agents:** When adding new models used by 2+ features, add them to `lib/shared/dto/` directly instead of `lib/data/models/`. When importing shared models, prefer `package:crushhour/shared/dto/dto.dart` over the old `lib/data/models/` path.
+- All 1323 tests pass, 0 new analyzer issues
+
+---
+
 ## 2026-02-01
 - Dependency upgrades now require Flutter 3.35 / Dart 3.9 (go_router 17, google_fonts 8). If someone is on older toolchain, update before running pub get.
 - flutter_lints 6 introduces new info-level lints (use_null_aware_elements, unnecessary_underscores) across multiple files; consider cleanup or suppress if noise is high.

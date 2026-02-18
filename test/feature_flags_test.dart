@@ -194,6 +194,164 @@ void main() {
       expect(updated.enableVideoChat, isTrue);
     });
 
+    test('fromMap hydrates full payload across all feature groups', () {
+      final flags = FeatureFlags.fromMap(const {
+        // Discovery
+        'enable_super_like': false,
+        'enable_rewind': false,
+        'daily_like_limit': 42,
+        'daily_super_like_limit': 9,
+        'enable_boost': false,
+        'boost_duration_minutes': 45,
+        // Chat
+        'enable_video_chat': false,
+        'enable_voice_messages': false,
+        'enable_gif_messages': false,
+        'enable_reactions': false,
+        'enable_read_receipts': false,
+        'enable_typing_indicators': false,
+        'max_media_per_day': 4,
+        // Profile
+        'enable_profile_verification': false,
+        'enable_spotify_integration': true,
+        'enable_instagram_integration': true,
+        'max_photos': 9,
+        'max_videos': 4,
+        'enable_prompts': false,
+        'max_prompts': 5,
+        // Subscription
+        'enable_plus_subscription': false,
+        'enable_free_trial': false,
+        'free_trial_days': 14,
+        'show_upsell_after_swipes': 30,
+        // Safety
+        'enable_safety_center': false,
+        'enable_block_and_report': false,
+        'enable_incognito_mode': false,
+        'enable_photo_verification': false,
+        // Experiments
+        'enable_new_match_animation': true,
+        'enable_swipe_gesture_tutorial': false,
+        'enable_profile_completeness_reminder': false,
+        'profile_completeness_threshold': 55,
+        // Maintenance
+        'maintenance_mode': true,
+        'maintenance_message': 'Scheduled maintenance',
+        'min_app_version': '9.9.9',
+        'force_update': true,
+        'force_update_message': 'Mandatory update',
+        // Analytics
+        'enable_analytics': false,
+        'enable_crash_reporting': false,
+        'debug_logging_enabled': true,
+      });
+
+      expect(flags.enableSuperLike, isFalse);
+      expect(flags.enableRewind, isFalse);
+      expect(flags.dailyLikeLimit, 42);
+      expect(flags.dailySuperLikeLimit, 9);
+      expect(flags.enableBoost, isFalse);
+      expect(flags.boostDurationMinutes, 45);
+      expect(flags.enableVideoChat, isFalse);
+      expect(flags.enableVoiceMessages, isFalse);
+      expect(flags.enableGifMessages, isFalse);
+      expect(flags.enableReactions, isFalse);
+      expect(flags.enableReadReceipts, isFalse);
+      expect(flags.enableTypingIndicators, isFalse);
+      expect(flags.maxMediaPerDay, 4);
+      expect(flags.enableProfileVerification, isFalse);
+      expect(flags.enableSpotifyIntegration, isTrue);
+      expect(flags.enableInstagramIntegration, isTrue);
+      expect(flags.maxPhotos, 9);
+      expect(flags.maxVideos, 4);
+      expect(flags.enablePrompts, isFalse);
+      expect(flags.maxPrompts, 5);
+      expect(flags.enablePlusSubscription, isFalse);
+      expect(flags.enableFreeTrial, isFalse);
+      expect(flags.freeTrialDays, 14);
+      expect(flags.showUpsellAfterSwipes, 30);
+      expect(flags.enableSafetyCenter, isFalse);
+      expect(flags.enableBlockAndReport, isFalse);
+      expect(flags.enableIncognitoMode, isFalse);
+      expect(flags.enablePhotoVerification, isFalse);
+      expect(flags.enableNewMatchAnimation, isTrue);
+      expect(flags.enableSwipeGestureTutorial, isFalse);
+      expect(flags.enableProfileCompletenessReminder, isFalse);
+      expect(flags.profileCompletenessThreshold, 55);
+      expect(flags.maintenanceMode, isTrue);
+      expect(flags.maintenanceMessage, 'Scheduled maintenance');
+      expect(flags.minAppVersion, '9.9.9');
+      expect(flags.forceUpdate, isTrue);
+      expect(flags.forceUpdateMessage, 'Mandatory update');
+      expect(flags.enableAnalytics, isFalse);
+      expect(flags.enableCrashReporting, isFalse);
+      expect(flags.debugLoggingEnabled, isTrue);
+    });
+
+    test('copyWith can override all fields and exposes full props list', () {
+      const base = FeatureFlags();
+      final updated = base.copyWith(
+        enableSuperLike: false,
+        enableRewind: false,
+        dailyLikeLimit: 77,
+        dailySuperLikeLimit: 8,
+        enableBoost: false,
+        boostDurationMinutes: 60,
+        enableVideoChat: false,
+        enableVoiceMessages: false,
+        enableGifMessages: false,
+        enableReactions: false,
+        enableReadReceipts: false,
+        enableTypingIndicators: false,
+        maxMediaPerDay: 2,
+        enableProfileVerification: false,
+        enableSpotifyIntegration: true,
+        enableInstagramIntegration: true,
+        maxPhotos: 8,
+        maxVideos: 3,
+        enablePrompts: false,
+        maxPrompts: 4,
+        enablePlusSubscription: false,
+        enableFreeTrial: false,
+        freeTrialDays: 10,
+        showUpsellAfterSwipes: 20,
+        enableSafetyCenter: false,
+        enableBlockAndReport: false,
+        enableIncognitoMode: false,
+        enablePhotoVerification: false,
+        enableNewMatchAnimation: true,
+        enableSwipeGestureTutorial: false,
+        enableProfileCompletenessReminder: false,
+        profileCompletenessThreshold: 65,
+        maintenanceMode: true,
+        maintenanceMessage: 'maintenance',
+        minAppVersion: '3.2.1',
+        forceUpdate: true,
+        forceUpdateMessage: 'update now',
+        enableAnalytics: false,
+        enableCrashReporting: false,
+        debugLoggingEnabled: true,
+      );
+
+      expect(updated.enableSuperLike, isFalse);
+      expect(updated.dailyLikeLimit, 77);
+      expect(updated.enableVideoChat, isFalse);
+      expect(updated.maxVideos, 3);
+      expect(updated.enableNewMatchAnimation, isTrue);
+      expect(updated.maintenanceMode, isTrue);
+      expect(updated.minAppVersion, '3.2.1');
+      expect(updated.forceUpdateMessage, 'update now');
+      expect(updated.enableAnalytics, isFalse);
+      expect(updated.debugLoggingEnabled, isTrue);
+
+      expect(updated.copyWith(), equals(updated));
+
+      final props = updated.props;
+      expect(props, hasLength(40));
+      expect(props.first, isFalse);
+      expect(props.last, isTrue);
+    });
+
     test('FeatureFlags.defaults is const default', () {
       expect(FeatureFlags.defaults, const FeatureFlags());
     });
@@ -303,7 +461,10 @@ void main() {
       await cubit.refresh();
       await Future<void>.delayed(Duration.zero);
 
-      expect(states.any((s) => s.status == FeatureFlagStatus.refreshing), isTrue);
+      expect(
+        states.any((s) => s.status == FeatureFlagStatus.refreshing),
+        isTrue,
+      );
       expect(states.last.status, FeatureFlagStatus.loaded);
 
       await sub.cancel();
@@ -359,7 +520,10 @@ void main() {
       await cubit.forceRefresh();
       await Future<void>.delayed(Duration.zero);
 
-      expect(states.any((s) => s.status == FeatureFlagStatus.refreshing), isTrue);
+      expect(
+        states.any((s) => s.status == FeatureFlagStatus.refreshing),
+        isTrue,
+      );
       expect(states.last.status, FeatureFlagStatus.loaded);
       expect(states.last.lastFetchTime, isNotNull);
 
@@ -399,13 +563,15 @@ void main() {
     });
 
     test('convenience getters reflect current flags state', () async {
-      repository.pushFlags(const FeatureFlags(
-        maintenanceMode: true,
-        maintenanceMessage: 'Server down',
-        forceUpdate: true,
-        forceUpdateMessage: 'Please update now',
-        minAppVersion: '3.0.0',
-      ));
+      repository.pushFlags(
+        const FeatureFlags(
+          maintenanceMode: true,
+          maintenanceMessage: 'Server down',
+          forceUpdate: true,
+          forceUpdateMessage: 'Please update now',
+          minAppVersion: '3.0.0',
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(cubit.isMaintenanceMode, isTrue);

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
-import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 
 /// State for boost feature.
 class BoostState extends Equatable {

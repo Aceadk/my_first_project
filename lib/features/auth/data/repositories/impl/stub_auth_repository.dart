@@ -7,6 +7,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/core/utils/result.dart';
 import '../auth_repository.dart';
 
 /// Mock implementation of AuthRepository with local storage.
@@ -842,6 +843,68 @@ class StubAuthRepository implements AuthRepository {
       _authStateController.add(user);
     }
     return user;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  //
+  // These methods return Result<T> instead of throwing exceptions, making
+  // error handling explicit at the call site. They wrap the existing throwing
+  // methods so both APIs can coexist during incremental migration.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Result<CrushUser>> signInWithEmailPasswordResult({
+    required String email,
+    required String password,
+  }) {
+    return Result.guard(
+      () => signInWithEmailPassword(email: email, password: password),
+      logLabel: 'StubAuthRepository.signInWithEmailPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<Result<CrushUser>> loginWithPasswordResult({
+    required String identifier,
+    required String password,
+  }) {
+    return Result.guard(
+      () => loginWithPassword(identifier: identifier, password: password),
+      logLabel: 'StubAuthRepository.loginWithPasswordResult',
+      fallbackError: 'Unable to sign in. Please check your credentials.',
+    );
+  }
+
+  Future<Result<CrushUser>> signUpWithPasswordResult({
+    required String username,
+    required String email,
+    required String password,
+  }) {
+    return Result.guard(
+      () => signUpWithPassword(
+        username: username,
+        email: email,
+        password: password,
+      ),
+      logLabel: 'StubAuthRepository.signUpWithPasswordResult',
+      fallbackError: 'Unable to create account. Please try again.',
+    );
+  }
+
+  Future<Result<void>> signOutResult() {
+    return Result.guard(
+      () => signOut(),
+      logLabel: 'StubAuthRepository.signOutResult',
+      fallbackError: 'Unable to sign out. Please try again.',
+    );
+  }
+
+  Future<Result<CrushUser>> signInWithAppleResult() {
+    return Result.guard(
+      () => signInWithApple(),
+      logLabel: 'StubAuthRepository.signInWithAppleResult',
+      fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
   }
 
   void dispose() {
