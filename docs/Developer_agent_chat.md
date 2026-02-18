@@ -87,6 +87,93 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #045 — CEO Comprehensive Audit Directive v2.0 (Full-Stack Production Readiness)
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** In Progress
+
+**Developer Intent Analysis:**
+- Primary goal: Execute a comprehensive, module-by-module audit of the entire CRUSH app across ALL platforms (iOS, iPad, Android, Web) to achieve production-grade, App Store/Play Store approved status
+- Secondary goals: Generate modular TODO files for every module, identify iPad compliance issues, ensure WCAG 2.1 AA accessibility, harden security, optimize performance, generate innovation ideas
+- Implicit requirements: Zero P0/P1 issues remaining, first-try App Store approval, 85%+ test coverage for business logic, 60fps animations, <2s startup, <200ms API p95 latency
+- Quality expectations: Complete production-ready code blocks, no partial snippets. Every change documented with rationale, risk, and verification steps.
+
+**Refined Prompt:**
+
+### Objective
+Execute the CEO's Comprehensive Audit Directive v2.0 — a full-stack audit and remediation of the CRUSH dating app. Produce granular, module-specific TODO files covering: Auth & Security (P0), Discovery & Matching (P0-P1), Chat & Messaging (P0), Profile (P0-P1), Notifications (P1), Settings (P1-P2), Onboarding (P1), plus cross-cutting concerns (Responsive Design, Accessibility, State Management, Error Handling, Performance, i18n), Backend/Infrastructure, Codebase Cleanup, Store Compliance, and Innovations.
+
+### Technical Requirements
+1. iPad compliance audit: Every screen verified for responsive layout, orientation handling, multitasking (Split View, Slide Over, Stage Manager), input methods (external keyboard, trackpad, Apple Pencil)
+2. Module-by-module analysis: Read every file in each feature module, trace data flow, identify gaps
+3. Security hardening: Token lifecycle, OAuth PKCE, rate limiting, OWASP Mobile Top 10
+4. Accessibility: WCAG 2.1 AA, Semantics labels, Dynamic Type, contrast ratios, focus management
+5. Performance: Startup time, frame rate, image optimization, list virtualization, bundle size
+6. Store compliance: Apple (Sign in with Apple, ATT, account deletion, privacy labels) + Google (target SDK, data safety, AAB)
+7. Testing strategy: Unit, widget, integration, E2E test coverage gaps
+8. Innovation proposals: 5+ ideas per category (UX, Technical, Design System)
+
+### Implementation Plan
+**Phase 1:** Deep codebase scan and architecture inventory
+**Phase 2:** Module-by-module audit with findings
+**Phase 3:** Generate all TODO files (20+ files)
+**Phase 4:** Generate additional deliverables (architecture diagram, navigation map, security report)
+**Phase 5:** Update all AI collaboration docs
+
+### Success Criteria
+- [ ] All 20+ TODO files generated with specific, actionable items
+- [ ] Every screen audited for iPad compliance
+- [ ] Security audit report with severity ratings
+- [ ] Performance baseline documented
+- [ ] Store submission checklists completed
+- [ ] Innovation ideas documented
+- [ ] All AI collaboration docs updated
+
+### Verification Commands
+```
+flutter analyze
+flutter test
+dart analyze tool/
+```
+
+**Related Task ID:** T-2026-02-19-01
+
+**Outcome (Phase 1-3 Complete — TODO Generation):**
+- **Status:** Phases 1-3 Complete (Phase 4-5 pending)
+- **Files Created (22 TODO files):**
+  - `docs/TODO_AUTH_SECURITY.md` (11 items: AUTH-SEC-001 to AUTH-SEC-011)
+  - `docs/TODO_IPAD_COMPLIANCE.md` (11 items: IPAD-001 to IPAD-011)
+  - `docs/TODO_DISCOVERY_UI.md` (7 items: DISC-UI-001 to DISC-UI-007)
+  - `docs/TODO_CHAT_UI.md` (8 items: CHAT-UI-001 to CHAT-UI-008)
+  - `docs/TODO_PROFILE_FRONTEND.md` (7 items: PROF-FE-001 to PROF-FE-007)
+  - `docs/TODO_SUBSCRIPTION.md` (10 items: SUB-001 to SUB-010) — **P0 SHIP BLOCKER**
+  - `docs/TODO_NOTIFICATIONS.md` (5 items: NOTIF-001 to NOTIF-005)
+  - `docs/TODO_ONBOARDING_FLOW.md` (5 items: ONBOARD-001 to ONBOARD-005)
+  - `docs/TODO_SETTINGS_UI.md` (6 items: SET-001 to SET-006)
+  - `docs/TODO_CALLS.md` (10 items: CALL-001 to CALL-010)
+  - `docs/TODO_RESPONSIVE_DESIGN.md` (8 items: RESP-001 to RESP-008)
+  - `docs/TODO_ACCESSIBILITY.md` (8 items: A11Y-001 to A11Y-008)
+  - `docs/TODO_STATE_MANAGEMENT.md` (7 items: STATE-001 to STATE-007)
+  - `docs/TODO_ERROR_HANDLING.md` (7 items: ERR-001 to ERR-007)
+  - `docs/TODO_PERFORMANCE.md` (8 items: PERF-001 to PERF-008)
+  - `docs/TODO_I18N_L10N.md` (7 items: I18N-001 to I18N-007)
+  - `docs/TODO_SECURITY_BACKEND.md` (9 items: SEC-BE-001 to SEC-BE-009)
+  - `docs/TODO_SECURITY_FRONTEND.md` (8 items: SEC-FE-001 to SEC-FE-008)
+  - `docs/TODO_CLEANUP_DEAD_CODE.md` (8 items: CLEAN-001 to CLEAN-008)
+  - `docs/TODO_STORE_APPLE.md` (8 items: STORE-APL-001 to STORE-APL-008)
+  - `docs/TODO_STORE_GOOGLE.md` (8 items: STORE-GPG-001 to STORE-GPG-008)
+  - `docs/TODO_INNOVATIONS.md` (20+ proposals across UX, Technical, Design System, Safety)
+- **Files Modified:** `docs/ai_change_log.md`, `docs/ai_tasks_board.md`, `docs/risk_notes.md`, `docs/Developer_agent_chat.md`
+- **Critical Findings:**
+  - **R-134:** No IAP package in pubspec.yaml — subscription uses mock Stripe (SHIP BLOCKER)
+  - **R-135:** EXIF/GPS data not stripped from photo uploads (privacy risk)
+  - **R-136:** ChatScreen (3,230 lines) has zero accessibility/Semantics
+  - **R-137:** Most screens bypass adaptive layout system (iPad compliance)
+- **Total Items:** 163+ actionable work items across all TODO files
+- **Notes:** Phase 4 (implementation) and Phase 5 (additional deliverables) are pending. Prioritization: SUB-001 (IAP) is the single most critical item.
+
+---
+
 ### Task #044 — CR-AUD-027d: Clean Architecture Refactor for Social/Analytics + DI Completion
 **Date:** 2026-02-18
 **Agent:** Claude (Opus 4.6)

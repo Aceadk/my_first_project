@@ -4,6 +4,54 @@ This file tracks all changes made by AI assistants (Claude, Codex, etc.)
 
 ---
 
+### [2026-02-19] Task: CEO Comprehensive Audit Directive v2.0 — TODO File Generation
+**Summary:**
+- Executed Phase 1-3 of the CEO Comprehensive Audit Directive v2.0
+- Performed full-stack codebase audit using 6 parallel research agents scanning: architecture, auth, discovery/chat/profile, notifications/settings/onboarding/calls, cross-cutting concerns, and backend infrastructure
+- Generated 22 modular TODO files (21 new + 1 pre-existing) covering every module and cross-cutting concern
+
+**Files Added:**
+- `docs/TODO_AUTH_SECURITY.md` — 11 items: token storage, PKCE, token refresh, rate limiting, account deletion, biometric auth, Apple Sign-In, concurrent sessions, error messages, password reset, age verification
+- `docs/TODO_IPAD_COMPLIANCE.md` — 11 items: 48-screen audit, master-detail chat, content constraints, bottom sheets, orientation, multitasking, keyboard, discovery adaptation, icons, launch screen, UIDeviceFamily
+- `docs/TODO_DISCOVERY_UI.md` — 7 items: responsive deck, swipe accessibility, keyboard navigation, video error handling, explore grid, hardcoded positioning, haptic feedback
+- `docs/TODO_CHAT_UI.md` — 8 items: responsive chat, keyboard handling, accessibility (ZERO current), media sizing, stream cleanup, EXIF stripping, virtualization, retry UI
+- `docs/TODO_PROFILE_FRONTEND.md` — 7 items: responsive layout, photo upload iPad, adaptive grid, EXIF stripping (privacy critical), keyboard support, image validation, completeness meter a11y
+- `docs/TODO_SUBSCRIPTION.md` — 10 items: IAP integration (CRITICAL missing), native billing, repository update, receipt validation, BLoC update, restore, management screen, paywall, webhooks, entitlement checks
+- `docs/TODO_NOTIFICATIONS.md` — 5 items: notification center, category filtering, rich push, smart scheduling, iPad deep linking
+- `docs/TODO_ONBOARDING_FLOW.md` — 5 items: progressive disclosure, permission rationale, responsive iPad, analytics funnel, welcome tutorial
+- `docs/TODO_SETTINGS_UI.md` — 6 items: subscription navigation, dialog constraints, data export, deletion UX, theme preview, linked accounts
+- `docs/TODO_CALLS.md` — 10 items: WebRTC SDK, CallKit iOS, ConnectionService Android, incoming screen, signaling, call history, quality monitoring, PiP, VoIP push, safety features
+- `docs/TODO_RESPONSIVE_DESIGN.md` — 8 items: chat breakpoints, discovery deck, profile tablet, settings scaffold, auth/onboarding, grids, home navigation, design system audit
+- `docs/TODO_ACCESSIBILITY.md` — 8 items: semantic labels, focus management, color contrast, dynamic type, live regions, tap targets, reduced motion, image labels
+- `docs/TODO_STATE_MANAGEMENT.md` — 7 items: ChatBloc stream leaks, diff check, subscription audit, optimistic updates, stale state, error recovery, logout reset
+- `docs/TODO_ERROR_HANDLING.md` — 7 items: error boundary, circuit breaker, specific messages, retry policy, structured logging, offline fallback, recovery actions
+- `docs/TODO_PERFORMANCE.md` — 8 items: startup time, image optimization, list virtualization, rebuild reduction, deck rendering, bundle size, monitoring, Firestore queries
+- `docs/TODO_I18N_L10N.md` — 7 items: RTL support, text expansion, pluralization, locale-aware formatting, hardcoded strings, CJK typography, locale switching
+- `docs/TODO_SECURITY_BACKEND.md` — 9 items: storage rules, Firebase Storage init, App Check Android, App Check iOS, rate limiting, email verification audit, input validation, backup/recovery, Firestore rules hardening
+- `docs/TODO_SECURITY_FRONTEND.md` — 8 items: certificate pinning, secure storage, input sanitization, debug prints, biometric auth, clipboard security, network config, jailbreak detection
+- `docs/TODO_CLEANUP_DEAD_CODE.md` — 8 items: ChatScreen split, R-126 BLoC migration, R-126 screen migration, print removal, inline style extraction, widget consolidation, barrel files, unused assets
+- `docs/TODO_STORE_APPLE.md` — 8 items: IAP StoreKit 2, age rating 17+, privacy labels, iPad screenshots, review guidelines, subscription UI, metadata, demo account
+- `docs/TODO_STORE_GOOGLE.md` — 8 items: Play Billing, data safety, target SDK 34, AAB build, store listing, Play Integrity, in-app review, pre-launch report
+- `docs/TODO_INNOVATIONS.md` — 20+ proposals across UX, Technical, Design System, and Safety categories
+
+**Critical Findings:**
+1. **NO in_app_purchase package** — SHIP BLOCKER for both stores
+2. **Chat module has ZERO accessibility** — no Semantics calls anywhere
+3. **EXIF not stripped from photos** — GPS coordinates exposed (critical privacy)
+4. **3,230-line ChatScreen** — largest file, needs decomposition
+5. **Responsive design infrastructure exists but unused** — DsBreakpoints/AdaptiveLayout built but only 4 files use them
+6. **Firebase Storage not initialized in console**
+7. **App Check not configured for Android (Play Integrity)**
+
+**Risks & Mitigations:**
+- See `risk_notes.md` for new risks R-132 through R-137
+
+**Follow-ups / TODO:**
+- Execute TODO items by priority (P0 first: Subscription IAP, store compliance, security backend)
+- Phase 4 of directive: implementation begins
+
+---
+
 ### [2026-02-18] Task: Sync isEmailVerified to Firestore in Web App
 **Summary:**
 - Added `isEmailVerified` and `isPhoneVerified` fields to web app's UserProfile type and profile creation

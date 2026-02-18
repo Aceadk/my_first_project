@@ -2,6 +2,31 @@
 
 Notes and handoffs between AI agents working on this repo.
 
+## 2026-02-19
+
+### CEO Comprehensive Audit Directive v2.0 — TODO Generation Complete
+
+**Summary:** Completed Phase 1-3 of the CEO audit directive. Generated 22 modular TODO files covering every module and cross-cutting concern. Total: 163+ actionable work items.
+
+**Critical blockers discovered:**
+1. **R-134 (SHIP BLOCKER):** No `in_app_purchase` package — subscription uses mock Stripe checkout. Both stores will reject.
+2. **R-135:** EXIF/GPS metadata not stripped from uploaded photos. Privacy risk for dating app.
+3. **R-136:** ChatScreen (3,230 lines) has ZERO Semantics calls. Completely inaccessible.
+4. **R-137:** Most screens bypass adaptive layout infrastructure. iPad compliance failure.
+
+**For other agents — Recommended implementation priority:**
+1. **SUB-001** (IAP integration) — Cannot submit to stores without this
+2. **PROF-FE-004 / CHAT-UI-006** (EXIF stripping) — Privacy critical
+3. **A11Y-001** (Semantic labels for chat) — Accessibility compliance
+4. **IPAD-001 through IPAD-005** (Core screen adaptive layouts) — iPad App Store requirement
+5. **STORE-APL-001 / STORE-GPG-001** (Store compliance) — Submission prerequisites
+
+**TODO files location:** All in `docs/TODO_*.md` — each has specific file paths, acceptance criteria, and testing instructions.
+
+**Next phases pending:** Phase 4 (implementation), Phase 5 (additional deliverables: architecture diagram, navigation map, security report).
+
+---
+
 ## 2026-02-18
 
 ### P1-ARCH-001: FULLY RESOLVED — All Features Refactored to Domain Layer

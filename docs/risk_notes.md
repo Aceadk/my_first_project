@@ -1386,3 +1386,122 @@ Resolution:
 Status: Closed (pending Upstash env vars in Vercel) | Owner: AI | Resolved: 2026-02-13
 
 ---
+
+### R-134 — CRITICAL: No In-App Purchase Package — Subscription Uses Mock Stripe (SHIP BLOCKER)
+
+Category: Store Compliance / Revenue
+
+Description:
+No `in_app_purchase` or `in_app_purchase_storekit` package exists in pubspec.yaml. The subscription feature uses a mock Stripe checkout flow which is explicitly prohibited by both Apple (Guideline 3.1.1) and Google Play (Play Billing requirement). App Store and Play Store will reject the app on first review. This is the single most critical blocker for store submission.
+
+Impact: Critical (P0 — app cannot ship without this)
+
+Likelihood: Confirmed (verified — no IAP package in pubspec.yaml)
+
+Affected Areas:
+* pubspec.yaml (missing `in_app_purchase` package)
+* lib/features/subscription/data/services/native_billing_service.dart (needs creation)
+* lib/features/subscription/data/repositories/ (needs IAP integration)
+* functions/src/ (needs server-side receipt validation)
+* App Store Connect (subscription products not created)
+* Google Play Console (subscription products not created)
+
+Mitigation Plan:
+* See TODO_SUBSCRIPTION.md (SUB-001 through SUB-010) for full implementation plan
+* See TODO_STORE_APPLE.md (STORE-APL-001) and TODO_STORE_GOOGLE.md (STORE-GPG-001)
+* Estimated effort: 40-60 hours across client + server + store console setup
+
+Status: Open (SHIP BLOCKER)
+
+Owner: Developer / AI
+
+Created: 2026-02-19
+
+---
+
+### R-135 — Photos Uploaded Without EXIF Stripping — GPS Coordinates Exposed
+
+Category: Security & Privacy
+
+Description:
+Profile photos and chat media are uploaded to Firebase Storage without stripping EXIF metadata. EXIF data can contain GPS coordinates, device info, timestamps, and other sensitive metadata. This is a significant privacy risk for a dating app where user location safety is paramount.
+
+Impact: High (privacy violation, potential stalking risk)
+
+Likelihood: High (confirmed — no EXIF stripping code found in upload paths)
+
+Affected Areas:
+* lib/features/profile/data/services/profile_media_service.dart
+* lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
+* Any photo upload path in the app
+
+Mitigation Plan:
+* See TODO_PROFILE_FRONTEND.md (PROF-FE-004) for EXIF stripping implementation
+* See TODO_CHAT_UI.md (CHAT-UI-006) for chat media EXIF stripping
+* Use `image` package or platform channels to strip EXIF before upload
+* Server-side backup: Cloud Function to strip EXIF on Storage trigger
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-136 — ChatScreen Has Zero Accessibility (3,230 Lines, 0 Semantics Calls)
+
+Category: Accessibility / Compliance
+
+Description:
+ChatScreen at 3,230 lines is the largest file in the codebase and has ZERO Semantics widget calls. This means the entire chat experience — the core feature of a messaging app — is completely inaccessible to screen reader users. Messages, input, send button, media, actions — none have semantic labels. This affects WCAG 2.1 AA compliance and may trigger App Store accessibility review flags.
+
+Impact: High (accessibility compliance, user exclusion)
+
+Likelihood: High (confirmed — grep for Semantics in chat_screen.dart returns 0 results)
+
+Affected Areas:
+* lib/features/chat/presentation/screens/chat_screen.dart (3,230 lines)
+* All chat-related widgets
+
+Mitigation Plan:
+* See TODO_ACCESSIBILITY.md (A11Y-001, A11Y-002) for semantic labels and focus management
+* See TODO_CHAT_UI.md (CHAT-UI-003) for chat-specific accessibility
+* Priority: Add Semantics to message bubbles, input bar, send button, action sheets
+* Add live region announcements for new messages
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-137 — Most Screens Not Using Adaptive Layout System (iPad Compliance)
+
+Category: iPad Compliance / UX
+
+Description:
+The design system has AdaptiveLayout, AdaptiveScaffold, AdaptiveGrid, and DsBreakpoints infrastructure, but the vast majority of the 48+ screens don't use it. Most screens use hardcoded widths, fixed layouts, and mobile-only assumptions. This will cause poor iPad experience (stretched layouts, wasted space, touch target issues) and may trigger App Store rejection for inadequate iPad support.
+
+Impact: High (iPad UX, App Store rejection risk)
+
+Likelihood: High (confirmed — audit found most screens bypass adaptive infrastructure)
+
+Affected Areas:
+* All 48+ screens in lib/features/*/presentation/screens/
+* lib/design_system/layout/ (infrastructure exists but underutilized)
+
+Mitigation Plan:
+* See TODO_IPAD_COMPLIANCE.md (IPAD-001 through IPAD-011) for full screen-by-screen plan
+* See TODO_RESPONSIVE_DESIGN.md (RESP-001 through RESP-008) for responsive design tasks
+* Priority: Start with core flows (auth, discovery, chat, profile) then secondary screens
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-19
+
+---

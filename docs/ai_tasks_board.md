@@ -4,6 +4,7 @@ Tracking active and completed AI tasks for the CRUSH app.
 
 | Task ID | Date | Title | Status | Notes |
 | --- | --- | --- | --- | --- |
+| T-2026-02-19-01 | 2026-02-19 | CEO Audit Directive v2.0 — Phase 1-3: TODO Generation | Completed | 22 TODO files generated from full-stack audit. Critical: no IAP, zero chat a11y, EXIF privacy, 3230-line ChatScreen |
 | T-2026-02-18-12 | 2026-02-18 | Sync isEmailVerified to Firestore in Web App | Completed | Added isEmailVerified/isPhoneVerified to UserProfile type, profile creation, and verification flow — ensures cross-platform consistency |
 | T-2026-02-18-11 | 2026-02-18 | Fix App Store Rejection + Discovery Visibility Bug | Completed | BackendMode→firebase, removed requireEmailVerified from discovery CF, flat profile fallback, CocoaPods 12.8.0 |
 | T-2026-02-18-10 | 2026-02-18 | CR-AUD-027b: Domain layer for Profile/Discovery/Boost repos | Completed | 3 abstract classes moved to domain; 5 presentation imports updated; re-exports for backward compat |
