@@ -129,72 +129,23 @@ class ProfileInsights extends Equatable {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'periodStart': periodStart.toIso8601String(),
-      'periodEnd': periodEnd.toIso8601String(),
-      'profileViews': profileViews,
-      'likesReceived': likesReceived,
-      'likesSent': likesSent,
-      'superLikesReceived': superLikesReceived,
-      'matchRate': matchRate,
-      'responseRate': responseRate,
-      'averageResponseTime': averageResponseTime?.inMinutes,
-      'peakActivityHour': peakActivityHour,
-      'topPhotosViewed': topPhotosViewed,
-      'demographicBreakdown': demographicBreakdown?.toJson(),
-      'weeklyTrend': weeklyTrend.map((d) => d.toJson()).toList(),
-    };
-  }
-
-  factory ProfileInsights.fromJson(Map<String, dynamic> json) {
-    return ProfileInsights(
-      userId: json['userId'] as String,
-      periodStart: DateTime.parse(json['periodStart'] as String),
-      periodEnd: DateTime.parse(json['periodEnd'] as String),
-      profileViews: json['profileViews'] as int? ?? 0,
-      likesReceived: json['likesReceived'] as int? ?? 0,
-      likesSent: json['likesSent'] as int? ?? 0,
-      superLikesReceived: json['superLikesReceived'] as int? ?? 0,
-      matchRate: (json['matchRate'] as num?)?.toDouble() ?? 0.0,
-      responseRate: (json['responseRate'] as num?)?.toDouble() ?? 0.0,
-      averageResponseTime: json['averageResponseTime'] != null
-          ? Duration(minutes: json['averageResponseTime'] as int)
-          : null,
-      peakActivityHour: json['peakActivityHour'] as int?,
-      topPhotosViewed: (json['topPhotosViewed'] as List<dynamic>?)
-              ?.map((e) => e as int)
-              .toList() ??
-          [],
-      demographicBreakdown: json['demographicBreakdown'] != null
-          ? DemographicBreakdown.fromJson(
-              json['demographicBreakdown'] as Map<String, dynamic>)
-          : null,
-      weeklyTrend: (json['weeklyTrend'] as List<dynamic>?)
-              ?.map((e) => DailyMetric.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-    );
-  }
-
   @override
   List<Object?> get props => [
-        userId,
-        periodStart,
-        periodEnd,
-        profileViews,
-        likesReceived,
-        likesSent,
-        superLikesReceived,
-        matchRate,
-        responseRate,
-        averageResponseTime,
-        peakActivityHour,
-        topPhotosViewed,
-        demographicBreakdown,
-        weeklyTrend,
-      ];
+    userId,
+    periodStart,
+    periodEnd,
+    profileViews,
+    likesReceived,
+    likesSent,
+    superLikesReceived,
+    matchRate,
+    responseRate,
+    averageResponseTime,
+    peakActivityHour,
+    topPhotosViewed,
+    demographicBreakdown,
+    weeklyTrend,
+  ];
 }
 
 /// Daily metrics for trend analysis.
@@ -210,24 +161,6 @@ class DailyMetric extends Equatable {
   final int views;
   final int likes;
   final int matches;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'date': date.toIso8601String(),
-      'views': views,
-      'likes': likes,
-      'matches': matches,
-    };
-  }
-
-  factory DailyMetric.fromJson(Map<String, dynamic> json) {
-    return DailyMetric(
-      date: DateTime.parse(json['date'] as String),
-      views: json['views'] as int? ?? 0,
-      likes: json['likes'] as int? ?? 0,
-      matches: json['matches'] as int? ?? 0,
-    );
-  }
 
   @override
   List<Object?> get props => [date, views, likes, matches];
@@ -249,29 +182,6 @@ class DemographicBreakdown extends Equatable {
 
   /// Gender split of viewers.
   final Map<String, int> genderSplit;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'ageRanges': ageRanges,
-      'topLocations': topLocations,
-      'genderSplit': genderSplit,
-    };
-  }
-
-  factory DemographicBreakdown.fromJson(Map<String, dynamic> json) {
-    return DemographicBreakdown(
-      ageRanges: (json['ageRanges'] as Map<String, dynamic>?)
-              ?.map((k, v) => MapEntry(k, v as int)) ??
-          {},
-      topLocations: (json['topLocations'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
-      genderSplit: (json['genderSplit'] as Map<String, dynamic>?)
-              ?.map((k, v) => MapEntry(k, v as int)) ??
-          {},
-    );
-  }
 
   @override
   List<Object?> get props => [ageRanges, topLocations, genderSplit];

@@ -42,7 +42,7 @@ import 'package:crushhour/features/auth/presentation/screens/terms_conditions_sc
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
@@ -51,7 +51,7 @@ import 'package:crushhour/features/profile/presentation/screens/profile_media_sc
 import 'package:crushhour/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/data/models/profile_story.dart';

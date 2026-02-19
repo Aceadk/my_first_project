@@ -2,7 +2,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/profile.dart';
-import '../discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'firebase_discovery_repository.dart';
 import 'stub_discovery_repository.dart';
 

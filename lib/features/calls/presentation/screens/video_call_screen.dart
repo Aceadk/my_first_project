@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:flutter/material.dart';
 
 class VideoCallArgs {
   final String currentUserId;
@@ -70,6 +70,7 @@ class VideoCallScreen extends StatelessWidget {
                 FloatingActionButton(
                   backgroundColor: DsColors.error,
                   onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'End call',
                   child: const Icon(Icons.call_end),
                 ),
                 const SizedBox(height: 16),

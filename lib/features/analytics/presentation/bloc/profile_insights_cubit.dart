@@ -5,7 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
-import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
+import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
 
 /// State for profile insights.
 class ProfileInsightsState extends Equatable {

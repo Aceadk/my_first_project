@@ -9,7 +9,7 @@ import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';

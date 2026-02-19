@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 
 /// Stub implementation of BoostRepository using SharedPreferences.
 class StubBoostRepository implements BoostRepository {

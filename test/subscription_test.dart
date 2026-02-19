@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/utils/constants.dart';
+import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
-import 'package:crushhour/data/models/promo_code.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
 import 'mock/stub_analytics_service.dart';
@@ -319,8 +319,11 @@ void main() {
       await expectLater(
         bloc.stream,
         emits(
-          isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.plus),
+          isA<SubscriptionState>().having(
+            (s) => s.plan,
+            'plan',
+            SubscriptionPlan.plus,
+          ),
         ),
       );
 
@@ -345,8 +348,11 @@ void main() {
       await expectLater(
         bloc.stream,
         emits(
-          isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.free),
+          isA<SubscriptionState>().having(
+            (s) => s.plan,
+            'plan',
+            SubscriptionPlan.free,
+          ),
         ),
       );
 
@@ -360,12 +366,16 @@ void main() {
         subscriptionRepository: _StubSubscriptionRepository(),
       );
 
-      bloc.add(SubscriptionStatusUpdated(SubscriptionStatus(
-        plan: SubscriptionPlan.plus,
-        status: 'active',
-        nextRenewal: renewal,
-        cancelAtPeriodEnd: false,
-      )));
+      bloc.add(
+        SubscriptionStatusUpdated(
+          SubscriptionStatus(
+            plan: SubscriptionPlan.plus,
+            status: 'active',
+            nextRenewal: renewal,
+            cancelAtPeriodEnd: false,
+          ),
+        ),
+      );
 
       await expectLater(
         bloc.stream,
@@ -388,17 +398,19 @@ void main() {
       );
 
       // First upgrade
-      bloc.add(SubscriptionStatusUpdated(SubscriptionStatus(
-        plan: SubscriptionPlan.plus,
-        status: 'active',
-      )));
+      bloc.add(
+        SubscriptionStatusUpdated(
+          SubscriptionStatus(plan: SubscriptionPlan.plus, status: 'active'),
+        ),
+      );
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Then expire
-      bloc.add(SubscriptionStatusUpdated(SubscriptionStatus(
-        plan: SubscriptionPlan.free,
-        status: 'expired',
-      )));
+      bloc.add(
+        SubscriptionStatusUpdated(
+          SubscriptionStatus(plan: SubscriptionPlan.free, status: 'expired'),
+        ),
+      );
 
       await expectLater(
         bloc.stream,
@@ -429,8 +441,11 @@ void main() {
       await expectLater(
         bloc.stream,
         emits(
-          isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.plus),
+          isA<SubscriptionState>().having(
+            (s) => s.plan,
+            'plan',
+            SubscriptionPlan.plus,
+          ),
         ),
       );
 
@@ -440,8 +455,11 @@ void main() {
       await expectLater(
         bloc.stream,
         emits(
-          isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.free),
+          isA<SubscriptionState>().having(
+            (s) => s.plan,
+            'plan',
+            SubscriptionPlan.free,
+          ),
         ),
       );
 

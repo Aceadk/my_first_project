@@ -1,14 +1,14 @@
-import * as functions from "firebase-functions/v1";
-import { defineString } from "firebase-functions/params";
-import * as admin from "firebase-admin";
-import * as crypto from "crypto";
-import bcrypt from "bcryptjs";
 import { BigQuery } from "@google-cloud/bigquery";
-import Stripe from "stripe";
-import { RtcTokenBuilder, RtcRole } from "agora-access-token";
-import express, { Request, Response, NextFunction } from "express";
+import { RtcRole, RtcTokenBuilder } from "agora-access-token";
+import bcrypt from "bcryptjs";
 import cors from "cors";
+import * as crypto from "crypto";
+import express, { NextFunction, Request, Response } from "express";
+import * as admin from "firebase-admin";
+import { defineString } from "firebase-functions/params";
+import * as functions from "firebase-functions/v1";
 import multer from "multer";
+import Stripe from "stripe";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -1727,11 +1727,11 @@ async function requestPasswordResetCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-        `otp:req:ip:${ip}`,
-        OTP_REQUEST_LIMIT,
-        OTP_REQUEST_WINDOW_MS,
-        OTP_REQUEST_BLOCK_MS
-      )
+      `otp:req:ip:${ip}`,
+      OTP_REQUEST_LIMIT,
+      OTP_REQUEST_WINDOW_MS,
+      OTP_REQUEST_BLOCK_MS
+    )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `otp:req:id:${identifierHash}`,
@@ -1872,11 +1872,11 @@ async function verifyPasswordResetOtpCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-        `otp:verify:ip:${ip}`,
-        OTP_VERIFY_LIMIT,
-        OTP_VERIFY_WINDOW_MS,
-        OTP_VERIFY_BLOCK_MS
-      )
+      `otp:verify:ip:${ip}`,
+      OTP_VERIFY_LIMIT,
+      OTP_VERIFY_WINDOW_MS,
+      OTP_VERIFY_BLOCK_MS
+    )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `otp:verify:id:${identifierHash}`,
@@ -2015,11 +2015,11 @@ async function resetPasswordWithTokenCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-        `reset:ip:${ip}`,
-        RESET_ATTEMPT_LIMIT,
-        RESET_ATTEMPT_WINDOW_MS,
-        RESET_ATTEMPT_BLOCK_MS
-      )
+      `reset:ip:${ip}`,
+      RESET_ATTEMPT_LIMIT,
+      RESET_ATTEMPT_WINDOW_MS,
+      RESET_ATTEMPT_BLOCK_MS
+    )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `reset:id:${identifierHash}`,
@@ -2336,11 +2336,11 @@ export const changePassword = callable<ChangePasswordRequest>(
     // Rate limiting
     const ipLimit = ip
       ? await applyRateLimit(
-          `change_password:ip:${ip}`,
-          LOGIN_ATTEMPT_LIMIT,
-          LOGIN_ATTEMPT_WINDOW_MS,
-          LOGIN_ATTEMPT_BLOCK_MS
-        )
+        `change_password:ip:${ip}`,
+        LOGIN_ATTEMPT_LIMIT,
+        LOGIN_ATTEMPT_WINDOW_MS,
+        LOGIN_ATTEMPT_BLOCK_MS
+      )
       : { allowed: true };
     const idLimit = await applyRateLimit(
       `change_password:uid:${uid}`,
@@ -2459,11 +2459,11 @@ interface DiscoveryRequest {
 type ModerationDecision =
   | { status: "clean"; action: "allow"; reason?: string; severity: "low" }
   | {
-      status: "flagged" | "held" | "pending_scan";
-      action: "hold" | "scan";
-      reason?: string;
-      severity: "medium" | "high";
-    };
+    status: "flagged" | "held" | "pending_scan";
+    action: "hold" | "scan";
+    reason?: string;
+    severity: "medium" | "high";
+  };
 
 function moderateContent(content: string, type: string): ModerationDecision {
   if (type !== "text") {
@@ -2838,9 +2838,9 @@ function haversineDistanceKm(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -3490,13 +3490,13 @@ export const onSubscriptionUpdated = functions.firestore
     const title = upgraded
       ? "Thanks for upgrading!"
       : downgraded
-      ? "Your subscription changed"
-      : "Plan updated";
+        ? "Your subscription changed"
+        : "Plan updated";
     const body = upgraded
       ? "Plus benefits are now active."
       : downgraded
-      ? "Plus benefits are no longer active."
-      : `Plan set to ${afterPlan}.`;
+        ? "Plus benefits are no longer active."
+        : `Plan set to ${afterPlan}.`;
 
     await sendNotification({
       tokens,
@@ -3508,7 +3508,7 @@ export const onSubscriptionUpdated = functions.firestore
 export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "fetch discovery candidates");
-    // NOTE: Email verification is enforced by the Flutter routing layer.
+    // Email verification is enforced by the Flutter routing layer.
     // Don't block discovery browsing here — let unverified users browse
     // to improve engagement and allow testing with new accounts.
     const limitRaw = typeof data?.limit === "number" ? data.limit : 30;
@@ -3516,7 +3516,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const me = await getUser(uid);
     const profile = (me.profile as ProfileData | null) ?? null;
-    // NOTE (CR-AUD-013): Don't enforce profile quality for browsing - let users discover others
+    // Don't enforce profile quality for browsing - let users discover others
     // even if their own profile is incomplete. This encourages engagement.
     // ensureProfileQuality(profile, "browsing");
 
@@ -3590,7 +3590,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       if (prefs?.incognitoMode === true) return;
 
       // Get profile completeness info for scoring (but don't exclude incomplete profiles)
-      // NOTE (CR-AUD-013): Don't filter out incomplete profiles - let all users appear in discovery
+      // Don't filter out incomplete profiles - let all users appear in discovery
       // Users without photos will just have lower priority in the sorting
       // This helps new users see that there are people on the app
 
@@ -4819,11 +4819,11 @@ app.post("/v1/auth/password/change", authMiddleware, async (req: AuthRequest, re
     // Rate limiting
     const ipLimit = ip
       ? await applyRateLimit(
-          `change_password:ip:${ip}`,
-          LOGIN_ATTEMPT_LIMIT,
-          LOGIN_ATTEMPT_WINDOW_MS,
-          LOGIN_ATTEMPT_BLOCK_MS
-        )
+        `change_password:ip:${ip}`,
+        LOGIN_ATTEMPT_LIMIT,
+        LOGIN_ATTEMPT_WINDOW_MS,
+        LOGIN_ATTEMPT_BLOCK_MS
+      )
       : { allowed: true };
     const idLimit = await applyRateLimit(
       `change_password:uid:${uid}`,
@@ -6230,8 +6230,8 @@ app.get(
         retention_description: isPremium
           ? "Messages are kept for 7 days after being read (Plus benefit)"
           : extendedRetention
-          ? "Messages are deleted 24 hours after being read"
-          : "Messages are deleted 1 hour after being read",
+            ? "Messages are deleted 24 hours after being read"
+            : "Messages are deleted 1 hour after being read",
       });
     } catch (err) {
       console.error("Get chat settings error:", err);

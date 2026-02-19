@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
-import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_state.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
-import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
 

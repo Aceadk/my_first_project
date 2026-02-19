@@ -1,4 +1,4 @@
-import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
+import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
 
 /// Abstract interface for profile insights operations.
 abstract class ProfileInsightsRepository {

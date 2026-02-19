@@ -31,38 +31,38 @@ void _setupFirebaseAuthMock() {
   const channel = MethodChannel('plugins.flutter.io/firebase_auth');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'Auth#signOut':
-        return null;
-      case 'Auth#signInWithCredential':
-        return {'user': _mockUserData};
-      default:
-        return null;
-    }
-  });
+        switch (methodCall.method) {
+          case 'Auth#signOut':
+            return null;
+          case 'Auth#signInWithCredential':
+            return {'user': _mockUserData};
+          default:
+            return null;
+        }
+      });
 }
 
 void _setupSharedPreferencesMock() {
   const channel = MethodChannel('plugins.flutter.io/shared_preferences');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'getAll':
-        return <String, dynamic>{};
-      case 'clear':
-        return true;
-      case 'remove':
-        return true;
-      case 'setBool':
-      case 'setInt':
-      case 'setDouble':
-      case 'setString':
-      case 'setStringList':
-        return true;
-      default:
-        return null;
-    }
-  });
+        switch (methodCall.method) {
+          case 'getAll':
+            return <String, dynamic>{};
+          case 'clear':
+            return true;
+          case 'remove':
+            return true;
+          case 'setBool':
+          case 'setInt':
+          case 'setDouble':
+          case 'setString':
+          case 'setStringList':
+            return true;
+          default:
+            return null;
+        }
+      });
 }
 
 // In-memory storage for FlutterSecureStorage mock
@@ -77,35 +77,35 @@ void _setupFlutterSecureStorageMock() {
   const channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'read':
-        final key = methodCall.arguments['key'] as String?;
-        return key != null ? _secureStorageData[key] : null;
-      case 'write':
-        final key = methodCall.arguments['key'] as String?;
-        final value = methodCall.arguments['value'] as String?;
-        if (key != null && value != null) {
-          _secureStorageData[key] = value;
+        switch (methodCall.method) {
+          case 'read':
+            final key = methodCall.arguments['key'] as String?;
+            return key != null ? _secureStorageData[key] : null;
+          case 'write':
+            final key = methodCall.arguments['key'] as String?;
+            final value = methodCall.arguments['value'] as String?;
+            if (key != null && value != null) {
+              _secureStorageData[key] = value;
+            }
+            return null;
+          case 'delete':
+            final key = methodCall.arguments['key'] as String?;
+            if (key != null) {
+              _secureStorageData.remove(key);
+            }
+            return null;
+          case 'deleteAll':
+            _secureStorageData.clear();
+            return null;
+          case 'readAll':
+            return Map<String, String>.from(_secureStorageData);
+          case 'containsKey':
+            final key = methodCall.arguments['key'] as String?;
+            return key != null && _secureStorageData.containsKey(key);
+          default:
+            return null;
         }
-        return null;
-      case 'delete':
-        final key = methodCall.arguments['key'] as String?;
-        if (key != null) {
-          _secureStorageData.remove(key);
-        }
-        return null;
-      case 'deleteAll':
-        _secureStorageData.clear();
-        return null;
-      case 'readAll':
-        return Map<String, String>.from(_secureStorageData);
-      case 'containsKey':
-        final key = methodCall.arguments['key'] as String?;
-        return key != null && _secureStorageData.containsKey(key);
-      default:
-        return null;
-    }
-  });
+      });
 }
 
 const Map<String, dynamic> _mockUserData = {
@@ -126,59 +126,57 @@ void _setupFirebaseMessagingMock() {
   const channel = MethodChannel('plugins.flutter.io/firebase_messaging');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'Messaging#getToken':
-        return <dynamic, dynamic>{'token': 'mock-fcm-token'};
-      case 'Messaging#deleteToken':
-        return null;
-      case 'Messaging#getInitialMessage':
-        return null;
-      case 'Messaging#subscribeToTopic':
-        return null;
-      case 'Messaging#unsubscribeFromTopic':
-        return null;
-      case 'Messaging#requestPermission':
-        return {
-          'authorizationStatus': 1, // authorized
-          'alert': 1,
-          'badge': 1,
-          'sound': 1,
-          'announcement': 0,
-          'carPlay': 0,
-          'criticalAlert': 0,
-          'provisional': 0,
-          'showPreviews': 1,
-          'timeSensitive': 0,
-        };
-      case 'Messaging#getNotificationSettings':
-        return {
-          'authorizationStatus': 1,
-          'alert': 1,
-          'badge': 1,
-          'sound': 1,
-          'announcement': 0,
-          'carPlay': 0,
-          'criticalAlert': 0,
-          'provisional': 0,
-          'showPreviews': 1,
-          'timeSensitive': 0,
-        };
-      default:
-        return null;
-    }
-  });
+        switch (methodCall.method) {
+          case 'Messaging#getToken':
+            return <dynamic, dynamic>{'token': 'mock-fcm-token'};
+          case 'Messaging#deleteToken':
+            return null;
+          case 'Messaging#getInitialMessage':
+            return null;
+          case 'Messaging#subscribeToTopic':
+            return null;
+          case 'Messaging#unsubscribeFromTopic':
+            return null;
+          case 'Messaging#requestPermission':
+            return {
+              'authorizationStatus': 1, // authorized
+              'alert': 1,
+              'badge': 1,
+              'sound': 1,
+              'announcement': 0,
+              'carPlay': 0,
+              'criticalAlert': 0,
+              'provisional': 0,
+              'showPreviews': 1,
+              'timeSensitive': 0,
+            };
+          case 'Messaging#getNotificationSettings':
+            return {
+              'authorizationStatus': 1,
+              'alert': 1,
+              'badge': 1,
+              'sound': 1,
+              'announcement': 0,
+              'carPlay': 0,
+              'criticalAlert': 0,
+              'provisional': 0,
+              'showPreviews': 1,
+              'timeSensitive': 0,
+            };
+          default:
+            return null;
+        }
+      });
 }
 
 void _setupFirebaseAnalyticsMock() {
-  const channel = MethodChannel(
-    'plugins.flutter.io/firebase_analytics',
-  );
+  const channel = MethodChannel('plugins.flutter.io/firebase_analytics');
 
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    // Return null for all analytics calls - they're fire-and-forget
-    return null;
-  });
+        // Return null for all analytics calls - they're fire-and-forget
+        return null;
+      });
 
   // Mock the Pigeon-based API (newer versions of firebase_analytics)
   const pigeonChannel = MethodChannel(
@@ -186,12 +184,13 @@ void _setupFirebaseAnalyticsMock() {
   );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(pigeonChannel, (MethodCall methodCall) async {
-    return null;
-  });
+        return null;
+      });
 
   // Mock all Firebase Analytics Pigeon channels
   final pigeonChannels = [
     'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+    'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logScreenView',
     'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.setUserId',
     'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.setUserProperty',
     'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.setAnalyticsCollectionEnabled',
@@ -208,11 +207,14 @@ void _setupFirebaseAnalyticsMock() {
   ];
 
   for (final channelName in pigeonChannels) {
-    final channel = MethodChannel(channelName);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      return null;
-    });
+        .setMockMessageHandler(channelName, (ByteData? message) async {
+          // StandardMessageCodec().encodeMessage(null) returns null, which signals "not implemented"
+          // Pigeon expects a list envelope [result] (or failure)
+          // So we return an encoded list containing null.
+          const codec = StandardMessageCodec();
+          return codec.encodeMessage([null]);
+        });
   }
 }
 

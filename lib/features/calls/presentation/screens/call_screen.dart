@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/calls/data/models/call.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
@@ -9,8 +9,9 @@ import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_state.dart'
     as bloc_state;
-import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CallScreenArgs {
   final String matchId;
@@ -121,8 +122,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final currentUserName = authState.user?.profile?.name;
       final currentUserPhoto =
           authState.user?.profile?.photoUrls.isNotEmpty == true
-              ? authState.user!.profile!.photoUrls.first
-              : null;
+          ? authState.user!.profile!.photoUrls.first
+          : null;
 
       if (currentUserId == null) {
         throw Exception('User not authenticated');
@@ -237,9 +238,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         // Subtle blur overlay for depth
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-          child: Container(
-            color: DsColors.ink900.withValues(alpha: 0.3),
-          ),
+          child: Container(color: DsColors.ink900.withValues(alpha: 0.3)),
         ),
         // Animated gradient orbs
         if (_uiState == CallUIState.outgoing ||
@@ -329,12 +328,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             AnimatedBuilder(
               animation: _pulseController,
               builder: (context, child) {
-                final scale =
-                    isConnecting ? 1.0 + (_pulseController.value * 0.05) : 1.0;
-                return Transform.scale(
-                  scale: scale,
-                  child: child,
-                );
+                final scale = isConnecting
+                    ? 1.0 + (_pulseController.value * 0.05)
+                    : 1.0;
+                return Transform.scale(scale: scale, child: child);
               },
               child: _buildAvatar(),
             ),
@@ -431,10 +428,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       ),
       child: ClipOval(
         child: widget.matchPhotoUrl != null
-            ? CachedImage(
-                imageUrl: widget.matchPhotoUrl!,
-                fit: BoxFit.cover,
-              )
+            ? CachedImage(imageUrl: widget.matchPhotoUrl!, fit: BoxFit.cover)
             : _buildAvatarPlaceholder(),
       ),
     );
@@ -538,33 +532,35 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 32),
         // End call button
-        GestureDetector(
-          onTap: _endCall,
-          child: Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  DsColors.error,
-                  DsColors.primaryDark,
+        Semantics(
+          button: true,
+          label: 'End call',
+          enabled: true,
+          child: GestureDetector(
+            onTap: _endCall,
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [DsColors.error, DsColors.primaryDark],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: DsColors.error.withValues(alpha: 0.5),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: DsColors.error.withValues(alpha: 0.5),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.call_end_rounded,
-              color: DsColors.surfaceLight,
-              size: 32,
+              child: const Icon(
+                Icons.call_end_rounded,
+                color: DsColors.surfaceLight,
+                size: 32,
+              ),
             ),
           ),
         ),
@@ -706,41 +702,47 @@ class _GlassControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? DsColors.surfaceLight
-                  : DsColors.surfaceLight.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              border: Border.all(
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: true,
+      toggled: isActive,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Column(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.transparent
-                    : DsColors.surfaceLight.withValues(alpha: 0.2),
-                width: 1,
+                    ? DsColors.surfaceLight
+                    : DsColors.surfaceLight.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isActive
+                      ? Colors.transparent
+                      : DsColors.surfaceLight.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: isActive ? DsColors.ink900 : DsColors.surfaceLight,
+                size: 24,
               ),
             ),
-            child: Icon(
-              icon,
-              color: isActive ? DsColors.ink900 : DsColors.surfaceLight,
-              size: 24,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: DsColors.surfaceLight.withValues(alpha: 0.8),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: DsColors.surfaceLight.withValues(alpha: 0.8),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:crushhour/core/app_logger.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
-import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
-import '../subscription_repository.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// HTTP-based implementation of SubscriptionRepository.
 ///
@@ -15,9 +14,8 @@ import '../subscription_repository.dart';
 /// This is acceptable because subscription changes are infrequent
 /// (user-initiated purchases) and 60s latency is fine.
 class HttpSubscriptionRepository implements SubscriptionRepository {
-  HttpSubscriptionRepository({
-    required ApiClient apiClient,
-  }) : _apiClient = apiClient;
+  HttpSubscriptionRepository({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 
@@ -68,13 +66,15 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpSubscriptionRepository: Failed to get plan - ${result.error}');
+        'HttpSubscriptionRepository: Failed to get plan - ${result.error}',
+      );
       return _currentPlan;
     }
 
     final planStr = result.data?['plan'] as String? ?? 'free';
-    _currentPlan =
-        planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    _currentPlan = planStr == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
 
     return _currentPlan;
   }
@@ -129,8 +129,9 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
     final data = result.data!;
     final planStr = data['plan'] as String? ?? 'free';
-    final plan =
-        planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    final plan = planStr == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
 
     _currentPlan = plan;
     _planController.add(plan);
@@ -170,7 +171,8 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     }
 
     return PromoCode.fromJson(
-        result.data!['promoCode'] as Map<String, dynamic>);
+      result.data!['promoCode'] as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -199,7 +201,8 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     final promoCode = PromoCode.fromJson(
       data['promoCode'] as Map<String, dynamic>,
     );
-    final benefits = (data['appliedBenefits'] as List<dynamic>?)
+    final benefits =
+        (data['appliedBenefits'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         [];

@@ -7,7 +7,7 @@ import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'chat_state.dart' show SendStatus;
 
 // ---------------------------------------------------------------------------

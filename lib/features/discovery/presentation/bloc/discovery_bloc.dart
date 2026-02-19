@@ -9,7 +9,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';

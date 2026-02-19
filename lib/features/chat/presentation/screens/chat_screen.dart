@@ -1,49 +1,50 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-import 'package:flutter/material.dart';
+
 import 'package:crushhour/core/app_logger.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/services/haptic_service.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/data/models/chat_settings.dart';
+import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
+import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
-import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
-import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:crushhour/shared/utils/profile_completeness.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
-import 'package:crushhour/presentation/widgets/plus_feature_gate.dart';
-import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/shared/widgets/cached_image.dart';
-import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
-import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
-import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
-import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
-import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
 import 'package:crushhour/features/chat/presentation/bloc/match_chat_settings_cubit.dart';
-import 'package:crushhour/data/models/chat_settings.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/core/services/haptic_service.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/presentation/widgets/plus_feature_gate.dart';
+import 'package:crushhour/shared/utils/profile_completeness.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -107,12 +108,14 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _chatBloc = context.read<ChatBloc>();
-        _chatBloc?.add(ChatOpened(
-          widget.args.matchId,
-          widget.args.currentUserId,
-          widget.args.otherUserId,
-          otherUserPhotoUrl: widget.args.otherPhotoUrl,
-        ));
+        _chatBloc?.add(
+          ChatOpened(
+            widget.args.matchId,
+            widget.args.currentUserId,
+            widget.args.otherUserId,
+            otherUserPhotoUrl: widget.args.otherPhotoUrl,
+          ),
+        );
       }
     });
   }
@@ -149,7 +152,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _startVerificationBannerTimer();
         // Save current time as last shown
         await prefs.setInt(
-            _verificationBannerCooldownKey, now.millisecondsSinceEpoch);
+          _verificationBannerCooldownKey,
+          now.millisecondsSinceEpoch,
+        );
       }
     }
   }
@@ -187,9 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     // Use stored reference instead of context.read() which is unsafe in dispose
-    _chatBloc?.add(
-      ChatClosed(widget.args.matchId, widget.args.currentUserId),
-    );
+    _chatBloc?.add(ChatClosed(widget.args.matchId, widget.args.currentUserId));
     _typingTimer?.cancel();
     _verificationBannerTimer?.cancel();
     _scrollController.removeListener(_onScroll);
@@ -205,18 +208,22 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     final completeness = evaluateProfileCompleteness(userProfile);
     _maybeRefreshBackendCompleteness(userProfile);
-    final backendMessageAllowed = _backendCompleteness?.allowsMessaging ??
+    final backendMessageAllowed =
+        _backendCompleteness?.allowsMessaging ??
         (_backendBlocked ? false : _completenessError != null);
 
     return BlocBuilder<SafetyCubit, SafetyState>(
       builder: (context, safetyState) {
         final safety = context.read<SafetyCubit>();
-        final isBlocked =
-            safetyState.blockedUsers.contains(widget.args.otherUserId);
-        final messagesMuted =
-            safetyState.mutedMessages.contains(widget.args.otherUserId);
-        final callsMuted =
-            safetyState.mutedCalls.contains(widget.args.otherUserId);
+        final isBlocked = safetyState.blockedUsers.contains(
+          widget.args.otherUserId,
+        );
+        final messagesMuted = safetyState.mutedMessages.contains(
+          widget.args.otherUserId,
+        );
+        final callsMuted = safetyState.mutedCalls.contains(
+          widget.args.otherUserId,
+        );
         final selfVerified = userProfile?.isVerified ?? false;
 
         return BlocBuilder<ChatBloc, ChatState>(
@@ -230,13 +237,15 @@ class _ChatScreenState extends State<ChatScreen> {
           builder: (context, state) {
             final messages = state.allMessages;
             final showSkeleton = state.isInitialLoading && messages.isEmpty;
-            final canMessage = completeness.meetsMessagingMinimum &&
+            final canMessage =
+                completeness.meetsMessagingMinimum &&
                 completeness.meetsRequiredFields &&
                 backendMessageAllowed &&
                 !isBlocked &&
                 !state.isUnmatched;
-            final isOtherTyping =
-                state.typingUserIds.contains(widget.args.otherUserId);
+            final isOtherTyping = state.typingUserIds.contains(
+              widget.args.otherUserId,
+            );
 
             return AsyncStateScaffold(
               appBar: _buildGlassAppBar(
@@ -300,9 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Expanded(
                             child: Text(
                               'Checking your profile completeness with the server…',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: DsColors.ink300),
                             ),
                           ),
@@ -317,10 +324,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       child: Text(
                         _completenessError!,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: DsColors.warning),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: DsColors.warning,
+                        ),
                       ),
                     ),
                   if (_isNetworkError(state.errorMessage))
@@ -340,8 +346,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           TextButton.icon(
                             onPressed: () => _refreshChat(context),
-                            icon: const Icon(Icons.refresh,
-                                color: DsColors.error),
+                            icon: const Icon(
+                              Icons.refresh,
+                              color: DsColors.error,
+                            ),
                             label: const Text(
                               'Refresh',
                               style: TextStyle(color: DsColors.error),
@@ -366,8 +374,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Text(
                               'You unmatched with ${widget.args.otherName}. You can still browse history, but messaging is disabled.',
                               style: TextStyle(
-                                color: DsColors.surfaceLight
-                                    .withValues(alpha: 0.7),
+                                color: DsColors.surfaceLight.withValues(
+                                  alpha: 0.7,
+                                ),
                               ),
                             ),
                           ),
@@ -390,11 +399,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => _toggleBlock(
-                              context,
-                              safety,
-                              block: false,
-                            ),
+                            onPressed: () =>
+                                _toggleBlock(context, safety, block: false),
                             child: const Text('Unblock'),
                           ),
                         ],
@@ -407,8 +413,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline,
-                              color: DsColors.warning),
+                          const Icon(
+                            Icons.info_outline,
+                            color: DsColors.warning,
+                          ),
                           DsGap.smH,
                           Expanded(
                             child: Column(
@@ -420,15 +428,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 LinearProgressIndicator(
-                                  value: _backendCompleteness?.score ??
+                                  value:
+                                      _backendCompleteness?.score ??
                                       completeness.score,
                                   minHeight: 5,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
                                   'Missing: ${_missingMessages(completeness).take(2).join(', ')}',
-                                  style:
-                                      const TextStyle(color: DsColors.warning),
+                                  style: const TextStyle(
+                                    color: DsColors.warning,
+                                  ),
                                 ),
                               ],
                             ),
@@ -507,464 +517,436 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: showSkeleton
                         ? _buildMessageSkeletonList()
                         : messages.isEmpty
-                            ? ChatEmptyState(
-                                onRefresh: _refreshIceBreakers,
-                                suggestions: _iceBreakerSuggestions,
-                                onSuggestionTap: _onIceBreakerTap,
-                                otherName: widget.args.otherName,
-                              )
-                            : ListView.builder(
-                                controller: _scrollController,
-                                reverse: true,
-                                padding: const EdgeInsets.all(12),
-                                // Add extra item for loading indicator when loading more
-                                itemCount: messages.length +
-                                    (state.isLoadingMore ? 1 : 0),
-                                itemBuilder: (context, index) {
-                                  // Show loading indicator at the end (top of reversed list)
-                                  if (state.isLoadingMore &&
-                                      index == messages.length) {
-                                    return const _LoadMoreIndicator();
-                                  }
-                                  final msg =
-                                      messages[messages.length - 1 - index];
-                                  final isMe = msg.fromUserId ==
-                                      widget.args.currentUserId;
-                                  final isHeld =
-                                      msg.moderationAction == 'hold' ||
-                                          msg.moderationStatus == 'held';
-                                  final pendingScan =
-                                      msg.moderationStatus == 'pending_scan';
-                                  final isFlagged = msg.isFlagged || isHeld;
-                                  final text = msg.isDeletedForSender && isMe
-                                      ? '(You unsent this message)'
-                                      : isHeld
-                                          ? 'Message held for safety review'
-                                          : msg.content;
-                                  final reactionCounts = _reactionCounts(msg);
-                                  final alignment = isMe
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft;
+                        ? ChatEmptyState(
+                            onRefresh: _refreshIceBreakers,
+                            suggestions: _iceBreakerSuggestions,
+                            onSuggestionTap: _onIceBreakerTap,
+                            otherName: widget.args.otherName,
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            reverse: true,
+                            padding: const EdgeInsets.all(12),
+                            // Add extra item for loading indicator when loading more
+                            itemCount:
+                                messages.length + (state.isLoadingMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              // Show loading indicator at the end (top of reversed list)
+                              if (state.isLoadingMore &&
+                                  index == messages.length) {
+                                return const _LoadMoreIndicator();
+                              }
+                              final msg = messages[messages.length - 1 - index];
+                              final isMe =
+                                  msg.fromUserId == widget.args.currentUserId;
+                              final isHeld =
+                                  msg.moderationAction == 'hold' ||
+                                  msg.moderationStatus == 'held';
+                              final pendingScan =
+                                  msg.moderationStatus == 'pending_scan';
+                              final isFlagged = msg.isFlagged || isHeld;
+                              final text = msg.isDeletedForSender && isMe
+                                  ? '(You unsent this message)'
+                                  : isHeld
+                                  ? 'Message held for safety review'
+                                  : msg.content;
+                              final reactionCounts = _reactionCounts(msg);
+                              final alignment = isMe
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft;
 
-                                  // Check if we need a date separator
-                                  final showDateSeparator =
-                                      _shouldShowDateSeparator(
+                              // Check if we need a date separator
+                              final showDateSeparator =
+                                  _shouldShowDateSeparator(
                                     messages,
                                     messages.length - 1 - index,
                                   );
 
-                                  return Column(
-                                    children: [
-                                      // Date separator (shown above the message in reversed list)
-                                      if (showDateSeparator)
-                                        ChatDateSeparator(date: msg.sentAt),
-                                      Align(
-                                        alignment: alignment,
-                                        child: GestureDetector(
-                                          onLongPress: () =>
-                                              _showMessageActions(
-                                            context: context,
-                                            state: state,
-                                            message: msg,
-                                            isMe: isMe,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: isMe
-                                                ? CrossAxisAlignment.end
-                                                : CrossAxisAlignment.start,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(18),
-                                                child: BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                    sigmaX: DsBlur.subtle,
-                                                    sigmaY: DsBlur.subtle,
-                                                  ),
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: DsSpacing.xs,
-                                                        horizontal:
-                                                            DsSpacing.sm),
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            DsSpacing.sm + 2),
-                                                    decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        begin:
-                                                            Alignment.topLeft,
-                                                        end: Alignment
-                                                            .bottomRight,
-                                                        colors: isMe
-                                                            ? [
-                                                                DsColors.primary
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.85),
-                                                                DsColors
-                                                                    .secondary
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.7),
-                                                              ]
-                                                            : [
-                                                                DsGlassColors
-                                                                        .surfaceFor(
-                                                                            context)
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.6),
-                                                                DsGlassColors
-                                                                        .surfaceFor(
-                                                                            context)
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.4),
-                                                              ],
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              18),
-                                                      border: Border.all(
-                                                        color: isMe
-                                                            ? DsColors.primary
+                              return Column(
+                                children: [
+                                  // Date separator (shown above the message in reversed list)
+                                  if (showDateSeparator)
+                                    ChatDateSeparator(date: msg.sentAt),
+                                  Align(
+                                    alignment: alignment,
+                                    child: GestureDetector(
+                                      onLongPress: () => _showMessageActions(
+                                        context: context,
+                                        state: state,
+                                        message: msg,
+                                        isMe: isMe,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: isMe
+                                            ? CrossAxisAlignment.end
+                                            : CrossAxisAlignment.start,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              18,
+                                            ),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(
+                                                sigmaX: DsBlur.subtle,
+                                                sigmaY: DsBlur.subtle,
+                                              ),
+                                              child: Container(
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: DsSpacing.xs,
+                                                      horizontal: DsSpacing.sm,
+                                                    ),
+                                                padding: const EdgeInsets.all(
+                                                  DsSpacing.sm + 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: isMe
+                                                        ? [
+                                                            DsColors.primary
                                                                 .withValues(
-                                                                    alpha: 0.3)
-                                                            : DsGlassColors
-                                                                .borderFor(
-                                                                    context),
-                                                        width: 1,
-                                                      ),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: (isMe
-                                                                  ? DsColors
-                                                                      .primary
-                                                                  : DsColors
-                                                                      .ink900)
-                                                              .withValues(
-                                                                  alpha: 0.15),
-                                                          blurRadius: 8,
-                                                          offset: const Offset(
-                                                              0, 2),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: _buildMessageContent(
-                                                      msg,
-                                                      text,
-                                                      isHeld: isHeld,
-                                                      pendingScan: pendingScan,
-                                                      isMe: isMe,
-                                                    ),
+                                                                  alpha: 0.85,
+                                                                ),
+                                                            DsColors.secondary
+                                                                .withValues(
+                                                                  alpha: 0.7,
+                                                                ),
+                                                          ]
+                                                        : [
+                                                            DsGlassColors.surfaceFor(
+                                                              context,
+                                                            ).withValues(
+                                                              alpha: 0.6,
+                                                            ),
+                                                            DsGlassColors.surfaceFor(
+                                                              context,
+                                                            ).withValues(
+                                                              alpha: 0.4,
+                                                            ),
+                                                          ],
                                                   ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(18),
+                                                  border: Border.all(
+                                                    color: isMe
+                                                        ? DsColors.primary
+                                                              .withValues(
+                                                                alpha: 0.3,
+                                                              )
+                                                        : DsGlassColors.borderFor(
+                                                            context,
+                                                          ),
+                                                    width: 1,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color:
+                                                          (isMe
+                                                                  ? DsColors
+                                                                        .primary
+                                                                  : DsColors
+                                                                        .ink900)
+                                                              .withValues(
+                                                                alpha: 0.15,
+                                                              ),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: _buildMessageContent(
+                                                  msg,
+                                                  text,
+                                                  isHeld: isHeld,
+                                                  pendingScan: pendingScan,
+                                                  isMe: isMe,
                                                 ),
                                               ),
-                                              // Message status indicators
-                                              if (isMe) ...[
-                                                if (msg.sendStatus ==
-                                                    MessageSendStatus.sending)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 12,
-                                                      bottom: 2,
-                                                      top: 2,
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        SizedBox(
-                                                          width: 10,
-                                                          height: 10,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 1.5,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation(
+                                            ),
+                                          ),
+                                          // Message status indicators
+                                          if (isMe) ...[
+                                            if (msg.sendStatus ==
+                                                MessageSendStatus.sending)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 12,
+                                                  bottom: 2,
+                                                  top: 2,
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 10,
+                                                      height: 10,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 1.5,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation(
                                                               DsColors
                                                                   .surfaceLight
                                                                   .withValues(
-                                                                      alpha:
-                                                                          0.5),
+                                                                    alpha: 0.5,
+                                                                  ),
                                                             ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          'Sending...',
-                                                          style: TextStyle(
-                                                            fontSize: 10,
-                                                            color: DsColors
-                                                                .surfaceLight
-                                                                .withValues(
-                                                                    alpha: 0.5),
-                                                          ),
-                                                        ),
-                                                      ],
+                                                      ),
                                                     ),
-                                                  )
-                                                else if (msg.sendStatus ==
-                                                    MessageSendStatus.sent)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 12,
-                                                      bottom: 2,
-                                                      top: 2,
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          _formatTime(
-                                                              msg.sentAt),
-                                                          style: TextStyle(
-                                                            fontSize: 10,
-                                                            color: DsColors
-                                                                .surfaceLight
-                                                                .withValues(
-                                                                    alpha: 0.5),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        // Read status - only show "Seen" for Plus users
-                                                        if (state
-                                                                .canSeeReadReceipts &&
-                                                            msg.isRead) ...[
-                                                          const Icon(
-                                                            Icons.done_all,
-                                                            size: 14,
-                                                            color:
-                                                                DsColors.info,
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 2),
-                                                          const Text(
-                                                            'Seen',
-                                                            style: TextStyle(
-                                                              fontSize: 10,
-                                                              color:
-                                                                  DsColors.info,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Sending...',
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: DsColors
+                                                            .surfaceLight
+                                                            .withValues(
+                                                              alpha: 0.5,
                                                             ),
-                                                          ),
-                                                        ] else ...[
-                                                          // Non-Plus users just see single checkmark
-                                                          Icon(
-                                                            Icons.done,
-                                                            size: 14,
-                                                            color: DsColors
-                                                                .surfaceLight
-                                                                .withValues(
-                                                                    alpha: 0.5),
-                                                          ),
-                                                        ],
-                                                      ],
+                                                      ),
                                                     ),
-                                                  ),
-                                              ],
-                                              if (isFlagged || pendingScan)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 12,
-                                                    right: 12,
-                                                    bottom: 2,
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        isHeld
-                                                            ? Icons.shield
-                                                            : Icons
-                                                                .shield_outlined,
+                                                  ],
+                                                ),
+                                              )
+                                            else if (msg.sendStatus ==
+                                                MessageSendStatus.sent)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 12,
+                                                  bottom: 2,
+                                                  top: 2,
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      _formatTime(msg.sentAt),
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: DsColors
+                                                            .surfaceLight
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    // Read status - only show "Seen" for Plus users
+                                                    if (state
+                                                            .canSeeReadReceipts &&
+                                                        msg.isRead) ...[
+                                                      const Icon(
+                                                        Icons.done_all,
                                                         size: 14,
+                                                        color: DsColors.info,
+                                                      ),
+                                                      const SizedBox(width: 2),
+                                                      const Text(
+                                                        'Seen',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: DsColors.info,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ] else ...[
+                                                      // Non-Plus users just see single checkmark
+                                                      Icon(
+                                                        Icons.done,
+                                                        size: 14,
+                                                        color: DsColors
+                                                            .surfaceLight
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
+                                          if (isFlagged || pendingScan)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 12,
+                                                bottom: 2,
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    isHeld
+                                                        ? Icons.shield
+                                                        : Icons.shield_outlined,
+                                                    size: 14,
+                                                    color: isHeld
+                                                        ? DsColors.error
+                                                        : DsColors.warning,
+                                                  ),
+                                                  DsGap.xsH,
+                                                  Flexible(
+                                                    child: Text(
+                                                      _moderationLabel(
+                                                        msg,
+                                                        isHeld: isHeld,
+                                                        pendingScan:
+                                                            pendingScan,
+                                                      ),
+                                                      style: TextStyle(
+                                                        fontSize: 11,
                                                         color: isHeld
                                                             ? DsColors.error
                                                             : DsColors.warning,
                                                       ),
-                                                      DsGap.xsH,
-                                                      Flexible(
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          if (reactionCounts.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 12,
+                                                bottom: 2,
+                                              ),
+                                              child: Wrap(
+                                                spacing: 6,
+                                                children: reactionCounts.entries
+                                                    .map(
+                                                      (entry) => Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: DsColors.ink900
+                                                              .withValues(
+                                                                alpha: 0.54,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                12,
+                                                              ),
+                                                        ),
                                                         child: Text(
-                                                          _moderationLabel(
-                                                            msg,
-                                                            isHeld: isHeld,
-                                                            pendingScan:
-                                                                pendingScan,
+                                                          entry.value > 1
+                                                              ? '${entry.key} ${entry.value}'
+                                                              : entry.key,
+                                                        ),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                              ),
+                                            ),
+                                          // Retry button for failed messages
+                                          if (isMe &&
+                                              msg.sendStatus ==
+                                                  MessageSendStatus.failed)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 12,
+                                                bottom: 4,
+                                                top: 2,
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.error_outline,
+                                                    size: 14,
+                                                    color: DsColors.error,
+                                                  ),
+                                                  DsGap.xsH,
+                                                  const Text(
+                                                    'Failed to send',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: DsColors.error,
+                                                    ),
+                                                  ),
+                                                  DsGap.smH,
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      context.read<ChatBloc>().add(
+                                                        ChatMessageRetryRequested(
+                                                          matchId: widget
+                                                              .args
+                                                              .matchId,
+                                                          messageId: msg.id,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: const Text(
+                                                      'Retry',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: DsColors.info,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          // Sending indicator
+                                          if (isMe &&
+                                              msg.sendStatus ==
+                                                  MessageSendStatus.sending)
+                                            const Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 12,
+                                                right: 12,
+                                                bottom: 4,
+                                                top: 2,
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 12,
+                                                    height: 12,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 1.5,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation(
+                                                            DsColors.ink300,
                                                           ),
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: isHeld
-                                                                ? DsColors.error
-                                                                : DsColors
-                                                                    .warning,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
-                                              if (reactionCounts.isNotEmpty)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 12,
-                                                    right: 12,
-                                                    bottom: 2,
+                                                  SizedBox(width: 6),
+                                                  Text(
+                                                    'Sending...',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: DsColors.ink300,
+                                                    ),
                                                   ),
-                                                  child: Wrap(
-                                                    spacing: 6,
-                                                    children: reactionCounts
-                                                        .entries
-                                                        .map(
-                                                          (entry) => Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        8,
-                                                                    vertical:
-                                                                        4),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: DsColors
-                                                                  .ink900
-                                                                  .withValues(
-                                                                      alpha:
-                                                                          0.54),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          12),
-                                                            ),
-                                                            child: Text(
-                                                              entry.value > 1
-                                                                  ? '${entry.key} ${entry.value}'
-                                                                  : entry.key,
-                                                            ),
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                                  ),
-                                                ),
-                                              // Retry button for failed messages
-                                              if (isMe &&
-                                                  msg.sendStatus ==
-                                                      MessageSendStatus.failed)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 12,
-                                                    right: 12,
-                                                    bottom: 4,
-                                                    top: 2,
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.error_outline,
-                                                        size: 14,
-                                                        color: DsColors.error,
-                                                      ),
-                                                      DsGap.xsH,
-                                                      const Text(
-                                                        'Failed to send',
-                                                        style: TextStyle(
-                                                          fontSize: 11,
-                                                          color: DsColors.error,
-                                                        ),
-                                                      ),
-                                                      DsGap.smH,
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          context
-                                                              .read<ChatBloc>()
-                                                              .add(
-                                                                ChatMessageRetryRequested(
-                                                                  matchId: widget
-                                                                      .args
-                                                                      .matchId,
-                                                                  messageId:
-                                                                      msg.id,
-                                                                ),
-                                                              );
-                                                        },
-                                                        child: const Text(
-                                                          'Retry',
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color:
-                                                                DsColors.info,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              // Sending indicator
-                                              if (isMe &&
-                                                  msg.sendStatus ==
-                                                      MessageSendStatus.sending)
-                                                const Padding(
-                                                  padding: EdgeInsets.only(
-                                                    left: 12,
-                                                    right: 12,
-                                                    bottom: 4,
-                                                    top: 2,
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 12,
-                                                        height: 12,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 1.5,
-                                                          valueColor:
-                                                              AlwaysStoppedAnimation(
-                                                                  DsColors
-                                                                      .ink300),
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 6),
-                                                      Text(
-                                                        'Sending...',
-                                                        style: TextStyle(
-                                                          fontSize: 11,
-                                                          color:
-                                                              DsColors.ink300,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                   ),
                   if (state.isUnsendInProgress)
                     const Padding(
@@ -1010,10 +992,7 @@ class _ChatScreenState extends State<ChatScreen> {
       preferredSize: const Size.fromHeight(kToolbarHeight + 8),
       child: ClipRRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: DsBlur.heavy,
-            sigmaY: DsBlur.heavy,
-          ),
+          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -1047,83 +1026,86 @@ class _ChatScreenState extends State<ChatScreen> {
                       button: true,
                       label: 'View ${widget.args.otherName} profile',
                       child: GestureDetector(
-                      onTap: _navigateToProfile,
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: state.otherUserOnline
-                                    ? DsColors.onlineIndicator
-                                    : DsGlassColors.borderFor(context),
-                                width: 2,
+                        onTap: _navigateToProfile,
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: state.otherUserOnline
+                                      ? DsColors.onlineIndicator
+                                      : DsGlassColors.borderFor(context),
+                                  width: 2,
+                                ),
+                                boxShadow: state.otherUserOnline
+                                    ? [
+                                        BoxShadow(
+                                          color: DsColors.onlineIndicator
+                                              .withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                    : null,
                               ),
-                              boxShadow: state.otherUserOnline
-                                  ? [
+                              child: ClipOval(
+                                child: state.otherUserPhotoUrl != null
+                                    ? CachedImage(
+                                        imageUrl: state.otherUserPhotoUrl!,
+                                        width: 36,
+                                        height: 36,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: DsGlassColors.surfaceFor(
+                                          context,
+                                        ),
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 20,
+                                          color: isDark
+                                              ? DsColors.surfaceLight
+                                                    .withValues(alpha: 0.54)
+                                              : DsColors.ink900.withValues(
+                                                  alpha: 0.38,
+                                                ),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            if (state.otherUserOnline)
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: DsColors.onlineIndicator,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark
+                                          ? DsColors.ink900
+                                          : DsColors.surfaceLight,
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
                                       BoxShadow(
                                         color: DsColors.onlineIndicator
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 8,
+                                            .withValues(alpha: 0.5),
+                                        blurRadius: 4,
                                         spreadRadius: 1,
                                       ),
-                                    ]
-                                  : null,
-                            ),
-                            child: ClipOval(
-                              child: state.otherUserPhotoUrl != null
-                                  ? CachedImage(
-                                      imageUrl: state.otherUserPhotoUrl!,
-                                      width: 36,
-                                      height: 36,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: DsGlassColors.surfaceFor(context),
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 20,
-                                        color: isDark
-                                            ? DsColors.surfaceLight
-                                                .withValues(alpha: 0.54)
-                                            : DsColors.ink900
-                                                .withValues(alpha: 0.38),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          if (state.otherUserOnline)
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: DsColors.onlineIndicator,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isDark
-                                        ? DsColors.ink900
-                                        : DsColors.surfaceLight,
-                                    width: 2,
+                                    ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: DsColors.onlineIndicator
-                                          .withValues(alpha: 0.5),
-                                      blurRadius: 4,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                     ),
                     const SizedBox(width: DsSpacing.sm),
                     // User info - tappable to view profile
@@ -1132,79 +1114,83 @@ class _ChatScreenState extends State<ChatScreen> {
                         button: true,
                         label: 'View ${widget.args.otherName} profile',
                         child: GestureDetector(
-                        onTap: _navigateToProfile,
-                        behavior: HitTestBehavior.opaque,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.args.otherName,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    state.otherUserOnline
-                                        ? 'Online now'
-                                        : 'Offline',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: state.otherUserOnline
-                                              ? DsColors.onlineIndicator
-                                              : DsColors.textMutedLight,
-                                          fontWeight: state.otherUserOnline
-                                              ? FontWeight.w500
-                                              : FontWeight.normal,
-                                        ),
-                                  ),
-                                ],
+                          onTap: _navigateToProfile,
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.args.otherName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      state.otherUserOnline
+                                          ? 'Online now'
+                                          : 'Offline',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: state.otherUserOnline
+                                                ? DsColors.onlineIndicator
+                                                : DsColors.textMutedLight,
+                                            fontWeight: state.otherUserOnline
+                                                ? FontWeight.w500
+                                                : FontWeight.normal,
+                                          ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            // Mute indicators
-                            if (messagesMuted || callsMuted) ...[
-                              const SizedBox(width: 4),
-                              if (messagesMuted)
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: DsColors.warning
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Icon(
-                                    Icons.notifications_off,
-                                    size: 14,
-                                    color: DsColors.warning,
-                                  ),
-                                ),
-                              if (messagesMuted && callsMuted)
+                              // Mute indicators
+                              if (messagesMuted || callsMuted) ...[
                                 const SizedBox(width: 4),
-                              if (callsMuted)
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: DsColors.warning
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
+                                if (messagesMuted)
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: DsColors.warning.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Icon(
+                                      Icons.notifications_off,
+                                      size: 14,
+                                      color: DsColors.warning,
+                                    ),
                                   ),
-                                  child: const Icon(
-                                    Icons.call_end,
-                                    size: 14,
-                                    color: DsColors.warning,
+                                if (messagesMuted && callsMuted)
+                                  const SizedBox(width: 4),
+                                if (callsMuted)
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: DsColors.warning.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Icon(
+                                      Icons.call_end,
+                                      size: 14,
+                                      color: DsColors.warning,
+                                    ),
                                   ),
-                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
                       ),
                     ),
                     // Action buttons
@@ -1287,8 +1273,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         PopupMenuItem(
                           value: _ChatSafetyAction.block,
-                          child:
-                              Text(isBlocked ? 'Unblock user' : 'Block user'),
+                          child: Text(
+                            isBlocked ? 'Unblock user' : 'Block user',
+                          ),
                         ),
                         const PopupMenuItem(
                           value: _ChatSafetyAction.unmatch,
@@ -1296,14 +1283,15 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         PopupMenuItem(
                           value: _ChatSafetyAction.muteMessages,
-                          child: Text(messagesMuted
-                              ? 'Unmute messages'
-                              : 'Mute messages'),
+                          child: Text(
+                            messagesMuted ? 'Unmute messages' : 'Mute messages',
+                          ),
                         ),
                         PopupMenuItem(
                           value: _ChatSafetyAction.muteCalls,
-                          child:
-                              Text(callsMuted ? 'Unmute calls' : 'Mute calls'),
+                          child: Text(
+                            callsMuted ? 'Unmute calls' : 'Mute calls',
+                          ),
                         ),
                         const PopupMenuItem(
                           value: _ChatSafetyAction.safetyCenter,
@@ -1344,12 +1332,10 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: baseSurface.withValues(alpha: isDark ? 0.9 : 0.95),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border.all(
-                color: borderBase,
-                width: 0.5,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
+              border: Border.all(color: borderBase, width: 0.5),
             ),
             child: SafeArea(
               child: Column(
@@ -1371,10 +1357,14 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   // Reaction picker with animation
                   Container(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? DsColors.surfaceLight.withValues(alpha: 0.05)
@@ -1434,11 +1424,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         HapticFeedback.mediumImpact();
                         Navigator.pop(context);
                         context.read<ChatBloc>().add(
-                              ChatMessageUnsendRequested(
-                                widget.args.matchId,
-                                message.id,
-                              ),
-                            );
+                          ChatMessageUnsendRequested(
+                            widget.args.matchId,
+                            message.id,
+                          ),
+                        );
                       },
                       child: ListTile(
                         leading: const Icon(Icons.undo),
@@ -1453,12 +1443,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                         context.read<ChatBloc>().add(
-                              ChatMessageDeleteForMeRequested(
-                                widget.args.matchId,
-                                message.id,
-                                widget.args.currentUserId,
-                              ),
-                            );
+                          ChatMessageDeleteForMeRequested(
+                            widget.args.matchId,
+                            message.id,
+                            widget.args.currentUserId,
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -1468,13 +1458,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     onTap: () {
                       HapticFeedback.lightImpact();
                       Navigator.pop(context);
-                      Clipboard.setData(
-                        ClipboardData(text: message.content),
-                      );
+                      Clipboard.setData(ClipboardData(text: message.content));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Message copied'),
-                        ),
+                        const SnackBar(content: Text('Message copied')),
                       );
                     },
                   ),
@@ -1490,12 +1476,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _refreshChat(BuildContext context) {
     context.read<ChatBloc>().add(
-          ChatOpened(
-            widget.args.matchId,
-            widget.args.currentUserId,
-            widget.args.otherUserId,
-          ),
-        );
+      ChatOpened(
+        widget.args.matchId,
+        widget.args.currentUserId,
+        widget.args.otherUserId,
+      ),
+    );
   }
 
   void _showEditMessageDialog(Message message) {
@@ -1537,12 +1523,12 @@ class _ChatScreenState extends State<ChatScreen> {
               final newContent = controller.text.trim();
               if (newContent.isNotEmpty && newContent != message.content) {
                 context.read<ChatBloc>().add(
-                      ChatMessageEditRequested(
-                        matchId: widget.args.matchId,
-                        messageId: message.id,
-                        newContent: newContent,
-                      ),
-                    );
+                  ChatMessageEditRequested(
+                    matchId: widget.args.matchId,
+                    messageId: message.id,
+                    newContent: newContent,
+                  ),
+                );
               }
               Navigator.pop(dialogContext);
             },
@@ -1565,18 +1551,22 @@ class _ChatScreenState extends State<ChatScreen> {
     final existing = message.reactions[widget.args.currentUserId];
     final bloc = context.read<ChatBloc>();
     if (existing == emoji) {
-      bloc.add(ChatReactionRemoved(
-        matchId: widget.args.matchId,
-        messageId: message.id,
-        userId: widget.args.currentUserId,
-      ));
+      bloc.add(
+        ChatReactionRemoved(
+          matchId: widget.args.matchId,
+          messageId: message.id,
+          userId: widget.args.currentUserId,
+        ),
+      );
     } else {
-      bloc.add(ChatReactionAdded(
-        matchId: widget.args.matchId,
-        messageId: message.id,
-        userId: widget.args.currentUserId,
-        emoji: emoji,
-      ));
+      bloc.add(
+        ChatReactionAdded(
+          matchId: widget.args.matchId,
+          messageId: message.id,
+          userId: widget.args.currentUserId,
+          emoji: emoji,
+        ),
+      );
     }
   }
 
@@ -1623,12 +1613,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }) {
     final isSendingText = state.sendStatus == SendStatus.sendingText;
     final isUploading = state.sendStatus == SendStatus.uploadingAttachment;
-    final canSendText = !isBlocked &&
+    final canSendText =
+        !isBlocked &&
         !isUnmatched &&
         canMessage &&
         !isSendingText &&
         !isUploading;
-    final canSendMedia = state.mediaSendingEnabled &&
+    final canSendMedia =
+        state.mediaSendingEnabled &&
         !isBlocked &&
         !isUnmatched &&
         canMessage &&
@@ -1675,12 +1667,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 baseSurface.withValues(alpha: 0.7),
               ],
             ),
-            border: Border(
-              top: BorderSide(
-                color: borderBase,
-                width: 0.5,
-              ),
-            ),
+            border: Border(top: BorderSide(color: borderBase, width: 0.5)),
           ),
           child: SafeArea(
             child: Padding(
@@ -1692,8 +1679,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   // Media action buttons - hide when user is typing
                   AnimatedSize(
-                    duration:
-                        Duration(milliseconds: (200 * motionScale).round()),
+                    duration: Duration(
+                      milliseconds: (200 * motionScale).round(),
+                    ),
                     curve: Curves.easeInOut,
                     child: _hasInputText
                         ? const SizedBox.shrink()
@@ -1705,10 +1693,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                 end: Alignment.bottomRight,
                                 colors: isDark
                                     ? [
-                                        DsColors.surfaceLight
-                                            .withValues(alpha: 0.08),
-                                        DsColors.surfaceLight
-                                            .withValues(alpha: 0.04),
+                                        DsColors.surfaceLight.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        DsColors.surfaceLight.withValues(
+                                          alpha: 0.04,
+                                        ),
                                       ]
                                     : [
                                         DsColors.ink900.withValues(alpha: 0.04),
@@ -1730,7 +1720,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   tooltip: 'Send photo or video',
                                   onPressed: canSendMedia
                                       ? () => _showMediaPickerOptions(
-                                          canMessage, completeness, isDark)
+                                          canMessage,
+                                          completeness,
+                                          isDark,
+                                        )
                                       : null,
                                   isDark: isDark,
                                 ),
@@ -1740,7 +1733,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   tooltip: 'Voice note',
                                   onPressed: canSendMedia
                                       ? () => _startVoiceRecording(
-                                          canMessage, completeness)
+                                          canMessage,
+                                          completeness,
+                                        )
                                       : null,
                                   isDark: isDark,
                                 ),
@@ -1750,8 +1745,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   // Spacing between media buttons and text field
                   AnimatedSize(
-                    duration:
-                        Duration(milliseconds: (200 * motionScale).round()),
+                    duration: Duration(
+                      milliseconds: (200 * motionScale).round(),
+                    ),
                     curve: Curves.easeInOut,
                     child: _hasInputText
                         ? const SizedBox.shrink()
@@ -1776,10 +1772,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ],
                         ),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: borderBase,
-                          width: 0.5,
-                        ),
+                        border: Border.all(color: borderBase, width: 0.5),
                         boxShadow: [
                           BoxShadow(
                             color: DsColors.ink900.withValues(alpha: 0.05),
@@ -1825,10 +1818,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          DsColors.primary,
-                          DsColors.secondary,
-                        ],
+                        colors: [DsColors.primary, DsColors.secondary],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -1854,11 +1844,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                    DsColors.surfaceLight),
+                                  DsColors.surfaceLight,
+                                ),
                               ),
                             )
-                          : const Icon(Icons.send_rounded,
-                              color: DsColors.surfaceLight),
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: DsColors.surfaceLight,
+                            ),
                       onPressed: isSendingText
                           ? null
                           : () async {
@@ -1882,18 +1875,21 @@ class _ChatScreenState extends State<ChatScreen> {
                               }
                               final allowed =
                                   await _ensureBackendAllowsMessaging(
-                                      completeness);
+                                    completeness,
+                                  );
                               if (!allowed || !mounted) return;
                               final text = _controller.text.trim();
                               if (text.isEmpty) return;
                               HapticService.messageSent();
-                              context.read<ChatBloc>().add(ChatMessageSent(
-                                    matchId: widget.args.matchId,
-                                    fromUserId: widget.args.currentUserId,
-                                    toUserId: widget.args.otherUserId,
-                                    content: text,
-                                    type: MessageType.text,
-                                  ));
+                              context.read<ChatBloc>().add(
+                                ChatMessageSent(
+                                  matchId: widget.args.matchId,
+                                  fromUserId: widget.args.currentUserId,
+                                  toUserId: widget.args.otherUserId,
+                                  content: text,
+                                  type: MessageType.text,
+                                ),
+                              );
                               _controller.clear();
                               _onTextChanged('');
                             },
@@ -1918,10 +1914,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final isFromMe = index.isEven;
         final baseWidth = isFromMe ? 150.0 : 200.0;
         final width = baseWidth + (index % 3) * 18;
-        return GlassSkeletonMessage(
-          isFromMe: isFromMe,
-          width: width,
-        );
+        return GlassSkeletonMessage(isFromMe: isFromMe, width: width);
       },
     );
   }
@@ -1963,13 +1956,13 @@ class _ChatScreenState extends State<ChatScreen> {
               size: 20,
               color: isEnabled
                   ? (isActive
-                      ? DsColors.primary
-                      : (isDark
-                          ? DsColors.surfaceLight.withValues(alpha: 0.7)
-                          : DsColors.ink900.withValues(alpha: 0.54)))
+                        ? DsColors.primary
+                        : (isDark
+                              ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                              : DsColors.ink900.withValues(alpha: 0.54)))
                   : (isDark
-                      ? DsColors.surfaceLight.withValues(alpha: 0.24)
-                      : DsColors.ink900.withValues(alpha: 0.26)),
+                        ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                        : DsColors.ink900.withValues(alpha: 0.26)),
             ),
           ),
         ),
@@ -2062,7 +2055,10 @@ class _ChatScreenState extends State<ChatScreen> {
           compact: true,
         );
       case MessageType.text:
-        return Text(textFallback);
+        return Text(
+          textFallback,
+          style: isMe ? const TextStyle(color: Colors.white) : null,
+        );
     }
   }
 
@@ -2097,10 +2093,7 @@ class _ChatScreenState extends State<ChatScreen> {
       decoration: BoxDecoration(
         color: baseSurface.withValues(alpha: isDark ? 0.6 : 0.8),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: DsGlassColors.borderFor(context),
-          width: 0.5,
-        ),
+        border: Border.all(color: DsGlassColors.borderFor(context), width: 0.5),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -2146,12 +2139,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _toggleMedia(ChatState state) {
     context.read<ChatBloc>().add(
-          ChatMediaToggleRequested(
-            matchId: widget.args.matchId,
-            requesterId: widget.args.currentUserId,
-            enabled: !state.mediaSendingEnabled,
-          ),
-        );
+      ChatMediaToggleRequested(
+        matchId: widget.args.matchId,
+        requesterId: widget.args.currentUserId,
+        enabled: !state.mediaSendingEnabled,
+      ),
+    );
   }
 
   void _onTextChanged(String value) {
@@ -2167,24 +2160,24 @@ class _ChatScreenState extends State<ChatScreen> {
     if (shouldType != _isTyping) {
       _isTyping = shouldType;
       context.read<ChatBloc>().add(
-            ChatTypingStatusChanged(
-              matchId: widget.args.matchId,
-              userId: widget.args.currentUserId,
-              isTyping: shouldType,
-            ),
-          );
+        ChatTypingStatusChanged(
+          matchId: widget.args.matchId,
+          userId: widget.args.currentUserId,
+          isTyping: shouldType,
+        ),
+      );
     }
     _typingTimer?.cancel();
     _typingTimer = Timer(const Duration(seconds: 2), () {
       if (_isTyping) {
         _isTyping = false;
         context.read<ChatBloc>().add(
-              ChatTypingStatusChanged(
-                matchId: widget.args.matchId,
-                userId: widget.args.currentUserId,
-                isTyping: false,
-              ),
-            );
+          ChatTypingStatusChanged(
+            matchId: widget.args.matchId,
+            userId: widget.args.currentUserId,
+            isTyping: false,
+          ),
+        );
       }
     });
   }
@@ -2316,8 +2309,9 @@ class _ChatScreenState extends State<ChatScreen> {
     ProfileCompletenessSummary completeness,
     bool isDark,
   ) {
-    final titleColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final titleColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final iconColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     showModalBottomSheet<void>(
       context: context,
@@ -2332,32 +2326,16 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(
-                  Icons.photo_rounded,
-                  color: iconColor,
-                ),
-                title: Text(
-                  'Photo',
-                  style: TextStyle(
-                    color: titleColor,
-                  ),
-                ),
+                leading: Icon(Icons.photo_rounded, color: iconColor),
+                title: Text('Photo', style: TextStyle(color: titleColor)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickAndSendImage(canMessage, completeness);
                 },
               ),
               ListTile(
-                leading: Icon(
-                  Icons.videocam_rounded,
-                  color: iconColor,
-                ),
-                title: Text(
-                  'Video',
-                  style: TextStyle(
-                    color: titleColor,
-                  ),
-                ),
+                leading: Icon(Icons.videocam_rounded, color: iconColor),
+                title: Text('Video', style: TextStyle(color: titleColor)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickAndSendVideo(canMessage, completeness);
@@ -2389,14 +2367,14 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted || result == null) return;
       HapticService.messageSent();
       context.read<ChatBloc>().add(
-            ChatMediaSendRequested(
-              matchId: widget.args.matchId,
-              fromUserId: widget.args.currentUserId,
-              toUserId: widget.args.otherUserId,
-              filePath: result.path,
-              type: MessageType.image,
-            ),
-          );
+        ChatMediaSendRequested(
+          matchId: widget.args.matchId,
+          fromUserId: widget.args.currentUserId,
+          toUserId: widget.args.otherUserId,
+          filePath: result.path,
+          type: MessageType.image,
+        ),
+      );
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully - picker from another screen may still be active
       AppLogger.error('Image picker error: ${e.code} - ${e.message}');
@@ -2427,14 +2405,14 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted || result == null) return;
       HapticService.messageSent();
       context.read<ChatBloc>().add(
-            ChatMediaSendRequested(
-              matchId: widget.args.matchId,
-              fromUserId: widget.args.currentUserId,
-              toUserId: widget.args.otherUserId,
-              filePath: result.path,
-              type: MessageType.video,
-            ),
-          );
+        ChatMediaSendRequested(
+          matchId: widget.args.matchId,
+          fromUserId: widget.args.currentUserId,
+          toUserId: widget.args.otherUserId,
+          filePath: result.path,
+          type: MessageType.video,
+        ),
+      );
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully - picker from another screen may still be active
       AppLogger.error('Video picker error: ${e.code} - ${e.message}');
@@ -2461,14 +2439,14 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendVoiceNote(String filePath) {
     HapticService.messageSent();
     context.read<ChatBloc>().add(
-          ChatMediaSendRequested(
-            matchId: widget.args.matchId,
-            fromUserId: widget.args.currentUserId,
-            toUserId: widget.args.otherUserId,
-            filePath: filePath,
-            type: MessageType.voice,
-          ),
-        );
+      ChatMediaSendRequested(
+        matchId: widget.args.matchId,
+        fromUserId: widget.args.currentUserId,
+        toUserId: widget.args.otherUserId,
+        filePath: filePath,
+        type: MessageType.voice,
+      ),
+    );
   }
 
   Future<void> _launchUrl(String url) async {
@@ -2553,20 +2531,14 @@ class _ChatScreenState extends State<ChatScreen> {
         }
         break;
       case _ChatSafetyAction.muteMessages:
-        cubit.toggleMuteMessages(
-          widget.args.otherUserId,
-          mute: !messagesMuted,
-        );
+        cubit.toggleMuteMessages(widget.args.otherUserId, mute: !messagesMuted);
         _showTemporaryMuteNotification(
           messagesMuted ? 'Messages unmuted' : 'Messages muted',
           messagesMuted ? Icons.notifications_active : Icons.notifications_off,
         );
         break;
       case _ChatSafetyAction.muteCalls:
-        cubit.toggleMuteCalls(
-          widget.args.otherUserId,
-          mute: !callsMuted,
-        );
+        cubit.toggleMuteCalls(widget.args.otherUserId, mute: !callsMuted);
         _showTemporaryMuteNotification(
           callsMuted ? 'Calls unmuted' : 'Calls muted',
           callsMuted ? Icons.call : Icons.call_end,
@@ -2582,8 +2554,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void _navigateToProfile() async {
     // Fetch the profile for the other user
     final discoveryRepo = context.read<DiscoveryRepository>();
-    final profile =
-        await discoveryRepo.fetchProfileById(widget.args.otherUserId);
+    final profile = await discoveryRepo.fetchProfileById(
+      widget.args.otherUserId,
+    );
 
     if (!mounted) return;
 
@@ -2705,21 +2678,20 @@ class _ChatScreenState extends State<ChatScreen> {
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           child: BackdropFilter(
-            filter:
-                ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+            filter: ImageFilter.blur(
+              sigmaX: DsBlur.heavy,
+              sigmaY: DsBlur.heavy,
+            ),
             child: Container(
               decoration: BoxDecoration(
                 color: baseSurface.withValues(alpha: isDark ? 0.95 : 0.98),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(
-                  color: borderBase,
-                  width: 0.5,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
                 ),
+                border: Border.all(color: borderBase, width: 0.5),
               ),
               child: SafeArea(
-                child: BlocConsumer<MatchChatSettingsCubit,
-                    MatchChatSettingsState>(
+                child: BlocConsumer<MatchChatSettingsCubit, MatchChatSettingsState>(
                   listenWhen: (prev, curr) =>
                       prev.errorMessage != curr.errorMessage &&
                       curr.errorMessage != null,
@@ -2746,8 +2718,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             height: 4,
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? DsColors.surfaceLight
-                                      .withValues(alpha: 0.24)
+                                  ? DsColors.surfaceLight.withValues(
+                                      alpha: 0.24,
+                                    )
                                   : DsColors.ink900.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(2),
                             ),
@@ -2761,8 +2734,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color:
-                                      DsColors.primary.withValues(alpha: 0.1),
+                                  color: DsColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -2806,15 +2780,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                 icon: Icon(
                                   Icons.close,
                                   color: isDark
-                                      ? DsColors.surfaceLight
-                                          .withValues(alpha: 0.54)
+                                      ? DsColors.surfaceLight.withValues(
+                                          alpha: 0.54,
+                                        )
                                       : DsColors.ink900.withValues(alpha: 0.45),
                                   size: 22,
                                 ),
                                 style: IconButton.styleFrom(
                                   backgroundColor: isDark
-                                      ? DsColors.surfaceLight
-                                          .withValues(alpha: 0.05)
+                                      ? DsColors.surfaceLight.withValues(
+                                          alpha: 0.05,
+                                        )
                                       : DsColors.ink900.withValues(alpha: 0.05),
                                 ),
                               ),
@@ -2847,9 +2823,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 'PRIVACY',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: isDark
                                           ? DsColors.textMutedDark
@@ -2869,14 +2843,16 @@ class _ChatScreenState extends State<ChatScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? DsColors.surfaceLight
-                                      .withValues(alpha: 0.05)
+                                  ? DsColors.surfaceLight.withValues(
+                                      alpha: 0.05,
+                                    )
                                   : DsColors.ink900.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isDark
-                                    ? DsColors.surfaceLight
-                                        .withValues(alpha: 0.1)
+                                    ? DsColors.surfaceLight.withValues(
+                                        alpha: 0.1,
+                                      )
                                     : DsColors.ink900.withValues(alpha: 0.05),
                               ),
                             ),
@@ -2888,8 +2864,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: DsColors.primary
-                                            .withValues(alpha: 0.1),
+                                        color: DsColors.primary.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Icon(
@@ -2934,10 +2911,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                 // Current retention status
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 10),
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: DsColors.primary
-                                        .withValues(alpha: 0.08),
+                                    color: DsColors.primary.withValues(
+                                      alpha: 0.08,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
@@ -2967,14 +2947,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                   const SizedBox(height: 12),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 10),
+                                      horizontal: 14,
+                                      vertical: 10,
+                                    ),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          DsColors.warning
-                                              .withValues(alpha: 0.15),
-                                          DsColors.warning
-                                              .withValues(alpha: 0.1),
+                                          DsColors.warning.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          DsColors.warning.withValues(
+                                            alpha: 0.1,
+                                          ),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(10),
@@ -2982,8 +2966,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.workspace_premium,
-                                            color: DsColors.warning, size: 18),
+                                        const Icon(
+                                          Icons.workspace_premium,
+                                          color: DsColors.warning,
+                                          size: 18,
+                                        ),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Plus: 7 days retention',
@@ -3019,7 +3006,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                           width: 20,
                                           height: 20,
                                           child: CircularProgressIndicator(
-                                              strokeWidth: 2),
+                                            strokeWidth: 2,
+                                          ),
                                         )
                                       else
                                         Switch.adaptive(
@@ -3039,9 +3027,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     state.settings.extendedRetention
                                         ? 'Messages deleted 24 hours after being read'
                                         : 'Messages deleted 1 hour after being read',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: isDark
                                               ? DsColors.textMutedDark
@@ -3111,9 +3097,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                       if (!mounted) return;
                       final error = cubit.state.errorMessage;
-                      messenger.showSnackBar(SnackBar(
-                        content: Text(error ?? 'Report submitted: $reason'),
-                      ));
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(error ?? 'Report submitted: $reason'),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -3185,9 +3173,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _goToProfileEdit(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProfileEditScreen()));
   }
 }
 
@@ -3199,7 +3187,7 @@ enum _ChatSafetyAction {
   unmatch,
   muteMessages,
   muteCalls,
-  safetyCenter
+  safetyCenter,
 }
 
 /// Loading indicator shown at the top when loading older messages.
@@ -3229,10 +3217,10 @@ class _LoadMoreIndicator extends StatelessWidget {
             Text(
               'Loading older messages...',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
             ),
           ],
         ),

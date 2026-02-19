@@ -23,7 +23,7 @@ import 'package:crushhour/features/discovery/presentation/screens/story_viewer_s
 import 'package:crushhour/features/social/presentation/screens/date_ideas_screen.dart';
 import 'package:crushhour/features/social/presentation/screens/compatibility_quiz_screen.dart';
 import 'package:crushhour/features/analytics/presentation/screens/profile_insights_screen.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/match.dart';
 

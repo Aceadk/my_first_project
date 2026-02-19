@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
-import '../models/profile_insights.dart';
+
+import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
 import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 
 /// Service for managing profile insights and analytics.
@@ -137,8 +138,7 @@ class ProfileInsightsService implements ProfileInsightsRepository {
         likes: Random().nextInt(30) + 5,
         likeRate: 0.1 + (Random().nextDouble() * 0.3),
       );
-    })
-      ..sort((a, b) => b.likeRate.compareTo(a.likeRate));
+    })..sort((a, b) => b.likeRate.compareTo(a.likeRate));
   }
 
   /// Get best time to be active.
@@ -155,18 +155,9 @@ class ProfileInsightsService implements ProfileInsightsRepository {
 
   DemographicBreakdown _generateDemographics() {
     return const DemographicBreakdown(
-      ageRanges: {
-        '18-24': 25,
-        '25-34': 45,
-        '35-44': 20,
-        '45+': 10,
-      },
+      ageRanges: {'18-24': 25, '25-34': 45, '35-44': 20, '45+': 10},
       topLocations: ['New York', 'Los Angeles', 'Chicago'],
-      genderSplit: {
-        'Men': 60,
-        'Women': 35,
-        'Other': 5,
-      },
+      genderSplit: {'Men': 60, 'Women': 35, 'Other': 5},
     );
   }
 

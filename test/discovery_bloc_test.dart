@@ -1,19 +1,20 @@
 import 'dart:async';
 
 import 'package:crushhour/core/services/analytics_service.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import 'mock/firebase_mock.dart';
 import 'mock/stub_analytics_service.dart';
 
@@ -33,8 +34,9 @@ void main() {
       test('has correct initial values', () {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -54,8 +56,9 @@ void main() {
       test('emits empty status when deck is empty', () async {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -81,8 +84,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -91,8 +95,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<DiscoveryState>()
-                .having((s) => s.status, 'status', DeckStatus.loading),
+            isA<DiscoveryState>().having(
+              (s) => s.status,
+              'status',
+              DeckStatus.loading,
+            ),
             isA<DiscoveryState>()
                 .having((s) => s.status, 'status', DeckStatus.ready)
                 .having((s) => s.deck.length, 'deck length', 2)
@@ -105,10 +112,13 @@ void main() {
 
       test('emits error status when fetch fails', () async {
         final bloc = DiscoveryBloc(
-          discoveryRepository:
-              _StubDiscoveryRepository(deck: const [], shouldFailFetch: true),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          discoveryRepository: _StubDiscoveryRepository(
+            deck: const [],
+            shouldFailFetch: true,
+          ),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -117,8 +127,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<DiscoveryState>()
-                .having((s) => s.status, 'status', DeckStatus.loading),
+            isA<DiscoveryState>().having(
+              (s) => s.status,
+              'status',
+              DeckStatus.loading,
+            ),
             isA<DiscoveryState>()
                 .having((s) => s.status, 'status', DeckStatus.error)
                 .having((s) => s.errorMessage, 'error', isNotNull),
@@ -134,8 +147,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -144,10 +158,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe right
-        bloc.add(DiscoverySwipedRight(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedRight(userId: 'user-1', targetUserId: 'p1'));
 
         await expectLater(
           bloc.stream,
@@ -170,8 +181,9 @@ void main() {
             deck: profiles,
             matchOnSwipeRight: match,
           ),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -180,10 +192,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe right
-        bloc.add(DiscoverySwipedRight(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedRight(userId: 'user-1', targetUserId: 'p1'));
 
         await expectLater(
           bloc.stream,
@@ -191,7 +200,10 @@ void main() {
             isA<DiscoveryState>()
                 .having((s) => s.newMatch, 'newMatch', isNotNull)
                 .having(
-                    (s) => s.newMatch?.matchId, 'matchId', equals('match-1')),
+                  (s) => s.newMatch?.matchId,
+                  'matchId',
+                  equals('match-1'),
+                ),
           ),
         );
 
@@ -214,16 +226,16 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe right - should succeed
-        bloc.add(DiscoverySwipedRight(
-          userId: 'user-1',
-          targetUserId: 'p0',
-        ));
+        bloc.add(DiscoverySwipedRight(userId: 'user-1', targetUserId: 'p0'));
 
         await expectLater(
           bloc.stream,
           emits(
-            isA<DiscoveryState>()
-                .having((s) => s.currentIndex, 'currentIndex', 1),
+            isA<DiscoveryState>().having(
+              (s) => s.currentIndex,
+              'currentIndex',
+              1,
+            ),
           ),
         );
 
@@ -233,8 +245,9 @@ void main() {
       test('does nothing when deck is empty', () async {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -243,10 +256,9 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Try to swipe
-        bloc.add(DiscoverySwipedRight(
-          userId: 'user-1',
-          targetUserId: 'nobody',
-        ));
+        bloc.add(
+          DiscoverySwipedRight(userId: 'user-1', targetUserId: 'nobody'),
+        );
 
         // Should not emit any changes after the empty deck
         await Future.delayed(const Duration(milliseconds: 100));
@@ -261,8 +273,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -271,10 +284,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe left
-        bloc.add(DiscoverySwipedLeft(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
 
         await expectLater(
           bloc.stream,
@@ -295,8 +305,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -305,10 +316,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Super like
-        bloc.add(DiscoverySuperLiked(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySuperLiked(userId: 'user-1', targetUserId: 'p1'));
 
         await expectLater(
           bloc.stream,
@@ -327,8 +335,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -337,17 +346,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Use up super like
-        bloc.add(DiscoverySuperLiked(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySuperLiked(userId: 'user-1', targetUserId: 'p1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Try again - should fail
-        bloc.add(DiscoverySuperLiked(
-          userId: 'user-1',
-          targetUserId: 'p2',
-        ));
+        bloc.add(DiscoverySuperLiked(userId: 'user-1', targetUserId: 'p2'));
 
         await expectLater(
           bloc.stream,
@@ -372,8 +375,9 @@ void main() {
             deck: profiles,
             rewindProfile: profiles[0],
           ),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -382,10 +386,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe left
-        bloc.add(DiscoverySwipedLeft(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Rewind
@@ -411,8 +412,9 @@ void main() {
         final profiles = [_testProfile('p1')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -444,8 +446,9 @@ void main() {
             deck: profiles,
             rewindProfile: profiles[0],
           ),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.plus),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.plus,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -454,10 +457,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Swipe left
-        bloc.add(DiscoverySwipedLeft(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Rewind
@@ -486,8 +486,9 @@ void main() {
             deck: initialDeck,
             moreDeck: moreDeck,
           ),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -501,7 +502,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<DiscoveryState>().having((s) => s.isLoadingMore, 'loading', true),
+            isA<DiscoveryState>().having(
+              (s) => s.isLoadingMore,
+              'loading',
+              true,
+            ),
             isA<DiscoveryState>()
                 .having((s) => s.isLoadingMore, 'loading', false)
                 .having((s) => s.deck.length, 'length', 3),
@@ -513,9 +518,12 @@ void main() {
 
       test('does not load when already loading more', () async {
         final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(deck: [_testProfile('p1')]),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          discoveryRepository: _StubDiscoveryRepository(
+            deck: [_testProfile('p1')],
+          ),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -537,8 +545,9 @@ void main() {
             deck: profiles,
             matchOnSwipeRight: match,
           ),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -546,10 +555,7 @@ void main() {
         bloc.add(DiscoveryDeckRequested('user-1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
-        bloc.add(DiscoverySwipedRight(
-          userId: 'user-1',
-          targetUserId: 'p1',
-        ));
+        bloc.add(DiscoverySwipedRight(userId: 'user-1', targetUserId: 'p1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Verify match exists
@@ -574,8 +580,9 @@ void main() {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: _StubAuthRepository(),
         );
 
@@ -609,9 +616,12 @@ void main() {
         final profiles = [_testProfile('p1')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository:
-              _StubSubscriptionRepository(SubscriptionPlan.free),
-          authRepository: _StubAuthRepository(userStreamController: authController),
+          subscriptionRepository: _StubSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
+          authRepository: _StubAuthRepository(
+            userStreamController: authController,
+          ),
         );
 
         // Load deck
@@ -655,28 +665,28 @@ const _testPreferences = DiscoveryPreferences(
 );
 
 Profile _testProfile(String id) => Profile(
-      id: id,
-      name: 'Test $id',
-      age: 25,
-      gender: 'male',
-      photoUrls: const [],
-      videoUrls: const [],
-      bio: 'Test bio',
-      interests: const [],
-      country: 'US',
-      city: 'New York',
-      isVerified: false,
-      preferences: _testPreferences,
-    );
+  id: id,
+  name: 'Test $id',
+  age: 25,
+  gender: 'male',
+  photoUrls: const [],
+  videoUrls: const [],
+  bio: 'Test bio',
+  interests: const [],
+  country: 'US',
+  city: 'New York',
+  isVerified: false,
+  preferences: _testPreferences,
+);
 
 CrushMatch _testMatch(String id) => CrushMatch(
-      id: id,
-      userId: 'user-1',
-      otherUserId: 'p1',
-      status: MatchStatus.mutual,
-      preMatchMessageRequestsCount: 0,
-      pinnedForUser: false,
-    );
+  id: id,
+  userId: 'user-1',
+  otherUserId: 'p1',
+  status: MatchStatus.mutual,
+  preMatchMessageRequestsCount: 0,
+  pinnedForUser: false,
+);
 
 // =============================================================================
 // Stub Repositories
@@ -750,18 +760,14 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   Future<CrushMatch?> superLike({
     required String userId,
     required String targetUserId,
-  }) async =>
-      matchOnSwipeRight;
+  }) async => matchOnSwipeRight;
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async => rewindProfile;
 }
 
 class _StubSubscriptionRepository implements SubscriptionRepository {
-  _StubSubscriptionRepository(
-    this.plan, {
-    this.dailySwipesRemaining = 10,
-  });
+  _StubSubscriptionRepository(this.plan, {this.dailySwipesRemaining = 10});
 
   final SubscriptionPlan plan;
   final int dailySwipesRemaining;

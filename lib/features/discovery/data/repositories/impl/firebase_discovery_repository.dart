@@ -4,7 +4,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
-import '../discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 
 /// Firebase implementation of DiscoveryRepository.
 class FirebaseDiscoveryRepository implements DiscoveryRepository {

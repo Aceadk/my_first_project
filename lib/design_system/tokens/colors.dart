@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/theme_extensions.dart';
 
 class DsColors {
@@ -47,9 +48,7 @@ class DsColors {
   static const Color info = Color(0xFF5BB3FF);
 
   // Semantic colors for chat/messaging
-  static const Color messageOutgoing = primary;
-  static const Color messageIncoming = Color(0xFF20202A);
-  static const Color messageIncomingLight = Color(0xFFF0EFF6);
+  // Note: Chat bubbles now use Glassmorphism styles defined in implementation
 
   // Status indicators
   static const Color onlineIndicator = accent;
@@ -164,10 +163,7 @@ class DsGlassColors {
     return strong ? highlightStrong : highlight;
   }
 
-  static Color _surfaceFromBase(
-    Color base,
-    DsGlassSurfaceStrength strength,
-  ) {
+  static Color _surfaceFromBase(Color base, DsGlassSurfaceStrength strength) {
     final alpha = base.a;
     final boost = switch (strength) {
       DsGlassSurfaceStrength.light => 0.0,
@@ -178,8 +174,4 @@ class DsGlassColors {
   }
 }
 
-enum DsGlassSurfaceStrength {
-  light,
-  medium,
-  heavy,
-}
+enum DsGlassSurfaceStrength { light, medium, heavy }

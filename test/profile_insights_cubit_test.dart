@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/analytics/data/models/profile_insights.dart';
+import 'package:crushhour/features/analytics/data/models/profile_insights_dto.dart';
 import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
+import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
 import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,13 +147,20 @@ void main() {
         expect(states.isNotEmpty, true);
 
         final loadingStates = states.where((s) => s.isLoading).toList();
-        expect(loadingStates, isNotEmpty,
-            reason: 'Should have a loading state');
+        expect(
+          loadingStates,
+          isNotEmpty,
+          reason: 'Should have a loading state',
+        );
 
-        final loadedStates =
-            states.where((s) => !s.isLoading && s.insights != null).toList();
-        expect(loadedStates, isNotEmpty,
-            reason: 'Should have a loaded state with insights');
+        final loadedStates = states
+            .where((s) => !s.isLoading && s.insights != null)
+            .toList();
+        expect(
+          loadedStates,
+          isNotEmpty,
+          reason: 'Should have a loaded state with insights',
+        );
 
         final finalState = loadedStates.last;
         expect(finalState.insights!.userId, 'user-1');
@@ -211,13 +219,20 @@ void main() {
         expect(states.isNotEmpty, true);
 
         final refreshingStates = states.where((s) => s.isRefreshing).toList();
-        expect(refreshingStates, isNotEmpty,
-            reason: 'Should have a refreshing state');
+        expect(
+          refreshingStates,
+          isNotEmpty,
+          reason: 'Should have a refreshing state',
+        );
 
-        final refreshedStates =
-            states.where((s) => !s.isRefreshing && s.insights != null).toList();
-        expect(refreshedStates, isNotEmpty,
-            reason: 'Should have a refreshed state with insights');
+        final refreshedStates = states
+            .where((s) => !s.isRefreshing && s.insights != null)
+            .toList();
+        expect(
+          refreshedStates,
+          isNotEmpty,
+          reason: 'Should have a refreshed state with insights',
+        );
 
         await sub.cancel();
         await cubit.close();
@@ -246,8 +261,9 @@ void main() {
 
         expect(states.isNotEmpty, true);
 
-        final loadedStates =
-            states.where((s) => !s.isLoading && s.insights != null).toList();
+        final loadedStates = states
+            .where((s) => !s.isLoading && s.insights != null)
+            .toList();
         expect(loadedStates, isNotEmpty);
 
         final insights = loadedStates.last.insights!;
@@ -384,10 +400,14 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
         // State should be reset to initial
-        final resetStates =
-            states.where((s) => s.insights == null && !s.isLoading).toList();
-        expect(resetStates, isNotEmpty,
-            reason: 'State should be reset after logout');
+        final resetStates = states
+            .where((s) => s.insights == null && !s.isLoading)
+            .toList();
+        expect(
+          resetStates,
+          isNotEmpty,
+          reason: 'State should be reset after logout',
+        );
 
         await sub.cancel();
         await authController.close();
@@ -548,7 +568,7 @@ void main() {
     });
 
     test('toJson and fromJson round-trip', () {
-      final original = ProfileInsights(
+      final original = ProfileInsightsDto(
         userId: 'u1',
         periodStart: weekAgo,
         periodEnd: now,
@@ -562,12 +582,17 @@ void main() {
         peakActivityHour: 20,
         topPhotosViewed: const [0, 2],
         weeklyTrend: [
-          DailyMetric(date: DateTime(2026, 2, 12), views: 10, likes: 5, matches: 1),
+          DailyMetricDto(
+            date: DateTime(2026, 2, 12),
+            views: 10,
+            likes: 5,
+            matches: 1,
+          ),
         ],
       );
 
       final json = original.toJson();
-      final restored = ProfileInsights.fromJson(json);
+      final restored = ProfileInsightsDto.fromJson(json);
 
       expect(restored.userId, original.userId);
       expect(restored.profileViews, original.profileViews);
@@ -583,7 +608,7 @@ void main() {
     });
 
     test('fromJson handles missing fields with defaults', () {
-      final insights = ProfileInsights.fromJson(const {
+      final insights = ProfileInsightsDto.fromJson(const {
         'userId': 'u1',
         'periodStart': '2026-02-06T00:00:00.000',
         'periodEnd': '2026-02-13T00:00:00.000',
@@ -611,14 +636,14 @@ void main() {
     });
 
     test('toJson and fromJson round-trip', () {
-      final original = DailyMetric(
+      final original = DailyMetricDto(
         date: DateTime(2026, 2, 13),
         views: 10,
         likes: 5,
         matches: 2,
       );
       final json = original.toJson();
-      final restored = DailyMetric.fromJson(json);
+      final restored = DailyMetricDto.fromJson(json);
       expect(restored, equals(original));
     });
   });
@@ -636,13 +661,13 @@ void main() {
     });
 
     test('toJson and fromJson round-trip', () {
-      const original = DemographicBreakdown(
+      const original = DemographicBreakdownDto(
         ageRanges: {'18-24': 30, '25-34': 50},
         topLocations: ['NYC', 'LA'],
         genderSplit: {'Men': 60, 'Women': 40},
       );
       final json = original.toJson();
-      final restored = DemographicBreakdown.fromJson(json);
+      final restored = DemographicBreakdownDto.fromJson(json);
       expect(restored, equals(original));
     });
   });
@@ -680,8 +705,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> sendEmailSignInLink(String email) async {}
@@ -690,15 +714,13 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithApple() => throw UnimplementedError();
@@ -707,16 +729,14 @@ class _StubAuthRepository implements AuthRepository {
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
     required String password,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> requestEmailOtp({
@@ -732,8 +752,7 @@ class _StubAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset({required String email}) async {}
@@ -742,8 +761,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> resetPasswordWithToken({

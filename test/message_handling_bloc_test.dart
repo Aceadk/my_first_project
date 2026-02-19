@@ -9,7 +9,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_handling_bloc.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/stub_analytics_service.dart';

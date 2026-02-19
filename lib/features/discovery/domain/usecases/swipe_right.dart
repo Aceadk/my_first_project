@@ -2,8 +2,8 @@ import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/domain/use_cases/use_case.dart';
 
 /// Parameters for right swipe (like).

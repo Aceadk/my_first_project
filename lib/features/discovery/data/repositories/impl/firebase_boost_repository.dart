@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 
 /// Firebase implementation of BoostRepository.
 ///

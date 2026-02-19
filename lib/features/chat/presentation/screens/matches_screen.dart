@@ -13,7 +13,7 @@ import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';

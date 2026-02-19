@@ -13,7 +13,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_state.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 
