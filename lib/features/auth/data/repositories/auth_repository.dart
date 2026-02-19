@@ -6,3 +6,4 @@
 library;
 
 export 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+export 'package:crushhour/features/auth/domain/repositories/linked_accounts_repository.dart';

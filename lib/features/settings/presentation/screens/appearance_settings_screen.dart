@@ -95,7 +95,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-            'Dark Luxury themes are a Plus feature. Upgrade to unlock them.'),
+          'Dark Luxury themes are a Plus feature. Upgrade to unlock them.',
+        ),
       ),
     );
   }
@@ -106,9 +107,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appearance & Themes'),
-      ),
+      appBar: AppBar(title: const Text('Appearance & Themes')),
       body: BlocListener<ThemeCubit, AppThemeMode>(
         listener: (context, mode) {
           if (!_previewDirty) {
@@ -151,31 +150,29 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 Text(
                   'Choose a theme',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 DsGap.sm,
-                ..._themeOptions().map(
-                  (option) {
-                    final selected = option.mode == _previewMode;
-                    final isPremium = option.isPremium;
-                    final locked = _isPremiumLocked(option.mode, isPlus);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
-                      child: _ThemeOptionCard(
-                        title: option.title,
-                        subtitle: option.subtitle,
-                        icon: option.icon,
-                        selected: selected,
-                        isPremium: isPremium,
-                        isLocked: locked,
-                        isApplied: option.mode == currentMode,
-                        swatches: _swatchesForMode(context, option.mode),
-                        onTap: () => _selectMode(option.mode),
-                      ),
-                    );
-                  },
-                ),
+                ..._themeOptions().map((option) {
+                  final selected = option.mode == _previewMode;
+                  final isPremium = option.isPremium;
+                  final locked = _isPremiumLocked(option.mode, isPlus);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+                    child: _ThemeOptionCard(
+                      title: option.title,
+                      subtitle: option.subtitle,
+                      icon: option.icon,
+                      selected: selected,
+                      isPremium: isPremium,
+                      isLocked: locked,
+                      isApplied: option.mode == currentMode,
+                      swatches: _swatchesForMode(context, option.mode),
+                      onTap: () => _selectMode(option.mode),
+                    ),
+                  );
+                }),
                 DsGap.lg,
                 Container(
                   padding: const EdgeInsets.all(DsSpacing.md),
@@ -212,19 +209,19 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                         Expanded(
                           child: Text(
                             'Upgrade to Plus to unlock Dark Luxury themes.',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: luxuryTextOnGold,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: luxuryTextOnGold,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ),
                         FilledButton(
                           onPressed: subState.isCheckoutInProgress
                               ? null
                               : () => context.read<SubscriptionBloc>().add(
-                                    PlusCheckoutRequested(),
-                                  ),
+                                  PlusCheckoutRequested(),
+                                ),
                           style: FilledButton.styleFrom(
                             backgroundColor: luxurySurface,
                             foregroundColor: luxuryAccent,
@@ -389,9 +386,9 @@ class _ThemePreviewCard extends StatelessWidget {
                       Text(
                         'Preview',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: scheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const Spacer(),
                       Icon(Icons.favorite, size: 18, color: scheme.primary),
@@ -416,11 +413,14 @@ class _ThemePreviewCard extends StatelessWidget {
                               height: 44,
                               decoration: BoxDecoration(
                                 gradient: highlight,
-                                borderRadius:
-                                    BorderRadius.circular(DsRadius.md),
+                                borderRadius: BorderRadius.circular(
+                                  DsRadius.md,
+                                ),
                               ),
-                              child:
-                                  Icon(Icons.favorite, color: scheme.onPrimary),
+                              child: Icon(
+                                Icons.favorite,
+                                color: scheme.onPrimary,
+                              ),
                             ),
                             const SizedBox(width: DsSpacing.md),
                             Expanded(
@@ -437,12 +437,12 @@ class _ThemePreviewCard extends StatelessWidget {
                                   const SizedBox(height: 4),
                                   Text(
                                     'Smooth, romantic, and safe.',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                            color: scheme.onSurface
-                                                .withValues(alpha: 0.7)),
+                                          color: scheme.onSurface.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                        ),
                                   ),
                                 ],
                               ),
@@ -470,8 +470,8 @@ class _ThemePreviewCard extends StatelessWidget {
                       Text(
                         previewCopy,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.6),
-                            ),
+                          color: scheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                     ],
                   ),
@@ -523,10 +523,7 @@ class _ThemeOptionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: DsGlassColors.surfaceFor(context),
           borderRadius: BorderRadius.circular(DsRadius.lg),
-          border: Border.all(
-            color: borderColor,
-            width: selected ? 1.5 : 1,
-          ),
+          border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
           boxShadow: selected
               ? [
                   BoxShadow(
@@ -558,8 +555,8 @@ class _ThemeOptionCard extends StatelessWidget {
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       if (isPremium) ...[
                         const SizedBox(width: DsSpacing.xs),
@@ -575,10 +572,10 @@ class _ThemeOptionCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
                   ),
                 ],
               ),
@@ -603,6 +600,10 @@ class _ThemeOptionCard extends StatelessWidget {
                   )
                   .toList(),
             ),
+            if (selected) ...[
+              const SizedBox(width: DsSpacing.sm),
+              const Icon(Icons.check_circle, color: DsColors.primary, size: 20),
+            ],
           ],
         ),
       ),
@@ -628,9 +629,9 @@ class _PremiumBadge extends StatelessWidget {
       child: Text(
         isLocked ? 'Premium' : 'Plus',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isLocked ? DsColors.warning : DsColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+          color: isLocked ? DsColors.warning : DsColors.primary,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -650,9 +651,9 @@ class _AppliedBadge extends StatelessWidget {
       child: Text(
         'Applied',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: DsColors.success,
-              fontWeight: FontWeight.w700,
-            ),
+          color: DsColors.success,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

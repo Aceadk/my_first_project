@@ -20,7 +20,8 @@ import 'package:crushhour/core/utils/result.dart' as app_result;
 import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
-class FirebaseAuthRepository implements AuthRepository {
+class FirebaseAuthRepository
+    implements AuthRepository, LinkedAccountsRepository {
   final fb.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _authStateController = StreamController<CrushUser?>.broadcast();
@@ -49,10 +50,11 @@ class FirebaseAuthRepository implements AuthRepository {
   );
 
   FirebaseAuthRepository({fb.FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance {
+    : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance {
     // Listen to Firebase auth state changes
-    _firebaseAuthSubscription =
-        _firebaseAuth.authStateChanges().listen(_onFirebaseAuthStateChanged);
+    _firebaseAuthSubscription = _firebaseAuth.authStateChanges().listen(
+      _onFirebaseAuthStateChanged,
+    );
   }
 
   Future<void> _onFirebaseAuthStateChanged(fb.User? firebaseUser) async {
@@ -60,11 +62,12 @@ class FirebaseAuthRepository implements AuthRepository {
       _currentUser = null;
       _authStateController.add(null);
     } else {
-      final cachedTermsAccepted =
-          await _readCachedTermsAccepted(firebaseUser.uid);
-      _currentUser = _mapFirebaseUser(firebaseUser).copyWith(
-        hasAcceptedTerms: cachedTermsAccepted,
+      final cachedTermsAccepted = await _readCachedTermsAccepted(
+        firebaseUser.uid,
       );
+      _currentUser = _mapFirebaseUser(
+        firebaseUser,
+      ).copyWith(hasAcceptedTerms: cachedTermsAccepted);
 
       await _checkAndUpdateFirestoreVerification(firebaseUser);
       _authStateController.add(_currentUser);
@@ -74,10 +77,13 @@ class FirebaseAuthRepository implements AuthRepository {
   /// Checks Firestore for OTP-based email verification, developer status, and terms acceptance.
   /// Always syncs hasAcceptedTerms from Firestore to ensure permanent T&C acceptance.
   Future<bool> _checkAndUpdateFirestoreVerification(
-      fb.User firebaseUser) async {
+    fb.User firebaseUser,
+  ) async {
     try {
-      final userDoc =
-          await _firestore.collection('users').doc(firebaseUser.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
       final userData = userDoc.data();
       if (userData == null) return false;
 
@@ -110,7 +116,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final profile = _profileFromFirestore(firebaseUser.uid, userData);
 
       // Determine if we need to update email verification status
-      final needsEmailVerificationUpdate = !firebaseUser.emailVerified &&
+      final needsEmailVerificationUpdate =
+          !firebaseUser.emailVerified &&
           (firestoreEmailVerified || emailVerifiedViaOtp);
 
       // Check if any state differs from current user
@@ -122,7 +129,8 @@ class FirebaseAuthRepository implements AuthRepository {
       final currentProfile = _currentUser?.profile;
       final currentThemePreference = _currentUser?.themePreference;
       final needsProfileUpdate = profile != null && profile != currentProfile;
-      final needsUpdate = needsEmailVerificationUpdate ||
+      final needsUpdate =
+          needsEmailVerificationUpdate ||
           hasAcceptedTerms != currentTermsStatus ||
           hasSkippedBasicInfo != currentSkippedBasicInfo ||
           hasSkippedProfileSetup != currentSkippedProfileSetup ||
@@ -136,7 +144,8 @@ class FirebaseAuthRepository implements AuthRepository {
           email: firebaseUser.email,
           username: firebaseUser.displayName,
           // Use Firestore verification if not verified via Firebase SDK
-          isEmailVerified: firebaseUser.emailVerified ||
+          isEmailVerified:
+              firebaseUser.emailVerified ||
               firestoreEmailVerified ||
               emailVerifiedViaOtp,
           // Phone verification should come from Firestore or Firebase Auth
@@ -151,14 +160,16 @@ class FirebaseAuthRepository implements AuthRepository {
           hasSkippedProfileSetup: hasSkippedProfileSetup,
         );
         AppLogger.info(
-            '[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)');
+          '[FirebaseAuthRepo] Updated user state from Firestore (terms: $hasAcceptedTerms, skippedBasic: $hasSkippedBasicInfo, skippedSetup: $hasSkippedProfileSetup)',
+        );
         return true;
       }
       return false;
     } catch (e) {
       // Don't log error for expected document-not-found cases
       AppLogger.info(
-          '[FirebaseAuthRepo] Could not check Firestore verification: $e');
+        '[FirebaseAuthRepo] Could not check Firestore verification: $e',
+      );
       return false;
     }
   }
@@ -166,10 +177,11 @@ class FirebaseAuthRepository implements AuthRepository {
   /// CR-AUD-010: Auto-recover account if user signs in during grace period.
   /// Clears isPendingDeletion/isDeactivated flags so the account is restored.
   Future<void> _recoverAccountIfWithinGracePeriod(
-      String uid, Map<String, dynamic> userData) async {
+    String uid,
+    Map<String, dynamic> userData,
+  ) async {
     try {
-      final isPendingDeletion =
-          userData['isPendingDeletion'] as bool? ?? false;
+      final isPendingDeletion = userData['isPendingDeletion'] as bool? ?? false;
       final isDeactivated = userData['isDeactivated'] as bool? ?? false;
 
       final updates = <String, dynamic>{
@@ -178,7 +190,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
       if (isPendingDeletion) {
         // Check if within 14-day grace period
-        final scheduledAt = userData['deletionScheduledAt'] ??
+        final scheduledAt =
+            userData['deletionScheduledAt'] ??
             userData['scheduledPermanentDeletionAt'];
         final scheduledDate = scheduledAt is Timestamp
             ? scheduledAt.toDate()
@@ -191,7 +204,8 @@ class FirebaseAuthRepository implements AuthRepository {
           updates['scheduledPermanentDeletionAt'] = FieldValue.delete();
           updates['deletionReason'] = FieldValue.delete();
           AppLogger.info(
-              '[FirebaseAuthRepo] Recovered account from pending deletion: $uid');
+            '[FirebaseAuthRepo] Recovered account from pending deletion: $uid',
+          );
         }
       }
 
@@ -201,7 +215,8 @@ class FirebaseAuthRepository implements AuthRepository {
         updates['deactivationReason'] = FieldValue.delete();
         updates['scheduledDeletionAt'] = FieldValue.delete();
         AppLogger.info(
-            '[FirebaseAuthRepo] Reactivated deactivated account: $uid');
+          '[FirebaseAuthRepo] Reactivated deactivated account: $uid',
+        );
       }
 
       if (updates.length > 1) {
@@ -248,7 +263,8 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> _ensureUserDocumentExists(fb.User firebaseUser) async {
     final userId = firebaseUser.uid;
     AppLogger.info(
-        '[FirebaseAuthRepo] Ensuring user document exists for: $userId');
+      '[FirebaseAuthRepo] Ensuring user document exists for: $userId',
+    );
 
     try {
       final docRef = _firestore.collection('users').doc(userId);
@@ -256,7 +272,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
       if (!doc.exists) {
         AppLogger.info('[FirebaseAuthRepo] Creating new user document');
-        final displayName = firebaseUser.displayName ??
+        final displayName =
+            firebaseUser.displayName ??
             firebaseUser.email?.split('@').first ??
             'User';
 
@@ -288,13 +305,15 @@ class FirebaseAuthRepository implements AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        AppLogger.info(
-            '[FirebaseAuthRepo] User document created successfully');
+        AppLogger.info('[FirebaseAuthRepo] User document created successfully');
       } else {
         AppLogger.info('[FirebaseAuthRepo] User document already exists');
       }
     } catch (e) {
-      AppLogger.error('[FirebaseAuthRepo] Error ensuring user document', error: e);
+      AppLogger.error(
+        '[FirebaseAuthRepo] Error ensuring user document',
+        error: e,
+      );
       // Don't throw - auth succeeded, document creation is secondary
     }
   }
@@ -322,11 +341,12 @@ class FirebaseAuthRepository implements AuthRepository {
     Future.microtask(() async {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser != null) {
-        final cachedTermsAccepted =
-            await _readCachedTermsAccepted(firebaseUser.uid);
-        _currentUser = _mapFirebaseUser(firebaseUser).copyWith(
-          hasAcceptedTerms: cachedTermsAccepted,
+        final cachedTermsAccepted = await _readCachedTermsAccepted(
+          firebaseUser.uid,
         );
+        _currentUser = _mapFirebaseUser(
+          firebaseUser,
+        ).copyWith(hasAcceptedTerms: cachedTermsAccepted);
 
         await _checkAndUpdateFirestoreVerification(firebaseUser);
         _authStateController.add(_currentUser);
@@ -423,7 +443,9 @@ class FirebaseAuthRepository implements AuthRepository {
         },
         verificationFailed: (fb.FirebaseAuthException e) {
           SecureLogger.error(
-              'Phone OTP Error: code=${e.code}, message=${e.message}', e);
+            'Phone OTP Error: code=${e.code}, message=${e.message}',
+            e,
+          );
           if (!completer.isCompleted) {
             String errorMessage = e.message ?? 'Verification failed';
             // Provide more helpful error messages based on Firebase error codes
@@ -536,7 +558,8 @@ class FirebaseAuthRepository implements AuthRepository {
       if (e.code == 'user-not-found') {
         // User doesn't exist - create account automatically
         AppLogger.info(
-            '[FirebaseAuthRepo] User not found, creating account for: $email');
+          '[FirebaseAuthRepo] User not found, creating account for: $email',
+        );
         try {
           final credential = await _firebaseAuth.createUserWithEmailAndPassword(
             email: email,
@@ -548,11 +571,14 @@ class FirebaseAuthRepository implements AuthRepository {
           if (firebaseUser != null && !firebaseUser.emailVerified) {
             await firebaseUser.sendEmailVerification();
             AppLogger.info(
-                '[FirebaseAuthRepo] Verification email sent to: $email');
+              '[FirebaseAuthRepo] Verification email sent to: $email',
+            );
           }
         } catch (createError) {
           AppLogger.error(
-              '[FirebaseAuthRepo] Failed to create account', error: createError);
+            '[FirebaseAuthRepo] Failed to create account',
+            error: createError,
+          );
           rethrow;
         }
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
@@ -610,8 +636,9 @@ class FirebaseAuthRepository implements AuthRepository {
         rawNonce: rawNonce,
       );
 
-      final authResult =
-          await _firebaseAuth.signInWithCredential(oauthCredential);
+      final authResult = await _firebaseAuth.signInWithCredential(
+        oauthCredential,
+      );
       final firebaseUser = authResult.user;
       if (firebaseUser == null) {
         throw Exception('Apple Sign-In failed.');
@@ -682,13 +709,16 @@ class FirebaseAuthRepository implements AuthRepository {
 
     // Store identifier in secure storage for later verification
     await _secureStorage.write(
-        key: _emailOtpIdentifierKey, value: normalizedIdentifier);
+      key: _emailOtpIdentifierKey,
+      value: normalizedIdentifier,
+    );
     await _secureStorage.write(key: _emailOtpPurposeKey, value: purpose.value);
 
     // Call Cloud Function to send OTP
     try {
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('requestEmailOtp');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'requestEmailOtp',
+      );
       await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'purpose': purpose.value,
@@ -700,7 +730,8 @@ class FirebaseAuthRepository implements AuthRepository {
       AppLogger.error('requestEmailOtp', error: e);
       // Rethrow with user-friendly message
       throw Exception(
-          e.message ?? 'Failed to send verification code. Please try again.');
+        e.message ?? 'Failed to send verification code. Please try again.',
+      );
     }
   }
 
@@ -716,8 +747,9 @@ class FirebaseAuthRepository implements AuthRepository {
 
     try {
       // Call Cloud Function to verify OTP
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('verifyEmailOtp');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'verifyEmailOtp',
+      );
       final result = await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'otp': otp.trim(),
@@ -731,8 +763,9 @@ class FirebaseAuthRepository implements AuthRepository {
       // If Cloud Function returns a custom token, sign in with it
       final customToken = data['customToken'] as String?;
       if (customToken != null) {
-        final credential =
-            await _firebaseAuth.signInWithCustomToken(customToken);
+        final credential = await _firebaseAuth.signInWithCustomToken(
+          customToken,
+        );
         final firebaseUser = credential.user;
         if (firebaseUser != null) {
           await _ensureUserDocumentExists(firebaseUser);
@@ -829,7 +862,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}');
+      '[FirebaseAuthRepo] Firebase emailVerified: ${updatedUser.emailVerified}',
+    );
 
     // Check Firebase SDK verification first
     if (updatedUser.emailVerified) {
@@ -840,11 +874,13 @@ class FirebaseAuthRepository implements AuthRepository {
           'updatedAt': FieldValue.serverTimestamp(),
         });
         AppLogger.info(
-            '[FirebaseAuthRepo] Updated Firestore isEmailVerified to true');
+          '[FirebaseAuthRepo] Updated Firestore isEmailVerified to true',
+        );
       } catch (e) {
         AppLogger.error(
-            '[FirebaseAuthRepo] Error updating Firestore verification status',
-            error: e);
+          '[FirebaseAuthRepo] Error updating Firestore verification status',
+          error: e,
+        );
       }
 
       // Update the stored user and emit new state
@@ -856,8 +892,10 @@ class FirebaseAuthRepository implements AuthRepository {
     // Also check Firestore for OTP-verified users
     // Users who verified via email OTP have isEmailVerified in Firestore but not in Firebase SDK
     try {
-      final userDoc =
-          await _firestore.collection('users').doc(updatedUser.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(updatedUser.uid)
+          .get();
       final userData = userDoc.data();
       final firestoreEmailVerified =
           userData?['isEmailVerified'] as bool? ?? false;
@@ -882,7 +920,8 @@ class FirebaseAuthRepository implements AuthRepository {
           : _currentUser?.profile;
 
       AppLogger.info(
-          '[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp');
+        '[FirebaseAuthRepo] Firestore isEmailVerified: $firestoreEmailVerified, viaOtp: $emailVerifiedViaOtp',
+      );
 
       if (firestoreEmailVerified || emailVerifiedViaOtp) {
         // User verified via OTP - create user with verified status
@@ -905,12 +944,15 @@ class FirebaseAuthRepository implements AuthRepository {
         );
         _authStateController.add(_currentUser);
         AppLogger.info(
-            '[FirebaseAuthRepo] User verified via OTP, returning verified status');
+          '[FirebaseAuthRepo] User verified via OTP, returning verified status',
+        );
         return _currentUser;
       }
     } catch (e) {
       AppLogger.error(
-          '[FirebaseAuthRepo] Error checking Firestore verification status', error: e);
+        '[FirebaseAuthRepo] Error checking Firestore verification status',
+        error: e,
+      );
     }
 
     return null;
@@ -928,8 +970,10 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     // Get current user's phone number from Firestore
-    final userDoc =
-        await _firestore.collection('users').doc(firebaseUser.uid).get();
+    final userDoc = await _firestore
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .get();
     final userData = userDoc.data();
     final phoneNumber = userData?['phoneNumber'] as String?;
 
@@ -938,7 +982,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}');
+      '[FirebaseAuthRepo] Scheduling phone deletion for user: ${firebaseUser.uid}',
+    );
 
     // Calculate deletion time: 2 days 23 hours from now (just under 3 days)
     final deletionTime = DateTime.now().add(const Duration(hours: 71));
@@ -969,7 +1014,8 @@ class FirebaseAuthRepository implements AuthRepository {
     });
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime');
+      '[FirebaseAuthRepo] Phone deletion scheduled, will complete at: $deletionTime',
+    );
 
     // Update local state
     _currentUser = _currentUser?.copyWith(
@@ -999,7 +1045,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}');
+      '[FirebaseAuthRepo] Changing password for user: ${firebaseUser.uid}',
+    );
 
     // Re-authenticate with current password
     final credential = fb.EmailAuthProvider.credential(
@@ -1047,7 +1094,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}');
+      '[FirebaseAuthRepo] Deactivating account for user: ${firebaseUser.uid}',
+    );
 
     // Calculate auto-deletion date: 6 months from now
     final autoDeletionDate = DateTime.now().add(const Duration(days: 180));
@@ -1080,7 +1128,8 @@ class FirebaseAuthRepository implements AuthRepository {
     );
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate');
+      '[FirebaseAuthRepo] Account deactivated, scheduled deletion at: $autoDeletionDate',
+    );
 
     // Sign out the user
     await signOut();
@@ -1106,7 +1155,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}');
+      '[FirebaseAuthRepo] Scheduling account deletion for user: ${firebaseUser.uid}',
+    );
 
     // Re-authenticate with password
     final credential = fb.EmailAuthProvider.credential(
@@ -1118,7 +1168,9 @@ class FirebaseAuthRepository implements AuthRepository {
       await firebaseUser.reauthenticateWithCredential(credential);
     } catch (e) {
       AppLogger.error(
-          '[FirebaseAuthRepo] Re-authentication failed for deletion', error: e);
+        '[FirebaseAuthRepo] Re-authentication failed for deletion',
+        error: e,
+      );
       throw Exception('Password is incorrect');
     }
 
@@ -1148,13 +1200,15 @@ class FirebaseAuthRepository implements AuthRepository {
     await _sendAccountNotification(
       userId: firebaseUser.uid,
       title: 'Account Scheduled for Deletion',
-      message: 'Your account is scheduled for permanent deletion on '
+      message:
+          'Your account is scheduled for permanent deletion on '
           '${permanentDeletionDate.day}/${permanentDeletionDate.month}/${permanentDeletionDate.year}. '
           'Sign in within 14 days to cancel the deletion and recover your account.',
     );
 
     AppLogger.info(
-        '[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate');
+      '[FirebaseAuthRepo] Account deletion scheduled for: $permanentDeletionDate',
+    );
 
     // Sign out the user
     await signOut();
@@ -1182,18 +1236,19 @@ class FirebaseAuthRepository implements AuthRepository {
         'title': title,
         'message': message,
         'type': 'account_action',
-        'channels': {
-          'email': email,
-          'phone': phoneNumber,
-        },
+        'channels': {'email': email, 'phone': phoneNumber},
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       AppLogger.info(
-          '[FirebaseAuthRepo] Account notification queued for user: $userId');
+        '[FirebaseAuthRepo] Account notification queued for user: $userId',
+      );
     } catch (e) {
-      AppLogger.error('[FirebaseAuthRepo] Error sending notification', error: e);
+      AppLogger.error(
+        '[FirebaseAuthRepo] Error sending notification',
+        error: e,
+      );
       // Don't throw - notification failure shouldn't block the action
     }
   }
@@ -1227,7 +1282,9 @@ class FirebaseAuthRepository implements AuthRepository {
       return querySnapshot2.docs.isNotEmpty;
     } catch (e) {
       AppLogger.error(
-          '[FirebaseAuthRepo] Error checking email existence', error: e);
+        '[FirebaseAuthRepo] Error checking email existence',
+        error: e,
+      );
       return false;
     }
   }
@@ -1312,7 +1369,8 @@ class FirebaseAuthRepository implements AuthRepository {
     List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
     if (showMeGenders.isEmpty ||
         showMeGenders.any(
-            (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+          (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone',
+        )) {
       showMeGenders = ['male', 'female'];
     }
 
@@ -1347,7 +1405,10 @@ class FirebaseAuthRepository implements AuthRepository {
           try {
             return ProfilePrompt.fromJson(json);
           } catch (e) {
-            AppLogger.error('[FirebaseAuthRepo] Error parsing prompt', error: e);
+            AppLogger.error(
+              '[FirebaseAuthRepo] Error parsing prompt',
+              error: e,
+            );
             return null;
           }
         })
@@ -1372,7 +1433,8 @@ class FirebaseAuthRepository implements AuthRepository {
       await _cacheTermsAccepted(firebaseUser.uid, true);
 
       // Update current user state
-      _currentUser = _currentUser?.copyWith(hasAcceptedTerms: true) ??
+      _currentUser =
+          _currentUser?.copyWith(hasAcceptedTerms: true) ??
           CrushUser(
             id: firebaseUser.uid,
             phoneNumber: firebaseUser.phoneNumber ?? '',
@@ -1387,7 +1449,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
       _authStateController.add(_currentUser);
       AppLogger.info(
-          '[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}');
+        '[FirebaseAuthRepo] Terms and conditions accepted for user: ${firebaseUser.uid}',
+      );
       return _currentUser!;
     } catch (e) {
       AppLogger.error('[FirebaseAuthRepo] Error accepting terms', error: e);
@@ -1431,15 +1494,18 @@ class FirebaseAuthRepository implements AuthRepository {
             : SubscriptionPlan.free;
         final themePreference =
             userData['themePreference'] ?? userData['theme_preference'];
-        final profile =
-            _profileFromFirestore(updatedFirebaseUser.uid, userData);
+        final profile = _profileFromFirestore(
+          updatedFirebaseUser.uid,
+          userData,
+        );
 
         _currentUser = CrushUser(
           id: updatedFirebaseUser.uid,
           phoneNumber: updatedFirebaseUser.phoneNumber ?? '',
           email: updatedFirebaseUser.email,
           username: updatedFirebaseUser.displayName,
-          isEmailVerified: updatedFirebaseUser.emailVerified ||
+          isEmailVerified:
+              updatedFirebaseUser.emailVerified ||
               firestoreEmailVerified ||
               emailVerifiedViaOtp,
           isPhoneVerified:
@@ -1457,7 +1523,9 @@ class FirebaseAuthRepository implements AuthRepository {
       }
     } catch (e) {
       AppLogger.error(
-          '[FirebaseAuthRepo] Error refreshing user from Firestore', error: e);
+        '[FirebaseAuthRepo] Error refreshing user from Firestore',
+        error: e,
+      );
     }
 
     // Fall back to basic Firebase user
@@ -1466,12 +1534,121 @@ class FirebaseAuthRepository implements AuthRepository {
     return _currentUser;
   }
 
+  @override
+  Future<Set<String>> getLinkedProviderIds() async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) return const <String>{};
+
+    await user.reload();
+    final refreshed = _firebaseAuth.currentUser;
+    if (refreshed == null) return const <String>{};
+
+    return refreshed.providerData
+        .map((provider) => provider.providerId)
+        .where((id) => id != 'firebase')
+        .toSet();
+  }
+
+  @override
+  Future<void> linkProvider(LinkedAuthProvider provider) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception('Please sign in again to link accounts.');
+    }
+
+    final providerId = provider.providerId;
+    final linkedProviders = user.providerData.map((p) => p.providerId).toSet();
+    if (linkedProviders.contains(providerId)) {
+      throw Exception('${provider.displayName} is already linked.');
+    }
+
+    try {
+      switch (provider) {
+        case LinkedAuthProvider.google:
+          await user.linkWithProvider(fb.GoogleAuthProvider());
+          break;
+        case LinkedAuthProvider.apple:
+          final isAvailable = await SignInWithApple.isAvailable();
+          if (!isAvailable) {
+            throw Exception('Apple Sign-In is not available on this device.');
+          }
+
+          final rawNonce = _generateNonce();
+          final nonce = _sha256ofString(rawNonce);
+          final appleCredential = await SignInWithApple.getAppleIDCredential(
+            scopes: const [
+              AppleIDAuthorizationScopes.email,
+              AppleIDAuthorizationScopes.fullName,
+            ],
+            nonce: nonce,
+          );
+
+          final idToken = appleCredential.identityToken;
+          if (idToken == null || idToken.isEmpty) {
+            throw Exception('Apple Sign-In failed. Missing identity token.');
+          }
+
+          final oauthCredential = fb.OAuthProvider('apple.com').credential(
+            idToken: idToken,
+            accessToken: appleCredential.authorizationCode,
+            rawNonce: rawNonce,
+          );
+          await user.linkWithCredential(oauthCredential);
+          break;
+      }
+
+      await refreshCurrentUser();
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'provider-already-linked') {
+        throw Exception('${provider.displayName} is already linked.');
+      }
+      if (e.code == 'credential-already-in-use') {
+        throw Exception(
+          'This ${provider.displayName} account is already linked to another user.',
+        );
+      }
+      if (e.code == 'operation-not-allowed') {
+        throw Exception(
+          '${provider.displayName} sign-in is not enabled for this project.',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> unlinkProvider(LinkedAuthProvider provider) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception('Please sign in again to unlink accounts.');
+    }
+
+    final providerId = provider.providerId;
+    final linkedProviders = user.providerData
+        .map((p) => p.providerId)
+        .where((id) => id != 'firebase')
+        .toSet();
+    if (!linkedProviders.contains(providerId)) {
+      return;
+    }
+    if (linkedProviders.length <= 1) {
+      throw Exception(
+        'Cannot unlink the last recovery method. Add another provider first.',
+      );
+    }
+
+    await user.unlink(providerId);
+    await refreshCurrentUser();
+  }
+
   static String _generateNonce([int length = 32]) {
     const charset =
         '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
   static String _sha256ofString(String input) {

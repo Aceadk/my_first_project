@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/services/data_export_service.dart';
+import 'package:crushhour/core/services/data_export_request_service.dart';
+import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/widgets/adaptive_dialog.dart';
 
 class AccountActionsSettingsScreen extends StatefulWidget {
   const AccountActionsSettingsScreen({super.key});
@@ -20,6 +28,8 @@ class AccountActionsSettingsScreen extends StatefulWidget {
 
 class _AccountActionsSettingsScreenState
     extends State<AccountActionsSettingsScreen> {
+  static const _lastExportRequestedAtKey = 'settings_last_export_request_at';
+  static const _exportCooldownDays = 7;
   bool _isLoading = false;
 
   @override
@@ -30,9 +40,7 @@ class _AccountActionsSettingsScreenState
     final hasPhone = user?.phoneNumber != null && user.phoneNumber.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Actions'),
-      ),
+      appBar: AppBar(title: const Text('Account Actions')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -73,19 +81,13 @@ class _AccountActionsSettingsScreenState
                           children: [
                             Text(
                               'Manage Your Account',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             DsGap.xs,
                             Text(
                               'Manage security, password, and account status.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: isDark
                                         ? DsColors.textMutedDark
@@ -105,8 +107,8 @@ class _AccountActionsSettingsScreenState
                   child: Text(
                     'Security',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 DsGap.md,
@@ -157,8 +159,8 @@ class _AccountActionsSettingsScreenState
                   child: Text(
                     'Account Status',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 DsGap.md,
@@ -180,8 +182,8 @@ class _AccountActionsSettingsScreenState
                   child: Text(
                     'Data & Privacy',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 DsGap.md,
@@ -203,9 +205,9 @@ class _AccountActionsSettingsScreenState
                   child: Text(
                     'Danger zone',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: DsColors.error,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: DsColors.error,
+                    ),
                   ),
                 ),
                 DsGap.md,
@@ -238,10 +240,13 @@ class _AccountActionsSettingsScreenState
                             'Delete account',
                             style: TextStyle(color: DsColors.error),
                           ),
-                          subtitle:
-                              const Text('Permanently remove your account'),
-                          trailing: const Icon(Icons.chevron_right,
-                              color: DsColors.error),
+                          subtitle: const Text(
+                            'Permanently remove your account',
+                          ),
+                          trailing: const Icon(
+                            Icons.chevron_right,
+                            color: DsColors.error,
+                          ),
                           onTap: () => _showDeleteFlow(context),
                         ),
                       ],
@@ -286,69 +291,75 @@ class _AccountActionsSettingsScreenState
 
   Future<void> _showExportDataDialog(BuildContext context) async {
     final user = context.read<AuthBloc>().state.user;
-    final email = user?.email ?? 'your email';
+    if (user == null || user.id.isEmpty) {
+      showErrorSnackBar(this.context, 'Please sign in again to export data.');
+      return;
+    }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final now = DateTime.now();
+    final lastRequestMs = prefs.getInt(_lastExportRequestedAtKey);
+    if (lastRequestMs != null) {
+      final lastRequest = DateTime.fromMillisecondsSinceEpoch(lastRequestMs);
+      final nextAllowed = lastRequest.add(
+        const Duration(days: _exportCooldownDays),
+      );
+      if (now.isBefore(nextAllowed)) {
+        showErrorSnackBar(
+          this.context,
+          'You can request your next export on ${_formatDate(nextAllowed)}.',
+        );
+        return;
+      }
+    }
+
+    final email = user.email ?? 'your email';
+    final confirmed = await AdaptiveDialog.show<bool>(
+      context: this.context,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: const Icon(Icons.download_outlined,
-              color: DsColors.info, size: 48),
-          title: const Text('Export Your Data'),
+          icon: const Icon(
+            Icons.download_outlined,
+            color: DsColors.info,
+            size: 48,
+          ),
+          title: const Text('Request Data Export'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'You can request a copy of all your personal data. This includes:',
+                'Your export includes profile, photos, likes, matches, messages, and preferences.',
               ),
               DsGap.md,
               const _BulletPoint(
-                text: 'Your profile information',
+                text: 'Profile, photos, and media',
                 icon: Icons.person_outline,
               ),
               const _BulletPoint(
-                text: 'Your photos and media',
-                icon: Icons.photo_library_outlined,
-              ),
-              const _BulletPoint(
-                text: 'Your matches and connections',
+                text: 'Likes and matches',
                 icon: Icons.favorite_outline,
               ),
               const _BulletPoint(
-                text: 'Your messages',
+                text: 'Messages and chat metadata',
                 icon: Icons.chat_bubble_outline,
               ),
               const _BulletPoint(
-                text: 'Your preferences and settings',
+                text: 'Preferences and account settings',
                 icon: Icons.settings_outlined,
               ),
-              DsGap.lg,
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: DsColors.info.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: DsColors.info.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.email_outlined,
-                        color: DsColors.info, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Your data will be prepared and sent to $email within 48 hours.',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: DsColors.info,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              DsGap.md,
+              Text(
+                'This request is rate-limited to once every $_exportCooldownDays days. We will notify you when export generation completes.',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+              DsGap.sm,
+              Text(
+                'Primary contact: $email',
+                style: Theme.of(
+                  dialogContext,
+                ).textTheme.bodySmall?.copyWith(color: DsColors.info),
               ),
             ],
           ),
@@ -366,19 +377,167 @@ class _AccountActionsSettingsScreenState
       },
     );
 
-    if (confirmed == true && mounted) {
-      setState(() => _isLoading = true);
+    if (confirmed != true || !mounted) return;
 
-      // Simulate API call to request data export
-      await Future.delayed(const Duration(seconds: 1));
+    final exportRequestService = DataExportRequestService();
+    final requestResult = await exportRequestService.requestExport();
+    if (!mounted) return;
 
+    if (requestResult.isSuccess) {
+      await prefs.setInt(_lastExportRequestedAtKey, now.millisecondsSinceEpoch);
       if (!mounted) return;
-      setState(() => _isLoading = false);
-
       showSuccessSnackBar(
         this.context,
-        'Data export requested! You will receive an email at $email within 48 hours.',
+        'Data export requested. We will send a push notification when it is ready.',
       );
+      return;
+    }
+
+    final shouldFallbackToLocal = switch (requestResult.code) {
+      'not-found' => true,
+      'unimplemented' => true,
+      'unavailable' => true,
+      _ => false,
+    };
+
+    if (!shouldFallbackToLocal) {
+      final maybeDate = DateTime.tryParse(requestResult.nextAllowedAtIso ?? '');
+      if (maybeDate != null) {
+        showErrorSnackBar(
+          this.context,
+          'You can request your next export on ${_formatDate(maybeDate)}.',
+        );
+        return;
+      }
+      showErrorSnackBar(
+        this.context,
+        requestResult.message ?? 'Could not request data export.',
+      );
+      return;
+    }
+
+    showSuccessSnackBar(
+      this.context,
+      'Cloud export is not available in this environment. Generating local export now.',
+    );
+
+    final profileRepository = this.context.read<ProfileRepository>();
+    final discoveryRepository = this.context.read<DiscoveryRepository>();
+    final chatRepository = this.context.read<ChatRepository>();
+    final fallbackProfile = user.profile;
+
+    final progress = ValueNotifier<_ExportProgress>(
+      const _ExportProgress(status: 'Starting export...', progress: 0),
+    );
+
+    final progressDialog = AdaptiveDialog.show<void>(
+      context: this.context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return ValueListenableBuilder<_ExportProgress>(
+          valueListenable: progress,
+          builder: (context, value, _) {
+            final pct = (value.progress * 100).clamp(0, 100).round();
+            return AlertDialog(
+              title: const Text('Preparing your export'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LinearProgressIndicator(value: value.progress),
+                  DsGap.sm,
+                  Text(value.status),
+                  DsGap.xs,
+                  Text(
+                    '$pct% complete',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    setState(() => _isLoading = true);
+
+    final exportService = DataExportService(
+      currentUserId: user.id,
+      getUserData: () async => user,
+      getProfileData: () async {
+        final refreshedUser = await profileRepository.getCurrentUser();
+        return refreshedUser?.profile ?? fallbackProfile;
+      },
+      getMatchesData: () => discoveryRepository.fetchMatches(user.id),
+      getLikesData: () => discoveryRepository.fetchLikesYou(user.id),
+      getMessagesData: () =>
+          _collectAllMessages(chatRepository: chatRepository, userId: user.id),
+      getPreferencesData: () async {
+        final refreshedUser = await profileRepository.getCurrentUser();
+        final profile = refreshedUser?.profile ?? fallbackProfile;
+        return profile?.preferences;
+      },
+    );
+
+    final result = await exportService.exportData(
+      onProgress: (status, value) {
+        progress.value = _ExportProgress(status: status, progress: value);
+      },
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (Navigator.of(this.context, rootNavigator: true).canPop()) {
+        Navigator.of(this.context, rootNavigator: true).pop();
+      }
+    }
+    await progressDialog;
+
+    if (!mounted) return;
+
+    if (!result.isSuccess || result.filePath == null) {
+      showErrorSnackBar(
+        this.context,
+        result.error ?? 'Could not generate data export. Please try again.',
+      );
+      return;
+    }
+
+    await prefs.setInt(_lastExportRequestedAtKey, now.millisecondsSinceEpoch);
+    if (!mounted) return;
+
+    final shareNow = await AdaptiveDialog.show<bool>(
+      context: this.context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.check_circle_outline, color: DsColors.success),
+          title: const Text('Export Ready'),
+          content: const Text(
+            'Your data export has been generated successfully. Would you like to share/download it now?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Later'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Share Export'),
+            ),
+          ],
+        );
+      },
+    );
+    if (!mounted) return;
+
+    showSuccessSnackBar(
+      this.context,
+      'Data export request completed. Next request available in $_exportCooldownDays days.',
+    );
+
+    if (shareNow == true) {
+      await exportService.shareExport(result.filePath!);
     }
   }
 
@@ -394,14 +553,17 @@ class _AccountActionsSettingsScreenState
     // Capture repository before async gap
     final authRepository = context.read<AuthRepository>();
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await AdaptiveDialog.show<bool>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              icon: const Icon(Icons.lock_reset_outlined,
-                  color: DsColors.secondary, size: 48),
+              icon: const Icon(
+                Icons.lock_reset_outlined,
+                color: DsColors.secondary,
+                size: 48,
+              ),
               title: const Text('Change Password'),
               content: Form(
                 key: formKey,
@@ -421,11 +583,14 @@ class _AccountActionsSettingsScreenState
                           labelText: 'Current password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(obscureCurrent
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              obscureCurrent
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                             onPressed: () => setDialogState(
-                                () => obscureCurrent = !obscureCurrent),
+                              () => obscureCurrent = !obscureCurrent,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -443,9 +608,11 @@ class _AccountActionsSettingsScreenState
                           labelText: 'New password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(obscureNew
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              obscureNew
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                             onPressed: () =>
                                 setDialogState(() => obscureNew = !obscureNew),
                           ),
@@ -471,11 +638,14 @@ class _AccountActionsSettingsScreenState
                           labelText: 'Confirm new password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(obscureConfirm
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              obscureConfirm
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                             onPressed: () => setDialogState(
-                                () => obscureConfirm = !obscureConfirm),
+                              () => obscureConfirm = !obscureConfirm,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -534,23 +704,24 @@ class _AccountActionsSettingsScreenState
         setState(() => _isLoading = false);
 
         if (result.isSuccess) {
-          showSuccessSnackBar(
-            this.context,
-            'Password changed successfully!',
-          );
+          showSuccessSnackBar(this.context, 'Password changed successfully!');
           // Navigate to deck after successful password change
           if (mounted) {
             this.context.go(CrushRoutes.home);
           }
         } else {
           showErrorSnackBar(
-              this.context, result.errorMessage ?? 'Password change failed.');
+            this.context,
+            result.errorMessage ?? 'Password change failed.',
+          );
         }
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
           showErrorSnackBar(
-              this.context, 'An error occurred. Please try again.');
+            this.context,
+            'An error occurred. Please try again.',
+          );
         }
       }
     }
@@ -584,7 +755,7 @@ class _AccountActionsSettingsScreenState
     if (reason == null || !mounted) return;
 
     // Step 2: Confirm with warning about 6-month deletion
-    final confirmed = await showDialog<bool>(
+    final confirmed = await AdaptiveDialog.show<bool>(
       context: this.context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -598,9 +769,7 @@ class _AccountActionsSettingsScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'When you deactivate your account:',
-              ),
+              const Text('When you deactivate your account:'),
               DsGap.md,
               const _BulletPoint(
                 text: 'Your profile will be hidden from discovery',
@@ -630,16 +799,16 @@ class _AccountActionsSettingsScreenState
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.warning_amber_outlined,
-                        color: DsColors.error, size: 20),
+                    Icon(
+                      Icons.warning_amber_outlined,
+                      color: DsColors.error,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'If you don\'t sign in for 6 months, your account will be permanently deleted.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: DsColors.error,
-                        ),
+                        style: TextStyle(fontSize: 12, color: DsColors.error),
                       ),
                     ),
                   ],
@@ -653,9 +822,7 @@ class _AccountActionsSettingsScreenState
               child: const Text('Cancel'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: DsColors.warning,
-              ),
+              style: FilledButton.styleFrom(backgroundColor: DsColors.warning),
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Deactivate'),
             ),
@@ -685,7 +852,9 @@ class _AccountActionsSettingsScreenState
         this.context.go(CrushRoutes.authGateway);
       } else {
         showErrorSnackBar(
-            this.context, result.errorMessage ?? 'Deactivation failed.');
+          this.context,
+          result.errorMessage ?? 'Deactivation failed.',
+        );
       }
     }
   }
@@ -694,32 +863,26 @@ class _AccountActionsSettingsScreenState
     // Capture dependencies before async gaps
     final authRepository = context.read<AuthRepository>();
     final authBloc = context.read<AuthBloc>();
+    final user = authBloc.state.user;
+    if (user == null) {
+      showErrorSnackBar(this.context, 'Please sign in again to continue.');
+      return;
+    }
+    final confirmationValue = (user.username?.trim().isNotEmpty ?? false)
+        ? user.username!.trim()
+        : (user.email?.split('@').first ?? user.id);
+    final graceDate = DateTime.now().add(const Duration(days: 14));
 
-    // Step 1: Ask reason
-    final reason = await _showReasonDialog(
-      context: context,
-      title: 'Why are you deleting your account?',
-      icon: Icons.delete_forever_outlined,
-      iconColor: DsColors.error,
-      reasons: const [
-        'Found a relationship',
-        'Not happy with the app',
-        'Privacy concerns',
-        'Too expensive',
-        'Creating a new account',
-        'Other reason',
-      ],
-    );
-
-    if (reason == null || !mounted) return;
-
-    // Step 2: Show what they'll lose
-    final firstConfirm = await showDialog<bool>(
+    // Step 1: Explain what will be deleted.
+    final firstConfirm = await AdaptiveDialog.show<bool>(
       context: this.context,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: const Icon(Icons.delete_forever_outlined,
-              color: DsColors.error, size: 48),
+          icon: const Icon(
+            Icons.delete_forever_outlined,
+            color: DsColors.error,
+            size: 48,
+          ),
           title: const Text('Delete Account'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -741,15 +904,18 @@ class _AccountActionsSettingsScreenState
                     color: DsColors.success.withValues(alpha: 0.3),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.info_outline,
-                        color: DsColors.success, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(
+                      Icons.info_outline,
+                      color: DsColors.success,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'You have 14 days to change your mind. Simply sign in within 14 days to recover your account.',
-                        style: TextStyle(
+                        'Deleted on ${_formatDate(graceDate)}. Sign back in within 14 days to cancel.',
+                        style: const TextStyle(
                           fontSize: 12,
                           color: DsColors.success,
                         ),
@@ -766,9 +932,7 @@ class _AccountActionsSettingsScreenState
               child: const Text('Cancel'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: DsColors.error,
-              ),
+              style: FilledButton.styleFrom(backgroundColor: DsColors.error),
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Continue'),
             ),
@@ -779,41 +943,131 @@ class _AccountActionsSettingsScreenState
 
     if (firstConfirm != true || !mounted) return;
 
-    // Step 3: Password confirmation
+    // Step 2: Offer data export before deletion.
+    final downloadChoice = await AdaptiveDialog.show<_DeleteDownloadChoice>(
+      context: this.context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.download_outlined, color: DsColors.info),
+          title: const Text('Download your data first?'),
+          content: const Text(
+            'Before deletion, you can request a full data export for your records.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(_DeleteDownloadChoice.cancel),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(
+                dialogContext,
+              ).pop(_DeleteDownloadChoice.continueDelete),
+              child: const Text('Skip'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(
+                dialogContext,
+              ).pop(_DeleteDownloadChoice.requestExport),
+              child: const Text('Request Export'),
+            ),
+          ],
+        );
+      },
+    );
+    if (downloadChoice == null ||
+        downloadChoice == _DeleteDownloadChoice.cancel ||
+        !mounted) {
+      return;
+    }
+    if (downloadChoice == _DeleteDownloadChoice.requestExport) {
+      await _showExportDataDialog(this.context);
+      if (!mounted) return;
+    }
+
+    // Step 3: Optional reason selector for analytics.
+    final reason = await _showReasonDialog(
+      context: this.context,
+      title: 'Optional: Why are you deleting your account?',
+      icon: Icons.insights_outlined,
+      iconColor: DsColors.warning,
+      reasons: const [
+        'Found a relationship',
+        'Not happy with the app',
+        'Privacy concerns',
+        'Too expensive',
+        'Creating a new account',
+        'Other reason',
+      ],
+      requiredSelection: false,
+    );
+    if (reason == null || !mounted) return;
+    final analyticsReason = reason.trim().isEmpty
+        ? 'No reason provided'
+        : reason.trim();
+
+    // Step 4: Type-to-confirm + password.
+    final usernameController = TextEditingController();
     final passwordController = TextEditingController();
     bool obscurePassword = true;
 
-    final passwordConfirmed = await showDialog<bool>(
+    final confirmed = await AdaptiveDialog.show<bool>(
       context: this.context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final typedCorrectly =
+                usernameController.text.trim() == confirmationValue;
+            final hasPassword = passwordController.text.trim().isNotEmpty;
             return AlertDialog(
-              icon: const Icon(Icons.lock_outline,
-                  color: DsColors.error, size: 48),
-              title: const Text('Confirm Your Password'),
+              icon: const Icon(
+                Icons.warning_amber_outlined,
+                color: DsColors.error,
+                size: 42,
+              ),
+              title: const Text('Final confirmation'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'To delete your account, please enter your password.',
-                    textAlign: TextAlign.center,
+                  Text(
+                    'Type "$confirmationValue" to confirm account deletion.',
                   ),
-                  DsGap.lg,
+                  DsGap.sm,
+                  TextField(
+                    controller: usernameController,
+                    onChanged: (_) => setDialogState(() {}),
+                    decoration: const InputDecoration(
+                      labelText: 'Type username',
+                      prefixIcon: Icon(Icons.alternate_email),
+                    ),
+                  ),
+                  DsGap.md,
                   TextField(
                     controller: passwordController,
                     obscureText: obscurePassword,
+                    onChanged: (_) => setDialogState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined),
+                        icon: Icon(
+                          obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
                         onPressed: () => setDialogState(
-                            () => obscurePassword = !obscurePassword),
+                          () => obscurePassword = !obscurePassword,
+                        ),
                       ),
                     ),
+                  ),
+                  DsGap.md,
+                  Text(
+                    'Deleted on ${_formatDate(graceDate)}. Sign back in within 14 days to cancel.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: DsColors.warning),
                   ),
                 ],
               ),
@@ -826,11 +1080,9 @@ class _AccountActionsSettingsScreenState
                   style: FilledButton.styleFrom(
                     backgroundColor: DsColors.error,
                   ),
-                  onPressed: () {
-                    if (passwordController.text.isNotEmpty) {
-                      Navigator.of(dialogContext).pop(true);
-                    }
-                  },
+                  onPressed: typedCorrectly && hasPassword
+                      ? () => Navigator.of(dialogContext).pop(true)
+                      : null,
                   child: const Text('Delete Account'),
                 ),
               ],
@@ -840,19 +1092,20 @@ class _AccountActionsSettingsScreenState
       },
     );
 
-    if (passwordConfirmed == true && mounted) {
+    if (confirmed == true && mounted) {
       setState(() => _isLoading = true);
 
       final result = await Result.guard(
         () => authRepository.deleteAccount(
           password: passwordController.text,
-          reason: reason,
+          reason: analyticsReason,
         ),
         logLabel: 'AuthRepository.deleteAccount',
         fallbackError: 'Could not delete account. Please check your password.',
       );
 
       if (!mounted) {
+        usernameController.dispose();
         passwordController.dispose();
         return;
       }
@@ -861,17 +1114,57 @@ class _AccountActionsSettingsScreenState
       if (result.isSuccess) {
         showSuccessSnackBar(
           this.context,
-          'Your account is scheduled for deletion. Sign in within 14 days to recover it.',
+          'Your account is scheduled for deletion on ${_formatDate(graceDate)}. Sign in within 14 days to recover it.',
         );
         authBloc.add(AuthSignedOut());
         this.context.go(CrushRoutes.authGateway);
       } else {
         showErrorSnackBar(
-            this.context, result.errorMessage ?? 'Deletion failed.');
+          this.context,
+          result.errorMessage ?? 'Deletion failed.',
+        );
       }
     }
 
+    usernameController.dispose();
     passwordController.dispose();
+  }
+
+  Future<List<Message>> _collectAllMessages({
+    required ChatRepository chatRepository,
+    required String userId,
+  }) async {
+    final allMessages = <Message>[];
+    final matches = await chatRepository.fetchUserMatches(userId);
+
+    for (final match in matches) {
+      DateTime? cursor;
+      bool hasMore = true;
+
+      while (hasMore) {
+        final page = await chatRepository.fetchMessagesPaginated(
+          match.id,
+          limit: 100,
+          beforeTimestamp: cursor,
+        );
+
+        if (page.items.isEmpty) break;
+        allMessages.addAll(page.items);
+
+        final nextCursor = page.items.last.sentAt;
+        if (!page.hasMore || (cursor != null && !nextCursor.isBefore(cursor))) {
+          hasMore = false;
+        } else {
+          cursor = nextCursor;
+        }
+      }
+    }
+
+    return allMessages;
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
   }
 
   Future<String?> _showReasonDialog({
@@ -880,11 +1173,12 @@ class _AccountActionsSettingsScreenState
     required IconData icon,
     required Color iconColor,
     required List<String> reasons,
+    bool requiredSelection = true,
   }) async {
     String? selectedReason;
     final otherController = TextEditingController();
 
-    final result = await showDialog<String>(
+    final result = await AdaptiveDialog.show<String>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
@@ -913,8 +1207,10 @@ class _AccountActionsSettingsScreenState
                             ),
                             if (isOther && selectedReason == 'Other reason')
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, bottom: 8),
+                                padding: const EdgeInsets.only(
+                                  left: 16,
+                                  bottom: 8,
+                                ),
                                 child: TextField(
                                   controller: otherController,
                                   decoration: const InputDecoration(
@@ -936,6 +1232,11 @@ class _AccountActionsSettingsScreenState
                   onPressed: () => Navigator.of(dialogContext).pop(null),
                   child: const Text('Cancel'),
                 ),
+                if (!requiredSelection)
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(''),
+                    child: const Text('Skip'),
+                  ),
                 FilledButton(
                   onPressed: selectedReason == null
                       ? null
@@ -957,6 +1258,15 @@ class _AccountActionsSettingsScreenState
     otherController.dispose();
     return result;
   }
+}
+
+enum _DeleteDownloadChoice { cancel, continueDelete, requestExport }
+
+class _ExportProgress {
+  const _ExportProgress({required this.status, required this.progress});
+
+  final String status;
+  final double progress;
 }
 
 class _ActionTile extends StatelessWidget {
@@ -1058,18 +1368,12 @@ class _InfoBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: iconColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: iconColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: iconColor,
-          ),
+          Icon(icon, size: 20, color: iconColor),
           DsGap.mdH,
           Expanded(
             child: Column(
@@ -1078,18 +1382,18 @@ class _InfoBox extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: iconColor,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    color: iconColor,
+                  ),
                 ),
                 DsGap.xs,
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
                 ),
               ],
             ),

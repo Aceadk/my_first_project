@@ -212,6 +212,8 @@ interface DatePlanEmailRequest {
   notes?: string;
 }
 
+interface DataExportRequest {}
+
 const PROFILE_MIN_PHOTOS = 1;
 const PROFILE_MIN_PROMPTS = 0; // Prompts are optional for swiping
 const PROFILE_MIN_BIO_LENGTH = 10; // Only 10 characters needed
@@ -443,6 +445,109 @@ function toMillis(value: unknown, fallback: number): number {
   return typeof millis === "number" ? millis : fallback;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CENTRALIZED INPUT VALIDATORS (SEC-BE-007)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Strip HTML tags from input to prevent XSS. */
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, "");
+}
+
+/** Validate message content: 1-2000 chars, no script injection. */
+function validateMessageContent(content: unknown, field = "content"): string {
+  const str = requireString(content, field, 2000);
+  return stripHtml(str);
+}
+
+/** Validate profile name: 2-50 chars, no HTML. */
+function validateProfileName(name: unknown, field = "name"): string {
+  const str = requireString(name, field, 50);
+  if (str.length < 2) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be at least 2 characters.`
+    );
+  }
+  return stripHtml(str);
+}
+
+/** Validate profile bio: 0-500 chars, no HTML. */
+function validateBio(bio: unknown): string {
+  if (bio === undefined || bio === null || bio === "") return "";
+  const str = typeof bio === "string" ? bio.trim() : "";
+  if (str.length > 500) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Bio exceeds maximum length of 500 characters."
+    );
+  }
+  return stripHtml(str);
+}
+
+/** Validate age: 18-99. */
+function validateAge(age: unknown): number {
+  const num = typeof age === "number" ? age : Number(age);
+  if (isNaN(num) || num < 18 || num > 99) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Age must be between 18 and 99."
+    );
+  }
+  return Math.floor(num);
+}
+
+/** Valid report reason categories. */
+const VALID_REPORT_CATEGORIES = [
+  "harassment",
+  "inappropriate_content",
+  "spam",
+  "fake_profile",
+  "underage",
+  "scam",
+  "threatening",
+  "hate_speech",
+  "impersonation",
+  "other",
+] as const;
+
+/** Validate report reason: 10-1000 chars, valid category. */
+function validateReportReason(reason: unknown, field = "reason"): string {
+  const str = requireString(reason, field, 1000);
+  if (str.length < 10) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be at least 10 characters.`
+    );
+  }
+  return stripHtml(str);
+}
+
+/** Validate report category enum. */
+function validateReportCategory(category: unknown): string {
+  const str = typeof category === "string" ? category.trim().toLowerCase() : "";
+  if (!VALID_REPORT_CATEGORIES.includes(str as typeof VALID_REPORT_CATEGORIES[number])) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `Invalid report category. Must be one of: ${VALID_REPORT_CATEGORIES.join(", ")}`
+    );
+  }
+  return str;
+}
+
+/** Validate email format. */
+function validateEmail(email: unknown, field = "email"): string {
+  const str = requireString(email, field, 254);
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(str)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} is not a valid email address.`
+    );
+  }
+  return str.toLowerCase();
+}
+
 const OTP_DIGITS = 6;
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_VERIFY_MAX_ATTEMPTS = 5;
@@ -487,6 +592,64 @@ const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_SALT_ROUNDS = 12;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const MIN_AGE_YEARS = 18;
+
+/**
+ * Validate password strength server-side.
+ * Requires: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit.
+ */
+function validatePasswordStrength(password: string): string | null {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`;
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least one uppercase letter.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Password must contain at least one lowercase letter.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Password must contain at least one digit.";
+  }
+  return null;
+}
+
+/**
+ * Calculate age from a date of birth string (ISO 8601 or YYYY-MM-DD).
+ * Returns the age in years, or null if the date is invalid.
+ */
+function calculateAgeFromDob(dobString: string): number | null {
+  const dob = new Date(dobString);
+  if (isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const monthDiff = now.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+/**
+ * Validate that a date of birth makes the user at least MIN_AGE_YEARS old.
+ * Throws HttpsError if underage or invalid.
+ */
+function validateMinimumAge(dobString: string | undefined | null): void {
+  if (!dobString || typeof dobString !== "string") return; // DOB not provided; skip
+  const age = calculateAgeFromDob(dobString);
+  if (age === null) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid date of birth."
+    );
+  }
+  if (age < MIN_AGE_YEARS) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      `You must be ${MIN_AGE_YEARS} or older to use Crush.`
+    );
+  }
+}
 // OTP secret is required - never fall back to a predictable value
 const getOtpSecretChecked = () => {
   const otpSecret = getOtpSecret();
@@ -1495,11 +1658,9 @@ async function signUpWithPasswordCore(params: {
       "Enter a valid email address."
     );
   }
-  if (passwordRaw.length < PASSWORD_MIN_LENGTH) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      `Use at least ${PASSWORD_MIN_LENGTH} characters.`
-    );
+  const passwordError = validatePasswordStrength(passwordRaw);
+  if (passwordError) {
+    throw new functions.https.HttpsError("invalid-argument", passwordError);
   }
 
   const usernameLower = normalizeUsername(username);
@@ -2004,11 +2165,9 @@ async function resetPasswordWithTokenCore(params: {
     );
   }
 
-  if (newPassword.length < PASSWORD_MIN_LENGTH) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      `Use at least ${PASSWORD_MIN_LENGTH} characters.`
-    );
+  const passwordError = validatePasswordStrength(newPassword);
+  if (passwordError) {
+    throw new functions.https.HttpsError("invalid-argument", passwordError);
   }
 
   const email = normalizeEmail(emailRaw);
@@ -2322,11 +2481,9 @@ export const changePassword = callable<ChangePasswordRequest>(
       );
     }
 
-    if (newPassword.length < PASSWORD_MIN_LENGTH) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        `New password must be at least ${PASSWORD_MIN_LENGTH} characters.`
-      );
+    const passwordError = validatePasswordStrength(newPassword);
+    if (passwordError) {
+      throw new functions.https.HttpsError("invalid-argument", passwordError);
     }
 
     const ip = getClientIp(context);
@@ -2776,25 +2933,54 @@ async function getFcmTokens(userId: string): Promise<string[]> {
   return snap.docs.map((d) => d.id).filter((t) => !!t);
 }
 
-type NotificationCategory = "messages" | "matches" | "subscriptions";
+type NotificationCategory =
+  | "messages"
+  | "matches"
+  | "subscriptions"
+  | "likes"
+  | "profileViews"
+  | "promotions"
+  | "safetyAlerts";
 
-async function getNotificationPrefs(userId: string): Promise<{
+interface NotificationPrefs {
   push: boolean;
   messages: boolean;
   matches: boolean;
   subscriptions: boolean;
-}> {
+  likes: boolean;
+  profileViews: boolean;
+  promotions: boolean;
+  safetyAlerts: boolean;
+  quietHoursStart: number; // hour 0-23, default 22
+  quietHoursEnd: number;   // hour 0-23, default 8
+  timezone: string;        // IANA timezone, default "UTC"
+}
+
+async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> {
   try {
     const doc = await db.collection("users").doc(userId).get();
-    const prefs = (doc.data()?.notificationPrefs as Record<string, unknown>) ?? {};
-    const push = prefs.push !== false; // default true
-    const messages = prefs.messages !== false;
-    const matches = prefs.matches !== false;
-    const subscriptions = prefs.subscriptions !== false;
-    return { push, messages, matches, subscriptions };
+    const data = doc.data() ?? {};
+    const prefs = (data.notificationPrefs as Record<string, unknown>) ?? {};
+    return {
+      push: prefs.push !== false,
+      messages: prefs.messages !== false,
+      matches: prefs.matches !== false,
+      subscriptions: prefs.subscriptions !== false,
+      likes: prefs.likes !== false,
+      profileViews: prefs.profileViews !== false,
+      promotions: prefs.promotions !== false,
+      safetyAlerts: true, // Always on — cannot be disabled
+      quietHoursStart: typeof prefs.quietHoursStart === "number" ? prefs.quietHoursStart : 22,
+      quietHoursEnd: typeof prefs.quietHoursEnd === "number" ? prefs.quietHoursEnd : 8,
+      timezone: typeof data.timezone === "string" ? data.timezone : "UTC",
+    };
   } catch (err) {
     console.warn("Failed to load notification prefs", { userId, err });
-    return { push: true, messages: true, matches: true, subscriptions: true };
+    return {
+      push: true, messages: true, matches: true, subscriptions: true,
+      likes: true, profileViews: true, promotions: true, safetyAlerts: true,
+      quietHoursStart: 22, quietHoursEnd: 8, timezone: "UTC",
+    };
   }
 }
 
@@ -2803,14 +2989,215 @@ async function getPushTokensFor(
   category: NotificationCategory
 ): Promise<string[]> {
   const prefs = await getNotificationPrefs(userId);
+  // Safety alerts always go through
+  if (category === "safetyAlerts") {
+    return prefs.push ? getFcmTokens(userId) : [];
+  }
   const allowed =
     prefs.push &&
     ((category === "messages" && prefs.messages) ||
       (category === "matches" && prefs.matches) ||
-      (category === "subscriptions" && prefs.subscriptions));
+      (category === "subscriptions" && prefs.subscriptions) ||
+      (category === "likes" && prefs.likes) ||
+      (category === "profileViews" && prefs.profileViews) ||
+      (category === "promotions" && prefs.promotions));
   if (!allowed) return [];
   return getFcmTokens(userId);
 }
+
+// ---------------------------------------------------------------------------
+// Smart Notification Scheduling
+// ---------------------------------------------------------------------------
+
+/** Check whether it's currently within the user's quiet hours. */
+function isInQuietHours(prefs: NotificationPrefs): boolean {
+  const now = new Date();
+  // Get current hour in user's timezone
+  let hour: number;
+  try {
+    hour = parseInt(
+      now.toLocaleString("en-US", { timeZone: prefs.timezone, hour: "numeric", hour12: false }),
+      10
+    );
+  } catch {
+    hour = now.getUTCHours();
+  }
+  const start = prefs.quietHoursStart;
+  const end = prefs.quietHoursEnd;
+  if (start < end) {
+    return hour >= start && hour < end;
+  }
+  // Wraps midnight (e.g. 22-8)
+  return hour >= start || hour < end;
+}
+
+/** Frequency cap: max 10 non-message notifications per day per user. */
+const DAILY_NON_MESSAGE_CAP = 10;
+
+async function isDailyCapReached(userId: string): Promise<boolean> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const snap = await db
+    .collection("users")
+    .doc(userId)
+    .collection("notificationLog")
+    .where("sentAt", ">=", admin.firestore.Timestamp.fromDate(todayStart))
+    .where("isMessage", "==", false)
+    .get();
+  return snap.size >= DAILY_NON_MESSAGE_CAP;
+}
+
+async function logNotificationSent(userId: string, category: NotificationCategory): Promise<void> {
+  await db
+    .collection("users")
+    .doc(userId)
+    .collection("notificationLog")
+    .add({
+      category,
+      isMessage: category === "messages",
+      sentAt: admin.firestore.Timestamp.now(),
+    });
+}
+
+/**
+ * Queue a notification for later delivery (after quiet hours end).
+ * Writes to users/{userId}/notificationQueue.
+ */
+async function queueNotification(
+  userId: string,
+  category: NotificationCategory,
+  payload: { title: string; body: string; data?: Record<string, string>; imageUrl?: string }
+): Promise<void> {
+  await db
+    .collection("users")
+    .doc(userId)
+    .collection("notificationQueue")
+    .add({
+      category,
+      title: payload.title,
+      body: payload.body,
+      data: payload.data ?? {},
+      imageUrl: payload.imageUrl ?? null,
+      queuedAt: admin.firestore.Timestamp.now(),
+    });
+}
+
+/**
+ * Smart send: respects quiet hours, frequency cap, and category prefs.
+ * Messages are always delivered immediately (no batching/delay).
+ */
+async function smartSendNotification(
+  userId: string,
+  category: NotificationCategory,
+  payload: { title: string; body: string; data?: Record<string, string>; imageUrl?: string }
+): Promise<void> {
+  const tokens = await getPushTokensFor(userId, category);
+  if (tokens.length === 0) return;
+
+  const prefs = await getNotificationPrefs(userId);
+
+  // Messages always delivered immediately
+  if (category !== "messages") {
+    // Check quiet hours — queue for later
+    if (isInQuietHours(prefs)) {
+      await queueNotification(userId, category, payload);
+      return;
+    }
+
+    // Check daily frequency cap
+    if (await isDailyCapReached(userId)) {
+      return; // Drop silently when cap reached
+    }
+  }
+
+  const message: admin.messaging.MulticastMessage = {
+    tokens,
+    notification: { title: payload.title, body: payload.body },
+    data: payload.data,
+  };
+
+  if (payload.imageUrl) {
+    message.notification!.imageUrl = payload.imageUrl;
+  }
+
+  await sendNotification(message);
+  await logNotificationSent(userId, category);
+}
+
+/**
+ * Scheduled function: flush queued notifications after quiet hours.
+ * Runs every hour; delivers queued notifications for users whose quiet hours ended.
+ */
+export const flushNotificationQueue = functions.pubsub
+  .schedule("every 60 minutes")
+  .onRun(async () => {
+    // Query all users who have queued notifications
+    const usersSnap = await db.collectionGroup("notificationQueue").limit(500).get();
+    if (usersSnap.empty) return;
+
+    // Group by userId
+    const byUser = new Map<string, admin.firestore.QueryDocumentSnapshot[]>();
+    for (const doc of usersSnap.docs) {
+      const userId = doc.ref.parent.parent?.id;
+      if (!userId) continue;
+      const existing = byUser.get(userId) ?? [];
+      existing.push(doc);
+      byUser.set(userId, existing);
+    }
+
+    for (const [userId, docs] of byUser.entries()) {
+      const prefs = await getNotificationPrefs(userId);
+      if (isInQuietHours(prefs)) continue; // Still in quiet hours
+
+      const tokens = await getFcmTokens(userId);
+      if (tokens.length === 0) {
+        // Clean up queue for users with no tokens
+        const batch = db.batch();
+        for (const doc of docs) batch.delete(doc.ref);
+        await batch.commit();
+        continue;
+      }
+
+      // Batch like notifications: "You have N new likes"
+      const likeDocs = docs.filter((d) => d.data().category === "likes");
+      const otherDocs = docs.filter((d) => d.data().category !== "likes");
+
+      if (likeDocs.length > 1) {
+        await sendNotification({
+          tokens,
+          notification: {
+            title: "New Likes",
+            body: `You have ${likeDocs.length} new likes!`,
+          },
+          data: { type: "like", route: "/likes-you" },
+        });
+      } else if (likeDocs.length === 1) {
+        const data = likeDocs[0].data();
+        await sendNotification({
+          tokens,
+          notification: { title: data.title, body: data.body },
+          data: data.data ?? {},
+        });
+      }
+
+      // Send other queued notifications individually
+      for (const doc of otherDocs) {
+        const data = doc.data();
+        const msg: admin.messaging.MulticastMessage = {
+          tokens,
+          notification: { title: data.title, body: data.body },
+          data: data.data ?? {},
+        };
+        if (data.imageUrl) msg.notification!.imageUrl = data.imageUrl;
+        await sendNotification(msg);
+      }
+
+      // Delete processed queue items
+      const batch = db.batch();
+      for (const doc of docs) batch.delete(doc.ref);
+      await batch.commit();
+    }
+  });
 
 async function sendNotification(message: admin.messaging.MulticastMessage) {
   if (!message.tokens || message.tokens.length === 0) return;
@@ -4589,6 +4976,74 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// IN-MEMORY RATE LIMITER FOR EXPRESS ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+// Clean up expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore) {
+    if (entry.resetAt <= now) rateLimitStore.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+/**
+ * Creates an Express rate-limiting middleware.
+ * @param maxRequests Maximum requests allowed in the window.
+ * @param windowMs Time window in milliseconds.
+ * @param keyFn Function to extract rate-limit key from request (defaults to UID or IP).
+ */
+function createRateLimiter(
+  maxRequests: number,
+  windowMs: number,
+  keyFn?: (req: Request) => string
+) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const authReq = req as AuthRequest;
+    const key = keyFn
+      ? keyFn(req)
+      : authReq.uid || req.ip || "unknown";
+    const bucketKey = `${req.path}:${key}`;
+    const now = Date.now();
+
+    let entry = rateLimitStore.get(bucketKey);
+    if (!entry || entry.resetAt <= now) {
+      entry = { count: 0, resetAt: now + windowMs };
+      rateLimitStore.set(bucketKey, entry);
+    }
+
+    entry.count += 1;
+
+    if (entry.count > maxRequests) {
+      const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+      res.set("Retry-After", String(retryAfter));
+      res.status(429).json({
+        error: "Too many requests. Please try again later.",
+        retryAfter,
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
+// Pre-configured rate limiters for different endpoint categories
+const rateLimitSwipe = createRateLimiter(100, 60 * 60 * 1000);      // 100/hour
+const rateLimitMessage = createRateLimiter(60, 60 * 1000);           // 60/minute
+const rateLimitReport = createRateLimiter(10, 60 * 60 * 1000);      // 10/hour
+const rateLimitDiscovery = createRateLimiter(30, 60 * 60 * 1000);   // 30/hour
+const rateLimitAuth = createRateLimiter(20, 10 * 60 * 1000);        // 20/10min
+const rateLimitDefault = createRateLimiter(60, 60 * 1000);          // 60/minute
+
 // Middleware - use CORS whitelist for security
 app.use(cors({ origin: corsOriginValidator }));
 app.use(express.json());
@@ -4622,12 +5077,46 @@ async function authMiddleware(
   }
 }
 
+/**
+ * Email verification middleware for Express write endpoints.
+ * Mirrors the callable `requireEmailVerified()` logic:
+ * - Phone-auth users exempt (no email)
+ * - Apple/Google users inherently verified
+ * - Email/password users must have email_verified
+ */
+async function requireVerifiedEmail(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const token = req.user;
+  if (!token) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const provider = token.firebase?.sign_in_provider;
+  // Phone, Apple, Google users are exempt
+  if (provider === "phone" || provider === "apple.com" || provider === "google.com") {
+    next();
+    return;
+  }
+
+  // Email/password users must be verified
+  if (token.email && !token.email_verified) {
+    res.status(403).json({ error: "Email verification required" });
+    return;
+  }
+
+  next();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH ENDPOINTS
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Send OTP
-app.post("/v1/auth/otp/send", async (req: Request, res: Response) => {
+app.post("/v1/auth/otp/send", rateLimitAuth, async (req: Request, res: Response) => {
   try {
     const { phone_number } = req.body;
     if (!phone_number) {
@@ -4662,7 +5151,7 @@ app.post("/v1/auth/otp/send", async (req: Request, res: Response) => {
 });
 
 // Verify OTP
-app.post("/v1/auth/otp/verify", async (req: Request, res: Response) => {
+app.post("/v1/auth/otp/verify", rateLimitAuth, async (req: Request, res: Response) => {
   try {
     const { phone_number, otp, verification_id } = req.body;
     if (!phone_number || !otp) {
@@ -4957,7 +5446,7 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
 });
 
 // Update profile
-app.patch("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.patch("/v1/profile/me", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
   try {
     const updates: Record<string, unknown> = {};
 
@@ -4981,6 +5470,11 @@ app.patch("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Respon
       }
     }
 
+    // Enforce minimum age on DOB updates
+    if (req.body.birth_date) {
+      validateMinimumAge(req.body.birth_date as string);
+    }
+
     updates["profile.updatedAt"] = serverTimestamp();
 
     await db.collection("users").doc(req.uid!).update(updates);
@@ -4996,6 +5490,7 @@ app.patch("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Respon
 app.post(
   "/v1/profile/photos",
   authMiddleware,
+  requireVerifiedEmail,
   upload.single("photo"),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -5138,7 +5633,7 @@ app.get(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get discovery deck
-app.get("/v1/discovery/deck", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: AuthRequest, res: Response) => {
   try {
     const userDoc = await db.collection("users").doc(req.uid!).get();
     const userData = userDoc.data() || {};
@@ -5200,7 +5695,7 @@ app.get("/v1/discovery/deck", authMiddleware, async (req: AuthRequest, res: Resp
 });
 
 // Swipe
-app.post("/v1/discovery/swipe", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post("/v1/discovery/swipe", authMiddleware, requireVerifiedEmail, rateLimitSwipe, async (req: AuthRequest, res: Response) => {
   try {
     const { target_user_id, action, message } = req.body;
     if (!target_user_id || !action) {
@@ -5254,7 +5749,7 @@ app.post("/v1/discovery/swipe", authMiddleware, async (req: AuthRequest, res: Re
 });
 
 // Activate boost
-app.post("/v1/discovery/boost", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post("/v1/discovery/boost", authMiddleware, requireVerifiedEmail, rateLimitSwipe, async (req: AuthRequest, res: Response) => {
   try {
     const boostDuration = 30 * 60 * 1000; // 30 minutes
     const boostExpiresAt = Date.now() + boostDuration;
@@ -5354,7 +5849,7 @@ app.post(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get conversations
-app.get("/v1/chat/conversations", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.get("/v1/chat/conversations", authMiddleware, rateLimitDefault, async (req: AuthRequest, res: Response) => {
   try {
     const matchesSnap = await db.collection("matches")
       .where("users", "array-contains", req.uid)
@@ -5488,6 +5983,7 @@ app.post(
 app.post(
   "/v1/chat/:conversationId/media",
   authMiddleware,
+  requireVerifiedEmail,
   upload.single("media"),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -5674,7 +6170,7 @@ app.get(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Block user
-app.post("/v1/users/block", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post("/v1/users/block", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
   try {
     const { blocked_id } = req.body;
     if (!blocked_id) {
@@ -5711,7 +6207,7 @@ app.post("/v1/users/block", authMiddleware, async (req: AuthRequest, res: Respon
 });
 
 // Unblock user
-app.post("/v1/users/unblock", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post("/v1/users/unblock", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
   try {
     const { blocked_id } = req.body;
     if (!blocked_id) {
@@ -5752,7 +6248,7 @@ app.post("/v1/users/unblock", authMiddleware, async (req: AuthRequest, res: Resp
 });
 
 // Report user
-app.post("/v1/users/report", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post("/v1/users/report", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
   try {
     const { reported_id, reason, description, match_id, message_id } = req.body;
     if (!reported_id || !reason) {
@@ -5790,6 +6286,84 @@ app.post("/v1/users/report", authMiddleware, async (req: AuthRequest, res: Respo
   } catch (err) {
     console.error("Report error:", err);
     return res.status(500).json({ error: "Failed to report user" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPLE CREDENTIAL REVOCATION WEBHOOK (AUTH-SEC-007)
+// Apple requires apps to handle credential revocation notifications.
+// When a user removes your app from their Apple ID settings, Apple sends
+// a server-to-server notification to this endpoint.
+// ─────────────────────────────────────────────────────────────────────────────
+app.post("/v1/auth/apple/revocation", async (req: Request, res: Response) => {
+  try {
+    // Apple sends the payload as application/x-www-form-urlencoded with 'payload' field
+    const payload = req.body?.payload;
+    if (!payload || typeof payload !== "string") {
+      return res.status(400).json({ error: "Missing payload" });
+    }
+
+    // Decode the JWT payload (middle segment) — we trust Apple's server-to-server call
+    const parts = payload.split(".");
+    if (parts.length !== 3) {
+      return res.status(400).json({ error: "Invalid token format" });
+    }
+
+    let claims: { sub?: string; events?: string; email?: string };
+    try {
+      const decoded = Buffer.from(parts[1], "base64url").toString("utf8");
+      claims = JSON.parse(decoded);
+    } catch {
+      return res.status(400).json({ error: "Invalid token payload" });
+    }
+
+    // Parse the events field (Apple sends it as a JSON string within the JWT)
+    let events: { type?: string; sub?: string; email?: string };
+    if (typeof claims.events === "string") {
+      events = JSON.parse(claims.events);
+    } else {
+      events = (claims.events as unknown as typeof events) || {};
+    }
+
+    const appleUserId = events.sub || claims.sub;
+    if (!appleUserId) {
+      return res.status(400).json({ error: "Missing user identifier" });
+    }
+
+    // Find the Firebase user linked to this Apple ID
+    let uid: string | undefined;
+    try {
+      const userRecord = await admin.auth().getUserByProviderUid("apple.com", appleUserId);
+      uid = userRecord.uid;
+    } catch {
+      // User may have already been deleted or never existed
+      console.warn(`Apple revocation: No user found for Apple ID ${appleUserId.substring(0, 8)}...`);
+      return res.status(200).json({ success: true, message: "No matching user" });
+    }
+
+    // Revoke refresh tokens (signs out all devices)
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // Mark the account as deactivated
+    await db.collection("users").doc(uid).update({
+      isDeactivated: true,
+      deactivatedAt: serverTimestamp(),
+      deactivationReason: "apple_credential_revoked",
+    });
+
+    // Audit log
+    await logAuthAudit({
+      action: "apple_credential_revoked",
+      status: "ok",
+      uid,
+      metadata: { appleUserId: appleUserId.substring(0, 8) + "..." },
+    });
+
+    console.log(`Apple revocation: Deactivated user ${uid} (Apple ID: ${appleUserId.substring(0, 8)}...)`);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Apple revocation webhook error:", err);
+    res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -6625,6 +7199,295 @@ export const cancelAccountDeletion = functions.https.onCall(
   }
 );
 
+const DATA_EXPORT_COOLDOWN_DAYS = 7;
+const DATA_EXPORT_URL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function toIsoString(value: unknown): string | null {
+  if (!value) return null;
+  if (value instanceof admin.firestore.Timestamp) {
+    return value.toDate().toISOString();
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  return null;
+}
+
+function normalizeDate(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof admin.firestore.Timestamp) {
+    return value.toDate();
+  }
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+/**
+ * GDPR Art.20: User can request a portable copy of personal data.
+ * Creates an async export job document, processed by Firestore trigger below.
+ */
+export const requestDataExport = callable<DataExportRequest>(
+  async (_data, context) => {
+    const uid = requireAuth(context, "request data export");
+    requireEmailVerified(context, "request data export");
+
+    const requestsRef = db
+      .collection("users")
+      .doc(uid)
+      .collection("dataExportRequests");
+    const latestRequest = await requestsRef
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get();
+
+    if (!latestRequest.empty) {
+      const latestData = latestRequest.docs[0].data();
+      const lastCreatedAt = normalizeDate(latestData.createdAt);
+      if (lastCreatedAt) {
+        const nextAllowedAt = new Date(lastCreatedAt.getTime());
+        nextAllowedAt.setDate(nextAllowedAt.getDate() + DATA_EXPORT_COOLDOWN_DAYS);
+        if (nextAllowedAt.getTime() > Date.now()) {
+          throw new functions.https.HttpsError(
+            "failed-precondition",
+            "Data export can only be requested once every 7 days.",
+            { nextAllowedAt: nextAllowedAt.toISOString() }
+          );
+        }
+      }
+    }
+
+    const requestRef = requestsRef.doc();
+    await requestRef.set({
+      userId: uid,
+      status: "queued",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return {
+      requestId: requestRef.id,
+      status: "queued",
+    };
+  }
+);
+
+/**
+ * Async export worker.
+ * Triggered on users/{uid}/dataExportRequests/{requestId} create.
+ */
+export const processDataExportRequest = functions.firestore
+  .document("users/{userId}/dataExportRequests/{requestId}")
+  .onCreate(async (snapshot, context) => {
+    const userId = context.params.userId;
+    const requestId = context.params.requestId;
+    const requestRef = snapshot.ref;
+
+    try {
+      await requestRef.set(
+        {
+          status: "processing",
+          startedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      const userSnap = await db.collection("users").doc(userId).get();
+      const userData = asRecord(userSnap.data());
+      const profileData = asRecord(userData.profile);
+      const preferencesData = asRecord(profileData.preferences);
+
+      let matchesSnap = await db
+        .collection("matches")
+        .where("userIds", "array-contains", userId)
+        .get();
+      if (matchesSnap.empty) {
+        matchesSnap = await db
+          .collection("matches")
+          .where("participants", "array-contains", userId)
+          .get();
+      }
+
+      const matches = matchesSnap.docs.map((doc) => {
+        const data = asRecord(doc.data());
+        return {
+          id: doc.id,
+          userIds: Array.isArray(data.userIds)
+            ? data.userIds
+            : (Array.isArray(data.participants) ? data.participants : []),
+          status: data.status ?? "unknown",
+          createdAt: toIsoString(data.createdAt),
+          updatedAt: toIsoString(data.updatedAt),
+        };
+      });
+
+      const likesGivenSnap = await db
+        .collection("likes")
+        .where("fromUserId", "==", userId)
+        .limit(2000)
+        .get();
+      const likesReceivedSnap = await db
+        .collection("likes")
+        .where("toUserId", "==", userId)
+        .limit(2000)
+        .get();
+
+      const likesGiven = likesGivenSnap.docs.map((doc) => {
+        const data = asRecord(doc.data());
+        return {
+          id: doc.id,
+          toUserId: data.toUserId ?? null,
+          attachedMessage: data.attachedMessage ?? null,
+          createdAt: toIsoString(data.createdAt),
+        };
+      });
+
+      const likesReceived = likesReceivedSnap.docs.map((doc) => {
+        const data = asRecord(doc.data());
+        return {
+          id: doc.id,
+          fromUserId: data.fromUserId ?? null,
+          attachedMessage: data.attachedMessage ?? null,
+          createdAt: toIsoString(data.createdAt),
+        };
+      });
+
+      const messages: Array<Record<string, unknown>> = [];
+      for (const matchDoc of matchesSnap.docs) {
+        const messagesSnap = await matchDoc.ref.collection("messages").limit(3000).get();
+        for (const messageDoc of messagesSnap.docs) {
+          const messageData = asRecord(messageDoc.data());
+          messages.push({
+            id: messageDoc.id,
+            matchId: matchDoc.id,
+            fromUserId: messageData.fromUserId ?? null,
+            toUserId: messageData.toUserId ?? null,
+            content: messageData.content ?? "",
+            type: messageData.type ?? "text",
+            sentAt: toIsoString(messageData.sentAt),
+            isRead: Boolean(messageData.isRead),
+          });
+        }
+      }
+
+      const stats = {
+        matchesCount: matches.length,
+        likesGivenCount: likesGiven.length,
+        likesReceivedCount: likesReceived.length,
+        messagesCount: messages.length,
+      };
+
+      const exportPayload: Record<string, unknown> = {
+        exportDate: new Date().toISOString(),
+        exportVersion: "2.0-cloud",
+        userId,
+        account: {
+          email: userData.email ?? null,
+          phoneNumber: userData.phoneNumber ?? null,
+          username: userData.username ?? null,
+          plan: userData.plan ?? "free",
+          isEmailVerified: Boolean(userData.isEmailVerified),
+          isPhoneVerified: Boolean(userData.isPhoneVerified),
+          createdAt: toIsoString(userData.createdAt),
+        },
+        profile: profileData,
+        preferences: preferencesData,
+        matches,
+        likesGiven,
+        likesReceived,
+        messages,
+        stats,
+      };
+
+      const bucket = admin.storage().bucket();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filePath = `exports/${userId}/export_${timestamp}_${requestId}.json`;
+      const file = bucket.file(filePath);
+
+      const downloadToken = crypto.randomUUID();
+      await file.save(JSON.stringify(exportPayload, null, 2), {
+        metadata: {
+          contentType: "application/json",
+          metadata: {
+            firebaseStorageDownloadTokens: downloadToken,
+          },
+        },
+      });
+
+      let downloadUrl: string;
+      try {
+        const [signedUrl] = await file.getSignedUrl({
+          action: "read",
+          expires: Date.now() + DATA_EXPORT_URL_TTL_MS,
+        });
+        downloadUrl = signedUrl;
+      } catch (signedUrlError) {
+        // Fallback for environments where the runtime service account
+        // cannot sign blobs (iam.serviceAccounts.signBlob).
+        const encodedPath = encodeURIComponent(filePath);
+        downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+        console.warn("Falling back to token-based download URL", {
+          userId,
+          requestId,
+          error:
+            signedUrlError instanceof Error
+              ? signedUrlError.message
+              : String(signedUrlError),
+        });
+      }
+
+      await requestRef.set(
+        {
+          status: "completed",
+          completedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          filePath,
+          downloadUrl,
+          stats,
+        },
+        { merge: true }
+      );
+
+      await smartSendNotification(userId, "subscriptions", {
+        title: "Your data export is ready",
+        body: "Tap to download your export package.",
+        data: {
+          type: "data_export_ready",
+          route: "/settings/account-actions",
+          requestId,
+        },
+      });
+    } catch (error) {
+      console.error("processDataExportRequest failed", {
+        userId,
+        requestId,
+        error,
+      });
+      await requestRef.set(
+        {
+          status: "failed",
+          failedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          error: error instanceof Error ? error.message : String(error),
+        },
+        { merge: true }
+      );
+    }
+  });
+
 // =============================================================================
 // CR-AUD-030: Chat media signed URL endpoint
 // Verifies match participation before returning a time-limited signed URL
@@ -6685,3 +7548,46 @@ export const getChatMediaSignedUrl = callable<ChatMediaUrlRequest>(
     return { url: signedUrl };
   }
 );
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEC-BE-008: AUTOMATED FIRESTORE BACKUP
+// Daily export to Cloud Storage with 30-day retention.
+// Bucket lifecycle must be configured manually:
+//   gsutil lifecycle set '{"rule":[{"action":{"type":"Delete"},"condition":{"age":30}}]}' gs://BACKUP_BUCKET
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const scheduledFirestoreBackup = functions.pubsub
+  .schedule("every 24 hours")
+  .timeZone("UTC")
+  .onRun(async () => {
+    const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
+    if (!projectId) {
+      console.error("FirestoreBackup: Could not determine project ID");
+      return null;
+    }
+
+    const bucketName = `${projectId}-firestore-backups`;
+    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const outputUri = `gs://${bucketName}/${timestamp}`;
+
+    try {
+      const client = new admin.firestore.v1.FirestoreAdminClient();
+      const databaseName = client.databasePath(projectId, "(default)");
+
+      const [operation] = await client.exportDocuments({
+        name: databaseName,
+        outputUriPrefix: outputUri,
+        collectionIds: [], // Empty = all collections
+      });
+
+      console.log(
+        `FirestoreBackup: Export started to ${outputUri}`,
+        `Operation: ${operation.name}`
+      );
+
+      return null;
+    } catch (error) {
+      console.error("FirestoreBackup: Export failed:", error);
+      return null;
+    }
+  });
