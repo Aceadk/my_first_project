@@ -4,13 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 
 /// State for boost feature.
 class BoostState extends Equatable {
   const BoostState({
-    this.status =
-        const BoostStatus(canBoost: false, nextBoostAvailableAt: null),
+    this.status = const BoostStatus(
+      canBoost: false,
+      nextBoostAvailableAt: null,
+    ),
     this.isLoading = false,
     this.errorMessage,
     this.tick = 0,
@@ -58,10 +61,16 @@ class BoostState extends Equatable {
 class BoostCubit extends Cubit<BoostState> {
   BoostCubit({
     required BoostRepository boostRepository,
-  })  : _boostRepository = boostRepository,
-        super(const BoostState());
+    required AuthRepository authRepository,
+  }) : _boostRepository = boostRepository,
+       super(const BoostState()) {
+    _authSubscription = authRepository.authStateChanges().listen((user) {
+      if (user == null) _resetOnLogout();
+    });
+  }
 
   final BoostRepository _boostRepository;
+  StreamSubscription? _authSubscription;
   Timer? _countdownTimer;
   String? _userId;
   bool _isRefreshing = false;
@@ -86,15 +95,17 @@ class BoostCubit extends Cubit<BoostState> {
 
     if (result.isSuccess && result.data != null) {
       final session = result.data!;
-      emit(state.copyWith(
-        status: BoostStatus(
-          canBoost: false,
-          nextBoostAvailableAt: session.endsAt,
-          activeSession: session,
-          boostsRemaining: 0,
+      emit(
+        state.copyWith(
+          status: BoostStatus(
+            canBoost: false,
+            nextBoostAvailableAt: session.endsAt,
+            activeSession: session,
+            boostsRemaining: 0,
+          ),
+          isLoading: false,
         ),
-        isLoading: false,
-      ));
+      );
 
       // Track boost activation
       AnalyticsService.instance.logBoostActivated();
@@ -102,10 +113,7 @@ class BoostCubit extends Cubit<BoostState> {
       // Start countdown timer
       _startCountdownTimer(state.status);
     } else {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(state.copyWith(isLoading: false, errorMessage: result.errorMessage));
     }
   }
 
@@ -128,19 +136,16 @@ class BoostCubit extends Cubit<BoostState> {
 
       if (result.isSuccess && result.data != null) {
         final status = result.data!;
-        emit(state.copyWith(
-          status: status,
-          isLoading: false,
-          errorMessage: null,
-        ));
+        emit(
+          state.copyWith(status: status, isLoading: false, errorMessage: null),
+        );
 
         _startCountdownTimer(status);
       } else {
         _countdownTimer?.cancel();
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: result.errorMessage,
-        ));
+        emit(
+          state.copyWith(isLoading: false, errorMessage: result.errorMessage),
+        );
       }
     } finally {
       _isRefreshing = false;
@@ -192,9 +197,19 @@ class BoostCubit extends Cubit<BoostState> {
     return !status.canBoost && status.cooldownRemaining > Duration.zero;
   }
 
+  /// Reset all user-specific state on logout to prevent data leakage.
+  void _resetOnLogout() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    _userId = null;
+    _isRefreshing = false;
+    emit(const BoostState());
+  }
+
   @override
   Future<void> close() {
     _countdownTimer?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

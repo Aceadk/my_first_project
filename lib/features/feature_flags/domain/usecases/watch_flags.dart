@@ -1,5 +1,5 @@
 import 'package:crushhour/domain/use_cases/use_case.dart';
-import 'package:crushhour/features/feature_flags/data/models/feature_flags.dart';
+import 'package:crushhour/features/feature_flags/domain/models/feature_flags.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/feature_flag_repository.dart';
 
 /// Use case for watching feature flag changes as a stream.

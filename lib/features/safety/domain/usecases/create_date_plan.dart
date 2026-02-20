@@ -40,7 +40,7 @@ class CreateDatePlanUseCase extends UseCase<DatePlan, CreateDatePlanParams>
   final DatePlanService _service;
 
   CreateDatePlanUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(CreateDatePlanParams params) {

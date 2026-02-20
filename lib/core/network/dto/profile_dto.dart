@@ -108,7 +108,9 @@ class ProfileDto extends BaseDto with DtoMetadata {
       gender: json.getString('gender'),
       interestedIn: json.getList('interested_in', (e) => e.toString()),
       photos: json.getList(
-          'photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
+        'photos',
+        (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>),
+      ),
       location: json.getMap('location') != null
           ? LocationDto.fromJson(json.getMap('location')!)
           : null,
@@ -141,41 +143,40 @@ class ProfileDto extends BaseDto with DtoMetadata {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        if (displayName != null) 'display_name': displayName,
-        if (bio != null) 'bio': bio,
-        if (birthDate != null) 'birth_date': birthDate!.toIso8601String(),
-        if (gender != null) 'gender': gender,
-        if (interestedIn != null) 'interested_in': interestedIn,
-        if (photos != null) 'photos': photos!.map((p) => p.toJson()).toList(),
-        if (location != null) 'location': location!.toJson(),
-        if (height != null) 'height': height,
-        if (jobTitle != null) 'job_title': jobTitle,
-        if (company != null) 'company': company,
-        if (education != null) 'education': education,
-        if (livingIn != null) 'living_in': livingIn,
-        if (hometown != null) 'hometown': hometown,
-        if (languages != null) 'languages': languages,
-        if (interests != null) 'interests': interests,
-        if (relationshipGoals != null) 'relationship_goals': relationshipGoals,
-        if (drinkingHabit != null) 'drinking_habit': drinkingHabit,
-        if (smokingHabit != null) 'smoking_habit': smokingHabit,
-        if (exerciseHabit != null) 'exercise_habit': exerciseHabit,
-        if (dietaryPreference != null) 'dietary_preference': dietaryPreference,
-        if (zodiacSign != null) 'zodiac_sign': zodiacSign,
-        if (personalityType != null) 'personality_type': personalityType,
-        if (lovingLanguage != null) 'loving_language': lovingLanguage,
-        if (communicationStyle != null)
-          'communication_style': communicationStyle,
-        if (pets != null) 'pets': pets,
-        if (isVerified != null) 'is_verified': isVerified,
-        if (isPremium != null) 'is_premium': isPremium,
-        if (profileCompleteness != null)
-          'profile_completeness': profileCompleteness,
-        if (lastActive != null) 'last_active': lastActive!.toIso8601String(),
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'id': id,
+    if (displayName != null) 'display_name': displayName,
+    if (bio != null) 'bio': bio,
+    if (birthDate != null) 'birth_date': birthDate!.toIso8601String(),
+    if (gender != null) 'gender': gender,
+    if (interestedIn != null) 'interested_in': interestedIn,
+    if (photos != null) 'photos': photos!.map((p) => p.toJson()).toList(),
+    if (location != null) 'location': location!.toJson(),
+    if (height != null) 'height': height,
+    if (jobTitle != null) 'job_title': jobTitle,
+    if (company != null) 'company': company,
+    if (education != null) 'education': education,
+    if (livingIn != null) 'living_in': livingIn,
+    if (hometown != null) 'hometown': hometown,
+    if (languages != null) 'languages': languages,
+    if (interests != null) 'interests': interests,
+    if (relationshipGoals != null) 'relationship_goals': relationshipGoals,
+    if (drinkingHabit != null) 'drinking_habit': drinkingHabit,
+    if (smokingHabit != null) 'smoking_habit': smokingHabit,
+    if (exerciseHabit != null) 'exercise_habit': exerciseHabit,
+    if (dietaryPreference != null) 'dietary_preference': dietaryPreference,
+    if (zodiacSign != null) 'zodiac_sign': zodiacSign,
+    if (personalityType != null) 'personality_type': personalityType,
+    if (lovingLanguage != null) 'loving_language': lovingLanguage,
+    if (communicationStyle != null) 'communication_style': communicationStyle,
+    if (pets != null) 'pets': pets,
+    if (isVerified != null) 'is_verified': isVerified,
+    if (isPremium != null) 'is_premium': isPremium,
+    if (profileCompleteness != null)
+      'profile_completeness': profileCompleteness,
+    if (lastActive != null) 'last_active': lastActive!.toIso8601String(),
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 
   /// Create a copy with updated fields.
   ProfileDto copyWith({
@@ -267,14 +268,14 @@ class ProfilePhotoDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'url': url,
-        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-        if (isPrimary != null) 'is_primary': isPrimary,
-        if (order != null) 'order': order,
-        if (isVerified != null) 'is_verified': isVerified,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-      };
+    'id': id,
+    'url': url,
+    if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+    if (isPrimary != null) 'is_primary': isPrimary,
+    if (order != null) 'order': order,
+    if (isVerified != null) 'is_verified': isVerified,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+  };
 }
 
 /// Location DTO.
@@ -317,13 +318,13 @@ class LocationDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        if (latitude != null) 'latitude': latitude,
-        if (longitude != null) 'longitude': longitude,
-        if (city != null) 'city': city,
-        if (state != null) 'state': state,
-        if (country != null) 'country': country,
-        if (countryCode != null) 'country_code': countryCode,
-      };
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+    if (city != null) 'city': city,
+    if (state != null) 'state': state,
+    if (country != null) 'country': country,
+    if (countryCode != null) 'country_code': countryCode,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -427,7 +428,10 @@ class UpdateProfileRequestDto extends BaseDto {
 
     if (bio != null) {
       validator.require(
-          bio!.length <= 500, 'bio', 'Bio must be 500 characters or less');
+        bio!.length <= 500,
+        'bio',
+        'Bio must be 500 characters or less',
+      );
     }
 
     if (height != null) {
@@ -468,8 +472,10 @@ class DiscoveryPreferencesDto extends BaseDto {
       maxAge: json.getInt('max_age'),
       maxDistance: json.getInt('max_distance'),
       distanceUnit: json.getString('distance_unit'),
-      genderPreferences:
-          json.getList('gender_preferences', (e) => e.toString()),
+      genderPreferences: json.getList(
+        'gender_preferences',
+        (e) => e.toString(),
+      ),
       showMe: json.getBool('show_me'),
       globalMode: json.getBool('global_mode'),
     );
@@ -477,14 +483,14 @@ class DiscoveryPreferencesDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        if (minAge != null) 'min_age': minAge,
-        if (maxAge != null) 'max_age': maxAge,
-        if (maxDistance != null) 'max_distance': maxDistance,
-        if (distanceUnit != null) 'distance_unit': distanceUnit,
-        if (genderPreferences != null) 'gender_preferences': genderPreferences,
-        if (showMe != null) 'show_me': showMe,
-        if (globalMode != null) 'global_mode': globalMode,
-      };
+    if (minAge != null) 'min_age': minAge,
+    if (maxAge != null) 'max_age': maxAge,
+    if (maxDistance != null) 'max_distance': maxDistance,
+    if (distanceUnit != null) 'distance_unit': distanceUnit,
+    if (genderPreferences != null) 'gender_preferences': genderPreferences,
+    if (showMe != null) 'show_me': showMe,
+    if (globalMode != null) 'global_mode': globalMode,
+  };
 
   @override
   String? validate() {

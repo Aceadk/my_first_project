@@ -76,11 +76,19 @@ service cloud.firestore {
 
       // Owner can update their own document, but cannot change protected fields.
       // These fields can only be changed by admin/backend (Cloud Functions).
+      // Array sizes are bounded to prevent storage abuse.
       allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'plan', 'isIdVerified', 'stripeCustomerId', 'stripeSubscriptionId',
           'isEmailVerified', 'emailVerified', 'createdAt', 'kycVerificationStatus'
-        ]);
+        ])
+        // Bound array sizes to prevent abuse
+        && (!('profile' in request.resource.data)
+            || !('photoUrls' in request.resource.data.profile)
+            || request.resource.data.profile.photoUrls.size() <= 9)
+        && (!('profile' in request.resource.data)
+            || !('interests' in request.resource.data.profile)
+            || request.resource.data.profile.interests.size() <= 20);
 
       // No client deletes; handled via admin.
       allow delete: if false;

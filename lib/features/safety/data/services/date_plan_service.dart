@@ -64,9 +64,11 @@ class DatePlanService {
 
   Future<void> _notifyContactsPlanCreated(DatePlan plan) async {
     final contacts = plan.sharedWith
-        .where((contact) =>
-            contact.notifyByEmail &&
-            (contact.email?.trim().isNotEmpty ?? false))
+        .where(
+          (contact) =>
+              contact.notifyByEmail &&
+              (contact.email?.trim().isNotEmpty ?? false),
+        )
         .toList();
     if (contacts.isEmpty) return;
 
@@ -119,8 +121,9 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) throw Exception('Date plan not found');
 
-    final updatedContacts =
-        plan.sharedWith.where((c) => c.phone != contactPhone).toList();
+    final updatedContacts = plan.sharedWith
+        .where((c) => c.phone != contactPhone)
+        .toList();
     final updatedPlan = plan.copyWith(sharedWith: updatedContacts);
 
     _plans[planId] = updatedPlan;
@@ -134,9 +137,7 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) throw Exception('Date plan not found');
 
-    final updatedPlan = plan.copyWith(
-      status: DatePlanStatus.ongoing,
-    );
+    final updatedPlan = plan.copyWith(status: DatePlanStatus.ongoing);
 
     _plans[planId] = updatedPlan;
     _datePlanController.add(updatedPlan);
@@ -152,9 +153,7 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) throw Exception('Date plan not found');
 
-    final updatedPlan = plan.copyWith(
-      checkedInAt: DateTime.now(),
-    );
+    final updatedPlan = plan.copyWith(checkedInAt: DateTime.now());
 
     _plans[planId] = updatedPlan;
     _datePlanController.add(updatedPlan);
@@ -190,9 +189,7 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) throw Exception('Date plan not found');
 
-    final updatedPlan = plan.copyWith(
-      status: DatePlanStatus.emergency,
-    );
+    final updatedPlan = plan.copyWith(status: DatePlanStatus.emergency);
 
     _plans[planId] = updatedPlan;
     _datePlanController.add(updatedPlan);
@@ -204,10 +201,12 @@ class DatePlanService {
   /// Get active date plans for user.
   Future<List<DatePlan>> getActivePlans(String userId) async {
     return _plans.values
-        .where((p) =>
-            p.userId == userId &&
-            (p.status == DatePlanStatus.scheduled ||
-                p.status == DatePlanStatus.ongoing))
+        .where(
+          (p) =>
+              p.userId == userId &&
+              (p.status == DatePlanStatus.scheduled ||
+                  p.status == DatePlanStatus.ongoing),
+        )
         .toList();
   }
 
@@ -225,9 +224,7 @@ class DatePlanService {
     final plan = _plans[planId];
     if (plan == null) return;
 
-    final updatedPlan = plan.copyWith(
-      status: DatePlanStatus.cancelled,
-    );
+    final updatedPlan = plan.copyWith(status: DatePlanStatus.cancelled);
 
     _plans[planId] = updatedPlan;
     _datePlanController.add(updatedPlan);
@@ -259,7 +256,9 @@ class DatePlanService {
   }
 
   Future<void> _notifyContactAdded(
-      EmergencyContact contact, DatePlan plan) async {
+    EmergencyContact contact,
+    DatePlan plan,
+  ) async {
     // In production, send SMS/push notification
   }
 
@@ -305,9 +304,4 @@ class DatePlanService {
 }
 
 /// Check-in status for UI.
-enum CheckInStatus {
-  none,
-  due,
-  confirmed,
-  overdue,
-}
+enum CheckInStatus { none, due, confirmed, overdue }

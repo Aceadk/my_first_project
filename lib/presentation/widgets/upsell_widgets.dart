@@ -25,8 +25,9 @@ class UpgradeNudgeCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       elevation: 0,
-      color:
-          isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+      color: isDark
+          ? DsColors.surfaceElevatedDark
+          : DsColors.surfaceElevatedLight,
       child: Padding(
         padding: const EdgeInsets.all(DsSpacing.lg),
         child: Column(
@@ -37,10 +38,7 @@ class UpgradeNudgeCard extends StatelessWidget {
                 const IntroBadge(),
                 DsGap.smH,
                 Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  child: Text(title, style: theme.textTheme.titleMedium),
                 ),
               ],
             ),
@@ -59,9 +57,9 @@ class UpgradeNudgeCard extends StatelessWidget {
                     onPressed: loading || isPlus
                         ? null
                         : () {
-                            context
-                                .read<SubscriptionBloc>()
-                                .add(PlusCheckoutRequested());
+                            context.read<SubscriptionBloc>().add(
+                              PlusCheckoutRequested(),
+                            );
                           },
                     child: loading
                         ? const SizedBox(
@@ -70,7 +68,8 @@ class UpgradeNudgeCard extends StatelessWidget {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(
-                            isPlus ? 'Thanks for being Plus!' : 'Upgrade now'),
+                            isPlus ? 'Thanks for being Plus!' : 'Upgrade now',
+                          ),
                   ),
                 );
               },
@@ -90,7 +89,9 @@ class IntroBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DsSpacing.sm, vertical: DsSpacing.xs),
+        horizontal: DsSpacing.sm,
+        vertical: DsSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: DsColors.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(DsRadius.chip),
@@ -123,8 +124,11 @@ class UpsellBullets extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle,
-                      size: 16, color: DsColors.success),
+                  const Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: DsColors.success,
+                  ),
                   const SizedBox(width: DsSpacing.xs),
                   Expanded(child: Text(item)),
                 ],

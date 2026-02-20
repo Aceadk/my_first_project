@@ -26,10 +26,10 @@ class SendOtpRequestDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'phone_number': phoneNumber,
-        if (countryCode != null) 'country_code': countryCode,
-        if (recaptchaToken != null) 'recaptcha_token': recaptchaToken,
-      };
+    'phone_number': phoneNumber,
+    if (countryCode != null) 'country_code': countryCode,
+    if (recaptchaToken != null) 'recaptcha_token': recaptchaToken,
+  };
 
   @override
   String? validate() {
@@ -63,10 +63,10 @@ class VerifyOtpRequestDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'phone_number': phoneNumber,
-        'otp': otp,
-        if (verificationId != null) 'verification_id': verificationId,
-      };
+    'phone_number': phoneNumber,
+    'otp': otp,
+    if (verificationId != null) 'verification_id': verificationId,
+  };
 
   @override
   String? validate() {
@@ -81,9 +81,7 @@ class VerifyOtpRequestDto extends BaseDto {
 
 /// Request to refresh auth token.
 class RefreshTokenRequestDto extends BaseDto {
-  const RefreshTokenRequestDto({
-    required this.refreshToken,
-  });
+  const RefreshTokenRequestDto({required this.refreshToken});
 
   final String refreshToken;
 
@@ -94,9 +92,7 @@ class RefreshTokenRequestDto extends BaseDto {
   }
 
   @override
-  Map<String, dynamic> toJson() => {
-        'refresh_token': refreshToken,
-      };
+  Map<String, dynamic> toJson() => {'refresh_token': refreshToken};
 
   @override
   String? validate() {
@@ -136,11 +132,11 @@ class SendOtpResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'success': success,
-        if (verificationId != null) 'verification_id': verificationId,
-        if (expiresAt != null) 'expires_at': expiresAt!.toIso8601String(),
-        if (message != null) 'message': message,
-      };
+    'success': success,
+    if (verificationId != null) 'verification_id': verificationId,
+    if (expiresAt != null) 'expires_at': expiresAt!.toIso8601String(),
+    if (message != null) 'message': message,
+  };
 }
 
 /// Response from verifying OTP.
@@ -175,12 +171,12 @@ class VerifyOtpResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'success': success,
-        if (user != null) 'user': user!.toJson(),
-        if (tokens != null) 'tokens': tokens!.toJson(),
-        if (isNewUser != null) 'is_new_user': isNewUser,
-        if (message != null) 'message': message,
-      };
+    'success': success,
+    if (user != null) 'user': user!.toJson(),
+    if (tokens != null) 'tokens': tokens!.toJson(),
+    if (isNewUser != null) 'is_new_user': isNewUser,
+    if (message != null) 'message': message,
+  };
 }
 
 /// Auth tokens response.
@@ -208,11 +204,11 @@ class AuthTokensDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'access_token': accessToken,
-        'refresh_token': refreshToken,
-        if (expiresIn != null) 'expires_in': expiresIn,
-        'token_type': tokenType,
-      };
+    'access_token': accessToken,
+    'refresh_token': refreshToken,
+    if (expiresIn != null) 'expires_in': expiresIn,
+    'token_type': tokenType,
+  };
 
   /// Get expiration DateTime.
   DateTime? get expiresAt {
@@ -266,14 +262,14 @@ class UserDto extends BaseDto with DtoMetadata {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        if (phoneNumber != null) 'phone_number': phoneNumber,
-        if (email != null) 'email': email,
-        if (displayName != null) 'display_name': displayName,
-        if (photoUrl != null) 'photo_url': photoUrl,
-        if (isVerified != null) 'is_verified': isVerified,
-        if (isPremium != null) 'is_premium': isPremium,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'id': id,
+    if (phoneNumber != null) 'phone_number': phoneNumber,
+    if (email != null) 'email': email,
+    if (displayName != null) 'display_name': displayName,
+    if (photoUrl != null) 'photo_url': photoUrl,
+    if (isVerified != null) 'is_verified': isVerified,
+    if (isPremium != null) 'is_premium': isPremium,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 }

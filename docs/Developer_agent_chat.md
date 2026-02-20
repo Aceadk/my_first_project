@@ -87,6 +87,333 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #059 — ONBOARD-001 + ONBOARD-002: Progressive Disclosure & Permission Rationale
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Implement progressive disclosure onboarding (ONBOARD-001) and permission rationale screens (ONBOARD-002)
+- Secondary goals: Improve onboarding conversion by reducing friction and explaining permissions
+- Implicit requirements: Use existing design system, accessibility, responsive layout, don't break existing flow
+- Quality expectations: 0 new analyzer issues, existing flow still works, skip is optional
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Implement ONBOARD-001 (progressive disclosure: skip-optional fields during onboarding) and ONBOARD-002 (permission rationale: explain permissions before requesting them).
+
+### Technical Requirements
+1. Add "Optional" note below orientation selector in basic_info_screen.dart
+2. Add "Skip for now" button to profile_setup_screen.dart bottom area (requires 1 photo minimum)
+3. Update OnboardingProgress widget with showSkip/onSkip parameters
+4. Create reusable PermissionRationaleScreen widget with PermissionType enum, gradient background, icon, Allow/Not Now buttons
+5. Integrate location rationale in profile_setup_screen before system permission request
+6. Use existing design system (GlassPrimaryButton, GlassOutlinedButton, DsColors, DsSpacing, DsRadius, DsBreakpoints)
+7. Add Semantics for accessibility
+8. Use LayoutBuilder + DsBreakpoints for responsive layout (max 480px on tablet)
+
+### Implementation Plan
+**Step 1:** Add skip note below orientation selector in basic_info_screen.dart
+**Step 2:** Add "Skip for now" GlassOutlinedButton to profile_setup bottom section
+**Step 3:** Add showSkip/onSkip params to OnboardingProgress widget
+**Step 4:** Create PermissionRationaleScreen with gradient, icon, title, description, Allow/Not Now
+**Step 5:** Integrate location rationale in profile_setup via bottom sheet before system permission
+
+### Files to Modify/Create
+- `lib/features/auth/presentation/screens/basic_info_screen.dart` — Add optional skip note
+- `lib/features/profile/presentation/screens/profile_setup_screen.dart` — Skip button + rationale integration
+- `lib/presentation/widgets/onboarding_progress.dart` — showSkip/onSkip params
+- `lib/features/auth/presentation/screens/permission_rationale_screen.dart` — NEW: reusable rationale widget
+
+### Success Criteria
+- [x] Orientation field clearly marked as optional with skip hint
+- [x] Profile setup has "Skip for now" button that requires 1 photo
+- [x] OnboardingProgress supports showSkip and onSkip
+- [x] PermissionRationaleScreen is reusable for 4 permission types
+- [x] Location rationale shown before system permission request
+- [x] Accessibility: Semantics labels on all interactive elements
+- [x] Responsive: LayoutBuilder with 480px max on tablet/desktop
+- [x] flutter analyze: 0 new errors/warnings
+
+### Verification Commands
+```
+flutter analyze
+```
+
+**Related Task ID:** T-2026-02-19-ONBOARD001-002
+
+**Outcome:**
+- Files changed: 3 modified (basic_info_screen.dart, profile_setup_screen.dart, onboarding_progress.dart), 1 created (permission_rationale_screen.dart)
+- Result: Success — all acceptance criteria met, 0 new analyzer issues
+- Notes: Camera/photos/notifications rationale integration deferred per requirements (use same widget later)
+
+---
+
+### Task #058 — TODO_IPAD_COMPLIANCE.md — Complete All 11 iPad Compliance Items
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Complete all iPad compliance items (P0 store blocker)
+- Secondary goals: Ensure the app won't be rejected by Apple for broken iPad layouts
+- Implicit requirements: Every screen responsive, dialogs constrained, orientation/multitasking/keyboard support
+- Quality expectations: 0 analyzer errors, all tests pass
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Complete all 11 items in TODO_IPAD_COMPLIANCE.md by auditing screen coverage, adding responsive wrappers to remaining screens, and verifying config-level items (icons, launch screen, UIDeviceFamily).
+
+### Technical Requirements
+1. Audit all ~60 screens for responsive handling (LayoutBuilder/DsBreakpoints)
+2. Add `LayoutBuilder > Center > ConstrainedBox(DsBreakpoints.contentMaxWidth)` to all non-responsive screens
+3. Verify iPad icon sizes (76x76, 83.5x83.5@2x, 1024x1024) present
+4. Verify LaunchScreen.storyboard uses Auto Layout constraints
+5. Verify TARGETED_DEVICE_FAMILY = "1,2" in all build configs
+6. Fix any bracket/syntax issues from bulk wrapper additions
+
+### Implementation Plan
+**Step 1:** Audit all screens — found 22 responsive, 37 not
+**Step 2:** 3 parallel agents to wrap batches (settings: 10, auth: 10, remaining: 12)
+**Step 3:** Fix otp_screen.dart bracket mismatch
+**Step 4:** Verify with flutter analyze (0 errors) and flutter test (1493 pass)
+**Step 5:** Mark all 11 items complete in TODO_IPAD_COMPLIANCE.md
+
+### Files Modified
+- ~32 screen files (responsive wrappers added by 3 sub-agents)
+- `lib/features/auth/presentation/screens/otp_screen.dart` — bracket fix
+- `docs/TODO_IPAD_COMPLIANCE.md` — all 11 items marked complete
+
+### Verification
+- `flutter analyze` — 0 errors (5 pre-existing info hints)
+- `flutter test` — 1493 passed, 6 skipped, 3 pre-existing failures
+
+**Related Task ID:** T-2026-02-19-16
+
+**Outcome:**
+- All 11 IPAD items completed: 5 verified pre-complete, 6 newly addressed
+- ~37 screens wrapped with responsive LayoutBuilder pattern
+- otp_screen.dart bracket syntax fixed
+- 0 new errors or test failures introduced
+
+---
+
+### Task #051 — Add Responsive Content Width Wrappers to 12 Remaining Screens
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Add responsive content width wrappers (LayoutBuilder + Center + ConstrainedBox) to all 12 remaining screens that lacked responsive handling
+- Secondary goals: Ensure consistent responsive behavior across the entire app for iPad/tablet/desktop
+- Implicit requirements: Don't break existing functionality, handle special cases (video call screen, Stack-based layouts)
+- Quality expectations: flutter analyze clean (no new errors)
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Add `LayoutBuilder` + `Center` + `ConstrainedBox(maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth))` wrapper to the Scaffold `body:` content of 12 screens.
+
+### Technical Requirements
+1. Add `import 'package:crushhour/design_system/tokens/breakpoints.dart';` where not already available via barrel
+2. Wrap body content with LayoutBuilder > Center > ConstrainedBox pattern
+3. For Stack-based layouts (profile_insights, compatibility_quiz), wrap inside SafeArea to preserve background gradients
+4. For video_call_screen (stub), wrap controls area since real video would be full-screen
+5. Run flutter analyze after all edits
+
+### Files to Modify
+- `lib/features/calls/presentation/screens/call_history_screen.dart`
+- `lib/features/calls/presentation/screens/video_call_screen.dart`
+- `lib/features/profile/presentation/screens/profile_setup_screen.dart`
+- `lib/features/about/presentation/screens/pricing_screen.dart`
+- `lib/features/about/presentation/screens/product_features_screen.dart`
+- `lib/features/analytics/presentation/screens/profile_insights_screen.dart`
+- `lib/features/notifications/presentation/screens/notification_center_screen.dart`
+- `lib/features/social/presentation/screens/compatibility_quiz_screen.dart`
+- `lib/presentation/screens/community_guidelines_screen.dart`
+- `lib/presentation/screens/privacy_policy_screen.dart`
+- `lib/presentation/screens/safety_screen.dart`
+- `lib/presentation/screens/terms_of_service_screen.dart`
+
+### Success Criteria
+- [x] All 12 screens have responsive wrappers
+- [x] flutter analyze shows 0 new errors from these changes
+- [x] On mobile, content fills full width; on tablet/desktop, content is centered and constrained
+
+**Related Task ID:** T-2026-02-19-15
+
+**Outcome:**
+- Files changed: 12 screen files modified with responsive wrappers
+- Result: Success — all 12 screens now have LayoutBuilder + Center + ConstrainedBox wrappers using DsBreakpoints.contentMaxWidth()
+- Notes: Pre-existing errors in otp_screen.dart and call_screen.dart are unrelated to this change
+
+---
+
+### Task #050 — Add Responsive Content Width Wrappers to 10 Settings Sub-Screens
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Constrain content width on all 10 settings sub-screens for iPad/tablet readability
+- Implicit: Use the existing DsBreakpoints pattern consistently, wrap entire body including BlocBuilder/BlocConsumer, do not touch discovery_filters_settings_screen.dart
+
+**Refined Prompt:**
+
+### Objective
+Add LayoutBuilder + Center + ConstrainedBox responsive wrappers to 10 settings sub-screens so their single-column list content does not stretch across the full width on iPad/tablet.
+
+### Technical Requirements
+1. Import `package:crushhour/design_system/tokens/breakpoints.dart` in each file (unless already available via barrel)
+2. Wrap each Scaffold's body with: `LayoutBuilder(builder: (context, constraints) => Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth)), child: <existing body>)))`
+3. For screens with BlocBuilder/BlocConsumer, wrap the entire Bloc widget (not just the ListView inside)
+4. For screens with ternary conditionals, wrap the entire conditional
+
+### Files to Modify
+- account_actions_settings_screen.dart (ternary body)
+- account_security_settings_screen.dart (direct ListView)
+- appearance_settings_screen.dart (BlocListener > BlocBuilder)
+- chat_settings_screen.dart (BlocConsumer)
+- data_storage_settings_screen.dart (BlocBuilder)
+- language_region_settings_screen.dart (BlocConsumer)
+- notifications_settings_screen.dart (BlocBuilder)
+- privacy_settings_screen.dart (BlocBuilder)
+- subscription_settings_screen.dart (BlocBuilder)
+- support_screen.dart (direct ListView)
+
+### Success Criteria
+- [x] All 10 files have the LayoutBuilder wrapper
+- [x] All 10 files have the breakpoints import (or via barrel)
+- [x] `flutter analyze` shows 0 new issues
+- [x] No route, BLoC, or navigation logic modified
+
+**Outcome:**
+- Files changed: 10 settings screen files modified (import + body wrapper)
+- Result: Success -- 0 new analyzer issues
+- Notes: support_screen.dart gets DsBreakpoints via design_system.dart barrel, so separate import was not needed
+
+---
+
+### Task #049 — TODO_SECURITY_BACKEND.md — Implement All 9 Security Backend Items
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Implement all 9 backend security items from TODO_SECURITY_BACKEND.md
+- Implicit: Autonomous execution, no questions
+
+**Refined Prompt:**
+
+### Objective
+Implement SEC-BE-001 through SEC-BE-009. Audit existing code, verify complete items, implement missing items.
+
+### Technical Requirements
+1. Rate limiting on Express endpoints (005)
+2. Email verification middleware for write endpoints (006)
+3. Centralized input validators with HTML stripping, enum validation (007)
+4. Daily Firestore backup via Cloud Scheduler (008)
+5. Array bounds in Firestore rules, legacy storage path blocked (001, 009)
+
+### Verification Commands
+```
+cd functions && npm run build → clean
+flutter analyze → 0 issues
+flutter test → 1425 pass
+```
+
+**Related Task ID:** T-2026-02-19-05
+
+**Outcome:**
+- Files modified: `functions/src/index.ts` (rate limiter + validators + email verification + backup), `firestore.rules` (array bounds), `storage.rules` (legacy path blocked)
+- Result: Success — CF build clean, 0 analyzer issues, 1425 tests pass
+- Notes: Backup bucket must be manually created in GCP Console. Legacy chat path now 403.
+
+---
+
+### Task #048 — TODO_SECURITY_FRONTEND.md — Implement All 8 Security Frontend Items
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Implement all 8 security frontend items from TODO_SECURITY_FRONTEND.md
+- Implicit: Work autonomously through TODO files in priority order without asking which to do next
+- Quality: Zero analyzer issues, all tests pass
+
+**Refined Prompt:**
+
+### Objective
+Implement all 8 items in TODO_SECURITY_FRONTEND.md (SEC-FE-001 through SEC-FE-008). Audit existing code to verify already-complete items, then implement remaining gaps.
+
+### Technical Requirements
+1. Verify cert pinning framework completeness (SEC-FE-001)
+2. Audit secure storage usage — no sensitive data in SharedPreferences (SEC-FE-002)
+3. Complete input sanitization: zero-width chars, chat messages, HTTP profile repo, favorite songs (SEC-FE-003)
+4. Replace all print() in secure_logger.dart with AppLogger (SEC-FE-004)
+5. Verify biometric auth already complete from AUTH-SEC-006 (SEC-FE-005)
+6. Create clipboard_manager.dart with 60s auto-clear (SEC-FE-006)
+7. Create network_security_config.xml with HTTPS-only enforcement (SEC-FE-007)
+8. Create device_integrity.dart with jailbreak/root detection heuristics (SEC-FE-008)
+
+### Verification Commands
+```
+flutter analyze → 0 issues
+flutter test → 1425 pass, 6 skipped
+```
+
+**Related Task ID:** T-2026-02-19-04
+
+**Outcome:**
+- Files added: `clipboard_manager.dart`, `device_integrity.dart`, `network_security_config.xml`
+- Files modified: `input_sanitizer.dart`, `secure_logger.dart`, `send_message.dart`, `http_profile_repository.dart`, `profile_edit_screen.dart`, `chat_screen.dart`, `AndroidManifest.xml`, `app.dart`
+- Result: Success — 0 analyzer issues, 1425 tests pass
+- Notes: 3 items verified already complete (001, 002, 005). FLAG_SECURE deferred (R-143).
+
+---
+
+### Task #046 — TODO_ACCESSIBILITY.md — Implement All 8 A11Y Items (WCAG 2.1 AA)
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Implement all 8 accessibility items from TODO_ACCESSIBILITY.md to achieve WCAG 2.1 AA compliance
+- Secondary goal: Delete/mark completed items from the TODO file after implementation
+- Implicit requirements: Leverage existing accessibility infrastructure, don't break existing functionality, verify with flutter analyze
+
+**Refined Prompt:**
+
+### Objective
+Implement all 8 accessibility items (A11Y-001 through A11Y-008) from TODO_ACCESSIBILITY.md. Add Semantics wrappers to interactive elements, live region announcements for dynamic content, reduced motion support for animations, color contrast enforcement, text scaling caps, focus management, tap target size enforcement, and image/media semantic labels. Leverage the 3 existing accessibility utility files (1,209 lines total). After completion, mark all items as done in the TODO file.
+
+### Technical Requirements
+1. A11Y-001: Add Semantics to all chat widgets (typing indicator, reaction button, attachment tile, date separator, voice note player/recorder, send status, fade notification, empty state) and GlassButton variants
+2. A11Y-005: Add liveRegion: true to dynamically updating widgets (typing indicator, upload status, notifications)
+3. A11Y-007: Add MediaQuery.disableAnimations checks to DsFadeIn, DsSlideIn, DsScaleIn, DsPressable
+4. A11Y-008: Ensure image widgets have semantic labels (match celebration, avatars)
+5. A11Y-003: Add DsContrastColors with glass fallback colors for WCAG AA contrast
+6. A11Y-006: Verify existing A11yTapTarget/kMinTapTargetSize infrastructure
+7. A11Y-002: Add DsFocusTraversalScreen with ReadingOrderTraversalPolicy
+8. A11Y-004: Add DsTextScaleCap widget clamping textScaler to max 2.0x
+
+### Success Criteria
+- [x] All 8 A11Y items implemented
+- [x] flutter analyze passes with 0 issues on all modified files
+- [x] No behavioral changes to existing functionality
+- [x] TODO_ACCESSIBILITY.md updated to show completion
+
+**Related Task ID:** T-2026-02-19-02
+
+**Outcome:**
+- Files changed: 14 files modified (9 chat widgets, glass_button.dart, ds_animations.dart, colors.dart, accessibility.dart, TODO_ACCESSIBILITY.md)
+- Result: Success — all 8 items implemented, flutter analyze clean
+- Notes: ChatScreen itself (3,230 lines) still needs direct Semantics work (tracked in TODO_CHAT_UI.md CHAT-UI-003). Used result-variable pattern for GlassButton to avoid bracket nesting issues.
+
+---
+
 ### Task #045 — CEO Comprehensive Audit Directive v2.0 (Full-Stack Production Readiness)
 **Date:** 2026-02-19
 **Agent:** Claude (Opus 4.6)
@@ -3476,3 +3803,520 @@ Audit the web app's email verification flow and ensure `isEmailVerified` is prop
 Web app now correctly syncs email verification status to Firestore. The existing email verification UI flow was already complete (send email → verify page → poll → redirect). The gap was only in Firestore sync.
 
 **Related Task ID:** T-2026-02-18-12
+
+---
+
+## Task #047 — TODO_AUTH_SECURITY.md: Implement All 11 Auth/Security Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Complete all P0 auth/security items from the audit-generated TODO
+- Implicit: Harden the auth foundation before tackling other TODO modules
+
+**Refined Prompt:**
+
+### Objective
+Implement all 11 items in TODO_AUTH_SECURITY.md (AUTH-SEC-001 through AUTH-SEC-011). Deep-audit the codebase first to identify which items are already satisfied, then implement only what's missing.
+
+### Implementation
+**Phase 0 (Audit):** Launch 3 parallel Explore agents to audit existing auth code across Flutter, Cloud Functions, and DI/screens. Found 6 items already complete.
+
+**Phase 1 (AUTH-SEC-003):** Add `tokenRefreshProvider` to ApiClient for silent 401 retry in HTTP mode.
+
+**Phase 2 (AUTH-SEC-011):** Add `validateMinimumAge()` and `calculateAgeFromDob()` to Cloud Functions; apply to signup and profile update.
+
+**Phase 3 (AUTH-SEC-010):** Add `validatePasswordStrength()` to Cloud Functions; apply to signup, password reset, and change password flows.
+
+**Phase 4 (AUTH-SEC-007):** Add Apple credential revocation webhook at POST `/v1/auth/apple/revocation`.
+
+**Phase 5 (AUTH-SEC-006):** Full biometric implementation:
+- `lib/core/security/biometric_service.dart` — local_auth wrapper
+- `lib/features/auth/presentation/bloc/biometric_cubit.dart` — state management
+- `lib/features/auth/presentation/screens/pin_fallback_screen.dart` — PIN entry
+- `lib/features/auth/presentation/widgets/biometric_prompt.dart` — BiometricGate
+- DI registration in `lib/core/di.dart`
+- Settings toggle in account_security_settings_screen.dart
+- App resume trigger in `lib/app.dart`
+
+### Files Modified/Created
+4 files created, 8 files modified (see ai_change_log.md for full list)
+
+### Outcome
+All 11 items completed. flutter analyze: 0 issues. flutter test: 1425 pass. Cloud Functions build: clean. New risks documented (R-138, R-139, R-140).
+
+**Related Task ID:** T-2026-02-19-03
+
+---
+
+## Task #050 — TODO_STATE_MANAGEMENT.md: Implement All 7 State Management Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+### Refined Prompt
+**Goal:** Implement all 7 items in TODO_STATE_MANAGEMENT.md (STATE-001 through STATE-007).
+**Scope:** ChatBloc equality optimization, BLoC stream subscription audit, optimistic chat updates, background/foreground refresh, error recovery patterns, global logout state reset.
+**Constraints:** Must not break routing, BLoC lifecycles, or navigation. All existing tests must pass. Clean architecture.
+**Expected Outcome:** All 7 items completed. Zero analyzer issues. All tests passing.
+
+### Approach
+1. Deep audit of all 24 BLoCs/Cubits for stream subscription management and logout reset compliance
+2. Found 4 items already properly implemented (STATE-001, 003, 004, 006)
+3. Implemented 3 items with targeted changes (STATE-002, 005, 007)
+4. Fixed 2 BLoCs missing auth state listeners (BoostCubit, SubscriptionBloc)
+5. Updated DI and all affected test files
+
+### Key Changes
+- STATE-002: Explicit equality guard in ChatBloc._onSubBlocChanged
+- STATE-005: Debounced _refreshOnResume() in app.dart (subscription + profile refresh)
+- STATE-007: Auth listeners added to BoostCubit + SubscriptionBloc; reset handlers implemented
+
+### Files Modified/Created
+1 file created (test/mock/noop_auth_repository.dart), 12 files modified (see ai_change_log.md for full list)
+
+### Outcome
+All 7 items completed. flutter analyze: 0 issues. flutter test: 1425 pass, 6 skipped. New risks documented (R-147, R-148, R-149).
+
+**Related Task ID:** T-2026-02-19-06
+
+---
+
+## Task #051 — TODO_ERROR_HANDLING.md: Implement All 7 Error Handling Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+### Refined Prompt
+**Goal:** Implement all 7 items in TODO_ERROR_HANDLING.md (ERR-001 through ERR-007).
+**Scope:** Global error boundary widget, circuit breaker pattern, error message audit, shared retry policy, structured error logging, offline connectivity monitoring, error recovery analytics.
+**Constraints:** Must not break routing, BLoC lifecycles, or navigation. All existing tests must pass. Clean architecture. No new package dependencies for connectivity (use dart:io).
+**Expected Outcome:** All 7 items completed. Zero analyzer issues. All tests passing. 40+ new unit tests.
+
+### Approach
+1. ERR-001: Created ErrorBoundary using InheritedWidget + custom ErrorWidget.builder pattern (avoids FlutterError.onError conflicts with test framework)
+2. ERR-002: Created CircuitBreaker with closed/open/halfOpen states, configurable thresholds, injectable clock
+3. ERR-003: Audited 47 inline error strings across 15 files, fixed worst 7 BLoCs to use ErrorMessages constants
+4. ERR-004: Created RetryPolicy with exponential backoff, ±20% jitter, 3 presets, retryIf predicate
+5. ERR-005: Added AppLogger.blocError() convenience method for structured BLoC error context
+6. ERR-006: Created ConnectivityCubit with injectable DnsLookup, periodic polling, isClosed guard. OfflineBanner with AnimatedSwitcher. Registered in DI.
+7. ERR-007: Added 3 analytics methods (logErrorRecoveryAction, logErrorRecovered, logErrorBoundaryTriggered), enhanced ErrorBanner with action button, wired analytics into ErrorBoundary
+
+### Key Challenges
+- ErrorWidget.builder override conflicted with Flutter test framework → solved with InheritedWidget approach
+- Stream listener race in ConnectivityCubit tests → solved with tick() microtask delay
+- AnalyticsService Firebase initialization in tests → solved with StubAnalyticsService setUp
+
+### Files Modified/Created
+9 files created, 17 files modified (see ai_change_log.md for full list)
+
+### Outcome
+All 7 items completed. flutter analyze: 0 issues. flutter test: 1468 pass, 6 skipped, 3 pre-existing failures. 46 new tests (8+14+12+12). New risks documented (R-150, R-151, R-152).
+
+**Related Task ID:** T-2026-02-19-07
+
+---
+
+## Task #052 — TODO_PERFORMANCE.md: Implement All 8 Performance Optimization Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+### Refined Prompt
+**Goal:** Implement all 8 items in TODO_PERFORMANCE.md (PERF-001 through PERF-008).
+**Scope:** Startup optimization, image optimization pipeline, chat message memory cap, widget rebuild audit, deck rendering audit, bundle size optimization, performance monitoring traces, Firestore query optimization.
+**Constraints:** Must not break routing, BLoC lifecycles, or navigation. All existing tests must pass. Clean architecture. Prefer minimal changes — verify already-implemented items before coding.
+**Expected Outcome:** All 8 items completed or verified. Zero analyzer issues. All tests passing.
+
+### Approach
+1. PERF-001: Parallelized startup services in main.dart into two tiers using Future.wait (Tier 1: AppCheck+CrashReporting+PerformanceMonitor; Tier 2: AppUpdate+Messaging+Consent+GradualRollout)
+2. PERF-002: Created ImageOptimizer singleton using dart:ui for resize (2048px), EXIF strip, thumbnail generation (200px). Wired into ProfileMediaService.uploadPhoto() with non-fatal fallback.
+3. PERF-003: Added _maxMessagesInMemory=200 constant to MessageHandlingBloc. Trim oldest on new messages, trim newest on load-more.
+4. PERF-004: Verified already complete — buildWhen, BlocSelector, context.select, ValueNotifier, const constructors used extensively.
+5. PERF-005: Verified already complete — RepaintBoundary on cards, priority-based image preloading, AnimatedBuilder with child.
+6. PERF-006: Removed 3 unused packages (confetti, audio_waveforms, file_picker).
+7. PERF-007: Added 3 custom Firebase Performance traces: image_upload (in ProfileMediaService), message_send (in MessageHandlingBloc), deck_fetch (in DiscoveryBloc).
+8. PERF-008: Fixed N+1 query in fetchLikesYou by replacing sequential doc().get() with batched whereIn queries (30-ID Firestore limit).
+
+### Files Modified/Created
+1 file created, 7 files modified (see ai_change_log.md for full list)
+
+### Outcome
+All 8 items completed. flutter analyze: 0 issues. flutter test: 1468 pass, 6 skipped, 3 pre-existing failures. New risks documented (R-153, R-154).
+
+**Related Task ID:** T-2026-02-19-08
+
+---
+
+## Task #053 — TODO_NOTIFICATIONS.md: Implement All 5 Notification Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+### Refined Prompt
+**Goal:** Implement all 5 items in TODO_NOTIFICATIONS.md (NOTIF-001 through NOTIF-005).
+**Scope:** In-app notification center, category filtering, rich push notifications, smart scheduling, deep linking fix.
+**Constraints:** Must follow Clean Architecture. Must not break routing or BLoC lifecycles. All existing tests must pass. Cloud Functions changes must be backward-compatible.
+**Expected Outcome:** All 5 items completed. Zero analyzer issues. All tests passing.
+
+### Approach
+1. NOTIF-001: Full Clean Architecture notification center — AppNotification entity, NotificationRepository interface, FirebaseNotificationRepository (Firestore `users/{userId}/notifications`), NotificationCenterCubit, NotificationCenterScreen with grouped sections (Today/This Week/Earlier), pull-to-refresh, scroll pagination, type-based icons, time-ago display. Route at `/notifications`, DI registered.
+2. NOTIF-002: Extended NotificationSettingsState with 6 category fields (catMatches, catMessages, catLikes, catProfileViews, catPromotions, catSafetyAlerts). Safety alerts always-on. Persisted in SharedPreferences + synced to Firestore. Extended Cloud Functions getPushTokensFor with all categories.
+3. NOTIF-003: Enhanced `_showLocalNotification` with Android BigPictureStyle (image download via HttpClient), action buttons (Reply for messages, Like Back for likes). Created iOS NotificationServiceExtension (UNNotificationServiceExtension) for media attachments. Added onNotificationAction callback.
+4. NOTIF-004: Cloud Functions smart scheduling — isInQuietHours (timezone-aware), isDailyCapReached (10/day cap), queueNotification, smartSendNotification, flushNotificationQueue (scheduled every 60min, batches likes). Flutter: quiet hours toggle + time pickers in settings, timezone saved to Firestore on register.
+5. NOTIF-005: Wired onNotificationTapped and onNotificationAction in app.dart _RouterHostState. _handleNotificationDeepLink maps notification types to routes using router.go() for iPad split-view compatibility.
+
+### Key Challenges
+- onNotificationTapped was completely unwired (defined but never connected to routing) — discovered during NOTIF-005
+- buildNotificationPrefs needed simultaneous update when extending updateNotificationPreferences
+- iOS NotificationServiceExtension requires manual Xcode target addition by developer
+
+### Files Modified/Created
+6 files created, 6 files modified (see ai_change_log.md T-2026-02-19-09 for full list)
+
+### Outcome
+All 5 items completed. flutter analyze: 0 issues. flutter test: 1470 pass, 6 skipped, 3 pre-existing failures. New risks documented (R-155, R-156, R-157).
+
+**Related Task ID:** T-2026-02-19-09
+
+---
+
+## Task #054 — TODO_CHAT_UI.md: Implement All 8 Chat UI Items
+
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+### Refined Prompt
+**Goal:** Implement all 8 items in TODO_CHAT_UI.md (CHAT-UI-001 through CHAT-UI-008).
+**Scope:** iPad responsive chat layout, keyboard handling, accessibility labels, responsive media sizing, stream cleanup, EXIF stripping, message virtualization, retry UI.
+**Constraints:** Must not break routing, BLoC lifecycles, or navigation. All existing tests must pass. Clean architecture. Use existing DsBreakpoints and ImageOptimizer infrastructure.
+**Expected Outcome:** All 8 items completed. Zero analyzer issues. All tests passing.
+
+### Approach
+1. CHAT-UI-001: Converted _ChatListView to StatefulWidget with _selectedChat state. LayoutBuilder: mobile pushes go_router, tablet shows Row with 320px list + ChatScreen detail panel (ValueKey for rebuild).
+2. CHAT-UI-002: Added _inputFocusNode with onKeyEvent handler — Enter sends, Shift+Enter inserts newline. GestureDetector wraps message list for keyboard dismiss on tap.
+3. CHAT-UI-003: Added _messageSemanticLabel() helper. Wrapped message bubbles, call buttons, send button, input field with Semantics. Typing indicator already had liveRegion.
+4. CHAT-UI-004: Replaced hardcoded 220x260 with DsBreakpoints.responsiveValue (mobile: 70%, tablet: 400px, desktop: 500px). Updated error placeholder to match.
+5. CHAT-UI-005: Replaced sequential cancel/close in ChatBloc.close() with for-loop + try-catch for error isolation.
+6. CHAT-UI-006: Added ImageOptimizer.instance.optimize() call in uploadMedia() for image types, with non-fatal fallback.
+7. CHAT-UI-007: Changed _maxMessagesInMemory from 200→100, _pageSize from 30→50.
+8. CHAT-UI-008: Added MsgDiscardFailedRequested event + handler. Added "Delete" action link next to "Retry" in failed message UI.
+
+### Files Modified/Created
+0 files created, 6 files modified (see ai_change_log.md T-2026-02-19-10 for full list)
+
+### Outcome
+All 8 items completed. flutter analyze: 0 issues (4 info-level hints). flutter test: 1476 pass, 6 skipped, 3 pre-existing failures. New risks documented (R-158, R-159, R-160).
+
+**Related Task ID:** T-2026-02-19-10
+
+---
+
+## Task #055 — TODO_RESPONSIVE_DESIGN.md (All 8 Items)
+
+### Original Request
+Continue working through TODO files autonomously. Next priority: TODO_RESPONSIVE_DESIGN.md (P0-P1, 8 items).
+
+### Refined Prompt
+**Goal:** Implement all 8 responsive design items (RESP-001 through RESP-008) using the existing DsBreakpoints design system.
+**Scope:** 14 screens across chat, discovery, profile, settings, auth, and home navigation.
+**Constraints:** Use existing DsBreakpoints API (isMobile, isTablet, isDesktop, contentMaxWidth, gridColumnsOf, responsiveValue). No new dependencies. Must pass flutter analyze and flutter test.
+**Expected Outcome:** All screens adapt to tablet/desktop with content-width constraints, responsive grids, and NavigationRail on home screen.
+
+### Status: Completed
+
+### Implementation Details
+1. RESP-001: Chat screens — message bubble max-width 480px; matches/message_requests wrapped with contentMaxWidth
+2. RESP-002: Discovery deck — card stack centered at 500px max on tablet/desktop
+3. RESP-003: Profile screens — content width constraints + responsive photo grid (2-4 columns)
+4. RESP-004: Settings — ListView wrapped with contentMaxWidth
+5. RESP-005: Auth/onboarding — AuthScaffold already responsive; added 480px constraints to sign_up + basic_info
+6. RESP-006: Grid screens — responsive columns + content width + story viewer constraint
+7. RESP-007: Home navigation — complete rewrite with NavigationRail for tablet, extended NavigationRail for desktop
+8. RESP-008: Audit — 21/56 screens (37.5%) now have responsive design
+
+### Files Modified
+14 screen files + 1 TODO doc (see ai_change_log.md T-2026-02-19-11)
+
+### Outcome
+All 8 items completed. flutter analyze: 0 errors. flutter test: 1480 pass, 6 skipped, 3 pre-existing failures. New risks R-161, R-162 documented.
+
+**Related Task ID:** T-2026-02-19-11
+
+---
+
+## Task #056 — TODO_PROFILE_FRONTEND.md (All 7 Items)
+
+### Original Request
+Continue working through TODO files autonomously. Next priority: TODO_PROFILE_FRONTEND.md (P0-P1, 7 items).
+
+### Refined Prompt
+**Goal:** Implement all 7 profile frontend items covering responsive layout, iPad photo upload, adaptive grids, EXIF stripping, keyboard support, image validation, and accessibility.
+**Scope:** Profile edit/view screens, media picker widget, profile completion widget, validation constants.
+**Constraints:** Build on existing DsBreakpoints and ImageOptimizer infrastructure. No new dependencies.
+**Expected Outcome:** Profile screens are tablet-ready with two-column layout, proper keyboard navigation, image validation, and screen reader accessibility.
+
+### Status: Completed
+
+### Implementation Details
+1. PROF-FE-001: Two-column layout on tablet (photos left 300px, basic info right expanded)
+2. PROF-FE-002: Added requestFullMetadata:false to image picker; PHPicker handles iPad natively
+3. PROF-FE-003: Already completed in RESP-003 (gridColumnsOf.clamp(2,4))
+4. PROF-FE-004: Already implemented via ImageOptimizer dart:ui re-encoding
+5. PROF-FE-005: TextInputAction.next + FocusScope.nextFocus() for Tab key navigation
+6. PROF-FE-006: _validateImage() checks file size (10MB) and min dimensions (200x200) before adding
+7. PROF-FE-007: Semantics on indicator, card (with missing items summary), and checklist items
+
+### Files Modified
+6 files modified + 1 TODO doc (see ai_change_log.md T-2026-02-19-12)
+
+### Outcome
+All 7 items completed. flutter analyze: 0 errors. flutter test: 1483 pass, 6 skipped, 3 pre-existing failures.
+
+**Related Task ID:** T-2026-02-19-12
+
+---
+
+## Task #057 — TODO_DISCOVERY_UI.md: Implement All 7 Discovery UI Items
+
+### Refined Prompt
+**Goal:** Implement all 7 items (DISC-UI-001 through DISC-UI-007) in TODO_DISCOVERY_UI.md for the CRUSH dating app discovery feature.
+
+**Scope:**
+- DISC-UI-001: Responsive deck layout (card 500px centered, overlays constrained)
+- DISC-UI-002: Accessibility semantics on media progress indicators
+- DISC-UI-003: Arrow key keyboard shortcuts for external keyboard
+- DISC-UI-004: Video player timeout (10s), error state, fallback UI
+- DISC-UI-005: New ExploreGridView widget with responsive grid and app bar toggle
+- DISC-UI-006: Replace hardcoded pixel positions with DsBreakpoints/DsSpacing tokens
+- DISC-UI-007: Replace raw HapticFeedback with HapticService + reduced motion guard
+
+**Constraints:** Use existing design system tokens (DsBreakpoints, DsSpacing, DsColors, DsRadius). Follow Clean Architecture. No routing changes. No new BLoC/Cubit.
+
+**Expected Outcome:** All 7 items complete. flutter analyze 0 errors. flutter test no new failures.
+
+**Status:** Completed
+
+### Implementation Summary
+1. DISC-UI-001: Card already 500px from RESP-002; overlays respect ConstrainedBox; action buttons sized 44-52pt with semantic labels
+2. DISC-UI-002: Semantics(label: "Photo X of Y") on _MediaProgressIndicators in swipe_card.dart
+3. DISC-UI-003: Focus widget wrapping ConstrainedBox with onKeyEvent: ← pass, → like, ↑ super-like, ↓ rewind; 4 handler methods
+4. DISC-UI-004: _initializeVideo timeout 10s; _hasVideoError state; "Video unavailable" overlay; dispose on error; reset on media change
+5. DISC-UI-005: New explore_grid_view.dart — ExploreGridView with gridColumnsOf.clamp(2,3), _ExploreCard (photo+gradient+name/age/distance+verification badge); toggle in app bar (tablet/desktop only)
+6. DISC-UI-006: bottom:240→DsBreakpoints.of(mobile:240,tablet:200), bottom:140→(mobile:140,tablet:120), bottom:90→(mobile:90,tablet:70), right:70→DsSpacing.md+52
+7. DISC-UI-007: HapticFeedback.lightImpact→HapticService.swipeThreshold(), mediumImpact→like()/nope(), heavyImpact→superLike(); all wrapped in if(!DsAccessibility.prefersReducedMotion)
+
+### Files Modified
+1 new file + 3 modified (see ai_change_log.md T-2026-02-19-13)
+
+### Outcome
+All 7 items completed. flutter analyze: 0 errors. flutter test: 1484 pass, 6 skipped, 4 pre-existing failures.
+
+**Related Task ID:** T-2026-02-19-13
+
+---
+
+### Task #ONBOARD-005 — Welcome Tutorial Overlay
+**Date:** 2026-02-19
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- Primary goal: Show a brief interactive tutorial overlay on the discovery deck after onboarding
+- Secondary goals: Explain swipe gestures (left=pass, right=like, up=super like), provide visual hand animation
+- Implicit requirements: Persist dismissal state so it only shows once, accessible, respects reduced motion, dismissable by tapping background
+- Quality expectations: Uses design system tokens, glass morphism style, responsive layout
+
+**Refined Prompt (Very Specific & Detailed):**
+
+### Objective
+Create a full-screen semi-transparent tutorial overlay widget (`WelcomeTutorialOverlay`) shown on top of the deck screen after onboarding completes. It should teach users the swipe gesture mechanics and dismiss after interaction. Persist the "seen" state via SharedPreferences.
+
+### Technical Requirements
+1. Create `lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart`
+   - Full-screen overlay with `Colors.black.withValues(alpha: 0.7)` background
+   - Centered glass card using `ClipRRect` + `BackdropFilter` (DsBlur.medium)
+   - Max width 400px via `DsBreakpoints.responsiveValue`
+   - Title: "Welcome to CRUSH!" (headlineSmall, bold, white)
+   - Animated swipe icon using `AnimationController` with left-right `SlideTransition`
+   - Three instruction rows: pass (left arrow, grey close icon), like (right arrow, green heart), super like (up arrow, blue star)
+   - "Got it!" button using `GlassPrimaryButton` with `semanticLabel`
+   - Respects reduced motion: static icon when `MediaQuery.of(context).disableAnimations` is true
+   - Semantics wrapper with full tutorial description
+   - `ExcludeSemantics` on decorative elements
+   - Background tap dismisses overlay via `GestureDetector`
+
+2. Modify `lib/features/discovery/presentation/screens/deck_screen.dart`
+   - Add `bool _showTutorial = false` state variable
+   - In `initState`, check `SharedPreferences` for `'has_seen_deck_tutorial'`; if false/null, set `_showTutorial = true`
+   - Add `WelcomeTutorialOverlay` as last child in the deck Stack when `_showTutorial` is true
+   - On dismiss: set state to false and persist `has_seen_deck_tutorial = true`
+
+### Files to Create
+- `lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart`
+
+### Files to Modify
+- `lib/features/discovery/presentation/screens/deck_screen.dart`
+
+### Success Criteria
+- Overlay displays on first deck visit after onboarding
+- Overlay does not display on subsequent visits
+- "Got it!" button and background tap both dismiss the overlay
+- Animation respects reduced motion setting
+- All accessibility semantics present
+- `flutter analyze` reports 0 new errors/warnings
+- Uses design system tokens: DsSpacing, DsColors, DsRadius, DsBlur, DsGlassColors, DsBreakpoints, GlassPrimaryButton
+
+### Implementation Summary
+- Created `welcome_tutorial_overlay.dart` with full glass morphism card, animated swipe icon, 3 instruction rows, accessible semantics
+- Modified `deck_screen.dart`: added imports, `_showTutorial` state, `_checkTutorialStatus()` method, overlay as last Stack child
+- Used `withValues(alpha:)` instead of deprecated `withOpacity()`
+- `flutter analyze`: 0 new issues (11 pre-existing, none from this change)
+
+### Files Changed
+1. `lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart` (NEW)
+2. `lib/features/discovery/presentation/screens/deck_screen.dart` (MODIFIED)
+
+### Outcome
+ONBOARD-005 completed successfully. 0 new analyzer issues. Tutorial overlay shows once after onboarding, persists dismissal via SharedPreferences, respects reduced motion, fully accessible.
+
+**Related Task ID:** T-2026-02-19-ONBOARD005
+
+---
+
+### Task #060 — ONBOARD-004: Wire Onboarding Analytics Events
+**Date:** 2026-02-19
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Refined Prompt:**
+**Goal:** Wire existing AnalyticsService onboarding methods into all 5 onboarding screens.
+**Scope:** sign_up_screen, otp_screen, basic_info_screen, id_verification_screen, profile_setup_screen.
+**Constraints:** Don't modify AnalyticsService. Use initState for tracking. Minimal changes only.
+**Expected Outcome:** Each screen logs its step entry; profile_setup logs completion with duration.
+
+### Files Changed
+1. `lib/features/auth/presentation/screens/sign_up_screen.dart` — import + onboardingStartTime + logOnboardingStep(step:'signup', stepNumber:1)
+2. `lib/features/auth/presentation/screens/otp_screen.dart` — import + initState + logOnboardingStep(step:'verify_otp', stepNumber:2)
+3. `lib/features/auth/presentation/screens/basic_info_screen.dart` — import + initState + logOnboardingStep(step:'basic_info', stepNumber:3)
+4. `lib/features/auth/presentation/screens/id_verification_screen.dart` — import + initState + logOnboardingStep(step:'id_verification', stepNumber:4, guarded by !fromSettings)
+5. `lib/features/profile/presentation/screens/profile_setup_screen.dart` — import + logOnboardingStep(step:'profile_setup', stepNumber:5) + logOnboardingCompleted(durationSeconds)
+
+### Outcome
+All 5 screens wired. flutter analyze: 0 errors, 0 warnings, 5 pre-existing info hints.
+
+**Related Task ID:** T-2026-02-19-ONBOARD004
+
+---
+
+### Task #061 — I18N-004 + I18N-006: Locale-Aware Formatting + CJK Typography
+**Date:** 2026-02-20
+**Agent:** Claude (Opus 4.6)
+**Status:** Completed
+
+**Original Request:** Continue working through TODO audit files autonomously.
+
+**Refined Prompt:**
+**Goal:** Implement I18N-004 (locale-aware date/time/number formatting) and I18N-006 (CJK typography and line breaking).
+**Scope:** Replace all 9 hardcoded English-only date/time formatters with centralized locale-aware utility. Configure CJK font fallback stack and locale-aware line heights.
+**Constraints:** Use existing `intl` package (already declared). Leverage existing ARB keys for translated labels. Don't break existing tests.
+**Expected Outcome:** All date/time/number formatting is locale-aware. CJK locales get proper font fallback and wider line heights.
+
+### Files Changed
+**New:**
+1. `lib/core/utils/date_time_formatter.dart` — Centralized 10-method locale-aware formatting utility
+
+**Modified (I18N-004 — 9 formatter replacements):**
+2. `lib/features/chat/presentation/screens/chat_screen.dart` — `_formatTime()` → `DateTimeFormatter.formatTime()`
+3. `lib/features/chat/presentation/widgets/chat_date_separator.dart` — 30-line `_formatDate()` → `DateTimeFormatter.formatChatSeparator()`
+4. `lib/design_system/widgets/read_receipt.dart` — Removed `_formatTime()`, inlined `DateTimeFormatter.formatTime()`
+5. `lib/design_system/widgets/message_search.dart` — 18-line `_formatTime()` → `DateTimeFormatter.formatSearchResultTime()`
+6. `lib/features/chat/presentation/screens/chat_list_screen.dart` — 15-line `_formatTime()` → `DateTimeFormatter.formatRelativeCompact()`
+7. `lib/core/accessibility/semantics_helper.dart` — Date fallback → `intl.DateFormat.yMd()` (prefixed import)
+8. `lib/features/notifications/presentation/screens/notification_center_screen.dart` — 7-line `_timeAgo()` → `DateTimeFormatter.formatRelativeCompact()`
+9. `lib/features/settings/presentation/screens/subscription_settings_screen.dart` — `_formatDate()` → `DateTimeFormatter.formatDate()`
+10. `lib/features/settings/presentation/screens/account_actions_settings_screen.dart` — `_formatDate()` → `DateTimeFormatter.formatDate()`
+
+**Modified (I18N-006 — CJK typography):**
+11. `lib/design_system/tokens/typography.dart` — CJK font fallback, `_applyCjkFallback()`, `cjkAdjusted()`
+12. `lib/app.dart` — CJK line height in locale BlocBuilder
+
+**Test fixes:**
+13. `test/subscription_settings_screen_test.dart` — `find.textContaining()` for locale-aware date
+14. `test/widgets/design_system_test.dart` — `wrapWithL10n()` helper with localization delegates
+
+### Outcome
+I18N-004 and I18N-006 completed. 1 new file, 13 modified. `flutter analyze`: 0 new issues. `flutter test`: +1502 ~6 -4 (all 4 failures pre-existing). TODO_I18N_L10N.md now 4/7 complete (I18N-004, I18N-005, I18N-006, I18N-007).
+
+**Related Task ID:** T-2026-02-20-I18N-B
+
+---
+
+### Task #062 — CLEAN-005 & CLEAN-006: Design Token Extraction + Widget Consolidation
+**Date:** 2026-02-20
+**Agent:** Claude
+**Status:** Completed
+
+**Developer Intent Analysis:**
+- **Primary goal:** Continue autonomous work through TODO audit files — implement CLEAN-005 (extract ChatScreen inline styles to design tokens) and CLEAN-006 (consolidate duplicate widget implementations)
+- **Secondary goals:** Eliminate hardcoded styles, reduce widget duplication, strengthen design system consistency
+- **Implicit requirements:** Zero visual regressions, all token replacements must be semantically correct (no mixing token types), preserve existing test baseline
+- **Quality expectations:** All hardcoded EdgeInsets/BorderRadius/Color hex values replaced, duplicate widgets consolidated where safe
+
+**Refined Prompt:**
+
+### Objective
+CLEAN-005: Replace all hardcoded inline styles in `chat_screen.dart` (~103 instances of EdgeInsets, BorderRadius, Color hex, SizedBox sizes) with design system tokens from `DsSpacing`, `DsRadius`, `DsSizes`, `DsColors`. Add new tokens where gaps exist. CLEAN-006: Audit all widget directories for duplicates, consolidate safe ones, document remaining for future.
+
+### Technical Requirements
+1. Audit all hardcoded styles in chat_screen.dart categorized by type
+2. Map each value to existing design system tokens or create new semantic tokens
+3. Never mix token types in arithmetic (e.g., don't use DsRadius - DsSpacing)
+4. Leave values as-is when no clean token mapping exists (e.g., fontSize 10-13px)
+5. For CLEAN-006: check import counts before deleting/consolidating — only consolidate widgets with clear 1:1 design system equivalents
+6. Verify with `flutter analyze` (0 errors) and `flutter test` (baseline preserved)
+
+### Implementation Plan
+**CLEAN-005:**
+- Step 1: Explore agent audits all hardcoded values in chat_screen.dart
+- Step 2: Read design system token files to identify gaps
+- Step 3: Add missing tokens (DsSpacing.xxs, DsRadius.xxs/xs/media/bubble)
+- Step 4: Batch replace common patterns via replace_all
+- Step 5: Handle unique instances individually
+- Step 6: Verify 0 remaining hardcoded EdgeInsets/BorderRadius/Color hex
+
+**CLEAN-006:**
+- Step 1: Explore agent audits all widget directories for duplicates
+- Step 2: Check import counts for each candidate
+- Step 3: Phase 1 — consolidate 3 safest duplicates
+- Step 4: Document remaining 5 for future phases
+
+### Files Changed
+
+**New tokens:**
+- `lib/design_system/tokens/spacing.dart` — Added `DsSpacing.xxs = 2`
+- `lib/design_system/tokens/radius.dart` — Added `DsRadius.xxs = 2`, `xs = 4`, `media = 8`, `bubble = 18`
+
+**CLEAN-005 (token extraction):**
+- `lib/features/chat/presentation/screens/chat_screen.dart` — ~80 token replacements (EdgeInsets, BorderRadius, SizedBox, icon sizes, container sizes)
+
+**CLEAN-006 (widget consolidation):**
+- `lib/features/discovery/presentation/widgets/deck_skeleton.dart` — Rewritten to use design system `SkeletonBox`/`SkeletonCircle`
+- `lib/presentation/widgets/primary_button.dart` — Deleted (was re-export of design system version)
+- `lib/features/auth/presentation/screens/email_protection_screen.dart` — Import path updated
+- `lib/features/auth/presentation/screens/phone_protection_screen.dart` — Import path updated
+- `lib/features/auth/presentation/screens/new_device_screen.dart` — Import path updated
+- `lib/features/auth/presentation/screens/change_email_screen.dart` — Import path updated
+- `lib/presentation/widgets/onboarding_nav_buttons.dart` — Import path updated
+
+### Outcome
+CLEAN-005 complete: 0 remaining hardcoded EdgeInsets, BorderRadius, or Color hex in chat_screen.dart. CLEAN-006 Phase 1 complete: 3 duplicates eliminated, 5 documented for future. `flutter analyze`: 0 errors. `flutter test`: +1502 ~6 -4 (baseline preserved). TODO_CLEANUP_DEAD_CODE.md now 7/8 complete.
+
+**Related Task ID:** T-2026-02-20-CLEAN

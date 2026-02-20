@@ -8,7 +8,7 @@ class WatchVerificationUseCase
   final PhotoVerificationService _service;
 
   WatchVerificationUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   Stream<PhotoVerification> call(NoParams params) {

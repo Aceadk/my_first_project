@@ -16,12 +16,16 @@ import 'core/services/app_check_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/performance/performance_monitor.dart';
+import 'core/widgets/error_boundary.dart';
 
 Future<void> main() async {
   // Record app start time immediately for cold start tracking
   PerformanceMonitor.instance.recordAppStartTime();
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Replace default red/grey error screen with branded fallback UI
+  installErrorWidgetBuilder();
 
   // Run the app in a guarded zone so uncaught startup/build errors are reported.
   await runZonedGuarded(
@@ -226,41 +230,50 @@ Future<String?> _initializeCoreServices(SharedPreferences preferences) async {
     return 'Unable to connect secure app services. Check your network and try again.';
   }
 
-  await _runStartupTask(
-    name: 'AppCheckService.initialize',
-    action: AppCheckService.instance.initialize,
-  );
-  await _runStartupTask(
-    name: 'CrashReportingService.initialize',
-    action: CrashReportingService.instance.initialize,
-  );
-  await _runStartupTask(
-    name: 'PerformanceMonitor.initialize',
-    action: PerformanceMonitor.instance.initialize,
-  );
+  // Tier 1: Critical services that other services may depend on.
+  // AppCheck and Crashlytics are independent — run in parallel.
+  await Future.wait([
+    _runStartupTask(
+      name: 'AppCheckService.initialize',
+      action: AppCheckService.instance.initialize,
+    ),
+    _runStartupTask(
+      name: 'CrashReportingService.initialize',
+      action: CrashReportingService.instance.initialize,
+    ),
+    _runStartupTask(
+      name: 'PerformanceMonitor.initialize',
+      action: PerformanceMonitor.instance.initialize,
+    ),
+  ]);
 
   if (!kDebugMode) {
     PerformanceMonitor.instance.startMemoryMonitoring();
   }
 
-  await _runStartupTask(
-    name: 'AppUpdateService.initialize',
-    action: AppUpdateService.instance.initialize,
-  );
-  await _runStartupTask(
-    name: 'FirebaseMessaging.onBackgroundMessage',
-    action: () async {
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    },
-  );
-  await _runStartupTask(
-    name: 'ConsentService.initialize',
-    action: () => ConsentService.instance.initialize(preferences),
-  );
-  await _runStartupTask(
-    name: 'GradualRolloutService.initialize',
-    action: () => GradualRolloutService.instance.initialize(preferences),
-  );
+  // Tier 2: Services that depend on Firebase but not on each other.
+  await Future.wait([
+    _runStartupTask(
+      name: 'AppUpdateService.initialize',
+      action: AppUpdateService.instance.initialize,
+    ),
+    _runStartupTask(
+      name: 'FirebaseMessaging.onBackgroundMessage',
+      action: () async {
+        FirebaseMessaging.onBackgroundMessage(
+          firebaseMessagingBackgroundHandler,
+        );
+      },
+    ),
+    _runStartupTask(
+      name: 'ConsentService.initialize',
+      action: () => ConsentService.instance.initialize(preferences),
+    ),
+    _runStartupTask(
+      name: 'GradualRolloutService.initialize',
+      action: () => GradualRolloutService.instance.initialize(preferences),
+    ),
+  ]);
 
   return null;
 }

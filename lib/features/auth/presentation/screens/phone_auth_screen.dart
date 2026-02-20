@@ -24,8 +24,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   bool _dialTouched = false;
   bool _submitted = false;
   _CountryCode _selectedCountry = _countries.firstWhere(
-      (c) => c.name == 'United States',
-      orElse: () => _countries.first);
+    (c) => c.name == 'United States',
+    orElse: () => _countries.first,
+  );
 
   @override
   void initState() {
@@ -46,180 +47,190 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sign up with phone')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: BlocConsumer<AuthBloc, AuthState>(
-          listenWhen: (previous, current) =>
-              previous.status != current.status ||
-              previous.errorMessage != current.errorMessage,
-          listener: (context, state) {
-            if (state.status == AuthStatus.otpSent &&
-                state.phoneInProgress != null) {
-              showSuccessSnackBar(
-                context,
-                'Code sent. Check your messages.',
-              );
-              final phone = Uri.encodeComponent(state.phoneInProgress!);
-              context.push('${CrushRoutes.otp}?phone=$phone');
-            }
-            final error = state.errorMessage;
-            if (error != null && error.isNotEmpty) {
-              showErrorSnackBar(context, error);
-            }
-          },
-          builder: (context, state) {
-            final isLoading = state.isLoading;
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                AbsorbPointer(
-                  absorbing: isLoading,
-                  child: Column(
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: BlocConsumer<AuthBloc, AuthState>(
+                listenWhen: (previous, current) =>
+                    previous.status != current.status ||
+                    previous.errorMessage != current.errorMessage,
+                listener: (context, state) {
+                  if (state.status == AuthStatus.otpSent &&
+                      state.phoneInProgress != null) {
+                    showSuccessSnackBar(
+                      context,
+                      'Code sent. Check your messages.',
+                    );
+                    final phone = Uri.encodeComponent(state.phoneInProgress!);
+                    context.push('${CrushRoutes.otp}?phone=$phone');
+                  }
+                  final error = state.errorMessage;
+                  if (error != null && error.isNotEmpty) {
+                    showErrorSnackBar(context, error);
+                  }
+                },
+                builder: (context, state) {
+                  final isLoading = state.isLoading;
+                  return Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const OnboardingProgress(
-                        currentStep: 1,
-                        caption: 'We’ll text you a code next',
-                      ),
-                      const SizedBox(height: 20),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Your country',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<_CountryCode>(
-                        initialValue: _selectedCountry,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.flag_outlined),
-                        ),
-                        items: _countries
-                            .map(
-                              (c) => DropdownMenuItem(
-                                value: c,
-                                child: Text(
-                                  '${c.flag} ${c.name} (${c.dialCode})',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                      AbsorbPointer(
+                        absorbing: isLoading,
+                        child: Column(
+                          children: [
+                            const OnboardingProgress(
+                              currentStep: 1,
+                              caption: 'We’ll text you a code next',
+                            ),
+                            const SizedBox(height: 20),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Your country',
+                                style: Theme.of(context).textTheme.labelMedium,
                               ),
-                            )
-                            .toList(),
-                        selectedItemBuilder: (context) => _countries
-                            .map(
-                              (c) => Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  '${c.flag} ${c.name} (${c.dialCode})',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<_CountryCode>(
+                              initialValue: _selectedCountry,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.flag_outlined),
                               ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              _selectedCountry = value;
-                              _dialCodeController.text = value.dialCode;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _dialCodeController,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.phone_iphone_outlined),
-                          labelText: 'Dial code',
-                          helperText:
-                              'You can edit this if your country code differs.',
-                          errorText: _dialErrorText(),
-                        ),
-                        onTap: () => _markDialTouched(),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          prefixText: _dialCodeController.text.isEmpty
-                              ? null
-                              : '${_dialCodeController.text} ',
-                          labelText: 'Phone number',
-                          helperText:
-                              'SMS rates may apply. We only use this to secure your account.',
-                          errorText: _phoneErrorText(),
-                        ),
-                        onTap: () => _markPhoneTouched(),
-                        onChanged: (_) => _markPhoneTouched(),
-                      ),
-                      const SizedBox(height: 24),
-                      OnboardingNavButtons(
-                        onBack: isLoading
-                            ? null
-                            : () {
-                                if (Navigator.canPop(context)) {
-                                  Navigator.pop(context);
-                                } else {
-                                  context.go(CrushRoutes.authGateway);
+                              items: _countries
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c,
+                                      child: Text(
+                                        '${c.flag} ${c.name} (${c.dialCode})',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              selectedItemBuilder: (context) => _countries
+                                  .map(
+                                    (c) => Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        '${c.flag} ${c.name} (${c.dialCode})',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedCountry = value;
+                                    _dialCodeController.text = value.dialCode;
+                                  });
                                 }
                               },
-                        onNext: isLoading || !_canSubmitPhone()
-                            ? null
-                            : () {
-                                setState(() {
-                                  _submitted = true;
-                                  _phoneTouched = true;
-                                  _dialTouched = true;
-                                });
-                                final dialError = _dialErrorText();
-                                final phoneError = _phoneErrorText();
-                                if (dialError != null || phoneError != null) {
-                                  showErrorSnackBar(
-                                    context,
-                                    dialError ?? phoneError!,
-                                  );
-                                  return;
-                                }
-                                final normalized =
-                                    '${_normalizedDialCode()}${_digitsOnly(_phoneController.text)}';
-                                context
-                                    .read<AuthBloc>()
-                                    .add(AuthPhoneSubmitted(normalized));
-                              },
-                        nextLoading: isLoading,
-                      ),
-                      Semantics(
-                        button: true,
-                        label: 'Use email instead',
-                        child: GlassSmallButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => context.go(CrushRoutes.emailAuth),
-                          child: const Text('Use email instead'),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _dialCodeController,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  Icons.phone_iphone_outlined,
+                                ),
+                                labelText: 'Dial code',
+                                helperText:
+                                    'You can edit this if your country code differs.',
+                                errorText: _dialErrorText(),
+                              ),
+                              onTap: () => _markDialTouched(),
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                prefixText: _dialCodeController.text.isEmpty
+                                    ? null
+                                    : '${_dialCodeController.text} ',
+                                labelText: 'Phone number',
+                                helperText:
+                                    'SMS rates may apply. We only use this to secure your account.',
+                                errorText: _phoneErrorText(),
+                              ),
+                              onTap: () => _markPhoneTouched(),
+                              onChanged: (_) => _markPhoneTouched(),
+                            ),
+                            const SizedBox(height: 24),
+                            OnboardingNavButtons(
+                              onBack: isLoading
+                                  ? null
+                                  : () {
+                                      if (Navigator.canPop(context)) {
+                                        Navigator.pop(context);
+                                      } else {
+                                        context.go(CrushRoutes.authGateway);
+                                      }
+                                    },
+                              onNext: isLoading || !_canSubmitPhone()
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _submitted = true;
+                                        _phoneTouched = true;
+                                        _dialTouched = true;
+                                      });
+                                      final dialError = _dialErrorText();
+                                      final phoneError = _phoneErrorText();
+                                      if (dialError != null ||
+                                          phoneError != null) {
+                                        showErrorSnackBar(
+                                          context,
+                                          dialError ?? phoneError!,
+                                        );
+                                        return;
+                                      }
+                                      final normalized =
+                                          '${_normalizedDialCode()}${_digitsOnly(_phoneController.text)}';
+                                      context.read<AuthBloc>().add(
+                                        AuthPhoneSubmitted(normalized),
+                                      );
+                                    },
+                              nextLoading: isLoading,
+                            ),
+                            Semantics(
+                              button: true,
+                              label: 'Use email instead',
+                              child: GlassSmallButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () => context.go(CrushRoutes.emailAuth),
+                                child: const Text('Use email instead'),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      if (isLoading)
+                        const Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: DsColors.overlayLight,
+                            ),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        ),
                     ],
-                  ),
-                ),
-                if (isLoading)
-                  const Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: DsColors.overlayLight,
-                      ),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -228,8 +239,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   void _onPhoneChanged() => setState(() {});
 
   void _onDialCodeChanged() => setState(() {
-        _dialTouched = true;
-      });
+    _dialTouched = true;
+  });
 
   void _markPhoneTouched() {
     if (!_phoneTouched) {
@@ -339,7 +350,10 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Botswana', dialCode: '+267', flag: '🇧🇼'),
   _CountryCode(name: 'Brazil', dialCode: '+55', flag: '🇧🇷'),
   _CountryCode(
-      name: 'British Indian Ocean Territory', dialCode: '+246', flag: '🇮🇴'),
+    name: 'British Indian Ocean Territory',
+    dialCode: '+246',
+    flag: '🇮🇴',
+  ),
   _CountryCode(name: 'British Virgin Islands', dialCode: '+1284', flag: '🇻🇬'),
   _CountryCode(name: 'Brunei', dialCode: '+673', flag: '🇧🇳'),
   _CountryCode(name: 'Bulgaria', dialCode: '+359', flag: '🇧🇬'),
@@ -351,7 +365,10 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Cape Verde', dialCode: '+238', flag: '🇨🇻'),
   _CountryCode(name: 'Cayman Islands', dialCode: '+1345', flag: '🇰🇾'),
   _CountryCode(
-      name: 'Central African Republic', dialCode: '+236', flag: '🇨🇫'),
+    name: 'Central African Republic',
+    dialCode: '+236',
+    flag: '🇨🇫',
+  ),
   _CountryCode(name: 'Chad', dialCode: '+235', flag: '🇹🇩'),
   _CountryCode(name: 'Chile', dialCode: '+56', flag: '🇨🇱'),
   _CountryCode(name: 'China', dialCode: '+86', flag: '🇨🇳'),
@@ -368,7 +385,10 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Cyprus', dialCode: '+357', flag: '🇨🇾'),
   _CountryCode(name: 'Czech Republic', dialCode: '+420', flag: '🇨🇿'),
   _CountryCode(
-      name: 'Democratic Republic of the Congo', dialCode: '+243', flag: '🇨🇩'),
+    name: 'Democratic Republic of the Congo',
+    dialCode: '+243',
+    flag: '🇨🇩',
+  ),
   _CountryCode(name: 'Denmark', dialCode: '+45', flag: '🇩🇰'),
   _CountryCode(name: 'Djibouti', dialCode: '+253', flag: '🇩🇯'),
   _CountryCode(name: 'Dominica', dialCode: '+1767', flag: '🇩🇲'),
@@ -470,7 +490,10 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'North Korea', dialCode: '+850', flag: '🇰🇵'),
   _CountryCode(name: 'North Macedonia', dialCode: '+389', flag: '🇲🇰'),
   _CountryCode(
-      name: 'Northern Mariana Islands', dialCode: '+1670', flag: '🇲🇵'),
+    name: 'Northern Mariana Islands',
+    dialCode: '+1670',
+    flag: '🇲🇵',
+  ),
   _CountryCode(name: 'Norway', dialCode: '+47', flag: '🇳🇴'),
   _CountryCode(name: 'Oman', dialCode: '+968', flag: '🇴🇲'),
   _CountryCode(name: 'Pakistan', dialCode: '+92', flag: '🇵🇰'),
@@ -496,11 +519,15 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Saint Lucia', dialCode: '+1758', flag: '🇱🇨'),
   _CountryCode(name: 'Saint Martin', dialCode: '+590', flag: '🇲🇫'),
   _CountryCode(
-      name: 'Saint Pierre and Miquelon', dialCode: '+508', flag: '🇵🇲'),
+    name: 'Saint Pierre and Miquelon',
+    dialCode: '+508',
+    flag: '🇵🇲',
+  ),
   _CountryCode(
-      name: 'Saint Vincent and the Grenadines',
-      dialCode: '+1784',
-      flag: '🇻🇨'),
+    name: 'Saint Vincent and the Grenadines',
+    dialCode: '+1784',
+    flag: '🇻🇨',
+  ),
   _CountryCode(name: 'Samoa', dialCode: '+685', flag: '🇼🇸'),
   _CountryCode(name: 'San Marino', dialCode: '+378', flag: '🇸🇲'),
   _CountryCode(name: 'Sao Tome and Principe', dialCode: '+239', flag: '🇸🇹'),
@@ -538,7 +565,10 @@ const _countries = <_CountryCode>[
   _CountryCode(name: 'Turkey', dialCode: '+90', flag: '🇹🇷'),
   _CountryCode(name: 'Turkmenistan', dialCode: '+993', flag: '🇹🇲'),
   _CountryCode(
-      name: 'Turks and Caicos Islands', dialCode: '+1649', flag: '🇹🇨'),
+    name: 'Turks and Caicos Islands',
+    dialCode: '+1649',
+    flag: '🇹🇨',
+  ),
   _CountryCode(name: 'Tuvalu', dialCode: '+688', flag: '🇹🇻'),
   _CountryCode(name: 'Uganda', dialCode: '+256', flag: '🇺🇬'),
   _CountryCode(name: 'Ukraine', dialCode: '+380', flag: '🇺🇦'),

@@ -181,8 +181,9 @@ class FeatureFlagService {
       final oldValue = _remoteFlags[entry.key];
       if (oldValue != entry.value) {
         _remoteFlags[entry.key] = entry.value;
-        final flag =
-            FeatureFlag.values.where((f) => f.key == entry.key).firstOrNull;
+        final flag = FeatureFlag.values
+            .where((f) => f.key == entry.key)
+            .firstOrNull;
         if (flag != null) {
           _flagChangeController.add(flag);
         }
@@ -196,8 +197,9 @@ class FeatureFlagService {
       final oldValue = _userFlags[entry.key];
       if (oldValue != entry.value) {
         _userFlags[entry.key] = entry.value;
-        final flag =
-            FeatureFlag.values.where((f) => f.key == entry.key).firstOrNull;
+        final flag = FeatureFlag.values
+            .where((f) => f.key == entry.key)
+            .firstOrNull;
         if (flag != null) {
           _flagChangeController.add(flag);
         }

@@ -9,6 +9,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'mock/firebase_mock.dart';
+import 'mock/noop_auth_repository.dart';
 import 'mock/stub_analytics_service.dart';
 
 void main() {
@@ -26,6 +27,7 @@ void main() {
     group('Initial State', () {
       test('has free plan by default', () {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -42,6 +44,7 @@ void main() {
       test('starts watching plan updates', () async {
         final planController = StreamController<SubscriptionPlan>.broadcast();
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             planStreamController: planController,
           ),
@@ -69,6 +72,7 @@ void main() {
     group('PlusCheckoutRequested', () {
       test('starts checkout and launches URL', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -90,6 +94,7 @@ void main() {
 
       test('handles checkout failure', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             shouldFailCheckout: true,
           ),
@@ -111,6 +116,7 @@ void main() {
 
       test('handles launch URL failure', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             shouldFailLaunch: true,
           ),
@@ -134,6 +140,7 @@ void main() {
     group('SubscriptionPlanUpdated', () {
       test('updates plan in state', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -152,6 +159,7 @@ void main() {
 
       test('clears checkout progress on plan update', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -178,6 +186,7 @@ void main() {
     group('SubscriptionRestoreRequested', () {
       test('restores subscription status', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             statusToRestore: SubscriptionStatus(
               plan: SubscriptionPlan.plus,
@@ -206,6 +215,7 @@ void main() {
 
       test('handles restore failure', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             shouldFailRestore: true,
           ),
@@ -230,6 +240,7 @@ void main() {
       test('updates full subscription status', () async {
         final nextRenewal = DateTime(2025, 12, 31);
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -256,6 +267,7 @@ void main() {
 
       test('handles cancel at period end', () async {
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
@@ -282,6 +294,7 @@ void main() {
       test('cancels subscription on close', () async {
         final planController = StreamController<SubscriptionPlan>.broadcast();
         final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             planStreamController: planController,
           ),

@@ -86,18 +86,17 @@ class ProfanityFilter {
 
   static RegExp _buildPattern() {
     // Escape special regex characters and join with word boundaries
-    final escaped = _banned.map((word) {
-      // Handle multi-word phrases
-      if (word.contains(' ')) {
-        return word.split(' ').map(RegExp.escape).join(r'\s+');
-      }
-      return RegExp.escape(word);
-    }).join('|');
+    final escaped = _banned
+        .map((word) {
+          // Handle multi-word phrases
+          if (word.contains(' ')) {
+            return word.split(' ').map(RegExp.escape).join(r'\s+');
+          }
+          return RegExp.escape(word);
+        })
+        .join('|');
 
-    return RegExp(
-      r'\b(' + escaped + r')\b',
-      caseSensitive: false,
-    );
+    return RegExp(r'\b(' + escaped + r')\b', caseSensitive: false);
   }
 
   /// Checks if the given text contains any profanity.

@@ -7,7 +7,7 @@ class ResetVerificationUseCase extends UseCase<void, NoParams> {
   final PhotoVerificationService _service;
 
   ResetVerificationUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   Future<Result<void>> call(NoParams params) {

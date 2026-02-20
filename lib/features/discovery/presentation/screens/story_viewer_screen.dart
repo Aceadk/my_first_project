@@ -1,23 +1,24 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/profile_story.dart';
+import 'package:crushhour/design_system/tokens/blur.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/radius.dart';
+import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/profile_story.dart';
-import 'package:crushhour/shared/widgets/cached_network_image.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/radius.dart';
-import 'package:crushhour/design_system/tokens/spacing.dart';
-import 'package:crushhour/design_system/tokens/blur.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
-import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
-import 'package:crushhour/core/router.dart';
 
 class StoryViewerArgs {
   const StoryViewerArgs({
@@ -110,7 +111,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     final story = widget.stories[_currentIndex];
 
     // Mark as viewed
-    StoryService.instance.viewStory(
+    context.read<StoryRepository>().viewStory(
       storyId: story.id,
       viewerId: 'current_user', // Replace with actual user ID
     );
@@ -247,9 +248,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
       // Find a mutual match with the story owner
       final existingMatch = matches.cast<dynamic>().firstWhere(
-            (match) => match.otherUserId == storyOwnerId && match.isMutual,
-            orElse: () => null,
-          );
+        (match) => match.otherUserId == storyOwnerId && match.isMutual,
+        orElse: () => null,
+      );
 
       if (!mounted) return;
 
@@ -269,7 +270,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         // No mutual match exists - inform user
         _resume();
         _showSnackBarMessage(
-            'Match with ${widget.profile.publicDisplayName} first to send messages');
+          'Match with ${widget.profile.publicDisplayName} first to send messages',
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -294,106 +296,113 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
     return Scaffold(
       backgroundColor: DsColors.ink900,
-      body: GestureDetector(
-        onTapDown: (_) => _pause(),
-        onTapUp: (details) {
-          _resume();
-
-          // Determine tap zone
-          final width = MediaQuery.of(context).size.width;
-          final x = details.globalPosition.dx;
-
-          if (x < width / 3) {
-            _goToPreviousStory();
-          } else if (x > width * 2 / 3) {
-            _goToNextStory();
-          }
-        },
-        onLongPressStart: (_) => _pause(),
-        onLongPressEnd: (_) => _resume(),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Story content
-            story.isVideo
-                ? _buildVideoContent()
-                : CachedNetworkImage(
-                    imageUrl: story.mediaUrl,
-                    fit: BoxFit.cover,
-                    placeholder: _buildLoading(),
-                    errorWidget: _buildError(),
-                  ),
-
-            // Top gradient
-            IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.center,
-                    colors: [
-                      DsColors.ink900.withValues(alpha: 0.6),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.4],
-                  ),
-                ),
-              ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: DsBreakpoints.responsiveValue<double>(
+              MediaQuery.of(context).size.width,
+              mobile: double.infinity,
+              tablet: 480,
+              desktop: 480,
             ),
+          ),
+          child: GestureDetector(
+            onTapDown: (_) => _pause(),
+            onTapUp: (details) {
+              _resume();
 
-            // Bottom gradient
-            IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.center,
-                    colors: [
-                      DsColors.ink900.withValues(alpha: 0.4),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.3],
+              // Determine tap zone
+              final width = MediaQuery.of(context).size.width;
+              final x = details.globalPosition.dx;
+
+              if (x < width / 3) {
+                _goToPreviousStory();
+              } else if (x > width * 2 / 3) {
+                _goToNextStory();
+              }
+            },
+            onLongPressStart: (_) => _pause(),
+            onLongPressEnd: (_) => _resume(),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Story content
+                story.isVideo
+                    ? _buildVideoContent()
+                    : CachedNetworkImage(
+                        imageUrl: story.mediaUrl,
+                        fit: BoxFit.cover,
+                        placeholder: _buildLoading(),
+                        errorWidget: _buildError(),
+                      ),
+
+                // Top gradient
+                IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.center,
+                        colors: [
+                          DsColors.ink900.withValues(alpha: 0.6),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.4],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
 
-            // Progress indicators
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DsSpacing.md,
-                  vertical: DsSpacing.sm,
+                // Bottom gradient
+                IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.center,
+                        colors: [
+                          DsColors.ink900.withValues(alpha: 0.4),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.3],
+                      ),
+                    ),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Progress bars
-                    _buildProgressIndicators(),
-                    const SizedBox(height: DsSpacing.md),
-                    // User info and close button
-                    _buildHeader(),
-                  ],
+
+                // Progress indicators
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DsSpacing.md,
+                      vertical: DsSpacing.sm,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Progress bars
+                        _buildProgressIndicators(),
+                        const SizedBox(height: DsSpacing.md),
+                        // User info and close button
+                        _buildHeader(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
 
-            // Story info (bottom)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                child: _buildStoryInfo(story),
-              ),
-            ),
+                // Story info (bottom)
+                PositionedDirectional(
+                  start: 0,
+                  end: 0,
+                  bottom: 0,
+                  child: SafeArea(child: _buildStoryInfo(story)),
+                ),
 
-            // Pause indicator
-            if (_isPaused)
-              Center(
-                child: _buildPauseIndicator(),
-              ),
-          ],
+                // Pause indicator
+                if (_isPaused) Center(child: _buildPauseIndicator()),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -417,8 +426,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             return Expanded(
               child: Container(
                 height: 2.5,
-                margin: EdgeInsets.only(
-                  right: index < widget.stories.length - 1 ? 4 : 0,
+                margin: EdgeInsetsDirectional.only(
+                  end: index < widget.stories.length - 1 ? 4 : 0,
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(2),
@@ -464,8 +473,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   )
                 : Container(
                     color: DsColors.ink300,
-                    child:
-                        const Icon(Icons.person, color: DsColors.surfaceLight),
+                    child: const Icon(
+                      Icons.person,
+                      color: DsColors.surfaceLight,
+                    ),
                   ),
           ),
         ),
@@ -526,10 +537,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   Widget _buildStoryInfo(ProfileStory story) {
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: const EdgeInsets.all(DsSpacing.lg),
           decoration: BoxDecoration(

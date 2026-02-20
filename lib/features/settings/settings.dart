@@ -29,3 +29,4 @@ export 'presentation/screens/account_security_settings_screen.dart';
 export 'presentation/screens/account_actions_settings_screen.dart';
 export 'presentation/screens/privacy_settings_screen.dart';
 export 'presentation/screens/chat_settings_screen.dart';
+export 'presentation/screens/subscription_settings_screen.dart';

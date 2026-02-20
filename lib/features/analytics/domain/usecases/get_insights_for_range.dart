@@ -23,7 +23,7 @@ class GetInsightsForRangeUseCase
   final ProfileInsightsService _service;
 
   GetInsightsForRangeUseCase([ProfileInsightsService? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   String? validate(GetInsightsForRangeParams params) {

@@ -21,7 +21,7 @@ class InviteToQuizUseCase extends UseCase<void, InviteToQuizParams>
   final CompatibilityQuizService _service;
 
   InviteToQuizUseCase([CompatibilityQuizService? service])
-      : _service = service ?? CompatibilityQuizService.instance;
+    : _service = service ?? CompatibilityQuizService.instance;
 
   @override
   String? validate(InviteToQuizParams params) {

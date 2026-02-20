@@ -69,13 +69,13 @@ class MatchesState extends Equatable {
 
   @override
   List<Object?> get props => [
-        matches,
-        isLoading,
-        isLoadingMore,
-        hasMore,
-        total,
-        errorMessage,
-        status,
-        nextRetrySeconds,
-      ];
+    matches,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    total,
+    errorMessage,
+    status,
+    nextRetrySeconds,
+  ];
 }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
-import 'package:crushhour/features/social/data/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 
 /// Screen displaying date ideas for matches.
 class DateIdeasScreen extends StatefulWidget {
@@ -26,8 +26,9 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -56,15 +57,17 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                color: isDark
+                    ? DsColors.backgroundDark
+                    : DsColors.backgroundLight,
               ),
               child: const Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration:
-                          BoxDecoration(gradient: DsGradients.meshRadial),
+                      decoration: BoxDecoration(
+                        gradient: DsGradients.meshRadial,
+                      ),
                     ),
                   ),
                 ],
@@ -156,17 +159,17 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                                         .filterByCostLevel(null);
                                   },
                                 ),
-                                ...DateCostLevel.values
-                                    .map((cost) => _buildCostChip(
-                                          cost: cost,
-                                          isSelected:
-                                              state.selectedCostLevel == cost,
-                                          onTap: () {
-                                            context
-                                                .read<DateIdeasCubit>()
-                                                .filterByCostLevel(cost);
-                                          },
-                                        )),
+                                ...DateCostLevel.values.map(
+                                  (cost) => _buildCostChip(
+                                    cost: cost,
+                                    isSelected: state.selectedCostLevel == cost,
+                                    onTap: () {
+                                      context
+                                          .read<DateIdeasCubit>()
+                                          .filterByCostLevel(cost);
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -194,11 +197,14 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
 
                       return ListView.builder(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: DsSpacing.lg),
+                          horizontal: DsSpacing.lg,
+                        ),
                         itemCount: state.filteredIdeas.length,
                         itemBuilder: (context, index) {
                           return _buildIdeaCard(
-                              state.filteredIdeas[index], textColor);
+                            state.filteredIdeas[index],
+                            textColor,
+                          );
                         },
                       );
                     },
@@ -213,9 +219,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildErrorState(Color textColor, String message) {
@@ -223,8 +227,11 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'Something went wrong',
@@ -254,7 +261,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(right: DsSpacing.sm),
+      padding: const EdgeInsetsDirectional.only(end: DsSpacing.sm),
       child: GestureDetector(
         onTap: onTap,
         child: isSelected
@@ -272,7 +279,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
     final label = cost?.display ?? 'Any Budget';
 
     return Padding(
-      padding: const EdgeInsets.only(right: DsSpacing.sm),
+      padding: const EdgeInsetsDirectional.only(end: DsSpacing.sm),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -307,8 +314,11 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'No ideas found',
@@ -333,7 +343,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
         final isSaved = cubit.isIdeaSaved(idea.id);
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: DsSpacing.md),
+          padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.md),
           child: GlassCard(
             onTap: () => _showIdeaDetails(idea, textColor),
             padding: const EdgeInsets.all(DsSpacing.lg),
@@ -405,8 +415,11 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                 DsGap.md,
                 Row(
                   children: [
-                    Icon(Icons.timer,
-                        size: 16, color: textColor.withValues(alpha: 0.6)),
+                    Icon(
+                      Icons.timer,
+                      size: 16,
+                      color: textColor.withValues(alpha: 0.6),
+                    ),
                     DsGap.xsH,
                     Text(
                       idea.durationDisplay,
@@ -417,8 +430,11 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                     ),
                     DsGap.lgH,
                     if (idea.bestFor.isNotEmpty) ...[
-                      Icon(Icons.people,
-                          size: 16, color: textColor.withValues(alpha: 0.6)),
+                      Icon(
+                        Icons.people,
+                        size: 16,
+                        color: textColor.withValues(alpha: 0.6),
+                      ),
                       DsGap.xsH,
                       Text(
                         idea.bestFor.first.displayName,
@@ -443,19 +459,14 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _IdeaDetailsSheet(
-        idea: idea,
-        matchId: widget.matchId,
-      ),
+      builder: (context) =>
+          _IdeaDetailsSheet(idea: idea, matchId: widget.matchId),
     );
   }
 }
 
 class _IdeaDetailsSheet extends StatelessWidget {
-  const _IdeaDetailsSheet({
-    required this.idea,
-    required this.matchId,
-  });
+  const _IdeaDetailsSheet({required this.idea, required this.matchId});
 
   final DateIdea idea;
   final String? matchId;
@@ -463,16 +474,18 @@ class _IdeaDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       child: ClipRRect(
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(DsRadius.xxl)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(DsRadius.xxl),
+        ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
@@ -482,14 +495,15 @@ class _IdeaDetailsSheet extends StatelessWidget {
                 strength: DsGlassSurfaceStrength.heavy,
               ),
               borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(DsRadius.xxl)),
+                top: Radius.circular(DsRadius.xxl),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Handle
                 Container(
-                  margin: const EdgeInsets.only(top: DsSpacing.md),
+                  margin: const EdgeInsetsDirectional.only(top: DsSpacing.md),
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
@@ -508,8 +522,10 @@ class _IdeaDetailsSheet extends StatelessWidget {
                         // Header
                         Row(
                           children: [
-                            Text(idea.emoji,
-                                style: const TextStyle(fontSize: 48)),
+                            Text(
+                              idea.emoji,
+                              style: const TextStyle(fontSize: 48),
+                            ),
                             DsGap.lgH,
                             Expanded(
                               child: Column(
@@ -527,7 +543,8 @@ class _IdeaDetailsSheet extends StatelessWidget {
                                   Row(
                                     children: [
                                       GlassChip(
-                                          label: idea.category.displayName),
+                                        label: idea.category.displayName,
+                                      ),
                                       DsGap.smH,
                                       if (idea.estimatedCost != null)
                                         GlassChip(label: idea.costDisplay),
@@ -620,8 +637,9 @@ class _IdeaDetailsSheet extends StatelessWidget {
                                     onPressed: () {
                                       cubit.saveIdea(idea);
                                       Navigator.pop(context);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
                                           content: Text('Saved to your ideas!'),
                                           backgroundColor: DsColors.primary,
@@ -650,8 +668,9 @@ class _IdeaDetailsSheet extends StatelessWidget {
                                         );
                                         if (!context.mounted) return;
                                         Navigator.pop(context);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
                                             content: Text('Idea sent!'),
                                             backgroundColor: DsColors.primary,
@@ -694,7 +713,7 @@ class _IdeaDetailsSheet extends StatelessWidget {
     required Color textColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: DsSpacing.md),
+      padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.md),
       child: Row(
         children: [
           Icon(icon, size: 20, color: DsColors.primary),
@@ -706,10 +725,7 @@ class _IdeaDetailsSheet extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
           ),
         ],
       ),

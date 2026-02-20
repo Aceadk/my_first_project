@@ -21,7 +21,7 @@ class ProfileCompletenessMeter extends StatelessWidget {
     final missing = summary.missing.take(3).toList();
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsetsDirectional.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -54,8 +54,9 @@ class ProfileCompletenessMeter extends StatelessWidget {
               Text(
                 'Complete these to unlock messaging and swiping:',
                 style: TextStyle(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -66,8 +67,9 @@ class ProfileCompletenessMeter extends StatelessWidget {
                     .map(
                       (m) => Chip(
                         label: Text(m),
-                        backgroundColor: DsColors.warning
-                            .withValues(alpha: isDark ? 0.18 : 0.12),
+                        backgroundColor: DsColors.warning.withValues(
+                          alpha: isDark ? 0.18 : 0.12,
+                        ),
                       ),
                     )
                     .toList(),
@@ -80,7 +82,8 @@ class ProfileCompletenessMeter extends StatelessWidget {
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.edit),
                   label: Text(
-                      missing.isEmpty ? 'Review profile' : 'Finish profile'),
+                    missing.isEmpty ? 'Review profile' : 'Finish profile',
+                  ),
                   onPressed: onAction,
                 ),
               ),

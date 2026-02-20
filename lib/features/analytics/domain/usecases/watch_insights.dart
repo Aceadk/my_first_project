@@ -7,7 +7,7 @@ class WatchInsightsUseCase extends StreamUseCase<ProfileInsights, NoParams> {
   final ProfileInsightsService _service;
 
   WatchInsightsUseCase([ProfileInsightsService? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   Stream<ProfileInsights> call(NoParams params) {

@@ -56,17 +56,21 @@ class _DeckCardStackState extends State<DeckCardStack> {
     }
 
     // Next 2 cards - high priority
-    for (var i = currentIndex + 1;
-        i <= currentIndex + 2 && i < deck.length;
-        i++) {
+    for (
+      var i = currentIndex + 1;
+      i <= currentIndex + 2 && i < deck.length;
+      i++
+    ) {
       final url = deck[i].displayPhotoUrl;
       if (url != null) highPriorityUrls.add(url);
     }
 
     // Preview cards (3-4) - low priority
-    for (var i = currentIndex + 3;
-        i <= currentIndex + 4 && i < deck.length;
-        i++) {
+    for (
+      var i = currentIndex + 3;
+      i <= currentIndex + 4 && i < deck.length;
+      i++
+    ) {
       final url = deck[i].displayPhotoUrl;
       if (url != null) lowPriorityUrls.add(url);
     }
@@ -172,10 +176,7 @@ class DeckPreviewStack extends StatelessWidget {
 }
 
 class _PreviewCard extends StatelessWidget {
-  const _PreviewCard({
-    required this.profile,
-    required this.opacity,
-  });
+  const _PreviewCard({required this.profile, required this.opacity});
 
   final Profile profile;
   final double opacity;
@@ -231,9 +232,10 @@ class _PreviewCardShimmerState extends State<_PreviewCardShimmer>
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -246,8 +248,9 @@ class _PreviewCardShimmerState extends State<_PreviewCardShimmer>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark ? DsColors.skeletonDark : DsColors.skeletonLight;
-    final highlightColor =
-        isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight;
+    final highlightColor = isDark
+        ? DsColors.surfaceElevatedDark
+        : DsColors.surfaceElevatedLight;
 
     return AnimatedBuilder(
       animation: _animation,

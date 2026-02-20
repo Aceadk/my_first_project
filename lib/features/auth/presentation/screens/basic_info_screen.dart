@@ -3,6 +3,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
@@ -62,6 +63,18 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    // Log onboarding step 3: basic_info
+    AnalyticsService.instance.logOnboardingStep(
+      step: 'basic_info',
+      stepNumber: 3,
+      totalSteps: 6,
+    );
+  }
+
+  @override
   void dispose() {
     _usernameController.dispose();
     _firstNameController.dispose();
@@ -100,7 +113,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             listener: (context, state) {
               // Debug logging
               AppLogger.debug(
-                  '[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}');
+                '[BasicInfo] Listener triggered: isSaving=${state.isSaving}, _isSubmitting=$_isSubmitting, hasUser=${state.user != null}, hasCompletedBasicInfo=${state.user?.hasCompletedBasicInfo}, error=${state.errorMessage}',
+              );
 
               // Navigate when our save completes successfully (no error)
               if (_isSubmitting && !state.isSaving) {
@@ -108,7 +122,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
 
                 if (state.errorMessage == null) {
                   AppLogger.debug(
-                      '[BasicInfo] Save successful, navigating to idVerification');
+                    '[BasicInfo] Save successful, navigating to idVerification',
+                  );
                   context.read<AuthBloc>().add(AuthUserRefreshRequested());
                   if (context.canPop()) {
                     context.pop();
@@ -142,268 +157,366 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               }
 
               final isBusy = state.isSaving;
-              return Stack(
-                children: [
-                  AbsorbPointer(
-                    absorbing: isBusy,
-                    child: Column(
-                      children: [
-                        // Custom App Bar
-                        Padding(
-                          padding: DsEdgeInsets.horizontalXxl.copyWith(
-                            top: DsSpacing.md,
-                          ),
-                          child: Row(
-                            children: [
-                              GlassIconButton(
-                                icon: Icons.arrow_back_ios_new_rounded,
-                                onPressed: isBusy ? null : _goBack,
-                                size: 40,
-                              ),
-                              const Spacer(),
-                              Text(
-                                'Basic Info',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? DsColors.textPrimaryDark
-                                          : DsColors.textPrimaryLight,
-                                    ),
-                              ),
-                              const Spacer(),
-                              // Spacer for layout balance
-                              const SizedBox(width: 40),
-                            ],
-                          ),
-                        ),
-                        DsGap.lg,
-                        // Progress Indicator
-                        Padding(
-                          padding: DsEdgeInsets.horizontalXxl,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Step 3 of 5',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: DsColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                  Text(
-                                    'Tell us about you',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: isDark
-                                              ? DsColors.textMutedDark
-                                              : DsColors.textMutedLight,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                              DsGap.sm,
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: 0.6,
-                                  minHeight: 6,
-                                  backgroundColor: isDark
-                                      ? DsColors.surfaceDark
-                                      : DsColors.skeletonLight,
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                          DsColors.primary),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        DsGap.xl,
-                        // Form Content
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: DsEdgeInsets.horizontalXxl,
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxWidth = DsBreakpoints.responsiveValue<double>(
+                    constraints.maxWidth,
+                    mobile: double.infinity,
+                    tablet: 480,
+                    desktop: 480,
+                  );
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: Stack(
+                        children: [
+                          AbsorbPointer(
+                            absorbing: isBusy,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Username Field
-                                _buildSectionLabel(
-                                    context, 'Username', isDark, true),
-                                DsGap.sm,
-                                GlassTextField(
-                                  controller: _usernameController,
-                                  hintText: 'Choose a unique username',
-                                  prefixIcon: Icons.alternate_email_rounded,
-                                  errorText: _usernameErrorText(),
-                                  onChanged: (value) {
-                                    _markUsernameTouched();
-                                    setState(() {});
-                                  },
-                                ),
-                                if (_usernameErrorText() == null)
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(top: 6, left: 12),
-                                    child: Text(
-                                      '3-20 characters, letters, numbers, or underscore',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: isDark
-                                                ? DsColors.textMutedDark
-                                                : DsColors.textMutedLight,
-                                            fontSize: 11,
-                                          ),
-                                    ),
+                                // Custom App Bar
+                                Padding(
+                                  padding: DsEdgeInsets.horizontalXxl.copyWith(
+                                    top: DsSpacing.md,
                                   ),
-                                DsGap.lg,
-                                // First Name Field
-                                _buildSectionLabel(
-                                    context, 'Your First Name', isDark, false),
-                                DsGap.sm,
-                                GlassTextField(
-                                  controller: _firstNameController,
-                                  hintText: 'Enter your first name',
-                                  prefixIcon: Icons.person_outline_rounded,
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                                DsGap.lg,
-                                // Last Name Field
-                                _buildSectionLabel(
-                                    context, 'Last Name', isDark, false),
-                                DsGap.sm,
-                                GlassTextField(
-                                  controller: _lastNameController,
-                                  hintText: 'Enter your last name (optional)',
-                                  prefixIcon: Icons.badge_outlined,
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                                DsGap.lg,
-                                // Birthdate Field
-                                _buildSectionLabel(
-                                    context, 'Date of Birth', isDark, true),
-                                DsGap.sm,
-                                _buildBirthdatePicker(context, isDark),
-                                DsGap.xl,
-                                // Gender Selection
-                                _buildSectionLabel(
-                                    context, 'Gender', isDark, true),
-                                DsGap.sm,
-                                Row(
-                                  children: _genderOptions
-                                      .map((option) => Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                right: option !=
-                                                        _genderOptions.last
-                                                    ? 10
-                                                    : 0,
-                                              ),
-                                              child: _buildGenderTile(
-                                                context,
-                                                option['value'] as String,
-                                                option['label'] as String,
-                                                option['icon'] as IconData,
-                                                isDark,
-                                              ),
-                                            ),
-                                          ))
-                                      .toList(),
-                                ),
-                                DsGap.xl,
-                                // Sexual Orientation
-                                _buildSectionLabel(context,
-                                    'Sexual Orientation', isDark, false),
-                                DsGap.sm,
-                                _buildOrientationSelector(context, isDark),
-                                DsGap.xxl,
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Bottom Button Area
-                        Container(
-                          padding: DsEdgeInsets.allXxl.copyWith(
-                            bottom: DsSpacing.xl,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                (isDark
-                                        ? DsColors.backgroundDark
-                                        : DsColors.backgroundLight)
-                                    .withValues(alpha: 0),
-                                isDark
-                                    ? DsColors.backgroundDark
-                                    : DsColors.backgroundLight,
-                              ],
-                            ),
-                          ),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: GlassPrimaryButton(
-                              onPressed:
-                                  isBusy ? null : () => _handleNext(context),
-                              child: isBusy
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: DsColors.surfaceLight,
+                                  child: Row(
+                                    children: [
+                                      GlassIconButton(
+                                        icon: Icons.arrow_back_ios_new_rounded,
+                                        onPressed: isBusy ? null : _goBack,
+                                        size: 40,
                                       ),
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      const Spacer(),
+                                      Text(
+                                        'Basic Info',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? DsColors.textPrimaryDark
+                                                  : DsColors.textPrimaryLight,
+                                            ),
+                                      ),
+                                      const Spacer(),
+                                      // Spacer for layout balance
+                                      const SizedBox(width: 40),
+                                    ],
+                                  ),
+                                ),
+                                DsGap.lg,
+                                // Progress Indicator
+                                Padding(
+                                  padding: DsEdgeInsets.horizontalXxl,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Step 3 of 5',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: DsColors.primary,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                          Text(
+                                            'Tell us about you',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: isDark
+                                                      ? DsColors.textMutedDark
+                                                      : DsColors.textMutedLight,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                      DsGap.sm,
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: 0.6,
+                                          minHeight: 6,
+                                          backgroundColor: isDark
+                                              ? DsColors.surfaceDark
+                                              : DsColors.skeletonLight,
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<
+                                                Color
+                                              >(DsColors.primary),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                DsGap.xl,
+                                // Form Content
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    padding: DsEdgeInsets.horizontalXxl,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'Continue',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
+                                        // Username Field
+                                        _buildSectionLabel(
+                                          context,
+                                          'Username',
+                                          isDark,
+                                          true,
+                                        ),
+                                        DsGap.sm,
+                                        GlassTextField(
+                                          controller: _usernameController,
+                                          hintText: 'Choose a unique username',
+                                          prefixIcon:
+                                              Icons.alternate_email_rounded,
+                                          errorText: _usernameErrorText(),
+                                          onChanged: (value) {
+                                            _markUsernameTouched();
+                                            setState(() {});
+                                          },
+                                        ),
+                                        if (_usernameErrorText() == null)
+                                          Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.only(
+                                                  top: 6,
+                                                  start: 12,
+                                                ),
+                                            child: Text(
+                                              '3-20 characters, letters, numbers, or underscore',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: isDark
+                                                        ? DsColors.textMutedDark
+                                                        : DsColors
+                                                              .textMutedLight,
+                                                    fontSize: 11,
+                                                  ),
+                                            ),
+                                          ),
+                                        DsGap.lg,
+                                        // First Name Field
+                                        _buildSectionLabel(
+                                          context,
+                                          'Your First Name',
+                                          isDark,
+                                          false,
+                                        ),
+                                        DsGap.sm,
+                                        GlassTextField(
+                                          controller: _firstNameController,
+                                          hintText: 'Enter your first name',
+                                          prefixIcon:
+                                              Icons.person_outline_rounded,
+                                          onChanged: (_) => setState(() {}),
+                                        ),
+                                        DsGap.lg,
+                                        // Last Name Field
+                                        _buildSectionLabel(
+                                          context,
+                                          'Last Name',
+                                          isDark,
+                                          false,
+                                        ),
+                                        DsGap.sm,
+                                        GlassTextField(
+                                          controller: _lastNameController,
+                                          hintText:
+                                              'Enter your last name (optional)',
+                                          prefixIcon: Icons.badge_outlined,
+                                          onChanged: (_) => setState(() {}),
+                                        ),
+                                        DsGap.lg,
+                                        // Birthdate Field
+                                        _buildSectionLabel(
+                                          context,
+                                          'Date of Birth',
+                                          isDark,
+                                          true,
+                                        ),
+                                        DsGap.sm,
+                                        _buildBirthdatePicker(context, isDark),
+                                        DsGap.xl,
+                                        // Gender Selection
+                                        _buildSectionLabel(
+                                          context,
+                                          'Gender',
+                                          isDark,
+                                          true,
+                                        ),
+                                        DsGap.sm,
+                                        Row(
+                                          children: _genderOptions
+                                              .map(
+                                                (option) => Expanded(
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional.only(
+                                                          end:
+                                                              option !=
+                                                                  _genderOptions
+                                                                      .last
+                                                              ? 10
+                                                              : 0,
+                                                        ),
+                                                    child: _buildGenderTile(
+                                                      context,
+                                                      option['value'] as String,
+                                                      option['label'] as String,
+                                                      option['icon']
+                                                          as IconData,
+                                                      isDark,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                        DsGap.xl,
+                                        // Sexual Orientation
+                                        _buildSectionLabel(
+                                          context,
+                                          'Sexual Orientation',
+                                          isDark,
+                                          false,
+                                        ),
+                                        DsGap.sm,
+                                        _buildOrientationSelector(
+                                          context,
+                                          isDark,
+                                        ),
+                                        DsGap.xs,
+                                        Semantics(
+                                          label:
+                                              'Orientation is optional. You can skip this for now.',
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.only(
+                                                  start: 4,
+                                                ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.info_outline_rounded,
+                                                  size: 14,
+                                                  color: isDark
+                                                      ? DsColors.textMutedDark
+                                                      : DsColors.textMutedLight,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Flexible(
+                                                  child: Text(
+                                                    'Optional — skip for now, add later in Settings',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: isDark
+                                                              ? DsColors
+                                                                    .textMutedDark
+                                                              : DsColors
+                                                                    .textMutedLight,
+                                                          fontSize: 12,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                        SizedBox(width: 8),
-                                        Icon(
-                                          Icons.arrow_forward_rounded,
-                                          size: 20,
-                                        ),
+                                        DsGap.xxl,
                                       ],
                                     ),
+                                  ),
+                                ),
+                                // Bottom Button Area
+                                Container(
+                                  padding: DsEdgeInsets.allXxl.copyWith(
+                                    bottom: DsSpacing.xl,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        (isDark
+                                                ? DsColors.backgroundDark
+                                                : DsColors.backgroundLight)
+                                            .withValues(alpha: 0),
+                                        isDark
+                                            ? DsColors.backgroundDark
+                                            : DsColors.backgroundLight,
+                                      ],
+                                    ),
+                                  ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: GlassPrimaryButton(
+                                      onPressed: isBusy
+                                          ? null
+                                          : () => _handleNext(context),
+                                      child: isBusy
+                                          ? const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: DsColors.surfaceLight,
+                                              ),
+                                            )
+                                          : const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Continue',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.arrow_forward_rounded,
+                                                  size: 20,
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isBusy)
-                    Positioned.fill(
-                      child: Container(
-                        color: DsColors.ink900.withValues(alpha: 0.3),
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: DsColors.primary,
-                          ),
-                        ),
+                          if (isBusy)
+                            Positioned.fill(
+                              child: Container(
+                                color: DsColors.ink900.withValues(alpha: 0.3),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: DsColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
+                  );
+                },
               );
             },
           ),
@@ -413,32 +526,41 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   Widget _buildSectionLabel(
-      BuildContext context, String label, bool isDark, bool isRequired) {
+    BuildContext context,
+    String label,
+    bool isDark,
+    bool isRequired,
+  ) {
     return Row(
       children: [
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? DsColors.textPrimaryDark
-                    : DsColors.textPrimaryLight,
-              ),
+            fontWeight: FontWeight.w600,
+            color: isDark
+                ? DsColors.textPrimaryDark
+                : DsColors.textPrimaryLight,
+          ),
         ),
         if (isRequired)
           Text(
             ' *',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: DsColors.error,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: DsColors.error,
+              fontWeight: FontWeight.w600,
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildGenderTile(BuildContext context, String value, String label,
-      IconData icon, bool isDark) {
+  Widget _buildGenderTile(
+    BuildContext context,
+    String value,
+    String label,
+    IconData icon,
+    bool isDark,
+  ) {
     final isSelected = _gender == value;
 
     return GestureDetector(
@@ -450,8 +572,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
           color: isSelected
               ? DsColors.primary.withValues(alpha: 0.15)
               : (isDark
-                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                  : DsColors.inputFillLight),
+                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                    : DsColors.inputFillLight),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
@@ -474,13 +596,13 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? DsColors.primary
-                        : (isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight),
-                  ),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? DsColors.primary
+                    : (isDark
+                          ? DsColors.textPrimaryDark
+                          : DsColors.textPrimaryLight),
+              ),
             ),
           ],
         ),
@@ -507,7 +629,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         'Sep',
         'Oct',
         'Nov',
-        'Dec'
+        'Dec',
       ];
       displayText =
           '${months[_dateOfBirth!.month - 1]} ${_dateOfBirth!.day}, ${_dateOfBirth!.year}';
@@ -534,10 +656,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 color: hasError
                     ? DsColors.error
                     : (_dateOfBirth != null
-                        ? DsColors.primary
-                        : (isDark
-                            ? DsColors.borderDark
-                            : DsColors.borderLight)),
+                          ? DsColors.primary
+                          : (isDark
+                                ? DsColors.borderDark
+                                : DsColors.borderLight)),
                 width: (_dateOfBirth != null || hasError) ? 2 : 1,
               ),
             ),
@@ -549,31 +671,32 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   color: hasError
                       ? DsColors.error
                       : (_dateOfBirth != null
-                          ? DsColors.primary
-                          : (isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight)),
+                            ? DsColors.primary
+                            : (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     displayText,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: _dateOfBirth != null
-                              ? (isDark
-                                  ? DsColors.textPrimaryDark
-                                  : DsColors.textPrimaryLight)
-                              : (isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight),
-                        ),
+                      color: _dateOfBirth != null
+                          ? (isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight)
+                          : (isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight),
+                    ),
                   ),
                 ),
                 Icon(
                   Icons.calendar_today_rounded,
                   size: 20,
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
               ],
             ),
@@ -581,13 +704,13 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
         ),
         if (hasError)
           Padding(
-            padding: const EdgeInsets.only(top: 6, left: 12),
+            padding: const EdgeInsetsDirectional.only(top: 6, start: 12),
             child: Text(
               errorText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: DsColors.error,
-                    fontSize: 12,
-                  ),
+                color: DsColors.error,
+                fontSize: 12,
+              ),
             ),
           ),
       ],
@@ -616,8 +739,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               primary: DsColors.primary,
               onPrimary: DsColors.surfaceLight,
               surface: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
-              onSurface:
-                  isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+              onSurface: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
             ),
             dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
@@ -668,14 +792,14 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               child: Text(
                 _orientation ?? 'Select orientation (optional)',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _orientation != null
-                          ? (isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight)
-                          : (isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight),
-                    ),
+                  color: _orientation != null
+                      ? (isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight)
+                      : (isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight),
+                ),
               ),
             ),
             Icon(
@@ -706,7 +830,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
           children: [
             // Handle bar
             Container(
-              margin: const EdgeInsets.only(top: 12),
+              margin: const EdgeInsetsDirectional.only(top: 12),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -722,11 +846,11 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   Text(
                     'Sexual Orientation',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? DsColors.textPrimaryDark
+                          : DsColors.textPrimaryLight,
+                    ),
                   ),
                   if (_orientation != null)
                     GestureDetector(
@@ -737,9 +861,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       child: Text(
                         'Clear',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: DsColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          color: DsColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                 ],
@@ -763,21 +887,24 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                       setState(() => _orientation = option);
                       Navigator.pop(context);
                     },
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 4,
+                    ),
                     leading: Container(
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            isSelected ? DsColors.primary : Colors.transparent,
+                        color: isSelected
+                            ? DsColors.primary
+                            : Colors.transparent,
                         border: Border.all(
                           color: isSelected
                               ? DsColors.primary
                               : (isDark
-                                  ? DsColors.borderDark
-                                  : DsColors.borderLight),
+                                    ? DsColors.borderDark
+                                    : DsColors.borderLight),
                           width: 2,
                         ),
                       ),
@@ -792,12 +919,13 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                     title: Text(
                       option,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                   );
                 },
@@ -918,8 +1046,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor:
-              isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
+          backgroundColor: isDark
+              ? DsColors.surfaceDark
+              : DsColors.backgroundLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -934,8 +1063,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
           title: Text(
             'Age Notice',
             style: TextStyle(
-              color:
-                  isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -952,8 +1082,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                foregroundColor:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                foregroundColor: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
               child: const Text('Go Back'),
             ),

@@ -12,12 +12,20 @@ class ChatOpened extends ChatEvent {
   final String currentUserId;
   final String otherUserId;
   final String? otherUserPhotoUrl;
-  ChatOpened(this.matchId, this.currentUserId, this.otherUserId,
-      {this.otherUserPhotoUrl});
+  ChatOpened(
+    this.matchId,
+    this.currentUserId,
+    this.otherUserId, {
+    this.otherUserPhotoUrl,
+  });
 
   @override
-  List<Object?> get props =>
-      [matchId, currentUserId, otherUserId, otherUserPhotoUrl];
+  List<Object?> get props => [
+    matchId,
+    currentUserId,
+    otherUserId,
+    otherUserPhotoUrl,
+  ];
 }
 
 class ChatClosed extends ChatEvent {
@@ -72,10 +80,7 @@ class ChatMessageUnsendRequested extends ChatEvent {
   final String matchId;
   final String messageId;
 
-  ChatMessageUnsendRequested(
-    this.matchId,
-    this.messageId,
-  );
+  ChatMessageUnsendRequested(this.matchId, this.messageId);
 
   @override
   List<Object?> get props => [matchId, messageId];
@@ -102,11 +107,7 @@ class ChatMessageDeleteForMeRequested extends ChatEvent {
   final String messageId;
   final String userId;
 
-  ChatMessageDeleteForMeRequested(
-    this.matchId,
-    this.messageId,
-    this.userId,
-  );
+  ChatMessageDeleteForMeRequested(this.matchId, this.messageId, this.userId);
 
   @override
   List<Object?> get props => [matchId, messageId, userId];
@@ -211,10 +212,7 @@ class ChatUnmatchRequested extends ChatEvent {
   final String matchId;
   final String userId;
 
-  ChatUnmatchRequested({
-    required this.matchId,
-    required this.userId,
-  });
+  ChatUnmatchRequested({required this.matchId, required this.userId});
 
   @override
   List<Object?> get props => [matchId, userId];
@@ -244,13 +242,20 @@ class ChatMessageRetryRequested extends ChatEvent {
   final String matchId;
   final String messageId;
 
-  ChatMessageRetryRequested({
-    required this.matchId,
-    required this.messageId,
-  });
+  ChatMessageRetryRequested({required this.matchId, required this.messageId});
 
   @override
   List<Object?> get props => [matchId, messageId];
+}
+
+/// Discard a failed message (remove from failed queue).
+class ChatMessageDiscardRequested extends ChatEvent {
+  final String messageId;
+
+  ChatMessageDiscardRequested({required this.messageId});
+
+  @override
+  List<Object?> get props => [messageId];
 }
 
 /// Reset chat state on logout.

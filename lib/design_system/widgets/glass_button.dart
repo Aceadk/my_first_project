@@ -1,13 +1,14 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:crushhour/core/services/haptic_service.dart';
+import 'package:flutter/material.dart';
+
+import '../theme/theme_extensions.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
-import '../theme/theme_extensions.dart';
 
 /// A primary button with gradient background and glass shimmer overlay.
 ///
@@ -22,6 +23,7 @@ class GlassPrimaryButton extends StatelessWidget {
     this.isExpanded = false,
     this.height = 52,
     this.borderRadius = DsRadius.round,
+    this.semanticLabel,
   });
 
   final VoidCallback? onPressed;
@@ -31,6 +33,7 @@ class GlassPrimaryButton extends StatelessWidget {
   final bool isExpanded;
   final double height;
   final double borderRadius;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +102,7 @@ class GlassPrimaryButton extends StatelessWidget {
                       ),
                       child: IconTheme(
                         data: const IconThemeData(color: Colors.white),
-                        child: child,
+                        child: FittedBox(fit: BoxFit.scaleDown, child: child),
                       ),
                     ),
             ),
@@ -109,13 +112,10 @@ class GlassPrimaryButton extends StatelessWidget {
     );
 
     if (isExpanded) {
-      buttonContent = SizedBox(
-        width: double.infinity,
-        child: buttonContent,
-      );
+      buttonContent = SizedBox(width: double.infinity, child: buttonContent);
     }
 
-    return Material(
+    Widget result = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: isDisabled
@@ -128,6 +128,18 @@ class GlassPrimaryButton extends StatelessWidget {
         child: buttonContent,
       ),
     );
+
+    if (semanticLabel != null) {
+      result = Semantics(
+        button: true,
+        enabled: !isDisabled,
+        label: isLoading ? 'Loading, $semanticLabel' : semanticLabel,
+        excludeSemantics: true,
+        child: result,
+      );
+    }
+
+    return result;
   }
 }
 
@@ -146,6 +158,7 @@ class GlassOutlinedButton extends StatelessWidget {
     this.isExpanded = false,
     this.height = 52,
     this.borderRadius = DsRadius.round,
+    this.semanticLabel,
   });
 
   final VoidCallback? onPressed;
@@ -157,6 +170,7 @@ class GlassOutlinedButton extends StatelessWidget {
   final bool isExpanded;
   final double height;
   final double borderRadius;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -167,8 +181,9 @@ class GlassOutlinedButton extends StatelessWidget {
 
     final borderClr = borderColor ?? DsGlassColors.borderFor(context);
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     final isDisabled = onPressed == null || isLoading;
 
@@ -205,7 +220,7 @@ class GlassOutlinedButton extends StatelessWidget {
                       ),
                       child: IconTheme(
                         data: IconThemeData(color: textColor),
-                        child: child,
+                        child: FittedBox(fit: BoxFit.scaleDown, child: child),
                       ),
                     ),
             ),
@@ -215,13 +230,10 @@ class GlassOutlinedButton extends StatelessWidget {
     );
 
     if (isExpanded) {
-      buttonContent = SizedBox(
-        width: double.infinity,
-        child: buttonContent,
-      );
+      buttonContent = SizedBox(width: double.infinity, child: buttonContent);
     }
 
-    return Material(
+    Widget result = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: isDisabled
@@ -234,6 +246,18 @@ class GlassOutlinedButton extends StatelessWidget {
         child: buttonContent,
       ),
     );
+
+    if (semanticLabel != null) {
+      result = Semantics(
+        button: true,
+        enabled: !isDisabled,
+        label: isLoading ? 'Loading, $semanticLabel' : semanticLabel,
+        excludeSemantics: true,
+        child: result,
+      );
+    }
+
+    return result;
   }
 }
 
@@ -251,6 +275,7 @@ class GlassIconButton extends StatelessWidget {
     this.backgroundColor,
     this.iconColor,
     this.tooltip,
+    this.semanticLabel,
   });
 
   final VoidCallback? onPressed;
@@ -261,6 +286,7 @@ class GlassIconButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? iconColor;
   final String? tooltip;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +297,8 @@ class GlassIconButton extends StatelessWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
-    final iconClr = iconColor ??
+    final iconClr =
+        iconColor ??
         (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight);
 
     Widget button = ClipOval(
@@ -308,6 +335,17 @@ class GlassIconButton extends StatelessWidget {
       button = Tooltip(message: tooltip!, child: button);
     }
 
+    final label = semanticLabel ?? tooltip;
+    if (label != null) {
+      button = Semantics(
+        button: true,
+        enabled: onPressed != null,
+        label: label,
+        excludeSemantics: true,
+        child: button,
+      );
+    }
+
     return button;
   }
 }
@@ -326,6 +364,7 @@ class GlassActionButton extends StatelessWidget {
     this.iconColor = Colors.white,
     this.tooltip,
     this.showShadow = true,
+    this.semanticLabel,
   });
 
   final VoidCallback? onPressed;
@@ -336,6 +375,7 @@ class GlassActionButton extends StatelessWidget {
   final Color iconColor;
   final String? tooltip;
   final bool showShadow;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -407,6 +447,17 @@ class GlassActionButton extends StatelessWidget {
       button = Tooltip(message: tooltip!, child: button);
     }
 
+    final label = semanticLabel ?? tooltip;
+    if (label != null) {
+      button = Semantics(
+        button: true,
+        enabled: onPressed != null,
+        label: label,
+        excludeSemantics: true,
+        child: button,
+      );
+    }
+
     return button;
   }
 }
@@ -420,6 +471,7 @@ class GlassSmallButton extends StatelessWidget {
     this.blur = DsBlur.subtle,
     this.height = 36,
     this.borderRadius = DsRadius.round,
+    this.semanticLabel,
   });
 
   final VoidCallback? onPressed;
@@ -427,6 +479,7 @@ class GlassSmallButton extends StatelessWidget {
   final double blur;
   final double height;
   final double borderRadius;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -437,10 +490,11 @@ class GlassSmallButton extends StatelessWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
-    return Material(
+    Widget result = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed == null
@@ -471,7 +525,7 @@ class GlassSmallButton extends StatelessWidget {
                   ),
                   child: IconTheme(
                     data: IconThemeData(color: textColor, size: 18),
-                    child: child,
+                    child: FittedBox(fit: BoxFit.scaleDown, child: child),
                   ),
                 ),
               ),
@@ -480,5 +534,17 @@ class GlassSmallButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (semanticLabel != null) {
+      result = Semantics(
+        button: true,
+        enabled: onPressed != null,
+        label: semanticLabel,
+        excludeSemantics: true,
+        child: result,
+      );
+    }
+
+    return result;
   }
 }

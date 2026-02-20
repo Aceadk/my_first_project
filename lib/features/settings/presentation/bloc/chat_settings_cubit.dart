@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crushhour/data/models/chat_settings.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 
 /// State for chat settings
 class ChatSettingsState {
@@ -45,10 +46,9 @@ class ChatSettingsCubit extends Cubit<ChatSettingsState> {
   ChatSettingsCubit({
     required ChatSettings initialSettings,
     required bool isPremium,
-  }) : super(ChatSettingsState(
-          settings: initialSettings,
-          isPremium: isPremium,
-        ));
+  }) : super(
+         ChatSettingsState(settings: initialSettings, isPremium: isPremium),
+       );
 
   /// Toggle extended retention (24 hours instead of 1 hour)
   Future<void> toggleExtendedRetention(bool value) async {
@@ -58,8 +58,9 @@ class ChatSettingsCubit extends Cubit<ChatSettingsState> {
 
     try {
       // Update via Cloud Function
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('updateChatSettings');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'updateChatSettings',
+      );
       await callable.call<void>({'extendedRetention': value});
 
       // Update local state
@@ -72,10 +73,9 @@ class ChatSettingsCubit extends Cubit<ChatSettingsState> {
         enabled: value,
       );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to update settings. Please try again.',
-      ));
+      emit(
+        state.copyWith(isLoading: false, errorMessage: ErrorMessages.generic),
+      );
     }
   }
 

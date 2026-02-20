@@ -15,7 +15,7 @@ class RecordProfileViewUseCase extends UseCase<void, RecordProfileViewParams>
   final ProfileInsightsService _service;
 
   RecordProfileViewUseCase([ProfileInsightsService? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   String? validate(RecordProfileViewParams params) {

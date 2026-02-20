@@ -17,7 +17,7 @@ class GetActivePlansUseCase
   final DatePlanService _service;
 
   GetActivePlansUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(GetActivePlansParams params) {

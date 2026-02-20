@@ -67,7 +67,9 @@ class AnalyticsService {
     }
     if (age != null) {
       await _analytics.setUserProperty(
-          name: 'age_group', value: _ageGroup(age));
+        name: 'age_group',
+        value: _ageGroup(age),
+      );
     }
     if (country != null) {
       await _analytics.setUserProperty(name: 'country', value: country);
@@ -206,10 +208,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'card_viewed',
-      parameters: {
-        'position': position,
-        'view_duration_ms': viewDurationMs,
-      },
+      parameters: {'position': position, 'view_duration_ms': viewDurationMs},
     );
     _log('card_viewed', {'position': position, 'duration': viewDurationMs});
   }
@@ -266,9 +265,7 @@ class AnalyticsService {
   Future<void> logBoostExpired({int? profileViewsGained}) async {
     await _analytics.logEvent(
       name: 'boost_expired',
-      parameters: {
-        'profile_views': ?profileViewsGained,
-      },
+      parameters: {'profile_views': ?profileViewsGained},
     );
     _log('boost_expired', {'profile_views': profileViewsGained});
   }
@@ -485,17 +482,10 @@ class AnalyticsService {
     required double price,
     required String currency,
   }) async {
-    await _analytics.logPurchase(
-      currency: currency,
-      value: price,
-    );
+    await _analytics.logPurchase(currency: currency, value: price);
     await _analytics.logEvent(
       name: 'subscription_purchased',
-      parameters: {
-        'plan': plan,
-        'price': price,
-        'currency': currency,
-      },
+      parameters: {'plan': plan, 'price': price, 'currency': currency},
     );
     _log('subscription_purchased', {'plan': plan, 'price': price});
   }
@@ -608,6 +598,56 @@ class AnalyticsService {
       },
     );
     _log('app_error', {'type': errorType, 'message': errorMessage});
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ERROR RECOVERY EVENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Track when a user taps a retry/recovery action after an error.
+  ///
+  /// [action] — what the user tapped (e.g. "retry", "go_home", "change_filters").
+  /// [screen] — where the error occurred.
+  /// [errorType] — optional category of the original error.
+  Future<void> logErrorRecoveryAction({
+    required String action,
+    required String screen,
+    String? errorType,
+  }) async {
+    await _analytics.logEvent(
+      name: 'error_recovery_action',
+      parameters: {
+        'action': action,
+        'screen': screen,
+        'error_type': ?errorType,
+      },
+    );
+    _log('error_recovery_action', {
+      'action': action,
+      'screen': screen,
+      'error_type': errorType,
+    });
+  }
+
+  /// Track when a retry action succeeded (error was recovered).
+  Future<void> logErrorRecovered({
+    required String screen,
+    required String action,
+  }) async {
+    await _analytics.logEvent(
+      name: 'error_recovered',
+      parameters: {'screen': screen, 'action': action},
+    );
+    _log('error_recovered', {'screen': screen, 'action': action});
+  }
+
+  /// Track when an error boundary catches a rendering error.
+  Future<void> logErrorBoundaryTriggered({required String screen}) async {
+    await _analytics.logEvent(
+      name: 'error_boundary_triggered',
+      parameters: {'screen': screen},
+    );
+    _log('error_boundary_triggered', {'screen': screen});
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

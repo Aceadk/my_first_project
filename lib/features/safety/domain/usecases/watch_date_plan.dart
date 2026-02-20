@@ -7,7 +7,7 @@ class WatchDatePlanUseCase extends StreamUseCase<DatePlan, NoParams> {
   final DatePlanService _service;
 
   WatchDatePlanUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   Stream<DatePlan> call(NoParams params) {

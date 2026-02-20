@@ -79,10 +79,9 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
       _remainingFreeSwipesToday ??= CrushConstants.freeDailySwipeLimit;
 
       if (_remainingFreeSwipesToday! <= 0) {
-        return const Result.success(SwipeRightResult(
-          success: false,
-          remainingSwipes: 0,
-        ));
+        return const Result.success(
+          SwipeRightResult(success: false, remainingSwipes: 0),
+        );
       }
     }
 
@@ -108,10 +107,12 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
       remaining = _remainingFreeSwipesToday;
     }
 
-    return Result.success(SwipeRightResult(
-      match: swipeResult.data,
-      success: true,
-      remainingSwipes: remaining,
-    ));
+    return Result.success(
+      SwipeRightResult(
+        match: swipeResult.data,
+        success: true,
+        remainingSwipes: remaining,
+      ),
+    );
   }
 }

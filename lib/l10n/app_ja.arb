@@ -1,6 +1,5 @@
 {
   "@@locale": "ja",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "キャンセル",
   "commonSave": "保存",
@@ -44,7 +43,6 @@
   "commonUnblock": "ブロック解除",
   "commonMute": "ミュート",
   "commonUnmute": "ミュート解除",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "問題が発生しました。もう一度お試しください。",
   "errorNetwork": "接続エラーです。インターネット接続を確認して再試行してください。",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action}できませんでした。もう一度お試しください。",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature}はPlus機能です。アップグレードしてロック解除！",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "戻る",
   "a11yCloseButton": "閉じる",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name}のプロフィール写真",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "ユーザーアバター",
   "a11yAvatarOf": "{name}のアバター",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "プロフィールを編集",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender}からのメッセージ",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1件の未読メッセージ} other{{count}件の未読メッセージ}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "パスワードを表示",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "マッチしました！{name}とマッチ",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender}からの新しいメッセージ",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "プロフィールにいいねしました",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "プロフィールにスーパーライクしました",
   "a11yMessageSent": "メッセージを送信しました",
   "a11ySettingSaved": "設定を保存しました",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "おかえりなさい",
   "authSignInToContinue": "Crushを続けるにはサインイン",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "{destination}にコードを送信しました",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6桁のコードを入力",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "送信したリンクをクリックしてメールを認証",
   "authEmailVerified": "メールが認証されました！",
   "authSkipForNow": "今はスキップ",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "設定",
   "settingsAppearance": "外観",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance}km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "表示対象",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "プランを管理",
   "settingsGetPlus": "Crush Plusを入手",
   "settingsRestorePurchases": "購入を復元",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "発見",
   "discoveryNoMatchesTitle": "まだマッチがありません",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "あなたと{name}が互いにいいねしました",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "メッセージを送信",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "あなたにいいね",
   "discoveryTopPicks": "トップピック",
   "discoveryNewArrivals": "新着",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "チャット",
   "chatMatches": "マッチ",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name}と会話を始める",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "メッセージを入力...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "最終ログイン {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "入力中...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "{name}とマッチしました",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "プロフィール",
   "profileEdit": "プロフィールを編集",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height}cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "言語",
@@ -450,7 +472,6 @@
   "profileAboutMe": "私について",
   "profileMyDetails": "詳細情報",
   "profileLifestyle": "ライフスタイル",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Crushへようこそ",
   "onboardingTagline": "パーフェクトマッチを見つけよう",
@@ -458,8 +479,12 @@
   "onboardingStep": "ステップ{current}/{total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "お名前は？",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "3つ以上の興味を選んでください",
   "onboardingAllSet": "準備完了！",
   "onboardingStartSwiping": "スワイプを始める",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "無料",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "月{count}回のブースト",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "1日{count}回のスーパーライク",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "広告なし",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/月",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/年",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "お得",
   "subscriptionMostPopular": "人気",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "ユーザーを報告",
   "safetyBlockUser": "ユーザーをブロック",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name}をブロックしますか？",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "相手はあなたのプロフィールを見たりメッセージを送ったりできなくなります",
@@ -532,46 +565,50 @@
   "safetySpam": "スパム",
   "safetyScam": "詐欺",
   "safetyOther": "その他",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "たった今",
   "timeMinutesAgo": "{count, plural, =1{1分前} other{{count}分前}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1時間前} other{{count}時間前}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1日前} other{{count}日前}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1週間前} other{{count}週間前}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "結果が見つかりません",
   "emptyTryAgain": "検索やフィルターを調整してみてください",
   "emptyNoData": "データがありません",
   "emptyCheckBackLater": "後でまた確認してください",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "ホーム",
   "wordExplore": "探索",
-  "wordHelp": "ヘルプ",
+  "wordHelp": "助ける",
   "wordMenu": "メニュー",
   "wordFeed": "フィード",
   "wordActivity": "アクティビティ",
@@ -579,7 +616,6 @@
   "wordInbox": "受信箱",
   "wordFavorites": "お気に入り",
   "wordHistory": "履歴",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "コピー",
   "wordPaste": "貼り付け",
@@ -589,7 +625,7 @@
   "wordUpload": "アップロード",
   "wordSelect": "選択",
   "wordDeselect": "選択解除",
-  "wordOpen": "開く",
+  "wordOpen": "開いている",
   "wordCreate": "作成",
   "wordConnect": "接続",
   "wordDisconnect": "切断",
@@ -609,7 +645,7 @@
   "wordAllow": "許可",
   "wordEnable": "有効化",
   "wordDisable": "無効化",
-  "wordShow": "表示",
+  "wordShow": "番組",
   "wordHide": "非表示",
   "wordExpand": "展開",
   "wordCollapse": "折りたたむ",
@@ -663,7 +699,6 @@
   "wordSay": "言う",
   "wordTell": "伝える",
   "wordAsk": "尋ねる",
-  "wordHelp": "助ける",
   "wordWait": "待つ",
   "wordStay": "滞在",
   "wordCome": "来る",
@@ -675,7 +710,7 @@
   "wordLive": "住む",
   "wordChange": "変える",
   "wordTurn": "回る",
-  "wordRead": "読む",
+  "wordRead": "既読",
   "wordWrite": "書く",
   "wordLearn": "学ぶ",
   "wordStudy": "勉強する",
@@ -698,14 +733,13 @@
   "wordDecide": "決める",
   "wordAgree": "同意",
   "wordDisagree": "反対",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "アクティブ",
   "wordInactive": "非アクティブ",
   "wordAvailable": "利用可能",
   "wordUnavailable": "利用不可",
   "wordBusy": "取り込み中",
-  "wordAway": "離席中",
+  "wordAway": "離れて",
   "wordInvisible": "非表示",
   "wordOnline": "オンライン",
   "wordOffline": "オフライン",
@@ -759,13 +793,10 @@
   "wordNotDone": "未完了",
   "wordSent": "送信済み",
   "wordReceived": "受信済み",
-  "wordRead": "既読",
   "wordUnread": "未読",
   "wordSeen": "閲覧済み",
   "wordUnseen": "未閲覧",
-  "wordOpen": "開いている",
   "wordClosed": "閉じている",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "今",
   "wordLater": "後で",
@@ -807,7 +838,6 @@
   "wordYears": "年",
   "wordSecond": "秒",
   "wordSeconds": "秒",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "良い",
   "wordBad": "悪い",
@@ -876,7 +906,7 @@
   "wordSmart": "頭が良い",
   "wordStupid": "愚か",
   "wordFunny": "面白い",
-  "wordSerious": "真面目",
+  "wordSerious": "真剣",
   "wordNice": "素敵",
   "wordMean": "意地悪",
   "wordKind": "優しい",
@@ -932,7 +962,6 @@
   "wordFabulous": "素晴らしい",
   "wordMagnificent": "壮大",
   "wordSpectacular": "壮観",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "お願いします",
   "wordThanks": "ありがとう",
@@ -963,7 +992,6 @@
   "wordHaveFun": "楽しんで",
   "wordEnjoy": "楽しんでね",
   "wordCheers": "乾杯",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "誰",
   "wordWhat": "何",
@@ -979,7 +1007,6 @@
   "wordHowFar": "どのくらい遠い",
   "wordHowOld": "何歳",
   "wordHowOften": "どのくらいの頻度",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "と一緒に",
   "wordWithout": "なしで",
@@ -1003,7 +1030,6 @@
   "wordThrough": "通して",
   "wordAlong": "沿って",
   "wordToward": "方へ",
-  "wordAway": "離れて",
   "wordBehind": "後ろ",
   "wordAhead": "前方",
   "wordFront": "前",
@@ -1015,7 +1041,6 @@
   "wordCenter": "中心",
   "wordCorner": "角",
   "wordEdge": "端",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "好きな人",
   "wordMatch": "マッチ",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "献身的",
   "wordCommitted": "真剣",
   "wordCommitment": "コミットメント",
-  "wordSerious": "真剣",
   "wordCasual": "カジュアル",
   "wordFriendship": "友情",
   "wordFriend": "友達",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "求めている",
   "wordWaiting": "待っている",
   "wordSearching": "探索中",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "通知",
   "wordAlert": "アラート",
@@ -1396,7 +1419,6 @@
   "wordMovies": "映画",
   "wordFilm": "映画",
   "wordFilms": "映画",
-  "wordShow": "番組",
   "wordShows": "番組",
   "wordSeries": "シリーズ",
   "wordBook": "本",
@@ -1463,7 +1485,6 @@
   "wordSomething": "何か",
   "wordNothing": "何もない",
   "wordAnything": "何でも",
-
   "@@_DISAMBIGUATION_WORDS": "Words that need context disambiguation",
   "wordHelpVerb": "助ける",
   "wordReadStatus": "既読",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "離れて",
   "wordSeriousRel": "真剣",
   "wordSettingsNoun": "設定",
-  "wordShowNoun": "ショー"
+  "wordShowNoun": "ショー",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

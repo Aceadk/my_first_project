@@ -5,7 +5,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/presentation/widgets/primary_button.dart';
+import 'package:crushhour/design_system/widgets/primary_button.dart';
 
 class NewDeviceScreen extends StatefulWidget {
   const NewDeviceScreen({super.key});
@@ -158,9 +158,9 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().requestEmailOtp(
-            identifier: identifier,
-            purpose: EmailOtpPurpose.newDevice,
-          ),
+        identifier: identifier,
+        purpose: EmailOtpPurpose.newDevice,
+      ),
       logLabel: 'AuthRepository.requestEmailOtp',
       fallbackError: 'Could not send code. Please try again.',
     );
@@ -202,10 +202,10 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().verifyEmailOtp(
-            identifier: identifier,
-            otp: otp,
-            purpose: EmailOtpPurpose.newDevice,
-          ),
+        identifier: identifier,
+        otp: otp,
+        purpose: EmailOtpPurpose.newDevice,
+      ),
       logLabel: 'AuthRepository.verifyEmailOtp',
       fallbackError: 'Invalid or expired code. Please try again.',
     );

@@ -8,7 +8,7 @@ class WatchCurrentPoseUseCase
   final PhotoVerificationService _service;
 
   WatchCurrentPoseUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   Stream<VerificationPose> call(NoParams params) {

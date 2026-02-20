@@ -65,18 +65,18 @@ class ConversationDto extends BaseDto with DtoMetadata {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'match_id': matchId,
-        if (participants != null)
-          'participants': participants!.map((p) => p.toJson()).toList(),
-        if (lastMessage != null) 'last_message': lastMessage!.toJson(),
-        if (unreadCount != null) 'unread_count': unreadCount,
-        if (isPinned != null) 'is_pinned': isPinned,
-        if (isMuted != null) 'is_muted': isMuted,
-        if (isBlocked != null) 'is_blocked': isBlocked,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'id': id,
+    'match_id': matchId,
+    if (participants != null)
+      'participants': participants!.map((p) => p.toJson()).toList(),
+    if (lastMessage != null) 'last_message': lastMessage!.toJson(),
+    if (unreadCount != null) 'unread_count': unreadCount,
+    if (isPinned != null) 'is_pinned': isPinned,
+    if (isMuted != null) 'is_muted': isMuted,
+    if (isBlocked != null) 'is_blocked': isBlocked,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 }
 
 /// Conversation participant DTO.
@@ -110,13 +110,13 @@ class ConversationParticipantDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'user_id': userId,
-        if (displayName != null) 'display_name': displayName,
-        if (photoUrl != null) 'photo_url': photoUrl,
-        if (isOnline != null) 'is_online': isOnline,
-        if (lastSeen != null) 'last_seen': lastSeen!.toIso8601String(),
-        if (isTyping != null) 'is_typing': isTyping,
-      };
+    'user_id': userId,
+    if (displayName != null) 'display_name': displayName,
+    if (photoUrl != null) 'photo_url': photoUrl,
+    if (isOnline != null) 'is_online': isOnline,
+    if (lastSeen != null) 'last_seen': lastSeen!.toIso8601String(),
+    if (isTyping != null) 'is_typing': isTyping,
+  };
 }
 
 /// Conversations list response.
@@ -135,7 +135,8 @@ class ConversationsResponseDto extends BaseDto {
 
   factory ConversationsResponseDto.fromJson(Map<String, dynamic> json) {
     return ConversationsResponseDto(
-      conversations: json.getList(
+      conversations:
+          json.getList(
             'conversations',
             (e) => ConversationDto.fromJson(e as Map<String, dynamic>),
           ) ??
@@ -148,11 +149,11 @@ class ConversationsResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversations': conversations.map((c) => c.toJson()).toList(),
-        if (totalCount != null) 'total_count': totalCount,
-        if (hasMore != null) 'has_more': hasMore,
-        if (nextCursor != null) 'next_cursor': nextCursor,
-      };
+    'conversations': conversations.map((c) => c.toJson()).toList(),
+    if (totalCount != null) 'total_count': totalCount,
+    if (hasMore != null) 'has_more': hasMore,
+    if (nextCursor != null) 'next_cursor': nextCursor,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -283,25 +284,25 @@ class MessageDto extends BaseDto with DtoMetadata {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': type.toJson(),
-        if (content != null) 'content': content,
-        if (mediaUrl != null) 'media_url': mediaUrl,
-        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-        if (mediaDuration != null) 'media_duration': mediaDuration,
-        if (mediaSize != null) 'media_size': mediaSize,
-        if (replyTo != null) 'reply_to': replyTo!.toJson(),
-        if (reactions != null)
-          'reactions': reactions!.map((r) => r.toJson()).toList(),
-        if (status != null) 'status': status!.toJson(),
-        if (readBy != null) 'read_by': readBy,
-        if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
-        if (editedAt != null) 'edited_at': editedAt!.toIso8601String(),
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'id': id,
+    'conversation_id': conversationId,
+    'sender_id': senderId,
+    'type': type.toJson(),
+    if (content != null) 'content': content,
+    if (mediaUrl != null) 'media_url': mediaUrl,
+    if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+    if (mediaDuration != null) 'media_duration': mediaDuration,
+    if (mediaSize != null) 'media_size': mediaSize,
+    if (replyTo != null) 'reply_to': replyTo!.toJson(),
+    if (reactions != null)
+      'reactions': reactions!.map((r) => r.toJson()).toList(),
+    if (status != null) 'status': status!.toJson(),
+    if (readBy != null) 'read_by': readBy,
+    if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
+    if (editedAt != null) 'edited_at': editedAt!.toIso8601String(),
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 }
 
 /// Message reaction DTO.
@@ -326,10 +327,10 @@ class MessageReactionDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'user_id': userId,
-        'emoji': emoji,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-      };
+    'user_id': userId,
+    'emoji': emoji,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+  };
 }
 
 /// Messages list response.
@@ -348,7 +349,8 @@ class MessagesResponseDto extends BaseDto {
 
   factory MessagesResponseDto.fromJson(Map<String, dynamic> json) {
     return MessagesResponseDto(
-      messages: json.getList(
+      messages:
+          json.getList(
             'messages',
             (e) => MessageDto.fromJson(e as Map<String, dynamic>),
           ) ??
@@ -361,11 +363,11 @@ class MessagesResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'messages': messages.map((m) => m.toJson()).toList(),
-        if (hasMore != null) 'has_more': hasMore,
-        if (nextCursor != null) 'next_cursor': nextCursor,
-        if (previousCursor != null) 'previous_cursor': previousCursor,
-      };
+    'messages': messages.map((m) => m.toJson()).toList(),
+    if (hasMore != null) 'has_more': hasMore,
+    if (nextCursor != null) 'next_cursor': nextCursor,
+    if (previousCursor != null) 'previous_cursor': previousCursor,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -394,14 +396,14 @@ class SendMessageRequestDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': type.toJson(),
-        if (content != null) 'content': content,
-        if (mediaUrl != null) 'media_url': mediaUrl,
-        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-        if (mediaDuration != null) 'media_duration': mediaDuration,
-        if (replyToId != null) 'reply_to_id': replyToId,
-        if (clientId != null) 'client_id': clientId,
-      };
+    'type': type.toJson(),
+    if (content != null) 'content': content,
+    if (mediaUrl != null) 'media_url': mediaUrl,
+    if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+    if (mediaDuration != null) 'media_duration': mediaDuration,
+    if (replyToId != null) 'reply_to_id': replyToId,
+    if (clientId != null) 'client_id': clientId,
+  };
 
   @override
   String? validate() {
@@ -424,7 +426,7 @@ class SendMessageRequestDto extends BaseDto {
       MessageType.image,
       MessageType.audio,
       MessageType.video,
-      MessageType.gif
+      MessageType.gif,
     ].contains(type)) {
       validator.requireNotEmpty(mediaUrl, 'media_url');
     }
@@ -433,8 +435,11 @@ class SendMessageRequestDto extends BaseDto {
   }
 
   /// Create a text message request.
-  factory SendMessageRequestDto.text(String content,
-      {String? replyToId, String? clientId}) {
+  factory SendMessageRequestDto.text(
+    String content, {
+    String? replyToId,
+    String? clientId,
+  }) {
     return SendMessageRequestDto(
       type: MessageType.text,
       content: content,
@@ -498,11 +503,11 @@ class TypingIndicatorDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversation_id': conversationId,
-        'user_id': userId,
-        'is_typing': isTyping,
-        if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
-      };
+    'conversation_id': conversationId,
+    'user_id': userId,
+    'is_typing': isTyping,
+    if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -534,9 +539,9 @@ class ReadReceiptDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversation_id': conversationId,
-        'user_id': userId,
-        'last_read_message_id': lastReadMessageId,
-        if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
-      };
+    'conversation_id': conversationId,
+    'user_id': userId,
+    'last_read_message_id': lastReadMessageId,
+    if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
+  };
 }

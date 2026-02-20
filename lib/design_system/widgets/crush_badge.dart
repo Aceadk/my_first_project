@@ -40,9 +40,9 @@ class CrushBadge extends StatelessWidget {
     this.size = 10,
     required this.child,
     this.alignment = Alignment.topRight,
-  })  : count = null,
-        showDot = true,
-        textColor = null;
+  }) : count = null,
+       showDot = true,
+       textColor = null;
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +53,10 @@ class CrushBadge extends StatelessWidget {
       children: [
         child,
         if (shouldShow)
-          Positioned(
+          PositionedDirectional(
             top: -size * 0.3,
-            right: alignment == Alignment.topRight ? -size * 0.3 : null,
-            left: alignment == Alignment.topLeft ? -size * 0.3 : null,
+            end: alignment == Alignment.topRight ? -size * 0.3 : null,
+            start: alignment == Alignment.topLeft ? -size * 0.3 : null,
             child: _BadgeContent(
               count: count,
               showDot: showDot,
@@ -136,10 +136,7 @@ class _BadgeContent extends StatelessWidget {
 class CrushNewBadge extends StatelessWidget {
   final Widget child;
 
-  const CrushNewBadge({
-    super.key,
-    required this.child,
-  });
+  const CrushNewBadge({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -147,9 +144,9 @@ class CrushNewBadge extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         child,
-        Positioned(
+        PositionedDirectional(
           top: -4,
-          right: -8,
+          end: -8,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
@@ -203,13 +200,15 @@ class _CrushPulsingBadgeState extends State<CrushPulsingBadge>
       vsync: this,
     )..repeat();
 
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.8).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.8,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _opacityAnimation = Tween<double>(begin: 0.6, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.6,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -226,9 +225,9 @@ class _CrushPulsingBadgeState extends State<CrushPulsingBadge>
       clipBehavior: Clip.none,
       children: [
         widget.child,
-        Positioned(
+        PositionedDirectional(
           top: -widget.size * 0.3,
-          right: -widget.size * 0.3,
+          end: -widget.size * 0.3,
           child: SizedBox(
             width: widget.size * 2,
             height: widget.size * 2,

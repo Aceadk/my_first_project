@@ -16,7 +16,8 @@ class AuthMapper {
       isEmailVerified: dto.email != null,
       isPhoneVerified: dto.phoneNumber != null,
       isIdVerified: dto.isVerified ?? false,
-      plan: plan ??
+      plan:
+          plan ??
           (dto.isPremium == true
               ? SubscriptionPlan.plus
               : SubscriptionPlan.free),

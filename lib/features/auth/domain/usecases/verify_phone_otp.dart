@@ -8,10 +8,7 @@ class VerifyPhoneOtpParams {
   final String phoneNumber;
   final String otp;
 
-  const VerifyPhoneOtpParams({
-    required this.phoneNumber,
-    required this.otp,
-  });
+  const VerifyPhoneOtpParams({required this.phoneNumber, required this.otp});
 }
 
 /// Use case for verifying a phone OTP code.

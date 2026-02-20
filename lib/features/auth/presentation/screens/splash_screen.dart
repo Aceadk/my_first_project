@@ -76,15 +76,13 @@ class _SplashScreenState extends State<SplashScreen>
       parent: _timelineController,
       curve: const Interval(0.63, 1.0, curve: Curves.easeOut),
     );
-    _taglineSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _timelineController,
-        curve: const Interval(0.63, 1.0, curve: Curves.easeOut),
-      ),
-    );
+    _taglineSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _timelineController,
+            curve: const Interval(0.63, 1.0, curve: Curves.easeOut),
+          ),
+        );
 
     // "From Ace" fade (1.3s -> 1.8s)
     _companyFadeAnimation = CurvedAnimation(
@@ -212,11 +210,12 @@ class _SplashScreenState extends State<SplashScreen>
         builder: (context) {
           final theme = Theme.of(context);
           final backgroundColor = theme.scaffoldBackgroundColor;
-          final mutedColor =
-              theme.colorScheme.onSurface.withValues(alpha: 0.55);
+          final mutedColor = theme.colorScheme.onSurface.withValues(
+            alpha: 0.55,
+          );
           final brandGradient =
               theme.extension<CrushThemeEffects>()?.primaryGradient ??
-                  DsGradients.primaryHorizontal;
+              DsGradients.primaryHorizontal;
 
           return Scaffold(
             backgroundColor: backgroundColor,
@@ -229,12 +228,15 @@ class _SplashScreenState extends State<SplashScreen>
                     // Animated "Crush" wordmark with stroke reveal
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final maxWidth =
-                            math.min(constraints.maxWidth * 0.8, 320.0);
+                        final maxWidth = math.min(
+                          constraints.maxWidth * 0.8,
+                          320.0,
+                        );
                         final fontSize = maxWidth * 0.23;
                         final wordmarkHeight = fontSize * 1.3;
 
-                        final baseStyle = theme.textTheme.titleLarge ??
+                        final baseStyle =
+                            theme.textTheme.titleLarge ??
                             const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -327,11 +329,10 @@ class _CrushTextStrokePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paragraphBuilder = ui.ParagraphBuilder(
-      ui.ParagraphStyle(textAlign: TextAlign.center),
-    )
-      ..pushStyle(textStyle.getTextStyle())
-      ..addText('Crush');
+    final paragraphBuilder =
+        ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
+          ..pushStyle(textStyle.getTextStyle())
+          ..addText('Crush');
 
     final paragraph = paragraphBuilder.build();
     paragraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -351,12 +352,9 @@ class _CrushTextStrokePainter extends CustomPainter {
 
       // Create clip rect for the stroke reveal
       canvas.save();
-      canvas.clipRect(Rect.fromLTWH(
-        offsetX,
-        offsetY - 10,
-        revealWidth,
-        textHeight + 20,
-      ));
+      canvas.clipRect(
+        Rect.fromLTWH(offsetX, offsetY - 10, revealWidth, textHeight + 20),
+      );
 
       // Draw stroke outline effect
       final strokePaint = Paint()
@@ -366,14 +364,14 @@ class _CrushTextStrokePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
 
       // Create a paragraph with stroke style
-      final strokeStyle =
-          textStyle.copyWith(foreground: strokePaint).getTextStyle();
+      final strokeStyle = textStyle
+          .copyWith(foreground: strokePaint)
+          .getTextStyle();
 
-      final strokeBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
-        textAlign: TextAlign.center,
-      ))
-        ..pushStyle(strokeStyle)
-        ..addText('Crush');
+      final strokeBuilder =
+          ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
+            ..pushStyle(strokeStyle)
+            ..addText('Crush');
 
       final strokeParagraph = strokeBuilder.build();
       strokeParagraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -386,16 +384,16 @@ class _CrushTextStrokePainter extends CustomPainter {
     if (fillOpacity > 0) {
       final fillStyle = textStyle
           .copyWith(
-            color: (textStyle.color ?? Colors.white)
-                .withValues(alpha: fillOpacity),
+            color: (textStyle.color ?? Colors.white).withValues(
+              alpha: fillOpacity,
+            ),
           )
           .getTextStyle();
 
-      final fillBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
-        textAlign: TextAlign.center,
-      ))
-        ..pushStyle(fillStyle)
-        ..addText('Crush');
+      final fillBuilder =
+          ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
+            ..pushStyle(fillStyle)
+            ..addText('Crush');
 
       final fillParagraph = fillBuilder.build();
       fillParagraph.layout(ui.ParagraphConstraints(width: size.width));

@@ -2,7 +2,40 @@
 
 Notes and handoffs between AI agents working on this repo.
 
-## 2026-02-19
+### ONBOARD-004: Wire Onboarding Analytics Events -- Completed (2026-02-19)
+
+**Summary:** Wired existing `AnalyticsService` onboarding methods into all 5 onboarding screens. Each screen now logs its step entry via `logOnboardingStep()` in `initState()`. Total onboarding duration is tracked via a top-level `onboardingStartTime` variable in sign_up_screen.dart and `logOnboardingCompleted()` is called in profile_setup_screen.dart upon successful navigation to home.
+
+**For other agents:**
+- `onboardingStartTime` is a top-level `DateTime?` variable in `lib/features/auth/presentation/screens/sign_up_screen.dart`. It is set when the signup screen loads and consumed in profile_setup_screen.dart. If you add new entry points to onboarding (e.g., social login), make sure to set this variable.
+- `logOnboardingAbandoned()` is still NOT wired. This would require lifecycle tracking (WillPopScope/PopScope) or detecting when the user signs out during onboarding. This is a separate task.
+- `id_verification_screen.dart` guards its analytics call with `!widget.fromSettings` to avoid false onboarding events when accessed from settings.
+- The step numbers are: 1=signup, 2=verify_otp, 3=basic_info, 4=id_verification, 5=profile_setup. totalSteps=6 (leaving room for a 6th step if the flow expands, but currently 5 screens).
+
+---
+
+### ONBOARD-001 + ONBOARD-002: Progressive Disclosure & Permission Rationale — Completed (2026-02-19)
+
+**Summary:** Implemented progressive disclosure for onboarding (skip hints on optional fields, "Skip for now" button on profile setup) and a reusable permission rationale screen (integrated for location permission in profile_setup).
+
+**For other agents:**
+- The `PermissionRationaleScreen` widget at `lib/features/auth/presentation/screens/permission_rationale_screen.dart` is fully reusable. To use it for camera/photos/notifications:
+  1. Import it and call it as a bottom sheet or full-screen route
+  2. Pass the appropriate `PermissionType`, title, description, icon, and callbacks
+  3. Camera/photos rationale should be shown before first photo picker use
+  4. Notifications rationale should be shown after onboarding on the home/discovery screen
+- The `OnboardingProgress` widget now accepts `showSkip` (bool) and `onSkip` (VoidCallback?) params. Any screen using it can enable the skip button.
+- The "Skip for now" button in profile_setup requires at least 1 photo (Apple requirement).
+
+---
+
+### ONBOARD-005: Welcome Tutorial Overlay — Completed (2026-02-19)
+
+**Summary:** Implemented welcome tutorial overlay for the discovery deck screen. New file `welcome_tutorial_overlay.dart` + modifications to `deck_screen.dart`. Shows once after onboarding, persisted via SharedPreferences key `'has_seen_deck_tutorial'`.
+
+**For other agents:** If you need to reset the tutorial for testing, clear the `'has_seen_deck_tutorial'` key from SharedPreferences. The overlay sits as the last child in the deck Stack and does not interfere with routing, BLoC, or DI.
+
+---
 
 ### CEO Comprehensive Audit Directive v2.0 — TODO Generation Complete
 

@@ -65,11 +65,9 @@ class _AsyncStateScaffoldState extends State<AsyncStateScaffold> {
     if (widget.isLoading && !widget.showBodyOnLoading) {
       content = const _CenteredLoader();
     } else if (hasError && (hasCustomErrorView || canRetry || hasEmptyView)) {
-      content = widget.error ??
-          _ErrorView(
-            message: widget.errorMessage!,
-            onRetry: widget.onRetry,
-          );
+      content =
+          widget.error ??
+          _ErrorView(message: widget.errorMessage!, onRetry: widget.onRetry);
     } else if (hasEmptyView) {
       content = widget.empty!;
     } else {
@@ -115,10 +113,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               message,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[

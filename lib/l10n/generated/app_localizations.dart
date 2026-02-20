@@ -117,6 +117,7 @@ abstract class AppLocalizations {
     Locale('bn'),
     Locale('de'),
     Locale('en'),
+    Locale('en', 'XA'),
     Locale('es'),
     Locale('fr'),
     Locale('hi'),
@@ -7869,6 +7870,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Anything'**
   String get wordAnything;
+
+  /// No description provided for @notificationsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}'**
+  String notificationsCount(int count);
+
+  /// No description provided for @matchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No matches} =1{1 match} other{{count} matches}}'**
+  String matchCount(int count);
+
+  /// No description provided for @likesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No likes} =1{1 like} other{{count} likes}}'**
+  String likesCount(int count);
+
+  /// No description provided for @photosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}'**
+  String photosCount(int count);
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}'**
+  String distanceKm(int count);
 }
 
 class _AppLocalizationsDelegate
@@ -7910,6 +7941,18 @@ class _AppLocalizationsDelegate
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when language+country codes are specified.
+  switch (locale.languageCode) {
+    case 'en':
+      {
+        switch (locale.countryCode) {
+          case 'XA':
+            return AppLocalizationsEnXa();
+        }
+        break;
+      }
+  }
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'ar':

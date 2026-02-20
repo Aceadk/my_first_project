@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// State for weekly picks.
 class WeeklyPicksState extends Equatable {
@@ -48,10 +49,14 @@ class WeeklyPicksState extends Equatable {
 
 /// Cubit for managing weekly picks state.
 class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
+  final WeeklyPicksRepository _service;
+
   WeeklyPicksCubit({
     required AuthRepository authRepository,
-  })  : _authRepository = authRepository,
-        super(const WeeklyPicksState()) {
+    required WeeklyPicksRepository weeklyPicksRepository,
+  }) : _service = weeklyPicksRepository,
+       _authRepository = authRepository,
+       super(const WeeklyPicksState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
         _resetState();
@@ -60,7 +65,7 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
   }
 
   final AuthRepository _authRepository;
-  final _service = WeeklyPicksService.instance;
+
   StreamSubscription<WeeklyPicks>? _subscription;
   StreamSubscription<CrushUser?>? _authSubscription;
 
@@ -72,18 +77,18 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
       final picks = await _service.loadPicks(userId);
 
       _subscription?.cancel();
-      _subscription = _service.picksStream.listen(
-        (updatedPicks) {
-          emit(state.copyWith(picks: updatedPicks));
-        },
-      );
+      _subscription = _service.picksStream.listen((updatedPicks) {
+        emit(state.copyWith(picks: updatedPicks));
+      });
 
       emit(state.copyWith(picks: picks, isLoading: false));
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load weekly picks',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: ErrorMessages.loadDeckFailed,
+        ),
+      );
     }
   }
 

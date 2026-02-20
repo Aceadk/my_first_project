@@ -20,6 +20,8 @@ class SubscriptionPlanUpdated extends SubscriptionEvent {
 
 class SubscriptionRestoreRequested extends SubscriptionEvent {}
 
+class SubscriptionResetRequested extends SubscriptionEvent {}
+
 class SubscriptionStatusUpdated extends SubscriptionEvent {
   final SubscriptionStatus status;
   SubscriptionStatusUpdated(this.status);

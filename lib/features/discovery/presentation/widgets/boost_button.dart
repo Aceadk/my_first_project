@@ -83,75 +83,75 @@ class BoostButton extends StatelessWidget {
     required bool isActive,
     VoidCallback? onTap,
   }) {
-    final color =
-        isActive ? _boostColor : (enabled ? _boostColor : DsColors.ink300);
+    final color = isActive
+        ? _boostColor
+        : (enabled ? _boostColor : DsColors.ink300);
 
     return Semantics(
       button: true,
       label: label,
       enabled: enabled,
       child: GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DsSpacing.md),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(
-              horizontal: DsSpacing.md,
-              vertical: DsSpacing.sm,
+        onTap: enabled ? onTap : null,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(DsSpacing.md),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: DsBlur.light,
+              sigmaY: DsBlur.light,
             ),
-            decoration: BoxDecoration(
-              gradient: isActive
-                  ? LinearGradient(
-                      colors: [
-                        _boostColor.withValues(alpha: 0.3),
-                        _boostColor.withValues(alpha: 0.2),
-                      ],
-                    )
-                  : null,
-              color: isActive ? null : DsGlassColors.surfaceFor(context),
-              borderRadius: BorderRadius.circular(DsSpacing.md),
-              border: Border.all(
-                color: isActive
-                    ? _boostColor.withValues(alpha: 0.5)
-                    : DsGlassColors.borderFor(context),
-                width: isActive ? 2 : 1,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(
+                horizontal: DsSpacing.md,
+                vertical: DsSpacing.sm,
               ),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: _boostColor.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: color,
+              decoration: BoxDecoration(
+                gradient: isActive
+                    ? LinearGradient(
+                        colors: [
+                          _boostColor.withValues(alpha: 0.3),
+                          _boostColor.withValues(alpha: 0.2),
+                        ],
+                      )
+                    : null,
+                color: isActive ? null : DsGlassColors.surfaceFor(context),
+                borderRadius: BorderRadius.circular(DsSpacing.md),
+                border: Border.all(
+                  color: isActive
+                      ? _boostColor.withValues(alpha: 0.5)
+                      : DsGlassColors.borderFor(context),
+                  width: isActive ? 2 : 1,
                 ),
-                const SizedBox(width: DsSpacing.xs),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                    fontSize: 13,
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: _boostColor.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18, color: color),
+                  const SizedBox(width: DsSpacing.xs),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -165,8 +165,10 @@ class BoostButton extends StatelessWidget {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           child: BackdropFilter(
-            filter:
-                ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
+            filter: ImageFilter.blur(
+              sigmaX: DsBlur.heavy,
+              sigmaY: DsBlur.heavy,
+            ),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -174,8 +176,9 @@ class BoostButton extends StatelessWidget {
                   context,
                   strength: DsGlassSurfaceStrength.heavy,
                 ),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               child: SafeArea(
                 top: false,
@@ -217,18 +220,18 @@ class BoostButton extends StatelessWidget {
                       Text(
                         'Activate Boost',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Get seen by more people! Your profile will be shown to more users for the next 30-60 minutes.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight,
-                            ),
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       // Benefits list
@@ -300,21 +303,17 @@ class BoostButton extends StatelessWidget {
             color: _boostColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: _boostColor,
-          ),
+          child: Icon(icon, size: 16, color: _boostColor),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
         ),
       ],
@@ -361,11 +360,7 @@ class BoostIndicator extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.flash_on,
-                size: 14,
-                color: _boostColor,
-              ),
+              const Icon(Icons.flash_on, size: 14, color: _boostColor),
               const SizedBox(width: 4),
               Text(
                 '$minutes:${seconds.toString().padLeft(2, '0')}',

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'primary_button.dart';
+import 'package:crushhour/design_system/widgets/primary_button.dart';
 
 class OnboardingNavButtons extends StatelessWidget {
   const OnboardingNavButtons({
@@ -35,10 +35,7 @@ class OnboardingNavButtons extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
-            onPressed: onBack,
-            child: Text(backLabel),
-          ),
+          child: OutlinedButton(onPressed: onBack, child: Text(backLabel)),
         ),
         const SizedBox(width: 12),
         Expanded(

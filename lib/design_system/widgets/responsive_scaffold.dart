@@ -63,10 +63,7 @@ class ResponsiveScaffold extends StatelessWidget {
 
           final padding = contentPadding ?? defaultPadding;
 
-          Widget content = Padding(
-            padding: padding,
-            child: body,
-          );
+          Widget content = Padding(padding: padding, child: body);
 
           if (centerOnLargerScreens && maxWidth != double.infinity) {
             content = Center(
@@ -167,10 +164,7 @@ class ResponsiveTwoColumn extends StatelessWidget {
         // Tablet: show two-column layout
         return Row(
           children: [
-            SizedBox(
-              width: sidePanelWidth,
-              child: sidePanel,
-            ),
+            SizedBox(width: sidePanelWidth, child: sidePanel),
             const VerticalDivider(width: 1),
             Expanded(child: mainContent),
           ],
@@ -210,10 +204,7 @@ class ResponsiveGrid extends StatelessWidget {
           children: children.map((child) {
             final itemWidth =
                 (constraints.maxWidth - (spacing * (columns - 1))) / columns;
-            return SizedBox(
-              width: itemWidth,
-              child: child,
-            );
+            return SizedBox(width: itemWidth, child: child);
           }).toList(),
         );
       },

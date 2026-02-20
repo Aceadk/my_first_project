@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
@@ -14,9 +15,8 @@ import '../profile_repository.dart';
 
 /// HTTP-based implementation of ProfileRepository.
 class HttpProfileRepository implements ProfileRepository {
-  HttpProfileRepository({
-    required ApiClient apiClient,
-  }) : _apiClient = apiClient;
+  HttpProfileRepository({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 
@@ -31,7 +31,8 @@ class HttpProfileRepository implements ProfileRepository {
 
     if (result.isFailure) {
       AppLogger.debug(
-          'HttpProfileRepository: Failed to get current user - ${result.error}');
+        'HttpProfileRepository: Failed to get current user - ${result.error}',
+      );
       return _cachedUser;
     }
 
@@ -49,7 +50,8 @@ class HttpProfileRepository implements ProfileRepository {
       plan: result.data!['is_premium'] == true
           ? SubscriptionPlan.plus
           : SubscriptionPlan.free,
-      themePreference: result.data!['theme_preference'] as String? ??
+      themePreference:
+          result.data!['theme_preference'] as String? ??
           result.data!['themePreference'] as String?,
       profile: profile,
     );
@@ -72,8 +74,10 @@ class HttpProfileRepository implements ProfileRepository {
     // Use provided birth date or calculate from age
     final birthDate = dateOfBirth ?? DateTime(DateTime.now().year - age, 1, 1);
 
+    final sanitizedName = InputSanitizer.sanitizeName(name);
+
     final request = UpdateProfileRequestDto(
-      displayName: name,
+      displayName: sanitizedName,
       birthDate: birthDate,
       gender: gender,
     );
@@ -114,12 +118,31 @@ class HttpProfileRepository implements ProfileRepository {
     double? latitude,
     double? longitude,
   }) async {
+    // Sanitize input (matches firebase_profile_repository.dart)
+    final sanitizedBio = InputSanitizer.sanitizeBio(bio);
+    final sanitizedJobTitle = jobTitle != null
+        ? InputSanitizer.sanitizeJobField(jobTitle)
+        : null;
+    final sanitizedCompany = company != null
+        ? InputSanitizer.sanitizeJobField(
+            company,
+            maxLength: InputSanitizer.maxCompanyLength,
+          )
+        : null;
+    final sanitizedSchool = school != null
+        ? InputSanitizer.sanitizeText(
+            school,
+            maxLength: InputSanitizer.maxSchoolLength,
+          )
+        : null;
+    final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
+
     final request = UpdateProfileRequestDto(
-      bio: bio,
-      jobTitle: jobTitle,
-      company: company,
-      education: school,
-      interests: interests,
+      bio: sanitizedBio,
+      jobTitle: sanitizedJobTitle,
+      company: sanitizedCompany,
+      education: sanitizedSchool,
+      interests: sanitizedInterests,
     );
 
     final result = await _apiClient.patch<Map<String, dynamic>>(
@@ -130,7 +153,8 @@ class HttpProfileRepository implements ProfileRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to save profile details');
+        result.error?.message ?? 'Failed to save profile details',
+      );
     }
 
     // Upload photos if provided
@@ -157,7 +181,8 @@ class HttpProfileRepository implements ProfileRepository {
     // This method signature would need to be updated in the interface
     // to accept a file path or File object
     AppLogger.debug(
-        'HttpProfileRepository: uploadIdDocument - update interface to accept file path');
+      'HttpProfileRepository: uploadIdDocument - update interface to accept file path',
+    );
   }
 
   /// Upload an ID document for verification.
@@ -240,8 +265,10 @@ class HttpProfileRepository implements ProfileRepository {
   /// Upload a profile photo.
   ///
   /// Returns the remote URL of the uploaded photo.
-  Future<String> _uploadPhoto(String localPath,
-      {bool isPrimary = false}) async {
+  Future<String> _uploadPhoto(
+    String localPath, {
+    bool isPrimary = false,
+  }) async {
     final file = File(localPath);
 
     if (!await file.exists()) {
@@ -252,9 +279,7 @@ class HttpProfileRepository implements ProfileRepository {
       endpoint: ApiEndpoints.profilePhotos,
       file: file,
       fieldName: 'photo',
-      fields: {
-        'is_primary': isPrimary.toString(),
-      },
+      fields: {'is_primary': isPrimary.toString()},
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -268,7 +293,8 @@ class HttpProfileRepository implements ProfileRepository {
     }
 
     AppLogger.debug(
-        'HttpProfileRepository: Photo uploaded successfully - $photoUrl');
+      'HttpProfileRepository: Photo uploaded successfully - $photoUrl',
+    );
     return photoUrl;
   }
 

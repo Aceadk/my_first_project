@@ -48,14 +48,14 @@ class SubscriptionState extends Equatable {
 
   @override
   List<Object?> get props => [
-        plan,
-        isCheckoutInProgress,
-        errorMessage,
-        isRestoring,
-        statusLabel,
-        nextRenewal,
-        cancelAtPeriodEnd,
-      ];
+    plan,
+    isCheckoutInProgress,
+    errorMessage,
+    isRestoring,
+    statusLabel,
+    nextRenewal,
+    cancelAtPeriodEnd,
+  ];
 }
 
 const _unset = Object();

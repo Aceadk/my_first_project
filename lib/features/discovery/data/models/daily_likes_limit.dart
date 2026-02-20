@@ -44,8 +44,10 @@ class DailyLikesLimit extends Equatable {
   /// Get remaining likes.
   int get remainingLikes {
     if (isPremium) return 999999;
-    return (maxFreeLikes + bonusLikes - likesUsed)
-        .clamp(0, maxFreeLikes + bonusLikes);
+    return (maxFreeLikes + bonusLikes - likesUsed).clamp(
+      0,
+      maxFreeLikes + bonusLikes,
+    );
   }
 
   /// Get remaining super likes.
@@ -156,11 +158,11 @@ class DailyLikesLimit extends Equatable {
 
   @override
   List<Object?> get props => [
-        userId,
-        date,
-        likesUsed,
-        superLikesUsed,
-        isPremium,
-        bonusLikes,
-      ];
+    userId,
+    date,
+    likesUsed,
+    superLikesUsed,
+    isPremium,
+    bonusLikes,
+  ];
 }

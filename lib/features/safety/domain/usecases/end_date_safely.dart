@@ -16,7 +16,7 @@ class EndDateSafelyUseCase extends UseCase<DatePlan, EndDateSafelyParams>
   final DatePlanService _service;
 
   EndDateSafelyUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(EndDateSafelyParams params) {

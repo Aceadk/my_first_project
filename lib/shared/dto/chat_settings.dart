@@ -30,9 +30,7 @@ class ChatSettings extends Equatable {
   /// Plus users: 168 hours (7 days) - handled on backend
   int get retentionHours => extendedRetention ? 24 : 1;
 
-  const ChatSettings({
-    this.extendedRetention = false,
-  });
+  const ChatSettings({this.extendedRetention = false});
 
   /// Create settings with default 1-hour retention
   factory ChatSettings.defaultSettings() {
@@ -44,18 +42,14 @@ class ChatSettings extends Equatable {
     return const ChatSettings(extendedRetention: true);
   }
 
-  ChatSettings copyWith({
-    bool? extendedRetention,
-  }) {
+  ChatSettings copyWith({bool? extendedRetention}) {
     return ChatSettings(
       extendedRetention: extendedRetention ?? this.extendedRetention,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'extendedRetention': extendedRetention,
-    };
+    return {'extendedRetention': extendedRetention};
   }
 
   factory ChatSettings.fromJson(Map<String, dynamic>? json) {

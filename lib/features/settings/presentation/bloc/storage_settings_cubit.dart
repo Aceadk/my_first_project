@@ -31,8 +31,8 @@ class StorageSettingsState {
 
 class StorageSettingsCubit extends Cubit<StorageSettingsState> {
   StorageSettingsCubit({required SharedPreferences preferences})
-      : _preferences = preferences,
-        super(_readInitial(preferences));
+    : _preferences = preferences,
+      super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
 
@@ -79,7 +79,8 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
             }
           } catch (e) {
             AppLogger.debug(
-                'StorageSettingsCubit: Failed to delete ${file.path}: $e');
+              'StorageSettingsCubit: Failed to delete ${file.path}: $e',
+            );
           }
         }
       }
@@ -97,7 +98,8 @@ class StorageSettingsCubit extends Cubit<StorageSettingsState> {
             }
           } catch (e) {
             AppLogger.debug(
-                'StorageSettingsCubit: Failed to delete ${file.path}: $e');
+              'StorageSettingsCubit: Failed to delete ${file.path}: $e',
+            );
           }
         }
       }

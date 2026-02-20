@@ -21,7 +21,7 @@ class SubmitQuizAnswerUseCase extends UseCase<void, SubmitQuizAnswerParams>
   final CompatibilityQuizService _service;
 
   SubmitQuizAnswerUseCase([CompatibilityQuizService? service])
-      : _service = service ?? CompatibilityQuizService.instance;
+    : _service = service ?? CompatibilityQuizService.instance;
 
   @override
   String? validate(SubmitQuizAnswerParams params) {

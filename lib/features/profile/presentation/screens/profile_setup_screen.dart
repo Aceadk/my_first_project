@@ -3,21 +3,25 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart'
+    show onboardingStartTime;
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/services/location_service.dart';
-import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
-import 'package:crushhour/features/discovery/data/services/passport_locations_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/passport_locations_repository.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
+import 'package:crushhour/features/auth/presentation/screens/permission_rationale_screen.dart';
 import '../widgets/profile_media_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -35,8 +39,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
   final _usernameController = TextEditingController();
-  final _mediaService = ProfileMediaService();
-  final _passportService = PassportLocationsService.instance;
+  late final _mediaService = context.read<ProfileMediaRepository>();
+  late final _passportService = context.read<PassportLocationsRepository>();
 
   List<String> _photoPaths = [];
   List<String> _videoPaths = [];
@@ -73,8 +77,66 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.initState();
     // Default athlete (not shown to user that it's default)
     _favouriteAthlete = 'Cristiano Ronaldo';
-    // Request location permission and capture coordinates for discovery
-    _requestLocationForDiscovery();
+
+    // Show location permission rationale after the first frame so that
+    // context is available for showing a dialog/bottom sheet.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showLocationRationale();
+      }
+    });
+
+    // Log onboarding step 5: profile_setup
+    AnalyticsService.instance.logOnboardingStep(
+      step: 'profile_setup',
+      stepNumber: 5,
+      totalSteps: 6,
+    );
+  }
+
+  /// Show the location permission rationale screen before requesting the
+  /// system permission. If the user taps "Allow", the system permission
+  /// dialog is shown. If "Not Now", location is skipped.
+  Future<void> _showLocationRationale() async {
+    if (_locationRequested) return;
+    _locationRequested = true;
+
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.of(sheetContext).size.height * 0.85,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DsRadius.xxl),
+          ),
+          child: PermissionRationaleScreen(
+            permissionType: PermissionType.location,
+            title: 'Find matches near you',
+            description:
+                'CRUSH uses your location to show you people nearby. '
+                'Your exact location is never shared with other users.',
+            icon: Icons.location_on_rounded,
+            onAllow: () {
+              Navigator.of(sheetContext).pop();
+              _requestLocationForDiscovery();
+            },
+            onSkip: () {
+              Navigator.of(sheetContext).pop();
+              // User skipped — they can enable location later in Settings
+              AppLogger.info(
+                'User skipped location permission during onboarding',
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   /// Request location permission and capture coordinates.
@@ -82,17 +144,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   /// Without latitude/longitude, the Cloud Function cannot calculate distance
   /// and the user will not be shown to others.
   Future<void> _requestLocationForDiscovery() async {
-    if (_locationRequested) return;
-    _locationRequested = true;
-
     try {
       final locationService = LocationService.instance;
 
-      // Request permission first
+      // Request system permission
       final hasPermission = await locationService.requestPermission();
       if (!hasPermission) {
-        // User denied permission - they can still complete profile but
-        // won't appear in distance-based discovery until they enable location
+        // User denied permission at OS level - they can still complete
+        // profile but won't appear in distance-based discovery
         return;
       }
 
@@ -151,7 +210,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   /// Returns a map with 'percentage', 'filledCount', 'totalCount', and 'missingFields'
   Map<String, dynamic> _calculateFormCompleteness(ProfileState state) {
     final profile = state.user?.profile;
-    final hasBasicInfo = profile != null &&
+    final hasBasicInfo =
+        profile != null &&
         profile.name.isNotEmpty &&
         profile.age > 0 &&
         profile.gender.isNotEmpty;
@@ -216,7 +276,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       filledCount++;
     } else {
       missingFields.add(
-          'Interests (${kMinInterests - _selectedInterests.length} more needed)');
+        'Interests (${kMinInterests - _selectedInterests.length} more needed)',
+      );
     }
 
     // Favourites (8 fields)
@@ -347,41 +408,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (!mounted) return;
     if (!uploadResult.isSuccess || uploadResult.data == null) {
       showErrorSnackBar(
-          context, uploadResult.errorMessage ?? 'Could not upload media.');
+        context,
+        uploadResult.errorMessage ?? 'Could not upload media.',
+      );
       setState(() => _uploading = false);
       return;
     }
 
     context.read<ProfileBloc>().add(
-          ProfileDetailsSubmitted(
-            bio: _bioController.text.trim(),
-            photoUrls: uploadResult.data!.photoUrls,
-            videoUrls: uploadResult.data!.videoUrls,
-            jobTitle: _jobController.text.trim(),
-            company: _companyController.text.trim(),
-            school: _schoolController.text.trim(),
-            interests: _selectedInterests,
-            city: _cityController.text.trim(),
-            country: _countryController.text.trim(),
-            favourites: ProfileFavourites(
-              athlete: _favouriteAthlete,
-              food: _favouriteFood,
-              sport: _favouriteSport,
-              tvShow: _favouriteTvShow,
-              actor: _favouriteActor,
-              singer: _favouriteSinger,
-              movie: _favouriteMovie,
-              hobby: _favouriteHobby,
-            ),
-            showMeGenders: _lookingFor != null
-                ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
-                : null,
-            // CRITICAL: Pass location for discovery distance filtering
-            // Without these, the user won't appear in other users' discovery decks
-            latitude: _latitude,
-            longitude: _longitude,
-          ),
-        );
+      ProfileDetailsSubmitted(
+        bio: _bioController.text.trim(),
+        photoUrls: uploadResult.data!.photoUrls,
+        videoUrls: uploadResult.data!.videoUrls,
+        jobTitle: _jobController.text.trim(),
+        company: _companyController.text.trim(),
+        school: _schoolController.text.trim(),
+        interests: _selectedInterests,
+        city: _cityController.text.trim(),
+        country: _countryController.text.trim(),
+        favourites: ProfileFavourites(
+          athlete: _favouriteAthlete,
+          food: _favouriteFood,
+          sport: _favouriteSport,
+          tvShow: _favouriteTvShow,
+          actor: _favouriteActor,
+          singer: _favouriteSinger,
+          movie: _favouriteMovie,
+          hobby: _favouriteHobby,
+        ),
+        showMeGenders: _lookingFor != null
+            ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
+            : null,
+        // CRITICAL: Pass location for discovery distance filtering
+        // Without these, the user won't appear in other users' discovery decks
+        latitude: _latitude,
+        longitude: _longitude,
+      ),
+    );
 
     if (mounted) {
       setState(() => _uploading = false);
@@ -393,296 +456,364 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    DsColors.backgroundDark,
-                    DsColors.secondary.withValues(alpha: 0.22),
-                    DsColors.backgroundDark,
-                  ]
-                : [
-                    DsColors.backgroundLight,
-                    DsColors.secondary.withValues(alpha: 0.08),
-                    DsColors.backgroundLight,
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          DsColors.backgroundDark,
+                          DsColors.secondary.withValues(alpha: 0.22),
+                          DsColors.backgroundDark,
+                        ]
+                      : [
+                          DsColors.backgroundLight,
+                          DsColors.secondary.withValues(alpha: 0.08),
+                          DsColors.backgroundLight,
+                        ],
+                ),
+              ),
+              child: SafeArea(
+                child: MultiBlocListener(
+                  listeners: [
+                    // Listen for auth state changes to navigate after refresh
+                    BlocListener<AuthBloc, AuthState>(
+                      listenWhen: (previous, current) =>
+                          _awaitingAuthRefresh &&
+                          current.user?.hasCompletedProfileSetup == true,
+                      listener: (context, authState) {
+                        if (!_awaitingAuthRefresh) return;
+                        _awaitingAuthRefresh = false;
+
+                        // Check if coming from settings (can pop back)
+                        if (context.canPop()) {
+                          context.pop();
+                          return;
+                        }
+
+                        // Check if we need email verification first
+                        final user = authState.user;
+                        if (user != null &&
+                            user.email != null &&
+                            user.email!.isNotEmpty &&
+                            !user.isEmailVerified) {
+                          context.go(CrushRoutes.emailVerification);
+                          return;
+                        }
+
+                        // Log onboarding completion with total duration
+                        final startTime = onboardingStartTime;
+                        if (startTime != null) {
+                          final durationSeconds = DateTime.now()
+                              .difference(startTime)
+                              .inSeconds;
+                          AnalyticsService.instance.logOnboardingCompleted(
+                            durationSeconds: durationSeconds,
+                          );
+                          onboardingStartTime = null; // Reset for next session
+                        }
+
+                        // Navigate to home - onboarding complete!
+                        context.go(CrushRoutes.home);
+                      },
+                    ),
+                    // Listen for profile save completion
+                    BlocListener<ProfileBloc, ProfileState>(
+                      listenWhen: (previous, current) =>
+                          (previous.isSaving && !current.isSaving) ||
+                          previous.errorMessage != current.errorMessage,
+                      listener: (context, state) {
+                        // Profile save completed successfully
+                        if (!state.isSaving &&
+                            state.user?.hasCompletedProfileSetup == true &&
+                            state.errorMessage == null) {
+                          // Set flag and trigger auth refresh
+                          // Navigation will happen in AuthBloc listener after refresh
+                          setState(() => _awaitingAuthRefresh = true);
+                          context.read<AuthBloc>().add(
+                            AuthUserRefreshRequested(),
+                          );
+                        }
+
+                        // Show error if any
+                        final error = state.errorMessage;
+                        if (error != null && error.isNotEmpty) {
+                          showErrorSnackBar(context, error);
+                        }
+                      },
+                    ),
                   ],
-          ),
-        ),
-        child: SafeArea(
-          child: MultiBlocListener(
-            listeners: [
-              // Listen for auth state changes to navigate after refresh
-              BlocListener<AuthBloc, AuthState>(
-                listenWhen: (previous, current) =>
-                    _awaitingAuthRefresh &&
-                    current.user?.hasCompletedProfileSetup == true,
-                listener: (context, authState) {
-                  if (!_awaitingAuthRefresh) return;
-                  _awaitingAuthRefresh = false;
+                  child: BlocBuilder<ProfileBloc, ProfileState>(
+                    builder: (context, state) {
+                      if (state.isLoading && state.user == null) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: DsColors.primary,
+                          ),
+                        );
+                      }
 
-                  // Check if coming from settings (can pop back)
-                  if (context.canPop()) {
-                    context.pop();
-                    return;
-                  }
+                      final saving = state.isSaving || _uploading;
 
-                  // Check if we need email verification first
-                  final user = authState.user;
-                  if (user != null &&
-                      user.email != null &&
-                      user.email!.isNotEmpty &&
-                      !user.isEmailVerified) {
-                    context.go(CrushRoutes.emailVerification);
-                    return;
-                  }
-
-                  // Navigate to home - onboarding complete!
-                  context.go(CrushRoutes.home);
-                },
-              ),
-              // Listen for profile save completion
-              BlocListener<ProfileBloc, ProfileState>(
-                listenWhen: (previous, current) =>
-                    (previous.isSaving && !current.isSaving) ||
-                    previous.errorMessage != current.errorMessage,
-                listener: (context, state) {
-                  // Profile save completed successfully
-                  if (!state.isSaving &&
-                      state.user?.hasCompletedProfileSetup == true &&
-                      state.errorMessage == null) {
-                    // Set flag and trigger auth refresh
-                    // Navigation will happen in AuthBloc listener after refresh
-                    setState(() => _awaitingAuthRefresh = true);
-                    context.read<AuthBloc>().add(AuthUserRefreshRequested());
-                  }
-
-                  // Show error if any
-                  final error = state.errorMessage;
-                  if (error != null && error.isNotEmpty) {
-                    showErrorSnackBar(context, error);
-                  }
-                },
-              ),
-            ],
-            child: BlocBuilder<ProfileBloc, ProfileState>(
-            builder: (context, state) {
-              if (state.isLoading && state.user == null) {
-                return const Center(
-                    child: CircularProgressIndicator(color: DsColors.primary));
-              }
-
-              final saving = state.isSaving || _uploading;
-
-              return Stack(
-                children: [
-                  AbsorbPointer(
-                    absorbing: saving,
-                    child: Column(
-                      children: [
-                        _buildAppBar(context, isDark),
-                        DsGap.lg,
-                        _buildProgressIndicator(context, isDark, state),
-                        DsGap.lg,
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: DsEdgeInsets.horizontalXxl,
+                      return Stack(
+                        children: [
+                          AbsorbPointer(
+                            absorbing: saving,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Optional notice
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        DsColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                        color: DsColors.primary
-                                            .withValues(alpha: 0.3)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.info_outline_rounded,
-                                          color: DsColors.primary, size: 20),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          'All fields are optional. You can complete your profile later in Settings.',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
+                                _buildAppBar(context, isDark),
+                                DsGap.lg,
+                                _buildProgressIndicator(context, isDark, state),
+                                DsGap.lg,
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    padding: DsEdgeInsets.horizontalXxl,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Optional notice
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: DsColors.primary.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: DsColors.primary
+                                                  .withValues(alpha: 0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.info_outline_rounded,
                                                 color: DsColors.primary,
-                                                fontWeight: FontWeight.w500,
+                                                size: 20,
                                               ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(
+                                                  'All fields are optional. You can complete your profile later in Settings.',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: DsColors.primary,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        DsGap.lg,
+                                        // Basic Info Summary (from previous step)
+                                        _buildBasicInfoSummary(
+                                          context,
+                                          isDark,
+                                          state,
+                                        ),
+                                        DsGap.xl,
+                                        // Username Section
+                                        _buildUsernameSection(
+                                          context,
+                                          isDark,
+                                          state,
+                                        ),
+                                        DsGap.xl,
+                                        // Photos Section
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'Your Photos',
+                                          'Optional - helps you get more matches',
+                                          Icons.photo_library_rounded,
+                                        ),
+                                        DsGap.md,
+                                        ProfileMediaPicker(
+                                          initialPhotos: _photoPaths,
+                                          initialVideos: _videoPaths,
+                                          enabled: !saving,
+                                          onError: (msg) =>
+                                              showErrorSnackBar(context, msg),
+                                          onChanged: (selection) {
+                                            setState(() {
+                                              _photoPaths = selection.photos;
+                                              _videoPaths = selection.videos;
+                                            });
+                                          },
+                                        ),
+                                        DsGap.xl,
+                                        // Bio Section
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'About You',
+                                          'Tell others about yourself',
+                                          Icons.edit_note_rounded,
+                                        ),
+                                        DsGap.md,
+                                        GlassTextField(
+                                          controller: _bioController,
+                                          hintText:
+                                              'Write something interesting about yourself...',
+                                          maxLines: 4,
+                                          maxLength: 500,
+                                        ),
+                                        DsGap.xl,
+                                        // Looking For Section
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'I Am Looking For',
+                                          'Who would you like to see?',
+                                          Icons.search_rounded,
+                                        ),
+                                        DsGap.md,
+                                        _buildLookingForPicker(
+                                          context,
+                                          isDark,
+                                          state,
+                                        ),
+                                        DsGap.xl,
+                                        // Location Section
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'Location',
+                                          'Where are you based?',
+                                          Icons.location_on_rounded,
+                                        ),
+                                        DsGap.md,
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: GlassTextField(
+                                                controller: _cityController,
+                                                hintText: 'City',
+                                                prefixIcon:
+                                                    Icons.location_city_rounded,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: GlassTextField(
+                                                controller: _countryController,
+                                                hintText: 'Country',
+                                                prefixIcon:
+                                                    Icons.public_rounded,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        DsGap.xl,
+                                        // Work & Education
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'Work & Education',
+                                          'Optional',
+                                          Icons.work_outline_rounded,
+                                        ),
+                                        DsGap.md,
+                                        GlassTextField(
+                                          controller: _jobController,
+                                          hintText: 'Job Title',
+                                          prefixIcon: Icons.badge_outlined,
+                                        ),
+                                        DsGap.md,
+                                        GlassTextField(
+                                          controller: _companyController,
+                                          hintText: 'Company',
+                                          prefixIcon: Icons.business_rounded,
+                                        ),
+                                        DsGap.md,
+                                        GlassTextField(
+                                          controller: _schoolController,
+                                          hintText: 'School / University',
+                                          prefixIcon: Icons.school_rounded,
+                                        ),
+                                        DsGap.xl,
+                                        // Interests
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'Interests',
+                                          'Select up to 5',
+                                          Icons.interests_rounded,
+                                        ),
+                                        DsGap.md,
+                                        _buildInterestsGrid(context, isDark),
+                                        DsGap.xl,
+                                        // Favourites
+                                        _buildSectionHeader(
+                                          context,
+                                          isDark,
+                                          'Favourites',
+                                          'Share what you love',
+                                          Icons.favorite_rounded,
+                                        ),
+                                        DsGap.md,
+                                        _buildFavouritesSection(
+                                          context,
+                                          isDark,
+                                        ),
+                                        DsGap.xxl,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                _buildBottomButton(
+                                  context,
+                                  isDark,
+                                  saving,
+                                  state,
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (saving)
+                            Positioned.fill(
+                              child: Container(
+                                color: DsColors.ink900.withValues(alpha: 0.3),
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        color: DsColors.primary,
+                                      ),
+                                      DsGap.md,
+                                      Text(
+                                        'Setting up your profile...',
+                                        style: TextStyle(
+                                          color: DsColors.surfaceLight,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                DsGap.lg,
-                                // Basic Info Summary (from previous step)
-                                _buildBasicInfoSummary(context, isDark, state),
-                                DsGap.xl,
-                                // Username Section
-                                _buildUsernameSection(context, isDark, state),
-                                DsGap.xl,
-                                // Photos Section
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'Your Photos',
-                                    'Optional - helps you get more matches',
-                                    Icons.photo_library_rounded),
-                                DsGap.md,
-                                ProfileMediaPicker(
-                                  initialPhotos: _photoPaths,
-                                  initialVideos: _videoPaths,
-                                  enabled: !saving,
-                                  onError: (msg) =>
-                                      showErrorSnackBar(context, msg),
-                                  onChanged: (selection) {
-                                    setState(() {
-                                      _photoPaths = selection.photos;
-                                      _videoPaths = selection.videos;
-                                    });
-                                  },
-                                ),
-                                DsGap.xl,
-                                // Bio Section
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'About You',
-                                    'Tell others about yourself',
-                                    Icons.edit_note_rounded),
-                                DsGap.md,
-                                GlassTextField(
-                                  controller: _bioController,
-                                  hintText:
-                                      'Write something interesting about yourself...',
-                                  maxLines: 4,
-                                  maxLength: 500,
-                                ),
-                                DsGap.xl,
-                                // Looking For Section
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'I Am Looking For',
-                                    'Who would you like to see?',
-                                    Icons.search_rounded),
-                                DsGap.md,
-                                _buildLookingForPicker(context, isDark, state),
-                                DsGap.xl,
-                                // Location Section
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'Location',
-                                    'Where are you based?',
-                                    Icons.location_on_rounded),
-                                DsGap.md,
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: GlassTextField(
-                                        controller: _cityController,
-                                        hintText: 'City',
-                                        prefixIcon: Icons.location_city_rounded,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: GlassTextField(
-                                        controller: _countryController,
-                                        hintText: 'Country',
-                                        prefixIcon: Icons.public_rounded,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                DsGap.xl,
-                                // Work & Education
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'Work & Education',
-                                    'Optional',
-                                    Icons.work_outline_rounded),
-                                DsGap.md,
-                                GlassTextField(
-                                  controller: _jobController,
-                                  hintText: 'Job Title',
-                                  prefixIcon: Icons.badge_outlined,
-                                ),
-                                DsGap.md,
-                                GlassTextField(
-                                  controller: _companyController,
-                                  hintText: 'Company',
-                                  prefixIcon: Icons.business_rounded,
-                                ),
-                                DsGap.md,
-                                GlassTextField(
-                                  controller: _schoolController,
-                                  hintText: 'School / University',
-                                  prefixIcon: Icons.school_rounded,
-                                ),
-                                DsGap.xl,
-                                // Interests
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'Interests',
-                                    'Select up to 5',
-                                    Icons.interests_rounded),
-                                DsGap.md,
-                                _buildInterestsGrid(context, isDark),
-                                DsGap.xl,
-                                // Favourites
-                                _buildSectionHeader(
-                                    context,
-                                    isDark,
-                                    'Favourites',
-                                    'Share what you love',
-                                    Icons.favorite_rounded),
-                                DsGap.md,
-                                _buildFavouritesSection(context, isDark),
-                                DsGap.xxl,
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                        _buildBottomButton(context, isDark, saving, state),
-                      ],
-                    ),
+                        ],
+                      );
+                    },
                   ),
-                  if (saving)
-                    Positioned.fill(
-                      child: Container(
-                        color: DsColors.ink900.withValues(alpha: 0.3),
-                        child: const Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(
-                                  color: DsColors.primary),
-                              DsGap.md,
-                              Text('Setting up your profile...',
-                                  style:
-                                      TextStyle(color: DsColors.surfaceLight)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -709,11 +840,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           Text(
             'Complete Profile',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              fontWeight: FontWeight.bold,
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
           const Spacer(),
           const SizedBox(width: 40),
@@ -723,7 +854,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildProgressIndicator(
-      BuildContext context, bool isDark, ProfileState state) {
+    BuildContext context,
+    bool isDark,
+    ProfileState state,
+  ) {
     final completeness = _calculateFormCompleteness(state);
     final percentage = completeness['percentage'] as double;
     final filledCount = completeness['filledCount'] as int;
@@ -745,11 +879,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 colors: isEligible
                     ? [
                         DsColors.success.withValues(alpha: 0.15),
-                        DsColors.success.withValues(alpha: 0.05)
+                        DsColors.success.withValues(alpha: 0.05),
                       ]
                     : [
                         DsColors.warning.withValues(alpha: 0.15),
-                        DsColors.warning.withValues(alpha: 0.05)
+                        DsColors.warning.withValues(alpha: 0.05),
                       ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -791,9 +925,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             isFullyComplete
                                 ? 'Profile Complete!'
                                 : 'Basic Profile Complete',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isEligible
@@ -804,9 +936,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           if (isEligible)
                             Text(
                               "You're eligible to start matching!",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: DsColors.success,
                                     fontWeight: FontWeight.w500,
@@ -829,18 +959,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.tips_and_updates_rounded,
-                            color: DsColors.primary, size: 20),
+                        const Icon(
+                          Icons.tips_and_updates_rounded,
+                          color: DsColors.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'We recommend completing all fields to get more matches and build trust with other users.',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: isDark
-                                          ? DsColors.textMutedDark
-                                          : DsColors.textMutedLight,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? DsColors.textMutedDark
+                                      : DsColors.textMutedLight,
+                                ),
                           ),
                         ),
                       ],
@@ -858,19 +991,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               Text(
                 'Profile Completion',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 '$filledCount/$totalCount fields ($percentDisplay%)',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color:
-                          isFullyComplete ? DsColors.success : DsColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: isFullyComplete ? DsColors.success : DsColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -880,8 +1012,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             child: LinearProgressIndicator(
               value: percentage,
               minHeight: 8,
-              backgroundColor:
-                  isDark ? DsColors.surfaceDark : DsColors.skeletonLight,
+              backgroundColor: isDark
+                  ? DsColors.surfaceDark
+                  : DsColors.skeletonLight,
               valueColor: AlwaysStoppedAnimation<Color>(
                 isFullyComplete ? DsColors.success : DsColors.primary,
               ),
@@ -892,8 +1025,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, bool isDark, String title,
-      String subtitle, IconData icon) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    bool isDark,
+    String title,
+    String subtitle,
+    IconData icon,
+  ) {
     return Row(
       children: [
         Container(
@@ -912,19 +1050,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight,
+                ),
               ),
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               ),
             ],
           ),
@@ -934,7 +1072,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildLookingForPicker(
-      BuildContext context, bool isDark, ProfileState state) {
+    BuildContext context,
+    bool isDark,
+    ProfileState state,
+  ) {
     // Initialize looking for based on gender if not already set
     if (!_lookingForInitialized) {
       final profile = state.user?.profile;
@@ -942,8 +1083,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       // Check if there's existing preference
       final existingPref = profile?.preferences.showMeGenders;
       if (existingPref != null && existingPref.isNotEmpty) {
-        _lookingFor =
-            ProfileFieldOptions.showMeGendersToLookingFor(existingPref);
+        _lookingFor = ProfileFieldOptions.showMeGendersToLookingFor(
+          existingPref,
+        );
       } else {
         // Set default based on gender
         _lookingFor = ProfileFieldOptions.getDefaultLookingFor(gender);
@@ -978,27 +1120,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  option.emoji,
-                  style: const TextStyle(fontSize: 20),
-                ),
+                Text(option.emoji, style: const TextStyle(fontSize: 20)),
                 const SizedBox(width: 8),
                 Text(
                   option.label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isSelected
-                            ? DsColors.primary
-                            : (isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight),
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
-                      ),
+                    color: isSelected
+                        ? DsColors.primary
+                        : (isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
                 if (isSelected) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.check_circle,
-                      color: DsColors.primary, size: 18),
+                  const Icon(
+                    Icons.check_circle,
+                    color: DsColors.primary,
+                    size: 18,
+                  ),
                 ],
               ],
             ),
@@ -1009,7 +1150,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildBasicInfoSummary(
-      BuildContext context, bool isDark, ProfileState state) {
+    BuildContext context,
+    bool isDark,
+    ProfileState state,
+  ) {
     final profile = state.user?.profile;
     final username = state.user?.username ?? '';
     final name = profile?.name ?? '';
@@ -1044,8 +1188,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   color: DsColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.person_rounded,
-                    color: DsColors.primary, size: 20),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: DsColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1055,19 +1202,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     Text(
                       'Basic Info',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                     Text(
                       'From your profile setup',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                   ],
                 ),
@@ -1165,22 +1312,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                    fontSize: 10,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+                fontSize: 10,
+              ),
             ),
             Text(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isPrimary
-                        ? DsColors.primary
-                        : (isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight),
-                    fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                color: isPrimary
+                    ? DsColors.primary
+                    : (isDark
+                          ? DsColors.textPrimaryDark
+                          : DsColors.textPrimaryLight),
+                fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -1189,10 +1336,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildUsernameSection(
-      BuildContext context, bool isDark, ProfileState state) {
+    BuildContext context,
+    bool isDark,
+    ProfileState state,
+  ) {
     // Initialize username from user profile if not done yet
     if (!_usernameInitialized) {
-      final currentUsername = state.user?.username ??
+      final currentUsername =
+          state.user?.username ??
           context.read<AuthBloc>().state.user?.username ??
           '';
       _usernameController.text = currentUsername;
@@ -1230,15 +1381,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           if (_usernameErrorText() == null)
             Padding(
-              padding: const EdgeInsets.only(top: 6, left: 12),
+              padding: const EdgeInsetsDirectional.only(top: 6, start: 12),
               child: Text(
                 '3-20 characters, letters, numbers, or underscore',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                      fontSize: 11,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                  fontSize: 11,
+                ),
               ),
             ),
           DsGap.sm,
@@ -1251,7 +1402,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     _isEditingUsername = false;
                     _usernameTouched = false;
                     // Reset to original
-                    final currentUsername = state.user?.username ??
+                    final currentUsername =
+                        state.user?.username ??
                         context.read<AuthBloc>().state.user?.username ??
                         '';
                     _usernameController.text = currentUsername;
@@ -1298,8 +1450,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     : DsColors.inputFillLight,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color:
-                      canChangeUsername ? DsColors.primary : DsColors.warning,
+                  color: canChangeUsername
+                      ? DsColors.primary
+                      : DsColors.warning,
                   width: 2,
                 ),
               ),
@@ -1310,8 +1463,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ? Icons.alternate_email_rounded
                         : Icons.lock_rounded,
                     size: 22,
-                    color:
-                        canChangeUsername ? DsColors.primary : DsColors.warning,
+                    color: canChangeUsername
+                        ? DsColors.primary
+                        : DsColors.warning,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1320,25 +1474,25 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       children: [
                         Text(
                           'Username',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                    fontSize: 11,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                                fontSize: 11,
+                              ),
                         ),
                         Text(
                           _usernameController.text.isNotEmpty
                               ? '@${_usernameController.text}'
                               : 'Not set',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textPrimaryDark
-                                        : DsColors.textPrimaryLight,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isDark
+                                    ? DsColors.textPrimaryDark
+                                    : DsColors.textPrimaryLight,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ],
                     ),
@@ -1352,7 +1506,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   else
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: DsColors.warning.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
@@ -1360,8 +1516,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.timer_outlined,
-                              size: 12, color: DsColors.warning),
+                          const Icon(
+                            Icons.timer_outlined,
+                            size: 12,
+                            color: DsColors.warning,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '$daysUntilChange days',
@@ -1380,7 +1539,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           if (!canChangeUsername)
             Padding(
-              padding: const EdgeInsets.only(top: 8, left: 4),
+              padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
               child: Row(
                 children: [
                   const Icon(
@@ -1393,9 +1552,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: Text(
                       'Username changes are limited to once every 28 days. You can change it again in $daysUntilChange days.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.warning,
-                            fontSize: 11,
-                          ),
+                        color: DsColors.warning,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
@@ -1433,8 +1592,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               color: isSelected
                   ? DsColors.primary.withValues(alpha: 0.15)
                   : (isDark
-                      ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                      : DsColors.inputFillLight),
+                        ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                        : DsColors.inputFillLight),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isSelected
@@ -1449,12 +1608,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 color: isSelected
                     ? DsColors.primary
                     : (canSelect
-                        ? (isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight)
-                        : (isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight)),
+                          ? (isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight)
+                          : (isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight)),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 13,
               ),
@@ -1468,127 +1627,168 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Widget _buildFavouritesSection(BuildContext context, bool isDark) {
     return Column(
       children: [
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Athlete',
-            icon: Icons.sports_soccer_rounded,
-            value: _favouriteAthlete,
-            options: FavouritesOptions.athletes,
-            onSelected: (val) => setState(() => _favouriteAthlete = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Athlete',
+          icon: Icons.sports_soccer_rounded,
+          value: _favouriteAthlete,
+          options: FavouritesOptions.athletes,
+          onSelected: (val) => setState(() => _favouriteAthlete = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Food',
-            icon: Icons.restaurant_rounded,
-            value: _favouriteFood,
-            options: FavouritesOptions.foods,
-            onSelected: (val) => setState(() => _favouriteFood = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Food',
+          icon: Icons.restaurant_rounded,
+          value: _favouriteFood,
+          options: FavouritesOptions.foods,
+          onSelected: (val) => setState(() => _favouriteFood = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Sport',
-            icon: Icons.sports_rounded,
-            value: _favouriteSport,
-            options: FavouritesOptions.sports,
-            onSelected: (val) => setState(() => _favouriteSport = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Sport',
+          icon: Icons.sports_rounded,
+          value: _favouriteSport,
+          options: FavouritesOptions.sports,
+          onSelected: (val) => setState(() => _favouriteSport = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite TV Show',
-            icon: Icons.tv_rounded,
-            value: _favouriteTvShow,
-            options: FavouritesOptions.tvShows,
-            onSelected: (val) => setState(() => _favouriteTvShow = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite TV Show',
+          icon: Icons.tv_rounded,
+          value: _favouriteTvShow,
+          options: FavouritesOptions.tvShows,
+          onSelected: (val) => setState(() => _favouriteTvShow = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Actor',
-            icon: Icons.movie_rounded,
-            value: _favouriteActor,
-            options: FavouritesOptions.actors,
-            onSelected: (val) => setState(() => _favouriteActor = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Actor',
+          icon: Icons.movie_rounded,
+          value: _favouriteActor,
+          options: FavouritesOptions.actors,
+          onSelected: (val) => setState(() => _favouriteActor = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Singer',
-            icon: Icons.music_note_rounded,
-            value: _favouriteSinger,
-            options: FavouritesOptions.singers,
-            onSelected: (val) => setState(() => _favouriteSinger = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Singer',
+          icon: Icons.music_note_rounded,
+          value: _favouriteSinger,
+          options: FavouritesOptions.singers,
+          onSelected: (val) => setState(() => _favouriteSinger = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Movie',
-            icon: Icons.local_movies_rounded,
-            value: _favouriteMovie,
-            options: FavouritesOptions.movies,
-            onSelected: (val) => setState(() => _favouriteMovie = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Movie',
+          icon: Icons.local_movies_rounded,
+          value: _favouriteMovie,
+          options: FavouritesOptions.movies,
+          onSelected: (val) => setState(() => _favouriteMovie = val),
+        ),
         DsGap.md,
-        _buildFavouriteSelector(context, isDark,
-            label: 'Favourite Hobby',
-            icon: Icons.palette_rounded,
-            value: _favouriteHobby,
-            options: FavouritesOptions.hobbies,
-            onSelected: (val) => setState(() => _favouriteHobby = val)),
+        _buildFavouriteSelector(
+          context,
+          isDark,
+          label: 'Favourite Hobby',
+          icon: Icons.palette_rounded,
+          value: _favouriteHobby,
+          options: FavouritesOptions.hobbies,
+          onSelected: (val) => setState(() => _favouriteHobby = val),
+        ),
       ],
     );
   }
 
-  Widget _buildFavouriteSelector(BuildContext context, bool isDark,
-      {required String label,
-      required IconData icon,
-      required String? value,
-      required List<String> options,
-      required ValueChanged<String?> onSelected}) {
+  Widget _buildFavouriteSelector(
+    BuildContext context,
+    bool isDark, {
+    required String label,
+    required IconData icon,
+    required String? value,
+    required List<String> options,
+    required ValueChanged<String?> onSelected,
+  }) {
     return GestureDetector(
       onTap: () => _showFavouriteBottomSheet(
-          context, isDark, label, options, value, onSelected),
+        context,
+        isDark,
+        label,
+        options,
+        value,
+        onSelected,
+      ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: value != null
               ? DsColors.primary.withValues(alpha: 0.1)
               : (isDark
-                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                  : DsColors.inputFillLight),
+                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                    : DsColors.inputFillLight),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: value != null
-                  ? DsColors.primary
-                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
-              width: value != null ? 2 : 1),
+            color: value != null
+                ? DsColors.primary
+                : (isDark ? DsColors.borderDark : DsColors.borderLight),
+            width: value != null ? 2 : 1,
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon,
-                size: 22,
-                color: value != null
-                    ? DsColors.primary
-                    : (isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight)),
+            Icon(
+              icon,
+              size: 22,
+              color: value != null
+                  ? DsColors.primary
+                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                          fontSize: 11)),
-                  Text(value ?? 'Select...',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: value != null
-                              ? (isDark
-                                  ? DsColors.textPrimaryDark
-                                  : DsColors.textPrimaryLight)
-                              : (isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight),
-                          fontWeight: value != null
-                              ? FontWeight.w600
-                              : FontWeight.w400)),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                      fontSize: 11,
+                    ),
+                  ),
+                  Text(
+                    value ?? 'Select...',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: value != null
+                          ? (isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight)
+                          : (isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight),
+                      fontWeight: value != null
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
           ],
         ),
       ),
@@ -1596,12 +1796,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void _showFavouriteBottomSheet(
-      BuildContext context,
-      bool isDark,
-      String title,
-      List<String> options,
-      String? currentValue,
-      ValueChanged<String?> onSelected) {
+    BuildContext context,
+    bool isDark,
+    String title,
+    List<String> options,
+    String? currentValue,
+    ValueChanged<String?> onSelected,
+  ) {
     final customController = TextEditingController();
 
     showModalBottomSheet(
@@ -1609,8 +1810,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => Container(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.7),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.7,
+        ),
         decoration: BoxDecoration(
           color: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1619,40 +1821,49 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: isDark ? DsColors.borderDark : DsColors.borderLight,
-                    borderRadius: BorderRadius.circular(2))),
+              margin: const EdgeInsetsDirectional.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? DsColors.borderDark : DsColors.borderLight,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(title,
-                      style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight)),
+                  Text(
+                    title,
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? DsColors.textPrimaryDark
+                          : DsColors.textPrimaryLight,
+                    ),
+                  ),
                   if (currentValue != null)
                     GestureDetector(
                       onTap: () {
                         onSelected(null);
                         Navigator.pop(ctx);
                       },
-                      child: Text('Clear',
-                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                              color: DsColors.primary,
-                              fontWeight: FontWeight.w600)),
+                      child: Text(
+                        'Clear',
+                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                          color: DsColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                 ],
               ),
             ),
             Divider(
-                height: 1,
-                color: isDark ? DsColors.borderDark : DsColors.borderLight),
+              height: 1,
+              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -1663,17 +1874,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       decoration: InputDecoration(
                         hintText: 'Or type your own...',
                         hintStyle: TextStyle(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight),
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: isDark
-                                    ? DsColors.borderDark
-                                    : DsColors.borderLight)),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? DsColors.borderDark
+                                : DsColors.borderLight,
+                          ),
+                        ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -1691,8 +1907,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
             Divider(
-                height: 1,
-                color: isDark ? DsColors.borderDark : DsColors.borderLight),
+              height: 1,
+              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
@@ -1706,35 +1923,46 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       onSelected(option);
                       Navigator.pop(ctx);
                     },
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 2,
+                    ),
                     leading: Container(
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? DsColors.primary
+                            : Colors.transparent,
+                        border: Border.all(
                           color: isSelected
                               ? DsColors.primary
-                              : Colors.transparent,
-                          border: Border.all(
-                              color: isSelected
-                                  ? DsColors.primary
-                                  : (isDark
-                                      ? DsColors.borderDark
-                                      : DsColors.borderLight),
-                              width: 2)),
+                              : (isDark
+                                    ? DsColors.borderDark
+                                    : DsColors.borderLight),
+                          width: 2,
+                        ),
+                      ),
                       child: isSelected
-                          ? const Icon(Icons.check,
-                              size: 16, color: DsColors.surfaceLight)
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: DsColors.surfaceLight,
+                            )
                           : null,
                     ),
-                    title: Text(option,
-                        style: Theme.of(ctx2).textTheme.bodyMedium?.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight)),
+                    title: Text(
+                      option,
+                      style: Theme.of(ctx2).textTheme.bodyMedium?.copyWith(
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -1746,12 +1974,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
+  /// Handle "Skip for now" — requires at least 1 photo (Apple App Store requirement).
+  void _handleSkip(ProfileState state) {
+    if (_photoPaths.isEmpty) {
+      showErrorSnackBar(
+        context,
+        'Please add at least 1 photo before skipping. This is required for dating apps.',
+      );
+      return;
+    }
+
+    // Submit with whatever data the user has filled in so far
+    _submit(state);
+  }
+
   Widget _buildBottomButton(
-      BuildContext context, bool isDark, bool saving, ProfileState state) {
+    BuildContext context,
+    bool isDark,
+    bool saving,
+    ProfileState state,
+  ) {
     final completeness = _calculateFormCompleteness(state);
     final isFullyComplete = completeness['isFullyComplete'] as bool;
-    final percentDisplay =
-        ((completeness['percentage'] as double) * 100).round();
+    final percentDisplay = ((completeness['percentage'] as double) * 100)
+        .round();
 
     // Button text based on completion
     final buttonText = isFullyComplete
@@ -1773,7 +2019,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           colors: [
             (isDark ? DsColors.backgroundDark : DsColors.backgroundLight)
                 .withValues(alpha: 0),
-            isDark ? DsColors.backgroundDark : DsColors.backgroundLight
+            isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
           ],
         ),
       ),
@@ -1782,43 +2028,82 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         children: [
           if (!isFullyComplete)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsetsDirectional.only(bottom: 12),
               child: Text(
                 'You can always complete your profile later in Settings',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
           SizedBox(
             width: double.infinity,
             child: GlassPrimaryButton(
+              semanticLabel: 'Save profile and start matching',
               onPressed: saving ? null : () => _submit(state),
               child: saving
                   ? const SizedBox(
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: DsColors.surfaceLight))
+                        strokeWidth: 2,
+                        color: DsColors.surfaceLight,
+                      ),
+                    )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                            isFullyComplete
-                                ? Icons.favorite_rounded
-                                : Icons.play_arrow_rounded,
-                            size: 20),
+                          isFullyComplete
+                              ? Icons.favorite_rounded
+                              : Icons.play_arrow_rounded,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        Text(buttonText,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text(
+                          buttonText,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
             ),
           ),
+          // Skip for now button — only shown when profile is not fully complete
+          if (!isFullyComplete && !saving) ...[
+            DsGap.sm,
+            SizedBox(
+              width: double.infinity,
+              child: Semantics(
+                button: true,
+                label:
+                    'Skip profile setup for now. Requires at least one photo.',
+                child: GlassOutlinedButton(
+                  semanticLabel: 'Skip for now',
+                  onPressed: () => _handleSkip(state),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.skip_next_rounded, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Skip for now',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

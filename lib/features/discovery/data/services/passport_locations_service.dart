@@ -3,7 +3,9 @@ import 'dart:convert';
 
 /// Service to track popular locations entered by users.
 /// When a location reaches 1000+ entries, it becomes available in Passport Mode.
-class PassportLocationsService {
+import 'package:crushhour/features/discovery/domain/repositories/passport_locations_repository.dart';
+
+class PassportLocationsService implements PassportLocationsRepository {
   PassportLocationsService._();
   static final PassportLocationsService instance = PassportLocationsService._();
 
@@ -36,6 +38,7 @@ class PassportLocationsService {
   ];
 
   /// Record a user's location entry. Increments the count for that location.
+  @override
   Future<void> recordLocation(String city, String country) async {
     if (city.isEmpty || country.isEmpty) return;
 
@@ -60,6 +63,7 @@ class PassportLocationsService {
   }
 
   /// Get all available passport locations (default + popular user-added)
+  @override
   Future<List<Map<String, String>>> getPassportLocations() async {
     final prefs = await SharedPreferences.getInstance();
     final locationsJson = prefs.getString(_passportLocationsKey);
@@ -71,10 +75,11 @@ class PassportLocationsService {
       for (final item in decoded) {
         final location = Map<String, String>.from(item as Map);
         // Avoid duplicates
-        if (!locations.any((l) =>
-            l['city']?.toLowerCase() == location['city']?.toLowerCase() &&
-            l['country']?.toLowerCase() ==
-                location['country']?.toLowerCase())) {
+        if (!locations.any(
+          (l) =>
+              l['city']?.toLowerCase() == location['city']?.toLowerCase() &&
+              l['country']?.toLowerCase() == location['country']?.toLowerCase(),
+        )) {
           locations.add(location);
         }
       }
@@ -86,6 +91,7 @@ class PassportLocationsService {
   }
 
   /// Get location count for analytics
+  @override
   Future<int> getLocationCount(String city, String country) async {
     final prefs = await SharedPreferences.getInstance();
     final countsJson = prefs.getString(_locationCountsKey);
@@ -98,6 +104,7 @@ class PassportLocationsService {
   }
 
   /// Get trending locations (top 10 by count, excluding defaults)
+  @override
   Future<List<Map<String, dynamic>>> getTrendingLocations() async {
     final prefs = await SharedPreferences.getInstance();
     final countsJson = prefs.getString(_locationCountsKey);
@@ -129,14 +136,17 @@ class PassportLocationsService {
     List<Map<String, String>> locations = [];
     if (locationsJson != null) {
       final decoded = jsonDecode(locationsJson) as List;
-      locations =
-          decoded.map((e) => Map<String, String>.from(e as Map)).toList();
+      locations = decoded
+          .map((e) => Map<String, String>.from(e as Map))
+          .toList();
     }
 
     // Check if already exists
-    final exists = locations.any((l) =>
-        l['city']?.toLowerCase() == city.toLowerCase() &&
-        l['country']?.toLowerCase() == country.toLowerCase());
+    final exists = locations.any(
+      (l) =>
+          l['city']?.toLowerCase() == city.toLowerCase() &&
+          l['country']?.toLowerCase() == country.toLowerCase(),
+    );
 
     if (!exists) {
       locations.add({'city': city, 'country': country});
@@ -145,6 +155,7 @@ class PassportLocationsService {
   }
 
   /// Search passport locations by query
+  @override
   Future<List<Map<String, String>>> searchLocations(String query) async {
     if (query.isEmpty) return getPassportLocations();
 

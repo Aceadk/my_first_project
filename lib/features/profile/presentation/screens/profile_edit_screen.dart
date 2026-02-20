@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
@@ -9,10 +10,11 @@ import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
-import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -42,7 +44,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _scrollController = ScrollController();
 
   String? _lastProfileId;
-  final _mediaService = ProfileMediaService();
+  late final _mediaService = context.read<ProfileMediaRepository>();
   List<String> _photos = [];
   List<String> _videos = [];
   int _primaryPhotoIndex = 0;
@@ -106,9 +108,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       profilePrompts: _profilePrompts.isNotEmpty
           ? _profilePrompts
           : (state.user?.profile?.profilePrompts ?? const []),
-      // ignore: deprecated_member_use_from_same_package
-      prompts: state.user?.profile?.prompts ??
-          const [], // Keep for backwards compatibility
       heightCm: _heightCm ?? state.user?.profile?.heightCm,
       relationshipGoals:
           _relationshipGoals ?? state.user?.profile?.relationshipGoals,
@@ -139,7 +138,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       city: state.user?.profile?.city ?? 'Unknown',
       latitude: state.user?.profile?.latitude,
       longitude: state.user?.profile?.longitude,
-      preferences: state.user?.profile?.preferences ??
+      preferences:
+          state.user?.profile?.preferences ??
           const DiscoveryPreferences(
             minAge: 18,
             maxAge: 45,
@@ -152,7 +152,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             country: 'Unknown',
             city: 'Unknown',
           ),
-      privacySettings: state.user?.profile?.privacySettings ??
+      privacySettings:
+          state.user?.profile?.privacySettings ??
           const ProfilePrivacySettings(),
     );
   }
@@ -169,7 +170,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final base = state.profile ?? _fallbackProfile(state);
     // Try ProfileBloc state first, then fall back to AuthBloc for user ID
-    final userId = state.user?.id ??
+    final userId =
+        state.user?.id ??
         state.profile?.id ??
         context.read<AuthBloc>().state.user?.id;
     if (userId == null) {
@@ -405,7 +407,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   Future<void> _showDateOfBirthPicker(
-      BuildContext context, Profile? profile) async {
+    BuildContext context,
+    Profile? profile,
+  ) async {
     // Check if DOB is locked
     if (profile != null && !profile.canChangeDob) {
       showErrorSnackBar(
@@ -461,7 +465,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (!mounted) return;
 
     // Calculate age from selected date
-    final age = now.year -
+    final age =
+        now.year -
         result.year -
         ((now.month < result.month ||
                 (now.month == result.month && now.day < result.day))
@@ -522,8 +527,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       // ignore: use_build_context_synchronously
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded,
-            color: DsColors.warning, size: 48),
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: DsColors.warning,
+          size: 48,
+        ),
         title: const Text('Confirm Date of Birth'),
         content: Text(
           'You selected: ${result.day}/${result.month}/${result.year}\n\n'
@@ -762,21 +770,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
               decoration: BoxDecoration(
                 color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 12),
+                    margin: const EdgeInsetsDirectional.only(top: 12),
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: (isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight)
-                          .withValues(alpha: 0.3),
+                      color:
+                          (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight)
+                              .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -788,7 +798,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           child: Text(
                             'Favorite Songs',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w600),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         TextButton(
@@ -808,8 +820,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DsSpacing.lg,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -817,9 +830,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             controller: controller,
                             textInputAction: TextInputAction.done,
                             onSubmitted: (value) {
-                              if (value.trim().isNotEmpty) {
+                              final sanitized = InputSanitizer.sanitizeText(
+                                value,
+                                maxLength: 100,
+                              );
+                              if (sanitized.isNotEmpty) {
                                 setModalState(() {
-                                  songs.add(value.trim());
+                                  songs.add(sanitized);
                                   controller.clear();
                                 });
                               }
@@ -839,15 +856,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         const SizedBox(width: DsSpacing.sm),
                         IconButton(
                           onPressed: () {
-                            if (controller.text.trim().isNotEmpty) {
+                            final sanitized = InputSanitizer.sanitizeText(
+                              controller.text,
+                              maxLength: 100,
+                            );
+                            if (sanitized.isNotEmpty) {
                               setModalState(() {
-                                songs.add(controller.text.trim());
+                                songs.add(sanitized);
                                 controller.clear();
                               });
                             }
                           },
-                          icon: const Icon(Icons.add_circle,
-                              color: DsColors.primary),
+                          icon: const Icon(
+                            Icons.add_circle,
+                            color: DsColors.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -856,8 +879,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   Flexible(
                     child: ListView.builder(
                       shrinkWrap: true,
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom +
+                      padding: EdgeInsetsDirectional.only(
+                        bottom:
+                            MediaQuery.of(context).padding.bottom +
                             DsSpacing.lg,
                       ),
                       itemCount: songs.length,
@@ -983,8 +1007,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           _livingInController.text = profile.livingIn ?? '';
           _favoriteSingerController.text = profile.favoriteSinger ?? '';
           // Don't load "Unknown" as it's just a placeholder
-          _countryController.text =
-              profile.country != 'Unknown' ? profile.country : '';
+          _countryController.text = profile.country != 'Unknown'
+              ? profile.country
+              : '';
           _cityController.text = profile.city != 'Unknown' ? profile.city : '';
           _heightCm = profile.heightCm;
           _relationshipGoals = profile.relationshipGoals;
@@ -1025,416 +1050,564 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             title: const Text('Complete Your Profile'),
             centerTitle: true,
           ),
-          body: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: AbsorbPointer(
-              absorbing: saving,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: DsEdgeInsets.screenPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Progress Card
-                    _ProgressCard(
-                      percent: percent,
-                      score: summary.score,
-                      missing: missing,
-                      meetsRequiredFields: summary.meetsRequiredFields,
-                      username: state.user?.username,
-                    ),
-                    DsGap.xl,
-
-                    // Photos Section
-                    const _SectionHeader(
-                      icon: Icons.photo_library_outlined,
-                      title: 'Your Photos & Videos',
-                      subtitle: 'Add at least 1 photo to be visible',
-                    ),
-                    DsGap.md,
-                    ProfileMediaPicker(
-                      initialPhotos: _photos,
-                      initialVideos: _videos,
-                      initialPrimaryIndex: _primaryPhotoIndex,
-                      enabled: !saving,
-                      onError: (msg) => showErrorSnackBar(context, msg),
-                      onChanged: (selection) {
-                        setState(() {
-                          _photos = selection.photos;
-                          _videos = selection.videos;
-                          _primaryPhotoIndex = selection.primaryPhotoIndex;
-                        });
-                      },
-                    ),
-                    DsGap.xl,
-
-                    // Basic Info Section
-                    const _SectionHeader(
-                      icon: Icons.person_outline,
-                      title: 'Basic Info',
-                      subtitle: 'Help others get to know you',
-                    ),
-                    DsGap.md,
-                    // Username display (read-only, managed in settings)
-                    _UsernameDisplay(
-                      username: state.user?.username,
-                    ),
-                    DsGap.md,
-                    _StyledTextField(
-                      controller: _firstNameController,
-                      label: 'First Name',
-                      hint: 'Enter your first name',
-                      icon: Icons.badge_outlined,
-                      enabled: profile?.canChangeName ?? true,
-                      helperText: profile != null && !profile.canChangeName
-                          ? 'You can change your name again in ${profile.daysUntilNameChange} days'
-                          : 'You can change your name once per month',
-                    ),
-                    DsGap.md,
-                    _StyledTextField(
-                      controller: _lastNameController,
-                      label: 'Last Name',
-                      hint: 'Enter your last name (optional)',
-                      icon: Icons.person_outline,
-                      enabled: profile?.canChangeName ?? true,
-                    ),
-                    DsGap.md,
-                    _StyledTextField(
-                      controller: _bioController,
-                      label: 'About You',
-                      hint: 'Share something interesting about yourself...',
-                      icon: Icons.edit_note,
-                      maxLines: 4,
-                      minLines: 3,
-                    ),
-                    DsGap.xl,
-
-                    // Conversation Starters Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Conversation Starters',
-                      icon: Icons.chat_bubble_outline,
-                      children: [
-                        PromptEditor(
-                          prompts: _profilePrompts,
-                          maxPrompts: PromptQuestions.maxPromptsPerProfile,
-                          onPromptsChanged: (prompts) {
-                            setState(() => _profilePrompts = prompts);
-                          },
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Physical & Dating Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Dating Basics',
-                      icon: Icons.favorite_outline,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'Height',
-                          value: _heightCm != null
-                              ? ProfileFieldOptions.formatHeightDisplay(
-                                  _heightCm!)
-                              : null,
-                          leadingIcon: Icons.height,
-                          onTap: () => _showHeightPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Relationship Goals',
-                          value: ProfileFieldOptions.getRelationshipGoalLabel(
-                              _relationshipGoals),
-                          leadingIcon: Icons.favorite,
-                          onTap: () => _showRelationshipGoalsPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: profile != null && !profile.canChangeDob
-                              ? 'Date of Birth 🔒'
-                              : 'Date of Birth',
-                          value: _dateOfBirth != null
-                              ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
-                              : null,
-                          placeholder: profile != null && !profile.canChangeDob
-                              ? 'Locked (${profile.daysUntilDobChange}d)'
-                              : 'Add',
-                          leadingIcon: Icons.cake_outlined,
-                          onTap: () => _showDateOfBirthPicker(context, profile),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Interests Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Interests',
-                      icon: Icons.interests_outlined,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'Your Interests',
-                          value: _interests.isNotEmpty
-                              ? '${_interests.length} selected'
-                              : null,
-                          leadingIcon: Icons.local_fire_department,
-                          onTap: () => _showInterestsPicker(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Languages Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Languages',
-                      icon: Icons.language,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'I speak',
-                          value: _languages.isNotEmpty
-                              ? _languages.take(3).join(', ') +
-                                  (_languages.length > 3 ? '...' : '')
-                              : null,
-                          leadingIcon: Icons.translate,
-                          onTap: () => _showLanguagesPicker(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // More About Me Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'More About Me',
-                      icon: Icons.psychology_outlined,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'Zodiac Sign',
-                          value:
-                              ProfileFieldOptions.getZodiacLabel(_zodiacSign),
-                          leadingIcon: Icons.auto_awesome,
-                          onTap: () => _showZodiacPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Education',
-                          value: ProfileFieldOptions.getEducationLabel(
-                              _educationLevel),
-                          leadingIcon: Icons.school_outlined,
-                          onTap: () => _showEducationPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Family Plans',
-                          value: ProfileFieldOptions.getFamilyPlanLabel(
-                              _familyPlans),
-                          leadingIcon: Icons.family_restroom,
-                          onTap: () => _showFamilyPlansPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Personality Type',
-                          value: ProfileFieldOptions.getPersonalityLabel(
-                              _personalityType),
-                          leadingIcon: Icons.emoji_people,
-                          onTap: () => _showPersonalityPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Religion',
-                          value:
-                              ProfileFieldOptions.getReligionLabel(_religion),
-                          leadingIcon: Icons.self_improvement,
-                          onTap: () => _showReligionPicker(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Lifestyle Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Lifestyle',
-                      icon: Icons.spa_outlined,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'Workout',
-                          value: ProfileFieldOptions.getWorkoutLabel(_workout),
-                          leadingIcon: Icons.fitness_center,
-                          onTap: () => _showWorkoutPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Social Media',
-                          value: ProfileFieldOptions.getSocialMediaLabel(
-                              _socialMedia),
-                          leadingIcon: Icons.phone_android,
-                          onTap: () => _showSocialMediaPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Sleeping Habits',
-                          value: ProfileFieldOptions.getSleepingLabel(
-                              _sleepingHabits),
-                          leadingIcon: Icons.bedtime_outlined,
-                          onTap: () => _showSleepingPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Smoking',
-                          value: ProfileFieldOptions.getSmokingLabel(_smoking),
-                          leadingIcon: Icons.smoking_rooms,
-                          onTap: () => _showSmokingPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Drinking',
-                          value:
-                              ProfileFieldOptions.getDrinkingLabel(_drinking),
-                          leadingIcon: Icons.local_bar,
-                          onTap: () => _showDrinkingPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Pets',
-                          value: ProfileFieldOptions.getPetLabel(_pets),
-                          leadingIcon: Icons.pets,
-                          onTap: () => _showPetsPicker(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Work & Education Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Work & Education',
-                      icon: Icons.work_outline,
-                      children: [
-                        _StyledTextField(
-                          controller: _jobTitleController,
-                          label: 'Job Title',
-                          hint: 'What do you do?',
-                          icon: Icons.badge_outlined,
-                        ),
-                        const SizedBox(height: DsSpacing.md),
-                        _StyledTextField(
-                          controller: _companyController,
-                          label: 'Company',
-                          hint: 'Where do you work?',
-                          icon: Icons.business,
-                        ),
-                        const SizedBox(height: DsSpacing.md),
-                        _StyledTextField(
-                          controller: _schoolController,
-                          label: 'School/College',
-                          hint: 'Where did you study?',
-                          icon: Icons.school,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Location Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Location',
-                      icon: Icons.location_on_outlined,
-                      children: [
-                        Row(
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = DsBreakpoints.contentMaxWidth(
+                constraints.maxWidth,
+              );
+              final isMobile = DsBreakpoints.isMobile(constraints.maxWidth);
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: AbsorbPointer(
+                      absorbing: saving,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: DsEdgeInsets.screenPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _StyledTextField(
-                                controller: _countryController,
-                                label: 'Country',
-                                hint: 'Your country',
-                                icon: Icons.public,
+                            // Progress + Photos + Basic Info
+                            // On tablet/desktop: two-column layout (photos left, fields right)
+                            if (!isMobile) ...[
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Left: Progress + Photos
+                                  SizedBox(
+                                    width: 300,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _ProgressCard(
+                                          percent: percent,
+                                          score: summary.score,
+                                          missing: missing,
+                                          meetsRequiredFields:
+                                              summary.meetsRequiredFields,
+                                          username: state.user?.username,
+                                        ),
+                                        DsGap.xl,
+                                        const _SectionHeader(
+                                          icon: Icons.photo_library_outlined,
+                                          title: 'Your Photos & Videos',
+                                          subtitle:
+                                              'Add at least 1 photo to be visible',
+                                        ),
+                                        DsGap.md,
+                                        ProfileMediaPicker(
+                                          initialPhotos: _photos,
+                                          initialVideos: _videos,
+                                          initialPrimaryIndex:
+                                              _primaryPhotoIndex,
+                                          enabled: !saving,
+                                          onError: (msg) =>
+                                              showErrorSnackBar(context, msg),
+                                          onChanged: (selection) {
+                                            setState(() {
+                                              _photos = selection.photos;
+                                              _videos = selection.videos;
+                                              _primaryPhotoIndex =
+                                                  selection.primaryPhotoIndex;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: DsSpacing.lg),
+                                  // Right: Basic Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const _SectionHeader(
+                                          icon: Icons.person_outline,
+                                          title: 'Basic Info',
+                                          subtitle:
+                                              'Help others get to know you',
+                                        ),
+                                        DsGap.md,
+                                        _UsernameDisplay(
+                                          username: state.user?.username,
+                                        ),
+                                        DsGap.md,
+                                        _StyledTextField(
+                                          controller: _firstNameController,
+                                          label: 'First Name',
+                                          hint: 'Enter your first name',
+                                          icon: Icons.badge_outlined,
+                                          enabled:
+                                              profile?.canChangeName ?? true,
+                                          helperText:
+                                              profile != null &&
+                                                  !profile.canChangeName
+                                              ? 'You can change your name again in ${profile.daysUntilNameChange} days'
+                                              : 'You can change your name once per month',
+                                        ),
+                                        DsGap.md,
+                                        _StyledTextField(
+                                          controller: _lastNameController,
+                                          label: 'Last Name',
+                                          hint:
+                                              'Enter your last name (optional)',
+                                          icon: Icons.person_outline,
+                                          enabled:
+                                              profile?.canChangeName ?? true,
+                                        ),
+                                        DsGap.md,
+                                        _StyledTextField(
+                                          controller: _bioController,
+                                          label: 'About You',
+                                          hint:
+                                              'Share something interesting about yourself...',
+                                          icon: Icons.edit_note,
+                                          maxLines: 4,
+                                          minLines: 3,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: DsSpacing.md),
-                            Expanded(
-                              child: _StyledTextField(
-                                controller: _cityController,
-                                label: 'City',
-                                hint: 'Your city',
-                                icon: Icons.location_city,
+                              DsGap.xl,
+                            ] else ...[
+                              // Mobile: single-column layout
+                              _ProgressCard(
+                                percent: percent,
+                                score: summary.score,
+                                missing: missing,
+                                meetsRequiredFields:
+                                    summary.meetsRequiredFields,
+                                username: state.user?.username,
                               ),
+                              DsGap.xl,
+                              const _SectionHeader(
+                                icon: Icons.photo_library_outlined,
+                                title: 'Your Photos & Videos',
+                                subtitle: 'Add at least 1 photo to be visible',
+                              ),
+                              DsGap.md,
+                              ProfileMediaPicker(
+                                initialPhotos: _photos,
+                                initialVideos: _videos,
+                                initialPrimaryIndex: _primaryPhotoIndex,
+                                enabled: !saving,
+                                onError: (msg) =>
+                                    showErrorSnackBar(context, msg),
+                                onChanged: (selection) {
+                                  setState(() {
+                                    _photos = selection.photos;
+                                    _videos = selection.videos;
+                                    _primaryPhotoIndex =
+                                        selection.primaryPhotoIndex;
+                                  });
+                                },
+                              ),
+                              DsGap.xl,
+                              const _SectionHeader(
+                                icon: Icons.person_outline,
+                                title: 'Basic Info',
+                                subtitle: 'Help others get to know you',
+                              ),
+                              DsGap.md,
+                              _UsernameDisplay(username: state.user?.username),
+                              DsGap.md,
+                              _StyledTextField(
+                                controller: _firstNameController,
+                                label: 'First Name',
+                                hint: 'Enter your first name',
+                                icon: Icons.badge_outlined,
+                                enabled: profile?.canChangeName ?? true,
+                                helperText:
+                                    profile != null && !profile.canChangeName
+                                    ? 'You can change your name again in ${profile.daysUntilNameChange} days'
+                                    : 'You can change your name once per month',
+                              ),
+                              DsGap.md,
+                              _StyledTextField(
+                                controller: _lastNameController,
+                                label: 'Last Name',
+                                hint: 'Enter your last name (optional)',
+                                icon: Icons.person_outline,
+                                enabled: profile?.canChangeName ?? true,
+                              ),
+                              DsGap.md,
+                              _StyledTextField(
+                                controller: _bioController,
+                                label: 'About You',
+                                hint:
+                                    'Share something interesting about yourself...',
+                                icon: Icons.edit_note,
+                                maxLines: 4,
+                                minLines: 3,
+                              ),
+                              DsGap.xl,
+                            ],
+
+                            // Conversation Starters Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Conversation Starters',
+                              icon: Icons.chat_bubble_outline,
+                              children: [
+                                PromptEditor(
+                                  prompts: _profilePrompts,
+                                  maxPrompts:
+                                      PromptQuestions.maxPromptsPerProfile,
+                                  onPromptsChanged: (prompts) {
+                                    setState(() => _profilePrompts = prompts);
+                                  },
+                                ),
+                              ],
                             ),
+                            DsGap.lg,
+
+                            // Physical & Dating Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Dating Basics',
+                              icon: Icons.favorite_outline,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'Height',
+                                  value: _heightCm != null
+                                      ? ProfileFieldOptions.formatHeightDisplay(
+                                          _heightCm!,
+                                        )
+                                      : null,
+                                  leadingIcon: Icons.height,
+                                  onTap: () => _showHeightPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Relationship Goals',
+                                  value:
+                                      ProfileFieldOptions.getRelationshipGoalLabel(
+                                        _relationshipGoals,
+                                      ),
+                                  leadingIcon: Icons.favorite,
+                                  onTap: () =>
+                                      _showRelationshipGoalsPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label:
+                                      profile != null && !profile.canChangeDob
+                                      ? 'Date of Birth 🔒'
+                                      : 'Date of Birth',
+                                  value: _dateOfBirth != null
+                                      ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
+                                      : null,
+                                  placeholder:
+                                      profile != null && !profile.canChangeDob
+                                      ? 'Locked (${profile.daysUntilDobChange}d)'
+                                      : 'Add',
+                                  leadingIcon: Icons.cake_outlined,
+                                  onTap: () =>
+                                      _showDateOfBirthPicker(context, profile),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Interests Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Interests',
+                              icon: Icons.interests_outlined,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'Your Interests',
+                                  value: _interests.isNotEmpty
+                                      ? '${_interests.length} selected'
+                                      : null,
+                                  leadingIcon: Icons.local_fire_department,
+                                  onTap: () => _showInterestsPicker(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Languages Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Languages',
+                              icon: Icons.language,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'I speak',
+                                  value: _languages.isNotEmpty
+                                      ? _languages.take(3).join(', ') +
+                                            (_languages.length > 3 ? '...' : '')
+                                      : null,
+                                  leadingIcon: Icons.translate,
+                                  onTap: () => _showLanguagesPicker(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // More About Me Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'More About Me',
+                              icon: Icons.psychology_outlined,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'Zodiac Sign',
+                                  value: ProfileFieldOptions.getZodiacLabel(
+                                    _zodiacSign,
+                                  ),
+                                  leadingIcon: Icons.auto_awesome,
+                                  onTap: () => _showZodiacPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Education',
+                                  value: ProfileFieldOptions.getEducationLabel(
+                                    _educationLevel,
+                                  ),
+                                  leadingIcon: Icons.school_outlined,
+                                  onTap: () => _showEducationPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Family Plans',
+                                  value: ProfileFieldOptions.getFamilyPlanLabel(
+                                    _familyPlans,
+                                  ),
+                                  leadingIcon: Icons.family_restroom,
+                                  onTap: () => _showFamilyPlansPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Personality Type',
+                                  value:
+                                      ProfileFieldOptions.getPersonalityLabel(
+                                        _personalityType,
+                                      ),
+                                  leadingIcon: Icons.emoji_people,
+                                  onTap: () => _showPersonalityPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Religion',
+                                  value: ProfileFieldOptions.getReligionLabel(
+                                    _religion,
+                                  ),
+                                  leadingIcon: Icons.self_improvement,
+                                  onTap: () => _showReligionPicker(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Lifestyle Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Lifestyle',
+                              icon: Icons.spa_outlined,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'Workout',
+                                  value: ProfileFieldOptions.getWorkoutLabel(
+                                    _workout,
+                                  ),
+                                  leadingIcon: Icons.fitness_center,
+                                  onTap: () => _showWorkoutPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Social Media',
+                                  value:
+                                      ProfileFieldOptions.getSocialMediaLabel(
+                                        _socialMedia,
+                                      ),
+                                  leadingIcon: Icons.phone_android,
+                                  onTap: () => _showSocialMediaPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Sleeping Habits',
+                                  value: ProfileFieldOptions.getSleepingLabel(
+                                    _sleepingHabits,
+                                  ),
+                                  leadingIcon: Icons.bedtime_outlined,
+                                  onTap: () => _showSleepingPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Smoking',
+                                  value: ProfileFieldOptions.getSmokingLabel(
+                                    _smoking,
+                                  ),
+                                  leadingIcon: Icons.smoking_rooms,
+                                  onTap: () => _showSmokingPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Drinking',
+                                  value: ProfileFieldOptions.getDrinkingLabel(
+                                    _drinking,
+                                  ),
+                                  leadingIcon: Icons.local_bar,
+                                  onTap: () => _showDrinkingPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Pets',
+                                  value: ProfileFieldOptions.getPetLabel(_pets),
+                                  leadingIcon: Icons.pets,
+                                  onTap: () => _showPetsPicker(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Work & Education Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Work & Education',
+                              icon: Icons.work_outline,
+                              children: [
+                                _StyledTextField(
+                                  controller: _jobTitleController,
+                                  label: 'Job Title',
+                                  hint: 'What do you do?',
+                                  icon: Icons.badge_outlined,
+                                ),
+                                const SizedBox(height: DsSpacing.md),
+                                _StyledTextField(
+                                  controller: _companyController,
+                                  label: 'Company',
+                                  hint: 'Where do you work?',
+                                  icon: Icons.business,
+                                ),
+                                const SizedBox(height: DsSpacing.md),
+                                _StyledTextField(
+                                  controller: _schoolController,
+                                  label: 'School/College',
+                                  hint: 'Where did you study?',
+                                  icon: Icons.school,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Location Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Location',
+                              icon: Icons.location_on_outlined,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _StyledTextField(
+                                        controller: _countryController,
+                                        label: 'Country',
+                                        hint: 'Your country',
+                                        icon: Icons.public,
+                                      ),
+                                    ),
+                                    const SizedBox(width: DsSpacing.md),
+                                    Expanded(
+                                      child: _StyledTextField(
+                                        controller: _cityController,
+                                        label: 'City',
+                                        hint: 'Your city',
+                                        icon: Icons.location_city,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: DsSpacing.md),
+                                _StyledTextField(
+                                  controller: _livingInController,
+                                  label: 'Currently Living In',
+                                  hint: 'Neighborhood or area',
+                                  icon: Icons.home,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Music Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Music',
+                              icon: Icons.music_note_outlined,
+                              children: [
+                                _StyledTextField(
+                                  controller: _favoriteSingerController,
+                                  label: 'Favorite Singer/Artist',
+                                  hint: 'Who do you listen to?',
+                                  icon: Icons.person,
+                                  isLastField: true,
+                                ),
+                                const SizedBox(height: DsSpacing.md),
+                                ProfileFieldTile(
+                                  label: 'Favorite Songs',
+                                  value: _favoriteSongs.isNotEmpty
+                                      ? '${_favoriteSongs.length} songs'
+                                      : null,
+                                  leadingIcon: Icons.queue_music,
+                                  onTap: () =>
+                                      _showFavoriteSongsDialog(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.lg,
+
+                            // Personal Details Section
+                            _buildSectionCard(
+                              context: context,
+                              title: 'Personal Details',
+                              icon: Icons.person_pin_outlined,
+                              children: [
+                                ProfileFieldTile(
+                                  label: 'My Gender',
+                                  value: ProfileFieldOptions.getGenderLabel(
+                                    _gender,
+                                  ),
+                                  leadingIcon: Icons.wc,
+                                  onTap: () => _showGenderPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'Sexual Orientation',
+                                  value:
+                                      ProfileFieldOptions.getSexualOrientationLabel(
+                                        _sexualOrientation,
+                                      ),
+                                  leadingIcon: Icons.favorite_border,
+                                  onTap: () => _showOrientationPicker(context),
+                                ),
+                                ProfileFieldTile(
+                                  label: 'I Am Looking For',
+                                  value: ProfileFieldOptions.getLookingForLabel(
+                                    _lookingFor,
+                                  ),
+                                  leadingIcon: Icons.search_rounded,
+                                  onTap: () => _showLookingForPicker(context),
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                            DsGap.xxl,
+
+                            // Tips Card
+                            const _TipsCard(),
+                            DsGap.xl,
                           ],
                         ),
-                        const SizedBox(height: DsSpacing.md),
-                        _StyledTextField(
-                          controller: _livingInController,
-                          label: 'Currently Living In',
-                          hint: 'Neighborhood or area',
-                          icon: Icons.home,
-                        ),
-                      ],
+                      ),
                     ),
-                    DsGap.lg,
-
-                    // Music Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Music',
-                      icon: Icons.music_note_outlined,
-                      children: [
-                        _StyledTextField(
-                          controller: _favoriteSingerController,
-                          label: 'Favorite Singer/Artist',
-                          hint: 'Who do you listen to?',
-                          icon: Icons.person,
-                        ),
-                        const SizedBox(height: DsSpacing.md),
-                        ProfileFieldTile(
-                          label: 'Favorite Songs',
-                          value: _favoriteSongs.isNotEmpty
-                              ? '${_favoriteSongs.length} songs'
-                              : null,
-                          leadingIcon: Icons.queue_music,
-                          onTap: () => _showFavoriteSongsDialog(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.lg,
-
-                    // Personal Details Section
-                    _buildSectionCard(
-                      context: context,
-                      title: 'Personal Details',
-                      icon: Icons.person_pin_outlined,
-                      children: [
-                        ProfileFieldTile(
-                          label: 'My Gender',
-                          value: ProfileFieldOptions.getGenderLabel(_gender),
-                          leadingIcon: Icons.wc,
-                          onTap: () => _showGenderPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'Sexual Orientation',
-                          value: ProfileFieldOptions.getSexualOrientationLabel(
-                              _sexualOrientation),
-                          leadingIcon: Icons.favorite_border,
-                          onTap: () => _showOrientationPicker(context),
-                        ),
-                        ProfileFieldTile(
-                          label: 'I Am Looking For',
-                          value: ProfileFieldOptions.getLookingForLabel(
-                              _lookingFor),
-                          leadingIcon: Icons.search_rounded,
-                          onTap: () => _showLookingForPicker(context),
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                    DsGap.xxl,
-
-                    // Tips Card
-                    const _TipsCard(),
-                    DsGap.xl,
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           bottomNavigationBar: _SaveButton(
             saving: saving,
@@ -1476,8 +1649,9 @@ class _ProgressCard extends StatelessWidget {
       // 100% complete
       progressColor = DsColors.success;
       icon = Icons.check_circle;
-      final displayName =
-          (username != null && username!.isNotEmpty) ? '@$username' : 'You';
+      final displayName = (username != null && username!.isNotEmpty)
+          ? '@$username'
+          : 'You';
       title = 'Profile Complete!';
       subtitle = 'Your profile is all set up, $displayName!';
     } else if (isEligibleToSwipe) {
@@ -1502,16 +1676,13 @@ class _ProgressCard extends StatelessWidget {
               ? [DsColors.success.withAlpha(30), DsColors.success.withAlpha(10)]
               : [
                   DsColors.primary.withAlpha(30),
-                  DsColors.primary.withAlpha(10)
+                  DsColors.primary.withAlpha(10),
                 ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: progressColor.withAlpha(50),
-          width: 1,
-        ),
+        border: Border.all(color: progressColor.withAlpha(50), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1524,11 +1695,7 @@ class _ProgressCard extends StatelessWidget {
                   color: progressColor.withAlpha(30),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: progressColor,
-                  size: 28,
-                ),
+                child: Icon(icon, color: progressColor, size: 28),
               ),
               DsGap.mdH,
               Expanded(
@@ -1595,16 +1762,19 @@ class _ProgressCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.tips_and_updates_rounded,
-                      color: DsColors.info, size: 20),
+                  const Icon(
+                    Icons.tips_and_updates_rounded,
+                    color: DsColors.info,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'We recommend completing all fields to get more matches and build trust with other users.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.info,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: DsColors.info,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -1691,11 +1861,7 @@ class _SectionHeader extends StatelessWidget {
             color: DsColors.primary.withAlpha(20),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: DsColors.primary,
-            size: 20,
-          ),
+          child: Icon(icon, color: DsColors.primary, size: 20),
         ),
         DsGap.mdH,
         Expanded(
@@ -1725,9 +1891,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _UsernameDisplay extends StatelessWidget {
-  const _UsernameDisplay({
-    required this.username,
-  });
+  const _UsernameDisplay({required this.username});
 
   final String? username;
 
@@ -1764,23 +1928,22 @@ class _UsernameDisplay extends StatelessWidget {
                 Text(
                   'Username',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                        fontSize: 11,
-                      ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                    fontSize: 11,
+                  ),
                 ),
                 Text(
                   hasUsername ? '@$username' : 'Not set',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: hasUsername
-                            ? DsColors.primary
-                            : (isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight),
-                        fontWeight:
-                            hasUsername ? FontWeight.w600 : FontWeight.w400,
-                      ),
+                    color: hasUsername
+                        ? DsColors.primary
+                        : (isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight),
+                    fontWeight: hasUsername ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ],
             ),
@@ -1806,6 +1969,7 @@ class _StyledTextField extends StatelessWidget {
     this.minLines,
     this.enabled = true,
     this.helperText,
+    this.isLastField = false,
   });
 
   final TextEditingController controller;
@@ -1816,6 +1980,7 @@ class _StyledTextField extends StatelessWidget {
   final int? minLines;
   final bool enabled;
   final String? helperText;
+  final bool isLastField;
 
   @override
   Widget build(BuildContext context) {
@@ -1824,15 +1989,24 @@ class _StyledTextField extends StatelessWidget {
       maxLines: maxLines,
       minLines: minLines,
       enabled: enabled,
-      textInputAction:
-          maxLines > 1 ? TextInputAction.newline : TextInputAction.done,
-      onEditingComplete: () => FocusScope.of(context).unfocus(),
+      textInputAction: maxLines > 1
+          ? TextInputAction.newline
+          : (isLastField ? TextInputAction.done : TextInputAction.next),
+      onEditingComplete: () {
+        if (isLastField || maxLines > 1) {
+          FocusScope.of(context).unfocus();
+        } else {
+          FocusScope.of(context).nextFocus();
+        }
+      },
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         helperText: helperText,
-        prefixIcon: Icon(icon,
-            color: enabled ? DsColors.primary : DsColors.textMutedLight),
+        prefixIcon: Icon(
+          icon,
+          color: enabled ? DsColors.primary : DsColors.textMutedLight,
+        ),
         filled: true,
         fillColor: Theme.of(context).brightness == Brightness.dark
             ? DsColors.inputFillDark
@@ -1851,10 +2025,7 @@ class _StyledTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: DsColors.primary,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: DsColors.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -1875,9 +2046,7 @@ class _TipsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: DsColors.info.withAlpha(15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: DsColors.info.withAlpha(40),
-        ),
+        border: Border.all(color: DsColors.info.withAlpha(40)),
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1888,10 +2057,7 @@ class _TipsCard extends StatelessWidget {
               DsGap.smH,
               Text(
                 'Profile Tips',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -1917,11 +2083,7 @@ class _TipItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(
-          Icons.check_circle,
-          color: DsColors.success,
-          size: 16,
-        ),
+        const Icon(Icons.check_circle, color: DsColors.success, size: 16),
         DsGap.smH,
         Expanded(
           child: Text(
@@ -1938,10 +2100,7 @@ class _TipItem extends StatelessWidget {
 }
 
 class _SaveButton extends StatelessWidget {
-  const _SaveButton({
-    required this.saving,
-    required this.onSave,
-  });
+  const _SaveButton({required this.saving, required this.onSave});
 
   final bool saving;
   final VoidCallback onSave;

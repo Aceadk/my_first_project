@@ -9,6 +9,16 @@ import { defineString } from "firebase-functions/params";
 import * as functions from "firebase-functions/v1";
 import multer from "multer";
 import Stripe from "stripe";
+import {
+  __callSignalingTestHelpers,
+  addIceCandidate as addIceCandidateSignaling,
+  answerCall as answerCallSignaling,
+  enforceCallRingTimeout as enforceCallRingTimeoutSignaling,
+  endCall as endCallSignaling,
+  getIceServers as getIceServersSignaling,
+  initiateCall as initiateCallSignaling,
+  notifyCallSafetyEvent as notifyCallSafetyEventSignaling,
+} from "./calls/signaling";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -4778,7 +4788,16 @@ export const __test__helpers = {
   optionalString,
   evaluateProfileCompleteness,
   ensureProfileQuality,
+  ...__callSignalingTestHelpers,
 };
+
+export const initiateCall = initiateCallSignaling;
+export const answerCall = answerCallSignaling;
+export const endCall = endCallSignaling;
+export const addIceCandidate = addIceCandidateSignaling;
+export const getIceServers = getIceServersSignaling;
+export const enforceCallRingTimeout = enforceCallRingTimeoutSignaling;
+export const notifyCallSafetyEvent = notifyCallSafetyEventSignaling;
 
 // Callable function to generate an Agora token for authenticated users
 export const generateAgoraToken = callable<AgoraTokenRequest>(

@@ -30,10 +30,17 @@ class PushNotificationService {
   static const _soundKey = 'notifications_sound';
   static const _vibrationKey = 'notifications_vibration';
 
+  /// Notification action identifiers
+  static const actionReply = 'reply_action';
+  static const actionLikeBack = 'like_back_action';
+
   String? _currentUserId;
 
   /// Callback when notification is tapped
   void Function(String? payload)? onNotificationTapped;
+
+  /// Callback when a notification action button is tapped (Reply, Like Back).
+  void Function(String actionId, String? payload)? onNotificationAction;
 
   /// Callback when a new message is received while app is in foreground
   void Function(RemoteMessage message)? onForegroundMessage;
@@ -163,6 +170,7 @@ class PushNotificationService {
     cancelNotificationOverride = null;
     cancelAllNotificationsOverride = null;
     onNotificationTapped = null;
+    onNotificationAction = null;
     onForegroundMessage = null;
     _currentUserId = null;
   }
@@ -282,7 +290,9 @@ class PushNotificationService {
         ? initialMessageProviderOverride!()
         : _messaging.getInitialMessage());
     if (initialMessage != null) {
-      AppLogger.debug('App opened from terminated: ${initialMessage.messageId}');
+      AppLogger.debug(
+        'App opened from terminated: ${initialMessage.messageId}',
+      );
       final payload = jsonEncode(initialMessage.data);
       onNotificationTapped?.call(payload);
     }
@@ -300,7 +310,48 @@ class PushNotificationService {
     return prefs.getBool(_vibrationKey) ?? true;
   }
 
-  /// Show a local notification respecting user's sound/vibration preferences
+  /// Download image bytes from a URL. Returns null on failure.
+  Future<Uint8List?> _downloadImage(String url) async {
+    try {
+      final httpClient = HttpClient();
+      final request = await httpClient.getUrl(Uri.parse(url));
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        final bytes = await consolidateHttpClientResponseBytes(response);
+        return bytes;
+      }
+    } catch (e) {
+      AppLogger.error('Failed to download notification image: $e');
+    }
+    return null;
+  }
+
+  /// Build Android notification actions based on notification type.
+  List<AndroidNotificationAction> _androidActions(String? type) {
+    switch (type) {
+      case 'message':
+        return const [
+          AndroidNotificationAction(
+            actionReply,
+            'Reply',
+            showsUserInterface: true,
+          ),
+        ];
+      case 'like':
+        return const [
+          AndroidNotificationAction(
+            actionLikeBack,
+            'Like Back',
+            showsUserInterface: true,
+          ),
+        ];
+      default:
+        return const [];
+    }
+  }
+
+  /// Show a local notification respecting user's sound/vibration preferences.
+  /// Supports rich media (BigPictureStyle on Android) and action buttons.
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
@@ -321,6 +372,32 @@ class PushNotificationService {
       return;
     }
 
+    // Determine image URL from FCM payload
+    final imageUrl =
+        message.data['imageUrl'] as String? ??
+        notification.android?.imageUrl ??
+        notification.apple?.imageUrl;
+
+    // Download image for rich notification display
+    Uint8List? imageBytes;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      imageBytes = await _downloadImage(imageUrl);
+    }
+
+    // Determine notification type for action buttons
+    final notifType = message.data['type'] as String?;
+
+    // Build Android-specific details with optional BigPictureStyle
+    StyleInformation? styleInfo;
+    if (imageBytes != null) {
+      styleInfo = BigPictureStyleInformation(
+        ByteArrayAndroidBitmap(imageBytes),
+        contentTitle: notification.title,
+        summaryText: notification.body,
+        hideExpandedLargeIcon: false,
+      );
+    }
+
     final androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
@@ -330,6 +407,9 @@ class PushNotificationService {
       playSound: soundEnabled,
       enableVibration: vibrationEnabled,
       icon: '@mipmap/ic_launcher',
+      largeIcon: imageBytes != null ? ByteArrayAndroidBitmap(imageBytes) : null,
+      styleInformation: styleInfo,
+      actions: _androidActions(notifType),
     );
 
     final iosDetails = DarwinNotificationDetails(
@@ -352,8 +432,16 @@ class PushNotificationService {
     );
   }
 
-  /// Handle notification tap response
+  /// Handle notification tap or action button response.
   void _onNotificationResponse(NotificationResponse response) {
+    final actionId = response.actionId;
+    if (actionId != null && actionId.isNotEmpty) {
+      AppLogger.debug(
+        'Notification action: $actionId payload: ${response.payload}',
+      );
+      onNotificationAction?.call(actionId, response.payload);
+      return;
+    }
     AppLogger.debug('Notification tapped: ${response.payload}');
     onNotificationTapped?.call(response.payload);
   }
@@ -373,7 +461,8 @@ class PushNotificationService {
     SecureLogger.logToken(type: 'FCM', token: token);
   }
 
-  /// Register FCM token for a user (call after login)
+  /// Register FCM token for a user (call after login).
+  /// Also stores the device's timezone for smart notification scheduling.
   Future<void> registerForUser(String userId) async {
     _currentUserId = userId;
     final token = await getToken();
@@ -384,6 +473,9 @@ class PushNotificationService {
         await _saveTokenToFirestore(userId, token);
       }
     }
+
+    // Store user's timezone for smart scheduling (quiet hours)
+    _saveTimezone(userId);
 
     // Listen for token refresh
     final tokenRefreshStream =
@@ -397,6 +489,18 @@ class PushNotificationService {
         }
       }
     });
+  }
+
+  /// Save the device's local timezone to the user's Firestore document.
+  Future<void> _saveTimezone(String userId) async {
+    try {
+      final timezone = DateTime.now().timeZoneName;
+      await _firestore.collection('users').doc(userId).set({
+        'timezone': timezone,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      AppLogger.error('Error saving timezone: $e');
+    }
   }
 
   /// Unregister FCM token (call on logout)
@@ -455,6 +559,10 @@ class PushNotificationService {
     bool? messages,
     bool? matches,
     bool? subscriptions,
+    bool? likes,
+    bool? profileViews,
+    bool? promotions,
+    bool? safetyAlerts,
   }) async {
     final userId = _currentUserId;
     if (userId == null) return;
@@ -468,6 +576,10 @@ class PushNotificationService {
         messages: messages,
         matches: matches,
         subscriptions: subscriptions,
+        likes: likes,
+        profileViews: profileViews,
+        promotions: promotions,
+        safetyAlerts: safetyAlerts,
       );
 
       if (prefs.isNotEmpty) {
@@ -494,6 +606,10 @@ class PushNotificationService {
     bool? messages,
     bool? matches,
     bool? subscriptions,
+    bool? likes,
+    bool? profileViews,
+    bool? promotions,
+    bool? safetyAlerts,
   }) {
     final prefs = <String, dynamic>{};
     if (push != null) prefs['push'] = push;
@@ -503,6 +619,10 @@ class PushNotificationService {
     if (messages != null) prefs['messages'] = messages;
     if (matches != null) prefs['matches'] = matches;
     if (subscriptions != null) prefs['subscriptions'] = subscriptions;
+    if (likes != null) prefs['likes'] = likes;
+    if (profileViews != null) prefs['profileViews'] = profileViews;
+    if (promotions != null) prefs['promotions'] = promotions;
+    if (safetyAlerts != null) prefs['safetyAlerts'] = safetyAlerts;
     return prefs;
   }
 

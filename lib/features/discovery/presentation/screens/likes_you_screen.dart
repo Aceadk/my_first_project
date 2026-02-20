@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
@@ -16,7 +17,8 @@ import 'package:crushhour/features/discovery/domain/repositories/discovery_repos
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
-import 'package:crushhour/design_system/widgets/skeleton_loader.dart';
+import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
+import 'package:crushhour/design_system/tokens/radius.dart';
 
 /// Screen showing profiles that have liked the current user.
 /// Free users see blurred profiles; Premium users see full profiles.
@@ -82,22 +84,37 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
         title: const Text('Likes You'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadLikes,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadLikes),
         ],
       ),
-      body: _buildBody(context, isDark, isPremium),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = DsBreakpoints.contentMaxWidth(constraints.maxWidth);
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: _buildBody(context, isDark, isPremium),
+            ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildBody(BuildContext context, bool isDark, bool isPremium) {
     if (_isLoading) {
-      return const SkeletonGrid(
+      return GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.75,
+        ),
         itemCount: 6,
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
+        itemBuilder: (context, index) =>
+            const GlassSkeleton(borderRadius: DsRadius.md),
       );
     }
 
@@ -138,8 +155,8 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
         // Profile grid
         GridView.builder(
           padding: const EdgeInsets.all(DsSpacing.md),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: DsBreakpoints.gridColumnsOf(context).clamp(2, 4),
             crossAxisSpacing: DsSpacing.sm,
             mainAxisSpacing: DsSpacing.sm,
             childAspectRatio: 0.75,
@@ -158,10 +175,10 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
 
         // Upgrade overlay for free users
         if (!isPremium && profiles.isNotEmpty)
-          Positioned(
+          PositionedDirectional(
             bottom: 0,
-            left: 0,
-            right: 0,
+            start: 0,
+            end: 0,
             child: _buildUpgradeOverlay(context, isDark, profiles.length),
           ),
       ],
@@ -190,18 +207,18 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
             const SizedBox(height: DsSpacing.lg),
             Text(
               'No likes yet',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: DsSpacing.sm),
             Text(
               'Keep swiping and completing your profile to get more likes!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -222,8 +239,9 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                (isDark ? DsColors.ink900 : DsColors.surfaceLight)
-                    .withValues(alpha: 0.9),
+                (isDark ? DsColors.ink900 : DsColors.surfaceLight).withValues(
+                  alpha: 0.9,
+                ),
               ],
             ),
           ),
@@ -266,10 +284,10 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                 Text(
                   'Upgrade to Crush Plus to see who likes you and match instantly!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: DsSpacing.md),
@@ -361,10 +379,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
 
     try {
       final repo = context.read<DiscoveryRepository>();
-      await repo.swipeLeft(
-        userId: userId,
-        targetUserId: profile.id,
-      );
+      await repo.swipeLeft(userId: userId, targetUserId: profile.id);
 
       // Remove from list
       setState(() {
@@ -437,18 +452,18 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                   Text(
                     'See Who Likes You',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'See all the people who already like you and match instantly. No more guessing!',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -456,9 +471,9 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                     child: GlassPrimaryButton(
                       onPressed: () {
                         Navigator.pop(sheetContext);
-                        context
-                            .read<SubscriptionBloc>()
-                            .add(PlusCheckoutRequested());
+                        context.read<SubscriptionBloc>().add(
+                          PlusCheckoutRequested(),
+                        );
                       },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -500,8 +515,9 @@ class _LikeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl =
-        profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
+    final photoUrl = profile.photoUrls.isNotEmpty
+        ? profile.photoUrls.first
+        : null;
 
     return Semantics(
       label: isBlurred
@@ -518,10 +534,7 @@ class _LikeCard extends StatelessWidget {
             children: [
               // Photo
               if (photoUrl != null)
-                CachedNetworkImage(
-                  imageUrl: photoUrl,
-                  fit: BoxFit.cover,
-                )
+                CachedNetworkImage(imageUrl: photoUrl, fit: BoxFit.cover)
               else
                 Container(
                   color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
@@ -558,10 +571,10 @@ class _LikeCard extends StatelessWidget {
               ),
 
               // Name and age (blurred for free users)
-              Positioned(
+              PositionedDirectional(
                 bottom: DsSpacing.sm,
-                left: DsSpacing.sm,
-                right: DsSpacing.sm,
+                start: DsSpacing.sm,
+                end: DsSpacing.sm,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -590,9 +603,9 @@ class _LikeCard extends StatelessWidget {
 
               // Lock icon for blurred cards
               if (isBlurred)
-                Positioned(
+                PositionedDirectional(
                   top: DsSpacing.sm,
-                  right: DsSpacing.sm,
+                  end: DsSpacing.sm,
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -629,8 +642,9 @@ class _ProfileDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl =
-        profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
+    final photoUrl = profile.photoUrls.isNotEmpty
+        ? profile.photoUrls.first
+        : null;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -646,7 +660,7 @@ class _ProfileDetailSheet extends StatelessWidget {
             children: [
               // Drag handle
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsetsDirectional.only(top: 12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -690,9 +704,7 @@ class _ProfileDetailSheet extends StatelessWidget {
                           Expanded(
                             child: Text(
                               '${profile.publicDisplayName}, ${profile.age}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
+                              style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -728,8 +740,9 @@ class _ProfileDetailSheet extends StatelessWidget {
                           children: profile.interests.map((interest) {
                             return Chip(
                               label: Text(interest),
-                              backgroundColor:
-                                  DsColors.primary.withValues(alpha: 0.1),
+                              backgroundColor: DsColors.primary.withValues(
+                                alpha: 0.1,
+                              ),
                             );
                           }).toList(),
                         ),

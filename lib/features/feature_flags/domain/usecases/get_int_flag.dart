@@ -7,10 +7,7 @@ class GetIntFlagParams {
   final String key;
   final int defaultValue;
 
-  const GetIntFlagParams({
-    required this.key,
-    this.defaultValue = 0,
-  });
+  const GetIntFlagParams({required this.key, this.defaultValue = 0});
 }
 
 /// Use case for getting an integer feature flag value.
@@ -31,10 +28,8 @@ class GetIntFlagUseCase extends UseCase<int, GetIntFlagParams>
   @override
   Future<Result<int>> execute(GetIntFlagParams params) {
     return Result.guard(
-      () async => _repository.getInt(
-        params.key,
-        defaultValue: params.defaultValue,
-      ),
+      () async =>
+          _repository.getInt(params.key, defaultValue: params.defaultValue),
       logLabel: 'GetIntFlagUseCase',
       fallbackError: 'Unable to get flag value.',
     );

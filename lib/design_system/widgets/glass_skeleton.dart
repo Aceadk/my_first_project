@@ -45,9 +45,10 @@ class _GlassSkeletonState extends State<GlassSkeleton>
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -84,11 +85,7 @@ class _GlassSkeletonState extends State<GlassSkeleton>
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [
-                    baseColor,
-                    highlightColor,
-                    baseColor,
-                  ],
+                  colors: [baseColor, highlightColor, baseColor],
                   stops: [
                     (_animation.value - 0.3).clamp(0.0, 1.0),
                     _animation.value.clamp(0.0, 1.0),
@@ -118,10 +115,7 @@ class GlassSkeletonCard extends StatelessWidget {
       margin: const EdgeInsets.all(DsSpacing.md),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(DsRadius.lg),
-        border: Border.all(
-          color: DsGlassColors.borderFor(context),
-          width: 1,
-        ),
+        border: Border.all(color: DsGlassColors.borderFor(context), width: 1),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -130,9 +124,9 @@ class GlassSkeletonCard extends StatelessWidget {
           // Background shimmer
           const GlassSkeleton(),
           // Content overlay
-          const Positioned(
-            left: DsSpacing.lg,
-            right: DsSpacing.lg,
+          const PositionedDirectional(
+            start: DsSpacing.lg,
+            end: DsSpacing.lg,
             bottom: DsSpacing.xl,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,46 +145,32 @@ class GlassSkeletonCard extends StatelessWidget {
                   borderRadius: 4,
                 ),
                 SizedBox(height: DsSpacing.xs),
-                GlassSkeleton(
-                  width: 200,
-                  height: 16,
-                  borderRadius: 4,
-                ),
+                GlassSkeleton(width: 200, height: 16, borderRadius: 4),
                 SizedBox(height: DsSpacing.md),
                 // Location skeleton
                 Row(
                   children: [
-                    GlassSkeleton(
-                      width: 14,
-                      height: 14,
-                      isCircle: true,
-                    ),
+                    GlassSkeleton(width: 14, height: 14, isCircle: true),
                     SizedBox(width: DsSpacing.xs),
-                    GlassSkeleton(
-                      width: 120,
-                      height: 14,
-                      borderRadius: 4,
-                    ),
+                    GlassSkeleton(width: 120, height: 14, borderRadius: 4),
                   ],
                 ),
               ],
             ),
           ),
           // Top indicators skeleton
-          Positioned(
+          PositionedDirectional(
             top: DsSpacing.md,
-            left: DsSpacing.md,
-            right: DsSpacing.md,
+            start: DsSpacing.md,
+            end: DsSpacing.md,
             child: Row(
               children: List.generate(
                 4,
                 (index) => Expanded(
                   child: Container(
                     height: 3,
-                    margin: EdgeInsets.only(right: index < 3 ? 4 : 0),
-                    child: const GlassSkeleton(
-                      borderRadius: 2,
-                    ),
+                    margin: EdgeInsetsDirectional.only(end: index < 3 ? 4 : 0),
+                    child: const GlassSkeleton(borderRadius: 2),
                   ),
                 ),
               ),
@@ -216,11 +196,7 @@ class GlassSkeletonChatTile extends StatelessWidget {
       child: Row(
         children: [
           // Avatar
-          GlassSkeleton(
-            width: 56,
-            height: 56,
-            isCircle: true,
-          ),
+          GlassSkeleton(width: 56, height: 56, isCircle: true),
           SizedBox(width: DsSpacing.md),
           // Content
           Expanded(
@@ -229,25 +205,13 @@ class GlassSkeletonChatTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    GlassSkeleton(
-                      width: 100,
-                      height: 18,
-                      borderRadius: 4,
-                    ),
+                    GlassSkeleton(width: 100, height: 18, borderRadius: 4),
                     Spacer(),
-                    GlassSkeleton(
-                      width: 40,
-                      height: 14,
-                      borderRadius: 4,
-                    ),
+                    GlassSkeleton(width: 40, height: 14, borderRadius: 4),
                   ],
                 ),
                 SizedBox(height: DsSpacing.xs),
-                GlassSkeleton(
-                  width: 180,
-                  height: 14,
-                  borderRadius: 4,
-                ),
+                GlassSkeleton(width: 180, height: 14, borderRadius: 4),
               ],
             ),
           ),
@@ -265,22 +229,14 @@ class GlassSkeletonMatchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 100,
-      margin: const EdgeInsets.only(right: DsSpacing.md),
+      margin: const EdgeInsetsDirectional.only(end: DsSpacing.md),
       child: const Column(
         children: [
           // Avatar
-          GlassSkeleton(
-            width: 80,
-            height: 80,
-            isCircle: true,
-          ),
+          GlassSkeleton(width: 80, height: 80, isCircle: true),
           SizedBox(height: DsSpacing.xs),
           // Name
-          GlassSkeleton(
-            width: 60,
-            height: 14,
-            borderRadius: 4,
-          ),
+          GlassSkeleton(width: 60, height: 14, borderRadius: 4),
         ],
       ),
     );
@@ -297,11 +253,7 @@ class GlassSkeletonProfile extends StatelessWidget {
       child: Column(
         children: [
           // Header image
-          GlassSkeleton(
-            width: double.infinity,
-            height: 400,
-            borderRadius: 0,
-          ),
+          GlassSkeleton(width: double.infinity, height: 400, borderRadius: 0),
           Padding(
             padding: EdgeInsets.all(DsSpacing.lg),
             child: Column(
@@ -350,11 +302,7 @@ class GlassSkeletonProfile extends StatelessWidget {
 
 /// Skeleton loader for message bubble.
 class GlassSkeletonMessage extends StatelessWidget {
-  const GlassSkeletonMessage({
-    super.key,
-    this.isFromMe = false,
-    this.width,
-  });
+  const GlassSkeletonMessage({super.key, this.isFromMe = false, this.width});
 
   final bool isFromMe;
   final double? width;
@@ -364,9 +312,9 @@ class GlassSkeletonMessage extends StatelessWidget {
     return Align(
       alignment: isFromMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Padding(
-        padding: EdgeInsets.only(
-          left: isFromMe ? 60 : DsSpacing.md,
-          right: isFromMe ? DsSpacing.md : 60,
+        padding: EdgeInsetsDirectional.only(
+          start: isFromMe ? 60 : DsSpacing.md,
+          end: isFromMe ? DsSpacing.md : 60,
           bottom: DsSpacing.sm,
         ),
         child: GlassSkeleton(

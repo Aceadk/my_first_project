@@ -7,7 +7,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
-import 'package:crushhour/features/chat/data/services/voice_recorder_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/features/chat/domain/repositories/voice_recorder_repository.dart';
 
 /// A widget for recording voice notes in chat with preview functionality.
 class VoiceNoteRecorder extends StatefulWidget {
@@ -35,7 +36,8 @@ enum _RecorderState { requestingPermission, recording, previewing }
 
 class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     with TickerProviderStateMixin {
-  final _recorderService = VoiceRecorderService();
+  late final _recorderService = context.read<VoiceRecorderRepository>();
+
   _RecorderState _state = _RecorderState.requestingPermission;
   bool _hasPermission = false;
   Duration _recordingDuration = Duration.zero;
@@ -77,7 +79,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     _playbackDurationSub?.cancel();
     _pulseController.dispose();
     _waveController.dispose();
-    _recorderService.dispose();
+    _recorderService.cancelRecording();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -328,30 +330,35 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
           ),
           const SizedBox(width: DsSpacing.sm),
           // Stop button (to preview)
-          GestureDetector(
-            onTap: _state == _RecorderState.recording
-                ? _stopRecordingAndPreview
-                : null,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [DsColors.primary, DsColors.secondary],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: DsColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+          Semantics(
+            button: true,
+            label: 'Stop recording and preview',
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: _state == _RecorderState.recording
+                  ? _stopRecordingAndPreview
+                  : null,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [DsColors.primary, DsColors.secondary],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.stop_rounded,
-                color: DsColors.surfaceLight,
-                size: 26,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: DsColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.stop_rounded,
+                  color: DsColors.surfaceLight,
+                  size: 26,
+                ),
               ),
             ),
           ),
@@ -421,26 +428,33 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                 tooltip: 'Re-record',
               ),
               // Play/Pause button
-              GestureDetector(
-                onTap: _togglePlayPause,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: DsColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: DsColors.primary.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: DsColors.surfaceLight,
-                    size: 24,
+              Semantics(
+                button: true,
+                label: _isPlaying ? 'Pause preview' : 'Play preview',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: DsColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: DsColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      _isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: DsColors.surfaceLight,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
@@ -460,8 +474,9 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                           overlayRadius: 12,
                         ),
                         activeTrackColor: DsColors.primary,
-                        inactiveTrackColor:
-                            DsColors.primary.withValues(alpha: 0.3),
+                        inactiveTrackColor: DsColors.primary.withValues(
+                          alpha: 0.3,
+                        ),
                         thumbColor: DsColors.primary,
                         overlayColor: DsColors.primary.withValues(alpha: 0.2),
                       ),
@@ -478,8 +493,9 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                       ),
                     ),
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: DsSpacing.xs),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DsSpacing.xs,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -491,7 +507,7 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                                   ? DsColors.surfaceLight.withValues(alpha: 0.7)
                                   : DsColors.ink900.withValues(alpha: 0.54),
                               fontFeatures: const [
-                                FontFeature.tabularFigures()
+                                FontFeature.tabularFigures(),
                               ],
                             ),
                           ),
@@ -500,11 +516,12 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark
-                                  ? DsColors.surfaceLight
-                                      .withValues(alpha: 0.54)
+                                  ? DsColors.surfaceLight.withValues(
+                                      alpha: 0.54,
+                                    )
                                   : DsColors.ink900.withValues(alpha: 0.38),
                               fontFeatures: const [
-                                FontFeature.tabularFigures()
+                                FontFeature.tabularFigures(),
                               ],
                             ),
                           ),
@@ -523,28 +540,33 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
                 tooltip: 'Cancel',
               ),
               // Send button
-              GestureDetector(
-                onTap: _sendRecording,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [DsColors.success, DsColors.primary],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: DsColors.success.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+              Semantics(
+                button: true,
+                label: 'Send voice message',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: _sendRecording,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [DsColors.success, DsColors.primary],
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.send_rounded,
-                    color: DsColors.surfaceLight,
-                    size: 22,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: DsColors.success.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.send_rounded,
+                      color: DsColors.surfaceLight,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
@@ -562,17 +584,9 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
         children: [
           const Icon(Icons.mic_off, color: DsColors.warning),
           const SizedBox(width: DsSpacing.sm),
-          const Expanded(
-            child: Text('Microphone permission required'),
-          ),
-          TextButton(
-            onPressed: _requestPermission,
-            child: const Text('Grant'),
-          ),
-          IconButton(
-            onPressed: widget.onCancel,
-            icon: const Icon(Icons.close),
-          ),
+          const Expanded(child: Text('Microphone permission required')),
+          TextButton(onPressed: _requestPermission, child: const Text('Grant')),
+          IconButton(onPressed: widget.onCancel, icon: const Icon(Icons.close)),
         ],
       ),
     );
@@ -606,12 +620,15 @@ class _RecordingWaveform extends StatelessWidget {
           // Create wave effect based on animation
           final phase = (i / barCount + animation) % 1.0;
           final sineValue = (phase * 3.14159 * 2).abs();
-          final heightFactor =
-              isRecording ? 0.3 + (sineValue.abs() % 1) * 0.7 : 0.3;
+          final heightFactor = isRecording
+              ? 0.3 + (sineValue.abs() % 1) * 0.7
+              : 0.3;
           final barHeight = minHeight + (maxHeight - minHeight) * heightFactor;
 
           return Padding(
-            padding: EdgeInsets.only(right: i < barCount - 1 ? gap : 0),
+            padding: EdgeInsetsDirectional.only(
+              end: i < barCount - 1 ? gap : 0,
+            ),
             child: Container(
               width: barWidth,
               height: barHeight,
@@ -619,10 +636,7 @@ class _RecordingWaveform extends StatelessWidget {
                 gradient: const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    DsColors.primary,
-                    DsColors.secondary,
-                  ],
+                  colors: [DsColors.primary, DsColors.secondary],
                 ),
                 borderRadius: BorderRadius.circular(barWidth / 2),
               ),

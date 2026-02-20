@@ -175,3 +175,25 @@ class DsGlassColors {
 }
 
 enum DsGlassSurfaceStrength { light, medium, heavy }
+
+/// Accessibility contrast helpers for ensuring WCAG 2.1 AA compliance.
+class DsContrastColors {
+  DsContrastColors._();
+
+  /// Solid fallback for glass/blur backgrounds ensuring minimum 4.5:1 contrast.
+  /// Use when glass blur may not render (e.g. low-end devices).
+  static const Color glassFallbackLight = Color(0xFFF0EFF5); // solid light
+  static const Color glassFallbackDark = Color(0xFF1A1A24); // solid dark
+
+  /// Get accessible text color that meets AA contrast against any background.
+  static Color textOnGlass(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+  }
+
+  /// Get solid fallback color for glass surfaces based on theme.
+  static Color glassFallback(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? glassFallbackDark : glassFallbackLight;
+  }
+}

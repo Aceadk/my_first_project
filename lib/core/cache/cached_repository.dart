@@ -57,7 +57,8 @@ mixin CachingMixin {
           return await _fetchAndCache(key, fetch, config);
         } catch (e) {
           AppLogger.error(
-              'CachedRepository: Network fetch failed, falling back to cache: $e');
+            'CachedRepository: Network fetch failed, falling back to cache: $e',
+          );
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;
           rethrow;
@@ -70,7 +71,8 @@ mixin CachingMixin {
           return await _fetchAndCache(key, fetch, config);
         } catch (e) {
           AppLogger.error(
-              'CachedRepository: Network fetch failed, falling back to cache: $e');
+            'CachedRepository: Network fetch failed, falling back to cache: $e',
+          );
           final cached = await _cacheStore.get<T>(key);
           if (cached != null) return cached.data;
           rethrow;

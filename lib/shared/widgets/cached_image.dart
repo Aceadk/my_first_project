@@ -40,10 +40,7 @@ class CachedImage extends StatelessWidget {
     );
 
     if (borderRadius != null) {
-      image = ClipRRect(
-        borderRadius: borderRadius!,
-        child: image,
-      );
+      image = ClipRRect(borderRadius: borderRadius!, child: image);
     }
 
     return image;
@@ -71,12 +68,9 @@ class CachedCircleAvatar extends StatelessWidget {
       return CircleAvatar(
         radius: radius,
         backgroundColor: backgroundColor ?? DsColors.skeletonLight,
-        child: placeholder ??
-            Icon(
-              Icons.person,
-              color: DsColors.textMutedLight,
-              size: radius,
-            ),
+        child:
+            placeholder ??
+            Icon(Icons.person, color: DsColors.textMutedLight, size: radius),
       );
     }
 
@@ -99,12 +93,9 @@ class CachedCircleAvatar extends StatelessWidget {
       errorWidget: (context, url, error) => CircleAvatar(
         radius: radius,
         backgroundColor: backgroundColor ?? DsColors.skeletonLight,
-        child: placeholder ??
-            Icon(
-              Icons.person,
-              color: DsColors.textMutedLight,
-              size: radius,
-            ),
+        child:
+            placeholder ??
+            Icon(Icons.person, color: DsColors.textMutedLight, size: radius),
       ),
     );
   }
@@ -160,11 +151,7 @@ class ProfileImagePlaceholder extends StatelessWidget {
     return Container(
       color: DsColors.primary.withValues(alpha: 0.2),
       child: const Center(
-        child: Icon(
-          Icons.person,
-          size: 80,
-          color: DsColors.primary,
-        ),
+        child: Icon(Icons.person, size: 80, color: DsColors.primary),
       ),
     );
   }

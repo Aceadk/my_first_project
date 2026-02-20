@@ -2,37 +2,39 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
-import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
-import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
+import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
-import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import 'chat_screen.dart';
 
 /// Helper to check internet connectivity.
 Future<bool> _checkInternetConnectivity() async {
   try {
-    final result = await InternetAddress.lookup('google.com')
-        .timeout(const Duration(seconds: 5));
+    final result = await InternetAddress.lookup(
+      'google.com',
+    ).timeout(const Duration(seconds: 5));
     return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
   } on SocketException catch (_) {
     return false;
@@ -50,14 +52,13 @@ class MatchesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
+    final userId = context.select<AuthBloc, String?>(
+      (bloc) => bloc.state.user?.id,
+    );
 
     if (userId == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Sign in to view your matches.'),
-        ),
+        body: Center(child: Text('Sign in to view your matches.')),
       );
     }
 
@@ -100,12 +101,13 @@ class _MatchesViewState extends State<_MatchesView> {
   void initState() {
     super.initState();
     _loadLikes();
-    _matchSubscription = RealtimeMatchService.instance.onNewMatch.listen(
-      (_) {
-        if (!mounted) return;
-        context.read<MatchesBloc>().add(const MatchesRefreshRequested());
-      },
-    );
+    _matchSubscription = context
+        .read<RealtimeMatchRepository>()
+        .onNewMatch
+        .listen((_) {
+          if (!mounted) return;
+          context.read<MatchesBloc>().add(const MatchesRefreshRequested());
+        });
   }
 
   @override
@@ -206,18 +208,18 @@ class _MatchesViewState extends State<_MatchesView> {
                   Text(
                     'See Who Likes You',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Upgrade to Crush Plus to reveal your admirers and match instantly.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -225,9 +227,9 @@ class _MatchesViewState extends State<_MatchesView> {
                     child: GlassPrimaryButton(
                       onPressed: () {
                         Navigator.pop(sheetContext);
-                        context
-                            .read<SubscriptionBloc>()
-                            .add(PlusCheckoutRequested());
+                        context.read<SubscriptionBloc>().add(
+                          PlusCheckoutRequested(),
+                        );
                       },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -262,7 +264,8 @@ class _MatchesViewState extends State<_MatchesView> {
     return BlocBuilder<MatchesBloc, MatchesState>(
       builder: (context, state) {
         final matched = state.matches;
-        final showEmpty = matched.isEmpty &&
+        final showEmpty =
+            matched.isEmpty &&
             !_isLoadingLikes &&
             _likesError == null &&
             _likesYouProfiles.isEmpty &&
@@ -302,18 +305,16 @@ class _MatchesViewState extends State<_MatchesView> {
                       DsGap.xxl,
                       Text(
                         'No matches yet',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       DsGap.sm,
                       Text(
                         'Keep swiping and sending message requests.\nWhen you match with someone, they will appear here.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: DsColors.textMutedLight,
-                            ),
+                          color: DsColors.textMutedLight,
+                        ),
                       ),
                       DsGap.xxl,
                       SizedBox(
@@ -332,9 +333,9 @@ class _MatchesViewState extends State<_MatchesView> {
                           if (isPlus) return const SizedBox.shrink();
                           return _PlusOfferCard(
                             loading: loading,
-                            onTap: () => context
-                                .read<SubscriptionBloc>()
-                                .add(PlusCheckoutRequested()),
+                            onTap: () => context.read<SubscriptionBloc>().add(
+                              PlusCheckoutRequested(),
+                            ),
                           );
                         },
                       ),
@@ -362,134 +363,160 @@ class _MatchesViewState extends State<_MatchesView> {
           showBodyOnLoading: true,
           showErrorSnackBar: false,
           empty: emptyView,
-          body: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification is ScrollEndNotification &&
-                  notification.metrics.extentAfter < 200 &&
-                  state.hasMore &&
-                  !state.isLoadingMore) {
-                context
-                    .read<MatchesBloc>()
-                    .add(const MatchesLoadMoreRequested());
-              }
-              return false;
-            },
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _LikesYouSection(
-                    profiles: _likesYouProfiles,
-                    isLoading: _isLoadingLikes,
-                    errorMessage: _likesError,
-                    isNetworkError: _isNetworkError,
-                    isPlus: isPlus,
-                    onRetry: _loadLikes,
-                    onUpgradeRequested: () => _showUpgradePrompt(context),
-                    onProfileTap: (profile) {
-                      context.push(
-                        CrushRoutes.userProfile,
-                        extra: OtherUserProfileArgs(
-                          profile: profile,
-                          isMatch: false,
-                        ),
-                      );
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = DsBreakpoints.contentMaxWidth(
+                constraints.maxWidth,
+              );
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is ScrollEndNotification &&
+                          notification.metrics.extentAfter < 200 &&
+                          state.hasMore &&
+                          !state.isLoadingMore) {
+                        context.read<MatchesBloc>().add(
+                          const MatchesLoadMoreRequested(),
+                        );
+                      }
+                      return false;
                     },
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: _SectionHeader(
-                    title: 'Matched with you',
-                    subtitle: '${matched.length} matches',
-                  ),
-                ),
-                if (showMatchesSkeleton)
-                  SliverPadding(
-                    padding: DsEdgeInsets.horizontalLg,
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          return const DsShimmer(
-                            child: SkeletonMatchCard(),
-                          );
-                        },
-                        childCount: 6,
-                      ),
-                    ),
-                  )
-                else if (matched.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: DsEdgeInsets.allLg,
-                      child: _EmptyMatchedCard(
-                        onBackToDeck: widget.onBackToDeck,
-                      ),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: DsEdgeInsets.horizontalLg,
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final matchCount = matched.length;
-                          final loadingItemCount = state.isLoadingMore ? 1 : 0;
-                          final separatorCount =
-                              matchCount > 0 ? matchCount - 1 : 0;
-                          final totalItems =
-                              matchCount + separatorCount + loadingItemCount;
-
-                          if (index >= totalItems) return null;
-                          if (index == totalItems - 1 && state.isLoadingMore) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (index.isOdd) {
-                            return DsGap.sm;
-                          }
-
-                          final matchIndex = index ~/ 2;
-                          final match = matched[matchIndex];
-                          final otherName = match.otherUserName ??
-                              (match.otherUserId.trim().isNotEmpty
-                                  ? match.otherUserId
-                                  : null) ??
-                              'Name unavailable';
-
-                          return _MatchTile(
-                            name: otherName,
-                            photoUrl: match.otherUserPhotoUrl,
-                            onTap: () {
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: _LikesYouSection(
+                            profiles: _likesYouProfiles,
+                            isLoading: _isLoadingLikes,
+                            errorMessage: _likesError,
+                            isNetworkError: _isNetworkError,
+                            isPlus: isPlus,
+                            onRetry: _loadLikes,
+                            onUpgradeRequested: () =>
+                                _showUpgradePrompt(context),
+                            onProfileTap: (profile) {
                               context.push(
-                                '/chat/${match.id}',
-                                extra: ChatScreenArgs(
-                                  matchId: match.id,
-                                  currentUserId: widget.currentUserId,
-                                  otherUserId: match.otherUserId,
-                                  otherName: otherName,
+                                CrushRoutes.userProfile,
+                                extra: OtherUserProfileArgs(
+                                  profile: profile,
+                                  isMatch: false,
                                 ),
                               );
                             },
-                          );
-                        },
-                        childCount: matched.length +
-                            (matched.isNotEmpty ? matched.length - 1 : 0) +
-                            (state.isLoadingMore ? 1 : 0),
-                      ),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _SectionHeader(
+                            title: 'Matched with you',
+                            subtitle: '${matched.length} matches',
+                          ),
+                        ),
+                        if (showMatchesSkeleton)
+                          SliverPadding(
+                            padding: DsEdgeInsets.horizontalLg,
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                return const Center(
+                                  child: GlassSkeletonChatTile(),
+                                );
+                              }, childCount: 6),
+                            ),
+                          )
+                        else if (matched.isEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: DsEdgeInsets.allLg,
+                              child: _EmptyMatchedCard(
+                                onBackToDeck: widget.onBackToDeck,
+                              ),
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: DsEdgeInsets.horizontalLg,
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final matchCount = matched.length;
+                                  final loadingItemCount = state.isLoadingMore
+                                      ? 1
+                                      : 0;
+                                  final separatorCount = matchCount > 0
+                                      ? matchCount - 1
+                                      : 0;
+                                  final totalItems =
+                                      matchCount +
+                                      separatorCount +
+                                      loadingItemCount;
+
+                                  if (index >= totalItems) return null;
+                                  if (index == totalItems - 1 &&
+                                      state.isLoadingMore) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  if (index.isOdd) {
+                                    return DsGap.sm;
+                                  }
+
+                                  final matchIndex = index ~/ 2;
+                                  final match = matched[matchIndex];
+                                  final otherName =
+                                      match.otherUserName ??
+                                      (match.otherUserId.trim().isNotEmpty
+                                          ? match.otherUserId
+                                          : null) ??
+                                      'Name unavailable';
+
+                                  return _MatchTile(
+                                    name: otherName,
+                                    photoUrl: match.otherUserPhotoUrl,
+                                    onTap: () {
+                                      context.push(
+                                        '/chat/${match.id}',
+                                        extra: ChatScreenArgs(
+                                          matchId: match.id,
+                                          currentUserId: widget.currentUserId,
+                                          otherUserId: match.otherUserId,
+                                          otherName: otherName,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                childCount:
+                                    matched.length +
+                                    (matched.isNotEmpty
+                                        ? matched.length - 1
+                                        : 0) +
+                                    (state.isLoadingMore ? 1 : 0),
+                              ),
+                            ),
+                          ),
+                        const SliverToBoxAdapter(child: DsGap.lg),
+                      ],
                     ),
                   ),
-                const SliverToBoxAdapter(child: DsGap.lg),
-              ],
-            ),
+                ),
+              );
+            },
           ),
         );
       },
@@ -498,11 +525,7 @@ class _MatchesViewState extends State<_MatchesView> {
 }
 
 class _MatchTile extends StatelessWidget {
-  const _MatchTile({
-    required this.name,
-    required this.onTap,
-    this.photoUrl,
-  });
+  const _MatchTile({required this.name, required this.onTap, this.photoUrl});
 
   final String name;
   final String? photoUrl;
@@ -517,10 +540,7 @@ class _MatchTile extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -538,10 +558,7 @@ class _MatchTile extends StatelessWidget {
                   ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
-                border: Border.all(
-                  color: borderBase,
-                  width: 1,
-                ),
+                border: Border.all(color: borderBase, width: 1),
               ),
               child: Row(
                 children: [
@@ -561,10 +578,7 @@ class _MatchTile extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: CachedCircleAvatar(
-                      imageUrl: photoUrl,
-                      radius: 28,
-                    ),
+                    child: CachedCircleAvatar(imageUrl: photoUrl, radius: 28),
                   ),
                   DsGap.lgH,
                   Expanded(
@@ -573,20 +587,18 @@ class _MatchTile extends StatelessWidget {
                       children: [
                         Text(
                           name,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         DsGap.xs,
                         Text(
                           'Tap to open chat',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
                         ),
                       ],
                     ),
@@ -614,11 +626,7 @@ class _MatchTile extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    this.subtitle,
-    this.trailing,
-  });
+  const _SectionHeader({required this.title, this.subtitle, this.trailing});
 
   final String title;
   final String? subtitle;
@@ -637,19 +645,19 @@ class _SectionHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 if (subtitle != null) ...[
                   DsGap.xs,
                   Text(
                     subtitle!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
                   ),
                 ],
               ],
@@ -689,14 +697,15 @@ class _LikesYouSection extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(top: DsSpacing.lg),
+      padding: const EdgeInsetsDirectional.only(top: DsSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionHeader(
             title: 'Likes You',
-            subtitle:
-                count == 0 ? 'No new likes yet' : '$count people like you',
+            subtitle: count == 0
+                ? 'No new likes yet'
+                : '$count people like you',
             trailing: isPlus
                 ? null
                 : TextButton(
@@ -708,20 +717,18 @@ class _LikesYouSection extends StatelessWidget {
           if (isLoading)
             SizedBox(
               height: 210,
-              child: DsShimmer(
-                child: ListView.separated(
-                  padding: DsEdgeInsets.horizontalLg,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 3,
-                  separatorBuilder: (_, _) => DsGap.mdH,
-                  itemBuilder: (context, index) {
-                    return const SkeletonBox(
-                      width: 150,
-                      height: 210,
-                      borderRadius: DsRadius.lg,
-                    );
-                  },
-                ),
+              child: ListView.separated(
+                padding: DsEdgeInsets.horizontalLg,
+                scrollDirection: Axis.horizontal,
+                itemCount: 3,
+                separatorBuilder: (_, _) => DsGap.mdH,
+                itemBuilder: (context, index) {
+                  return const GlassSkeleton(
+                    width: 150,
+                    height: 210,
+                    borderRadius: DsRadius.lg,
+                  );
+                },
               ),
             )
           // Only show error message for network errors
@@ -740,10 +747,7 @@ class _LikesYouSection extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
-                    TextButton(
-                      onPressed: onRetry,
-                      child: const Text('Retry'),
-                    ),
+                    TextButton(onPressed: onRetry, child: const Text('Retry')),
                   ],
                 ),
               ),
@@ -775,12 +779,8 @@ class _LikesYouSection extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'No likes yet',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -789,10 +789,10 @@ class _LikesYouSection extends StatelessWidget {
                     Text(
                       'Keep swiping and stay active to get noticed! Add attractive photos and complete your profile to increase your chances.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                     if (!isPlus) ...[
                       DsGap.md,
@@ -824,9 +824,7 @@ class _LikesYouSection extends StatelessWidget {
                               DsGap.xsH,
                               Text(
                                 'Upgrade to Plus to see who likes you first!',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: DsColors.primary,
                                       fontWeight: FontWeight.w500,
@@ -900,8 +898,9 @@ class _LikesYouCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl =
-        profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null;
+    final photoUrl = profile.photoUrls.isNotEmpty
+        ? profile.photoUrls.first
+        : null;
     final dobLabel = _formatDob(profile);
     final distanceLabel = _formatDistance(profile);
 
@@ -915,10 +914,7 @@ class _LikesYouCard extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               if (photoUrl != null)
-                CachedImage(
-                  imageUrl: photoUrl,
-                  fit: BoxFit.cover,
-                )
+                CachedImage(imageUrl: photoUrl, fit: BoxFit.cover)
               else
                 Container(
                   color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
@@ -948,9 +944,9 @@ class _LikesYouCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: DsSpacing.sm,
-                right: DsSpacing.sm,
+              PositionedDirectional(
+                start: DsSpacing.sm,
+                end: DsSpacing.sm,
                 bottom: DsSpacing.sm,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -984,9 +980,9 @@ class _LikesYouCard extends StatelessWidget {
                 ),
               ),
               if (isBlurred)
-                Positioned(
+                PositionedDirectional(
                   top: DsSpacing.sm,
-                  right: DsSpacing.sm,
+                  end: DsSpacing.sm,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -1022,9 +1018,9 @@ class _EmptyMatchedCard extends StatelessWidget {
         children: [
           Text(
             'No matches yet',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           DsGap.sm,
           Text(
@@ -1049,10 +1045,7 @@ class _EmptyMatchedCard extends StatelessWidget {
 }
 
 class _PlusOfferCard extends StatelessWidget {
-  const _PlusOfferCard({
-    required this.loading,
-    required this.onTap,
-  });
+  const _PlusOfferCard({required this.loading, required this.onTap});
 
   final bool loading;
   final VoidCallback onTap;
@@ -1072,9 +1065,7 @@ class _PlusOfferCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: DsColors.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: DsColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -1090,9 +1081,9 @@ class _PlusOfferCard extends StatelessWidget {
               Text(
                 'Intro offer: 50% off Plus',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: DsColors.primary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: DsColors.primary,
+                ),
               ),
             ],
           ),
@@ -1100,9 +1091,9 @@ class _PlusOfferCard extends StatelessWidget {
           Text(
             'See likes first, Passport to any city, and unlimited likes to help you match faster.',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: DsColors.textMutedLight,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: DsColors.textMutedLight),
           ),
           DsGap.md,
           SizedBox(

@@ -173,9 +173,6 @@ class PromoCodeRedemptionResult {
   }
 
   factory PromoCodeRedemptionResult.failure(String message) {
-    return PromoCodeRedemptionResult(
-      success: false,
-      errorMessage: message,
-    );
+    return PromoCodeRedemptionResult(success: false, errorMessage: message);
   }
 }

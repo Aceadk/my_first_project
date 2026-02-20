@@ -55,10 +55,9 @@ class ProfileReactionService {
     _receivedReactions[toUserId]!.add(reaction);
 
     // Notify listeners
-    _reactionUpdatesController.add(ProfileReactionUpdate(
-      type: ReactionUpdateType.sent,
-      reaction: reaction,
-    ));
+    _reactionUpdatesController.add(
+      ProfileReactionUpdate(type: ReactionUpdateType.sent, reaction: reaction),
+    );
 
     return reaction;
   }
@@ -91,10 +90,12 @@ class ProfileReactionService {
       final index = reactions.indexWhere((r) => r.id == reactionId);
       if (index != -1) {
         reactions[index] = reactions[index].copyWith(isRead: true);
-        _reactionUpdatesController.add(ProfileReactionUpdate(
-          type: ReactionUpdateType.read,
-          reaction: reactions[index],
-        ));
+        _reactionUpdatesController.add(
+          ProfileReactionUpdate(
+            type: ReactionUpdateType.read,
+            reaction: reactions[index],
+          ),
+        );
         break;
       }
     }
@@ -111,11 +112,13 @@ class ProfileReactionService {
       }
     }
 
-    _reactionUpdatesController.add(ProfileReactionUpdate(
-      type: ReactionUpdateType.allRead,
-      reaction: null,
-      userId: userId,
-    ));
+    _reactionUpdatesController.add(
+      ProfileReactionUpdate(
+        type: ReactionUpdateType.allRead,
+        reaction: null,
+        userId: userId,
+      ),
+    );
   }
 
   /// Check if user has already reacted to specific content.
@@ -126,10 +129,12 @@ class ProfileReactionService {
     required int contentIndex,
   }) {
     final reactions = _sentReactions[fromUserId] ?? [];
-    return reactions.any((r) =>
-        r.toUserId == toUserId &&
-        r.contentType == contentType &&
-        r.contentIndex == contentIndex);
+    return reactions.any(
+      (r) =>
+          r.toUserId == toUserId &&
+          r.contentType == contentType &&
+          r.contentIndex == contentIndex,
+    );
   }
 
   /// Get reaction sent to specific content (if any).
@@ -141,13 +146,16 @@ class ProfileReactionService {
   }) {
     final reactions = _sentReactions[fromUserId] ?? [];
     try {
-      return reactions.firstWhere((r) =>
-          r.toUserId == toUserId &&
-          r.contentType == contentType &&
-          r.contentIndex == contentIndex);
+      return reactions.firstWhere(
+        (r) =>
+            r.toUserId == toUserId &&
+            r.contentType == contentType &&
+            r.contentIndex == contentIndex,
+      );
     } catch (e) {
       AppLogger.debug(
-          'ProfileReactionService: Reaction not found for user $fromUserId -> $toUserId: $e');
+        'ProfileReactionService: Reaction not found for user $fromUserId -> $toUserId: $e',
+      );
       return null;
     }
   }
@@ -171,16 +179,19 @@ class ProfileReactionService {
         received.removeWhere((r) => r.id == reactionId);
       }
 
-      _reactionUpdatesController.add(ProfileReactionUpdate(
-        type: ReactionUpdateType.deleted,
-        reaction: deleted,
-      ));
+      _reactionUpdatesController.add(
+        ProfileReactionUpdate(
+          type: ReactionUpdateType.deleted,
+          reaction: deleted,
+        ),
+      );
     }
   }
 
   /// Get reactions grouped by profile for a user's received reactions.
   Map<String, List<ProfileReaction>> getReceivedReactionsGroupedByUser(
-      String userId) {
+    String userId,
+  ) {
     final reactions = getReceivedReactions(userId);
     final grouped = <String, List<ProfileReaction>>{};
 
@@ -199,21 +210,11 @@ class ProfileReactionService {
 }
 
 /// Types of reaction updates.
-enum ReactionUpdateType {
-  sent,
-  received,
-  read,
-  allRead,
-  deleted,
-}
+enum ReactionUpdateType { sent, received, read, allRead, deleted }
 
 /// A reaction update event.
 class ProfileReactionUpdate {
-  const ProfileReactionUpdate({
-    required this.type,
-    this.reaction,
-    this.userId,
-  });
+  const ProfileReactionUpdate({required this.type, this.reaction, this.userId});
 
   final ReactionUpdateType type;
   final ProfileReaction? reaction;

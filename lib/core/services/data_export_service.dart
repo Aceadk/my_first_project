@@ -20,6 +20,7 @@ class DataExportService {
     required this.getUserData,
     required this.getProfileData,
     required this.getMatchesData,
+    this.getLikesData,
     required this.getMessagesData,
     required this.getPreferencesData,
   });
@@ -28,6 +29,7 @@ class DataExportService {
   final Future<CrushUser?> Function() getUserData;
   final Future<Profile?> Function() getProfileData;
   final Future<List<CrushMatch>> Function() getMatchesData;
+  final Future<List<Profile>> Function()? getLikesData;
   final Future<List<Message>> Function() getMessagesData;
   final Future<DiscoveryPreferences?> Function() getPreferencesData;
 
@@ -71,18 +73,31 @@ class DataExportService {
       // Gather matches
       onProgress?.call('Exporting matches...', 0.6);
       final matches = await getMatchesData();
-      exportData['matches'] =
-          matches.map((m) => _sanitizeMatchData(m)).toList();
+      exportData['matches'] = matches
+          .map((m) => _sanitizeMatchData(m))
+          .toList();
       exportData['matchCount'] = matches.length;
       if (matches.isNotEmpty) {
         (exportData['dataCategories'] as List).add('matches');
       }
 
+      // Gather likes received
+      if (getLikesData != null) {
+        onProgress?.call('Exporting likes...', 0.7);
+        final likes = await getLikesData!.call();
+        exportData['likes'] = likes.map((p) => _sanitizeLikeData(p)).toList();
+        exportData['likesCount'] = likes.length;
+        if (likes.isNotEmpty) {
+          (exportData['dataCategories'] as List).add('likes');
+        }
+      }
+
       // Gather messages
       onProgress?.call('Exporting messages...', 0.8);
       final messages = await getMessagesData();
-      exportData['messages'] =
-          messages.map((m) => _sanitizeMessageData(m)).toList();
+      exportData['messages'] = messages
+          .map((m) => _sanitizeMessageData(m))
+          .toList();
       exportData['messageCount'] = messages.length;
       if (messages.isNotEmpty) {
         (exportData['dataCategories'] as List).add('messages');
@@ -143,10 +158,7 @@ class DataExportService {
       'videoUrls': profile.videoUrls,
       'interests': profile.interests,
       'profilePrompts': profile.profilePrompts
-          .map((p) => {
-                'question': p.question,
-                'answer': p.answer,
-              })
+          .map((p) => {'question': p.question, 'answer': p.answer})
           .toList(),
       'heightCm': profile.heightCm,
       'relationshipGoals': profile.relationshipGoals,
@@ -184,7 +196,8 @@ class DataExportService {
   }
 
   Map<String, dynamic> _sanitizePreferencesData(
-      DiscoveryPreferences preferences) {
+    DiscoveryPreferences preferences,
+  ) {
     return {
       'minAge': preferences.minAge,
       'maxAge': preferences.maxAge,
@@ -218,6 +231,17 @@ class DataExportService {
       'sentAt': message.sentAt.toIso8601String(),
       'isFromMe': message.fromUserId == currentUserId,
       'isRead': message.isRead,
+    };
+  }
+
+  Map<String, dynamic> _sanitizeLikeData(Profile profile) {
+    return {
+      'userId': profile.id,
+      'name': profile.name,
+      'age': profile.age,
+      'photoUrl': profile.displayPhotoUrl,
+      'city': profile.city,
+      'country': profile.country,
     };
   }
 
@@ -273,9 +297,6 @@ class DataExportResult {
   }
 
   factory DataExportResult.failure({required String error}) {
-    return DataExportResult._(
-      isSuccess: false,
-      error: error,
-    );
+    return DataExportResult._(isSuccess: false, error: error);
   }
 }

@@ -39,6 +39,8 @@ import 'package:crushhour/features/auth/presentation/screens/phone_protection_sc
 import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/splash_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
+import 'package:crushhour/features/calls/domain/models/call.dart';
+import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
@@ -810,7 +812,7 @@ void main() {
       expect(drainRouterTestExceptions(tester), isNotNull);
     });
 
-    testWidgets('call fallback and video call route branches execute', (
+    testWidgets('call, incoming call, and video call route branches execute', (
       tester,
     ) async {
       final authRepository = _NoopAuthRepository();
@@ -823,6 +825,41 @@ void main() {
         authBloc: authBlocCallFallback,
         authRepository: authRepository,
         initialRoute: CrushRoutes.call,
+        settle: false,
+      );
+      await tester.pump();
+      expect(drainRouterTestExceptions(tester), isNotNull);
+
+      final authBlocIncoming = _TestAuthBloc(
+        buildState(status: AuthStatus.authenticated, user: buildUser()),
+      );
+      await pumpRouterApp(
+        tester,
+        authBloc: authBlocIncoming,
+        authRepository: authRepository,
+        initialRoute: CrushRoutes.incomingCall,
+        routeExtra: IncomingCallScreenArgs(
+          incomingCall: Call(
+            id: 'incoming-route-1',
+            callerId: 'other-user',
+            receiverId: 'router-user-1',
+            type: CallType.video,
+            status: CallStatus.ringing,
+            createdAt: DateTime.now(),
+            callerName: 'Incoming Caller',
+          ),
+        ),
+      );
+      expect(find.byType(IncomingCallScreen), findsOneWidget);
+
+      final authBlocIncomingFallback = _TestAuthBloc(
+        buildState(status: AuthStatus.authenticated, user: buildUser()),
+      );
+      await pumpRouterApp(
+        tester,
+        authBloc: authBlocIncomingFallback,
+        authRepository: authRepository,
+        initialRoute: CrushRoutes.incomingCall,
         settle: false,
       );
       await tester.pump();
@@ -1057,7 +1094,10 @@ class _NoopSubscriptionRepository implements SubscriptionRepository {
 
 class _TestSubscriptionBloc extends SubscriptionBloc {
   _TestSubscriptionBloc(SubscriptionState initialState)
-    : super(subscriptionRepository: _NoopSubscriptionRepository()) {
+    : super(
+        subscriptionRepository: _NoopSubscriptionRepository(),
+        authRepository: _NoopAuthRepository(),
+      ) {
     emit(initialState);
   }
 

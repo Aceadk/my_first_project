@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_validation_repository.dart';
 
 /// Profile completeness data returned from the server.
 ///
@@ -51,12 +52,7 @@ class RemoteProfileCompleteness {
 
     Map<String, double> toBreakdown(dynamic value) {
       if (value is Map) {
-        return value.map(
-          (key, val) => MapEntry(
-            key.toString(),
-            toDouble(val),
-          ),
-        );
+        return value.map((key, val) => MapEntry(key.toString(), toDouble(val)));
       }
       return {};
     }
@@ -89,28 +85,31 @@ class RemoteProfileCompleteness {
 }
 
 /// Service to validate profile completeness via Firebase Functions.
-class ProfileValidationService {
+
+class ProfileValidationService implements ProfileValidationRepository {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   /// Timeout for Firebase function calls to prevent hanging
   static const Duration _callTimeout = Duration(seconds: 5);
 
+  @override
   Future<RemoteProfileCompleteness> validate({String minimum = 'swipe'}) async {
     try {
       final callable = _functions.httpsCallable(
         'checkProfileCompleteness',
         options: HttpsCallableOptions(timeout: _callTimeout),
       );
-      final result = await callable.call<Map<String, dynamic>>({
-        'minimum': minimum,
-      }).timeout(
-        _callTimeout,
-        onTimeout: () {
-          AppLogger.error(
-              'ProfileValidationService.validate: timeout after $_callTimeout');
-          throw TimeoutException('Profile validation timed out');
-        },
-      );
+      final result = await callable
+          .call<Map<String, dynamic>>({'minimum': minimum})
+          .timeout(
+            _callTimeout,
+            onTimeout: () {
+              AppLogger.error(
+                'ProfileValidationService.validate: timeout after $_callTimeout',
+              );
+              throw TimeoutException('Profile validation timed out');
+            },
+          );
 
       return RemoteProfileCompleteness.fromMap(
         Map<String, dynamic>.from(result.data),

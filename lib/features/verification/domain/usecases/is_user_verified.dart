@@ -15,7 +15,7 @@ class IsUserVerifiedUseCase extends UseCase<bool, IsUserVerifiedParams>
   final PhotoVerificationService _service;
 
   IsUserVerifiedUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   String? validate(IsUserVerifiedParams params) {

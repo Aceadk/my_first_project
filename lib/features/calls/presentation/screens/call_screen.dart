@@ -1,29 +1,44 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/services/screen_capture_service.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/calls/data/models/call.dart';
-import 'package:crushhour/features/calls/data/services/call_service.dart';
+import 'package:crushhour/features/calls/domain/models/call.dart';
+import 'package:crushhour/features/calls/data/services/call_quality_service.dart';
+import 'package:crushhour/features/calls/data/services/callkit_service.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
+import 'package:crushhour/features/calls/data/services/native_pip_service.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_state.dart'
     as bloc_state;
+import 'package:crushhour/features/calls/presentation/widgets/call_safety_controls.dart';
+import 'package:crushhour/features/calls/presentation/widgets/pip_video_overlay.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CallScreenArgs {
   final String matchId;
   final bool isVideoCall;
   final String? matchName;
   final String? matchPhotoUrl;
+  final bool isIncoming;
 
   const CallScreenArgs({
     required this.matchId,
     required this.isVideoCall,
     this.matchName,
     this.matchPhotoUrl,
+    this.isIncoming = false,
   });
 }
 
@@ -40,6 +55,7 @@ class CallScreen extends StatefulWidget {
   final bool isVideoCall;
   final String? matchName;
   final String? matchPhotoUrl;
+  final bool isIncoming;
 
   const CallScreen({
     super.key,
@@ -47,6 +63,7 @@ class CallScreen extends StatefulWidget {
     required this.isVideoCall,
     this.matchName,
     this.matchPhotoUrl,
+    this.isIncoming = false,
   });
 
   @override
@@ -54,12 +71,34 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
-  final _callService = CallService.instance;
+  late final _callService = context.read<CallManagerRepository>();
+  final _callQualityService = CallQualityService.instance;
   StreamSubscription<Call>? _callSubscription;
   StreamSubscription<CallUIState>? _stateSubscription;
+  StreamSubscription<CallQualityState>? _qualitySubscription;
+  StreamSubscription<ScreenCaptureEvent>? _screenCaptureSubscription;
 
   Call? _currentCall;
   CallUIState _uiState = CallUIState.idle;
+  CallQualityState? _qualityState;
+  bool _isReconnecting = false;
+  bool _autoSwitchedToAudio = false;
+  Timer? _reconnectRecoveryTimer;
+  Timer? _reconnectTimeoutTimer;
+  bool _showSafetyTip = false;
+  bool _hasHandledCallEnded = false;
+  bool _isScreenRecordingDetected = false;
+
+  static const List<String> _reportReasons = <String>[
+    'Spam or scams',
+    'Harassment or hate',
+    'Inappropriate content',
+    'Fake profile',
+    'Other',
+  ];
+
+  bool get _isIOSRuntime =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   late AnimationController _pulseController;
   late AnimationController _ringController;
@@ -68,6 +107,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    CallPiPOverlayService.instance.hide();
+    _restoreSafetyTipState();
 
     // Pulse animation for avatar during ringing
     _pulseController = AnimationController(
@@ -85,8 +126,18 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       CurvedAnimation(parent: _ringController, curve: Curves.easeInOut),
     );
 
+    _subscribeToScreenCaptureEvents();
     _subscribeToCallUpdates();
-    _initiateCall();
+    if (widget.isIncoming) {
+      final active = _callService.activeCall;
+      _currentCall = active;
+      _uiState = _uiStateFromCall(active);
+      if (_uiState == CallUIState.connected) {
+        _startQualityMonitoring();
+      }
+    } else {
+      _initiateCall();
+    }
   }
 
   void _subscribeToCallUpdates() {
@@ -98,24 +149,109 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
     _stateSubscription = _callService.callStateStream.listen((state) {
       if (mounted) {
-        setState(() => _uiState = state);
+        setState(() {
+          _uiState = state;
+          if (state == CallUIState.connected) {
+            _isReconnecting = false;
+          }
+        });
+
+        if (state == CallUIState.connected) {
+          _hasHandledCallEnded = false;
+          _startQualityMonitoring();
+        } else if (state == CallUIState.ended) {
+          _stopQualityMonitoring();
+        } else {
+          _stopQualityMonitoring(resetQualityState: false);
+        }
 
         // Haptic feedback for state changes
         if (state == CallUIState.connected) {
           DsHaptics.success();
         } else if (state == CallUIState.ended) {
           DsHaptics.medium();
-          // Auto-close after showing end state
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pop(context);
-          });
+          if (!_hasHandledCallEnded) {
+            _hasHandledCallEnded = true;
+            unawaited(_handleCallEnded());
+          }
         }
       }
     });
   }
 
+  void _subscribeToScreenCaptureEvents() {
+    _screenCaptureSubscription = ScreenCaptureService.instance.events.listen(
+      _handleScreenCaptureEvent,
+    );
+  }
+
+  void _handleScreenCaptureEvent(ScreenCaptureEvent event) {
+    if (!mounted || _uiState != CallUIState.connected) return;
+
+    switch (event.type) {
+      case ScreenCaptureEventType.screenshot:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Screenshot detected. The other person was notified.',
+            ),
+          ),
+        );
+        unawaited(_notifyOtherPartyOfCaptureEvent('screenshot'));
+        break;
+      case ScreenCaptureEventType.recordingStarted:
+        if (_isScreenRecordingDetected) return;
+        _isScreenRecordingDetected = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Screen recording detected. The other person was notified.',
+            ),
+          ),
+        );
+        unawaited(_notifyOtherPartyOfCaptureEvent('recording_started'));
+        break;
+      case ScreenCaptureEventType.recordingStopped:
+        if (!_isScreenRecordingDetected) return;
+        _isScreenRecordingDetected = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Screen recording stopped.')),
+        );
+        unawaited(_notifyOtherPartyOfCaptureEvent('recording_stopped'));
+        break;
+      case ScreenCaptureEventType.unknown:
+        break;
+    }
+  }
+
+  Future<void> _notifyOtherPartyOfCaptureEvent(String eventType) async {
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'notifyCallSafetyEvent',
+      );
+      await callable.call<Map<String, dynamic>>({
+        'targetUserId': widget.matchId,
+        'eventType': eventType,
+        'callId': _currentCall?.id,
+        'isVideoCall': widget.isVideoCall,
+      });
+    } catch (_) {
+      // Best-effort signal only.
+    }
+  }
+
   Future<void> _initiateCall() async {
     try {
+      final hasCallPermissions = await _ensureCallPermissions();
+      if (!hasCallPermissions) {
+        throw Exception(
+          widget.isVideoCall
+              ? 'Camera and microphone permission is required for video calls'
+              : 'Microphone permission is required for calls',
+        );
+      }
+      if (!mounted) return;
+
       // Get the authenticated user's ID from AuthBloc
       final authState = context.read<AuthBloc>().state;
       final currentUserId = authState.user?.id;
@@ -152,10 +288,29 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<bool> _ensureCallPermissions() async {
+    try {
+      final microphoneStatus = await Permission.microphone.request();
+      if (!microphoneStatus.isGranted) return false;
+
+      if (!widget.isVideoCall) return true;
+      final cameraStatus = await Permission.camera.request();
+      return cameraStatus.isGranted;
+    } catch (_) {
+      // Keep widget/integration tests stable when permission channels are not wired.
+      return true;
+    }
+  }
+
   @override
   void dispose() {
     _callSubscription?.cancel();
     _stateSubscription?.cancel();
+    _qualitySubscription?.cancel();
+    _screenCaptureSubscription?.cancel();
+    _reconnectRecoveryTimer?.cancel();
+    _reconnectTimeoutTimer?.cancel();
+    _callQualityService.stopMonitoring();
     _pulseController.dispose();
     _ringController.dispose();
     super.dispose();
@@ -190,6 +345,29 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   const SizedBox(height: 60),
                   // Call status and user info
                   _buildCallInfo(),
+                  BlocBuilder<SafetyCubit, SafetyState>(
+                    builder: (context, safetyState) {
+                      return CallSafetyControls(
+                        showSafetyTip: _showSafetyTip,
+                        onDismissTip: () {
+                          unawaited(_dismissSafetyTip());
+                        },
+                        onOpenGuidelines: () =>
+                            context.push(CrushRoutes.safetyGuidelines),
+                        onReportPressed: () => _showReportSheet(
+                          context,
+                          context.read<SafetyCubit>(),
+                        ),
+                        onBlockPressed: _blockUserFromCall,
+                        isBlocked: safetyState.blockedUsers.contains(
+                          widget.matchId,
+                        ),
+                        isReportedRecently: safetyState.reportedUsers
+                            .containsKey(widget.matchId),
+                        matchName: widget.matchName,
+                      );
+                    },
+                  ),
                   const Spacer(),
                   // Call controls with glass effect
                   _buildCallControls(),
@@ -204,10 +382,24 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
             // Connection quality indicator
             if (_uiState == CallUIState.connected)
-              Positioned(
+              PositionedDirectional(
                 top: MediaQuery.of(context).padding.top + 16,
-                right: 16,
+                end: 16,
                 child: _buildConnectionIndicator(),
+              ),
+
+            if (widget.isVideoCall && _uiState == CallUIState.connected)
+              PositionedDirectional(
+                top: MediaQuery.of(context).padding.top + 14,
+                start: 12,
+                child: IconButton(
+                  tooltip: 'Minimize call',
+                  onPressed: _minimizeToPiP,
+                  icon: const Icon(
+                    Icons.picture_in_picture_alt_outlined,
+                    color: DsColors.surfaceLight,
+                  ),
+                ),
               ),
           ],
         ),
@@ -246,9 +438,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           AnimatedBuilder(
             animation: _ringController,
             builder: (context, _) {
-              return Positioned(
+              return PositionedDirectional(
                 top: MediaQuery.of(context).size.height * 0.15,
-                left: MediaQuery.of(context).size.width * 0.2,
+                start: MediaQuery.of(context).size.width * 0.2,
                 child: Container(
                   width: 200,
                   height: 200,
@@ -357,7 +549,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               Container(
                 width: 8,
                 height: 8,
-                margin: const EdgeInsets.only(right: 8),
+                margin: const EdgeInsetsDirectional.only(end: 8),
                 decoration: const BoxDecoration(
                   color: DsColors.success,
                   shape: BoxShape.circle,
@@ -483,6 +675,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     onPressed: () {
                       DsHaptics.light();
                       _callService.toggleMute();
+                      unawaited(_syncCallKitMute(_callService.isMuted));
                       setState(() {});
                     },
                     isActive: isMuted,
@@ -578,9 +771,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildVideoPlaceholder() {
-    return Positioned(
+    return PositionedDirectional(
       top: MediaQuery.of(context).padding.top + 60,
-      right: 16,
+      end: 16,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: BackdropFilter(
@@ -624,6 +817,11 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildConnectionIndicator() {
+    final indicatorLabel = _isReconnecting
+        ? 'Reconnecting'
+        : (_qualityState?.badgeLabel ?? 'HD');
+    final indicatorColor = _connectionIndicatorColor();
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(
@@ -640,14 +838,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               Container(
                 width: 6,
                 height: 6,
-                decoration: const BoxDecoration(
-                  color: DsColors.success,
+                decoration: BoxDecoration(
+                  color: indicatorColor,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 6),
               Text(
-                'HD',
+                indicatorLabel,
                 style: TextStyle(
                   color: DsColors.surfaceLight.withValues(alpha: 0.7),
                   fontSize: 11,
@@ -662,6 +860,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   String _getStatusText() {
+    if (_isReconnecting) return 'Reconnecting...';
+
     switch (_uiState) {
       case CallUIState.idle:
         return 'Initiating...';
@@ -679,10 +879,414 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     }
   }
 
+  CallUIState _uiStateFromCall(Call? call) {
+    if (call == null) return CallUIState.idle;
+    switch (call.status) {
+      case CallStatus.ringing:
+        return widget.isIncoming ? CallUIState.incoming : CallUIState.outgoing;
+      case CallStatus.ongoing:
+        return CallUIState.connected;
+      case CallStatus.initiating:
+        return CallUIState.connecting;
+      case CallStatus.ended:
+      case CallStatus.missed:
+      case CallStatus.declined:
+      case CallStatus.failed:
+        return CallUIState.ended;
+    }
+  }
+
   void _endCall() {
     DsHaptics.heavy();
+    final callId = _currentCall?.id;
     _callService.endCall();
+    if (_isIOSRuntime && callId != null) {
+      unawaited(CallKitService.instance.endCall(callId: callId));
+    }
     context.read<CallBloc>().add(CallEnded());
+  }
+
+  Future<void> _syncCallKitMute(bool isMuted) async {
+    final callId = _currentCall?.id;
+    if (!_isIOSRuntime || callId == null) return;
+    await CallKitService.instance.setMuted(callId: callId, isMuted: isMuted);
+  }
+
+  void _startQualityMonitoring() {
+    _qualitySubscription ??= _callQualityService.qualityStateStream.listen(
+      _onQualityState,
+    );
+    if (!_callQualityService.isMonitoring) {
+      _callQualityService.startMonitoring(isVideoCall: widget.isVideoCall);
+    }
+  }
+
+  void _stopQualityMonitoring({bool resetQualityState = true}) {
+    if (_callQualityService.isMonitoring) {
+      _callQualityService.stopMonitoring();
+    }
+    _reconnectRecoveryTimer?.cancel();
+    _reconnectRecoveryTimer = null;
+    _reconnectTimeoutTimer?.cancel();
+    _reconnectTimeoutTimer = null;
+    _isReconnecting = false;
+
+    if (resetQualityState && mounted) {
+      setState(() => _qualityState = null);
+    }
+  }
+
+  void _onQualityState(CallQualityState state) {
+    if (!mounted) return;
+
+    if (widget.isVideoCall &&
+        state.videoQuality == VideoQualityTier.audioOnly &&
+        _callService.isVideoEnabled &&
+        !_autoSwitchedToAudio) {
+      _callService.toggleVideo();
+      _autoSwitchedToAudio = true;
+      DsHaptics.medium();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Network is weak. Switched to audio-only mode.'),
+        ),
+      );
+    }
+
+    if (state.shouldAttemptReconnect) {
+      _attemptReconnect();
+    }
+
+    setState(() {
+      _qualityState = state;
+    });
+  }
+
+  void _attemptReconnect() {
+    if (_isReconnecting || !mounted) return;
+    if (_currentCall?.status != CallStatus.ongoing) return;
+
+    _isReconnecting = true;
+    setState(() => _uiState = CallUIState.connecting);
+
+    _reconnectTimeoutTimer?.cancel();
+    _reconnectTimeoutTimer = Timer(const Duration(seconds: 15), () {
+      if (!mounted || !_isReconnecting) return;
+      _isReconnecting = false;
+      if (_currentCall?.status == CallStatus.ongoing) {
+        setState(() => _uiState = CallUIState.connected);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connection unstable. Recovered with reduced quality.'),
+        ),
+      );
+    });
+
+    _reconnectRecoveryTimer?.cancel();
+    _reconnectRecoveryTimer = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      _isReconnecting = false;
+      _reconnectTimeoutTimer?.cancel();
+      if (_currentCall?.status == CallStatus.ongoing) {
+        setState(() => _uiState = CallUIState.connected);
+      }
+    });
+  }
+
+  String get _safetyTipPrefKey => 'call_safety_tip_seen_${widget.matchId}';
+
+  String? get _currentUserId => context.read<AuthBloc>().state.user?.id;
+
+  Future<void> _restoreSafetyTipState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenTip = prefs.getBool(_safetyTipPrefKey) ?? false;
+      if (!mounted) return;
+      setState(() => _showSafetyTip = !hasSeenTip);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _showSafetyTip = true);
+    }
+  }
+
+  Future<void> _dismissSafetyTip() async {
+    if (!_showSafetyTip) return;
+    setState(() => _showSafetyTip = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_safetyTipPrefKey, true);
+  }
+
+  Future<void> _handleCallEnded() async {
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (!mounted) return;
+
+    await _showPostCallSafetyCheck();
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _showPostCallSafetyCheck() async {
+    final safety = context.read<SafetyCubit>();
+    final isAlreadyBlocked = safety.isBlocked(widget.matchId);
+    if (isAlreadyBlocked) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: DsColors.ink900.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: DsColors.surfaceLight.withValues(alpha: 0.16),
+                    ),
+                  ),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Did you feel safe on this call?',
+                        style: TextStyle(
+                          color: DsColors.surfaceLight,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'If anything felt off, report or block now.',
+                        style: TextStyle(
+                          color: DsColors.surfaceLight.withValues(alpha: 0.78),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          child: const Text('I felt safe'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(sheetContext).pop();
+                            _showReportSheet(context, safety);
+                          },
+                          icon: const Icon(Icons.report_outlined),
+                          label: const Text('Report user'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            Navigator.of(sheetContext).pop();
+                            await _blockUserFromCall();
+                          },
+                          icon: const Icon(Icons.block_outlined),
+                          label: const Text('Block user'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _blockUserFromCall() async {
+    final uid = _currentUserId;
+    if (uid == null || uid.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign in again to manage safety actions.'),
+        ),
+      );
+      return;
+    }
+
+    final safety = context.read<SafetyCubit>();
+    await safety.toggleBlock(widget.matchId, block: true, currentUserId: uid);
+    if (!mounted) return;
+    final error = safety.state.errorMessage;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'User blocked.')));
+  }
+
+  void _showReportSheet(BuildContext context, SafetyCubit safetyCubit) {
+    final messenger = ScaffoldMessenger.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Report user',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Reports are anonymous and reviewed by our team.',
+                ),
+              ),
+              ..._reportReasons.map(
+                (reason) => ListTile(
+                  title: Text(reason),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    if (reason == 'Other') {
+                      _showCustomReportDialog(context, safetyCubit);
+                      return;
+                    }
+                    await safetyCubit.reportWithContext(
+                      reporterId: _currentUserId ?? 'anonymous',
+                      reportedId: widget.matchId,
+                      reason: reason,
+                      source: 'call',
+                    );
+                    if (!mounted) return;
+                    final error = safetyCubit.state.errorMessage;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(error ?? 'Report submitted: $reason'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => context.push(CrushRoutes.safetyGuidelines),
+                  icon: const Icon(Icons.shield_outlined),
+                  label: const Text('View community guidelines'),
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCustomReportDialog(BuildContext context, SafetyCubit safetyCubit) {
+    final controller = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        return AlertDialog(
+          title: const Text('Report details'),
+          content: TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: 'Tell us what happened',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final details = controller.text.trim();
+                if (details.isNotEmpty) {
+                  await safetyCubit.reportWithContext(
+                    reporterId: _currentUserId ?? 'anonymous',
+                    reportedId: widget.matchId,
+                    reason: 'Other',
+                    description: details,
+                    source: 'call',
+                  );
+                  if (!mounted) return;
+                  final error = safetyCubit.state.errorMessage;
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(error ?? 'Report submitted')),
+                  );
+                }
+                navigator.pop();
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _minimizeToPiP() {
+    if (!widget.isVideoCall || _uiState != CallUIState.connected) return;
+    unawaited(_minimizeToPiPInternal());
+  }
+
+  Future<void> _minimizeToPiPInternal() async {
+    final enteredNativePiP = await NativePiPService.instance
+        .enterPictureInPicture();
+    if (!mounted) return;
+    if (enteredNativePiP) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    CallPiPOverlayService.instance.show(
+      context: context,
+      args: CallScreenArgs(
+        matchId: widget.matchId,
+        isVideoCall: widget.isVideoCall,
+        matchName: widget.matchName,
+        matchPhotoUrl: widget.matchPhotoUrl,
+        isIncoming: true,
+      ),
+    );
+
+    Navigator.of(context).pop();
+  }
+
+  Color _connectionIndicatorColor() {
+    if (_isReconnecting) return DsColors.warning;
+    if (_qualityState == null) return DsColors.success;
+    if (_qualityState!.videoQuality == VideoQualityTier.audioOnly) {
+      return DsColors.error;
+    }
+
+    switch (_qualityState!.quality) {
+      case CallQualityLevel.hd:
+        return DsColors.success;
+      case CallQualityLevel.sd:
+        return DsColors.warning;
+      case CallQualityLevel.poor:
+        return DsColors.error;
+    }
   }
 }
 

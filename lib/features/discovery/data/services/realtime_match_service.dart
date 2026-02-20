@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
 
 typedef RealtimeChildAddedStreamFactory =
     Stream<RealtimeChildAddedEvent> Function(String path);
@@ -18,41 +19,12 @@ class RealtimeChildAddedEvent {
   final Future<void> Function() remove;
 }
 
-/// Data class for real-time match notification.
-class RealtimeMatchNotification {
-  final String matchId;
-  final String otherUserId;
-  final String otherUserName;
-  final String? otherUserPhotoUrl;
-  final int createdAt;
-
-  const RealtimeMatchNotification({
-    required this.matchId,
-    required this.otherUserId,
-    required this.otherUserName,
-    this.otherUserPhotoUrl,
-    required this.createdAt,
-  });
-
-  factory RealtimeMatchNotification.fromRtdb(
-    String matchId,
-    Map<dynamic, dynamic> data,
-  ) {
-    return RealtimeMatchNotification(
-      matchId: matchId,
-      otherUserId: data['otherUserId'] as String? ?? '',
-      otherUserName: data['otherUserName'] as String? ?? 'Someone',
-      otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
-      createdAt: data['createdAt'] as int? ?? 0,
-    );
-  }
-}
-
 /// Service for real-time match notifications via Firebase Realtime Database.
 ///
 /// Listens to /users/{userId}/newMatches for instant match notifications.
 /// When a match is detected, notifies subscribers and clears the notification.
-class RealtimeMatchService {
+
+class RealtimeMatchService implements RealtimeMatchRepository {
   static final RealtimeMatchService instance = RealtimeMatchService._();
   RealtimeMatchService._({
     RealtimeChildAddedStreamFactory? childAddedStreamFactory,
@@ -92,19 +64,24 @@ class RealtimeMatchService {
 
   /// Stream of new match notifications.
   /// Subscribe to this to receive instant match notifications.
+  @override
   Stream<RealtimeMatchNotification> get onNewMatch => _matchController.stream;
 
+  @override
   @visibleForTesting
   bool get isListening => _matchSubscription != null;
 
+  @override
   @visibleForTesting
   String? get currentUserId => _currentUserId;
 
+  @override
   @visibleForTesting
   bool get isDisposed => _isDisposed;
 
   /// Start listening for new matches for the given user.
   /// Call this when the user logs in.
+  @override
   void startListening(String userId) {
     if (_isDisposed) {
       AppLogger.warning(
@@ -167,6 +144,7 @@ class RealtimeMatchService {
 
   /// Stop listening for new matches.
   /// Call this when the user logs out.
+  @override
   void stopListening() {
     _matchSubscription?.cancel();
     _matchSubscription = null;
@@ -175,6 +153,7 @@ class RealtimeMatchService {
   }
 
   /// Dispose the service.
+  @override
   void dispose() {
     if (_isDisposed) {
       return;

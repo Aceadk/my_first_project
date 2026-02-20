@@ -1,3 +1,4 @@
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -37,50 +38,57 @@ class VideoCallScreen extends StatelessWidget {
       ),
       backgroundColor: DsColors.backgroundDark,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.videocam_off,
-                  size: 80,
-                  color: DsColors.surfaceLight.withValues(alpha: 0.54),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.videocam_off,
+                      size: 80,
+                      color: DsColors.surfaceLight.withValues(alpha: 0.54),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Video Calling',
+                      style: TextStyle(
+                        color: DsColors.surfaceLight,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Video calling is not yet configured.\n\nConnect your video calling backend (WebRTC, Agora, Twilio, etc.) to enable this feature.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    FloatingActionButton(
+                      backgroundColor: DsColors.error,
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: 'End call',
+                      child: const Icon(Icons.call_end),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'End Call',
+                      style: TextStyle(
+                        color: DsColors.surfaceLight.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Video Calling',
-                  style: TextStyle(
-                    color: DsColors.surfaceLight,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Video calling is not yet configured.\n\nConnect your video calling backend (WebRTC, Agora, Twilio, etc.) to enable this feature.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: DsColors.surfaceLight.withValues(alpha: 0.7),
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                FloatingActionButton(
-                  backgroundColor: DsColors.error,
-                  onPressed: () => Navigator.of(context).pop(),
-                  tooltip: 'End call',
-                  child: const Icon(Icons.call_end),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'End Call',
-                  style: TextStyle(
-                    color: DsColors.surfaceLight.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),

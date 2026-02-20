@@ -27,7 +27,8 @@ class DsBreakpoints {
   static bool isCompact(double width) => width < compactMax;
   static bool isMobile(double width) => width < mobileMax;
   static bool isTablet(double width) => width >= mobileMax && width < tabletMax;
-  static bool isDesktop(double width) => width >= tabletMax && width < desktopMax;
+  static bool isDesktop(double width) =>
+      width >= tabletMax && width < desktopMax;
   static bool isLargeDesktop(double width) => width >= desktopMax;
 
   /// Check if current screen is in landscape orientation.
@@ -68,7 +69,12 @@ class DsBreakpoints {
     T? desktop,
   }) {
     final width = MediaQuery.of(context).size.width;
-    return responsiveValue(width, mobile: mobile, tablet: tablet, desktop: desktop);
+    return responsiveValue(
+      width,
+      mobile: mobile,
+      tablet: tablet,
+      desktop: desktop,
+    );
   }
 
   // ==========================================================================

@@ -50,11 +50,9 @@ class FirebaseRealtimeService {
     required String documentId,
     required T Function(Map<String, dynamic> data, String id) fromJson,
   }) {
-    return _firestore
-        .collection(collection)
-        .doc(documentId)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection(collection).doc(documentId).snapshots().map((
+      snapshot,
+    ) {
       if (!snapshot.exists || snapshot.data() == null) return null;
       return fromJson(snapshot.data()!, snapshot.id);
     });
@@ -73,13 +71,13 @@ class FirebaseRealtimeService {
     _subscriptions[subscriptionId]?.cancel();
 
     // ignore: cancel_subscriptions - stored in _subscriptions map, cancelled via dispose()
-    final subscription =
-        _firestore.collection(collection).doc(documentId).snapshots().listen(
-      (snapshot) {
-        onData(snapshot.data());
-      },
-      onError: onError ?? (e) => AppLogger.error('Firestore error: $e'),
-    );
+    final subscription = _firestore
+        .collection(collection)
+        .doc(documentId)
+        .snapshots()
+        .listen((snapshot) {
+          onData(snapshot.data());
+        }, onError: onError ?? (e) => AppLogger.error('Firestore error: $e'));
 
     _subscriptions[subscriptionId] = subscription;
     return subscriptionId;
@@ -126,7 +124,7 @@ class FirebaseRealtimeService {
   String subscribeToCollection({
     required String collection,
     required void Function(List<DocumentChange<Map<String, dynamic>>> changes)
-        onChanges,
+    onChanges,
     List<QueryFilter>? filters,
     String? orderBy,
     bool descending = false,
@@ -156,12 +154,9 @@ class FirebaseRealtimeService {
     }
 
     // ignore: cancel_subscriptions - stored in _subscriptions map, cancelled via dispose()
-    final subscription = query.snapshots().listen(
-      (snapshot) {
-        onChanges(snapshot.docChanges);
-      },
-      onError: onError ?? (e) => AppLogger.error('Firestore error: $e'),
-    );
+    final subscription = query.snapshots().listen((snapshot) {
+      onChanges(snapshot.docChanges);
+    }, onError: onError ?? (e) => AppLogger.error('Firestore error: $e'));
 
     _subscriptions[subscriptionId] = subscription;
     return subscriptionId;
@@ -187,8 +182,10 @@ class FirebaseRealtimeService {
       case FilterOperator.arrayContains:
         return query.where(filter.field, arrayContains: filter.value);
       case FilterOperator.arrayContainsAny:
-        return query.where(filter.field,
-            arrayContainsAny: filter.value as List);
+        return query.where(
+          filter.field,
+          arrayContainsAny: filter.value as List,
+        );
       case FilterOperator.whereIn:
         return query.where(filter.field, whereIn: filter.value as List);
       case FilterOperator.whereNotIn:
@@ -215,8 +212,10 @@ class FirebaseRealtimeService {
         .limit(limit);
 
     if (afterTimestamp != null) {
-      query = query.where('created_at',
-          isGreaterThan: Timestamp.fromDate(afterTimestamp));
+      query = query.where(
+        'created_at',
+        isGreaterThan: Timestamp.fromDate(afterTimestamp),
+      );
     }
 
     return query.snapshots().map((snapshot) {
@@ -237,8 +236,10 @@ class FirebaseRealtimeService {
         .limit(limit)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => fromJson(doc.data(), doc.id)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => fromJson(doc.data(), doc.id))
+              .toList();
+        });
   }
 
   /// Listen to typing indicators in a conversation.
@@ -251,22 +252,24 @@ class FirebaseRealtimeService {
         .collection('typing')
         .snapshots()
         .map((snapshot) {
-      final typing = <String, bool>{};
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final isTyping = data['is_typing'] as bool? ?? false;
-        final timestamp = data['timestamp'] as Timestamp?;
+          final typing = <String, bool>{};
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final isTyping = data['is_typing'] as bool? ?? false;
+            final timestamp = data['timestamp'] as Timestamp?;
 
-        // Only consider typing if within last 10 seconds
-        if (isTyping && timestamp != null) {
-          final age = DateTime.now().difference(timestamp.toDate()).inSeconds;
-          typing[doc.id] = age < 10;
-        } else {
-          typing[doc.id] = false;
-        }
-      }
-      return typing;
-    });
+            // Only consider typing if within last 10 seconds
+            if (isTyping && timestamp != null) {
+              final age = DateTime.now()
+                  .difference(timestamp.toDate())
+                  .inSeconds;
+              typing[doc.id] = age < 10;
+            } else {
+              typing[doc.id] = false;
+            }
+          }
+          return typing;
+        });
   }
 
   /// Listen to user's matches.
@@ -282,17 +285,17 @@ class FirebaseRealtimeService {
         .limit(limit)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => fromJson(doc.data(), doc.id)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => fromJson(doc.data(), doc.id))
+              .toList();
+        });
   }
 
   /// Listen to user's online presence.
   Stream<bool> listenToPresence({required String userId}) {
-    return _firestore
-        .collection('presence')
-        .doc(userId)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection('presence').doc(userId).snapshots().map((
+      snapshot,
+    ) {
       if (!snapshot.exists) return false;
       final data = snapshot.data();
       if (data == null) return false;
@@ -341,9 +344,9 @@ class FirebaseRealtimeService {
           .collection('typing')
           .doc(userId)
           .set({
-        'is_typing': isTyping,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+            'is_typing': isTyping,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       AppLogger.error('FirebaseRealtimeService: Update typing failed - $e');
     }
@@ -410,37 +413,55 @@ class QueryFilter {
   /// Create an equals filter.
   factory QueryFilter.equals(String field, dynamic value) {
     return QueryFilter(
-        field: field, operator: FilterOperator.equals, value: value);
+      field: field,
+      operator: FilterOperator.equals,
+      value: value,
+    );
   }
 
   /// Create a not equals filter.
   factory QueryFilter.notEquals(String field, dynamic value) {
     return QueryFilter(
-        field: field, operator: FilterOperator.notEquals, value: value);
+      field: field,
+      operator: FilterOperator.notEquals,
+      value: value,
+    );
   }
 
   /// Create a less than filter.
   factory QueryFilter.lessThan(String field, dynamic value) {
     return QueryFilter(
-        field: field, operator: FilterOperator.lessThan, value: value);
+      field: field,
+      operator: FilterOperator.lessThan,
+      value: value,
+    );
   }
 
   /// Create a greater than filter.
   factory QueryFilter.greaterThan(String field, dynamic value) {
     return QueryFilter(
-        field: field, operator: FilterOperator.greaterThan, value: value);
+      field: field,
+      operator: FilterOperator.greaterThan,
+      value: value,
+    );
   }
 
   /// Create an array contains filter.
   factory QueryFilter.arrayContains(String field, dynamic value) {
     return QueryFilter(
-        field: field, operator: FilterOperator.arrayContains, value: value);
+      field: field,
+      operator: FilterOperator.arrayContains,
+      value: value,
+    );
   }
 
   /// Create a whereIn filter.
   factory QueryFilter.whereIn(String field, List<dynamic> values) {
     return QueryFilter(
-        field: field, operator: FilterOperator.whereIn, value: values);
+      field: field,
+      operator: FilterOperator.whereIn,
+      value: values,
+    );
   }
 }
 
@@ -449,12 +470,7 @@ class QueryFilter {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Sync status for offline-first data.
-enum SyncStatus {
-  synced,
-  pending,
-  syncing,
-  failed,
-}
+enum SyncStatus { synced, pending, syncing, failed }
 
 /// Wrapper for data with sync status.
 class SyncedData<T> {

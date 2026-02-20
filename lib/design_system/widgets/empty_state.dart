@@ -22,8 +22,10 @@ class DsEmptyState extends StatelessWidget {
     this.lottieWidth,
     this.lottieHeight,
     this.customWidget,
-  }) : assert(icon != null || lottieAsset != null || customWidget != null,
-            'Either icon, lottieAsset, or customWidget must be provided');
+  }) : assert(
+         icon != null || lottieAsset != null || customWidget != null,
+         'Either icon, lottieAsset, or customWidget must be provided',
+       );
 
   /// Icon to display (use large icon for visual impact).
   final IconData? icon;
@@ -68,10 +70,12 @@ class DsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
-    final mutedColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
+    final mutedColor = isDark
+        ? DsColors.textMutedDark
+        : DsColors.textMutedLight;
     final effectiveIconColor = iconColor ?? DsColors.primary;
 
     // Build semantic label for screen readers
@@ -98,10 +102,7 @@ class DsEmptyState extends StatelessWidget {
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOutBack,
               builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: child,
-                );
+                return Transform.scale(scale: value, child: child);
               },
               child: _buildVisual(effectiveIconColor),
             ),
@@ -123,9 +124,9 @@ class DsEmptyState extends StatelessWidget {
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -136,16 +137,13 @@ class DsEmptyState extends StatelessWidget {
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeOut,
                 builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: child,
-                  );
+                  return Opacity(opacity: value, child: child);
                 },
                 child: Text(
                   message!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: mutedColor,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: mutedColor),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -157,10 +155,7 @@ class DsEmptyState extends StatelessWidget {
                 duration: const Duration(milliseconds: 600),
                 curve: Curves.easeOut,
                 builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: child,
-                  );
+                  return Opacity(opacity: value, child: child);
                 },
                 child: GlassPrimaryButton(
                   onPressed: onAction,
@@ -211,7 +206,8 @@ class DsEmptyState extends StatelessWidget {
       height: 100,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: iconGradient ??
+        gradient:
+            iconGradient ??
             LinearGradient(
               colors: [
                 effectiveIconColor.withValues(alpha: 0.2),
@@ -262,8 +258,11 @@ class EmptyStateNoMatches extends StatelessWidget {
 
 /// Empty state for no messages in chat.
 class EmptyStateNoMessages extends StatelessWidget {
-  const EmptyStateNoMessages(
-      {super.key, required this.otherName, this.onSendHi});
+  const EmptyStateNoMessages({
+    super.key,
+    required this.otherName,
+    this.onSendHi,
+  });
 
   final String otherName;
   final VoidCallback? onSendHi;
@@ -335,11 +334,7 @@ class EmptyStateSearch extends StatelessWidget {
 
 /// Empty state for error with retry.
 class EmptyStateError extends StatelessWidget {
-  const EmptyStateError({
-    super.key,
-    this.message,
-    this.onRetry,
-  });
+  const EmptyStateError({super.key, this.message, this.onRetry});
 
   final String? message;
   final VoidCallback? onRetry;

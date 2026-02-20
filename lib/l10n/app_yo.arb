@@ -1,6 +1,5 @@
 {
   "@@locale": "yo",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Fagilee",
   "commonSave": "Fipamọ",
@@ -44,7 +43,6 @@
   "commonUnblock": "Tu silẹ",
   "commonMute": "Pa ohun",
   "commonUnmute": "Mu ohun ṣiṣẹ",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Nkan kan ṣe aṣiṣe. Jọwọ tun gbiyanju.",
   "errorNetwork": "Aṣiṣe asopọ. Ṣayẹwo intanẹẹti rẹ ki o tun gbiyanju.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Ko le {action}. Jọwọ tun gbiyanju.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} jẹ ẹya Plus. Gbe soke lati ṣii!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Pada sẹyin",
   "a11yCloseButton": "Pa",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Aworan profaili ti {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Avatar olumulo",
   "a11yAvatarOf": "Avatar ti {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Ṣatunkọ profaili",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Ifiranṣẹ lati ọdọ {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 ifiranṣẹ ti ko ka} other{{count} awọn ifiranṣẹ ti ko ka}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Fi ọrọ igbaniwọle han",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "Ibamu! O ba {name} mu",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "Ifiranṣẹ tuntun lati ọdọ {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Profaili ti fẹran",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Profaili ti super like",
   "a11yMessageSent": "Ifiranṣẹ ti ranṣẹ",
   "a11ySettingSaved": "Eto ti fipamọ",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Ẹ kaabo pada",
   "authSignInToContinue": "Wọle lati tẹsiwaju si Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "A fi koodu ranṣẹ si {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Tẹ koodu nọmba 6 sii",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Tẹ ọna asopọ ti a fi ranṣẹ lati jẹrisi imeeli rẹ",
   "authEmailVerified": "Imeeli ti jẹrisi ni aṣeyọri!",
   "authSkipForNow": "Fo fun bayi",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Awọn Eto",
   "settingsAppearance": "Irisi",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Fi mi han",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Ṣakoso ero rẹ",
   "settingsGetPlus": "Gba Crush Plus",
   "settingsRestorePurchases": "Mu awọn rira pada",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Ṣawari",
   "discoveryNoMatchesTitle": "Ko si awọn ibamu sibẹsibẹ",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Iwọ ati {name} fẹran ara yin",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Fi Ifiranṣẹ ranṣẹ",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Fẹran Ọ",
   "discoveryTopPicks": "Awọn Yiyan Oke",
   "discoveryNewArrivals": "Awọn Tuntun",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Awọn Ifọrọwanilẹnuwo",
   "chatMatches": "Awọn Ibamu",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Bẹrẹ ifọrọwanilẹnuwo pẹlu {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Tẹ ifiranṣẹ kan...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Ri kẹhin {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "n tẹ...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "O ṣe ibamu pẹlu {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Profaili",
   "profileEdit": "Ṣatunkọ Profaili",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Awọn ede",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Nipa Mi",
   "profileMyDetails": "Awọn Alaye Mi",
   "profileLifestyle": "Igbesi aye",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Ẹ kaabo si Crush",
   "onboardingTagline": "Wa ibamu pipe rẹ",
@@ -458,8 +479,12 @@
   "onboardingStep": "Igbesẹ {current} ti {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "Kini orukọ rẹ?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Yan o kere ju awọn anfani 3",
   "onboardingAllSet": "O ti ṣetan!",
   "onboardingStartSwiping": "Bẹrẹ swipe",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Ọfẹ",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} awọn boost lọsọọsẹ",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} super likes lojoojumọ",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Ko si ipolowo",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/oṣu",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/ọdun",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Iye ti o dara julọ",
   "subscriptionMostPopular": "Gbajumọ julọ",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Jabo olumulo",
   "safetyBlockUser": "Di olumulo lọwọ",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Di {name} lọwọ?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Wọn ko le ri profaili rẹ tabi fi ifiranṣẹ ranṣẹ si ọ",
@@ -532,42 +565,46 @@
   "safetySpam": "Spam",
   "safetyScam": "Ẹtan",
   "safetyOther": "Miiran",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Ṣẹṣẹ",
   "timeMinutesAgo": "{count, plural, =1{1 iṣẹju sẹyin} other{{count} iṣẹju sẹyin}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 wakati sẹyin} other{{count} wakati sẹyin}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 ọjọ sẹyin} other{{count} ọjọ sẹyin}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 ọsẹ sẹyin} other{{count} ọsẹ sẹyin}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Ko si awọn abajade ti o ri",
   "emptyTryAgain": "Gbiyanju lati ṣatunṣe wiwa tabi awọn asẹ rẹ",
   "emptyNoData": "Ko si data ti o wa",
   "emptyCheckBackLater": "Ṣayẹwo pada nigbamii",
-
   "@@_ADDITIONAL_WORDS": "Awọn ọrọ afikun ti o wọpọ fun wiwa irọrun",
-
   "@@_NAV_WORDS": "Awọn ọrọ lilọ kiri",
   "wordHome": "Ile",
   "wordExplore": "Ṣawari",
@@ -579,7 +616,6 @@
   "wordInbox": "Apoti gbigba",
   "wordFavorites": "Awọn ayanfẹ",
   "wordHistory": "Itan",
-
   "@@_ACTION_WORDS": "Awọn ọrọ iṣe",
   "wordCopy": "Daakọ",
   "wordPaste": "Lẹ",
@@ -698,7 +734,6 @@
   "wordDecide": "Pinnu",
   "wordAgree": "Gba",
   "wordDisagree": "Ko gba",
-
   "@@_STATUS_WORDS": "Awọn ọrọ ipo",
   "wordActive": "Nṣiṣẹ",
   "wordInactive": "Ko ṣiṣẹ",
@@ -765,7 +800,6 @@
   "wordUnseen": "Ko ri",
   "wordOpenStatus": "Ṣiṣi",
   "wordClosed": "Pipade",
-
   "@@_TIME_WORDS": "Awọn ọrọ akoko",
   "wordNow": "Bayi",
   "wordLater": "Nigbamii",
@@ -807,7 +841,6 @@
   "wordYears": "Ọdun",
   "wordSecond": "Iṣẹju-aaya",
   "wordSeconds": "Iṣẹju-aaya",
-
   "@@_ADJECTIVE_WORDS": "Awọn ọrọ apẹrẹ",
   "wordGood": "Dara",
   "wordBad": "Buruku",
@@ -932,7 +965,6 @@
   "wordFabulous": "Iyanu",
   "wordMagnificent": "Nla",
   "wordSpectacular": "Iyanu",
-
   "@@_GREETING_WORDS": "Awọn ọrọ ikini",
   "wordPlease": "Jọwọ",
   "wordThanks": "O ṣeun",
@@ -963,7 +995,6 @@
   "wordHaveFun": "Maa gbadun",
   "wordEnjoy": "Gbadun",
   "wordCheers": "Ayo",
-
   "@@_QUESTION_WORDS": "Awọn ọrọ ibeere",
   "wordWho": "Tani",
   "wordWhat": "Kini",
@@ -979,7 +1010,6 @@
   "wordHowFar": "Jinna to",
   "wordHowOld": "Ọmọ ọdun melo",
   "wordHowOften": "Igba melo",
-
   "@@_PREPOSITION_WORDS": "Awọn ọrọ asopọ",
   "wordWith": "Pẹlu",
   "wordWithout": "Laisi",
@@ -1015,7 +1045,6 @@
   "wordCenter": "Aarin",
   "wordCorner": "Igun",
   "wordEdge": "Eti",
-
   "@@_DATING_WORDS": "Awọn ọrọ ibaṣepọ",
   "wordCrush": "Ẹni ti mo fẹran",
   "wordMatch": "Ibamu",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "Nwa",
   "wordWaiting": "Nduro",
   "wordSearching": "Nwa",
-
   "@@_COMMON_NOUNS": "Awọn orukọ gbogbogbo",
   "wordNotification": "Iwifunni",
   "wordAlert": "Ìkìlọ",
@@ -1462,5 +1490,46 @@
   "wordEverything": "Gbogbo nkan",
   "wordSomething": "Nkan kan",
   "wordNothing": "Ko si nkan",
-  "wordAnything": "Ohunkohun"
+  "wordAnything": "Ohunkohun",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

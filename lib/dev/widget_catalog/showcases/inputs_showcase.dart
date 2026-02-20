@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:crushhour/design_system/widgets/app_text_field.dart';
+import 'package:crushhour/design_system/widgets/glass_text_field.dart';
 import 'package:crushhour/design_system/widgets/otp_input.dart';
 import '../widget_showcase.dart';
 
@@ -29,21 +29,21 @@ class _InputsShowcaseState extends State<InputsShowcase> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const ShowcaseSection(
-          title: 'AppTextField',
+          title: 'GlassTextField',
           subtitle: 'Customizable text input field',
         ),
         WidgetShowcase(
           title: 'Basic Text Field',
           description: 'Standard text input with label and hint',
           codeExample: '''
-AppTextField(
+GlassTextField(
   controller: _controller,
   label: 'Username',
   hintText: 'Enter your username',
 )''',
           child: SizedBox(
             width: 300,
-            child: AppTextField(
+            child: GlassTextField(
               controller: _textController,
               label: 'Username',
               hintText: 'Enter your username',
@@ -54,14 +54,14 @@ AppTextField(
           title: 'Password Field',
           description: 'Obscured text for sensitive input',
           codeExample: '''
-AppTextField(
+GlassTextField(
   controller: _controller,
   label: 'Password',
   obscureText: true,
 )''',
           child: SizedBox(
             width: 300,
-            child: AppTextField(
+            child: GlassTextField(
               controller: _passwordController,
               label: 'Password',
               hintText: 'Enter your password',
@@ -73,7 +73,7 @@ AppTextField(
           title: 'With Helper Text',
           description: 'Additional context below the field',
           codeExample: '''
-AppTextField(
+GlassTextField(
   label: 'Email',
   hintText: 'you@example.com',
   helperText: 'We\\'ll never share your email',
@@ -81,7 +81,7 @@ AppTextField(
 )''',
           child: SizedBox(
             width: 300,
-            child: AppTextField(
+            child: GlassTextField(
               label: 'Email',
               hintText: 'you@example.com',
               helperText: "We'll never share your email",
@@ -93,13 +93,13 @@ AppTextField(
           title: 'With Error',
           description: 'Shows validation error message',
           codeExample: '''
-AppTextField(
+GlassTextField(
   label: 'Email',
   errorText: 'Please enter a valid email address',
 )''',
           child: SizedBox(
             width: 300,
-            child: AppTextField(
+            child: GlassTextField(
               label: 'Email',
               hintText: 'you@example.com',
               errorText: 'Please enter a valid email address',
@@ -110,7 +110,7 @@ AppTextField(
           title: 'Multiline',
           description: 'For longer text input like bios',
           codeExample: '''
-AppTextField(
+GlassTextField(
   label: 'Bio',
   hintText: 'Tell us about yourself...',
   maxLines: 4,
@@ -118,7 +118,7 @@ AppTextField(
 )''',
           child: SizedBox(
             width: 300,
-            child: AppTextField(
+            child: GlassTextField(
               label: 'Bio',
               hintText: 'Tell us about yourself...',
               maxLines: 4,
@@ -163,10 +163,7 @@ OtpInput(
   length: 4,
   onCompleted: (code) {},
 )''',
-          child: OtpInput(
-            length: 4,
-            onCompleted: (code) {},
-          ),
+          child: OtpInput(length: 4, onCompleted: (code) {}),
         ),
       ],
     );

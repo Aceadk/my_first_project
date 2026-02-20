@@ -27,16 +27,17 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
     super.initState();
     final quizId = widget.quizId ?? 'basic_compatibility';
     context.read<CompatibilityQuizCubit>().startQuiz(
-          quizId: quizId,
-          matchId: widget.matchId,
-        );
+      quizId: quizId,
+      matchId: widget.matchId,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     return BlocBuilder<CompatibilityQuizCubit, CompatibilityQuizState>(
       builder: (context, state) {
@@ -60,8 +61,9 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                     children: [
                       Positioned.fill(
                         child: DecoratedBox(
-                          decoration:
-                              BoxDecoration(gradient: DsGradients.meshRadial),
+                          decoration: BoxDecoration(
+                            gradient: DsGradients.meshRadial,
+                          ),
                         ),
                       ),
                     ],
@@ -70,7 +72,18 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
               ),
               // Content
               SafeArea(
-                child: _buildContent(context, textColor, state),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: DsBreakpoints.contentMaxWidth(
+                          constraints.maxWidth,
+                        ),
+                      ),
+                      child: _buildContent(context, textColor, state),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -80,7 +93,10 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
   }
 
   Widget _buildContent(
-      BuildContext context, Color textColor, CompatibilityQuizState state) {
+    BuildContext context,
+    Color textColor,
+    CompatibilityQuizState state,
+  ) {
     if (state.isLoading || state.isSubmitting) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -101,13 +117,19 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
   }
 
   Widget _buildErrorState(
-      BuildContext context, Color textColor, String message) {
+    BuildContext context,
+    Color textColor,
+    String message,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'Something went wrong',
@@ -123,9 +145,9 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
             onPressed: () {
               final quizId = widget.quizId ?? 'basic_compatibility';
               context.read<CompatibilityQuizCubit>().startQuiz(
-                    quizId: quizId,
-                    matchId: widget.matchId,
-                  );
+                quizId: quizId,
+                matchId: widget.matchId,
+              );
             },
             child: const Text('Try Again'),
           ),
@@ -139,8 +161,11 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.quiz_outlined,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.quiz_outlined,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'Quiz not available',
@@ -152,7 +177,10 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
   }
 
   Widget _buildQuizContent(
-      BuildContext context, Color textColor, CompatibilityQuizState state) {
+    BuildContext context,
+    Color textColor,
+    CompatibilityQuizState state,
+  ) {
     final cubit = context.read<CompatibilityQuizCubit>();
     final question = state.currentQuestion!;
     final progress = (state.currentQuestionIndex + 1) / state.totalQuestions;
@@ -238,7 +266,9 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 ...question.options.map((option) {
                   final isSelected = state.answers[question.id] == option.id;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: DsSpacing.md),
+                    padding: const EdgeInsetsDirectional.only(
+                      bottom: DsSpacing.md,
+                    ),
                     child: GlassCard(
                       onTap: () => cubit.selectAnswer(question.id, option.id),
                       showGradientBorder: isSelected,
@@ -261,8 +291,11 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                                   : Colors.transparent,
                             ),
                             child: isSelected
-                                ? const Icon(Icons.check,
-                                    size: 16, color: DsColors.surfaceLight)
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: DsColors.surfaceLight,
+                                  )
                                 : null,
                           ),
                           DsGap.mdH,
@@ -313,16 +346,18 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 child: GlassPrimaryButton(
                   onPressed: isAnswered
                       ? (isLastQuestion
-                          ? () => _completeQuiz(context, state)
-                          : cubit.nextQuestion)
+                            ? () => _completeQuiz(context, state)
+                            : cubit.nextQuestion)
                       : null,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(isLastQuestion ? 'See Results' : 'Next'),
                       DsGap.smH,
-                      Icon(isLastQuestion ? Icons.check : Icons.arrow_forward,
-                          size: 18),
+                      Icon(
+                        isLastQuestion ? Icons.check : Icons.arrow_forward,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -335,7 +370,9 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
   }
 
   Future<void> _completeQuiz(
-      BuildContext context, CompatibilityQuizState state) async {
+    BuildContext context,
+    CompatibilityQuizState state,
+  ) async {
     if (state.quiz == null) return;
 
     final cubit = context.read<CompatibilityQuizCubit>();
@@ -355,7 +392,10 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
   }
 
   Widget _buildResultView(
-      BuildContext context, Color textColor, CompatibilityQuizState state) {
+    BuildContext context,
+    Color textColor,
+    CompatibilityQuizState state,
+  ) {
     final result = state.result!;
 
     return SingleChildScrollView(
@@ -369,10 +409,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
               children: [
                 const Text(
                   'Compatibility Score',
-                  style: TextStyle(
-                    color: DsColors.surfaceLight,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: DsColors.surfaceLight, fontSize: 16),
                 ),
                 DsGap.md,
                 Text(
@@ -406,13 +443,15 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
             DsGap.md,
             ...result.insights.map((insight) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: DsSpacing.md),
+                padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.md),
                 child: GlassCard(
                   padding: const EdgeInsets.all(DsSpacing.lg),
                   child: Row(
                     children: [
-                      Text(insight.emoji ?? '💡',
-                          style: const TextStyle(fontSize: 32)),
+                      Text(
+                        insight.emoji ?? '💡',
+                        style: const TextStyle(fontSize: 32),
+                      ),
                       DsGap.mdH,
                       Expanded(
                         child: Column(
@@ -470,10 +509,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              entry.key,
-                              style: TextStyle(color: textColor),
-                            ),
+                            Text(entry.key, style: TextStyle(color: textColor)),
                             Text(
                               '${entry.value}%',
                               style: const TextStyle(
@@ -489,8 +525,9 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                           child: LinearProgressIndicator(
                             value: entry.value / 100,
                             backgroundColor: textColor.withValues(alpha: 0.1),
-                            valueColor:
-                                const AlwaysStoppedAnimation(DsColors.primary),
+                            valueColor: const AlwaysStoppedAnimation(
+                              DsColors.primary,
+                            ),
                             minHeight: 4,
                           ),
                         ),

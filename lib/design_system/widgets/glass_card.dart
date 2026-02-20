@@ -81,7 +81,8 @@ class GlassCard extends StatelessWidget {
     final shadowColor = effects?.glowColor ?? DsColors.primary;
     final shadowOpacity = effects?.shadowOpacity ?? 0.16;
 
-    final bgColor = backgroundColor ??
+    final bgColor =
+        backgroundColor ??
         DsGlassColors.surfaceFor(
           context,
           strength: DsGlassSurfaceStrength.medium,
@@ -159,10 +160,7 @@ class GlassCard extends StatelessWidget {
       );
     }
 
-    return Container(
-      margin: margin,
-      child: cardContent,
-    );
+    return Container(margin: margin, child: cardContent);
   }
 }
 

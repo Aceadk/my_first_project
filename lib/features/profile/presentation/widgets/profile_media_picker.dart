@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,8 +56,10 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     super.initState();
     _photos = List.of(widget.initialPhotos);
     _videos = List.of(widget.initialVideos);
-    _primaryPhotoIndex = widget.initialPrimaryIndex
-        .clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
+    _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(
+      0,
+      _photos.isEmpty ? 0 : _photos.length - 1,
+    );
   }
 
   @override
@@ -68,8 +71,10 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       setState(() {
         _photos = List.of(widget.initialPhotos);
         _videos = List.of(widget.initialVideos);
-        _primaryPhotoIndex = widget.initialPrimaryIndex
-            .clamp(0, _photos.isEmpty ? 0 : _photos.length - 1);
+        _primaryPhotoIndex = widget.initialPrimaryIndex.clamp(
+          0,
+          _photos.isEmpty ? 0 : _photos.length - 1,
+        );
       });
     }
   }
@@ -96,9 +101,44 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     if (widget.onError != null) {
       widget.onError!(message);
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  /// Validate a picked image file for size and dimensions.
+  /// Returns null if valid, or an error message string if invalid.
+  Future<String?> _validateImage(File file) async {
+    // Check file size
+    final sizeBytes = await file.length();
+    if (sizeBytes > ProfileMediaLimits.maxPhotoSizeBytes) {
+      final sizeMB = (sizeBytes / (1024 * 1024)).toStringAsFixed(1);
+      return 'Photo too large (${sizeMB}MB). Maximum is 10MB.';
+    }
+
+    // Check dimensions
+    try {
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final width = frame.image.width;
+      final height = frame.image.height;
+      frame.image.dispose();
+
+      if (width < ProfileMediaLimits.minPhotoDimension ||
+          height < ProfileMediaLimits.minPhotoDimension) {
+        return 'Photo too small (${width}x$height). Minimum is ${ProfileMediaLimits.minPhotoDimension}x${ProfileMediaLimits.minPhotoDimension}.';
+      }
+    } catch (e) {
+      AppLogger.warning(
+        'Image validation: Could not read dimensions',
+        error: e,
+      );
+      // Allow upload if we can't read dimensions — optimizer will handle resize
+    }
+
+    return null;
   }
 
   Future<void> _addPhotos() async {
@@ -114,18 +154,41 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       final files = await _picker.pickMultiImage(
         imageQuality: 72,
         maxWidth: 1440,
+        requestFullMetadata: false,
       );
       if (files.isEmpty) return;
 
       final selected = files.take(remaining).toList();
-      setState(() {
-        _photos.addAll(selected.map((x) => x.path));
-      });
-      _notify();
+      final validPaths = <String>[];
+      final errors = <String>[];
 
-      if (files.length > selected.length) {
+      for (final xFile in selected) {
+        final file = File(xFile.path);
+        final error = await _validateImage(file);
+        if (error != null) {
+          errors.add(error);
+        } else {
+          validPaths.add(xFile.path);
+        }
+      }
+
+      if (validPaths.isNotEmpty) {
+        setState(() {
+          _photos.addAll(validPaths);
+        });
+        _notify();
+      }
+
+      if (errors.isNotEmpty) {
         _showError(
-            'Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.');
+          errors.length == 1
+              ? errors.first
+              : '${errors.length} photo${errors.length == 1 ? '' : 's'} rejected: ${errors.first}',
+        );
+      } else if (files.length > selected.length) {
+        _showError(
+          'Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.',
+        );
       }
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
@@ -231,13 +294,13 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
         ),
         if (_photos.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsetsDirectional.only(top: 4),
             child: Text(
               'Tap a photo to set as display picture',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: DsColors.ink300,
-                    fontStyle: FontStyle.italic,
-                  ),
+                color: DsColors.ink300,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
       ],
@@ -288,15 +351,15 @@ class _MediaTile extends StatelessWidget {
                 child: isVideo
                     ? const Center(child: Icon(Icons.videocam, size: 32))
                     : _isRemote
-                        ? CachedNetworkImage(imageUrl: path, fit: BoxFit.cover)
-                        : Image.file(File(path), fit: BoxFit.cover),
+                    ? CachedNetworkImage(imageUrl: path, fit: BoxFit.cover)
+                    : Image.file(File(path), fit: BoxFit.cover),
               ),
             ),
           ),
           // Primary photo badge
           if (isPrimary && !isVideo)
-            Positioned(
-              left: 4,
+            PositionedDirectional(
+              start: 4,
               bottom: 4,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -321,15 +384,17 @@ class _MediaTile extends StatelessWidget {
                 ),
               ),
             ),
-          Positioned(
-            right: 4,
+          PositionedDirectional(
+            end: 4,
             top: 4,
             child: Row(
               children: [
                 if (isVideo)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: DsColors.ink900.withValues(alpha: 0.54),
                       borderRadius: BorderRadius.circular(8),
@@ -349,8 +414,9 @@ class _MediaTile extends StatelessWidget {
                     constraints: const BoxConstraints(),
                     color: DsColors.ink900.withValues(alpha: 0.87),
                     style: IconButton.styleFrom(
-                      backgroundColor:
-                          DsColors.surfaceLight.withValues(alpha: 0.7),
+                      backgroundColor: DsColors.surfaceLight.withValues(
+                        alpha: 0.7,
+                      ),
                       shape: const CircleBorder(),
                     ),
                     onPressed: onRemove,
@@ -385,14 +451,12 @@ class _AddTile extends StatelessWidget {
         height: 128,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: DsColors.borderLight,
-            width: 2,
-          ),
+          border: Border.all(color: DsColors.borderLight, width: 2),
         ),
-        child: Icon(icon,
-            color:
-                enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight),
+        child: Icon(
+          icon,
+          color: enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight,
+        ),
       ),
     );
   }

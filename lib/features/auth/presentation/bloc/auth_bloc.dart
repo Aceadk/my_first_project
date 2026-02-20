@@ -54,11 +54,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Could not connect to authentication. Please try again.',
     );
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ),
+      );
       return;
     }
     _sub = result.data;
@@ -84,17 +86,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onPhoneSubmitted(
-      AuthPhoneSubmitted event, Emitter<AuthState> emit) async {
+    AuthPhoneSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
     await _sendOtp(phone: event.phoneNumber, emit: emit);
   }
 
   Future<void> _onOtpSubmitted(
-      AuthOtpSubmitted event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      isLoading: true,
-      errorMessage: null,
-    ));
+    AuthOtpSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.verifyOtp(
         phoneNumber: event.phoneNumber,
@@ -106,79 +114,100 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final user = result.data;
     if (user != null) {
       await AnalyticsService.instance.logLogin(method: 'phone');
-      await AnalyticsService.instance
-          .logPhoneVerificationCompleted(success: true);
+      await AnalyticsService.instance.logPhoneVerificationCompleted(
+        success: true,
+      );
     } else {
-      await AnalyticsService.instance
-          .logPhoneVerificationCompleted(success: false);
+      await AnalyticsService.instance.logPhoneVerificationCompleted(
+        success: false,
+      );
     }
-    emit(state.copyWith(
-      status:
-          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
-      user: user ?? state.user,
-      isLoading: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        status: user == null
+            ? AuthStatus.unauthenticated
+            : AuthStatus.authenticated,
+        user: user ?? state.user,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onOtpResendRequested(
-      AuthOtpResendRequested event, Emitter<AuthState> emit) async {
+    AuthOtpResendRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     final phone = event.phoneNumber.isNotEmpty
         ? event.phoneNumber
         : (state.phoneInProgress ?? '');
     if (phone.isEmpty) {
-      emit(state.copyWith(
-        errorMessage: 'Enter your phone number to resend the code.',
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: 'Enter your phone number to resend the code.',
+        ),
+      );
       return;
     }
     await _sendOtp(phone: phone, emit: emit);
   }
 
   Future<void> _onEmailLinkRequested(
-      AuthEmailLinkRequested event, Emitter<AuthState> emit) async {
+    AuthEmailLinkRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     final email = event.email.trim();
     if (email.isEmpty) {
       emit(state.copyWith(errorMessage: 'Enter your email address.'));
       return;
     }
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      emailInProgress: email,
-      isLoading: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        emailInProgress: email,
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.sendEmailSignInLink(email),
       logLabel: 'AuthRepository.sendEmailSignInLink',
       fallbackError: 'Could not send sign-in link. Please try again.',
     );
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      status: AuthStatus.emailLinkSent,
-      emailInProgress: email,
-      isLoading: false,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.emailLinkSent,
+        emailInProgress: email,
+        isLoading: false,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> _onEmailLinkSubmitted(
-      AuthEmailLinkSubmitted event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      emailInProgress: event.email.trim().isEmpty
-          ? state.emailInProgress
-          : event.email.trim(),
-      isLoading: true,
-      errorMessage: null,
-    ));
+    AuthEmailLinkSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        emailInProgress: event.email.trim().isEmpty
+            ? state.emailInProgress
+            : event.email.trim(),
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.signInWithEmailLink(
         email: event.email.trim(),
@@ -191,23 +220,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (user != null) {
       await AnalyticsService.instance.logLogin(method: 'email_link');
     }
-    emit(state.copyWith(
-      status:
-          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
-      user: user ?? state.user,
-      isLoading: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        status: user == null
+            ? AuthStatus.unauthenticated
+            : AuthStatus.authenticated,
+        user: user ?? state.user,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onEmailPasswordSubmitted(
-      AuthEmailPasswordSubmitted event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      emailInProgress: event.email.trim(),
-      isLoading: true,
-      errorMessage: null,
-    ));
+    AuthEmailPasswordSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        emailInProgress: event.email.trim(),
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.signInWithEmailPassword(
         email: event.email.trim(),
@@ -220,28 +256,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (user != null) {
       await AnalyticsService.instance.logLogin(method: 'email_password');
     }
-    emit(state.copyWith(
-      status:
-          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
-      user: user ?? state.user,
-      isLoading: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        status: user == null
+            ? AuthStatus.unauthenticated
+            : AuthStatus.authenticated,
+        user: user ?? state.user,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onEmailOtpRequested(
-      AuthEmailOtpRequested event, Emitter<AuthState> emit) async {
+    AuthEmailOtpRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     final identifier = event.identifier.trim();
     if (identifier.isEmpty) {
       emit(state.copyWith(errorMessage: 'Enter your username or email.'));
       return;
     }
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      emailOtpIdentifier: identifier,
-      isLoading: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        emailOtpIdentifier: identifier,
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.requestEmailOtp(
         identifier: identifier,
@@ -251,29 +294,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Could not send code. Please try again.',
     );
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      status: AuthStatus.emailOtpSent,
-      emailOtpIdentifier: identifier,
-      isLoading: false,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.emailOtpSent,
+        emailOtpIdentifier: identifier,
+        isLoading: false,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> _onEmailOtpSubmitted(
-      AuthEmailOtpSubmitted event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      emailOtpIdentifier: event.identifier.trim(),
-      isLoading: true,
-      errorMessage: null,
-    ));
+    AuthEmailOtpSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        emailOtpIdentifier: event.identifier.trim(),
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.verifyEmailOtp(
         identifier: event.identifier.trim(),
@@ -287,40 +338,54 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (user != null) {
       await AnalyticsService.instance.logLogin(method: 'email_otp');
     }
-    emit(state.copyWith(
-      status:
-          user == null ? AuthStatus.unauthenticated : AuthStatus.authenticated,
-      user: user ?? state.user,
-      isLoading: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        status: user == null
+            ? AuthStatus.unauthenticated
+            : AuthStatus.authenticated,
+        user: user ?? state.user,
+        isLoading: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onEmailOtpResendRequested(
-      AuthEmailOtpResendRequested event, Emitter<AuthState> emit) async {
-    final identifier =
-        event.identifier.trim().isNotEmpty ? event.identifier.trim() : '';
+    AuthEmailOtpResendRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final identifier = event.identifier.trim().isNotEmpty
+        ? event.identifier.trim()
+        : '';
     if (identifier.isEmpty) {
-      emit(state.copyWith(
-        errorMessage: 'Enter your username or email to resend the code.',
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: 'Enter your username or email to resend the code.',
+        ),
+      );
       return;
     }
     await _onEmailOtpRequested(AuthEmailOtpRequested(identifier), emit);
   }
 
   void _onEmailOtpCancelled(
-      AuthEmailOtpCancelled event, Emitter<AuthState> emit) {
-    emit(state.copyWith(
-      status: AuthStatus.unauthenticated,
-      emailOtpIdentifier: null,
-      isLoading: false,
-      errorMessage: null,
-    ));
+    AuthEmailOtpCancelled event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        status: AuthStatus.unauthenticated,
+        emailOtpIdentifier: null,
+        isLoading: false,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> _onSignedOut(
-      AuthSignedOut event, Emitter<AuthState> emit) async {
+    AuthSignedOut event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     // CRITICAL: Clear all user-specific data BEFORE signing out
@@ -333,23 +398,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       fallbackError: 'Could not sign out. Try again.',
     );
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(state.copyWith(isLoading: false, errorMessage: result.errorMessage));
       return;
     }
     emit(AuthState.unknown());
   }
 
   Future<void> _onUserRefreshRequested(
-      AuthUserRefreshRequested event, Emitter<AuthState> emit) async {
+    AuthUserRefreshRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     final user = await authRepository.refreshCurrentUser();
     if (user != null) {
-      emit(state.copyWith(
-        user: user,
-        status: AuthStatus.authenticated,
-      ));
+      emit(state.copyWith(user: user, status: AuthStatus.authenticated));
     }
   }
 
@@ -364,40 +425,48 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required Emitter<AuthState> emit,
   }) async {
     await AnalyticsService.instance.logPhoneVerificationStarted();
-    emit(state.copyWith(
-      status: AuthStatus.authenticating,
-      phoneInProgress: phone,
-      isLoading: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticating,
+        phoneInProgress: phone,
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await Result.guard(
       () => authRepository.sendOtp(phone),
       logLabel: 'AuthRepository.sendOtp',
       fallbackError: 'Could not send code. Please try again.',
     );
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ),
+      );
       return;
     }
     if (authRepository.isVerificationBypassEnabled) {
-      emit(state.copyWith(
-        status: AuthStatus.unauthenticated,
+      emit(
+        state.copyWith(
+          status: AuthStatus.unauthenticated,
+          phoneInProgress: phone,
+          isLoading: false,
+          errorMessage: null,
+        ),
+      );
+      return;
+    }
+    emit(
+      state.copyWith(
+        status: AuthStatus.otpSent,
         phoneInProgress: phone,
         isLoading: false,
         errorMessage: null,
-      ));
-      return;
-    }
-    emit(state.copyWith(
-      status: AuthStatus.otpSent,
-      phoneInProgress: phone,
-      isLoading: false,
-      errorMessage: null,
-    ));
+      ),
+    );
   }
 }
 

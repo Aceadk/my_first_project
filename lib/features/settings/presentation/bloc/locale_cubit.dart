@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer;
+import 'dart:ui' as ui;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
@@ -11,6 +12,7 @@ class LocaleState {
     required this.languageCode,
     required this.region,
     required this.isDetecting,
+    this.useDeviceLocale = false,
     this.errorMessage,
     this.latitude,
     this.longitude,
@@ -19,6 +21,7 @@ class LocaleState {
   final String languageCode;
   final String region;
   final bool isDetecting;
+  final bool useDeviceLocale;
   final String? errorMessage;
   final double? latitude;
   final double? longitude;
@@ -27,6 +30,7 @@ class LocaleState {
     String? languageCode,
     String? region,
     bool? isDetecting,
+    bool? useDeviceLocale,
     String? errorMessage,
     double? latitude,
     double? longitude,
@@ -35,6 +39,7 @@ class LocaleState {
       languageCode: languageCode ?? this.languageCode,
       region: region ?? this.region,
       isDetecting: isDetecting ?? this.isDetecting,
+      useDeviceLocale: useDeviceLocale ?? this.useDeviceLocale,
       errorMessage: errorMessage,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -44,8 +49,8 @@ class LocaleState {
 
 class LocaleCubit extends Cubit<LocaleState> {
   LocaleCubit({required SharedPreferences preferences})
-      : _preferences = preferences,
-        super(_readInitial(preferences));
+    : _preferences = preferences,
+      super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
 
@@ -53,19 +58,73 @@ class LocaleCubit extends Cubit<LocaleState> {
   static const _regionKey = 'locale_region';
   static const _latitudeKey = 'locale_latitude';
   static const _longitudeKey = 'locale_longitude';
+  static const _useDeviceLocaleKey = 'locale_use_device';
+
+  /// Supported language codes for matching device locale.
+  static const _supportedCodes = {
+    'ar',
+    'bn',
+    'de',
+    'en',
+    'es',
+    'fr',
+    'hi',
+    'id',
+    'ja',
+    'ko',
+    'ne',
+    'pt',
+    'ru',
+    'ta',
+    'te',
+    'tr',
+    'ur',
+    'vi',
+    'yo',
+    'yue',
+    'zh',
+  };
 
   static LocaleState _readInitial(SharedPreferences prefs) {
+    final useDevice = prefs.getBool(_useDeviceLocaleKey) ?? false;
+    String languageCode;
+    if (useDevice) {
+      final deviceCode = ui.PlatformDispatcher.instance.locale.languageCode;
+      languageCode = _supportedCodes.contains(deviceCode) ? deviceCode : 'en';
+    } else {
+      languageCode = prefs.getString(_languageKey) ?? 'en';
+    }
     return LocaleState(
-      languageCode: prefs.getString(_languageKey) ?? 'en',
+      languageCode: languageCode,
       region: prefs.getString(_regionKey) ?? 'United States',
       isDetecting: false,
+      useDeviceLocale: useDevice,
       latitude: prefs.getDouble(_latitudeKey),
       longitude: prefs.getDouble(_longitudeKey),
     );
   }
 
+  /// Follow the device's system language automatically.
+  Future<void> followDeviceLanguage() async {
+    final deviceCode = ui.PlatformDispatcher.instance.locale.languageCode;
+    final code = _supportedCodes.contains(deviceCode) ? deviceCode : 'en';
+    await _persist(
+      state.copyWith(
+        languageCode: code,
+        useDeviceLocale: true,
+        errorMessage: null,
+      ),
+    );
+  }
+
   Future<void> setLanguage(String code) async {
-    await _persist(state.copyWith(languageCode: code, errorMessage: null));
+    await _persist(
+      state.copyWith(
+        languageCode: code,
+        useDeviceLocale: false,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> setRegion(String region) async {
@@ -81,10 +140,12 @@ class LocaleCubit extends Cubit<LocaleState> {
       final enabled = await Geolocator.isLocationServiceEnabled();
       developer.log('LocaleCubit: Location services enabled: $enabled');
       if (!enabled) {
-        emit(state.copyWith(
-          isDetecting: false,
-          errorMessage: 'Turn on location services in your device settings.',
-        ));
+        emit(
+          state.copyWith(
+            isDetecting: false,
+            errorMessage: 'Turn on location services in your device settings.',
+          ),
+        );
         return;
       }
 
@@ -99,40 +160,46 @@ class LocaleCubit extends Cubit<LocaleState> {
       }
 
       if (permission == LocationPermission.denied) {
-        emit(state.copyWith(
-          isDetecting: false,
-          errorMessage:
-              'Location permission denied. Please allow location access in Settings.',
-        ));
+        emit(
+          state.copyWith(
+            isDetecting: false,
+            errorMessage:
+                'Location permission denied. Please allow location access in Settings.',
+          ),
+        );
         return;
       }
 
       if (permission == LocationPermission.deniedForever) {
-        emit(state.copyWith(
-          isDetecting: false,
-          errorMessage:
-              'Location permission permanently denied. Please enable it in Settings > Privacy > Location Services.',
-        ));
+        emit(
+          state.copyWith(
+            isDetecting: false,
+            errorMessage:
+                'Location permission permanently denied. Please enable it in Settings > Privacy > Location Services.',
+          ),
+        );
         return;
       }
 
       developer.log('LocaleCubit: Getting current position...');
 
       // Get current position with timeout
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 15),
-        ),
-      ).timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {
-          throw TimeoutException('Location request timed out');
-        },
-      );
+      final position =
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+              timeLimit: Duration(seconds: 15),
+            ),
+          ).timeout(
+            const Duration(seconds: 20),
+            onTimeout: () {
+              throw TimeoutException('Location request timed out');
+            },
+          );
 
       developer.log(
-          'LocaleCubit: Got position: ${position.latitude}, ${position.longitude}');
+        'LocaleCubit: Got position: ${position.latitude}, ${position.longitude}',
+      );
 
       // Try to get placemark (reverse geocoding)
       String resolvedRegion;
@@ -145,7 +212,8 @@ class LocaleCubit extends Cubit<LocaleState> {
 
         final place = placemarks.isNotEmpty ? placemarks.first : null;
         developer.log(
-            'LocaleCubit: Placemark: ${place?.locality}, ${place?.administrativeArea}, ${place?.country}');
+          'LocaleCubit: Placemark: ${place?.locality}, ${place?.administrativeArea}, ${place?.country}',
+        );
 
         final components = <String>[
           if (place != null && place.locality?.isNotEmpty == true)
@@ -178,25 +246,31 @@ class LocaleCubit extends Cubit<LocaleState> {
       );
     } on TimeoutException catch (e) {
       developer.log('LocaleCubit: Timeout error: $e');
-      emit(state.copyWith(
-        isDetecting: false,
-        errorMessage:
-            'Location request timed out. Make sure you have GPS signal and try again.',
-      ));
+      emit(
+        state.copyWith(
+          isDetecting: false,
+          errorMessage:
+              'Location request timed out. Make sure you have GPS signal and try again.',
+        ),
+      );
     } on LocationServiceDisabledException catch (e) {
       developer.log('LocaleCubit: Location service disabled: $e');
-      emit(state.copyWith(
-        isDetecting: false,
-        errorMessage:
-            'Location services are disabled. Please enable them in Settings.',
-      ));
+      emit(
+        state.copyWith(
+          isDetecting: false,
+          errorMessage:
+              'Location services are disabled. Please enable them in Settings.',
+        ),
+      );
     } on PermissionDeniedException catch (e) {
       developer.log('LocaleCubit: Permission denied: $e');
-      emit(state.copyWith(
-        isDetecting: false,
-        errorMessage:
-            'Location permission was denied. Please allow location access.',
-      ));
+      emit(
+        state.copyWith(
+          isDetecting: false,
+          errorMessage:
+              'Location permission was denied. Please allow location access.',
+        ),
+      );
     } catch (e, stackTrace) {
       developer.log('LocaleCubit: Unexpected error: $e\n$stackTrace');
       String errorMessage = 'Could not detect location.';
@@ -207,10 +281,7 @@ class LocaleCubit extends Cubit<LocaleState> {
         errorMessage =
             'Request timed out. Try moving to an area with better GPS signal.';
       }
-      emit(state.copyWith(
-        isDetecting: false,
-        errorMessage: errorMessage,
-      ));
+      emit(state.copyWith(isDetecting: false, errorMessage: errorMessage));
     }
   }
 
@@ -218,6 +289,7 @@ class LocaleCubit extends Cubit<LocaleState> {
     emit(next);
     await _preferences.setString(_languageKey, next.languageCode);
     await _preferences.setString(_regionKey, next.region);
+    await _preferences.setBool(_useDeviceLocaleKey, next.useDeviceLocale);
     if (next.latitude != null) {
       await _preferences.setDouble(_latitudeKey, next.latitude!);
     }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/features/feature_flags/data/models/feature_flags.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
+import 'package:crushhour/features/feature_flags/domain/models/feature_flags.dart';
 import '../../domain/repositories/feature_flag_repository.dart';
 
 /// Cubit for managing feature flag state reactively.
@@ -8,10 +9,9 @@ import '../../domain/repositories/feature_flag_repository.dart';
 /// Listens to feature flag updates from the repository and provides
 /// easy access to current flags throughout the app.
 class FeatureFlagCubit extends Cubit<FeatureFlagState> {
-  FeatureFlagCubit({
-    required FeatureFlagRepository repository,
-  })  : _repository = repository,
-        super(const FeatureFlagState.initial()) {
+  FeatureFlagCubit({required FeatureFlagRepository repository})
+    : _repository = repository,
+      super(const FeatureFlagState.initial()) {
     _subscription = _repository.flagsStream.listen(_onFlagsUpdated);
   }
 
@@ -23,17 +23,21 @@ class FeatureFlagCubit extends Cubit<FeatureFlagState> {
     emit(state.copyWith(status: FeatureFlagStatus.loading));
     try {
       await _repository.initialize();
-      emit(state.copyWith(
-        status: FeatureFlagStatus.loaded,
-        flags: _repository.flags,
-        lastFetchTime: _repository.lastFetchTime,
-      ));
+      emit(
+        state.copyWith(
+          status: FeatureFlagStatus.loaded,
+          flags: _repository.flags,
+          lastFetchTime: _repository.lastFetchTime,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: FeatureFlagStatus.error,
-        errorMessage: e.toString(),
-        flags: FeatureFlags.defaults,
-      ));
+      emit(
+        state.copyWith(
+          status: FeatureFlagStatus.error,
+          errorMessage: ErrorMessages.generic,
+          flags: FeatureFlags.defaults,
+        ),
+      );
     }
   }
 
@@ -42,17 +46,21 @@ class FeatureFlagCubit extends Cubit<FeatureFlagState> {
     emit(state.copyWith(status: FeatureFlagStatus.refreshing));
     try {
       final success = await _repository.fetchAndActivate();
-      emit(state.copyWith(
-        status: success ? FeatureFlagStatus.loaded : FeatureFlagStatus.error,
-        flags: _repository.flags,
-        lastFetchTime: _repository.lastFetchTime,
-        errorMessage: success ? null : 'Failed to refresh flags',
-      ));
+      emit(
+        state.copyWith(
+          status: success ? FeatureFlagStatus.loaded : FeatureFlagStatus.error,
+          flags: _repository.flags,
+          lastFetchTime: _repository.lastFetchTime,
+          errorMessage: success ? null : ErrorMessages.generic,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: FeatureFlagStatus.error,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: FeatureFlagStatus.error,
+          errorMessage: ErrorMessages.generic,
+        ),
+      );
     }
   }
 
@@ -61,24 +69,25 @@ class FeatureFlagCubit extends Cubit<FeatureFlagState> {
     emit(state.copyWith(status: FeatureFlagStatus.refreshing));
     try {
       await _repository.forceRefresh();
-      emit(state.copyWith(
-        status: FeatureFlagStatus.loaded,
-        flags: _repository.flags,
-        lastFetchTime: _repository.lastFetchTime,
-      ));
+      emit(
+        state.copyWith(
+          status: FeatureFlagStatus.loaded,
+          flags: _repository.flags,
+          lastFetchTime: _repository.lastFetchTime,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: FeatureFlagStatus.error,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: FeatureFlagStatus.error,
+          errorMessage: ErrorMessages.generic,
+        ),
+      );
     }
   }
 
   void _onFlagsUpdated(FeatureFlags flags) {
-    emit(state.copyWith(
-      flags: flags,
-      lastFetchTime: DateTime.now(),
-    ));
+    emit(state.copyWith(flags: flags, lastFetchTime: DateTime.now()));
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -116,13 +125,7 @@ class FeatureFlagCubit extends Cubit<FeatureFlagState> {
 }
 
 /// Status of feature flag loading
-enum FeatureFlagStatus {
-  initial,
-  loading,
-  loaded,
-  refreshing,
-  error,
-}
+enum FeatureFlagStatus { initial, loading, loaded, refreshing, error }
 
 /// State for the FeatureFlagCubit
 class FeatureFlagState {
@@ -134,10 +137,10 @@ class FeatureFlagState {
   });
 
   const FeatureFlagState.initial()
-      : status = FeatureFlagStatus.initial,
-        flags = const FeatureFlags(),
-        lastFetchTime = null,
-        errorMessage = null;
+    : status = FeatureFlagStatus.initial,
+      flags = const FeatureFlags(),
+      lastFetchTime = null,
+      errorMessage = null;
 
   final FeatureFlagStatus status;
   final FeatureFlags flags;

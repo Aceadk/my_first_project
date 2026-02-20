@@ -4,7 +4,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -32,14 +35,13 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
+    final userId = context.select<AuthBloc, String?>(
+      (bloc) => bloc.state.user?.id,
+    );
 
     if (userId == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Sign in to view your chats.'),
-        ),
+        body: Center(child: Text('Sign in to view your chats.')),
       );
     }
 
@@ -65,10 +67,18 @@ class ChatListScreen extends StatelessWidget {
   }
 }
 
-class _ChatListView extends StatelessWidget {
+class _ChatListView extends StatefulWidget {
   final String currentUserId;
 
   const _ChatListView({required this.currentUserId});
+
+  @override
+  State<_ChatListView> createState() => _ChatListViewState();
+}
+
+class _ChatListViewState extends State<_ChatListView> {
+  /// Currently selected match for iPad split-view (null = no selection).
+  ChatScreenArgs? _selectedChat;
 
   Widget _buildEmptyState(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -130,9 +140,9 @@ class _ChatListView extends StatelessWidget {
               child: Text(
                 'No conversations yet',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: DsColors.surfaceLight,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: DsColors.surfaceLight,
+                ),
               ),
             ),
             DsGap.sm,
@@ -140,10 +150,10 @@ class _ChatListView extends StatelessWidget {
               'When you match with someone and start chatting,\nyour conversations will appear here.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
             ),
           ],
         ),
@@ -158,10 +168,7 @@ class _ChatListView extends StatelessWidget {
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: ClipRRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: DsBlur.heavy,
-            sigmaY: DsBlur.heavy,
-          ),
+          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -193,17 +200,17 @@ class _ChatListView extends StatelessWidget {
                             DsGradients.chats.createShader(bounds),
                         child: Text(
                           'Chats',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: DsColors.surfaceLight,
-                                  ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: DsColors.surfaceLight,
+                              ),
                         ),
                       ),
                     ),
                     // Settings button on the right
-                    Positioned(
-                      right: DsSpacing.sm,
+                    PositionedDirectional(
+                      end: DsSpacing.sm,
                       child: GlassIconButton(
                         icon: Icons.settings_outlined,
                         onPressed: () => context.push(CrushRoutes.settings),
@@ -220,74 +227,126 @@ class _ChatListView extends StatelessWidget {
     );
   }
 
+  ChatScreenArgs _argsForMatch(CrushMatch match) {
+    final otherName =
+        match.otherUserName ??
+        (match.otherUserId.trim().isNotEmpty ? match.otherUserId : null) ??
+        'Unknown';
+    return ChatScreenArgs(
+      matchId: match.id,
+      currentUserId: widget.currentUserId,
+      otherUserId: match.otherUserId,
+      otherName: otherName,
+      otherPhotoUrl: match.otherUserPhotoUrl,
+    );
+  }
+
+  void _onChatTileTap(BuildContext context, CrushMatch match) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final args = _argsForMatch(match);
+
+    if (DsBreakpoints.isMobile(screenWidth)) {
+      // Phone: push navigation
+      context.push('/chat/${match.id}', extra: args);
+    } else {
+      // iPad/tablet: update detail panel
+      setState(() => _selectedChat = args);
+    }
+  }
+
+  Widget _buildChatList(BuildContext context, MatchesState state) {
+    final requestState = context.watch<MessageRequestsCubit>().state;
+    final requestsCount = requestState.requests.length;
+    final showSkeleton =
+        (state.isLoading || state.errorMessage != null) &&
+        state.matches.isEmpty;
+
+    return AsyncStateScaffold(
+      appBar: _buildGlassAppBar(context),
+      isLoading: showSkeleton,
+      errorMessage: null,
+      showErrorSnackBar: false,
+      empty:
+          state.matches.isEmpty && requestsCount == 0 && !requestState.isLoading
+          ? _buildEmptyState(context)
+          : null,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          context.read<MatchesBloc>().add(const MatchesRefreshRequested());
+          context.read<MessageRequestsCubit>().refresh();
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+        child: ListView.separated(
+          padding: DsEdgeInsets.allLg,
+          itemCount: state.matches.length + 1,
+          separatorBuilder: (_, _) => DsGap.sm,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return _MessageRequestsTile(
+                count: requestsCount,
+                isLoading: requestState.isLoading,
+                onTap: () => context.push(CrushRoutes.messageRequests),
+              );
+            }
+
+            final match = state.matches[index - 1];
+            return _ChatTile(
+              match: match,
+              currentUserId: widget.currentUserId,
+              onTap: () => _onChatTileTap(context, match),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MatchesBloc, MatchesState>(
       builder: (context, state) {
-        final requestState = context.watch<MessageRequestsCubit>().state;
-        final requestsCount = requestState.requests.length;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Phone: single column (existing behavior)
+            if (DsBreakpoints.isMobile(constraints.maxWidth)) {
+              return _buildChatList(context, state);
+            }
 
-        // Show skeleton when loading OR when there's an error (graceful degradation)
-        // This provides better UX than showing error messages
-        final showSkeleton = (state.isLoading || state.errorMessage != null) &&
-            state.matches.isEmpty;
-
-        return AsyncStateScaffold(
-          appBar: _buildGlassAppBar(context),
-          isLoading: showSkeleton,
-          errorMessage: null, // Hide error messages, show skeleton instead
-          showErrorSnackBar: false, // Don't show error snackbar for better UX
-          empty: state.matches.isEmpty &&
-                  requestsCount == 0 &&
-                  !requestState.isLoading
-              ? _buildEmptyState(context)
-              : null,
-          body: RefreshIndicator(
-            onRefresh: () async {
-              context.read<MatchesBloc>().add(const MatchesRefreshRequested());
-              context.read<MessageRequestsCubit>().refresh();
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            child: ListView.separated(
-              padding: DsEdgeInsets.allLg,
-              itemCount: state.matches.length + 1,
-              separatorBuilder: (_, _) => DsGap.sm,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _MessageRequestsTile(
-                    count: requestsCount,
-                    isLoading: requestState.isLoading,
-                    onTap: () => context.push(CrushRoutes.messageRequests),
-                  );
-                }
-
-                final match = state.matches[index - 1];
-                return _ChatTile(
-                  match: match,
-                  currentUserId: currentUserId,
-                  onTap: () {
-                    final otherName = match.otherUserName ??
-                        (match.otherUserId.trim().isNotEmpty
-                            ? match.otherUserId
-                            : null) ??
-                        'Unknown';
-
-                    // Use go_router for navigation - ChatScreen will create its own ChatBloc
-                    context.push(
-                      '/chat/${match.id}',
-                      extra: ChatScreenArgs(
-                        matchId: match.id,
-                        currentUserId: currentUserId,
-                        otherUserId: match.otherUserId,
-                        otherName: otherName,
-                        otherPhotoUrl: match.otherUserPhotoUrl,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+            // iPad/tablet: split-view — conversation list (320px) + chat detail
+            return Row(
+              children: [
+                SizedBox(width: 320, child: _buildChatList(context, state)),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: _selectedChat != null
+                      ? ChatScreen(
+                          key: ValueKey(_selectedChat!.matchId),
+                          args: _selectedChat!,
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 64,
+                                color: DsColors.textMutedLight.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              DsGap.lg,
+                              Text(
+                                'Select a conversation',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(color: DsColors.textMutedLight),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -313,10 +372,7 @@ class _MessageRequestsTile extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -334,10 +390,7 @@ class _MessageRequestsTile extends StatelessWidget {
                   ],
                 ),
                 borderRadius: BorderRadius.circular(DsRadius.lg),
-                border: Border.all(
-                  color: borderBase,
-                  width: 1,
-                ),
+                border: Border.all(color: borderBase, width: 1),
               ),
               child: Row(
                 children: [
@@ -358,8 +411,8 @@ class _MessageRequestsTile extends StatelessWidget {
                     child: Text(
                       'Message Requests',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   if (isLoading)
@@ -380,10 +433,9 @@ class _MessageRequestsTile extends StatelessWidget {
                       ),
                       child: Text(
                         '$count',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(color: DsColors.primary),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: DsColors.primary,
+                        ),
                       ),
                     )
                   else
@@ -461,8 +513,10 @@ class _ChatTileState extends State<_ChatTile>
 
   /// Update badge counter using stored reference (safe for dispose/async)
   void _updateBadgeCounterSafe() {
-    final totalUnread =
-        _unreadCounts.values.fold(0, (sum, count) => sum + count);
+    final totalUnread = _unreadCounts.values.fold(
+      0,
+      (sum, count) => sum + count,
+    );
     _badgeCounterCubit?.updateUnreadChats(totalUnread);
   }
 
@@ -474,53 +528,59 @@ class _ChatTileState extends State<_ChatTile>
   void _subscribeToMessages() {
     final chatRepo = _chatRepository;
     if (chatRepo == null) return;
-    _messagesSubscription = chatRepo.watchMessages(widget.match.id).listen(
-      (messages) {
-        if (!mounted) return;
-        setState(() {
-          if (messages.isNotEmpty) {
-            // Sort by sentAt to get the most recent
-            final sorted = List<Message>.from(messages)
-              ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-            _lastMessage = sorted.first;
-            // Count unread messages sent to current user
-            _unreadCount = messages
-                .where((m) => m.toUserId == widget.currentUserId && !m.isRead)
-                .length;
-            // Update static map and badge counter
-            _unreadCounts[widget.match.id] = _unreadCount;
-            _updateBadgeCounter();
-          }
-        });
-      },
-      onError: (_) {
-        // Silently handle errors - just show default text
-      },
-    );
+    _messagesSubscription = chatRepo
+        .watchMessages(widget.match.id)
+        .listen(
+          (messages) {
+            if (!mounted) return;
+            setState(() {
+              if (messages.isNotEmpty) {
+                // Sort by sentAt to get the most recent
+                final sorted = List<Message>.from(messages)
+                  ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+                _lastMessage = sorted.first;
+                // Count unread messages sent to current user
+                _unreadCount = messages
+                    .where(
+                      (m) => m.toUserId == widget.currentUserId && !m.isRead,
+                    )
+                    .length;
+                // Update static map and badge counter
+                _unreadCounts[widget.match.id] = _unreadCount;
+                _updateBadgeCounter();
+              }
+            });
+          },
+          onError: (_) {
+            // Silently handle errors - just show default text
+          },
+        );
   }
 
   void _subscribeToPresence() {
     final chatRepo = _chatRepository;
     if (chatRepo == null) return;
-    _presenceSubscription =
-        chatRepo.watchPresence(widget.match.otherUserId).listen(
-      (isOnline) {
-        if (!mounted) return;
-        setState(() {
-          _isOnline = isOnline;
-        });
-      },
-      onError: (_) {
-        // Silently handle errors - default to offline
-      },
-    );
+    _presenceSubscription = chatRepo
+        .watchPresence(widget.match.otherUserId)
+        .listen(
+          (isOnline) {
+            if (!mounted) return;
+            setState(() {
+              _isOnline = isOnline;
+            });
+          },
+          onError: (_) {
+            // Silently handle errors - default to offline
+          },
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
 
-    final name = widget.match.otherUserName ??
+    final name =
+        widget.match.otherUserName ??
         (widget.match.otherUserId.trim().isNotEmpty
             ? widget.match.otherUserId
             : null) ??
@@ -539,10 +599,7 @@ class _ChatTileState extends State<_ChatTile>
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -605,8 +662,8 @@ class _ChatTileState extends State<_ChatTile>
                       // Online indicator with glow effect
                       // Online indicator (green dot)
                       if (_isOnline)
-                        Positioned(
-                          right: 0,
+                        PositionedDirectional(
+                          end: 0,
                           bottom: 0,
                           child: Container(
                             width: 16,
@@ -622,8 +679,9 @@ class _ChatTileState extends State<_ChatTile>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: DsColors.onlineIndicator
-                                      .withValues(alpha: 0.5),
+                                  color: DsColors.onlineIndicator.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -633,8 +691,8 @@ class _ChatTileState extends State<_ChatTile>
                         ),
                       // Unread message indicator (red dot) - top right
                       if (hasUnread)
-                        Positioned(
-                          right: 0,
+                        PositionedDirectional(
+                          end: 0,
                           top: 0,
                           child: Container(
                             width: 14,
@@ -684,7 +742,9 @@ class _ChatTileState extends State<_ChatTile>
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 2),
+                                    padding: const EdgeInsetsDirectional.only(
+                                      top: 2,
+                                    ),
                                     child: Text(
                                       hasUnread
                                           ? 'New Message'
@@ -707,16 +767,21 @@ class _ChatTileState extends State<_ChatTile>
                             ),
                             if (lastMessageTime != null)
                               Text(
-                                _formatTime(lastMessageTime),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                DateTimeFormatter.formatRelativeCompact(
+                                  lastMessageTime,
+                                  l10n: context.l10n,
+                                  locale: Localizations.localeOf(
+                                    context,
+                                  ).toString(),
+                                ),
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: hasUnread
                                           ? DsColors.primary
                                           : DsColors.textMutedLight,
-                                      fontWeight:
-                                          hasUnread ? FontWeight.bold : null,
+                                      fontWeight: hasUnread
+                                          ? FontWeight.bold
+                                          : null,
                                     ),
                               ),
                           ],
@@ -727,18 +792,16 @@ class _ChatTileState extends State<_ChatTile>
                             Expanded(
                               child: Text(
                                 lastMessageText,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: hasUnread
-                                          ? Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color
+                                          ? Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium?.color
                                           : DsColors.textMutedLight,
-                                      fontWeight:
-                                          hasUnread ? FontWeight.w600 : null,
+                                      fontWeight: hasUnread
+                                          ? FontWeight.w600
+                                          : null,
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -746,20 +809,23 @@ class _ChatTileState extends State<_ChatTile>
                             ),
                             if (hasUnread)
                               Container(
-                                margin:
-                                    const EdgeInsets.only(left: DsSpacing.sm),
+                                margin: const EdgeInsetsDirectional.only(
+                                  start: DsSpacing.sm,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: DsSpacing.sm,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
                                   gradient: DsGradients.primaryHorizontal,
-                                  borderRadius:
-                                      BorderRadius.circular(DsRadius.round),
+                                  borderRadius: BorderRadius.circular(
+                                    DsRadius.round,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: DsColors.primary
-                                          .withValues(alpha: 0.3),
+                                      color: DsColors.primary.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 6,
                                       spreadRadius: 1,
                                     ),
@@ -801,23 +867,6 @@ class _ChatTileState extends State<_ChatTile>
         return '$prefix Voice message';
       case MessageType.text:
         return '$prefix${message.content}';
-    }
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-
-    if (diff.inDays > 7) {
-      return '${time.day}/${time.month}';
-    } else if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes}m';
-    } else {
-      return 'now';
     }
   }
 }

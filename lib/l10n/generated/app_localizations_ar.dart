@@ -3987,4 +3987,79 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get wordAnything => 'أي شيء';
+
+  @override
+  String notificationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إشعار',
+      many: '$count إشعاراً',
+      few: '$count إشعارات',
+      two: 'إشعاران',
+      one: 'إشعار واحد',
+      zero: 'لا توجد إشعارات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String matchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تطابق',
+      many: '$count تطابقاً',
+      few: '$count تطابقات',
+      two: 'تطابقان',
+      one: 'تطابق واحد',
+      zero: 'لا توجد تطابقات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String likesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إعجاب',
+      many: '$count إعجاباً',
+      few: '$count إعجابات',
+      two: 'إعجابين',
+      one: 'إعجاب واحد',
+      zero: 'لا توجد إعجابات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+      zero: 'لا توجد صور',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String distanceKm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count كم',
+      many: '$count كم',
+      few: '$count كم',
+      two: '2 كم',
+      one: '1 كم',
+      zero: 'أقل من 1 كم',
+    );
+    return '$_temp0';
+  }
 }

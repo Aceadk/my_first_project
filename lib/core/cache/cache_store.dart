@@ -69,8 +69,9 @@ class MemoryCacheStore implements CacheStore {
 
   @override
   Future<void> removeByPrefix(String prefix) async {
-    final keysToRemove =
-        _cache.keys.where((k) => k.startsWith(prefix)).toList();
+    final keysToRemove = _cache.keys
+        .where((k) => k.startsWith(prefix))
+        .toList();
     for (final key in keysToRemove) {
       _cache.remove(key);
     }
@@ -99,9 +100,5 @@ class _CacheBox {
   final DateTime cachedAt;
   final Duration maxAge;
 
-  _CacheBox({
-    required this.data,
-    required this.cachedAt,
-    required this.maxAge,
-  });
+  _CacheBox({required this.data, required this.cachedAt, required this.maxAge});
 }

@@ -26,7 +26,11 @@ class RealtimeState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [typingUserIds, otherUserOnline, mediaSendingEnabled];
+  List<Object?> get props => [
+    typingUserIds,
+    otherUserOnline,
+    mediaSendingEnabled,
+  ];
 }
 
 /// Cubit managing real-time chat indicators:

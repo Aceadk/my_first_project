@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:crushhour/core/services/haptic_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/utils/accessibility.dart';
+import 'package:flutter/material.dart';
+
 import 'swipe_card.dart';
 
 /// A swipeable card widget that handles horizontal swipe gestures.
@@ -32,8 +34,13 @@ class SwipeableCard extends StatefulWidget {
   final bool superLikeEnabled;
 
   /// Callback when user reacts to content (photo/prompt).
-  final void Function(String reactionType, ReactionContentType contentType,
-      int index, String? comment)? onReaction;
+  final void Function(
+    String reactionType,
+    ReactionContentType contentType,
+    int index,
+    String? comment,
+  )?
+  onReaction;
 
   @override
   State<SwipeableCard> createState() => _SwipeableCardState();
@@ -116,7 +123,9 @@ class _SwipeableCardState extends State<SwipeableCard>
     // Haptic feedback when crossing horizontal threshold (only once per drag)
     if (!_crossedThreshold && newDragX.abs() > _swipeThreshold) {
       _crossedThreshold = true;
-      HapticFeedback.lightImpact();
+      if (!DsAccessibility.prefersReducedMotion(context)) {
+        HapticService.swipeThreshold();
+      }
     }
 
     // Haptic feedback when crossing upward threshold (for SuperLike)
@@ -124,7 +133,9 @@ class _SwipeableCardState extends State<SwipeableCard>
         newDragY < -_swipeUpThreshold &&
         widget.superLikeEnabled) {
       _crossedUpThreshold = true;
-      HapticFeedback.lightImpact();
+      if (!DsAccessibility.prefersReducedMotion(context)) {
+        HapticService.swipeThreshold();
+      }
     }
   }
 
@@ -138,7 +149,8 @@ class _SwipeableCardState extends State<SwipeableCard>
     final velocityY = details.velocity.pixelsPerSecond.dy;
 
     // Check for swipe up (SuperLike) first - negative Y means upward
-    final shouldSwipeUp = widget.superLikeEnabled &&
+    final shouldSwipeUp =
+        widget.superLikeEnabled &&
         widget.onSwipeUp != null &&
         (dragY < -_swipeUpThreshold || velocityY < -_velocityUpThreshold);
 
@@ -164,12 +176,18 @@ class _SwipeableCardState extends State<SwipeableCard>
     final targetX = isLike ? screenWidth : -screenWidth;
 
     // Haptic feedback when swipe is confirmed
-    HapticFeedback.mediumImpact();
+    if (!DsAccessibility.prefersReducedMotion(context)) {
+      if (isLike) {
+        HapticService.like();
+      } else {
+        HapticService.nope();
+      }
+    }
 
-    _animationX =
-        Tween<double>(begin: _dragXNotifier.value, end: targetX).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    _animationX = Tween<double>(begin: _dragXNotifier.value, end: targetX)
+        .animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
     _animationY = Tween<double>(begin: _dragYNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
@@ -191,15 +209,17 @@ class _SwipeableCardState extends State<SwipeableCard>
     final screenHeight = MediaQuery.of(context).size.height;
 
     // Strong haptic feedback for SuperLike
-    HapticFeedback.heavyImpact();
+    if (!DsAccessibility.prefersReducedMotion(context)) {
+      HapticService.superLike();
+    }
 
     _animationX = Tween<double>(begin: _dragXNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _animationY =
-        Tween<double>(begin: _dragYNotifier.value, end: -screenHeight).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    _animationY = Tween<double>(begin: _dragYNotifier.value, end: -screenHeight)
+        .animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     _animationController.forward(from: 0).then((_) {
       widget.onSwipeUp?.call();
@@ -235,8 +255,10 @@ class _SwipeableCardState extends State<SwipeableCard>
             return ValueListenableBuilder<double>(
               valueListenable: _dragYNotifier,
               builder: (context, dragY, child) {
-                final rotation = (dragX / _rotationDivisor)
-                    .clamp(-_maxRotation, _maxRotation);
+                final rotation = (dragX / _rotationDivisor).clamp(
+                  -_maxRotation,
+                  _maxRotation,
+                );
                 final horizontalOpacity =
                     1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
                 final verticalOpacity =
@@ -282,9 +304,9 @@ class _SwipeableCardState extends State<SwipeableCard>
                       // SuperLike indicator (top center) - Purple star icon
                       if (dragY < -_indicatorVisibilityThreshold &&
                           widget.superLikeEnabled)
-                        const Positioned(
-                          left: 0,
-                          right: 0,
+                        const PositionedDirectional(
+                          start: 0,
+                          end: 0,
                           bottom: 100.0,
                           child: Center(
                             child: _SwipeIconIndicator(
@@ -331,10 +353,7 @@ class _SwipeIconIndicator extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.15),
-          border: Border.all(
-            color: color,
-            width: 3,
-          ),
+          border: Border.all(color: color, width: 3),
           shape: BoxShape.circle,
         ),
         child: Icon(

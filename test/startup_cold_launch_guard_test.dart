@@ -15,6 +15,11 @@ void main() {
     testWidgets(
       'first frame marker is visible within timeout',
       (tester) async {
+        // Save the original ErrorWidget.builder — app.main() installs a custom
+        // one via installErrorWidgetBuilder(). The framework verifies it hasn't
+        // changed before tearDown runs, so we must restore inside the body.
+        final originalErrorBuilder = ErrorWidget.builder;
+
         final stopwatch = Stopwatch()..start();
 
         await app.main();
@@ -31,6 +36,9 @@ void main() {
           reason:
               'Cold launch first frame exceeded timeout. App may be blocking before render.',
         );
+
+        // Restore ErrorWidget.builder before the framework verifies it.
+        ErrorWidget.builder = originalErrorBuilder;
 
         // Allow startup timeout-guarded tasks to finish so the test binding
         // does not fail on pending timers from app bootstrap.

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
@@ -28,6 +29,20 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
   File? _backIdImage;
   bool _isUploading = false;
   bool _hasSubmitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Only log onboarding step when accessed during onboarding (not from settings)
+    if (!widget.fromSettings) {
+      AnalyticsService.instance.logOnboardingStep(
+        step: 'id_verification',
+        stepNumber: 4,
+        totalSteps: 6,
+      );
+    }
+  }
 
   Future<void> _pickImage(bool isFront) async {
     try {
@@ -93,7 +108,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsetsDirectional.only(top: 12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -106,11 +121,11 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                 child: Text(
                   isFront ? 'Upload Front of ID' : 'Upload Back of ID',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? DsColors.textPrimaryDark
+                        : DsColors.textPrimaryLight,
+                  ),
                 ),
               ),
               ListTile(
@@ -120,8 +135,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     color: DsColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.camera_alt_rounded,
-                      color: DsColors.primary),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: DsColors.primary,
+                  ),
                 ),
                 title: const Text('Take Photo'),
                 subtitle: const Text('Use camera to capture ID'),
@@ -137,8 +154,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     color: DsColors.secondary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.photo_library_rounded,
-                      color: DsColors.secondary),
+                  child: const Icon(
+                    Icons.photo_library_rounded,
+                    color: DsColors.secondary,
+                  ),
                 ),
                 title: const Text('Choose from Gallery'),
                 subtitle: const Text('Select existing photo'),
@@ -158,7 +177,9 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
   Future<void> _submitVerification() async {
     if (_frontIdImage == null || _backIdImage == null) {
       showErrorSnackBar(
-          context, 'Please upload both front and back of your ID');
+        context,
+        'Please upload both front and back of your ID',
+      );
       return;
     }
 
@@ -214,40 +235,49 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    DsColors.backgroundDark,
-                    DsColors.secondary.withValues(alpha: 0.22),
-                    DsColors.backgroundDark,
-                  ]
-                : [
-                    DsColors.backgroundLight,
-                    DsColors.secondary.withValues(alpha: 0.08),
-                    DsColors.backgroundLight,
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: BlocConsumer<ProfileBloc, ProfileState>(
-            listenWhen: (previous, current) =>
-                previous.errorMessage != current.errorMessage,
-            listener: (context, state) {
-              final error = state.errorMessage;
-              if (error != null && error.isNotEmpty) {
-                showErrorSnackBar(context, error);
-              }
-            },
-            builder: (context, state) {
-              if (_hasSubmitted) {
-                return _buildSubmittedView(context, isDark);
-              }
-              return _buildMainView(context, isDark, state);
-            },
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          DsColors.backgroundDark,
+                          DsColors.secondary.withValues(alpha: 0.22),
+                          DsColors.backgroundDark,
+                        ]
+                      : [
+                          DsColors.backgroundLight,
+                          DsColors.secondary.withValues(alpha: 0.08),
+                          DsColors.backgroundLight,
+                        ],
+                ),
+              ),
+              child: SafeArea(
+                child: BlocConsumer<ProfileBloc, ProfileState>(
+                  listenWhen: (previous, current) =>
+                      previous.errorMessage != current.errorMessage,
+                  listener: (context, state) {
+                    final error = state.errorMessage;
+                    if (error != null && error.isNotEmpty) {
+                      showErrorSnackBar(context, error);
+                    }
+                  },
+                  builder: (context, state) {
+                    if (_hasSubmitted) {
+                      return _buildSubmittedView(context, isDark);
+                    }
+                    return _buildMainView(context, isDark, state);
+                  },
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -271,11 +301,11 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
               Text(
                 'Verify Your ID',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight,
+                ),
               ),
               const Spacer(),
               const SizedBox(width: 40),
@@ -296,16 +326,16 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     Text(
                       'Step 4 of 5',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: DsColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       'Optional',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.success,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: DsColors.success,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -315,10 +345,12 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                   child: LinearProgressIndicator(
                     value: 0.8,
                     minHeight: 6,
-                    backgroundColor:
-                        isDark ? DsColors.surfaceDark : DsColors.skeletonLight,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(DsColors.primary),
+                    backgroundColor: isDark
+                        ? DsColors.surfaceDark
+                        : DsColors.skeletonLight,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      DsColors.primary,
+                    ),
                   ),
                 ),
               ],
@@ -339,20 +371,20 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                 Text(
                   'Upload Your Government ID',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? DsColors.textPrimaryDark
+                        : DsColors.textPrimaryLight,
+                  ),
                 ),
                 DsGap.sm,
                 Text(
                   'We accept national ID cards, passports, or driver\'s licenses. Your information is encrypted and kept secure.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
                 ),
                 DsGap.lg,
                 // Front ID Upload
@@ -402,9 +434,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                           children: [
                             Text(
                               'Verification takes 24-48 hours',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: isDark
@@ -415,9 +445,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                             const SizedBox(height: 4),
                             Text(
                               'Our team will review your documents and verify your identity. You\'ll receive a notification once verified.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: isDark
                                         ? DsColors.textMutedDark
@@ -455,7 +483,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
               SizedBox(
                 width: double.infinity,
                 child: GlassPrimaryButton(
-                  onPressed: (_frontIdImage != null &&
+                  onPressed:
+                      (_frontIdImage != null &&
                           _backIdImage != null &&
                           !_isUploading)
                       ? _submitVerification
@@ -539,19 +568,18 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           Text(
             'Documents Submitted!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              fontWeight: FontWeight.bold,
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
           DsGap.md,
           Text(
             'Your ID documents have been submitted for verification. Our team will review them within 24-48 hours.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
             textAlign: TextAlign.center,
           ),
           DsGap.lg,
@@ -598,9 +626,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           Text(
             'You\'ll receive a notification once your ID is verified.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
             textAlign: TextAlign.center,
           ),
           const Spacer(),
@@ -663,10 +690,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
         ),
         Container(
@@ -703,9 +730,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: DsColors.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: DsColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,19 +757,19 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     Text(
                       'Why Verify?',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                     Text(
                       'Unlock exclusive benefits',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                   ],
                 ),
@@ -812,11 +837,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             color: DsColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: DsColors.success,
-          ),
+          child: Icon(icon, size: 18, color: DsColors.success),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -826,19 +847,19 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight,
-                    ),
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? DsColors.textPrimaryDark
+                      : DsColors.textPrimaryLight,
+                ),
               ),
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               ),
             ],
           ),
@@ -865,8 +886,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           color: image != null
               ? DsColors.success.withValues(alpha: 0.1)
               : (isDark
-                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                  : DsColors.inputFillLight),
+                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                    : DsColors.inputFillLight),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: image != null
@@ -890,9 +911,9 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                       fit: BoxFit.cover,
                     ),
                   ),
-                  Positioned(
+                  PositionedDirectional(
                     top: -8,
-                    right: -8,
+                    end: -8,
                     child: GestureDetector(
                       onTap: onRemove,
                       child: Container(
@@ -927,8 +948,9 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                 ),
                 child: Icon(
                   Icons.add_photo_alternate_outlined,
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                   size: 24,
                 ),
               ),
@@ -942,11 +964,11 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                       Text(
                         title,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? DsColors.textPrimaryDark
-                                  : DsColors.textPrimaryLight,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight,
+                        ),
                       ),
                       if (image != null) ...[
                         const SizedBox(width: 8),
@@ -961,19 +983,16 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                   Text(
                     image != null ? 'Tap to change' : subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
                   ),
                 ],
               ),
             ),
             if (image == null)
-              const Icon(
-                Icons.upload_rounded,
-                color: DsColors.primary,
-              )
+              const Icon(Icons.upload_rounded, color: DsColors.primary)
             else
               GestureDetector(
                 onTap: onTap,

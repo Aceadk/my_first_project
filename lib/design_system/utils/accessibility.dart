@@ -77,8 +77,11 @@ class DsAccessibility {
   }
 
   /// Announces a message after a brief delay (useful after navigation).
-  static void announceDelayed(BuildContext context, String message,
-      {Duration delay = const Duration(milliseconds: 500)}) {
+  static void announceDelayed(
+    BuildContext context,
+    String message, {
+    Duration delay = const Duration(milliseconds: 500),
+  }) {
     Future.delayed(delay, () {
       // ignore: deprecated_member_use
       SemanticsService.announce(message, TextDirection.ltr);
@@ -107,38 +110,26 @@ class DsAccessibility {
 /// Widget that excludes its child from semantics tree.
 /// Useful for decorative elements.
 class ExcludeSemantics extends StatelessWidget {
-  const ExcludeSemantics({
-    super.key,
-    required this.child,
-  });
+  const ExcludeSemantics({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      excludeSemantics: true,
-      child: child,
-    );
+    return Semantics(excludeSemantics: true, child: child);
   }
 }
 
 /// Widget that merges multiple semantic nodes into one.
 /// Useful for complex widgets that should be read as a single unit.
 class MergeSemantics extends StatelessWidget {
-  const MergeSemantics({
-    super.key,
-    required this.child,
-  });
+  const MergeSemantics({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      child: child,
-    );
+    return Semantics(container: true, child: child);
   }
 }
 
@@ -197,19 +188,12 @@ extension AccessibilityExtension on Widget {
 
   /// Exclude from semantics tree (for decorative elements).
   Widget excludeSemantics() {
-    return Semantics(
-      excludeSemantics: true,
-      child: this,
-    );
+    return Semantics(excludeSemantics: true, child: this);
   }
 
   /// Mark as a live region for dynamic updates.
   Widget asLiveRegion({required String label}) {
-    return Semantics(
-      label: label,
-      liveRegion: true,
-      child: this,
-    );
+    return Semantics(label: label, liveRegion: true, child: this);
   }
 }
 
@@ -307,10 +291,7 @@ class SemanticProgress extends StatelessWidget {
     return Semantics(
       label: percentLabel,
       value: '${(value * 100).round()}%',
-      child: child ??
-          LinearProgressIndicator(
-            value: value,
-          ),
+      child: child ?? LinearProgressIndicator(value: value),
     );
   }
 }
@@ -391,10 +372,7 @@ class SemanticButton extends StatelessWidget {
       button: true,
       enabled: enabled,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: minSize,
-          minHeight: minSize,
-        ),
+        constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
         child: GestureDetector(
           onTap: enabled ? onTap : null,
           behavior: HitTestBehavior.opaque,
@@ -421,27 +399,16 @@ class SemanticImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isDecorative) {
-      return Semantics(
-        excludeSemantics: true,
-        child: child,
-      );
+      return Semantics(excludeSemantics: true, child: child);
     }
 
-    return Semantics(
-      label: label,
-      image: true,
-      child: child,
-    );
+    return Semantics(label: label, image: true, child: child);
   }
 }
 
 /// Focus traversal group for managing keyboard navigation order.
 class AccessibleFocusGroup extends StatelessWidget {
-  const AccessibleFocusGroup({
-    super.key,
-    required this.children,
-    this.policy,
-  });
+  const AccessibleFocusGroup({super.key, required this.children, this.policy});
 
   final List<Widget> children;
   final FocusTraversalPolicy? policy;
@@ -450,10 +417,7 @@ class AccessibleFocusGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return FocusTraversalGroup(
       policy: policy ?? OrderedTraversalPolicy(),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children,
-      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
 }
@@ -479,8 +443,7 @@ class FocusIndicator extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final hasFocus = Focus.of(context).hasFocus;
-          final color =
-              focusColor ?? Theme.of(context).colorScheme.primary;
+          final color = focusColor ?? Theme.of(context).colorScheme.primary;
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -553,6 +516,48 @@ class SkipToContentLink extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+/// Clamps text scale factor to a maximum of 2.0x to prevent extreme layouts
+/// while still supporting accessibility text scaling.
+class DsTextScaleCap extends StatelessWidget {
+  const DsTextScaleCap({
+    super.key,
+    required this.child,
+    this.maxScaleFactor = 2.0,
+  });
+
+  final Widget child;
+  final double maxScaleFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final clampedTextScaler = mediaQuery.textScaler.clamp(
+      minScaleFactor: 1.0,
+      maxScaleFactor: maxScaleFactor,
+    );
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: clampedTextScaler),
+      child: child,
+    );
+  }
+}
+
+/// Ensures focus traversal follows a logical order within a screen.
+/// Wrap screen content to enable proper keyboard/switch navigation.
+class DsFocusTraversalScreen extends StatelessWidget {
+  const DsFocusTraversalScreen({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusTraversalGroup(
+      policy: ReadingOrderTraversalPolicy(),
+      child: child,
     );
   }
 }

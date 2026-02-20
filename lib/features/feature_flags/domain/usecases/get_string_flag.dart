@@ -7,10 +7,7 @@ class GetStringFlagParams {
   final String key;
   final String defaultValue;
 
-  const GetStringFlagParams({
-    required this.key,
-    this.defaultValue = '',
-  });
+  const GetStringFlagParams({required this.key, this.defaultValue = ''});
 }
 
 /// Use case for getting a string feature flag value.
@@ -31,10 +28,8 @@ class GetStringFlagUseCase extends UseCase<String, GetStringFlagParams>
   @override
   Future<Result<String>> execute(GetStringFlagParams params) {
     return Result.guard(
-      () async => _repository.getString(
-        params.key,
-        defaultValue: params.defaultValue,
-      ),
+      () async =>
+          _repository.getString(params.key, defaultValue: params.defaultValue),
       logLabel: 'GetStringFlagUseCase',
       fallbackError: 'Unable to get flag value.',
     );

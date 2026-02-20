@@ -1,6 +1,6 @@
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/domain/use_cases/use_case.dart';
-import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
 
 /// Parameters for completing a quiz.
@@ -28,7 +28,7 @@ class CompleteQuizUseCase extends UseCase<QuizResult, CompleteQuizParams>
   final CompatibilityQuizService _service;
 
   CompleteQuizUseCase([CompatibilityQuizService? service])
-      : _service = service ?? CompatibilityQuizService.instance;
+    : _service = service ?? CompatibilityQuizService.instance;
 
   @override
   String? validate(CompleteQuizParams params) {

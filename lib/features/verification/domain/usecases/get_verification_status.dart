@@ -17,7 +17,7 @@ class GetVerificationStatusUseCase
   final PhotoVerificationService _service;
 
   GetVerificationStatusUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   String? validate(GetVerificationStatusParams params) {
@@ -29,7 +29,8 @@ class GetVerificationStatusUseCase
 
   @override
   Future<Result<PhotoVerification?>> execute(
-      GetVerificationStatusParams params) {
+    GetVerificationStatusParams params,
+  ) {
     return Result.guard(
       () => _service.getVerificationStatus(params.userId),
       logLabel: 'GetVerificationStatusUseCase',

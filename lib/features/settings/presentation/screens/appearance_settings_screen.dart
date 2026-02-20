@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/theme.dart';
 import 'package:crushhour/core/theme/app_theme_mode.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
 import 'package:crushhour/design_system/tokens/luxury.dart';
@@ -108,159 +109,178 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Appearance & Themes')),
-      body: BlocListener<ThemeCubit, AppThemeMode>(
-        listener: (context, mode) {
-          if (!_previewDirty) {
-            setState(() {
-              _previewMode = mode;
-            });
-          }
-        },
-        child: BlocBuilder<ThemeCubit, AppThemeMode>(
-          builder: (context, currentMode) {
-            final subState = context.watch<SubscriptionBloc>().state;
-            final isPlus = subState.plan == SubscriptionPlan.plus;
-            final previewTheme = _themeForPreview(context, _previewMode);
-            final hasChanges = _previewMode != currentMode;
-            final isLocked = _isPremiumLocked(_previewMode, isPlus);
-            final useModernLuxury =
-                _previewMode == AppThemeMode.darkLuxuryModern;
-            final luxuryGradient = useModernLuxury
-                ? DsLuxuryModernGradients.goldSheen
-                : DsLuxuryGradients.goldSheen;
-            final luxuryTextOnGold = useModernLuxury
-                ? DsLuxuryModernColors.textOnGold
-                : DsLuxuryColors.textOnGold;
-            final luxurySurface = useModernLuxury
-                ? DsLuxuryModernColors.background
-                : DsLuxuryColors.background;
-            final luxuryAccent = useModernLuxury
-                ? DsLuxuryModernColors.goldPrimary
-                : DsLuxuryColors.goldPrimary;
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: BlocListener<ThemeCubit, AppThemeMode>(
+              listener: (context, mode) {
+                if (!_previewDirty) {
+                  setState(() {
+                    _previewMode = mode;
+                  });
+                }
+              },
+              child: BlocBuilder<ThemeCubit, AppThemeMode>(
+                builder: (context, currentMode) {
+                  final subState = context.watch<SubscriptionBloc>().state;
+                  final isPlus = subState.plan == SubscriptionPlan.plus;
+                  final previewTheme = _themeForPreview(context, _previewMode);
+                  final hasChanges = _previewMode != currentMode;
+                  final isLocked = _isPremiumLocked(_previewMode, isPlus);
+                  final useModernLuxury =
+                      _previewMode == AppThemeMode.darkLuxuryModern;
+                  final luxuryGradient = useModernLuxury
+                      ? DsLuxuryModernGradients.goldSheen
+                      : DsLuxuryGradients.goldSheen;
+                  final luxuryTextOnGold = useModernLuxury
+                      ? DsLuxuryModernColors.textOnGold
+                      : DsLuxuryColors.textOnGold;
+                  final luxurySurface = useModernLuxury
+                      ? DsLuxuryModernColors.background
+                      : DsLuxuryColors.background;
+                  final luxuryAccent = useModernLuxury
+                      ? DsLuxuryModernColors.goldPrimary
+                      : DsLuxuryColors.goldPrimary;
 
-            return ListView(
-              padding: const EdgeInsets.all(DsSpacing.lg),
-              children: [
-                _ThemePreviewCard(
-                  theme: previewTheme,
-                  mode: _previewMode,
-                  durationMs: (260 * motionScale).round(),
-                ),
-                DsGap.lg,
-                Text(
-                  'Choose a theme',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                DsGap.sm,
-                ..._themeOptions().map((option) {
-                  final selected = option.mode == _previewMode;
-                  final isPremium = option.isPremium;
-                  final locked = _isPremiumLocked(option.mode, isPlus);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: DsSpacing.sm),
-                    child: _ThemeOptionCard(
-                      title: option.title,
-                      subtitle: option.subtitle,
-                      icon: option.icon,
-                      selected: selected,
-                      isPremium: isPremium,
-                      isLocked: locked,
-                      isApplied: option.mode == currentMode,
-                      swatches: _swatchesForMode(context, option.mode),
-                      onTap: () => _selectMode(option.mode),
-                    ),
-                  );
-                }),
-                DsGap.lg,
-                Container(
-                  padding: const EdgeInsets.all(DsSpacing.md),
-                  decoration: BoxDecoration(
-                    color: DsGlassColors.surfaceFor(context),
-                    borderRadius: BorderRadius.circular(DsRadius.lg),
-                    border: Border.all(color: DsGlassColors.borderFor(context)),
-                  ),
-                  child: Row(
+                  return ListView(
+                    padding: const EdgeInsets.all(DsSpacing.lg),
                     children: [
-                      const Icon(Icons.sync, size: 20, color: DsColors.primary),
-                      const SizedBox(width: DsSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          'Theme preferences sync to your account and update instantly.',
-                          style: Theme.of(context).textTheme.bodySmall,
+                      _ThemePreviewCard(
+                        theme: previewTheme,
+                        mode: _previewMode,
+                        durationMs: (260 * motionScale).round(),
+                      ),
+                      DsGap.lg,
+                      Text(
+                        'Choose a theme',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      DsGap.sm,
+                      ..._themeOptions().map((option) {
+                        final selected = option.mode == _previewMode;
+                        final isPremium = option.isPremium;
+                        final locked = _isPremiumLocked(option.mode, isPlus);
+                        return Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            bottom: DsSpacing.sm,
+                          ),
+                          child: _ThemeOptionCard(
+                            title: option.title,
+                            subtitle: option.subtitle,
+                            icon: option.icon,
+                            selected: selected,
+                            isPremium: isPremium,
+                            isLocked: locked,
+                            isApplied: option.mode == currentMode,
+                            swatches: _swatchesForMode(context, option.mode),
+                            onTap: () => _selectMode(option.mode),
+                          ),
+                        );
+                      }),
+                      DsGap.lg,
+                      Container(
+                        padding: const EdgeInsets.all(DsSpacing.md),
+                        decoration: BoxDecoration(
+                          color: DsGlassColors.surfaceFor(context),
+                          borderRadius: BorderRadius.circular(DsRadius.lg),
+                          border: Border.all(
+                            color: DsGlassColors.borderFor(context),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.sync,
+                              size: 20,
+                              color: DsColors.primary,
+                            ),
+                            const SizedBox(width: DsSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                'Theme preferences sync to your account and update instantly.',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                DsGap.lg,
-                if (isLocked) ...[
-                  Container(
-                    padding: const EdgeInsets.all(DsSpacing.md),
-                    decoration: BoxDecoration(
-                      gradient: luxuryGradient,
-                      borderRadius: BorderRadius.circular(DsRadius.lg),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.workspace_premium, color: luxuryTextOnGold),
-                        const SizedBox(width: DsSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            'Upgrade to Plus to unlock Dark Luxury themes.',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: luxuryTextOnGold,
-                                  fontWeight: FontWeight.w600,
+                      DsGap.lg,
+                      if (isLocked) ...[
+                        Container(
+                          padding: const EdgeInsets.all(DsSpacing.md),
+                          decoration: BoxDecoration(
+                            gradient: luxuryGradient,
+                            borderRadius: BorderRadius.circular(DsRadius.lg),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.workspace_premium,
+                                color: luxuryTextOnGold,
+                              ),
+                              const SizedBox(width: DsSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  'Upgrade to Plus to unlock Dark Luxury themes.',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: luxuryTextOnGold,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                 ),
+                              ),
+                              FilledButton(
+                                onPressed: subState.isCheckoutInProgress
+                                    ? null
+                                    : () => context
+                                          .read<SubscriptionBloc>()
+                                          .add(PlusCheckoutRequested()),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: luxurySurface,
+                                  foregroundColor: luxuryAccent,
+                                ),
+                                child: subState.isCheckoutInProgress
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Upgrade'),
+                              ),
+                            ],
                           ),
                         ),
-                        FilledButton(
-                          onPressed: subState.isCheckoutInProgress
-                              ? null
-                              : () => context.read<SubscriptionBloc>().add(
-                                  PlusCheckoutRequested(),
-                                ),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: luxurySurface,
-                            foregroundColor: luxuryAccent,
+                      ] else ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: hasChanges
+                                ? () => _applyTheme(currentMode, isPlus)
+                                : null,
+                            child: Text(hasChanges ? 'Apply theme' : 'Applied'),
                           ),
-                          child: subState.isCheckoutInProgress
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Upgrade'),
                         ),
+                        if (hasChanges) ...[
+                          const SizedBox(height: DsSpacing.sm),
+                          TextButton(
+                            onPressed: () => _resetPreview(currentMode),
+                            child: const Text('Reset preview'),
+                          ),
+                        ],
                       ],
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: hasChanges
-                          ? () => _applyTheme(currentMode, isPlus)
-                          : null,
-                      child: Text(hasChanges ? 'Apply theme' : 'Applied'),
-                    ),
-                  ),
-                  if (hasChanges) ...[
-                    const SizedBox(height: DsSpacing.sm),
-                    TextButton(
-                      onPressed: () => _resetPreview(currentMode),
-                      child: const Text('Reset preview'),
-                    ),
-                  ],
-                ],
-                DsGap.xxl,
-              ],
-            );
-          },
+                      DsGap.xxl,
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -587,7 +607,7 @@ class _ThemeOptionCard extends StatelessWidget {
                     (color) => Container(
                       width: 16,
                       height: 16,
-                      margin: const EdgeInsets.only(left: 6),
+                      margin: const EdgeInsetsDirectional.only(start: 6),
                       decoration: BoxDecoration(
                         color: color,
                         shape: BoxShape.circle,

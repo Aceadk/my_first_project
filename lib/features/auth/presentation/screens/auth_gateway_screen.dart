@@ -86,7 +86,9 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     }
 
     final user = result.data;
-    if (user?.email != null && user!.email!.isNotEmpty && !user.isEmailVerified) {
+    if (user?.email != null &&
+        user!.email!.isNotEmpty &&
+        !user.isEmailVerified) {
       context.go('${CrushRoutes.emailProtection}?redirect=1');
       return;
     }
@@ -98,9 +100,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final brandGradient =
         Theme.of(context).extension<CrushThemeEffects>()?.primaryGradient ??
-            DsGradients.primaryHorizontal;
+        DsGradients.primaryHorizontal;
     final authRepo = context.read<AuthRepository>();
-    final showAppleButton = !kIsWeb &&
+    final showAppleButton =
+        !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
         authRepo.supportsAppleSignIn;
 
@@ -118,16 +121,20 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                   children: [
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final maxWidth =
-                            math.min(constraints.maxWidth * 0.8, 320.0);
+                        final maxWidth = math.min(
+                          constraints.maxWidth * 0.8,
+                          320.0,
+                        );
                         final fontSize = maxWidth * 0.23;
-                        final wordmarkStyle =
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontSize: fontSize,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -1.0,
-                                  color: Colors.white,
-                                );
+                        final wordmarkStyle = Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(
+                              fontSize: fontSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -1.0,
+                              color: Colors.white,
+                            );
 
                         return SizedBox(
                           width: maxWidth,
@@ -147,10 +154,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                     Text(
                       'Find your Perfect Match',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                   ],
                 ),
@@ -229,11 +236,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.apple,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                          Icon(Icons.apple, color: Colors.white, size: 20),
                           SizedBox(width: 10),
                           Text(
                             'Continue with Apple',
@@ -255,10 +258,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                 'By continuing, you agree to our Terms of Service\nand Privacy Policy',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               ),
               DsGap.lg,
             ],
@@ -291,21 +294,17 @@ class _FeatureRow extends StatelessWidget {
             color: DsColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: DsColors.primary,
-            size: 20,
-          ),
+          child: Icon(icon, color: DsColors.primary, size: 20),
         ),
         DsGap.mdH,
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
         ),
       ],
@@ -323,9 +322,7 @@ class _AgeGateDialog extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: DsEdgeInsets.allXxl,
         child: Column(
@@ -349,9 +346,9 @@ class _AgeGateDialog extends StatelessWidget {
             // Title
             Text(
               'Age Verification',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             DsGap.md,
@@ -359,19 +356,19 @@ class _AgeGateDialog extends StatelessWidget {
             Text(
               'Crush is a dating app for adults only. You must be at least 18 years old to create an account.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
               textAlign: TextAlign.center,
             ),
             DsGap.xxl,
             // Question
             Text(
               'Are you 18 years or older?',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             DsGap.xl,
@@ -405,11 +402,11 @@ class _AgeGateDialog extends StatelessWidget {
             Text(
               'By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                    fontSize: 11,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+                fontSize: 11,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

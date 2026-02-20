@@ -48,28 +48,34 @@ class UserDto {
   factory UserDto.fromJson(Map<String, dynamic> json) {
     return UserDto(
       id: json['id'] as String? ?? json['user_id'] as String? ?? '',
-      phoneNumber: json['phone_number'] as String? ??
+      phoneNumber:
+          json['phone_number'] as String? ??
           json['phoneNumber'] as String? ??
           '',
       email: json['email'] as String?,
       username: json['username'] as String?,
-      isEmailVerified: json['is_email_verified'] as bool? ??
+      isEmailVerified:
+          json['is_email_verified'] as bool? ??
           json['isEmailVerified'] as bool? ??
           json['email_verified'] as bool? ??
           false,
-      isPhoneVerified: json['is_phone_verified'] as bool? ??
+      isPhoneVerified:
+          json['is_phone_verified'] as bool? ??
           json['isPhoneVerified'] as bool? ??
           json['phone_verified'] as bool? ??
           false,
-      isIdVerified: json['is_id_verified'] as bool? ??
+      isIdVerified:
+          json['is_id_verified'] as bool? ??
           json['isIdVerified'] as bool? ??
           json['id_verified'] as bool? ??
           false,
-      subscriptionPlan: json['subscription_plan'] as String? ??
+      subscriptionPlan:
+          json['subscription_plan'] as String? ??
           json['subscriptionPlan'] as String? ??
           json['plan'] as String? ??
           'free',
-      themePreference: json['theme_preference'] as String? ??
+      themePreference:
+          json['theme_preference'] as String? ??
           json['themePreference'] as String? ??
           json['theme'] as String?,
       profile: json['profile'] != null
@@ -122,8 +128,9 @@ class UserDto {
       isIdVerified: user.isIdVerified,
       subscriptionPlan: _planToString(user.plan),
       themePreference: user.themePreference,
-      profile:
-          user.profile != null ? ProfileDto.fromDomain(user.profile!) : null,
+      profile: user.profile != null
+          ? ProfileDto.fromDomain(user.profile!)
+          : null,
     );
   }
 

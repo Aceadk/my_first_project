@@ -16,7 +16,7 @@ class TriggerEmergencyAlertUseCase
   final DatePlanService _service;
 
   TriggerEmergencyAlertUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(TriggerEmergencyAlertParams params) {

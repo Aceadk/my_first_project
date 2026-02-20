@@ -60,9 +60,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
         // Try to get pending email from secure storage
         final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
         if (pendingEmail != null && mounted) {
-          context
-              .read<AuthBloc>()
-              .add(AuthEmailLinkSubmitted(pendingEmail, link));
+          context.read<AuthBloc>().add(
+            AuthEmailLinkSubmitted(pendingEmail, link),
+          );
         }
       }
       return;
@@ -73,9 +73,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
       // Get the pending email from secure storage
       final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
       if (pendingEmail != null && mounted) {
-        context
-            .read<AuthBloc>()
-            .add(AuthEmailLinkSubmitted(pendingEmail, link));
+        context.read<AuthBloc>().add(
+          AuthEmailLinkSubmitted(pendingEmail, link),
+        );
       }
       return;
     }
@@ -84,7 +84,8 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     final path = uri.path.toLowerCase();
     final isBillingCallback =
         host.contains('checkout') || path.contains('checkout');
-    final status = uri.queryParameters['status'] ??
+    final status =
+        uri.queryParameters['status'] ??
         uri.queryParameters['checkout_status'] ??
         uri.queryParameters['success'];
     if (isBillingCallback || status != null) {

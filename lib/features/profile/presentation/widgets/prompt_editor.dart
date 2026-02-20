@@ -32,18 +32,18 @@ class PromptEditor extends StatelessWidget {
           children: [
             Text(
               'Conversation Starters',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const Spacer(),
             Text(
               '${prompts.length}/$maxPrompts',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
             ),
           ],
         ),
@@ -51,9 +51,8 @@ class PromptEditor extends StatelessWidget {
         Text(
           'Help others start a conversation with you',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
         ),
         DsGap.lg,
 
@@ -62,7 +61,7 @@ class PromptEditor extends StatelessWidget {
           final index = entry.key;
           final prompt = entry.value;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsetsDirectional.only(bottom: 12),
             child: _PromptTile(
               prompt: prompt,
               onEdit: () => _showEditPromptSheet(context, prompt, index),
@@ -77,9 +76,7 @@ class PromptEditor extends StatelessWidget {
 
         // Add prompt button
         if (prompts.length < maxPrompts)
-          _AddPromptButton(
-            onTap: () => _showAddPromptSheet(context),
-          ),
+          _AddPromptButton(onTap: () => _showAddPromptSheet(context)),
       ],
     );
   }
@@ -102,14 +99,15 @@ class PromptEditor extends StatelessWidget {
   }
 
   void _showEditPromptSheet(
-      BuildContext context, ProfilePrompt prompt, int index) {
+    BuildContext context,
+    ProfilePrompt prompt,
+    int index,
+  ) {
     showModalBottomSheet<ProfilePrompt?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _PromptAnswerEditor(
-        prompt: prompt,
-      ),
+      builder: (context) => _PromptAnswerEditor(prompt: prompt),
     ).then((updatedPrompt) {
       if (updatedPrompt != null) {
         final updated = List<ProfilePrompt>.from(prompts);
@@ -165,20 +163,17 @@ class _PromptTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
-                    prompt.emoji,
-                    style: const TextStyle(fontSize: 20),
-                  ),
+                  Text(prompt.emoji, style: const TextStyle(fontSize: 20)),
                   DsGap.smH,
                   Expanded(
                     child: Text(
                       prompt.question,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -216,9 +211,7 @@ class _PromptTile extends StatelessWidget {
 
 /// Button to add a new prompt.
 class _AddPromptButton extends StatelessWidget {
-  const _AddPromptButton({
-    required this.onTap,
-  });
+  const _AddPromptButton({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -253,9 +246,9 @@ class _AddPromptButton extends StatelessWidget {
             Text(
               'Add a conversation starter',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: DsColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: DsColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -266,9 +259,7 @@ class _AddPromptButton extends StatelessWidget {
 
 /// Bottom sheet for selecting a prompt question.
 class _PromptQuestionPicker extends StatefulWidget {
-  const _PromptQuestionPicker({
-    required this.existingQuestionIds,
-  });
+  const _PromptQuestionPicker({required this.existingQuestionIds});
 
   final Set<String> existingQuestionIds;
 
@@ -297,7 +288,7 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsetsDirectional.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -326,12 +317,13 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
                     _selectedQuestion != null
                         ? 'Answer the prompt'
                         : _selectedCategory != null
-                            ? PromptQuestions.getCategoryDisplayName(
-                                _selectedCategory!)
-                            : 'Choose a prompt',
+                        ? PromptQuestions.getCategoryDisplayName(
+                            _selectedCategory!,
+                          )
+                        : 'Choose a prompt',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -347,8 +339,8 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
             child: _selectedQuestion != null
                 ? _buildAnswerInput()
                 : _selectedCategory != null
-                    ? _buildQuestionList()
-                    : _buildCategoryList(),
+                ? _buildQuestionList()
+                : _buildCategoryList(),
           ),
         ],
       ),
@@ -380,9 +372,9 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
   }
 
   Widget _buildQuestionList() {
-    final questions = PromptQuestions.getByCategory(_selectedCategory!)
-        .where((q) => !widget.existingQuestionIds.contains(q.id))
-        .toList();
+    final questions = PromptQuestions.getByCategory(
+      _selectedCategory!,
+    ).where((q) => !widget.existingQuestionIds.contains(q.id)).toList();
 
     return ListView.builder(
       padding: DsEdgeInsets.allMd,
@@ -401,10 +393,7 @@ class _PromptQuestionPickerState extends State<_PromptQuestionPicker> {
 
   Widget _buildAnswerInput() {
     return _PromptAnswerEditor(
-      prompt: ProfilePrompt(
-        questionId: _selectedQuestion!.id,
-        answer: '',
-      ),
+      prompt: ProfilePrompt(questionId: _selectedQuestion!.id, answer: ''),
       isNew: true,
       onSave: (prompt) => Navigator.pop(context, prompt),
     );
@@ -429,7 +418,7 @@ class _CategoryTile extends StatelessWidget {
     final isDisabled = onTap == null;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsetsDirectional.only(bottom: 8),
       child: Material(
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: BorderRadius.circular(DsRadius.md),
@@ -448,20 +437,18 @@ class _CategoryTile extends StatelessWidget {
                       children: [
                         Text(
                           PromptQuestions.getCategoryDisplayName(category),
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         DsGap.xs,
                         Text(
                           '$availableCount prompts available',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
                         ),
                       ],
                     ),
@@ -484,10 +471,7 @@ class _CategoryTile extends StatelessWidget {
 
 /// Question tile in the question picker.
 class _QuestionTile extends StatelessWidget {
-  const _QuestionTile({
-    required this.question,
-    required this.onTap,
-  });
+  const _QuestionTile({required this.question, required this.onTap});
 
   final PromptQuestion question;
   final VoidCallback onTap;
@@ -497,7 +481,7 @@ class _QuestionTile extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsetsDirectional.only(bottom: 8),
       child: Material(
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: BorderRadius.circular(DsRadius.md),
@@ -508,10 +492,7 @@ class _QuestionTile extends StatelessWidget {
             padding: DsEdgeInsets.allMd,
             child: Row(
               children: [
-                Text(
-                  question.emoji,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                Text(question.emoji, style: const TextStyle(fontSize: 24)),
                 DsGap.mdH,
                 Expanded(
                   child: Text(
@@ -521,8 +502,9 @@ class _QuestionTile extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
               ],
             ),
@@ -599,8 +581,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                   child: Text(
                     widget.prompt.question,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -631,10 +613,12 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                 onPressed: !_hasText
                     ? null
                     : () {
-                        widget.onSave!(widget.prompt.copyWith(
-                          answer: _controller.text.trim(),
-                          createdAt: DateTime.now(),
-                        ));
+                        widget.onSave!(
+                          widget.prompt.copyWith(
+                            answer: _controller.text.trim(),
+                            createdAt: DateTime.now(),
+                          ),
+                        );
                       },
                 child: const Text('Save'),
               ),
@@ -647,7 +631,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
     // Full bottom sheet editor
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
-      padding: EdgeInsets.only(
+      padding: EdgeInsetsDirectional.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
@@ -661,7 +645,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsetsDirectional.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -678,8 +662,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                 Text(
                   'Edit Answer',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -707,10 +691,8 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                       Expanded(
                         child: Text(
                           widget.prompt.question,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

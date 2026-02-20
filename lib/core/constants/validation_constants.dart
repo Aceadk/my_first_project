@@ -65,14 +65,21 @@ class ValidationConstants {
   static const int maxVideoDurationSeconds = 15;
 
   /// Maximum video duration.
-  static const Duration maxVideoDuration =
-      Duration(seconds: maxVideoDurationSeconds);
+  static const Duration maxVideoDuration = Duration(
+    seconds: maxVideoDurationSeconds,
+  );
 
   /// Maximum file size for photos (10 MB).
   static const int maxPhotoSizeBytes = 10 * 1024 * 1024;
 
   /// Maximum file size for videos (50 MB).
   static const int maxVideoSizeBytes = 50 * 1024 * 1024;
+
+  /// Maximum photo dimensions (width or height).
+  static const int maxPhotoDimension = 4096;
+
+  /// Minimum photo dimensions (width and height).
+  static const int minPhotoDimension = 200;
 
   /// Maximum number of chat attachments per message.
   static const int maxChatAttachments = 5;

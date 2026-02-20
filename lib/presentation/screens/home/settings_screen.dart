@@ -48,9 +48,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: isLoading
                           ? null
                           : () {
-                              context
-                                  .read<SubscriptionBloc>()
-                                  .add(PlusCheckoutRequested());
+                              context.read<SubscriptionBloc>().add(
+                                PlusCheckoutRequested(),
+                              );
                             },
                       child: isLoading
                           ? const SizedBox(
@@ -59,7 +59,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                    DsColors.surfaceLight),
+                                  DsColors.surfaceLight,
+                                ),
                               ),
                             )
                           : const Text('Upgrade to Crush Plus'),

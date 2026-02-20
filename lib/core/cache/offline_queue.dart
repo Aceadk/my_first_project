@@ -25,31 +25,31 @@ class PendingAction {
   bool get canRetry => retryCount < maxRetries;
 
   PendingAction incrementRetry() => PendingAction(
-        id: id,
-        type: type,
-        payload: payload,
-        createdAt: createdAt,
-        retryCount: retryCount + 1,
-        maxRetries: maxRetries,
-      );
+    id: id,
+    type: type,
+    payload: payload,
+    createdAt: createdAt,
+    retryCount: retryCount + 1,
+    maxRetries: maxRetries,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'payload': payload,
-        'createdAt': createdAt.toIso8601String(),
-        'retryCount': retryCount,
-        'maxRetries': maxRetries,
-      };
+    'id': id,
+    'type': type,
+    'payload': payload,
+    'createdAt': createdAt.toIso8601String(),
+    'retryCount': retryCount,
+    'maxRetries': maxRetries,
+  };
 
   factory PendingAction.fromJson(Map<String, dynamic> json) => PendingAction(
-        id: json['id'] as String,
-        type: json['type'] as String,
-        payload: Map<String, dynamic>.from(json['payload'] as Map),
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        retryCount: json['retryCount'] as int? ?? 0,
-        maxRetries: json['maxRetries'] as int? ?? 3,
-      );
+    id: json['id'] as String,
+    type: json['type'] as String,
+    payload: Map<String, dynamic>.from(json['payload'] as Map),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    retryCount: json['retryCount'] as int? ?? 0,
+    maxRetries: json['maxRetries'] as int? ?? 3,
+  );
 }
 
 /// Result of processing a pending action.
@@ -86,10 +86,8 @@ class OfflineActionQueue {
   Stream<QueueStatus> get statusStream => _statusController.stream;
 
   /// Current queue status.
-  QueueStatus get status => QueueStatus(
-        pendingCount: _queue.length,
-        isProcessing: _isProcessing,
-      );
+  QueueStatus get status =>
+      QueueStatus(pendingCount: _queue.length, isProcessing: _isProcessing);
 
   /// Register a handler for a specific action type.
   void registerHandler(String type, ActionHandler handler) {
@@ -164,7 +162,8 @@ class OfflineActionQueue {
       } catch (e) {
         // Network error, stop processing and schedule retry
         AppLogger.error(
-            'OfflineQueue: Network error processing action, scheduling retry: $e');
+          'OfflineQueue: Network error processing action, scheduling retry: $e',
+        );
         _scheduleRetry();
         break;
       }
@@ -214,10 +213,7 @@ class QueueStatus {
   final int pendingCount;
   final bool isProcessing;
 
-  const QueueStatus({
-    required this.pendingCount,
-    required this.isProcessing,
-  });
+  const QueueStatus({required this.pendingCount, required this.isProcessing});
 
   bool get hasPending => pendingCount > 0;
 }

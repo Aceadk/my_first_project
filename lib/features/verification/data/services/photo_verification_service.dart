@@ -63,8 +63,9 @@ class PhotoVerificationService {
     _currentVerification = _currentVerification!.copyWith(
       selfieUrl: selfieUrl,
       confidenceScore: confidence,
-      status:
-          passed ? VerificationStatus.verified : VerificationStatus.rejected,
+      status: passed
+          ? VerificationStatus.verified
+          : VerificationStatus.rejected,
       verifiedAt: passed ? DateTime.now() : null,
       rejectionReason: passed ? null : 'Pose did not match. Please try again.',
       attempts: _currentVerification!.attempts + 1,

@@ -13,25 +13,30 @@ class ChatSendStatusBar extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (state.sendStatus) {
       case SendStatus.uploadingAttachment:
-        return Container(
-          width: double.infinity,
-          color: DsColors.ink400.withValues(alpha: 0.08),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              DsGap.smH,
-              Expanded(
-                child: Text(
-                  'Uploading ${state.uploadingAttachmentName ?? 'attachment'}...',
-                  style: const TextStyle(fontSize: 13),
+        return Semantics(
+          liveRegion: true,
+          label: 'Uploading ${state.uploadingAttachmentName ?? 'attachment'}',
+          excludeSemantics: true,
+          child: Container(
+            width: double.infinity,
+            color: DsColors.ink400.withValues(alpha: 0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-              ),
-            ],
+                DsGap.smH,
+                Expanded(
+                  child: Text(
+                    'Uploading ${state.uploadingAttachmentName ?? 'attachment'}...',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       case SendStatus.sendingText:

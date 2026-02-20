@@ -1,7 +1,7 @@
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
-import 'package:crushhour/features/discovery/data/models/incognito_settings.dart';
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/incognito_settings.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

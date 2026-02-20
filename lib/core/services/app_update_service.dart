@@ -35,7 +35,8 @@ class AppUpdateService {
       _packageInfo = await PackageInfo.fromPlatform();
       _isInitialized = true;
       AppLogger.debug(
-          'AppUpdateService: Initialized - version ${_packageInfo?.version}');
+        'AppUpdateService: Initialized - version ${_packageInfo?.version}',
+      );
     } catch (e) {
       AppLogger.error('AppUpdateService: Failed to initialize - $e');
     }

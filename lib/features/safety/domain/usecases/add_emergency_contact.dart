@@ -21,7 +21,7 @@ class AddEmergencyContactUseCase
   final DatePlanService _service;
 
   AddEmergencyContactUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(AddEmergencyContactParams params) {

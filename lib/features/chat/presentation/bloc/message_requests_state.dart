@@ -73,13 +73,13 @@ class MessageRequestsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        requests,
-        isLoading,
-        errorMessage,
-        actionRequestId,
-        actionStatus,
-        actionErrorMessage,
-        showMatchNotification,
-        matchedUserName,
-      ];
+    requests,
+    isLoading,
+    errorMessage,
+    actionRequestId,
+    actionStatus,
+    actionErrorMessage,
+    showMatchNotification,
+    matchedUserName,
+  ];
 }

@@ -1,6 +1,5 @@
 {
   "@@locale": "de",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Abbrechen",
   "commonSave": "Speichern",
@@ -44,7 +43,6 @@
   "commonUnblock": "Entsperren",
   "commonMute": "Stumm schalten",
   "commonUnmute": "Ton aktivieren",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Etwas ist schief gelaufen. Bitte versuche es erneut.",
   "errorNetwork": "Verbindungsfehler. Überprüfe deine Internetverbindung und versuche es erneut.",
@@ -98,7 +96,6 @@
   "errorMediaUploadFailed": "Medien konnten nicht hochgeladen werden. Bitte versuche es erneut.",
   "errorCouldNot": "{action} fehlgeschlagen. Bitte versuche es erneut.",
   "errorPlusFeature": "{feature} ist eine Plus-Funktion. Upgrade zum Freischalten!",
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Zurück",
   "a11yCloseButton": "Schließen",
@@ -164,7 +161,6 @@
   "a11yProfileSuperLiked": "Profil super geliked",
   "a11yMessageSent": "Nachricht gesendet",
   "a11ySettingSaved": "Einstellung gespeichert",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Willkommen zurück",
   "authSignInToContinue": "Melde dich an, um auf Crush fortzufahren",
@@ -217,7 +213,6 @@
   "authClickLinkToVerify": "Klicke auf den Link, den wir dir gesendet haben, um deine E-Mail zu bestätigen",
   "authEmailVerified": "E-Mail erfolgreich bestätigt!",
   "authSkipForNow": "Vorerst überspringen",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Einstellungen",
   "settingsAppearance": "Erscheinungsbild",
@@ -273,7 +268,6 @@
   "settingsSubscriptionSubtitle": "Verwalte dein Abo",
   "settingsGetPlus": "Crush Plus holen",
   "settingsRestorePurchases": "Käufe wiederherstellen",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Entdecken",
   "discoveryNoMatchesTitle": "Noch keine Matches",
@@ -299,7 +293,6 @@
   "discoveryLikesYou": "Mag dich",
   "discoveryTopPicks": "Top-Auswahl",
   "discoveryNewArrivals": "Neuankömmlinge",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Chats",
   "chatMatches": "Matches",
@@ -326,7 +319,6 @@
   "chatReply": "Antworten",
   "chatNewMatch": "Neues Match!",
   "chatMatchedWith": "Du hast mit {name} gematcht",
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Profil",
   "profileEdit": "Profil bearbeiten",
@@ -375,7 +367,6 @@
   "profileAboutMe": "Über mich",
   "profileMyDetails": "Meine Details",
   "profileLifestyle": "Lebensstil",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Willkommen bei Crush",
   "onboardingTagline": "Finde dein perfektes Match",
@@ -391,7 +382,6 @@
   "onboardingInterestsHint": "Wähle mindestens 3 Interessen",
   "onboardingAllSet": "Alles bereit!",
   "onboardingStartSwiping": "Mit dem Swipen beginnen",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Kostenlos",
   "subscriptionPlus": "Plus",
@@ -409,7 +399,6 @@
   "subscriptionPerYear": "{price}/Jahr",
   "subscriptionBestValue": "Bester Wert",
   "subscriptionMostPopular": "Am beliebtesten",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Benutzer melden",
   "safetyBlockUser": "Benutzer blockieren",
@@ -426,26 +415,22 @@
   "safetySpam": "Spam",
   "safetyScam": "Betrug",
   "safetyOther": "Sonstiges",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Gerade eben",
   "timeMinutesAgo": "{count, plural, =1{Vor 1 Minute} other{Vor {count} Minuten}}",
   "timeHoursAgo": "{count, plural, =1{Vor 1 Stunde} other{Vor {count} Stunden}}",
   "timeDaysAgo": "{count, plural, =1{Vor 1 Tag} other{Vor {count} Tagen}}",
   "timeWeeksAgo": "{count, plural, =1{Vor 1 Woche} other{Vor {count} Wochen}}",
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Keine Ergebnisse gefunden",
   "emptyTryAgain": "Versuche, deine Suche oder Filter anzupassen",
   "emptyNoData": "Keine Daten verfügbar",
   "emptyCheckBackLater": "Schau später noch mal vorbei",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Startseite",
   "wordExplore": "Erkunden",
-  "wordHelp": "Hilfe",
+  "wordHelp": "Helfen",
   "wordMenu": "Menü",
   "wordFeed": "Feed",
   "wordActivity": "Aktivität",
@@ -453,7 +438,6 @@
   "wordInbox": "Posteingang",
   "wordFavorites": "Favoriten",
   "wordHistory": "Verlauf",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Kopieren",
   "wordPaste": "Einfügen",
@@ -463,7 +447,7 @@
   "wordUpload": "Hochladen",
   "wordSelect": "Auswählen",
   "wordDeselect": "Abwählen",
-  "wordOpen": "Öffnen",
+  "wordOpen": "Offen",
   "wordCreate": "Erstellen",
   "wordConnect": "Verbinden",
   "wordDisconnect": "Trennen",
@@ -483,7 +467,7 @@
   "wordAllow": "Erlauben",
   "wordEnable": "Aktivieren",
   "wordDisable": "Deaktivieren",
-  "wordShow": "Anzeigen",
+  "wordShow": "Show",
   "wordHide": "Verbergen",
   "wordExpand": "Erweitern",
   "wordCollapse": "Einklappen",
@@ -537,7 +521,6 @@
   "wordSay": "Sagen",
   "wordTell": "Erzählen",
   "wordAsk": "Fragen",
-  "wordHelp": "Helfen",
   "wordWait": "Warten",
   "wordStay": "Bleiben",
   "wordCome": "Kommen",
@@ -549,7 +532,7 @@
   "wordLive": "Leben",
   "wordChange": "Ändern",
   "wordTurn": "Drehen",
-  "wordRead": "Lesen",
+  "wordRead": "Gelesen",
   "wordWrite": "Schreiben",
   "wordLearn": "Lernen",
   "wordStudy": "Studieren",
@@ -572,14 +555,13 @@
   "wordDecide": "Entscheiden",
   "wordAgree": "Zustimmen",
   "wordDisagree": "Ablehnen",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Aktiv",
   "wordInactive": "Inaktiv",
   "wordAvailable": "Verfügbar",
   "wordUnavailable": "Nicht verfügbar",
   "wordBusy": "Beschäftigt",
-  "wordAway": "Abwesend",
+  "wordAway": "Weg",
   "wordInvisible": "Unsichtbar",
   "wordOnline": "Online",
   "wordOffline": "Offline",
@@ -633,13 +615,10 @@
   "wordNotDone": "Nicht fertig",
   "wordSent": "Gesendet",
   "wordReceived": "Empfangen",
-  "wordRead": "Gelesen",
   "wordUnread": "Ungelesen",
   "wordSeen": "Gesehen",
   "wordUnseen": "Nicht gesehen",
-  "wordOpen": "Offen",
   "wordClosed": "Geschlossen",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Jetzt",
   "wordLater": "Später",
@@ -681,7 +660,6 @@
   "wordYears": "Jahre",
   "wordSecond": "Sekunde",
   "wordSeconds": "Sekunden",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "Gut",
   "wordBad": "Schlecht",
@@ -806,7 +784,6 @@
   "wordFabulous": "Fabelhaft",
   "wordMagnificent": "Großartig",
   "wordSpectacular": "Spektakulär",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Bitte",
   "wordThanks": "Danke",
@@ -837,7 +814,6 @@
   "wordHaveFun": "Viel Spaß",
   "wordEnjoy": "Genieße",
   "wordCheers": "Prost",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Wer",
   "wordWhat": "Was",
@@ -853,7 +829,6 @@
   "wordHowFar": "Wie weit",
   "wordHowOld": "Wie alt",
   "wordHowOften": "Wie oft",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "Mit",
   "wordWithout": "Ohne",
@@ -877,7 +852,6 @@
   "wordThrough": "Durch",
   "wordAlong": "Entlang",
   "wordToward": "Zu",
-  "wordAway": "Weg",
   "wordBehind": "Hinter",
   "wordAhead": "Voraus",
   "wordFront": "Vorne",
@@ -889,7 +863,6 @@
   "wordCenter": "Zentrum",
   "wordCorner": "Ecke",
   "wordEdge": "Rand",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Schwarm",
   "wordMatch": "Match",
@@ -1005,7 +978,6 @@
   "wordDevoted": "Hingebungsvoll",
   "wordCommitted": "Engagiert",
   "wordCommitment": "Engagement",
-  "wordSerious": "Ernst",
   "wordCasual": "Locker",
   "wordFriendship": "Freundschaft",
   "wordFriend": "Freund",
@@ -1019,7 +991,6 @@
   "wordSeekingFor": "Suche",
   "wordWaiting": "Wartend",
   "wordSearching": "Suchend",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Benachrichtigung",
   "wordAlert": "Warnung",
@@ -1270,7 +1241,6 @@
   "wordMovies": "Filme",
   "wordFilm": "Film",
   "wordFilms": "Filme",
-  "wordShow": "Show",
   "wordShows": "Shows",
   "wordSeries": "Serien",
   "wordBook": "Buch",
@@ -1337,7 +1307,6 @@
   "wordSomething": "Etwas",
   "wordNothing": "Nichts",
   "wordAnything": "Irgendetwas",
-
   "@@_ADDITIONAL_DISAMBIGUATED_WORDS": "Additional words with specific context disambiguation",
   "wordHelpVerb": "Helfen",
   "wordReadStatus": "Gelesen",
@@ -1345,5 +1314,46 @@
   "wordAwayFrom": "Entfernt",
   "wordSeriousRel": "Ernst",
   "wordSettingsNoun": "Einstellungen",
-  "wordShowNoun": "Show"
+  "wordShowNoun": "Show",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

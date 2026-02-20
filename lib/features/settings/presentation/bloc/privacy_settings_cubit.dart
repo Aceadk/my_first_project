@@ -6,8 +6,8 @@ import 'package:crushhour/data/models/privacy_settings.dart';
 
 class PrivacySettingsCubit extends Cubit<ProfilePrivacySettings> {
   PrivacySettingsCubit({required SharedPreferences preferences})
-      : _preferences = preferences,
-        super(_readInitial(preferences));
+    : _preferences = preferences,
+      super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
   static const _storageKey = 'privacy_settings';
@@ -19,7 +19,8 @@ class PrivacySettingsCubit extends Cubit<ProfilePrivacySettings> {
       return ProfilePrivacySettings.fromJson(jsonDecode(json));
     } catch (e) {
       AppLogger.error(
-          'PrivacySettingsCubit: Error parsing saved settings, using defaults: $e');
+        'PrivacySettingsCubit: Error parsing saved settings, using defaults: $e',
+      );
       return const ProfilePrivacySettings();
     }
   }

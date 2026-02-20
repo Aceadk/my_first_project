@@ -16,7 +16,7 @@ class CheckInUseCase extends UseCase<DatePlan, CheckInParams>
   final DatePlanService _service;
 
   CheckInUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(CheckInParams params) {

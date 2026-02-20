@@ -33,8 +33,10 @@ class AppStatePreserver {
 
     _currentRoute = route;
     await _prefs!.setString(_lastRouteKey, route);
-    await _prefs!
-        .setInt(_lastRouteTimestampKey, DateTime.now().millisecondsSinceEpoch);
+    await _prefs!.setInt(
+      _lastRouteTimestampKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
   /// Get the last saved route if it's still valid

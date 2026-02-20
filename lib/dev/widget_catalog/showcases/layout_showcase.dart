@@ -32,10 +32,16 @@ Row(
               _buildRowExample(context, MainAxisAlignment.end, 'end'),
               const SizedBox(height: DsSpacing.sm),
               _buildRowExample(
-                  context, MainAxisAlignment.spaceBetween, 'spaceBetween'),
+                context,
+                MainAxisAlignment.spaceBetween,
+                'spaceBetween',
+              ),
               const SizedBox(height: DsSpacing.sm),
               _buildRowExample(
-                  context, MainAxisAlignment.spaceEvenly, 'spaceEvenly'),
+                context,
+                MainAxisAlignment.spaceEvenly,
+                'spaceEvenly',
+              ),
             ],
           ),
         ),
@@ -55,9 +61,7 @@ Row(
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildFlexChild(context, 'stretch', flex: 1),
-              ],
+              children: [_buildFlexChild(context, 'stretch', flex: 1)],
             ),
           ),
         ),
@@ -78,20 +82,11 @@ Row(
 )''',
           child: Row(
             children: [
-              Expanded(
-                flex: 1,
-                child: _buildFlexChild(context, 'flex: 1'),
-              ),
+              Expanded(flex: 1, child: _buildFlexChild(context, 'flex: 1')),
               const SizedBox(width: DsSpacing.sm),
-              Expanded(
-                flex: 2,
-                child: _buildFlexChild(context, 'flex: 2'),
-              ),
+              Expanded(flex: 2, child: _buildFlexChild(context, 'flex: 2')),
               const SizedBox(width: DsSpacing.sm),
-              Expanded(
-                flex: 1,
-                child: _buildFlexChild(context, 'flex: 1'),
-              ),
+              Expanded(flex: 1, child: _buildFlexChild(context, 'flex: 1')),
             ],
           ),
         ),
@@ -105,9 +100,9 @@ Row(
           codeExample: '''
 Stack(
   children: [
-    Positioned(
+    PositionedDirectional(
       top: 8,
-      left: 8,
+      start: 8,
       child: ...,
     ),
     Center(child: ...),
@@ -121,31 +116,35 @@ Stack(
             ),
             child: Stack(
               children: [
-                Positioned(
+                PositionedDirectional(
                   top: 8,
-                  left: 8,
+                  start: 8,
                   child: _buildPositionedBox(context, 'Top Left', Colors.red),
                 ),
-                Positioned(
+                PositionedDirectional(
                   top: 8,
-                  right: 8,
+                  end: 8,
                   child: _buildPositionedBox(context, 'Top Right', Colors.blue),
                 ),
-                Positioned(
+                PositionedDirectional(
                   bottom: 8,
-                  left: 8,
-                  child:
-                      _buildPositionedBox(context, 'Bottom Left', Colors.green),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
+                  start: 8,
                   child: _buildPositionedBox(
-                      context, 'Bottom Right', Colors.orange),
+                    context,
+                    'Bottom Left',
+                    Colors.green,
+                  ),
                 ),
-                const Center(
-                  child: Text('Center'),
+                PositionedDirectional(
+                  bottom: 8,
+                  end: 8,
+                  child: _buildPositionedBox(
+                    context,
+                    'Bottom Right',
+                    Colors.orange,
+                  ),
                 ),
+                const Center(child: Text('Center')),
               ],
             ),
           ),
@@ -179,7 +178,7 @@ Wrap(
                 'Food',
                 'Gym',
                 'Art',
-                'Books'
+                'Books',
               ])
                 Chip(label: Text(tag)),
             ],
@@ -237,8 +236,10 @@ GridView.count(
                 child: Container(
                   color: Theme.of(context).colorScheme.primary,
                   child: const Center(
-                    child:
-                        Text('100x50', style: TextStyle(color: Colors.white)),
+                    child: Text(
+                      '100x50',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -254,8 +255,10 @@ GridView.count(
                 child: Container(
                   color: Theme.of(context).colorScheme.secondary,
                   child: const Center(
-                    child: Text('Constrained',
-                        style: TextStyle(color: Colors.white)),
+                    child: Text(
+                      'Constrained',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -269,8 +272,10 @@ GridView.count(
                   child: Container(
                     color: Theme.of(context).colorScheme.tertiary,
                     child: const Center(
-                      child:
-                          Text('16:9', style: TextStyle(color: Colors.white)),
+                      child: Text(
+                        '16:9',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -283,7 +288,10 @@ GridView.count(
   }
 
   Widget _buildRowExample(
-      BuildContext context, MainAxisAlignment alignment, String label) {
+    BuildContext context,
+    MainAxisAlignment alignment,
+    String label,
+  ) {
     return Container(
       height: 40,
       decoration: BoxDecoration(

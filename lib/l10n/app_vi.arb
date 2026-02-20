@@ -1,6 +1,5 @@
 {
   "@@locale": "vi",
-
   "@@_COMMON": "Các thành phần UI chung được sử dụng xuyên suốt ứng dụng",
   "commonCancel": "Hủy",
   "commonSave": "Lưu",
@@ -44,7 +43,6 @@
   "commonUnblock": "Bỏ chặn",
   "commonMute": "Tắt tiếng",
   "commonUnmute": "Bật tiếng",
-
   "@@_ERRORS": "Thông báo lỗi",
   "errorGeneric": "Đã xảy ra lỗi. Vui lòng thử lại.",
   "errorNetwork": "Lỗi kết nối. Kiểm tra internet và thử lại.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Không thể {action}. Vui lòng thử lại.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} là tính năng Plus. Nâng cấp để mở khóa!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Nhãn và gợi ý trợ năng",
   "a11yBackButton": "Quay lại",
   "a11yCloseButton": "Đóng",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Ảnh hồ sơ của {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Ảnh đại diện người dùng",
   "a11yAvatarOf": "Ảnh đại diện của {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Chỉnh sửa hồ sơ",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Tin nhắn từ {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 tin nhắn chưa đọc} other{{count} tin nhắn chưa đọc}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Hiện mật khẩu",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "Đã kết đôi! Bạn đã kết đôi với {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "Tin nhắn mới từ {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Đã thích hồ sơ",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Đã siêu thích hồ sơ",
   "a11yMessageSent": "Đã gửi tin nhắn",
   "a11ySettingSaved": "Đã lưu cài đặt",
-
   "@@_AUTH": "Màn hình xác thực",
   "authWelcomeBack": "Chào mừng trở lại",
   "authSignInToContinue": "Đăng nhập để tiếp tục với Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "Chúng tôi đã gửi mã đến {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Nhập mã 6 chữ số",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Nhấp vào liên kết chúng tôi đã gửi để xác minh email của bạn",
   "authEmailVerified": "Xác minh email thành công!",
   "authSkipForNow": "Bỏ qua lúc này",
-
   "@@_SETTINGS": "Màn hình cài đặt",
   "settingsTitle": "Cài đặt",
   "settingsAppearance": "Giao diện",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Hiển thị cho tôi",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Quản lý gói của bạn",
   "settingsGetPlus": "Nhận Crush Plus",
   "settingsRestorePurchases": "Khôi phục giao dịch",
-
   "@@_DISCOVERY": "Màn hình khám phá/Deck",
   "discoveryTitle": "Khám phá",
   "discoveryNoMatchesTitle": "Chưa có kết đôi",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Bạn và {name} đã thích nhau",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Gửi tin nhắn",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Thích bạn",
   "discoveryTopPicks": "Lựa chọn hàng đầu",
   "discoveryNewArrivals": "Mới tham gia",
-
   "@@_CHAT": "Màn hình trò chuyện/Nhắn tin",
   "chatTitle": "Trò chuyện",
   "chatMatches": "Kết đôi",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Bắt đầu cuộc trò chuyện với {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Nhập tin nhắn...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Hoạt động lần cuối {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "đang nhập...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "Bạn đã kết đôi với {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Màn hình hồ sơ",
   "profileTitle": "Hồ sơ",
   "profileEdit": "Chỉnh sửa hồ sơ",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Ngôn ngữ",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Về tôi",
   "profileMyDetails": "Chi tiết của tôi",
   "profileLifestyle": "Lối sống",
-
   "@@_ONBOARDING": "Màn hình giới thiệu",
   "onboardingWelcome": "Chào mừng đến Crush",
   "onboardingTagline": "Tìm người phù hợp hoàn hảo của bạn",
@@ -458,8 +479,12 @@
   "onboardingStep": "Bước {current} / {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "Tên bạn là gì?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Chọn ít nhất 3 sở thích",
   "onboardingAllSet": "Bạn đã sẵn sàng!",
   "onboardingStartSwiping": "Bắt đầu vuốt",
-
   "@@_SUBSCRIPTION": "Màn hình gói đăng ký",
   "subscriptionFree": "Miễn phí",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} lần tăng cường mỗi tháng",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} siêu thích mỗi ngày",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Không quảng cáo",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/tháng",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/năm",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Giá trị tốt nhất",
   "subscriptionMostPopular": "Phổ biến nhất",
-
   "@@_SAFETY": "An toàn và báo cáo",
   "safetyReportUser": "Báo cáo người dùng",
   "safetyBlockUser": "Chặn người dùng",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Chặn {name}?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Họ sẽ không thể xem hồ sơ hoặc nhắn tin cho bạn",
@@ -532,42 +565,46 @@
   "safetySpam": "Spam",
   "safetyScam": "Lừa đảo",
   "safetyOther": "Khác",
-
   "@@_TIME": "Chuỗi liên quan đến thời gian",
   "timeJustNow": "Vừa xong",
   "timeMinutesAgo": "{count, plural, =1{1 phút trước} other{{count} phút trước}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 giờ trước} other{{count} giờ trước}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 ngày trước} other{{count} ngày trước}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 tuần trước} other{{count} tuần trước}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Thông báo trạng thái trống",
   "emptyNoResults": "Không có kết quả",
   "emptyTryAgain": "Thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn",
   "emptyNoData": "Không có dữ liệu",
   "emptyCheckBackLater": "Quay lại sau",
-
   "@@_ADDITIONAL_WORDS": "Các từ phổ biến bổ sung để phát hiện linh hoạt",
-
   "@@_NAV_WORDS": "Các từ điều hướng",
   "wordHome": "Trang chủ",
   "wordExplore": "Khám phá",
@@ -579,7 +616,6 @@
   "wordInbox": "Hộp thư đến",
   "wordFavorites": "Yêu thích",
   "wordHistory": "Lịch sử",
-
   "@@_ACTION_WORDS": "Các từ hành động",
   "wordCopy": "Sao chép",
   "wordPaste": "Dán",
@@ -698,7 +734,6 @@
   "wordDecide": "Quyết định",
   "wordAgree": "Đồng ý",
   "wordDisagree": "Không đồng ý",
-
   "@@_STATUS_WORDS": "Các từ trạng thái",
   "wordActive": "Hoạt động",
   "wordInactive": "Không hoạt động",
@@ -765,7 +800,6 @@
   "wordUnseen": "Chưa xem",
   "wordOpenStatus": "Đang mở",
   "wordClosed": "Đã đóng",
-
   "@@_TIME_WORDS": "Các từ liên quan đến thời gian",
   "wordNow": "Bây giờ",
   "wordLater": "Sau",
@@ -807,7 +841,6 @@
   "wordYears": "Năm",
   "wordSecond": "Giây",
   "wordSeconds": "Giây",
-
   "@@_ADJECTIVE_WORDS": "Các tính từ phổ biến",
   "wordGood": "Tốt",
   "wordBad": "Xấu",
@@ -932,7 +965,6 @@
   "wordFabulous": "Tuyệt vời",
   "wordMagnificent": "Tráng lệ",
   "wordSpectacular": "Ngoạn mục",
-
   "@@_GREETING_WORDS": "Lời chào và biểu cảm lịch sự",
   "wordPlease": "Xin vui lòng",
   "wordThanks": "Cảm ơn",
@@ -963,7 +995,6 @@
   "wordHaveFun": "Chúc vui vẻ",
   "wordEnjoy": "Tận hưởng",
   "wordCheers": "Chúc mừng",
-
   "@@_QUESTION_WORDS": "Các từ hỏi",
   "wordWho": "Ai",
   "wordWhat": "Cái gì",
@@ -979,7 +1010,6 @@
   "wordHowFar": "Bao xa",
   "wordHowOld": "Bao nhiêu tuổi",
   "wordHowOften": "Thường xuyên như thế nào",
-
   "@@_PREPOSITION_WORDS": "Giới từ và vị trí",
   "wordWith": "Với",
   "wordWithout": "Không có",
@@ -1015,7 +1045,6 @@
   "wordCenter": "Trung tâm",
   "wordCorner": "Góc",
   "wordEdge": "Cạnh",
-
   "@@_DATING_WORDS": "Các từ hẹn hò",
   "wordCrush": "Crush",
   "wordMatch": "Kết đôi",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "Đang tìm kiếm",
   "wordWaiting": "Đang chờ",
   "wordSearching": "Đang tìm kiếm",
-
   "@@_COMMON_NOUNS": "Các danh từ phổ biến",
   "wordNotification": "Thông báo",
   "wordAlert": "Cảnh báo",
@@ -1462,5 +1490,46 @@
   "wordEverything": "Mọi thứ",
   "wordSomething": "Điều gì đó",
   "wordNothing": "Không có gì",
-  "wordAnything": "Bất cứ điều gì"
+  "wordAnything": "Bất cứ điều gì",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

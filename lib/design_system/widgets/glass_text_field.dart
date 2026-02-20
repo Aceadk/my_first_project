@@ -125,11 +125,12 @@ class _GlassTextFieldState extends State<GlassTextField> {
     final borderColor = widget.errorText != null
         ? DsColors.error
         : _isFocused
-            ? DsColors.primary
-            : DsGlassColors.borderFor(context);
+        ? DsColors.primary
+        : DsGlassColors.borderFor(context);
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     final hintColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
@@ -158,10 +159,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
         ClipRRect(
           borderRadius: BorderRadius.circular(widget.borderRadius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: widget.blur,
-              sigmaY: widget.blur,
-            ),
+            filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
             child: AnimatedContainer(
               duration: Duration(milliseconds: (200 * motionScale).round()),
               decoration: BoxDecoration(
@@ -202,16 +200,20 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 cursorColor: DsColors.primary,
                 decoration: InputDecoration(
                   hintText: widget.hintText,
-                  hintStyle:
-                      theme.textTheme.bodyLarge?.copyWith(color: hintColor),
+                  hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                    color: hintColor,
+                  ),
                   prefixIcon: widget.prefixIcon != null
                       ? Icon(widget.prefixIcon, color: hintColor, size: 22)
                       : null,
                   suffixIcon: widget.suffixIcon != null
                       ? GestureDetector(
                           onTap: widget.onSuffixTap,
-                          child: Icon(widget.suffixIcon,
-                              color: hintColor, size: 22),
+                          child: Icon(
+                            widget.suffixIcon,
+                            color: hintColor,
+                            size: 22,
+                          ),
                         )
                       : null,
                   border: InputBorder.none,
@@ -273,8 +275,9 @@ class GlassSearchField extends StatelessWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     final hintColor = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 

@@ -16,7 +16,7 @@ class LoadInsightsUseCase extends UseCase<ProfileInsights, LoadInsightsParams>
   final ProfileInsightsService _service;
 
   LoadInsightsUseCase([ProfileInsightsService? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   String? validate(LoadInsightsParams params) {

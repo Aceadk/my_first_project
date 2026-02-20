@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
 plugins {
     // Add the dependency for the Google services Gradle plugin
     id("com.google.gms.google-services") version "4.4.2" apply false
@@ -22,6 +24,13 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+
+    // Third-party Flutter plugins may still compile with deprecated Java APIs.
+    // Suppress javac summary notes (for example "uses or overrides a deprecated API")
+    // emitted by upstream plugin code, without muting normal warnings.
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-XDsuppressNotes=true")
+    }
 }
 
 tasks.register<Delete>("clean") {

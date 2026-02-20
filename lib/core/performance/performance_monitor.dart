@@ -108,7 +108,9 @@ class PerformanceMonitor {
 
       await trace.stop();
     } catch (e) {
-      AppLogger.error('PerformanceMonitor: Failed to log cold start trace - $e');
+      AppLogger.error(
+        'PerformanceMonitor: Failed to log cold start trace - $e',
+      );
     }
   }
 
@@ -371,7 +373,9 @@ class PerformanceMonitor {
 
       await trace.stop();
     } catch (e) {
-      AppLogger.error('PerformanceMonitor: Failed to log sync measurement - $e');
+      AppLogger.error(
+        'PerformanceMonitor: Failed to log sync measurement - $e',
+      );
     }
   }
 

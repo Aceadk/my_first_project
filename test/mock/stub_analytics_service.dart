@@ -323,4 +323,28 @@ class StubAnalyticsService extends AnalyticsService {
   }) async {
     _trackEvent('logError:$errorType');
   }
+
+  @override
+  Future<void> logErrorRecoveryAction({
+    required String action,
+    required String screen,
+    String? errorType,
+  }) async {
+    _trackEvent('logErrorRecoveryAction:$action:$screen');
+  }
+
+  @override
+  Future<void> logErrorRecovered({
+    required String screen,
+    required String action,
+  }) async {
+    _trackEvent('logErrorRecovered:$screen:$action');
+  }
+
+  @override
+  Future<void> logErrorBoundaryTriggered({
+    required String screen,
+  }) async {
+    _trackEvent('logErrorBoundaryTriggered:$screen');
+  }
 }

@@ -96,9 +96,7 @@
 **Description:** One-tap share current date details (location, contact, duration) with trusted contacts. Auto check-in: "I'm safe" or emergency alert.
 **Value:** Critical safety feature for dating apps; builds trust especially for women.
 
-### INNOV-SAFE-003: Content Moderation AI for Chat
-**Description:** AI monitors chat for harassment, unwanted explicit content, and threatening behavior. Warns sender before sending, reports to moderation queue, provides victim support resources.
-**Value:** Safer chat environment; reduces harassment; compliance with platform safety guidelines.
+
 
 ### INNOV-SAFE-004: Background Check Integration
 **Description:** Optional premium feature: run basic background checks (public records, sex offender registry) with user consent. Display safety badge.

@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 
 /// State for profile insights.
 class ProfileInsightsState extends Equatable {
@@ -52,12 +53,12 @@ class ProfileInsightsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        insights,
-        photoPerformance,
-        isLoading,
-        isRefreshing,
-        errorMessage,
-      ];
+    insights,
+    photoPerformance,
+    isLoading,
+    isRefreshing,
+    errorMessage,
+  ];
 }
 
 /// Cubit for managing profile insights state.
@@ -65,9 +66,9 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
   ProfileInsightsCubit({
     required AuthRepository authRepository,
     required ProfileInsightsRepository insightsRepository,
-  })  : _authRepository = authRepository,
-        _service = insightsRepository,
-        super(const ProfileInsightsState()) {
+  }) : _authRepository = authRepository,
+       _service = insightsRepository,
+       super(const ProfileInsightsState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
         _resetState();
@@ -89,25 +90,29 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
       final photoPerformance = _service.getPhotoPerformance();
 
       _subscription?.cancel();
-      _subscription = _service.insightsStream.listen(
-        (updatedInsights) {
-          emit(state.copyWith(
+      _subscription = _service.insightsStream.listen((updatedInsights) {
+        emit(
+          state.copyWith(
             insights: updatedInsights,
             photoPerformance: _service.getPhotoPerformance(),
-          ));
-        },
-      );
+          ),
+        );
+      });
 
-      emit(state.copyWith(
-        insights: insights,
-        photoPerformance: photoPerformance,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          insights: insights,
+          photoPerformance: photoPerformance,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load insights',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: ErrorMessages.loadInsightsFailed,
+        ),
+      );
     }
   }
 
@@ -119,16 +124,20 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
       final insights = await _service.refreshInsights(userId);
       final photoPerformance = _service.getPhotoPerformance();
 
-      emit(state.copyWith(
-        insights: insights,
-        photoPerformance: photoPerformance,
-        isRefreshing: false,
-      ));
+      emit(
+        state.copyWith(
+          insights: insights,
+          photoPerformance: photoPerformance,
+          isRefreshing: false,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isRefreshing: false,
-        errorMessage: 'Failed to refresh insights',
-      ));
+      emit(
+        state.copyWith(
+          isRefreshing: false,
+          errorMessage: ErrorMessages.loadInsightsFailed,
+        ),
+      );
     }
   }
 
@@ -147,15 +156,14 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
         end: end,
       );
 
-      emit(state.copyWith(
-        insights: insights,
-        isLoading: false,
-      ));
+      emit(state.copyWith(insights: insights, isLoading: false));
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load insights for date range',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to load insights for date range',
+        ),
+      );
     }
   }
 

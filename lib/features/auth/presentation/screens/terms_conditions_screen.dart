@@ -124,20 +124,20 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       Text(
                         'Please read and accept',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: DsColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          color: DsColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const Spacer(),
                       if (!_hasScrolledToEnd)
                         Text(
                           'Scroll to continue',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
                         ),
                     ],
                   ),
@@ -148,8 +148,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       value: _hasScrolledToEnd ? 1.0 : 0.5,
                       minHeight: 6,
                       backgroundColor: DsColors.skeletonLight,
-                      valueColor:
-                          const AlwaysStoppedAnimation<Color>(DsColors.primary),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        DsColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -255,7 +256,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                         Center(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: DsColors.success.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -303,16 +306,16 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       decoration: BoxDecoration(
                         color: _hasScrolledToEnd
                             ? (isDark
-                                ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                                : DsColors.inputFillLight)
+                                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                                  : DsColors.inputFillLight)
                             : DsColors.textMutedLight.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _isAgreed
                               ? DsColors.primary
                               : (isDark
-                                  ? DsColors.borderDark
-                                  : DsColors.borderLight),
+                                    ? DsColors.borderDark
+                                    : DsColors.borderLight),
                           width: _isAgreed ? 2 : 1,
                         ),
                       ),
@@ -324,17 +327,18 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                             decoration: BoxDecoration(
                               color: _isAgreed
                                   ? DsColors.primary
-                                  : DsColors.backgroundLight
-                                      .withValues(alpha: 0),
+                                  : DsColors.backgroundLight.withValues(
+                                      alpha: 0,
+                                    ),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
                                 color: _isAgreed
                                     ? DsColors.primary
                                     : (_hasScrolledToEnd
-                                        ? DsColors.primary
-                                        : (isDark
-                                            ? DsColors.borderDark
-                                            : DsColors.borderLight)),
+                                          ? DsColors.primary
+                                          : (isDark
+                                                ? DsColors.borderDark
+                                                : DsColors.borderLight)),
                                 width: 2,
                               ),
                             ),
@@ -350,17 +354,15 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                           Expanded(
                             child: Text(
                               'I have read and agree to the Terms and Conditions and Privacy Policy',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: _hasScrolledToEnd
                                         ? (isDark
-                                            ? DsColors.textPrimaryDark
-                                            : DsColors.textPrimaryLight)
+                                              ? DsColors.textPrimaryDark
+                                              : DsColors.textPrimaryLight)
                                         : (isDark
-                                            ? DsColors.textMutedDark
-                                            : DsColors.textMutedLight),
+                                              ? DsColors.textMutedDark
+                                              : DsColors.textMutedLight),
                                   ),
                             ),
                           ),
@@ -378,8 +380,8 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       child: GlassPrimaryButton(
                         onPressed:
                             (_hasScrolledToEnd && _isAgreed && !_isLoading)
-                                ? _acceptTerms
-                                : null,
+                            ? _acceptTerms
+                            : null,
                         child: _isLoading
                             ? const SizedBox(
                                 width: 24,
@@ -405,10 +407,10 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                     Text(
                       'Please scroll down to read all terms before agreeing',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                 ],
@@ -425,27 +427,26 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsetsDirectional.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? DsColors.textPrimaryDark
-                      : DsColors.textPrimaryLight,
-                ),
+              fontWeight: FontWeight.bold,
+              color: isDark
+                  ? DsColors.textPrimaryDark
+                  : DsColors.textPrimaryLight,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                  height: 1.5,
-                ),
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+              height: 1.5,
+            ),
           ),
         ],
       ),

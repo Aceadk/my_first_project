@@ -21,8 +21,9 @@ class ProfileChipDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final chipBg = isDark ? DsColors.inputFillDark : DsColors.inputFillLight;
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     if (items.isEmpty) {
@@ -54,23 +55,22 @@ class ProfileChipDisplay extends StatelessWidget {
           spacing: DsSpacing.xs,
           runSpacing: DsSpacing.xs,
           children: [
-            ...visibleItems.map((item) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DsSpacing.sm,
-                    vertical: DsSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: chipBg,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: textPrimary,
-                    ),
-                  ),
-                )),
+            ...visibleItems.map(
+              (item) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DsSpacing.sm,
+                  vertical: DsSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: chipBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  item,
+                  style: TextStyle(fontSize: 13, color: textPrimary),
+                ),
+              ),
+            ),
             if (remaining > 0)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -124,8 +124,9 @@ class ProfileFieldDisplay extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Padding(
@@ -134,11 +135,7 @@ class ProfileFieldDisplay extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: 18,
-              color: textMuted,
-            ),
+            Icon(icon, size: 18, color: textMuted),
             const SizedBox(width: DsSpacing.sm),
           ],
           Expanded(
@@ -156,10 +153,7 @@ class ProfileFieldDisplay extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value ?? '-',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 15, color: textPrimary),
                 ),
               ],
             ),

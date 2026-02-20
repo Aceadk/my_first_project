@@ -90,9 +90,7 @@ class CertificatePinning {
   }
 
   /// Creates an HTTP client with strict pinning (always enforced).
-  static http.Client createStrictPinnedClient({
-    Duration? connectionTimeout,
-  }) {
+  static http.Client createStrictPinnedClient({Duration? connectionTimeout}) {
     if (!_hasPinsConfigured) {
       AppLogger.debug(
         'CertificatePinning: Strict pinning requested but no pins are configured.',
@@ -121,7 +119,9 @@ class CertificatePinning {
     // Get the certificate fingerprint
     final fingerprint = _getCertificateFingerprint(cert);
     if (fingerprint == null) {
-      AppLogger.error('CertificatePinning: Failed to compute fingerprint for $host');
+      AppLogger.error(
+        'CertificatePinning: Failed to compute fingerprint for $host',
+      );
       return false;
     }
 

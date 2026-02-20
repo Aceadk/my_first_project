@@ -49,7 +49,7 @@ class CrushThemeEffects extends ThemeExtension<CrushThemeEffects> {
       motionScale: motionScale + (other.motionScale - motionScale) * t,
       primaryGradient:
           LinearGradient.lerp(primaryGradient, other.primaryGradient, t) ??
-              primaryGradient,
+          primaryGradient,
     );
   }
 }

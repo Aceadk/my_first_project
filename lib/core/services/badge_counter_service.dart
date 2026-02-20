@@ -6,6 +6,7 @@ class BadgeCountState extends Equatable {
   const BadgeCountState({
     this.unreadChats = 0,
     this.newMatches = 0,
+    this.unreadNotifications = 0,
   });
 
   /// Total unread chat messages.
@@ -14,21 +15,26 @@ class BadgeCountState extends Equatable {
   /// New matches that haven't been viewed.
   final int newMatches;
 
+  /// Unread in-app notifications.
+  final int unreadNotifications;
+
   /// Total badge count for app icon.
-  int get totalCount => unreadChats + newMatches;
+  int get totalCount => unreadChats + newMatches + unreadNotifications;
 
   BadgeCountState copyWith({
     int? unreadChats,
     int? newMatches,
+    int? unreadNotifications,
   }) {
     return BadgeCountState(
       unreadChats: unreadChats ?? this.unreadChats,
       newMatches: newMatches ?? this.newMatches,
+      unreadNotifications: unreadNotifications ?? this.unreadNotifications,
     );
   }
 
   @override
-  List<Object?> get props => [unreadChats, newMatches];
+  List<Object?> get props => [unreadChats, newMatches, unreadNotifications];
 }
 
 /// Cubit that tracks unread message and match counts for badges.
@@ -50,6 +56,13 @@ class BadgeCounterCubit extends Cubit<BadgeCountState> {
   void updateNewMatches(int count) {
     if (count != state.newMatches) {
       emit(state.copyWith(newMatches: count));
+    }
+  }
+
+  /// Update the unread notifications count.
+  void updateUnreadNotifications(int count) {
+    if (count != state.unreadNotifications) {
+      emit(state.copyWith(unreadNotifications: count));
     }
   }
 

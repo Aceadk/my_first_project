@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 typedef PremiumAction = void Function();
 
@@ -53,10 +53,7 @@ class PlusFeatureGate extends StatelessWidget {
                 children: [
                   const Text(
                     'Crush Plus',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -65,7 +62,7 @@ class PlusFeatureGate extends StatelessWidget {
                     '• Unlimited Likes\n'
                     '• Passport to swipe anywhere\n'
                     '• See who liked you and more.',
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -74,9 +71,9 @@ class PlusFeatureGate extends StatelessWidget {
                       onPressed: isLoading
                           ? null
                           : () {
-                              context
-                                  .read<SubscriptionBloc>()
-                                  .add(PlusCheckoutRequested());
+                              context.read<SubscriptionBloc>().add(
+                                PlusCheckoutRequested(),
+                              );
                             },
                       child: isLoading
                           ? const SizedBox(
@@ -85,7 +82,8 @@ class PlusFeatureGate extends StatelessWidget {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                    DsColors.surfaceLight),
+                                  DsColors.surfaceLight,
+                                ),
                               ),
                             )
                           : const Text('Upgrade to Plus'),

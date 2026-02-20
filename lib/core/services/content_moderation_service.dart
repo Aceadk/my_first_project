@@ -4,6 +4,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:crushhour/core/app_logger.dart';
+
 /// Content moderation service for ensuring user safety.
 /// Provides text and image content analysis, profanity filtering,
 /// and report management.
@@ -157,17 +159,21 @@ class ContentModerationService {
   Future<ContentAnalysisResult> analyzeText(String text) async {
     try {
       final callable = _functions.httpsCallable('moderateTextContent');
-      final result = await callable.call<Map<String, dynamic>>({'content': text});
+      final result = await callable.call<Map<String, dynamic>>({
+        'content': text,
+      });
       final data = result.data;
 
       final isApproved = data['action'] == 'allow';
       final issues = <ContentIssue>[];
       if (!isApproved) {
-        issues.add(ContentIssue(
-          type: _mapIssueType(data['reason']),
-          severity: _mapSeverity(data['severity']),
-          description: data['reason'] ?? 'Content flagged for review',
-        ));
+        issues.add(
+          ContentIssue(
+            type: _mapIssueType(data['reason']),
+            severity: _mapSeverity(data['severity']),
+            description: data['reason'] ?? 'Content flagged for review',
+          ),
+        );
       }
 
       return ContentAnalysisResult(
@@ -176,15 +182,11 @@ class ContentModerationService {
         filteredText: isApproved ? text : filterProfanity(text),
       );
     } on FirebaseFunctionsException catch (e) {
-      if (kDebugMode) {
-        print('Error calling moderateTextContent: ${e.message}');
-      }
+      AppLogger.error('Error calling moderateTextContent', error: e);
       // Fallback to local analysis in case of error
       return _localAnalyzeText(text);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error analyzing text: $e');
-      }
+      AppLogger.error('Error analyzing text', error: e);
       return _localAnalyzeText(text);
     }
   }
@@ -194,42 +196,51 @@ class ContentModerationService {
 
     // Check for profanity
     if (containsProfanity(text)) {
-      issues.add(const ContentIssue(
-        type: ContentIssueType.profanity,
-        severity: ContentSeverity.medium,
-        description: 'Text contains potentially offensive language',
-      ));
+      issues.add(
+        const ContentIssue(
+          type: ContentIssueType.profanity,
+          severity: ContentSeverity.medium,
+          description: 'Text contains potentially offensive language',
+        ),
+      );
     }
 
     // Check for personal information sharing
     if (_containsPersonalInfo(text)) {
-      issues.add(const ContentIssue(
-        type: ContentIssueType.personalInfo,
-        severity: ContentSeverity.high,
-        description: 'Text may contain personal contact information',
-      ));
+      issues.add(
+        const ContentIssue(
+          type: ContentIssueType.personalInfo,
+          severity: ContentSeverity.high,
+          description: 'Text may contain personal contact information',
+        ),
+      );
     }
 
     // Check for spam patterns
     if (_containsSpamPatterns(text)) {
-      issues.add(const ContentIssue(
-        type: ContentIssueType.spam,
-        severity: ContentSeverity.low,
-        description: 'Text shows spam-like patterns',
-      ));
+      issues.add(
+        const ContentIssue(
+          type: ContentIssueType.spam,
+          severity: ContentSeverity.low,
+          description: 'Text shows spam-like patterns',
+        ),
+      );
     }
 
     // Check for harassment indicators
     if (_containsHarassment(text)) {
-      issues.add(const ContentIssue(
-        type: ContentIssueType.harassment,
-        severity: ContentSeverity.high,
-        description: 'Text may contain harassment or threats',
-      ));
+      issues.add(
+        const ContentIssue(
+          type: ContentIssueType.harassment,
+          severity: ContentSeverity.high,
+          description: 'Text may contain harassment or threats',
+        ),
+      );
     }
 
     return ContentAnalysisResult(
-      isApproved: issues.isEmpty ||
+      isApproved:
+          issues.isEmpty ||
           issues.every((i) => i.severity == ContentSeverity.low),
       issues: issues,
       filteredText: filterProfanity(text),
@@ -286,7 +297,8 @@ class ContentModerationService {
   /// Check for spam patterns.
   bool _containsSpamPatterns(String text) {
     // Excessive caps
-    final capsRatio = text
+    final capsRatio =
+        text
             .split('')
             .where((c) => c == c.toUpperCase() && c != c.toLowerCase())
             .length /
@@ -303,10 +315,7 @@ class ContentModerationService {
     }
 
     // URLs (potential external link spam)
-    final urlPattern = RegExp(
-      r'https?://[^\s]+',
-      caseSensitive: false,
-    );
+    final urlPattern = RegExp(r'https?://[^\s]+', caseSensitive: false);
     if (urlPattern.hasMatch(text)) {
       return true;
     }
@@ -347,13 +356,17 @@ class ContentModerationService {
   /// (e.g., Google Cloud Vision, AWS Rekognition, Microsoft Azure Content Moderator)
   Future<ImageModerationResult> analyzeImage(List<int> imageBytes) async {
     try {
-      final storageRef = _storage.ref().child('moderation_images/${DateTime.now().millisecondsSinceEpoch}');
+      final storageRef = _storage.ref().child(
+        'moderation_images/${DateTime.now().millisecondsSinceEpoch}',
+      );
       final uploadTask = storageRef.putData(Uint8List.fromList(imageBytes));
       final snapshot = await uploadTask.whenComplete(() => null);
       final imageUrl = await snapshot.ref.getDownloadURL();
 
       final callable = _functions.httpsCallable('moderateImageContent');
-      final result = await callable.call<Map<String, dynamic>>({'imageUrl': imageUrl});
+      final result = await callable.call<Map<String, dynamic>>({
+        'imageUrl': imageUrl,
+      });
       final data = result.data;
 
       final isApproved = data['action'] == 'allow';
@@ -365,15 +378,21 @@ class ContentModerationService {
         rejectionReason: data['reason'],
       );
     } on FirebaseFunctionsException catch (e) {
-      if (kDebugMode) {
-        print('Error calling moderateImageContent: ${e.message}');
-      }
-      return const ImageModerationResult(isApproved: true, adultScore: 0, violenceScore: 0, racyScore: 0);
+      AppLogger.error('Error calling moderateImageContent', error: e);
+      return const ImageModerationResult(
+        isApproved: true,
+        adultScore: 0,
+        violenceScore: 0,
+        racyScore: 0,
+      );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error analyzing image: $e');
-      }
-      return const ImageModerationResult(isApproved: true, adultScore: 0, violenceScore: 0, racyScore: 0);
+      AppLogger.error('Error analyzing image', error: e);
+      return const ImageModerationResult(
+        isApproved: true,
+        adultScore: 0,
+        violenceScore: 0,
+        racyScore: 0,
+      );
     }
   }
 
@@ -400,16 +419,15 @@ class ContentModerationService {
     // Check for required details based on category
     if (category == ReportCategory.impersonation &&
         !description.toLowerCase().contains('who')) {
-      issues.add('For impersonation reports, please specify who is being impersonated');
+      issues.add(
+        'For impersonation reports, please specify who is being impersonated',
+      );
     }
 
     if (issues.isEmpty) {
       return const ReportValidation(isValid: true, issues: []);
     }
-    return ReportValidation(
-      isValid: false,
-      issues: issues,
-    );
+    return ReportValidation(isValid: false, issues: issues);
   }
 }
 
@@ -430,10 +448,10 @@ class ContentAnalysisResult {
   });
 
   Map<String, dynamic> toJson() => {
-        'isApproved': isApproved,
-        'issues': issues.map((i) => i.toJson()).toList(),
-        'filteredText': filteredText,
-      };
+    'isApproved': isApproved,
+    'issues': issues.map((i) => i.toJson()).toList(),
+    'filteredText': filteredText,
+  };
 }
 
 /// A specific content issue found during analysis.
@@ -449,10 +467,10 @@ class ContentIssue {
   });
 
   Map<String, dynamic> toJson() => {
-        'type': type.name,
-        'severity': severity.name,
-        'description': description,
-      };
+    'type': type.name,
+    'severity': severity.name,
+    'description': description,
+  };
 }
 
 /// Types of content issues.
@@ -469,12 +487,7 @@ enum ContentIssueType {
 }
 
 /// Severity levels for content issues.
-enum ContentSeverity {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum ContentSeverity { low, medium, high, critical }
 
 /// Result of image moderation.
 class ImageModerationResult {
@@ -502,7 +515,8 @@ class ImageModerationResult {
     const violenceThreshold = 0.8;
     const racyThreshold = 0.9;
 
-    final isApproved = adult < adultThreshold &&
+    final isApproved =
+        adult < adultThreshold &&
         violence < violenceThreshold &&
         racy < racyThreshold;
 
@@ -547,10 +561,7 @@ class ReportValidation {
   final bool isValid;
   final List<String> issues;
 
-  const ReportValidation({
-    required this.isValid,
-    required this.issues,
-  });
+  const ReportValidation({required this.isValid, required this.issues});
 }
 
 /// Extension for easy JSON encoding.

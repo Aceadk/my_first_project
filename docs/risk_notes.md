@@ -4,6 +4,232 @@ This document tracks technical, product, security, and architectural risks.
 
 ---
 
+### R-167 — SemanticsHelper Uses Global Locale Instead of App Locale (LOW)
+
+Category: Accessibility / I18N
+Severity: Low
+Description: `semantics_helper.dart` is a static utility with no `BuildContext`, so it uses `intl.Intl.getCurrentLocale()` for date formatting instead of `Localizations.localeOf(context)`. If the user changes the app locale at runtime without restarting, semantics date strings may briefly use the previous locale until the intl default locale is updated.
+Mitigation: The `Intl.defaultLocale` is typically set at app startup and when locale changes. Accessibility strings are not user-visible (screen reader only), so a brief mismatch is not noticeable. The app's locale change via LocaleCubit triggers a full rebuild which re-sets the default locale.
+Status: Accepted
+Owner: AI
+Created: 2026-02-20
+
+---
+
+### R-161 — Location Permission Rationale Timing (LOW)
+
+Category: UX
+Severity: Low
+Description: Location permission rationale is now shown as a bottom sheet after the first frame of ProfileSetupScreen instead of auto-requesting in initState. This introduces a brief moment where the screen renders before the rationale appears.
+Mitigation: The delay is imperceptible (single frame, ~16ms). The rationale sheet is non-dismissible (isDismissible: false, enableDrag: false), ensuring the user must choose Allow or Not Now. If user taps Not Now, they can enable location later in Settings. Discovery still works without location but user won't appear in distance-based results.
+Task: T-2026-02-19-ONBOARD001-002
+
+---
+
+### R-160 — Chat Memory Cap Reduced to 100 Messages (MITIGATED)
+
+Category: UX
+Severity: Low
+Description: `_maxMessagesInMemory` reduced from 200 to 100 for virtualization. Very active chats may trim context faster.
+Mitigation: Scroll-based pagination reloads trimmed messages. Page size increased to 50 for smoother experience.
+Task: T-2026-02-19-10
+
+### R-159 — Enter-to-Send on External Keyboard (LOW)
+
+Category: UX
+Severity: Low
+Description: iPad external keyboard users may expect Enter to insert newline (not send). Our behavior: Enter=send, Shift+Enter=newline (matches WhatsApp/Telegram desktop).
+Mitigation: Consistent with major chat apps. Shift+Enter available for newline. Documented in future onboarding.
+Task: T-2026-02-19-10
+
+### R-158 — iPad Split-View ChatScreen Inline Rendering (MITIGATED)
+
+Category: Architecture
+Severity: Medium
+Description: ChatScreen rendered inline as child of ChatListScreen's Row on iPad. BLoC lifecycle must properly reset when switching conversations.
+Mitigation: `ValueKey(_selectedChat!.matchId)` forces full rebuild on conversation switch. ChatScreen disposes old BLoC and creates new one via ChatOpened event.
+Task: T-2026-02-19-10
+
+### R-157 — Notification Image Download May Delay Foreground Display (LOW)
+
+Category: Performance
+Severity: Low
+Description: `_showLocalNotification` downloads images via HTTP before displaying the notification. On slow connections, this could delay notification appearance.
+Mitigation: Falls back to text-only notification if download fails. HttpClient used with standard timeout.
+
+---
+
+### R-156 — flushNotificationQueue Runs Every 60 Minutes (LOW)
+
+Category: UX
+Severity: Low
+Description: Queued notifications (from quiet hours) are flushed via Cloud Functions scheduled every 60 minutes. Users may experience up to 60min delay after quiet hours end.
+Mitigation: Acceptable trade-off for V1. Can reduce to 15min if UX feedback warrants it.
+
+---
+
+### R-155 — iOS Notification Service Extension Requires Xcode Target Setup (MANUAL)
+
+Category: Build
+Severity: Medium
+Description: The iOS NSE source files (`ios/NotificationServiceExtension/NotificationService.swift` + `Info.plist`) are created but the Xcode project target must be added manually by the developer.
+Mitigation: Files are ready to use. Developer needs to: 1) Add new Notification Service Extension target in Xcode, 2) Point to existing source files, 3) Set deployment target to match app, 4) Add to same App Group.
+
+---
+
+### R-154 — ImageOptimizer Uses PNG Encoding Instead of JPEG (KNOWN)
+
+Category: Performance
+Severity: Low (KNOWN)
+- `dart:ui` only supports PNG encoding natively (no JPEG encoder in Dart SDK)
+- Optimized images are resized and EXIF-stripped but encoded as PNG (lossless, larger than JPEG)
+- For production: recommend server-side re-compression to JPEG/WebP after upload
+- Current benefit: resize from 12MP→2048px and EXIF removal still provides significant size reduction
+
+---
+
+### R-153 — Chat Message Memory Cap May Trim Visible Context (MITIGATED)
+
+Category: Performance/UX
+Severity: Low (MITIGATED)
+- Chat messages capped at 200 in memory to prevent unbounded growth
+- When receiving new messages, oldest are trimmed; when loading more, newest are trimmed
+- Risk: rapid scrolling between old and new messages could cause context loss
+- Mitigated: 200 is generous (6.6 pages of 30), trimmed messages re-fetchable via pagination
+- User leaving and re-entering chat resets to fresh 30 messages
+
+---
+
+### R-152 — ErrorBoundary Analytics Calls in Test Context (MITIGATED)
+
+Category: Testing
+Severity: Low (MITIGATED)
+- ErrorBoundary now calls AnalyticsService on reportError/retry/goHome
+- Tests must install StubAnalyticsService via setUpAll to avoid FirebaseException
+- Already handled: test/error_boundary_test.dart has setUp/tearDown
+- Risk: New tests using ErrorBoundary without stub will fail — pattern documented
+
+---
+
+### R-151 — Circuit Breaker State Lost on App Restart (EXPECTED)
+
+Category: Architecture
+Severity: Low (EXPECTED)
+- CircuitBreakerRegistry is in-memory only — resets on cold start
+- This is intentional: ensures fresh start, avoids persisting stale state
+- If persistent circuit state is needed later, add SharedPreferences backing
+
+---
+
+### R-150 — ConnectivityCubit DNS Polling in Restricted Environments (MITIGATED)
+
+Category: Reliability
+Severity: Low (MITIGATED)
+- Uses InternetAddress.lookup('dns.google') which may fail in:
+  - Airplane mode (SocketException — handled)
+  - DNS-blocking VPNs (may appear offline when online)
+  - China/restricted networks (dns.google blocked)
+- Mitigation: All exceptions caught → defaults to offline. Host is configurable.
+- Future: Consider fallback to connectivity_plus package for native API checks.
+
+---
+
+### R-147 — BoostCubit User ID Persisted After Logout (FIXED)
+
+Category: Security
+Severity: Medium (FIXED)
+Description: BoostCubit held `_userId` after logout. If another user logged in, boost API calls could reference the old user until `initialize()` was called again.
+Mitigation: Added `authStateChanges()` listener that clears `_userId`, cancels timers, and resets state on logout.
+Status: RESOLVED — Auth listener added in STATE-007 implementation.
+
+---
+
+### R-148 — SubscriptionBloc Held Stale Plan After Logout (FIXED)
+
+Category: Security
+Severity: Medium (FIXED)
+Description: SubscriptionBloc continued watching the old user's plan stream after logout. State could show Plus features for a Free user.
+Mitigation: Added `authStateChanges()` listener that cancels the plan watcher and resets to `SubscriptionPlan.free` on logout.
+Status: RESOLVED — Auth listener and SubscriptionResetRequested event added in STATE-007 implementation.
+
+---
+
+### R-149 — Foreground Resume Refresh Could Race With Active Operations
+
+Category: Performance
+Severity: Low
+Description: When app resumes from background, `_refreshOnResume()` triggers SubscriptionRestoreRequested and ProfileLoadRequested. If the user was already mid-operation (e.g., saving profile), the refresh could interfere.
+Mitigation: 30-second debounce prevents rapid-fire refreshes. Both BLoC handlers are idempotent. ProfileLoadRequested only loads if no save is in progress. SubscriptionRestoreRequested is a read-only operation.
+Status: ACCEPTED — Low risk, mitigations adequate.
+
+---
+
+### R-144 — In-Memory Rate Limiter Resets on Cloud Functions Cold Start
+
+Category: Security
+Severity: Low
+Status: Accepted
+
+**Risk:** Express rate limiter uses in-memory `Map` which resets on Cloud Functions cold start. Attacker could time requests to exploit cold starts.
+**Mitigation:** Acceptable for serverless. Provides best-effort protection for normal usage patterns. Callable functions use persistent Firestore-based `applyRateLimit()`. For stronger enforcement, consider Redis (Memorystore) in production.
+
+---
+
+### R-145 — Firestore Backup Bucket Requires Manual Creation
+
+Category: Operations / Data Loss
+Severity: Medium
+Status: Open
+
+**Risk:** `scheduledFirestoreBackup` function will fail until the backup bucket (`{projectId}-firestore-backups`) is manually created in GCP Console with 30-day lifecycle policy.
+**Mitigation:** Document bucket creation in deployment checklist. Function logs errors but doesn't crash. Create bucket with: `gsutil mb gs://{projectId}-firestore-backups && gsutil lifecycle set lifecycle.json gs://{projectId}-firestore-backups`.
+
+---
+
+### R-146 — Legacy Chat Media Storage Path Now Blocked
+
+Category: Compatibility
+Severity: Medium
+Status: Accepted
+
+**Risk:** Legacy `chats/{matchId}/` storage path now returns 403 for all operations. Any older clients using direct storage reads will fail.
+**Mitigation:** Current app code uses `getChatMediaSignedUrl` Cloud Function for cross-user access and `chat_media/` path for uploads. Legacy path was insecure (any authenticated user could read). Migration is intentional — verify no clients still reference the old path.
+
+---
+
+### R-141 — Clipboard Auto-Clear Timer Lost on App Kill
+
+Category: Security / Privacy
+Severity: Low
+Status: Accepted
+
+**Risk:** `SecureClipboard` uses a Dart `Timer` for 60s auto-clear. If the app is killed before the timer fires, clipboard content persists.
+**Mitigation:** Acceptable trade-off. Users can manually clear clipboard. No persistent sensitive data (chat messages are ephemeral). The timer provides best-effort privacy protection.
+
+---
+
+### R-142 — Root/Jailbreak Detection Heuristics Bypassable
+
+Category: Security
+Severity: Low
+Status: Accepted
+
+**Risk:** `DeviceIntegrityService` uses file-path heuristics that sophisticated users can bypass (e.g., Magisk Hide, path relocation).
+**Mitigation:** Detection is informational only — does not block app usage. Results logged for fraud analytics. Consider server-side attestation (Play Integrity / App Attest via App Check) for stronger protection.
+
+---
+
+### R-143 — FLAG_SECURE Not Implemented for Sensitive Screens
+
+Category: Privacy
+Severity: Medium
+Status: Open
+
+**Risk:** Android `FLAG_SECURE` (screenshot/screen recording prevention) not yet applied to chat or profile screens. Users' private conversations could be screen-captured.
+**Mitigation:** Deferred to future iteration. Requires platform channel implementation. Chat content is user-generated and not credentials, so risk is moderate.
+
+---
+
 ### R-131 — Discovery browsing no longer requires email verification (Cloud Function)
 
 Category: Security / Auth
@@ -1449,7 +1675,7 @@ Created: 2026-02-19
 
 ---
 
-### R-136 — ChatScreen Has Zero Accessibility (3,230 Lines, 0 Semantics Calls)
+### R-136 — ChatScreen Has Zero Accessibility (3,230 Lines, 0 Semantics Calls) (PARTIALLY MITIGATED)
 
 Category: Accessibility / Compliance
 
@@ -1458,17 +1684,97 @@ ChatScreen at 3,230 lines is the largest file in the codebase and has ZERO Seman
 
 Impact: High (accessibility compliance, user exclusion)
 
-Likelihood: High (confirmed — grep for Semantics in chat_screen.dart returns 0 results)
+Likelihood: Medium (reduced — 9 chat widgets now have Semantics, but ChatScreen itself still needs work)
 
 Affected Areas:
-* lib/features/chat/presentation/screens/chat_screen.dart (3,230 lines)
-* All chat-related widgets
+* lib/features/chat/presentation/screens/chat_screen.dart (3,230 lines) — still needs Semantics
+* ~~Chat-related widgets~~ — RESOLVED: 9 widgets now have proper Semantics wrappers
 
-Mitigation Plan:
-* See TODO_ACCESSIBILITY.md (A11Y-001, A11Y-002) for semantic labels and focus management
-* See TODO_CHAT_UI.md (CHAT-UI-003) for chat-specific accessibility
-* Priority: Add Semantics to message bubbles, input bar, send button, action sheets
-* Add live region announcements for new messages
+Partial Resolution (2026-02-19):
+* ✅ Added Semantics to 9 chat widgets: typing indicator, reaction button, attachment tile, date separator, voice note player, voice note recorder, send status bar, fade notification, empty state
+* ✅ Added semanticLabel parameter to all 5 GlassButton variants
+* ✅ Added live region announcements for dynamic content (typing, upload status, notifications)
+* ✅ Added reduced motion support to 4 animation widgets
+* ✅ Added DsContrastColors for glass fallback colors
+* ✅ Added DsTextScaleCap for text scaling (max 2.0x)
+* ✅ Added DsFocusTraversalScreen for keyboard navigation
+* ⏳ ChatScreen itself (3,230 lines) still needs Semantics on message bubbles, input bar, action sheets
+
+Remaining Work:
+* See TODO_CHAT_UI.md (CHAT-UI-003) for chat-screen-specific accessibility
+* Priority: Add Semantics to message bubbles, input bar, send button, action sheets in ChatScreen
+
+Status: Partially Mitigated
+
+Owner: AI
+
+Created: 2026-02-19
+Updated: 2026-02-19
+
+---
+
+### R-138 — Biometric Auth Emulator/Simulator Behavior
+
+Category: Security / Testing
+
+Description:
+Biometric authentication (local_auth v3.0.0) may behave differently on emulators/simulators vs real devices. iOS Simulator supports Face ID simulation but Android emulators may not always support fingerprint simulation correctly.
+
+Impact: Low (development/testing only)
+
+Likelihood: Medium (emulators are primary test environment)
+
+Mitigation:
+* Always test biometric flows on physical devices before release
+* BiometricCubit handles `unavailable` state gracefully (skips biometric gate)
+
+Status: Open (monitoring)
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-139 — Age Validation Gap for Direct Firestore Writes
+
+Category: Security / Compliance
+
+Description:
+Server-side age validation (`validateMinimumAge()`) is enforced on the REST `PATCH /v1/profile/me` endpoint but NOT on direct Firestore writes from the mobile app. A user with Firestore access could potentially bypass the 18+ restriction by writing directly to their profile document.
+
+Impact: Medium (compliance violation if bypassed)
+
+Likelihood: Low (requires Firestore security rules bypass or direct SDK access)
+
+Mitigation:
+* Client-side DOB picker already prevents selecting dates making user < 18
+* Add Firestore security rules or a Firestore trigger to validate DOB on write
+* Consider moving all profile writes through the REST API
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-140 — Apple Revocation JWT Not Cryptographically Verified
+
+Category: Security
+
+Description:
+The Apple credential revocation webhook at `/v1/auth/apple/revocation` parses the JWT payload from Apple's server-to-server notification but does not cryptographically verify the JWT signature against Apple's public keys. An attacker could forge a revocation request.
+
+Impact: Medium (could deactivate arbitrary accounts if endpoint is discovered)
+
+Likelihood: Low (endpoint not publicly documented, requires knowledge of user Apple UIDs)
+
+Mitigation:
+* Endpoint is obscure and requires specific Apple user sub claims
+* Before production deployment: add Apple public key fetching and JWT signature verification
+* Consider IP allowlisting for Apple's server IPs
 
 Status: Open
 
@@ -1498,7 +1804,87 @@ Mitigation Plan:
 * See TODO_RESPONSIVE_DESIGN.md (RESP-001 through RESP-008) for responsive design tasks
 * Priority: Start with core flows (auth, discovery, chat, profile) then secondary screens
 
-Status: Open
+Status: Partially Mitigated (RESP-001–008 complete, 21/56 screens responsive)
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-161: NavigationRail state preservation on window resize
+
+Severity: Low
+
+Description: When resizing the window between mobile and tablet breakpoints, the NavigationRail replaces GlassBottomNavBar. The selected index is preserved via _index in StatefulWidget state, so no state loss occurs. However, rapid resizing during animations could theoretically cause layout jank.
+
+Mitigation: _index is held in StatefulWidget state, surviving rebuilds. LayoutBuilder only triggers rebuild on actual constraint changes. No animation state is tied to navigation mode.
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-162: Content clipping on very narrow tablet in split-view
+
+Severity: Low
+
+Description: On iPad in split-view mode, the available width may be between 320-500px, which is above the phone size but narrower than normal tablet. Content constrained to contentMaxWidth could still be appropriate since DsBreakpoints.isMobile returns true for widths <600px, falling back to unconstrained layout.
+
+Mitigation: DsBreakpoints.isMobile threshold at 600px ensures split-view narrow layouts use mobile (unconstrained) mode. No clipping expected.
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-164: ExploreGridView shows same deck profiles
+
+Severity: Low
+
+Description: ExploreGridView shows profiles from filteredDeck starting at currentIndex. When the user swipes in deck (swipe) mode, those profiles are consumed and the index advances. If the user switches to explore mode, the grid reflects the remaining profiles. If a profile is tapped and liked from the full profile view, the discovery bloc doesn't currently advance the deck index — the user returns to the grid with the same profile still visible.
+
+Mitigation: Profiles in the grid are for browsing; the full profile view (OtherUserProfileArgs) handles like/pass. The deck index only advances on swipe events, not profile view actions. This is by design — the grid is a browse view, not a swipe replacement.
+
+Status: Accepted
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-165: Keyboard shortcuts may conflict with web scroll
+
+Severity: Low
+
+Description: Arrow key shortcuts (← → ↑ ↓) in deck_screen could conflict with browser/system scroll behavior on web platform. The Focus widget captures KeyDownEvent before propagation, but on web, some browsers may still intercept arrow keys for page scrolling.
+
+Mitigation: Focus widget with autofocus captures events first. On web, this is standard behavior for focused interactive widgets. If issues arise, can add platform check to disable on web.
+
+Status: Mitigated
+
+Owner: AI
+
+Created: 2026-02-19
+
+---
+
+### R-166: Video timeout may be aggressive on slow connections
+
+Severity: Low
+
+Description: 10-second timeout on video initialization may trigger on slow cellular connections, showing "Video unavailable" prematurely.
+
+Mitigation: 10 seconds is generous for most connections. Fallback shows first photo instead of infinite spinner, which is better UX. User can navigate to next media slot and back to retry.
+
+Status: Accepted
 
 Owner: AI
 

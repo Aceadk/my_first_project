@@ -149,10 +149,7 @@ class WebSocketConnection {
 
   /// Send a typed event.
   void sendEvent(RealtimeEvent event) {
-    send({
-      'type': event.type,
-      ...event.toJson(),
-    });
+    send({'type': event.type, ...event.toJson()});
   }
 
   void _onMessage(dynamic data) {
@@ -209,7 +206,7 @@ class WebSocketConnection {
       if (isConnected) {
         send({
           'type': 'ping',
-          'timestamp': DateTime.now().millisecondsSinceEpoch
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
         });
       }
     });
@@ -231,7 +228,8 @@ class WebSocketConnection {
     // Exponential backoff with jitter
     final delay = _calculateReconnectDelay();
     AppLogger.debug(
-        'WebSocketConnection: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectCount + 1}/$reconnectAttempts)');
+      'WebSocketConnection: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectCount + 1}/$reconnectAttempts)',
+    );
 
     _reconnectTimer = Timer(delay, () {
       _reconnectCount++;
@@ -292,13 +290,13 @@ class MessageReceivedEvent extends RealtimeEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversation_id': conversationId,
-        'message_id': messageId,
-        'sender_id': senderId,
-        'content': content,
-        'message_type': messageType,
-        if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
-      };
+    'conversation_id': conversationId,
+    'message_id': messageId,
+    'sender_id': senderId,
+    'content': content,
+    'message_type': messageType,
+    if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
+  };
 
   factory MessageReceivedEvent.fromJson(Map<String, dynamic> json) {
     return MessageReceivedEvent(
@@ -331,10 +329,10 @@ class TypingEvent extends RealtimeEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversation_id': conversationId,
-        'user_id': userId,
-        'is_typing': isTyping,
-      };
+    'conversation_id': conversationId,
+    'user_id': userId,
+    'is_typing': isTyping,
+  };
 
   factory TypingEvent.fromJson(Map<String, dynamic> json) {
     return TypingEvent(
@@ -362,10 +360,10 @@ class ReadReceiptEvent extends RealtimeEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'conversation_id': conversationId,
-        'user_id': userId,
-        'last_read_message_id': lastReadMessageId,
-      };
+    'conversation_id': conversationId,
+    'user_id': userId,
+    'last_read_message_id': lastReadMessageId,
+  };
 
   factory ReadReceiptEvent.fromJson(Map<String, dynamic> json) {
     return ReadReceiptEvent(
@@ -393,10 +391,10 @@ class PresenceEvent extends RealtimeEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'user_id': userId,
-        'is_online': isOnline,
-        if (lastSeen != null) 'last_seen': lastSeen!.toIso8601String(),
-      };
+    'user_id': userId,
+    'is_online': isOnline,
+    if (lastSeen != null) 'last_seen': lastSeen!.toIso8601String(),
+  };
 
   factory PresenceEvent.fromJson(Map<String, dynamic> json) {
     return PresenceEvent(
@@ -430,12 +428,12 @@ class NewMatchEvent extends RealtimeEvent {
 
   @override
   Map<String, dynamic> toJson() => {
-        'match_id': matchId,
-        'matched_user_id': matchedUserId,
-        if (matchedUserName != null) 'matched_user_name': matchedUserName,
-        if (matchedUserPhoto != null) 'matched_user_photo': matchedUserPhoto,
-        'is_super_like': isSuperLike,
-      };
+    'match_id': matchId,
+    'matched_user_id': matchedUserId,
+    if (matchedUserName != null) 'matched_user_name': matchedUserName,
+    if (matchedUserPhoto != null) 'matched_user_photo': matchedUserPhoto,
+    'is_super_like': isSuperLike,
+  };
 
   factory NewMatchEvent.fromJson(Map<String, dynamic> json) {
     return NewMatchEvent(

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 
 void main() {
   group('WeeklyPicksService', () {

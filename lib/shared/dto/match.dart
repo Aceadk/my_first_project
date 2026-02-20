@@ -47,13 +47,13 @@ class CrushMatch extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        otherUserId,
-        status,
-        preMatchMessageRequestsCount,
-        pinnedForUser,
-        otherUserName,
-        otherUserPhotoUrl,
-      ];
+    id,
+    userId,
+    otherUserId,
+    status,
+    preMatchMessageRequestsCount,
+    pinnedForUser,
+    otherUserName,
+    otherUserPhotoUrl,
+  ];
 }

@@ -125,17 +125,17 @@ class ProfileFavourites extends Equatable {
 
   @override
   List<Object?> get props => [
-        athlete,
-        food,
-        sport,
-        tvShow,
-        actor,
-        singer,
-        movie,
-        book,
-        hobby,
-        travelDestination,
-      ];
+    athlete,
+    food,
+    sport,
+    tvShow,
+    actor,
+    singer,
+    movie,
+    book,
+    hobby,
+    travelDestination,
+  ];
 }
 
 /// Curated lists of popular options for favourites

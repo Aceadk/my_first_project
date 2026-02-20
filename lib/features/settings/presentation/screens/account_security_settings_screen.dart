@@ -6,6 +6,7 @@ import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart
 import 'package:crushhour/features/auth/domain/repositories/linked_accounts_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
@@ -181,438 +182,476 @@ class _AccountSecuritySettingsScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Account Security')),
-      body: ListView(
-        children: [
-          // Header
-          Container(
-            padding: DsEdgeInsets.allLg,
-            margin: DsEdgeInsets.allLg,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  DsColors.success.withValues(alpha: 0.1),
-                  DsColors.accent.withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
             ),
-            child: Row(
+            child: ListView(
               children: [
+                // Header
                 Container(
-                  padding: DsEdgeInsets.allMd,
+                  padding: DsEdgeInsets.allLg,
+                  margin: DsEdgeInsets.allLg,
                   decoration: BoxDecoration(
-                    color: DsColors.success.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [
+                        DsColors.success.withValues(alpha: 0.1),
+                        DsColors.accent.withValues(alpha: 0.1),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(
-                    Icons.shield_outlined,
-                    color: DsColors.success,
-                    size: 28,
-                  ),
-                ),
-                DsGap.lgH,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        'Protect Your Account',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      Container(
+                        padding: DsEdgeInsets.allMd,
+                        decoration: BoxDecoration(
+                          color: DsColors.success.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.shield_outlined,
+                          color: DsColors.success,
+                          size: 28,
+                        ),
                       ),
-                      DsGap.xs,
-                      Text(
-                        'Add extra layers of security to keep your account safe.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
+                      DsGap.lgH,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Protect Your Account',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            DsGap.xs,
+                            Text(
+                              'Add extra layers of security to keep your account safe.',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? DsColors.textMutedDark
+                                        : DsColors.textMutedLight,
+                                  ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
+                // Email status card
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Container(
+                    padding: DsEdgeInsets.allMd,
+                    decoration: BoxDecoration(
+                      color: hasEmail
+                          ? (emailVerified
+                                ? DsColors.success.withValues(alpha: 0.1)
+                                : DsColors.warning.withValues(alpha: 0.1))
+                          : DsColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: hasEmail
+                            ? (emailVerified
+                                  ? DsColors.success.withValues(alpha: 0.3)
+                                  : DsColors.warning.withValues(alpha: 0.3))
+                            : DsColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          hasEmail
+                              ? (emailVerified
+                                    ? Icons.check_circle_outline
+                                    : Icons.warning_amber_outlined)
+                              : Icons.error_outline,
+                          color: hasEmail
+                              ? (emailVerified
+                                    ? DsColors.success
+                                    : DsColors.warning)
+                              : DsColors.error,
+                        ),
+                        DsGap.mdH,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasEmail
+                                    ? (emailVerified
+                                          ? 'Email verified'
+                                          : 'Email not verified')
+                                    : 'No email added',
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: hasEmail
+                                          ? (emailVerified
+                                                ? DsColors.success
+                                                : DsColors.warning)
+                                          : DsColors.error,
+                                    ),
+                              ),
+                              if (hasEmail) ...[
+                                DsGap.xs,
+                                Text(
+                                  currentEmail,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                      ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                DsGap.md,
+                // Phone status card
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Container(
+                    padding: DsEdgeInsets.allMd,
+                    decoration: BoxDecoration(
+                      color: hasPhone
+                          ? (phoneVerified
+                                ? DsColors.success.withValues(alpha: 0.1)
+                                : DsColors.warning.withValues(alpha: 0.1))
+                          : DsColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: hasPhone
+                            ? (phoneVerified
+                                  ? DsColors.success.withValues(alpha: 0.3)
+                                  : DsColors.warning.withValues(alpha: 0.3))
+                            : DsColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          hasPhone
+                              ? (phoneVerified
+                                    ? Icons.check_circle_outline
+                                    : Icons.warning_amber_outlined)
+                              : Icons.error_outline,
+                          color: hasPhone
+                              ? (phoneVerified
+                                    ? DsColors.success
+                                    : DsColors.warning)
+                              : DsColors.error,
+                        ),
+                        DsGap.mdH,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasPhone
+                                    ? (phoneVerified
+                                          ? 'Phone verified'
+                                          : 'Phone not verified')
+                                    : 'No phone added',
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: hasPhone
+                                          ? (phoneVerified
+                                                ? DsColors.success
+                                                : DsColors.warning)
+                                          : DsColors.error,
+                                    ),
+                              ),
+                              if (hasPhone) ...[
+                                DsGap.xs,
+                                Text(
+                                  _maskPhoneNumber(currentPhone),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                      ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                DsGap.lg,
+                // Security options
+                _SecurityTile(
+                  icon: emailVerified
+                      ? Icons.verified_outlined
+                      : Icons.email_outlined,
+                  iconColor: emailVerified ? DsColors.success : DsColors.info,
+                  title: emailVerified
+                      ? 'Email protection (Locked)'
+                      : 'Email protection',
+                  subtitle: hasEmail
+                      ? (emailVerified
+                            ? 'Verified and locked'
+                            : 'Verify your email')
+                      : 'Add an email for recovery and OTP',
+                  locked: emailVerified,
+                  onTap: () => context.push(CrushRoutes.emailProtection),
+                ),
+                _SecurityTile(
+                  icon: phoneVerified
+                      ? Icons.verified_outlined
+                      : Icons.phone_outlined,
+                  iconColor: phoneVerified ? DsColors.success : DsColors.info,
+                  title: phoneVerified
+                      ? 'Phone protection (Locked)'
+                      : 'Phone protection',
+                  subtitle: hasPhone
+                      ? (phoneVerified
+                            ? 'Verified and locked'
+                            : 'Verify your phone')
+                      : 'Add a phone number for security',
+                  locked: phoneVerified,
+                  onTap: () => context.push(CrushRoutes.phoneProtection),
+                ),
+                // Biometric authentication toggle
+                BlocConsumer<BiometricCubit, BiometricState>(
+                  listenWhen: (previous, current) =>
+                      previous.errorMessage != current.errorMessage &&
+                      current.errorMessage != null &&
+                      current.errorMessage!.isNotEmpty,
+                  listener: (context, state) {
+                    final message = state.errorMessage;
+                    if (message != null && message.isNotEmpty) {
+                      _showSnack(message);
+                    }
+                  },
+                  builder: (context, biometricState) {
+                    // Only show if device supports biometrics
+                    if (biometricState.status == BiometricStatus.unavailable) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final isEnabled =
+                        biometricState.status != BiometricStatus.disabled &&
+                        biometricState.status != BiometricStatus.initial &&
+                        biometricState.status != BiometricStatus.checking &&
+                        biometricState.status != BiometricStatus.unavailable;
+
+                    return _SecurityTile(
+                      icon: biometricState.biometricTypeName == 'Face ID'
+                          ? Icons.face
+                          : Icons.fingerprint,
+                      iconColor: isEnabled ? DsColors.success : DsColors.info,
+                      title: '${biometricState.biometricTypeName} Lock',
+                      subtitle: isEnabled
+                          ? 'Unlock Crush with ${biometricState.biometricTypeName}'
+                          : 'Require ${biometricState.biometricTypeName} to open Crush',
+                      trailing: Switch.adaptive(
+                        value: isEnabled,
+                        activeTrackColor: DsColors.primary,
+                        onChanged: (value) {
+                          if (value) {
+                            context.read<BiometricCubit>().enable();
+                          } else {
+                            context.read<BiometricCubit>().disable();
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+                DsGap.lg,
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Text(
+                    'Linked Accounts',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DsGap.sm,
+                _LinkedAccountTile(
+                  icon: Icons.email_outlined,
+                  provider: 'Email',
+                  status: hasEmail
+                      ? (emailVerified
+                            ? 'Linked · Verified'
+                            : 'Linked · Unverified')
+                      : 'Not linked',
+                  isLinked: hasEmail,
+                  actionLabel: hasEmail ? 'Manage' : 'Link',
+                  onAction: () {
+                    if (hasEmail) {
+                      context.push(CrushRoutes.emailProtection);
+                      return;
+                    }
+                    _showSnack('Add and verify an email in Email Protection.');
+                  },
+                  onUnlink: hasEmail
+                      ? () {
+                          if (linkedRecoveryCount <= 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Cannot unlink the last recovery method. Add another provider first.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          context.push(CrushRoutes.emailProtection);
+                        }
+                      : null,
+                ),
+                _LinkedAccountTile(
+                  icon: Icons.phone_outlined,
+                  provider: 'Phone',
+                  status: hasPhone
+                      ? (phoneVerified
+                            ? 'Linked · Verified'
+                            : 'Linked · Unverified')
+                      : 'Not linked',
+                  isLinked: hasPhone,
+                  actionLabel: hasPhone ? 'Manage' : 'Link',
+                  onAction: () {
+                    if (hasPhone) {
+                      context.push(CrushRoutes.phoneProtection);
+                      return;
+                    }
+                    _showSnack('Add and verify a phone in Phone Protection.');
+                  },
+                  onUnlink: hasPhone
+                      ? () {
+                          if (linkedRecoveryCount <= 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Cannot unlink the last recovery method. Add another provider first.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          context.push(CrushRoutes.phoneProtection);
+                        }
+                      : null,
+                ),
+                _LinkedAccountTile(
+                  icon: Icons.g_mobiledata,
+                  provider: 'Google',
+                  status: _isLoadingLinkedProviders
+                      ? 'Checking...'
+                      : (googleLinked ? 'Linked' : 'Not linked'),
+                  isLinked: googleLinked,
+                  actionLabel: googleLinked ? 'Linked' : 'Link',
+                  isBusy:
+                      _busyProviderId == LinkedAuthProvider.google.providerId,
+                  onAction: googleLinked
+                      ? () => _showSnack('Google is already linked.')
+                      : () => _handleLinkProvider(LinkedAuthProvider.google),
+                  onUnlink: googleLinked
+                      ? () => _handleUnlinkProvider(
+                          LinkedAuthProvider.google,
+                          linkedRecoveryCount: linkedRecoveryCount,
+                        )
+                      : null,
+                ),
+                _LinkedAccountTile(
+                  icon: Icons.apple,
+                  provider: 'Apple',
+                  status: _isLoadingLinkedProviders
+                      ? 'Checking...'
+                      : (appleLinked ? 'Linked' : 'Not linked'),
+                  isLinked: appleLinked,
+                  actionLabel: appleLinked ? 'Linked' : 'Link',
+                  isBusy:
+                      _busyProviderId == LinkedAuthProvider.apple.providerId,
+                  onAction: appleLinked
+                      ? () => _showSnack('Apple is already linked.')
+                      : () => _handleLinkProvider(LinkedAuthProvider.apple),
+                  onUnlink: appleLinked
+                      ? () => _handleUnlinkProvider(
+                          LinkedAuthProvider.apple,
+                          linkedRecoveryCount: linkedRecoveryCount,
+                        )
+                      : null,
+                ),
+                DsGap.xxl,
+                // Security tips
+                Padding(
+                  padding: DsEdgeInsets.horizontalLg,
+                  child: Container(
+                    padding: DsEdgeInsets.allLg,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? DsColors.surfaceDark
+                          : DsColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? DsColors.borderDark
+                            : DsColors.borderLight,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.lightbulb_outline,
+                              size: 20,
+                              color: DsColors.warning,
+                            ),
+                            DsGap.mdH,
+                            Text(
+                              'Security tips',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        DsGap.md,
+                        _TipItem(
+                          text: 'Use a unique password for this app',
+                          isDark: isDark,
+                        ),
+                        DsGap.sm,
+                        _TipItem(
+                          text:
+                              'Enable email verification for account recovery',
+                          isDark: isDark,
+                        ),
+                        DsGap.sm,
+                        _TipItem(
+                          text: 'Never share your verification codes',
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                DsGap.xl,
               ],
             ),
           ),
-          // Email status card
-          Padding(
-            padding: DsEdgeInsets.horizontalLg,
-            child: Container(
-              padding: DsEdgeInsets.allMd,
-              decoration: BoxDecoration(
-                color: hasEmail
-                    ? (emailVerified
-                          ? DsColors.success.withValues(alpha: 0.1)
-                          : DsColors.warning.withValues(alpha: 0.1))
-                    : DsColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: hasEmail
-                      ? (emailVerified
-                            ? DsColors.success.withValues(alpha: 0.3)
-                            : DsColors.warning.withValues(alpha: 0.3))
-                      : DsColors.error.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    hasEmail
-                        ? (emailVerified
-                              ? Icons.check_circle_outline
-                              : Icons.warning_amber_outlined)
-                        : Icons.error_outline,
-                    color: hasEmail
-                        ? (emailVerified ? DsColors.success : DsColors.warning)
-                        : DsColors.error,
-                  ),
-                  DsGap.mdH,
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          hasEmail
-                              ? (emailVerified
-                                    ? 'Email verified'
-                                    : 'Email not verified')
-                              : 'No email added',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: hasEmail
-                                    ? (emailVerified
-                                          ? DsColors.success
-                                          : DsColors.warning)
-                                    : DsColors.error,
-                              ),
-                        ),
-                        if (hasEmail) ...[
-                          DsGap.xs,
-                          Text(
-                            currentEmail,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: isDark
-                                      ? DsColors.textMutedDark
-                                      : DsColors.textMutedLight,
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DsGap.md,
-          // Phone status card
-          Padding(
-            padding: DsEdgeInsets.horizontalLg,
-            child: Container(
-              padding: DsEdgeInsets.allMd,
-              decoration: BoxDecoration(
-                color: hasPhone
-                    ? (phoneVerified
-                          ? DsColors.success.withValues(alpha: 0.1)
-                          : DsColors.warning.withValues(alpha: 0.1))
-                    : DsColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: hasPhone
-                      ? (phoneVerified
-                            ? DsColors.success.withValues(alpha: 0.3)
-                            : DsColors.warning.withValues(alpha: 0.3))
-                      : DsColors.error.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    hasPhone
-                        ? (phoneVerified
-                              ? Icons.check_circle_outline
-                              : Icons.warning_amber_outlined)
-                        : Icons.error_outline,
-                    color: hasPhone
-                        ? (phoneVerified ? DsColors.success : DsColors.warning)
-                        : DsColors.error,
-                  ),
-                  DsGap.mdH,
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          hasPhone
-                              ? (phoneVerified
-                                    ? 'Phone verified'
-                                    : 'Phone not verified')
-                              : 'No phone added',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: hasPhone
-                                    ? (phoneVerified
-                                          ? DsColors.success
-                                          : DsColors.warning)
-                                    : DsColors.error,
-                              ),
-                        ),
-                        if (hasPhone) ...[
-                          DsGap.xs,
-                          Text(
-                            _maskPhoneNumber(currentPhone),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: isDark
-                                      ? DsColors.textMutedDark
-                                      : DsColors.textMutedLight,
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DsGap.lg,
-          // Security options
-          _SecurityTile(
-            icon: emailVerified
-                ? Icons.verified_outlined
-                : Icons.email_outlined,
-            iconColor: emailVerified ? DsColors.success : DsColors.info,
-            title: emailVerified
-                ? 'Email protection (Locked)'
-                : 'Email protection',
-            subtitle: hasEmail
-                ? (emailVerified ? 'Verified and locked' : 'Verify your email')
-                : 'Add an email for recovery and OTP',
-            locked: emailVerified,
-            onTap: () => context.push(CrushRoutes.emailProtection),
-          ),
-          _SecurityTile(
-            icon: phoneVerified
-                ? Icons.verified_outlined
-                : Icons.phone_outlined,
-            iconColor: phoneVerified ? DsColors.success : DsColors.info,
-            title: phoneVerified
-                ? 'Phone protection (Locked)'
-                : 'Phone protection',
-            subtitle: hasPhone
-                ? (phoneVerified ? 'Verified and locked' : 'Verify your phone')
-                : 'Add a phone number for security',
-            locked: phoneVerified,
-            onTap: () => context.push(CrushRoutes.phoneProtection),
-          ),
-          // Biometric authentication toggle
-          BlocBuilder<BiometricCubit, BiometricState>(
-            builder: (context, biometricState) {
-              // Only show if device supports biometrics
-              if (biometricState.status == BiometricStatus.unavailable) {
-                return const SizedBox.shrink();
-              }
-
-              final isEnabled =
-                  biometricState.status != BiometricStatus.disabled &&
-                  biometricState.status != BiometricStatus.initial &&
-                  biometricState.status != BiometricStatus.checking &&
-                  biometricState.status != BiometricStatus.unavailable;
-
-              return _SecurityTile(
-                icon: biometricState.biometricTypeName == 'Face ID'
-                    ? Icons.face
-                    : Icons.fingerprint,
-                iconColor: isEnabled ? DsColors.success : DsColors.info,
-                title: '${biometricState.biometricTypeName} Lock',
-                subtitle: isEnabled
-                    ? 'Unlock Crush with ${biometricState.biometricTypeName}'
-                    : 'Require ${biometricState.biometricTypeName} to open Crush',
-                trailing: Switch.adaptive(
-                  value: isEnabled,
-                  activeTrackColor: DsColors.primary,
-                  onChanged: (value) {
-                    if (value) {
-                      context.read<BiometricCubit>().enable();
-                    } else {
-                      context.read<BiometricCubit>().disable();
-                    }
-                  },
-                ),
-              );
-            },
-          ),
-          DsGap.lg,
-          Padding(
-            padding: DsEdgeInsets.horizontalLg,
-            child: Text(
-              'Linked Accounts',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DsGap.sm,
-          _LinkedAccountTile(
-            icon: Icons.email_outlined,
-            provider: 'Email',
-            status: hasEmail
-                ? (emailVerified ? 'Linked · Verified' : 'Linked · Unverified')
-                : 'Not linked',
-            isLinked: hasEmail,
-            actionLabel: hasEmail ? 'Manage' : 'Link',
-            onAction: () {
-              if (hasEmail) {
-                context.push(CrushRoutes.emailProtection);
-                return;
-              }
-              _showSnack('Add and verify an email in Email Protection.');
-            },
-            onUnlink: hasEmail
-                ? () {
-                    if (linkedRecoveryCount <= 1) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Cannot unlink the last recovery method. Add another provider first.',
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-                    context.push(CrushRoutes.emailProtection);
-                  }
-                : null,
-          ),
-          _LinkedAccountTile(
-            icon: Icons.phone_outlined,
-            provider: 'Phone',
-            status: hasPhone
-                ? (phoneVerified ? 'Linked · Verified' : 'Linked · Unverified')
-                : 'Not linked',
-            isLinked: hasPhone,
-            actionLabel: hasPhone ? 'Manage' : 'Link',
-            onAction: () {
-              if (hasPhone) {
-                context.push(CrushRoutes.phoneProtection);
-                return;
-              }
-              _showSnack('Add and verify a phone in Phone Protection.');
-            },
-            onUnlink: hasPhone
-                ? () {
-                    if (linkedRecoveryCount <= 1) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Cannot unlink the last recovery method. Add another provider first.',
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-                    context.push(CrushRoutes.phoneProtection);
-                  }
-                : null,
-          ),
-          _LinkedAccountTile(
-            icon: Icons.g_mobiledata,
-            provider: 'Google',
-            status: _isLoadingLinkedProviders
-                ? 'Checking...'
-                : (googleLinked ? 'Linked' : 'Not linked'),
-            isLinked: googleLinked,
-            actionLabel: googleLinked ? 'Linked' : 'Link',
-            isBusy: _busyProviderId == LinkedAuthProvider.google.providerId,
-            onAction: googleLinked
-                ? () => _showSnack('Google is already linked.')
-                : () => _handleLinkProvider(LinkedAuthProvider.google),
-            onUnlink: googleLinked
-                ? () => _handleUnlinkProvider(
-                    LinkedAuthProvider.google,
-                    linkedRecoveryCount: linkedRecoveryCount,
-                  )
-                : null,
-          ),
-          _LinkedAccountTile(
-            icon: Icons.apple,
-            provider: 'Apple',
-            status: _isLoadingLinkedProviders
-                ? 'Checking...'
-                : (appleLinked ? 'Linked' : 'Not linked'),
-            isLinked: appleLinked,
-            actionLabel: appleLinked ? 'Linked' : 'Link',
-            isBusy: _busyProviderId == LinkedAuthProvider.apple.providerId,
-            onAction: appleLinked
-                ? () => _showSnack('Apple is already linked.')
-                : () => _handleLinkProvider(LinkedAuthProvider.apple),
-            onUnlink: appleLinked
-                ? () => _handleUnlinkProvider(
-                    LinkedAuthProvider.apple,
-                    linkedRecoveryCount: linkedRecoveryCount,
-                  )
-                : null,
-          ),
-          DsGap.xxl,
-          // Security tips
-          Padding(
-            padding: DsEdgeInsets.horizontalLg,
-            child: Container(
-              padding: DsEdgeInsets.allLg,
-              decoration: BoxDecoration(
-                color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? DsColors.borderDark : DsColors.borderLight,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.lightbulb_outline,
-                        size: 20,
-                        color: DsColors.warning,
-                      ),
-                      DsGap.mdH,
-                      Text(
-                        'Security tips',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  DsGap.md,
-                  _TipItem(
-                    text: 'Use a unique password for this app',
-                    isDark: isDark,
-                  ),
-                  DsGap.sm,
-                  _TipItem(
-                    text: 'Enable email verification for account recovery',
-                    isDark: isDark,
-                  ),
-                  DsGap.sm,
-                  _TipItem(
-                    text: 'Never share your verification codes',
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DsGap.xl,
-        ],
+        ),
       ),
     );
   }

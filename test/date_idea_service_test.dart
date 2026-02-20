@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
-import 'package:crushhour/features/social/data/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 
 void main() {
   group('DateIdeaService', () {

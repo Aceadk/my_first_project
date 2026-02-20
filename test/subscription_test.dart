@@ -12,6 +12,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_s
 import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
+import 'mock/noop_auth_repository.dart';
 import 'mock/stub_analytics_service.dart';
 
 void main() {
@@ -309,6 +310,7 @@ void main() {
   group('SubscriptionBloc Premium Transitions', () {
     test('upgrade from free to plus emits correct state', () async {
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(),
       );
 
@@ -333,6 +335,7 @@ void main() {
     test('downgrade from plus to free emits correct state', () async {
       final planController = StreamController<SubscriptionPlan>.broadcast();
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           planStreamController: planController,
         ),
@@ -363,6 +366,7 @@ void main() {
     test('full subscription status update sets all fields', () async {
       final renewal = DateTime(2026, 6, 15);
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(),
       );
 
@@ -394,6 +398,7 @@ void main() {
 
     test('expired subscription transitions back to free', () async {
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(),
       );
 
@@ -427,6 +432,7 @@ void main() {
     test('plan watch stream delivers updates to bloc', () async {
       final planController = StreamController<SubscriptionPlan>.broadcast();
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           planStreamController: planController,
         ),
@@ -469,6 +475,7 @@ void main() {
 
     test('checkout failure does not change plan', () async {
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           shouldFailCheckout: true,
         ),
@@ -491,6 +498,7 @@ void main() {
 
     test('restore failure does not change plan', () async {
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           shouldFailRestore: true,
         ),
@@ -513,6 +521,7 @@ void main() {
 
     test('successful restore updates plan to restored status', () async {
       final bloc = SubscriptionBloc(
+        authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           statusToRestore: SubscriptionStatus(
             plan: SubscriptionPlan.plus,

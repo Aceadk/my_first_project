@@ -87,20 +87,21 @@ class PaginatedDto<T extends BaseDto> extends BaseDto
 
   @override
   Map<String, dynamic> toJson() => {
-        'items': items.map((e) => e.toJson()).toList(),
-        'page': page,
-        'page_size': pageSize,
-        'has_more': hasMore,
-        if (totalCount != null) 'total_count': totalCount,
-        if (nextCursor != null) 'next_cursor': nextCursor,
-      };
+    'items': items.map((e) => e.toJson()).toList(),
+    'page': page,
+    'page_size': pageSize,
+    'has_more': hasMore,
+    if (totalCount != null) 'total_count': totalCount,
+    if (nextCursor != null) 'next_cursor': nextCursor,
+  };
 
   /// Create from JSON with item parser.
   static PaginatedDto<T> fromJson<T extends BaseDto>(
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>) itemParser,
   ) {
-    final itemsList = (json['items'] as List<dynamic>?)
+    final itemsList =
+        (json['items'] as List<dynamic>?)
             ?.map((e) => itemParser(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -147,14 +148,14 @@ class ApiResponseDto<T> extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'success': success,
-        if (data != null)
-          'data': data is BaseDto ? (data as BaseDto).toJson() : data,
-        if (error != null) 'error': error,
-        if (errorCode != null) 'error_code': errorCode,
-        if (message != null) 'message': message,
-        if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
-      };
+    'success': success,
+    if (data != null)
+      'data': data is BaseDto ? (data as BaseDto).toJson() : data,
+    if (error != null) 'error': error,
+    if (errorCode != null) 'error_code': errorCode,
+    if (message != null) 'message': message,
+    if (timestamp != null) 'timestamp': timestamp!.toIso8601String(),
+  };
 
   /// Create from JSON with data parser.
   static ApiResponseDto<T> fromJson<T>(
@@ -186,8 +187,11 @@ class ApiResponseDto<T> extends BaseDto {
   }
 
   /// Create an error response.
-  factory ApiResponseDto.error(String error,
-      {String? errorCode, String? message}) {
+  factory ApiResponseDto.error(
+    String error, {
+    String? errorCode,
+    String? message,
+  }) {
     return ApiResponseDto(
       success: false,
       error: error,
@@ -245,10 +249,7 @@ class JsonUtils {
   }
 
   /// Parse a list with type conversion.
-  static List<T>? parseList<T>(
-    dynamic value,
-    T Function(dynamic) parser,
-  ) {
+  static List<T>? parseList<T>(dynamic value, T Function(dynamic) parser) {
     if (value == null) return null;
     if (value is! List) return null;
     return value.map((e) => parser(e)).toList();
@@ -323,10 +324,7 @@ extension SafeJsonAccess on Map<String, dynamic> {
 
 /// Validation result for DTOs.
 class ValidationResult {
-  const ValidationResult({
-    this.isValid = true,
-    this.errors = const [],
-  });
+  const ValidationResult({this.isValid = true, this.errors = const []});
 
   final bool isValid;
   final List<ValidationError> errors;
@@ -386,10 +384,9 @@ class DtoValidator {
   /// Require a non-null value.
   DtoValidator requireNotNull(dynamic value, String field, {String? message}) {
     if (value == null) {
-      _errors.add(ValidationError(
-        field: field,
-        message: message ?? '$field is required',
-      ));
+      _errors.add(
+        ValidationError(field: field, message: message ?? '$field is required'),
+      );
     }
     return this;
   }
@@ -397,10 +394,12 @@ class DtoValidator {
   /// Require a non-empty string.
   DtoValidator requireNotEmpty(String? value, String field, {String? message}) {
     if (value == null || value.isEmpty) {
-      _errors.add(ValidationError(
-        field: field,
-        message: message ?? '$field cannot be empty',
-      ));
+      _errors.add(
+        ValidationError(
+          field: field,
+          message: message ?? '$field cannot be empty',
+        ),
+      );
     }
     return this;
   }
@@ -408,10 +407,12 @@ class DtoValidator {
   /// Require a minimum length.
   DtoValidator requireMinLength(String? value, int minLength, String field) {
     if (value != null && value.length < minLength) {
-      _errors.add(ValidationError(
-        field: field,
-        message: '$field must be at least $minLength characters',
-      ));
+      _errors.add(
+        ValidationError(
+          field: field,
+          message: '$field must be at least $minLength characters',
+        ),
+      );
     }
     return this;
   }
@@ -419,10 +420,12 @@ class DtoValidator {
   /// Require a value within range.
   DtoValidator requireRange(num? value, num min, num max, String field) {
     if (value != null && (value < min || value > max)) {
-      _errors.add(ValidationError(
-        field: field,
-        message: '$field must be between $min and $max',
-      ));
+      _errors.add(
+        ValidationError(
+          field: field,
+          message: '$field must be between $min and $max',
+        ),
+      );
     }
     return this;
   }
@@ -431,10 +434,9 @@ class DtoValidator {
   DtoValidator requireEmail(String? value, String field) {
     if (value != null &&
         !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      _errors.add(ValidationError(
-        field: field,
-        message: '$field must be a valid email',
-      ));
+      _errors.add(
+        ValidationError(field: field, message: '$field must be a valid email'),
+      );
     }
     return this;
   }

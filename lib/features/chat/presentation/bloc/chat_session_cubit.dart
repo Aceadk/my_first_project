@@ -40,12 +40,12 @@ class ChatSessionState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isUnmatching,
-        isUnmatched,
-        otherUserPhotoUrl,
-        isE2eeEnabled,
-        errorMessage,
-      ];
+    isUnmatching,
+    isUnmatched,
+    otherUserPhotoUrl,
+    isE2eeEnabled,
+    errorMessage,
+  ];
 }
 
 /// Cubit managing chat session lifecycle:
@@ -56,25 +56,29 @@ class ChatSessionCubit extends Cubit<ChatSessionState> {
   final ChatRepository chatRepository;
 
   // E2EE is enabled by default (recommended for privacy)
-  static const bool _e2eeEnabledDefault =
-      bool.fromEnvironment('ENABLE_CHAT_E2EE', defaultValue: true);
+  static const bool _e2eeEnabledDefault = bool.fromEnvironment(
+    'ENABLE_CHAT_E2EE',
+    defaultValue: true,
+  );
 
   bool _e2eeEnabled = _e2eeEnabledDefault;
 
   ChatSessionCubit({required this.chatRepository})
-      : super(const ChatSessionState()) {
+    : super(const ChatSessionState()) {
     chatRepository.setE2eeEnabled(_e2eeEnabled);
   }
 
   /// Initialize session state when chat opens.
   void openSession({String? otherUserPhotoUrl}) {
-    emit(state.copyWith(
-      isUnmatching: false,
-      isUnmatched: false,
-      otherUserPhotoUrl: otherUserPhotoUrl,
-      isE2eeEnabled: _e2eeEnabled,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        isUnmatching: false,
+        isUnmatched: false,
+        otherUserPhotoUrl: otherUserPhotoUrl,
+        isE2eeEnabled: _e2eeEnabled,
+        errorMessage: null,
+      ),
+    );
   }
 
   /// Request to unmatch from a user.
@@ -93,18 +97,22 @@ class ChatSessionCubit extends Cubit<ChatSessionState> {
       AnalyticsService.instance.logUnmatch(matchId: matchId);
     }
 
-    emit(state.copyWith(
-      isUnmatching: false,
-      isUnmatched: result.isSuccess ? true : state.isUnmatched,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        isUnmatching: false,
+        isUnmatched: result.isSuccess ? true : state.isUnmatched,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   /// Toggle end-to-end encryption for chat messages.
   void toggleE2ee(bool enabled) {
     _e2eeEnabled = enabled;
     chatRepository.setE2eeEnabled(enabled);
-    AppLogger.debug('ChatSessionCubit: E2EE ${enabled ? "enabled" : "disabled"}');
+    AppLogger.debug(
+      'ChatSessionCubit: E2EE ${enabled ? "enabled" : "disabled"}',
+    );
     emit(state.copyWith(isE2eeEnabled: enabled));
   }
 

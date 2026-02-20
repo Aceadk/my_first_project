@@ -34,42 +34,49 @@ class ChatEmptyState extends StatelessWidget {
         children: [
           DsGap.xxl,
           // Match icon with glass effect
-          ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                  sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      DsColors.primary.withValues(alpha: 0.25),
-                      DsColors.secondary.withValues(alpha: 0.15),
+          Semantics(
+            image: true,
+            label: 'Match celebration with $otherName',
+            excludeSemantics: true,
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: DsBlur.medium,
+                  sigmaY: DsBlur.medium,
+                ),
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        DsColors.primary.withValues(alpha: 0.25),
+                        DsColors.secondary.withValues(alpha: 0.15),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: DsGlassColors.borderFor(context),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
                     ],
                   ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: DsGlassColors.borderFor(context),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: DsColors.primary.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      spreadRadius: 2,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) =>
+                        DsGradients.primaryHorizontal.createShader(bounds),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      size: 48,
+                      color: DsColors.surfaceLight,
                     ),
-                  ],
-                ),
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      DsGradients.primaryHorizontal.createShader(bounds),
-                  child: const Icon(
-                    Icons.favorite_rounded,
-                    size: 48,
-                    color: DsColors.surfaceLight,
                   ),
                 ),
               ),
@@ -126,13 +133,15 @@ class ChatEmptyState extends StatelessWidget {
               ],
             ),
             DsGap.md,
-            ...suggestions.map((suggestion) => Padding(
-                  padding: const EdgeInsets.only(bottom: DsSpacing.sm),
-                  child: _IceBreakerTile(
-                    suggestion: suggestion,
-                    onTap: () => onSuggestionTap(suggestion.text),
-                  ),
-                )),
+            ...suggestions.map(
+              (suggestion) => Padding(
+                padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.sm),
+                child: _IceBreakerTile(
+                  suggestion: suggestion,
+                  onTap: () => onSuggestionTap(suggestion.text),
+                ),
+              ),
+            ),
           ],
           DsGap.lg,
           // Glass refresh button
@@ -140,7 +149,9 @@ class ChatEmptyState extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
               filter: ImageFilter.blur(
-                  sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
+                sigmaX: DsBlur.subtle,
+                sigmaY: DsBlur.subtle,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark
@@ -171,10 +182,7 @@ class ChatEmptyState extends StatelessWidget {
 
 /// A single ice breaker suggestion tile with glass effect.
 class _IceBreakerTile extends StatelessWidget {
-  const _IceBreakerTile({
-    required this.suggestion,
-    required this.onTap,
-  });
+  const _IceBreakerTile({required this.suggestion, required this.onTap});
 
   final IceBreakerSuggestion suggestion;
   final VoidCallback onTap;
@@ -184,91 +192,99 @@ class _IceBreakerTile extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseSurface = DsGlassColors.surfaceFor(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(DsRadius.lg),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(DsRadius.lg),
-            child: Container(
-              padding: const EdgeInsets.all(DsSpacing.md),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [
-                          baseSurface.withValues(alpha: 0.6),
-                          baseSurface.withValues(alpha: 0.4),
-                        ]
-                      : [
-                          baseSurface.withValues(alpha: 0.7),
-                          baseSurface.withValues(alpha: 0.5),
-                        ],
-                ),
-                borderRadius: BorderRadius.circular(DsRadius.lg),
-                border: Border.all(
-                  color: DsGlassColors.borderFor(context),
-                  width: 0.5,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          DsColors.primary.withValues(alpha: 0.15),
-                          DsColors.secondary.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(DsRadius.md),
-                    ),
-                    child: Center(
-                      child: Text(
-                        suggestion.icon,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
+    return Semantics(
+      button: true,
+      label: 'Send ice breaker: ${suggestion.text}',
+      excludeSemantics: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DsRadius.lg),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: DsBlur.subtle,
+            sigmaY: DsBlur.subtle,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(DsRadius.lg),
+              child: Container(
+                padding: const EdgeInsets.all(DsSpacing.md),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            baseSurface.withValues(alpha: 0.6),
+                            baseSurface.withValues(alpha: 0.4),
+                          ]
+                        : [
+                            baseSurface.withValues(alpha: 0.7),
+                            baseSurface.withValues(alpha: 0.5),
+                          ],
                   ),
-                  const SizedBox(width: DsSpacing.md),
-                  Expanded(
-                    child: Text(
-                      suggestion.text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight,
-                      ),
-                    ),
+                  borderRadius: BorderRadius.circular(DsRadius.lg),
+                  border: Border.all(
+                    color: DsGlassColors.borderFor(context),
+                    width: 0.5,
                   ),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      gradient: DsGradients.primaryHorizontal,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: DsColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            DsColors.primary.withValues(alpha: 0.15),
+                            DsColors.secondary.withValues(alpha: 0.1),
+                          ],
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(DsRadius.md),
+                      ),
+                      child: Center(
+                        child: Text(
+                          suggestion.icon,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.send_rounded,
-                      size: 16,
-                      color: DsColors.surfaceLight,
+                    const SizedBox(width: DsSpacing.md),
+                    Expanded(
+                      child: Text(
+                        suggestion.text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        gradient: DsGradients.primaryHorizontal,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: DsColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        size: 16,
+                        color: DsColors.surfaceLight,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

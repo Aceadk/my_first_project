@@ -122,8 +122,9 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
       final data = result.data;
       final planStr = data['plan'] as String?;
-      final plan =
-          planStr == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final plan = planStr == 'plus'
+          ? SubscriptionPlan.plus
+          : SubscriptionPlan.free;
 
       return SubscriptionStatus(
         plan: plan,
@@ -190,7 +191,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     final userId = _currentUserId;
     if (userId == null) {
       return PromoCodeRedemptionResult.failure(
-          'Please sign in to redeem a promo code.');
+        'Please sign in to redeem a promo code.',
+      );
     }
 
     final normalizedCode = code.trim().toUpperCase();
@@ -212,7 +214,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       final promoCode = PromoCode.fromJson(
         data['promoCode'] as Map<String, dynamic>,
       );
-      final benefits = (data['appliedBenefits'] as List<dynamic>?)
+      final benefits =
+          (data['appliedBenefits'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [];
@@ -288,10 +291,9 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   Future<void> _upgradeToPlus(String userId) async {
     // Update Firestore user document
     try {
-      await _firestore.collection('users').doc(userId).set(
-        {'plan': 'plus'},
-        SetOptions(merge: true),
-      );
+      await _firestore.collection('users').doc(userId).set({
+        'plan': 'plus',
+      }, SetOptions(merge: true));
     } catch (e) {
       // If Firestore fails, save locally
       final prefs = await SharedPreferences.getInstance();

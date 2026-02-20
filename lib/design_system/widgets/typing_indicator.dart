@@ -54,12 +54,10 @@ class _TypingIndicatorState extends State<TypingIndicator>
     );
 
     _animations = _controllers.map((controller) {
-      return Tween<double>(begin: 0, end: -8).animate(
-        CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeInOut,
-        ),
-      );
+      return Tween<double>(
+        begin: 0,
+        end: -8,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     }).toList();
 
     // Start animations with stagger
@@ -87,7 +85,8 @@ class _TypingIndicatorState extends State<TypingIndicator>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dotColor = widget.dotColor ??
+    final dotColor =
+        widget.dotColor ??
         (isDark ? DsColors.textMutedDark : DsColors.textMutedLight);
     final bgColor = widget.backgroundColor ?? DsGlassColors.surfaceFor(context);
 
@@ -121,10 +120,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: DsSpacing.md,
@@ -182,8 +178,9 @@ class TypingBubble extends StatelessWidget {
                 context,
                 strength: DsGlassSurfaceStrength.medium,
               ),
-              backgroundImage:
-                  avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+              backgroundImage: avatarUrl != null
+                  ? NetworkImage(avatarUrl!)
+                  : null,
               child: avatarUrl == null
                   ? Icon(
                       Icons.person,
@@ -199,8 +196,8 @@ class TypingBubble extends StatelessWidget {
             children: [
               if (userName != null)
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: DsSpacing.xs,
+                  padding: const EdgeInsetsDirectional.only(
+                    start: DsSpacing.xs,
                     bottom: DsSpacing.xs / 2,
                   ),
                   child: Text(

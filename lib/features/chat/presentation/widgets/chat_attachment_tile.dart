@@ -20,32 +20,47 @@ class ChatAttachmentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _launch(context, url),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: DsColors.ink900.withValues(alpha: 0.26),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                size: 18, color: DsColors.surfaceLight.withValues(alpha: 0.7)),
-            DsGap.xsH,
-            Text(
-              label,
-              style: const TextStyle(
-                decoration: TextDecoration.underline,
-                color: DsColors.surfaceLight,
+    return Semantics(
+      button: true,
+      label: label,
+      hint: isLocal
+          ? 'Saved locally on device'
+          : 'Double tap to open attachment',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: () => _launch(context, url),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: DsColors.ink900.withValues(alpha: 0.26),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: DsColors.surfaceLight.withValues(alpha: 0.7),
               ),
-            ),
-            if (isLocal) ...[
               DsGap.xsH,
-              const Icon(Icons.check_circle, size: 14, color: DsColors.success),
+              Text(
+                label,
+                style: const TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: DsColors.surfaceLight,
+                ),
+              ),
+              if (isLocal) ...[
+                DsGap.xsH,
+                const Icon(
+                  Icons.check_circle,
+                  size: 14,
+                  color: DsColors.success,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -4011,4 +4011,74 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get wordAnything => 'Что угодно';
+
+  @override
+  String notificationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count уведомлений',
+      many: '$count уведомлений',
+      few: '$count уведомления',
+      one: '1 уведомление',
+      zero: 'Нет уведомлений',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String matchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count совпадений',
+      many: '$count совпадений',
+      few: '$count совпадения',
+      one: '1 совпадение',
+      zero: 'Нет совпадений',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String likesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count лайков',
+      many: '$count лайков',
+      few: '$count лайка',
+      one: '1 лайк',
+      zero: 'Нет лайков',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count фото',
+      many: '$count фото',
+      few: '$count фото',
+      one: '1 фото',
+      zero: 'Нет фото',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String distanceKm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count км',
+      many: '$count км',
+      few: '$count км',
+      one: '1 км',
+      zero: 'Меньше 1 км',
+    );
+    return '$_temp0';
+  }
 }

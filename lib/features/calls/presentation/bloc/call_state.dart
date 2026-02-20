@@ -50,11 +50,11 @@ class CallState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        matchId,
-        isVideoCall,
-        localUid,
-        remoteUid,
-        errorMessage,
-      ];
+    status,
+    matchId,
+    isVideoCall,
+    localUid,
+    remoteUid,
+    errorMessage,
+  ];
 }

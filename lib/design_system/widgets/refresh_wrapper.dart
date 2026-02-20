@@ -27,7 +27,8 @@ class DsRefreshWrapper extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       color: color ?? DsColors.primary,
-      backgroundColor: backgroundColor ??
+      backgroundColor:
+          backgroundColor ??
           (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
       displacement: displacement,
       edgeOffset: edgeOffset,
@@ -73,9 +74,7 @@ class AlwaysScrollableRefreshPhysics extends AlwaysScrollableScrollPhysics {
 
   @override
   AlwaysScrollableRefreshPhysics applyTo(ScrollPhysics? ancestor) {
-    return AlwaysScrollableRefreshPhysics(
-      parent: buildParent(ancestor),
-    );
+    return AlwaysScrollableRefreshPhysics(parent: buildParent(ancestor));
   }
 }
 

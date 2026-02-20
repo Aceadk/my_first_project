@@ -55,10 +55,12 @@ class ProfileSingleSelectSheet<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor =
-        isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final backgroundColor = isDark
+        ? DsColors.surfaceDark
+        : DsColors.surfaceLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
 
@@ -75,7 +77,7 @@ class ProfileSingleSelectSheet<T> extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsetsDirectional.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -117,7 +119,7 @@ class ProfileSingleSelectSheet<T> extends StatelessWidget {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
-              padding: EdgeInsets.only(
+              padding: EdgeInsetsDirectional.only(
                 bottom: MediaQuery.of(context).padding.bottom + DsSpacing.lg,
               ),
               itemCount: options.length,
@@ -142,10 +144,7 @@ class ProfileSingleSelectSheet<T> extends StatelessWidget {
                     child: Row(
                       children: [
                         if (emoji != null) ...[
-                          Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 24),
-                          ),
+                          Text(emoji, style: const TextStyle(fontSize: 24)),
                           const SizedBox(width: DsSpacing.md),
                         ],
                         Expanded(

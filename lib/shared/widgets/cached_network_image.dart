@@ -146,8 +146,7 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
           height: widget.height,
           fit: widget.fit,
           alignment: widget.alignment,
-          errorBuilder: (_, _, _) =>
-              widget.errorWidget ?? _buildErrorWidget(),
+          errorBuilder: (_, _, _) => widget.errorWidget ?? _buildErrorWidget(),
         ),
       );
     } else {
@@ -183,8 +182,8 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
         label: _isLoading
             ? 'Loading image'
             : _hasError
-                ? 'Image failed to load'
-                : widget.semanticLabel,
+            ? 'Image failed to load'
+            : widget.semanticLabel,
         child: result,
       );
     }
@@ -194,9 +193,7 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
   Widget _buildPlaceholder() {
     return Container(
       color: DsColors.skeletonLight,
-      child: const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
+      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 
@@ -207,8 +204,11 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.broken_image_outlined,
-                color: DsColors.textMutedLight, size: 32),
+            const Icon(
+              Icons.broken_image_outlined,
+              color: DsColors.textMutedLight,
+              size: 32,
+            ),
             if (widget.onRetry != null) ...[
               const SizedBox(height: 8),
               GestureDetector(
@@ -217,8 +217,10 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
                   _loadImage();
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: DsColors.dividerLight,
                     borderRadius: BorderRadius.circular(16),
@@ -226,12 +228,19 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.refresh,
-                          size: 14, color: DsColors.textMutedLight),
+                      Icon(
+                        Icons.refresh,
+                        size: 14,
+                        color: DsColors.textMutedLight,
+                      ),
                       SizedBox(width: 4),
-                      Text('Retry',
-                          style: TextStyle(
-                              fontSize: 12, color: DsColors.textMutedLight)),
+                      Text(
+                        'Retry',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: DsColors.textMutedLight,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -289,8 +298,10 @@ class NetworkImageCache {
   bool get isUnderMemoryPressure => _isUnderMemoryPressure;
 
   /// Get an image from cache or fetch it.
-  Future<Uint8List?> get(String url,
-      {ImagePreloadPriority priority = ImagePreloadPriority.immediate}) async {
+  Future<Uint8List?> get(
+    String url, {
+    ImagePreloadPriority priority = ImagePreloadPriority.immediate,
+  }) async {
     // Check cache first
     if (_cache.containsKey(url)) {
       // Move to end (most recently used)
@@ -337,10 +348,9 @@ class NetworkImageCache {
 
   Future<Uint8List?> _fetchImage(String url) async {
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Accept': 'image/*'},
-      ).timeout(NetworkConstants.imageLoadTimeout);
+      final response = await http
+          .get(Uri.parse(url), headers: {'Accept': 'image/*'})
+          .timeout(NetworkConstants.imageLoadTimeout);
 
       if (response.statusCode == 200) {
         return response.bodyBytes;
@@ -351,8 +361,11 @@ class NetworkImageCache {
     }
   }
 
-  void _addToCache(String url, Uint8List bytes,
-      {ImagePreloadPriority priority = ImagePreloadPriority.immediate}) {
+  void _addToCache(
+    String url,
+    Uint8List bytes, {
+    ImagePreloadPriority priority = ImagePreloadPriority.immediate,
+  }) {
     // Update memory pressure state
     _isUnderMemoryPressure = _currentMemoryBytes > _lowMemoryThreshold;
 
@@ -496,7 +509,9 @@ class MemoryImage extends ImageProvider<MemoryImage> {
   }
 
   Future<ui.Codec> _loadAsync(
-      MemoryImage key, ImageDecoderCallback decode) async {
+    MemoryImage key,
+    ImageDecoderCallback decode,
+  ) async {
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
     return decode(buffer);
   }

@@ -1,6 +1,5 @@
 {
   "@@locale": "hi",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "रद्द करें",
   "commonSave": "सहेजें",
@@ -44,7 +43,6 @@
   "commonUnblock": "अनब्लॉक करें",
   "commonMute": "म्यूट करें",
   "commonUnmute": "अनम्यूट करें",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
   "errorNetwork": "कनेक्शन त्रुटि। अपना इंटरनेट जांचें और पुनः प्रयास करें।",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action} नहीं हो सका। कृपया पुनः प्रयास करें।",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} एक Plus सुविधा है। अनलॉक करने के लिए अपग्रेड करें!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "वापस जाएं",
   "a11yCloseButton": "बंद करें",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name} की प्रोफ़ाइल फ़ोटो",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "उपयोगकर्ता अवतार",
   "a11yAvatarOf": "{name} का अवतार",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "प्रोफ़ाइल संपादित करें",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender} का संदेश",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 अपठित संदेश} other{{count} अपठित संदेश}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "पासवर्ड दिखाएं",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "मैच हो गया! आप {name} से मैच हुए",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender} का नया संदेश",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "प्रोफ़ाइल लाइक की गई",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "प्रोफ़ाइल सुपर लाइक की गई",
   "a11yMessageSent": "संदेश भेजा गया",
   "a11ySettingSaved": "सेटिंग सहेजी गई",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "वापसी पर स्वागत है",
   "authSignInToContinue": "Crush जारी रखने के लिए साइन इन करें",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "हमने {destination} पर कोड भेजा है",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6-अंकीय कोड दर्ज करें",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "अपना ईमेल सत्यापित करने के लिए हमारे द्वारा भेजे गए लिंक पर क्लिक करें",
   "authEmailVerified": "ईमेल सफलतापूर्वक सत्यापित!",
   "authSkipForNow": "अभी के लिए छोड़ें",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "सेटिंग्स",
   "settingsAppearance": "दिखावट",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} किमी",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "मुझे दिखाएं",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "अपनी योजना प्रबंधित करें",
   "settingsGetPlus": "Crush Plus पाएं",
   "settingsRestorePurchases": "खरीदारी पुनर्स्थापित करें",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "खोजें",
   "discoveryNoMatchesTitle": "अभी तक कोई मैच नहीं",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "आप और {name} ने एक-दूसरे को लाइक किया",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "संदेश भेजें",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "आपको लाइक करता है",
   "discoveryTopPicks": "टॉप पिक्स",
   "discoveryNewArrivals": "नए आगमन",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "चैट्स",
   "chatMatches": "मैचेस",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name} के साथ बातचीत शुरू करें",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "संदेश लिखें...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "अंतिम बार देखा {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "टाइप कर रहा है...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "आपका {name} से मैच हुआ",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "प्रोफ़ाइल",
   "profileEdit": "प्रोफ़ाइल संपादित करें",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} सेमी",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "भाषाएं",
@@ -450,7 +472,6 @@
   "profileAboutMe": "मेरे बारे में",
   "profileMyDetails": "मेरी जानकारी",
   "profileLifestyle": "जीवन शैली",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Crush में आपका स्वागत है",
   "onboardingTagline": "अपना परफेक्ट मैच खोजें",
@@ -458,8 +479,12 @@
   "onboardingStep": "चरण {current} / {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "आपका नाम क्या है?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "कम से कम 3 रुचियां चुनें",
   "onboardingAllSet": "आप तैयार हैं!",
   "onboardingStartSwiping": "स्वाइप करना शुरू करें",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "मुफ्त",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "प्रति माह {count} बूस्ट",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "प्रति दिन {count} सुपर लाइक",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "कोई विज्ञापन नहीं",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/माह",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/वर्ष",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "सबसे अच्छा मूल्य",
   "subscriptionMostPopular": "सबसे लोकप्रिय",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "उपयोगकर्ता की रिपोर्ट करें",
   "safetyBlockUser": "उपयोगकर्ता को ब्लॉक करें",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name} को ब्लॉक करें?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "वे आपकी प्रोफ़ाइल नहीं देख पाएंगे या आपको संदेश नहीं भेज पाएंगे",
@@ -532,46 +565,50 @@
   "safetySpam": "स्पैम",
   "safetyScam": "घोटाला",
   "safetyOther": "अन्य",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "अभी",
   "timeMinutesAgo": "{count, plural, =1{1 मिनट पहले} other{{count} मिनट पहले}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 घंटे पहले} other{{count} घंटे पहले}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 दिन पहले} other{{count} दिन पहले}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 सप्ताह पहले} other{{count} सप्ताह पहले}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "कोई परिणाम नहीं मिला",
   "emptyTryAgain": "अपनी खोज या फ़िल्टर समायोजित करने का प्रयास करें",
   "emptyNoData": "कोई डेटा उपलब्ध नहीं",
   "emptyCheckBackLater": "बाद में फिर से देखें",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "होम",
   "wordExplore": "एक्सप्लोर",
-  "wordHelp": "मदद",
+  "wordHelp": "मदद करें",
   "wordMenu": "मेनू",
   "wordFeed": "फ़ीड",
   "wordActivity": "गतिविधि",
@@ -579,7 +616,6 @@
   "wordInbox": "इनबॉक्स",
   "wordFavorites": "पसंदीदा",
   "wordHistory": "इतिहास",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "कॉपी करें",
   "wordPaste": "पेस्ट करें",
@@ -589,7 +625,7 @@
   "wordUpload": "अपलोड करें",
   "wordSelect": "चुनें",
   "wordDeselect": "अचयनित करें",
-  "wordOpen": "खोलें",
+  "wordOpen": "खुला",
   "wordCreate": "बनाएं",
   "wordConnect": "कनेक्ट करें",
   "wordDisconnect": "डिस्कनेक्ट करें",
@@ -609,7 +645,7 @@
   "wordAllow": "अनुमति दें",
   "wordEnable": "सक्षम करें",
   "wordDisable": "अक्षम करें",
-  "wordShow": "दिखाएं",
+  "wordShow": "शो",
   "wordHide": "छुपाएं",
   "wordExpand": "विस्तार करें",
   "wordCollapse": "संक्षिप्त करें",
@@ -663,7 +699,6 @@
   "wordSay": "कहें",
   "wordTell": "बताएं",
   "wordAsk": "पूछें",
-  "wordHelp": "मदद करें",
   "wordWait": "प्रतीक्षा करें",
   "wordStay": "रहें",
   "wordCome": "आएं",
@@ -675,7 +710,7 @@
   "wordLive": "जिएं",
   "wordChange": "बदलें",
   "wordTurn": "मुड़ें",
-  "wordRead": "पढ़ें",
+  "wordRead": "पढ़ा गया",
   "wordWrite": "लिखें",
   "wordLearn": "सीखें",
   "wordStudy": "अध्ययन करें",
@@ -698,7 +733,6 @@
   "wordDecide": "तय करें",
   "wordAgree": "सहमत हों",
   "wordDisagree": "असहमत हों",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "सक्रिय",
   "wordInactive": "निष्क्रिय",
@@ -759,13 +793,10 @@
   "wordNotDone": "नहीं हुआ",
   "wordSent": "भेजा गया",
   "wordReceived": "प्राप्त हुआ",
-  "wordRead": "पढ़ा गया",
   "wordUnread": "अपठित",
   "wordSeen": "देखा गया",
   "wordUnseen": "नहीं देखा",
-  "wordOpen": "खुला",
   "wordClosed": "बंद",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "अभी",
   "wordLater": "बाद में",
@@ -807,7 +838,6 @@
   "wordYears": "वर्ष",
   "wordSecond": "सेकंड",
   "wordSeconds": "सेकंड",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "अच्छा",
   "wordBad": "बुरा",
@@ -932,7 +962,6 @@
   "wordFabulous": "अद्भुत",
   "wordMagnificent": "भव्य",
   "wordSpectacular": "शानदार",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "कृपया",
   "wordThanks": "धन्यवाद",
@@ -963,7 +992,6 @@
   "wordHaveFun": "मज़े करो",
   "wordEnjoy": "आनंद लें",
   "wordCheers": "चीयर्स",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "कौन",
   "wordWhat": "क्या",
@@ -979,7 +1007,6 @@
   "wordHowFar": "कितना दूर",
   "wordHowOld": "कितने साल",
   "wordHowOften": "कितनी बार",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "साथ",
   "wordWithout": "बिना",
@@ -1003,7 +1030,6 @@
   "wordThrough": "के माध्यम से",
   "wordAlong": "साथ-साथ",
   "wordToward": "की ओर",
-  "wordAway": "दूर",
   "wordBehind": "पीछे",
   "wordAhead": "आगे",
   "wordFront": "सामने",
@@ -1015,7 +1041,6 @@
   "wordCenter": "केंद्र",
   "wordCorner": "कोना",
   "wordEdge": "किनारा",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "क्रश",
   "wordMatch": "मैच",
@@ -1111,7 +1136,7 @@
   "wordTravel": "यात्रा",
   "wordTraveling": "यात्रा कर रहे हैं",
   "wordExploring": "खोज रहे हैं",
-  "wordFun": "मज़ा",
+  "wordFun": "मज़ेदार",
   "wordLaughter": "हंसी",
   "wordSmile": "मुस्कान",
   "wordSmiles": "मुस्कान",
@@ -1131,9 +1156,7 @@
   "wordDevoted": "समर्पित",
   "wordCommitted": "प्रतिबद्ध",
   "wordCommitment": "प्रतिबद्धता",
-  "wordSerious": "गंभीर",
   "wordCasual": "आकस्मिक",
-  "wordFun": "मज़ेदार",
   "wordFriendship": "दोस्ती",
   "wordFriend": "दोस्त",
   "wordFriends": "दोस्त",
@@ -1146,7 +1169,6 @@
   "wordSeekingFor": "खोज रहे हैं",
   "wordWaiting": "प्रतीक्षा कर रहे हैं",
   "wordSearching": "खोज रहे हैं",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "सूचना",
   "wordAlert": "अलर्ट",
@@ -1316,7 +1338,6 @@
   "wordReport": "रिपोर्ट",
   "wordReports": "रिपोर्ट्स",
   "wordDashboard": "डैशबोर्ड",
-  "wordHome": "होम",
   "wordWorld": "दुनिया",
   "wordCountry": "देश",
   "wordCity": "शहर",
@@ -1398,7 +1419,6 @@
   "wordMovies": "फ़िल्में",
   "wordFilm": "फ़िल्म",
   "wordFilms": "फ़िल्में",
-  "wordShow": "शो",
   "wordShows": "शोज़",
   "wordSeries": "सीरीज़",
   "wordBook": "किताब",
@@ -1465,7 +1485,6 @@
   "wordSomething": "कुछ",
   "wordNothing": "कुछ नहीं",
   "wordAnything": "कुछ भी",
-
   "@@_DISAMBIGUATION_WORDS": "Words that need context disambiguation",
   "wordHelpVerb": "मदद करना",
   "wordReadStatus": "पढ़ा गया",
@@ -1473,5 +1492,46 @@
   "wordAwayFrom": "दूर",
   "wordSeriousRel": "गंभीर",
   "wordSettingsNoun": "सेटिंग्स",
-  "wordShowNoun": "शो"
+  "wordShowNoun": "शो",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

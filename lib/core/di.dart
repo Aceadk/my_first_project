@@ -6,6 +6,7 @@ import 'package:crushhour/features/profile/domain/repositories/profile_repositor
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_repository.dart';
 import 'package:crushhour/features/feature_flags/domain/repositories/feature_flag_repository.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
@@ -24,6 +25,22 @@ import 'package:crushhour/features/discovery/domain/repositories/boost_repositor
 import 'package:crushhour/features/discovery/data/repositories/impl/firebase_boost_repository.dart';
 
 // Social/Analytics concrete service implementations
+import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
+import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_validation_repository.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
+import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/passport_locations_repository.dart';
+import 'package:crushhour/features/discovery/data/services/passport_locations_service.dart';
+import 'package:crushhour/features/chat/domain/repositories/voice_recorder_repository.dart';
+import 'package:crushhour/features/chat/data/services/voice_recorder_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
+import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/incognito_repository.dart';
+import 'package:crushhour/features/discovery/data/services/incognito_service.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
@@ -46,6 +63,7 @@ import 'package:crushhour/features/discovery/data/repositories/impl/http_discove
 import 'package:crushhour/features/chat/data/repositories/impl/http_chat_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/http_subscription_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/http_call_repository.dart';
+import 'package:crushhour/features/calls/data/services/call_service.dart';
 
 // Network
 import 'package:crushhour/core/network/api_client.dart';
@@ -74,6 +92,11 @@ import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_c
 import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
 import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
+import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
+import 'package:crushhour/core/connectivity/connectivity_cubit.dart';
+import 'package:crushhour/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:crushhour/features/notifications/data/repositories/impl/firebase_notification_repository.dart';
+import 'package:crushhour/features/notifications/presentation/bloc/notification_center_cubit.dart';
 
 /// Backend configuration for the app.
 /// Switch between stub (development/demo), Firebase (production), hybrid, or HTTP (REST API).
@@ -136,6 +159,7 @@ class CrushDI {
     final DiscoveryRepository discoveryRepo;
     final ChatRepository chatRepo;
     final CallRepository callRepo;
+    final CallManagerRepository callManagerRepo = CallService.instance;
     final FeatureFlagRepository featureFlagRepo;
     final BoostRepository boostRepo;
 
@@ -204,14 +228,43 @@ class CrushDI {
       RepositoryProvider<DiscoveryRepository>.value(value: discoveryRepo),
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
+      RepositoryProvider<CallManagerRepository>.value(value: callManagerRepo),
       RepositoryProvider<FeatureFlagRepository>.value(value: featureFlagRepo),
       RepositoryProvider<BoostRepository>.value(value: boostRepo),
+      RepositoryProvider<WeeklyPicksRepository>.value(
+        value: WeeklyPicksService.instance,
+      ),
+      RepositoryProvider<StoryRepository>.value(value: StoryService.instance),
+      RepositoryProvider<ProfileValidationRepository>.value(
+        value: ProfileValidationService(),
+      ),
+      RepositoryProvider<ProfileMediaRepository>.value(
+        value: ProfileMediaService(),
+      ),
+      RepositoryProvider<PassportLocationsRepository>.value(
+        value: PassportLocationsService.instance,
+      ),
+      RepositoryProvider<VoiceRecorderRepository>.value(
+        value: VoiceRecorderService(),
+      ),
+      RepositoryProvider<RealtimeMatchRepository>.value(
+        value: RealtimeMatchService.instance,
+      ),
+      RepositoryProvider<IncognitoRepository>.value(
+        value: IncognitoService.instance,
+      ),
       RepositoryProvider<CompatibilityQuizRepository>.value(
-          value: CompatibilityQuizService.instance),
+        value: CompatibilityQuizService.instance,
+      ),
       RepositoryProvider<DateIdeaRepository>.value(
-          value: DateIdeaService.instance),
+        value: DateIdeaService.instance,
+      ),
       RepositoryProvider<ProfileInsightsRepository>.value(
-          value: ProfileInsightsService.instance),
+        value: ProfileInsightsService.instance,
+      ),
+      RepositoryProvider<NotificationRepository>.value(
+        value: FirebaseNotificationRepository(),
+      ),
     ];
   }
 
@@ -220,18 +273,18 @@ class CrushDI {
   }) {
     return [
       BlocProvider<AuthBloc>(
-        create: (context) => AuthBloc(
-          authRepository: context.read<AuthRepository>(),
-        )..add(AuthStarted()),
+        create: (context) =>
+            AuthBloc(authRepository: context.read<AuthRepository>())
+              ..add(AuthStarted()),
       ),
       BlocProvider<SessionBloc>(
-        create: (context) => SessionBloc(
-          authRepository: context.read<AuthRepository>(),
-        ),
+        create: (context) =>
+            SessionBloc(authRepository: context.read<AuthRepository>()),
       ),
       BlocProvider<SubscriptionBloc>(
         create: (context) => SubscriptionBloc(
           subscriptionRepository: context.read<SubscriptionRepository>(),
+          authRepository: context.read<AuthRepository>(),
         )..add(SubscriptionWatchStarted()),
       ),
       BlocProvider<ProfileBloc>(
@@ -256,9 +309,8 @@ class CrushDI {
         ),
       ),
       BlocProvider<CallBloc>(
-        create: (context) => CallBloc(
-          callRepository: context.read<CallRepository>(),
-        ),
+        create: (context) =>
+            CallBloc(callRepository: context.read<CallRepository>()),
       ),
       BlocProvider<ThemeCubit>(
         create: (context) => ThemeCubit(
@@ -290,13 +342,13 @@ class CrushDI {
         create: (_) => PrivacySettingsCubit(preferences: preferences),
       ),
       BlocProvider<FeatureFlagCubit>(
-        create: (context) => FeatureFlagCubit(
-          repository: context.read<FeatureFlagRepository>(),
-        ),
+        create: (context) =>
+            FeatureFlagCubit(repository: context.read<FeatureFlagRepository>()),
       ),
       BlocProvider<BoostCubit>(
         create: (context) => BoostCubit(
           boostRepository: context.read<BoostRepository>(),
+          authRepository: context.read<AuthRepository>(),
         ),
       ),
       BlocProvider<CompatibilityQuizCubit>(
@@ -317,8 +369,17 @@ class CrushDI {
           insightsRepository: context.read<ProfileInsightsRepository>(),
         ),
       ),
-      BlocProvider<BadgeCounterCubit>(
-        create: (_) => BadgeCounterCubit(),
+      BlocProvider<BadgeCounterCubit>(create: (_) => BadgeCounterCubit()),
+      BlocProvider<BiometricCubit>(
+        create: (_) => BiometricCubit()..checkAvailability(),
+      ),
+      BlocProvider<ConnectivityCubit>(
+        create: (_) => ConnectivityCubit()..startMonitoring(),
+      ),
+      BlocProvider<NotificationCenterCubit>(
+        create: (context) => NotificationCenterCubit(
+          repository: context.read<NotificationRepository>(),
+        ),
       ),
     ];
   }

@@ -6,7 +6,7 @@ class WatchCheckInStatusUseCase extends StreamUseCase<CheckInStatus, NoParams> {
   final DatePlanService _service;
 
   WatchCheckInStatusUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   Stream<CheckInStatus> call(NoParams params) {

@@ -119,15 +119,15 @@ class LikePriority extends Equatable {
 
   @override
   List<Object?> get props => [
-        likeId,
-        fromUserId,
-        toUserId,
-        priority,
-        createdAt,
-        boosted,
-        superLike,
-        expiresAt,
-      ];
+    likeId,
+    fromUserId,
+    toUserId,
+    priority,
+    createdAt,
+    boosted,
+    superLike,
+    expiresAt,
+  ];
 }
 
 /// Priority levels for likes.

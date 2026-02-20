@@ -25,27 +25,32 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     final userId = _currentUserId;
     AppLogger.info(
-        '[FirebaseProfileRepo] Current Firebase Auth userId: $userId');
+      '[FirebaseProfileRepo] Current Firebase Auth userId: $userId',
+    );
 
     if (userId == null) {
       AppLogger.info(
-          '[FirebaseProfileRepo] No authenticated user - returning null');
+        '[FirebaseProfileRepo] No authenticated user - returning null',
+      );
       return null;
     }
 
     AppLogger.info(
-        '[FirebaseProfileRepo] Fetching Firestore doc: users/$userId');
+      '[FirebaseProfileRepo] Fetching Firestore doc: users/$userId',
+    );
     final doc = await _firestore.collection('users').doc(userId).get();
 
     AppLogger.info('[FirebaseProfileRepo] Doc exists: ${doc.exists}');
 
     if (!doc.exists) {
       AppLogger.info(
-          '[FirebaseProfileRepo] User document does not exist in Firestore - creating minimal profile from auth data');
+        '[FirebaseProfileRepo] User document does not exist in Firestore - creating minimal profile from auth data',
+      );
       // User is authenticated but has no Firestore document yet
       // Return a CrushUser with a minimal profile from auth data so they can see their profile screen
       final firebaseUser = _auth.currentUser!;
-      final displayName = firebaseUser.displayName ??
+      final displayName =
+          firebaseUser.displayName ??
           firebaseUser.email?.split('@').first ??
           'User';
 
@@ -78,7 +83,7 @@ class FirebaseProfileRepository implements ProfileRepository {
             maxDistanceKm: 100,
             showMeGenders: [
               'male',
-              'female'
+              'female',
             ], // Default to show all binary genders
             showMyDistance: true,
             showMyAge: true,
@@ -94,25 +99,31 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     final data = doc.data()!;
     AppLogger.info(
-        '[FirebaseProfileRepo] Doc data keys: ${data.keys.toList()}');
+      '[FirebaseProfileRepo] Doc data keys: ${data.keys.toList()}',
+    );
     AppLogger.info(
-        '[FirebaseProfileRepo] Has profile field: ${data.containsKey('profile')}');
+      '[FirebaseProfileRepo] Has profile field: ${data.containsKey('profile')}',
+    );
 
     if (data.containsKey('profile')) {
       final profileData = data['profile'];
       AppLogger.info(
-          '[FirebaseProfileRepo] Profile data type: ${profileData.runtimeType}');
+        '[FirebaseProfileRepo] Profile data type: ${profileData.runtimeType}',
+      );
       if (profileData is Map) {
         AppLogger.info(
-            '[FirebaseProfileRepo] Profile keys: ${profileData.keys.toList()}');
+          '[FirebaseProfileRepo] Profile keys: ${profileData.keys.toList()}',
+        );
         AppLogger.info(
-            '[FirebaseProfileRepo] Profile name: ${profileData['name']}, age: ${profileData['age']}');
+          '[FirebaseProfileRepo] Profile name: ${profileData['name']}, age: ${profileData['age']}',
+        );
       }
     }
 
     final user = _userFromFirestore(userId, data);
     AppLogger.info(
-        '[FirebaseProfileRepo] Parsed user: id=${user.id}, hasProfile=${user.profile != null}');
+      '[FirebaseProfileRepo] Parsed user: id=${user.id}, hasProfile=${user.profile != null}',
+    );
 
     return user;
   }
@@ -135,8 +146,9 @@ class FirebaseProfileRepository implements ProfileRepository {
     // Sanitize input
     final sanitizedName = InputSanitizer.sanitizeName(name);
     final sanitizedLastName = InputSanitizer.sanitizeName(lastName);
-    final sanitizedUsername =
-        username != null ? InputSanitizer.sanitizeUsername(username) : null;
+    final sanitizedUsername = username != null
+        ? InputSanitizer.sanitizeUsername(username)
+        : null;
     final sanitizedAge = InputSanitizer.sanitizeAge(age);
     final sanitizedGender = InputSanitizer.sanitizeText(gender, maxLength: 50);
     final sanitizedOrientation = sexualOrientation != null
@@ -146,7 +158,8 @@ class FirebaseProfileRepository implements ProfileRepository {
     if (sanitizedAge == null) throw Exception('Invalid age');
 
     final existingUser = await getCurrentUser();
-    final existingPrivacy = existingUser?.profile?.privacySettings ??
+    final existingPrivacy =
+        existingUser?.profile?.privacySettings ??
         const ProfilePrivacySettings();
     final updatedPrivacy = existingPrivacy.copyWith(
       showFirstName: showFirstName ?? existingPrivacy.showFirstName,
@@ -189,14 +202,16 @@ class FirebaseProfileRepository implements ProfileRepository {
         if (existingUsername != null && existingUsername.isNotEmpty) {
           if (!existingUser!.canChangeUsername) {
             throw Exception(
-                'You can change your username again in ${existingUser.daysUntilUsernameChange} days');
+              'You can change your username again in ${existingUser.daysUntilUsernameChange} days',
+            );
           }
         }
         // Set the new username and update the change timestamp
         docData['username'] = sanitizedUsername;
         docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
         AppLogger.info(
-            '[FirebaseProfileRepo] saveBasicInfo: Username changed from "$existingUsername" to "$sanitizedUsername"');
+          '[FirebaseProfileRepo] saveBasicInfo: Username changed from "$existingUsername" to "$sanitizedUsername"',
+        );
       } else {
         // Username unchanged, just include it without updating timestamp
         docData['username'] = sanitizedUsername;
@@ -206,17 +221,21 @@ class FirebaseProfileRepository implements ProfileRepository {
     // Always use set with merge to ensure nested structure is created properly
     final docRef = _firestore.collection('users').doc(userId);
     AppLogger.info(
-        '[FirebaseProfileRepo] saveBasicInfo: Saving to users/$userId with profile data: $profileData');
+      '[FirebaseProfileRepo] saveBasicInfo: Saving to users/$userId with profile data: $profileData',
+    );
     await docRef.set(docData, SetOptions(merge: true));
     AppLogger.info(
-        '[FirebaseProfileRepo] saveBasicInfo: Firestore write completed, now fetching user');
+      '[FirebaseProfileRepo] saveBasicInfo: Firestore write completed, now fetching user',
+    );
 
     final user = await getCurrentUser();
     AppLogger.info(
-        '[FirebaseProfileRepo] saveBasicInfo: getCurrentUser returned user=${user != null}, profile=${user?.profile != null}');
+      '[FirebaseProfileRepo] saveBasicInfo: getCurrentUser returned user=${user != null}, profile=${user?.profile != null}',
+    );
     if (user?.profile != null) {
       AppLogger.info(
-          '[FirebaseProfileRepo] saveBasicInfo: profile firstName=${user!.profile!.name}, lastName=${user.profile!.lastName}, age=${user.profile!.age}, gender=${user.profile!.gender}');
+        '[FirebaseProfileRepo] saveBasicInfo: profile firstName=${user!.profile!.name}, lastName=${user.profile!.lastName}, age=${user.profile!.age}, gender=${user.profile!.gender}',
+      );
     }
     return user!;
   }
@@ -245,8 +264,9 @@ class FirebaseProfileRepository implements ProfileRepository {
     final sanitizedBio = InputSanitizer.sanitizeBio(bio);
     final sanitizedPhotoUrls = InputSanitizer.sanitizeUrls(photoUrls);
     final sanitizedVideoUrls = InputSanitizer.sanitizeUrls(videoUrls);
-    final sanitizedJobTitle =
-        jobTitle != null ? InputSanitizer.sanitizeJobField(jobTitle) : null;
+    final sanitizedJobTitle = jobTitle != null
+        ? InputSanitizer.sanitizeJobField(jobTitle)
+        : null;
     final sanitizedCompany = company != null
         ? InputSanitizer.sanitizeJobField(
             company,
@@ -260,8 +280,9 @@ class FirebaseProfileRepository implements ProfileRepository {
           )
         : null;
     final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
-    final sanitizedCity =
-        city != null ? InputSanitizer.sanitizeText(city, maxLength: 100) : null;
+    final sanitizedCity = city != null
+        ? InputSanitizer.sanitizeText(city, maxLength: 100)
+        : null;
     final sanitizedCountry = country != null
         ? InputSanitizer.sanitizeText(country, maxLength: 100)
         : null;
@@ -314,19 +335,23 @@ class FirebaseProfileRepository implements ProfileRepository {
     try {
       final docSnapshot = await docRef.get();
       AppLogger.info(
-          '[FirebaseProfileRepo] saveProfileDetails: docExists=${docSnapshot.exists}, userId=$userId');
+        '[FirebaseProfileRepo] saveProfileDetails: docExists=${docSnapshot.exists}, userId=$userId',
+      );
       AppLogger.info(
-          '[FirebaseProfileRepo] saveProfileDetails: photoUrls=${sanitizedPhotoUrls.length}, city=$sanitizedCity, country=$sanitizedCountry');
+        '[FirebaseProfileRepo] saveProfileDetails: photoUrls=${sanitizedPhotoUrls.length}, city=$sanitizedCity, country=$sanitizedCountry',
+      );
 
       if (docSnapshot.exists) {
         AppLogger.info(
-            '[FirebaseProfileRepo] Updating existing document with dot notation');
+          '[FirebaseProfileRepo] Updating existing document with dot notation',
+        );
         await docRef.update(updateData);
         AppLogger.info('[FirebaseProfileRepo] Update successful');
       } else {
         // Fallback: create document if it doesn't exist (shouldn't happen in normal flow)
         AppLogger.info(
-            '[FirebaseProfileRepo] Document does not exist, creating with set()');
+          '[FirebaseProfileRepo] Document does not exist, creating with set()',
+        );
         await docRef.set({
           'profile': {
             'bio': sanitizedBio,
@@ -349,7 +374,10 @@ class FirebaseProfileRepository implements ProfileRepository {
         AppLogger.info('[FirebaseProfileRepo] Set successful');
       }
     } catch (e, stackTrace) {
-      AppLogger.error('[FirebaseProfileRepo] saveProfileDetails FAILED', error: e);
+      AppLogger.error(
+        '[FirebaseProfileRepo] saveProfileDetails FAILED',
+        error: e,
+      );
       AppLogger.info('[FirebaseProfileRepo] Stack trace: $stackTrace');
       rethrow;
     }
@@ -380,10 +408,10 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     final profileData = _profileToFirestore(profile);
 
-    await _firestore.collection('users').doc(userId).set(
-      {'profile': profileData, 'updatedAt': FieldValue.serverTimestamp()},
-      SetOptions(merge: true),
-    );
+    await _firestore.collection('users').doc(userId).set({
+      'profile': profileData,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     return (await getCurrentUser())!;
   }
@@ -425,7 +453,8 @@ class FirebaseProfileRepository implements ProfileRepository {
       if (existingUsername != null && existingUsername.isNotEmpty) {
         if (!existingUser!.canChangeUsername) {
           throw Exception(
-              'You can change your username again in ${existingUser.daysUntilUsernameChange} days');
+            'You can change your username again in ${existingUser.daysUntilUsernameChange} days',
+          );
         }
       }
       docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
@@ -435,7 +464,8 @@ class FirebaseProfileRepository implements ProfileRepository {
     await docRef.set(docData, SetOptions(merge: true));
 
     AppLogger.info(
-        '[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername, changed=$usernameChanged');
+      '[FirebaseProfileRepo] skipBasicInfo: username=$sanitizedUsername, changed=$usernameChanged',
+    );
 
     return (await getCurrentUser())!;
   }
@@ -479,12 +509,12 @@ class FirebaseProfileRepository implements ProfileRepository {
         lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
         bio: profileData['bio'] ?? '',
         // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
-        photoUrls: List<String>.from(profileData['photoUrls'] ?? [])
-            .where(_isRemoteUrl)
-            .toList(),
-        videoUrls: List<String>.from(profileData['videoUrls'] ?? [])
-            .where(_isRemoteUrl)
-            .toList(),
+        photoUrls: List<String>.from(
+          profileData['photoUrls'] ?? [],
+        ).where(_isRemoteUrl).toList(),
+        videoUrls: List<String>.from(
+          profileData['videoUrls'] ?? [],
+        ).where(_isRemoteUrl).toList(),
         primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(profileData['interests'] ?? []),
         profilePrompts: _parseProfilePrompts(profileData['profilePrompts']),
@@ -519,7 +549,8 @@ class FirebaseProfileRepository implements ProfileRepository {
         ),
         favourites: profileData['favourites'] != null
             ? ProfileFavourites.fromJson(
-                profileData['favourites'] as Map<String, dynamic>)
+                profileData['favourites'] as Map<String, dynamic>,
+              )
             : const ProfileFavourites(),
         chatSettings: ChatSettings.fromJson(
           profileData['chatSettings'] as Map<String, dynamic>?,
@@ -567,7 +598,8 @@ class FirebaseProfileRepository implements ProfileRepository {
     List<String> showMeGenders = List<String>.from(data['showMeGenders'] ?? []);
     if (showMeGenders.isEmpty ||
         showMeGenders.any(
-            (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone')) {
+          (g) => g.toLowerCase() == 'all' || g.toLowerCase() == 'everyone',
+        )) {
       showMeGenders = ['male', 'female'];
     }
 
@@ -622,8 +654,9 @@ class FirebaseProfileRepository implements ProfileRepository {
       'videoUrls': remoteVideoUrls,
       'primaryPhotoIndex': p.primaryPhotoIndex,
       'interests': p.interests,
-      'profilePrompts':
-          p.profilePrompts.map((prompt) => prompt.toJson()).toList(),
+      'profilePrompts': p.profilePrompts
+          .map((prompt) => prompt.toJson())
+          .toList(),
       'country': p.country,
       'city': p.city,
       'latitude': p.latitude,
@@ -684,7 +717,9 @@ class FirebaseProfileRepository implements ProfileRepository {
             return ProfilePrompt.fromJson(json);
           } catch (e) {
             AppLogger.error(
-                '[FirebaseProfileRepository] Error parsing prompt', error: e);
+              '[FirebaseProfileRepository] Error parsing prompt',
+              error: e,
+            );
             return null;
           }
         })

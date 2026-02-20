@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import '../tokens/colors.dart';
 
 /// Status of a message delivery.
@@ -52,8 +53,9 @@ class ReadReceipt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final defaultColor = isDark
+        ? DsColors.textMutedDark
+        : DsColors.textMutedLight;
     final readStatusColor = readColor ?? DsColors.secondary;
     final iconColor = status == MessageStatus.read
         ? readStatusColor
@@ -74,28 +76,16 @@ class ReadReceipt extends StatelessWidget {
         break;
 
       case MessageStatus.sent:
-        icon = Icon(
-          Icons.check,
-          size: size,
-          color: iconColor,
-        );
+        icon = Icon(Icons.check, size: size, color: iconColor);
         break;
 
       case MessageStatus.delivered:
         icon = Stack(
           children: [
-            Icon(
-              Icons.check,
-              size: size,
-              color: iconColor,
-            ),
+            Icon(Icons.check, size: size, color: iconColor),
             Padding(
-              padding: EdgeInsets.only(left: size * 0.4),
-              child: Icon(
-                Icons.check,
-                size: size,
-                color: iconColor,
-              ),
+              padding: EdgeInsetsDirectional.only(start: size * 0.4),
+              child: Icon(Icons.check, size: size, color: iconColor),
             ),
           ],
         );
@@ -104,29 +94,17 @@ class ReadReceipt extends StatelessWidget {
       case MessageStatus.read:
         icon = Stack(
           children: [
-            Icon(
-              Icons.check,
-              size: size,
-              color: iconColor,
-            ),
+            Icon(Icons.check, size: size, color: iconColor),
             Padding(
-              padding: EdgeInsets.only(left: size * 0.4),
-              child: Icon(
-                Icons.check,
-                size: size,
-                color: iconColor,
-              ),
+              padding: EdgeInsetsDirectional.only(start: size * 0.4),
+              child: Icon(Icons.check, size: size, color: iconColor),
             ),
           ],
         );
         break;
 
       case MessageStatus.failed:
-        icon = Icon(
-          Icons.error_outline,
-          size: size,
-          color: DsColors.error,
-        );
+        icon = Icon(Icons.error_outline, size: size, color: DsColors.error);
         break;
     }
 
@@ -145,7 +123,10 @@ class ReadReceipt extends StatelessWidget {
       children: [
         if (timestamp != null) ...[
           Text(
-            _formatTime(timestamp!),
+            DateTimeFormatter.formatTime(
+              timestamp!,
+              locale: Localizations.localeOf(context).toString(),
+            ),
             style: TextStyle(
               fontSize: 11,
               color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
@@ -156,8 +137,8 @@ class ReadReceipt extends StatelessWidget {
         SizedBox(
           width:
               status == MessageStatus.delivered || status == MessageStatus.read
-                  ? size * 1.4
-                  : size,
+              ? size * 1.4
+              : size,
           height: size,
           child: icon,
         ),
@@ -191,14 +172,6 @@ class ReadReceipt extends StatelessWidget {
         return 'Failed';
     }
   }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '$displayHour:$minute $period';
-  }
 }
 
 /// An animated read receipt that transitions between states.
@@ -223,10 +196,7 @@ class AnimatedReadReceipt extends StatelessWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) {
-        return ScaleTransition(
-          scale: animation,
-          child: child,
-        );
+        return ScaleTransition(scale: animation, child: child);
       },
       child: ReadReceipt(
         key: ValueKey(status),
@@ -242,11 +212,7 @@ class AnimatedReadReceipt extends StatelessWidget {
 
 /// "Seen" text indicator (alternative to checkmarks).
 class SeenIndicator extends StatelessWidget {
-  const SeenIndicator({
-    super.key,
-    this.seenAt,
-    this.color,
-  });
+  const SeenIndicator({super.key, this.seenAt, this.color});
 
   /// When the message was seen.
   final DateTime? seenAt;
@@ -265,11 +231,7 @@ class SeenIndicator extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.visibility,
-          size: 12,
-          color: textColor,
-        ),
+        Icon(Icons.visibility, size: 12, color: textColor),
         const SizedBox(width: 4),
         Text(
           'Seen',

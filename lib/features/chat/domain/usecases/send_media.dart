@@ -57,10 +57,12 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
   Future<Result<SendMediaResult>> call(SendMediaParams params) async {
     // Check if media sending is enabled
     if (!params.isMediaEnabled) {
-      return const Result.success(SendMediaResult(
-        success: false,
-        errorMessage: 'Media sharing is disabled for this chat.',
-      ));
+      return const Result.success(
+        SendMediaResult(
+          success: false,
+          errorMessage: 'Media sharing is disabled for this chat.',
+        ),
+      );
     }
 
     // Check subscription plan for media limits
@@ -73,12 +75,14 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
 
     // Enforce limit for free users
     if (plan.isFree && params.currentMediaCount >= _freeUserMediaLimit) {
-      return const Result.success(SendMediaResult(
-        success: false,
-        errorMessage:
-            'Free users can send up to 8 media messages. Upgrade to Plus for unlimited.',
-        limitReached: true,
-      ));
+      return const Result.success(
+        SendMediaResult(
+          success: false,
+          errorMessage:
+              'Free users can send up to 8 media messages. Upgrade to Plus for unlimited.',
+          limitReached: true,
+        ),
+      );
     }
 
     // Upload media
@@ -93,10 +97,12 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
     );
 
     if (!uploadResult.isSuccess) {
-      return Result.success(SendMediaResult(
-        success: false,
-        errorMessage: uploadResult.errorMessage,
-      ));
+      return Result.success(
+        SendMediaResult(
+          success: false,
+          errorMessage: uploadResult.errorMessage,
+        ),
+      );
     }
 
     final mediaUrl = uploadResult.data!;
@@ -115,10 +121,9 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
     );
 
     if (!sendResult.isSuccess) {
-      return Result.success(SendMediaResult(
-        success: false,
-        errorMessage: sendResult.errorMessage,
-      ));
+      return Result.success(
+        SendMediaResult(success: false, errorMessage: sendResult.errorMessage),
+      );
     }
 
     return const Result.success(SendMediaResult(success: true));

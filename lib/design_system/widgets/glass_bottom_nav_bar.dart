@@ -94,7 +94,8 @@ class GlassBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = backgroundColor ??
+    final bgColor =
+        backgroundColor ??
         DsGlassColors.surfaceFor(
           context,
           strength: DsGlassSurfaceStrength.heavy,
@@ -110,9 +111,7 @@ class GlassBottomNavBar extends StatelessWidget {
             height: height,
             decoration: BoxDecoration(
               color: bgColor,
-              border: Border(
-                top: BorderSide(color: borderColor, width: 0.6),
-              ),
+              border: Border(top: BorderSide(color: borderColor, width: 0.6)),
             ),
             child: SafeArea(
               top: false,
@@ -161,8 +160,9 @@ class _GlassNavItemWidget extends StatelessWidget {
     final motionScale = effects?.motionScale ?? 1.0;
     final glowColor = effects?.glowColor ?? item.gradient.colors.first;
     final shadowOpacity = effects?.shadowOpacity ?? 0.3;
-    final inactiveColor =
-        isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+    final inactiveColor = isDark
+        ? DsColors.textMutedDark
+        : DsColors.textMutedLight;
 
     // Build accessibility label
     final semanticLabel = StringBuffer(item.label);
@@ -212,8 +212,9 @@ class _GlassNavItemWidget extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   AnimatedSwitcher(
-                    duration:
-                        Duration(milliseconds: (150 * motionScale).round()),
+                    duration: Duration(
+                      milliseconds: (150 * motionScale).round(),
+                    ),
                     child: Icon(
                       isSelected ? item.activeIcon : item.icon,
                       key: ValueKey(isSelected),
@@ -223,8 +224,8 @@ class _GlassNavItemWidget extends StatelessWidget {
                   ),
                   // Badge (dot or count)
                   if (item.badgeCount > 0)
-                    Positioned(
-                      right: item.showDotOnly ? -2 : -6,
+                    PositionedDirectional(
+                      end: item.showDotOnly ? -2 : -6,
                       top: item.showDotOnly ? -2 : -4,
                       child: _NavBadge(
                         count: item.badgeCount,
@@ -238,7 +239,9 @@ class _GlassNavItemWidget extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 child: isSelected
                     ? Padding(
-                        padding: const EdgeInsets.only(left: DsSpacing.xs + 2),
+                        padding: const EdgeInsetsDirectional.only(
+                          start: DsSpacing.xs + 2,
+                        ),
                         child: Text(
                           item.label,
                           style: const TextStyle(
@@ -261,10 +264,7 @@ class _GlassNavItemWidget extends StatelessWidget {
 /// Badge widget for nav items (compact style).
 /// Supports both dot-only mode (for Chats) and count mode (for Matches).
 class _NavBadge extends StatelessWidget {
-  const _NavBadge({
-    required this.count,
-    this.dotOnly = false,
-  });
+  const _NavBadge({required this.count, this.dotOnly = false});
 
   final int count;
   final bool dotOnly;
@@ -295,14 +295,8 @@ class _NavBadge extends StatelessWidget {
     final isSmall = count < 10;
 
     return Container(
-      constraints: BoxConstraints(
-        minWidth: isSmall ? 16 : 20,
-        minHeight: 16,
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 0 : 4,
-        vertical: 1,
-      ),
+      constraints: BoxConstraints(minWidth: isSmall ? 16 : 20, minHeight: 16),
+      padding: EdgeInsets.symmetric(horizontal: isSmall ? 0 : 4, vertical: 1),
       decoration: BoxDecoration(
         color: DsColors.primary,
         borderRadius: BorderRadius.circular(DsRadius.chip),

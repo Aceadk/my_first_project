@@ -1,6 +1,5 @@
 {
   "@@locale": "zh",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "取消",
   "commonSave": "保存",
@@ -44,7 +43,6 @@
   "commonUnblock": "取消屏蔽",
   "commonMute": "静音",
   "commonUnmute": "取消静音",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "出了点问题，请重试。",
   "errorNetwork": "连接错误，请检查网络后重试。",
@@ -99,16 +97,19 @@
   "errorCouldNot": "无法{action}，请重试。",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature}是Plus功能。升级以解锁！",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "返回",
   "a11yCloseButton": "关闭",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name}的个人照片",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "用户头像",
   "a11yAvatarOf": "{name}的头像",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "编辑资料",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "来自{sender}的消息",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1条未读消息} other{{count}条未读消息}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "显示密码",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "配对成功！您与{name}配对了",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "来自{sender}的新消息",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "资料已喜欢",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "资料已超级喜欢",
   "a11yMessageSent": "消息已发送",
   "a11ySettingSaved": "设置已保存",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "欢迎回来",
   "authSignInToContinue": "登录以继续使用Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "我们已向{destination}发送验证码",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "输入6位数验证码",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "点击我们发送的链接以验证您的邮箱",
   "authEmailVerified": "邮箱验证成功！",
   "authSkipForNow": "暂时跳过",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "设置",
   "settingsAppearance": "外观",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance}公里",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "显示给我",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "管理您的计划",
   "settingsGetPlus": "获取Crush Plus",
   "settingsRestorePurchases": "恢复购买",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "发现",
   "discoveryNoMatchesTitle": "还没有匹配",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "您和{name}互相喜欢",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "发送消息",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "喜欢您的人",
   "discoveryTopPicks": "精选推荐",
   "discoveryNewArrivals": "新加入",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "聊天",
   "chatMatches": "匹配",
@@ -367,7 +382,9 @@
   "chatStartConversation": "与{name}开始对话",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "输入消息...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "最后上线 {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "正在输入...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "您与{name}匹配了",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "个人资料",
   "profileEdit": "编辑资料",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height}厘米",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "语言",
@@ -450,7 +472,6 @@
   "profileAboutMe": "关于我",
   "profileMyDetails": "我的详情",
   "profileLifestyle": "生活方式",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "欢迎来到Crush",
   "onboardingTagline": "找到您的完美匹配",
@@ -458,8 +479,12 @@
   "onboardingStep": "第{current}步，共{total}步",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "您叫什么名字？",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "选择至少3个兴趣",
   "onboardingAllSet": "准备就绪！",
   "onboardingStartSwiping": "开始滑动",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "免费",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "每月{count}次提升",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "每天{count}次超级喜欢",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "无广告",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/月",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/年",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "最超值",
   "subscriptionMostPopular": "最受欢迎",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "举报用户",
   "safetyBlockUser": "屏蔽用户",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "屏蔽{name}？",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "他们将无法看到您的资料或给您发消息",
@@ -532,42 +565,46 @@
   "safetySpam": "垃圾信息",
   "safetyScam": "诈骗",
   "safetyOther": "其他",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "刚刚",
   "timeMinutesAgo": "{count, plural, =1{1分钟前} other{{count}分钟前}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1小时前} other{{count}小时前}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1天前} other{{count}天前}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1周前} other{{count}周前}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "未找到结果",
   "emptyTryAgain": "尝试调整您的搜索或筛选条件",
   "emptyNoData": "暂无数据",
   "emptyCheckBackLater": "稍后再来查看",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "首页",
   "wordExplore": "探索",
@@ -579,7 +616,6 @@
   "wordInbox": "收件箱",
   "wordFavorites": "收藏",
   "wordHistory": "历史",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "复制",
   "wordPaste": "粘贴",
@@ -609,7 +645,7 @@
   "wordAllow": "允许",
   "wordEnable": "启用",
   "wordDisable": "禁用",
-  "wordShow": "显示",
+  "wordShow": "节目",
   "wordHide": "隐藏",
   "wordExpand": "展开",
   "wordCollapse": "收起",
@@ -663,7 +699,6 @@
   "wordSay": "说",
   "wordTell": "告诉",
   "wordAsk": "问",
-  "wordHelp": "帮助",
   "wordWait": "等待",
   "wordStay": "留下",
   "wordCome": "来",
@@ -675,7 +710,7 @@
   "wordLive": "生活",
   "wordChange": "改变",
   "wordTurn": "转",
-  "wordRead": "读",
+  "wordRead": "已读",
   "wordWrite": "写",
   "wordLearn": "学习",
   "wordStudy": "学习",
@@ -698,14 +733,13 @@
   "wordDecide": "决定",
   "wordAgree": "同意",
   "wordDisagree": "不同意",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "活跃",
   "wordInactive": "不活跃",
   "wordAvailable": "可用",
   "wordUnavailable": "不可用",
   "wordBusy": "忙碌",
-  "wordAway": "离开",
+  "wordAway": "远离",
   "wordInvisible": "隐身",
   "wordOnline": "在线",
   "wordOffline": "离线",
@@ -759,13 +793,10 @@
   "wordNotDone": "未完成",
   "wordSent": "已发送",
   "wordReceived": "已收到",
-  "wordRead": "已读",
   "wordUnread": "未读",
   "wordSeen": "已看",
   "wordUnseen": "未看",
-  "wordOpen": "打开",
   "wordClosed": "已关闭",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "现在",
   "wordLater": "稍后",
@@ -807,7 +838,6 @@
   "wordYears": "年",
   "wordSecond": "秒",
   "wordSeconds": "秒",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "好",
   "wordBad": "坏",
@@ -876,7 +906,7 @@
   "wordSmart": "聪明",
   "wordStupid": "愚蠢",
   "wordFunny": "有趣",
-  "wordSerious": "严肃",
+  "wordSerious": "认真的",
   "wordNice": "友好",
   "wordMean": "刻薄",
   "wordKind": "善良",
@@ -932,7 +962,6 @@
   "wordFabulous": "极好",
   "wordMagnificent": "壮丽",
   "wordSpectacular": "壮观",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "请",
   "wordThanks": "谢谢",
@@ -963,7 +992,6 @@
   "wordHaveFun": "玩得开心",
   "wordEnjoy": "享受",
   "wordCheers": "干杯",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "谁",
   "wordWhat": "什么",
@@ -979,7 +1007,6 @@
   "wordHowFar": "多远",
   "wordHowOld": "多大",
   "wordHowOften": "多久一次",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "和",
   "wordWithout": "没有",
@@ -1003,7 +1030,6 @@
   "wordThrough": "通过",
   "wordAlong": "沿着",
   "wordToward": "朝向",
-  "wordAway": "远离",
   "wordBehind": "后面",
   "wordAhead": "前方",
   "wordFront": "前面",
@@ -1015,7 +1041,6 @@
   "wordCenter": "中心",
   "wordCorner": "角落",
   "wordEdge": "边缘",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "心动",
   "wordMatch": "匹配",
@@ -1111,7 +1136,7 @@
   "wordTravel": "旅行",
   "wordTraveling": "旅行中",
   "wordExploring": "探索中",
-  "wordFun": "乐趣",
+  "wordFun": "有趣的",
   "wordLaughter": "笑声",
   "wordSmile": "微笑",
   "wordSmiles": "微笑",
@@ -1131,9 +1156,7 @@
   "wordDevoted": "专一的",
   "wordCommitted": "忠诚的",
   "wordCommitment": "承诺",
-  "wordSerious": "认真的",
   "wordCasual": "随意的",
-  "wordFun": "有趣的",
   "wordFriendship": "友谊",
   "wordFriend": "朋友",
   "wordFriends": "朋友们",
@@ -1146,7 +1169,6 @@
   "wordSeekingFor": "寻找",
   "wordWaiting": "等待",
   "wordSearching": "搜索",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "通知",
   "wordAlert": "警报",
@@ -1316,7 +1338,6 @@
   "wordReport": "报告",
   "wordReports": "报告",
   "wordDashboard": "仪表板",
-  "wordHome": "首页",
   "wordWorld": "世界",
   "wordCountry": "国家",
   "wordCity": "城市",
@@ -1398,7 +1419,6 @@
   "wordMovies": "电影",
   "wordFilm": "电影",
   "wordFilms": "电影",
-  "wordShow": "节目",
   "wordShows": "节目",
   "wordSeries": "系列",
   "wordBook": "书",
@@ -1465,7 +1485,6 @@
   "wordSomething": "某事",
   "wordNothing": "什么都没有",
   "wordAnything": "任何事",
-
   "@@_DISAMBIGUATION_WORDS": "Words with context-specific meanings",
   "wordHelpVerb": "帮助",
   "wordReadStatus": "已读",
@@ -1473,5 +1492,46 @@
   "wordAwayFrom": "远离",
   "wordSeriousRel": "认真",
   "wordSettingsNoun": "设置",
-  "wordShowNoun": "节目"
+  "wordShowNoun": "节目",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

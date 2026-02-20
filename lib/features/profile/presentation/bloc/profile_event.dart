@@ -43,16 +43,16 @@ class ProfileBasicInfoSubmitted extends ProfileEvent {
 
   @override
   List<Object?> get props => [
-        username,
-        name,
-        lastName,
-        age,
-        gender,
-        sexualOrientation,
-        dateOfBirth,
-        showFirstName,
-        showLastName
-      ];
+    username,
+    name,
+    lastName,
+    age,
+    gender,
+    sexualOrientation,
+    dateOfBirth,
+    showFirstName,
+    showLastName,
+  ];
 }
 
 class ProfileDetailsSubmitted extends ProfileEvent {
@@ -88,20 +88,20 @@ class ProfileDetailsSubmitted extends ProfileEvent {
 
   @override
   List<Object?> get props => [
-        bio,
-        photoUrls,
-        videoUrls,
-        jobTitle,
-        company,
-        school,
-        interests,
-        city,
-        country,
-        favourites,
-        showMeGenders,
-        latitude,
-        longitude
-      ];
+    bio,
+    photoUrls,
+    videoUrls,
+    jobTitle,
+    company,
+    school,
+    interests,
+    city,
+    country,
+    favourites,
+    showMeGenders,
+    latitude,
+    longitude,
+  ];
 }
 
 class ProfileIdDocumentUploaded extends ProfileEvent {}

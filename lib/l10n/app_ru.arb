@@ -1,6 +1,5 @@
 {
   "@@locale": "ru",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Отмена",
   "commonSave": "Сохранить",
@@ -44,7 +43,6 @@
   "commonUnblock": "Разблокировать",
   "commonMute": "Без звука",
   "commonUnmute": "Со звуком",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Что-то пошло не так. Пожалуйста, попробуйте снова.",
   "errorNetwork": "Ошибка подключения. Проверьте интернет и попробуйте снова.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Не удалось {action}. Пожалуйста, попробуйте снова.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} - это функция Plus. Перейдите на Plus, чтобы разблокировать!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Назад",
   "a11yCloseButton": "Закрыть",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Фото профиля {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Аватар пользователя",
   "a11yAvatarOf": "Аватар {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Редактировать профиль",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Сообщение от {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 непрочитанное сообщение} few{{count} непрочитанных сообщения} other{{count} непрочитанных сообщений}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Показать пароль",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "Это совпадение! Вы совпали с {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "Новое сообщение от {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Профиль лайкнут",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Профиль суперлайкнут",
   "a11yMessageSent": "Сообщение отправлено",
   "a11ySettingSaved": "Настройка сохранена",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "С возвращением",
   "authSignInToContinue": "Войдите, чтобы продолжить в Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "Мы отправили код на {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Введите 6-значный код",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Нажмите на ссылку, которую мы отправили, чтобы подтвердить email",
   "authEmailVerified": "Email успешно подтверждён!",
   "authSkipForNow": "Пропустить пока",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Настройки",
   "settingsAppearance": "Внешний вид",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} км",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Показывать мне",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Управление планом",
   "settingsGetPlus": "Получить Crush Plus",
   "settingsRestorePurchases": "Восстановить покупки",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Поиск",
   "discoveryNoMatchesTitle": "Пока нет совпадений",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Вы и {name} понравились друг другу",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Отправить сообщение",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Вы им нравитесь",
   "discoveryTopPicks": "Лучшие профили",
   "discoveryNewArrivals": "Новички",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Чаты",
   "chatMatches": "Совпадения",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Начать разговор с {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Введите сообщение...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Был(а) {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "печатает...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "Вы совпали с {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Профиль",
   "profileEdit": "Редактировать профиль",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} см",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Языки",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Обо мне",
   "profileMyDetails": "Мои данные",
   "profileLifestyle": "Образ жизни",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Добро пожаловать в Crush",
   "onboardingTagline": "Найдите идеальную пару",
@@ -458,8 +479,12 @@
   "onboardingStep": "Шаг {current} из {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "Как вас зовут?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Выберите минимум 3 интереса",
   "onboardingAllSet": "Всё готово!",
   "onboardingStartSwiping": "Начать свайпать",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Бесплатно",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} продвижений в месяц",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} суперлайков в день",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Без рекламы",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/мес",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/год",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Лучшая цена",
   "subscriptionMostPopular": "Самый популярный",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Пожаловаться на пользователя",
   "safetyBlockUser": "Заблокировать пользователя",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Заблокировать {name}?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Они не смогут видеть ваш профиль или писать вам",
@@ -532,46 +565,50 @@
   "safetySpam": "Спам",
   "safetyScam": "Мошенничество",
   "safetyOther": "Другое",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Только что",
   "timeMinutesAgo": "{count, plural, =1{1 минуту назад} few{{count} минуты назад} other{{count} минут назад}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 час назад} few{{count} часа назад} other{{count} часов назад}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 день назад} few{{count} дня назад} other{{count} дней назад}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 неделю назад} few{{count} недели назад} other{{count} недель назад}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Результаты не найдены",
   "emptyTryAgain": "Попробуйте изменить поиск или фильтры",
   "emptyNoData": "Нет данных",
   "emptyCheckBackLater": "Загляните позже",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Главная",
   "wordExplore": "Обзор",
-  "wordHelp": "Помощь",
+  "wordHelp": "Помочь",
   "wordMenu": "Меню",
   "wordFeed": "Лента",
   "wordActivity": "Активность",
@@ -579,7 +616,6 @@
   "wordInbox": "Входящие",
   "wordFavorites": "Избранное",
   "wordHistory": "История",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Копировать",
   "wordPaste": "Вставить",
@@ -589,7 +625,7 @@
   "wordUpload": "Загрузить",
   "wordSelect": "Выбрать",
   "wordDeselect": "Снять выбор",
-  "wordOpen": "Открыть",
+  "wordOpen": "Открыто",
   "wordCreate": "Создать",
   "wordConnect": "Подключить",
   "wordDisconnect": "Отключить",
@@ -609,7 +645,7 @@
   "wordAllow": "Разрешить",
   "wordEnable": "Включить",
   "wordDisable": "Отключить",
-  "wordShow": "Показать",
+  "wordShow": "Шоу",
   "wordHide": "Скрыть",
   "wordExpand": "Развернуть",
   "wordCollapse": "Свернуть",
@@ -663,7 +699,6 @@
   "wordSay": "Сказать",
   "wordTell": "Рассказать",
   "wordAsk": "Спросить",
-  "wordHelp": "Помочь",
   "wordWait": "Ждать",
   "wordStay": "Остаться",
   "wordCome": "Прийти",
@@ -675,7 +710,7 @@
   "wordLive": "Жить",
   "wordChange": "Изменить",
   "wordTurn": "Повернуть",
-  "wordRead": "Читать",
+  "wordRead": "Прочитано",
   "wordWrite": "Писать",
   "wordLearn": "Учиться",
   "wordStudy": "Изучать",
@@ -698,14 +733,13 @@
   "wordDecide": "Решить",
   "wordAgree": "Согласиться",
   "wordDisagree": "Не согласиться",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Активный",
   "wordInactive": "Неактивный",
   "wordAvailable": "Доступен",
   "wordUnavailable": "Недоступен",
   "wordBusy": "Занят",
-  "wordAway": "Отошёл",
+  "wordAway": "Прочь",
   "wordInvisible": "Невидимый",
   "wordOnline": "Онлайн",
   "wordOffline": "Офлайн",
@@ -759,13 +793,10 @@
   "wordNotDone": "Не готово",
   "wordSent": "Отправлено",
   "wordReceived": "Получено",
-  "wordRead": "Прочитано",
   "wordUnread": "Непрочитано",
   "wordSeen": "Просмотрено",
   "wordUnseen": "Не просмотрено",
-  "wordOpen": "Открыто",
   "wordClosed": "Закрыто",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Сейчас",
   "wordLater": "Позже",
@@ -807,7 +838,6 @@
   "wordYears": "Годы",
   "wordSecond": "Секунда",
   "wordSeconds": "Секунды",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "Хороший",
   "wordBad": "Плохой",
@@ -932,7 +962,6 @@
   "wordFabulous": "Сказочный",
   "wordMagnificent": "Великолепный",
   "wordSpectacular": "Впечатляющий",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Пожалуйста",
   "wordThanks": "Спасибо",
@@ -963,7 +992,6 @@
   "wordHaveFun": "Веселись",
   "wordEnjoy": "Наслаждайся",
   "wordCheers": "За здоровье",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Кто",
   "wordWhat": "Что",
@@ -979,7 +1007,6 @@
   "wordHowFar": "Как далеко",
   "wordHowOld": "Сколько лет",
   "wordHowOften": "Как часто",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "С",
   "wordWithout": "Без",
@@ -1003,7 +1030,6 @@
   "wordThrough": "Сквозь",
   "wordAlong": "Вдоль",
   "wordToward": "К",
-  "wordAway": "Прочь",
   "wordBehind": "Позади",
   "wordAhead": "Впереди",
   "wordFront": "Спереди",
@@ -1015,7 +1041,6 @@
   "wordCenter": "Центр",
   "wordCorner": "Угол",
   "wordEdge": "Край",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Увлечение",
   "wordMatch": "Совпадение",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "Преданный",
   "wordCommitted": "Преданный",
   "wordCommitment": "Обязательство",
-  "wordSerious": "Серьёзный",
   "wordCasual": "Непринуждённый",
   "wordFriendship": "Дружба",
   "wordFriend": "Друг",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "В поиске",
   "wordWaiting": "Жду",
   "wordSearching": "Ищу",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Уведомление",
   "wordAlert": "Оповещение",
@@ -1396,7 +1419,6 @@
   "wordMovies": "Фильмы",
   "wordFilm": "Кино",
   "wordFilms": "Фильмы",
-  "wordShow": "Шоу",
   "wordShows": "Шоу",
   "wordSeries": "Сериал",
   "wordBook": "Книга",
@@ -1463,7 +1485,6 @@
   "wordSomething": "Что-то",
   "wordNothing": "Ничего",
   "wordAnything": "Что угодно",
-
   "@@_DISAMBIGUATION_WORDS": "Words with context-specific meanings",
   "wordHelpVerb": "Помочь",
   "wordReadStatus": "Прочитано",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "Далеко",
   "wordSeriousRel": "Серьёзный",
   "wordSettingsNoun": "Настройки",
-  "wordShowNoun": "Шоу"
+  "wordShowNoun": "Шоу",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{Нет уведомлений} =1{1 уведомление} few{{count} уведомления} many{{count} уведомлений} other{{count} уведомлений}}",
+  "matchCount": "{count, plural, =0{Нет совпадений} =1{1 совпадение} few{{count} совпадения} many{{count} совпадений} other{{count} совпадений}}",
+  "likesCount": "{count, plural, =0{Нет лайков} =1{1 лайк} few{{count} лайка} many{{count} лайков} other{{count} лайков}}",
+  "photosCount": "{count, plural, =0{Нет фото} =1{1 фото} few{{count} фото} many{{count} фото} other{{count} фото}}",
+  "distanceKm": "{count, plural, =0{Меньше 1 км} =1{1 км} few{{count} км} many{{count} км} other{{count} км}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

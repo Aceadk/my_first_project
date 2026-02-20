@@ -40,13 +40,17 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
     // Smooth pulse animation using curved intervals
     _pulseAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.15)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.15,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.15, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInCubic)),
+        tween: Tween<double>(
+          begin: 1.15,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInCubic)),
         weight: 50,
       ),
     ]).animate(_controller);
@@ -54,13 +58,17 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
     // Fade the outer ring in and out
     _opacityAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.3, end: 0.6)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0.3,
+          end: 0.6,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.6, end: 0.3)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 0.6,
+          end: 0.3,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
       ),
     ]).animate(_controller);
@@ -77,7 +85,8 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveColor = widget.iconColor ??
+    final effectiveColor =
+        widget.iconColor ??
         (isDark ? DsColors.textMutedDark : DsColors.textMutedLight);
 
     return AnimatedBuilder(
@@ -149,11 +158,7 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
               ? (isDark ? DsColors.skeletonDark : DsColors.skeletonLight)
               : null,
         ),
-        child: Icon(
-          widget.icon,
-          size: widget.iconSize,
-          color: effectiveColor,
-        ),
+        child: Icon(widget.icon, size: widget.iconSize, color: effectiveColor),
       ),
     );
   }
@@ -204,26 +209,34 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
     _planePosition = TweenSequence<double>([
       // Taxi/acceleration phase - slow start
       TweenSequenceItem(
-        tween: Tween<double>(begin: -0.12, end: 0.15)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: -0.12,
+          end: 0.15,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 25,
       ),
       // Liftoff and initial climb - steady speed
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.15, end: 0.5)
-            .chain(CurveTween(curve: Curves.linear)),
+        tween: Tween<double>(
+          begin: 0.15,
+          end: 0.5,
+        ).chain(CurveTween(curve: Curves.linear)),
         weight: 35,
       ),
       // Climb out - continues steady
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.5, end: 0.85)
-            .chain(CurveTween(curve: Curves.linear)),
+        tween: Tween<double>(
+          begin: 0.5,
+          end: 0.85,
+        ).chain(CurveTween(curve: Curves.linear)),
         weight: 30,
       ),
       // Exit frame
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.85, end: 1.12)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0.85,
+          end: 1.12,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 10,
       ),
     ]).animate(_controller);
@@ -232,26 +245,29 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
     // Very gradual rise, not dramatic vertical movement
     _planeAltitude = TweenSequence<double>([
       // On runway - no altitude change
-      TweenSequenceItem(
-        tween: ConstantTween<double>(0),
-        weight: 20,
-      ),
+      TweenSequenceItem(tween: ConstantTween<double>(0), weight: 20),
       // Rotation and liftoff - slight rise
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: -3)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0,
+          end: -3,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 15,
       ),
       // Initial climb - gradual steady rise
       TweenSequenceItem(
-        tween: Tween<double>(begin: -3, end: -8)
-            .chain(CurveTween(curve: Curves.linear)),
+        tween: Tween<double>(
+          begin: -3,
+          end: -8,
+        ).chain(CurveTween(curve: Curves.linear)),
         weight: 35,
       ),
       // Continue climb - still gradual
       TweenSequenceItem(
-        tween: Tween<double>(begin: -8, end: -14)
-            .chain(CurveTween(curve: Curves.linear)),
+        tween: Tween<double>(
+          begin: -8,
+          end: -14,
+        ).chain(CurveTween(curve: Curves.linear)),
         weight: 30,
       ),
     ]).animate(_controller);
@@ -260,26 +276,29 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
     // About 10-15 degrees nose up, very subtle
     _planeRotation = TweenSequence<double>([
       // On runway - level
-      TweenSequenceItem(
-        tween: ConstantTween<double>(0),
-        weight: 20,
-      ),
+      TweenSequenceItem(tween: ConstantTween<double>(0), weight: 20),
       // Rotation - nose comes up for liftoff
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: -0.18)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0,
+          end: -0.18,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 15,
       ),
       // Climb attitude - maintain pitch
       TweenSequenceItem(
-        tween: Tween<double>(begin: -0.18, end: -0.15)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: -0.18,
+          end: -0.15,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 35,
       ),
       // Slight adjustment during climb out
       TweenSequenceItem(
-        tween: Tween<double>(begin: -0.15, end: -0.12)
-            .chain(CurveTween(curve: Curves.linear)),
+        tween: Tween<double>(
+          begin: -0.15,
+          end: -0.12,
+        ).chain(CurveTween(curve: Curves.linear)),
         weight: 30,
       ),
     ]).animate(_controller);
@@ -288,19 +307,20 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
     _textOpacity = TweenSequence<double>([
       // Quick fade out as plane enters
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 12,
       ),
       // Stay hidden while plane flies through
-      TweenSequenceItem(
-        tween: ConstantTween<double>(0.0),
-        weight: 76,
-      ),
+      TweenSequenceItem(tween: ConstantTween<double>(0.0), weight: 76),
       // Fade back in smoothly after plane exits
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 12,
       ),
     ]).animate(_controller);
@@ -309,19 +329,20 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
     _planeOpacity = TweenSequence<double>([
       // Fade in smoothly
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 8,
       ),
       // Fully visible during flight
-      TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 84,
-      ),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 84),
       // Fade out as it exits
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 8,
       ),
     ]).animate(_controller);
@@ -373,8 +394,8 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
                 alignment: Alignment.center,
                 children: [
                   // Static icon on the left (fades with text during animation)
-                  Positioned(
-                    left: 0,
+                  PositionedDirectional(
+                    start: 0,
                     child: Opacity(
                       opacity: _textOpacity.value,
                       child: const Icon(Icons.flight_takeoff, size: 18),
@@ -398,8 +419,8 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
                   ),
                   // Animated flying plane
                   if (_controller.isAnimating || _planeOpacity.value > 0)
-                    Positioned(
-                      left: _planePosition.value * _contentWidth - 15,
+                    PositionedDirectional(
+                      start: _planePosition.value * _contentWidth - 15,
                       top: 2 + _planeAltitude.value,
                       child: Opacity(
                         opacity: _planeOpacity.value,
@@ -432,8 +453,8 @@ class _AnimatedPlane extends StatelessWidget {
         alignment: Alignment.centerLeft,
         children: [
           // Contrail / trail effect
-          Positioned(
-            left: 0,
+          PositionedDirectional(
+            start: 0,
             child: Container(
               width: 20,
               height: 2,
@@ -449,8 +470,8 @@ class _AnimatedPlane extends StatelessWidget {
             ),
           ),
           // Second trail line (slightly offset)
-          Positioned(
-            left: 2,
+          PositionedDirectional(
+            start: 2,
             top: 4,
             child: Container(
               width: 15,
@@ -467,13 +488,9 @@ class _AnimatedPlane extends StatelessWidget {
             ),
           ),
           // The plane icon
-          const Positioned(
-            right: 0,
-            child: Icon(
-              Icons.flight,
-              size: 20,
-              color: DsColors.info,
-            ),
+          const PositionedDirectional(
+            end: 0,
+            child: Icon(Icons.flight, size: 20, color: DsColors.info),
           ),
         ],
       ),
@@ -483,11 +500,7 @@ class _AnimatedPlane extends StatelessWidget {
 
 /// A rotating compass icon for the explore/passport states
 class AnimatedCompassIcon extends StatefulWidget {
-  const AnimatedCompassIcon({
-    super.key,
-    this.size = 56,
-    this.color,
-  });
+  const AnimatedCompassIcon({super.key, this.size = 56, this.color});
 
   final double size;
   final Color? color;
@@ -512,18 +525,24 @@ class _AnimatedCompassIconState extends State<AnimatedCompassIcon>
     // Gentle wobble rotation
     _rotationAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 0.1)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: 0,
+          end: 0.1,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 25,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.1, end: -0.1)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: 0.1,
+          end: -0.1,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: -0.1, end: 0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: -0.1,
+          end: 0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 25,
       ),
     ]).animate(_controller);
@@ -546,11 +565,7 @@ class _AnimatedCompassIconState extends State<AnimatedCompassIcon>
       builder: (context, child) {
         return Transform.rotate(
           angle: _rotationAnimation.value,
-          child: Icon(
-            Icons.explore,
-            size: widget.size,
-            color: effectiveColor,
-          ),
+          child: Icon(Icons.explore, size: widget.size, color: effectiveColor),
         );
       },
     );

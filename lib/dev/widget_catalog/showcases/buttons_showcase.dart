@@ -32,10 +32,7 @@ PrimaryButton(
     // Handle action
   },
 )''',
-          child: PrimaryButton(
-            label: 'Continue',
-            onPressed: () {},
-          ),
+          child: PrimaryButton(label: 'Continue', onPressed: () {}),
         ),
         WidgetShowcase(
           title: 'Loading State',
@@ -74,10 +71,7 @@ PrimaryButton(
   label: 'Disabled',
   onPressed: null, // Disabled when null
 )''',
-          child: PrimaryButton(
-            label: 'Disabled',
-            onPressed: null,
-          ),
+          child: PrimaryButton(label: 'Disabled', onPressed: null),
         ),
         WidgetVariants(
           title: 'Button States',
@@ -91,7 +85,10 @@ PrimaryButton(
             WidgetVariant(
               label: 'Loading',
               child: PrimaryButton(
-                  label: 'Loading', loading: true, onPressed: () {}),
+                label: 'Loading',
+                loading: true,
+                onPressed: () {},
+              ),
             ),
             const WidgetVariant(
               label: 'Disabled',
@@ -110,17 +107,23 @@ PrimaryButton(
             WidgetVariant(
               label: 'Elevated',
               child: ElevatedButton(
-                  onPressed: () {}, child: const Text('Elevated')),
+                onPressed: () {},
+                child: const Text('Elevated'),
+              ),
             ),
             WidgetVariant(
               label: 'Filled',
-              child:
-                  FilledButton(onPressed: () {}, child: const Text('Filled')),
+              child: FilledButton(
+                onPressed: () {},
+                child: const Text('Filled'),
+              ),
             ),
             WidgetVariant(
               label: 'Outlined',
               child: OutlinedButton(
-                  onPressed: () {}, child: const Text('Outlined')),
+                onPressed: () {},
+                child: const Text('Outlined'),
+              ),
             ),
             WidgetVariant(
               label: 'Text',
@@ -135,7 +138,9 @@ PrimaryButton(
             WidgetVariant(
               label: 'Icon Only',
               child: IconButton(
-                  onPressed: () {}, icon: const Icon(Icons.favorite)),
+                onPressed: () {},
+                icon: const Icon(Icons.favorite),
+              ),
             ),
             WidgetVariant(
               label: 'With Label',

@@ -56,8 +56,9 @@ class StubProfileRepository implements ProfileRepository {
     // Sanitize input data
     final sanitizedName = InputSanitizer.sanitizeName(name);
     final sanitizedLastName = InputSanitizer.sanitizeName(lastName);
-    final sanitizedUsername =
-        username != null ? InputSanitizer.sanitizeUsername(username) : null;
+    final sanitizedUsername = username != null
+        ? InputSanitizer.sanitizeUsername(username)
+        : null;
     final sanitizedAge = InputSanitizer.sanitizeAge(age);
     final sanitizedGender = InputSanitizer.sanitizeText(gender, maxLength: 50);
     final sanitizedOrientation = sexualOrientation != null
@@ -114,14 +115,15 @@ class StubProfileRepository implements ProfileRepository {
       company: existingProfile?.company,
       school: existingProfile?.school,
       privacySettings: updatedPrivacy,
-      preferences: existingProfile?.preferences ??
+      preferences:
+          existingProfile?.preferences ??
           const DiscoveryPreferences(
             minAge: 18,
             maxAge: 50,
             maxDistanceKm: 100,
             showMeGenders: [
               'male',
-              'female'
+              'female',
             ], // Default to show all binary genders
             showMyDistance: true,
             showMyAge: true,
@@ -145,7 +147,8 @@ class StubProfileRepository implements ProfileRepository {
       if (existingUsername != null && existingUsername.isNotEmpty) {
         if (!currentUser.canChangeUsername) {
           throw Exception(
-              'You can change your username again in ${currentUser.daysUntilUsernameChange} days');
+            'You can change your username again in ${currentUser.daysUntilUsernameChange} days',
+          );
         }
       }
       // Update the change timestamp
@@ -195,15 +198,20 @@ class StubProfileRepository implements ProfileRepository {
     final sanitizedBio = InputSanitizer.sanitizeBio(bio);
     final sanitizedPhotoUrls = InputSanitizer.sanitizeUrls(photoUrls);
     final sanitizedVideoUrls = InputSanitizer.sanitizeUrls(videoUrls);
-    final sanitizedJobTitle =
-        jobTitle != null ? InputSanitizer.sanitizeJobField(jobTitle) : null;
+    final sanitizedJobTitle = jobTitle != null
+        ? InputSanitizer.sanitizeJobField(jobTitle)
+        : null;
     final sanitizedCompany = company != null
-        ? InputSanitizer.sanitizeJobField(company,
-            maxLength: InputSanitizer.maxCompanyLength)
+        ? InputSanitizer.sanitizeJobField(
+            company,
+            maxLength: InputSanitizer.maxCompanyLength,
+          )
         : null;
     final sanitizedSchool = school != null
-        ? InputSanitizer.sanitizeText(school,
-            maxLength: InputSanitizer.maxSchoolLength)
+        ? InputSanitizer.sanitizeText(
+            school,
+            maxLength: InputSanitizer.maxSchoolLength,
+          )
         : null;
     final sanitizedInterests = InputSanitizer.sanitizeInterests(interests);
 
@@ -312,7 +320,8 @@ class StubProfileRepository implements ProfileRepository {
       if (existingUsername != null && existingUsername.isNotEmpty) {
         if (!currentUser.canChangeUsername) {
           throw Exception(
-              'You can change your username again in ${currentUser.daysUntilUsernameChange} days');
+            'You can change your username again in ${currentUser.daysUntilUsernameChange} days',
+          );
         }
       }
       newLastUsernameChangeAt = DateTime.now();
@@ -337,9 +346,7 @@ class StubProfileRepository implements ProfileRepository {
       throw Exception('No user logged in');
     }
 
-    final updatedUser = currentUser.copyWith(
-      hasSkippedProfileSetup: true,
-    );
+    final updatedUser = currentUser.copyWith(hasSkippedProfileSetup: true);
 
     await _saveUser(updatedUser);
     return updatedUser;
@@ -372,8 +379,9 @@ class StubProfileRepository implements ProfileRepository {
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
-        dateOfBirth:
-            p['dateOfBirth'] != null ? DateTime.parse(p['dateOfBirth']) : null,
+        dateOfBirth: p['dateOfBirth'] != null
+            ? DateTime.parse(p['dateOfBirth'])
+            : null,
         lastDobChangeAt: p['lastDobChangeAt'] != null
             ? DateTime.parse(p['lastDobChangeAt'])
             : null,
@@ -385,7 +393,8 @@ class StubProfileRepository implements ProfileRepository {
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
         primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(p['interests'] ?? []),
-        profilePrompts: (p['profilePrompts'] as List<dynamic>?)
+        profilePrompts:
+            (p['profilePrompts'] as List<dynamic>?)
                 ?.map((e) => ProfilePrompt.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
@@ -413,7 +422,8 @@ class StubProfileRepository implements ProfileRepository {
           maxAge: p['preferences']?['maxAge'] ?? 50,
           maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
           showMeGenders: List<String>.from(
-              p['preferences']?['showMeGenders'] ?? ['male', 'female']),
+            p['preferences']?['showMeGenders'] ?? ['male', 'female'],
+          ),
           showMyDistance: p['preferences']?['showMyDistance'] ?? true,
           showMyAge: p['preferences']?['showMyAge'] ?? true,
           hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,

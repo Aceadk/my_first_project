@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -23,189 +24,216 @@ class _PricingScreenState extends State<PricingScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pricing')),
-      body: ListView(
-        padding: const EdgeInsets.all(DsSpacing.lg),
-        children: [
-          Text(
-            'Choose Your Perfect Plan',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
             ),
-          ),
-          const SizedBox(height: DsSpacing.sm),
-          Text(
-            'Start for free and upgrade anytime to unlock premium features.',
-            style: theme.textTheme.bodyLarge?.copyWith(color: muted),
-          ),
-          const SizedBox(height: DsSpacing.xl),
+            child: ListView(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              children: [
+                Text(
+                  'Choose Your Perfect Plan',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: DsSpacing.sm),
+                Text(
+                  'Start for free and upgrade anytime to unlock premium features.',
+                  style: theme.textTheme.bodyLarge?.copyWith(color: muted),
+                ),
+                const SizedBox(height: DsSpacing.xl),
 
-          // Billing period toggle
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? DsColors.borderDark : DsColors.borderLight,
-              ),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              children: List.generate(_periods.length, (index) {
-                final isSelected = _selectedPeriod == index;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedPeriod = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected ? DsColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _periods[index],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? Colors.white : muted,
-                        ),
-                      ),
+                // Billing period toggle
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? DsColors.surfaceDark
+                        : DsColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? DsColors.borderDark
+                          : DsColors.borderLight,
                     ),
                   ),
-                );
-              }),
-            ),
-          ),
-
-          const SizedBox(height: DsSpacing.xl),
-
-          // Free Plan
-          _PlanCard(
-            title: 'Free',
-            price: '\$0',
-            period: 'forever',
-            description: 'Get started with the basics',
-            features: const [
-              'Unlimited swipes',
-              'See your matches',
-              'Send messages',
-              'Basic discovery filters',
-              'Profile prompts',
-            ],
-            isDark: isDark,
-          ),
-
-          const SizedBox(height: DsSpacing.lg),
-
-          // Crush+ Plan
-          _PlanCard(
-            title: 'Crush+',
-            price: _crushPlusPrice,
-            period: _periodLabel,
-            savings: _crushPlusSavings,
-            description: 'Our most popular plan',
-            isPopular: true,
-            features: const [
-              'Everything in Free',
-              'See who likes you',
-              'Unlimited rewinds',
-              '5 Super Likes per day',
-              'Passport mode',
-              '1 Boost per month',
-              'No ads',
-            ],
-            isDark: isDark,
-          ),
-
-          const SizedBox(height: DsSpacing.lg),
-
-          // Crush Platinum Plan
-          _PlanCard(
-            title: 'Crush Platinum',
-            price: _platinumPrice,
-            period: _periodLabel,
-            savings: _platinumSavings,
-            description: 'The ultimate experience',
-            features: const [
-              'Everything in Crush+',
-              'Unlimited Super Likes',
-              '5 Boosts per month',
-              'Incognito mode',
-              'Read receipts',
-              'Advanced filters',
-              'Priority support',
-            ],
-            isDark: isDark,
-          ),
-
-          const SizedBox(height: DsSpacing.xxl),
-
-          // Guarantees
-          Container(
-            padding: const EdgeInsets.all(DsSpacing.lg),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? DsColors.surfaceDark
-                  : DsColors.primary.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? DsColors.borderDark : DsColors.borderLight,
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.verified_outlined, color: DsColors.success),
-                    DsGap.mdH,
-                    Expanded(
-                      child: Text(
-                        '7-day money-back guarantee',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: List.generate(_periods.length, (index) {
+                      final isSelected = _selectedPeriod == index;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedPeriod = index),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? DsColors.primary
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _periods[index],
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: isSelected ? Colors.white : muted,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                      );
+                    }),
+                  ),
                 ),
-                const SizedBox(height: DsSpacing.md),
-                Row(
-                  children: [
-                    const Icon(Icons.cancel_outlined, color: DsColors.info),
-                    DsGap.mdH,
-                    Expanded(
-                      child: Text(
-                        'Cancel anytime, no hidden fees',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+
+                const SizedBox(height: DsSpacing.xl),
+
+                // Free Plan
+                _PlanCard(
+                  title: 'Free',
+                  price: '\$0',
+                  period: 'forever',
+                  description: 'Get started with the basics',
+                  features: const [
+                    'Unlimited swipes',
+                    'See your matches',
+                    'Send messages',
+                    'Basic discovery filters',
+                    'Profile prompts',
                   ],
+                  isDark: isDark,
                 ),
-                const SizedBox(height: DsSpacing.md),
-                Row(
-                  children: [
-                    const Icon(Icons.credit_card_outlined, color: DsColors.warning),
-                    DsGap.mdH,
-                    Expanded(
-                      child: Text(
-                        'Secure payment via App Store / Google Play',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+
+                const SizedBox(height: DsSpacing.lg),
+
+                // Crush+ Plan
+                _PlanCard(
+                  title: 'Crush+',
+                  price: _crushPlusPrice,
+                  period: _periodLabel,
+                  savings: _crushPlusSavings,
+                  description: 'Our most popular plan',
+                  isPopular: true,
+                  features: const [
+                    'Everything in Free',
+                    'See who likes you',
+                    'Unlimited rewinds',
+                    '5 Super Likes per day',
+                    'Passport mode',
+                    '1 Boost per month',
+                    'No ads',
                   ],
+                  isDark: isDark,
                 ),
+
+                const SizedBox(height: DsSpacing.lg),
+
+                // Crush Platinum Plan
+                _PlanCard(
+                  title: 'Crush Platinum',
+                  price: _platinumPrice,
+                  period: _periodLabel,
+                  savings: _platinumSavings,
+                  description: 'The ultimate experience',
+                  features: const [
+                    'Everything in Crush+',
+                    'Unlimited Super Likes',
+                    '5 Boosts per month',
+                    'Incognito mode',
+                    'Read receipts',
+                    'Advanced filters',
+                    'Priority support',
+                  ],
+                  isDark: isDark,
+                ),
+
+                const SizedBox(height: DsSpacing.xxl),
+
+                // Guarantees
+                Container(
+                  padding: const EdgeInsets.all(DsSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? DsColors.surfaceDark
+                        : DsColors.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? DsColors.borderDark
+                          : DsColors.borderLight,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            color: DsColors.success,
+                          ),
+                          DsGap.mdH,
+                          Expanded(
+                            child: Text(
+                              '7-day money-back guarantee',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DsSpacing.md),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.cancel_outlined,
+                            color: DsColors.info,
+                          ),
+                          DsGap.mdH,
+                          Expanded(
+                            child: Text(
+                              'Cancel anytime, no hidden fees',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DsSpacing.md),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.credit_card_outlined,
+                            color: DsColors.warning,
+                          ),
+                          DsGap.mdH,
+                          Expanded(
+                            child: Text(
+                              'Secure payment via App Store / Google Play',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: DsSpacing.xxl),
               ],
             ),
           ),
-
-          const SizedBox(height: DsSpacing.xxl),
-        ],
+        ),
       ),
     );
   }
@@ -327,8 +355,10 @@ class _PlanCard extends StatelessWidget {
               if (isPopular) ...[
                 DsGap.smH,
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: DsColors.primary,
                     borderRadius: BorderRadius.circular(12),
@@ -358,7 +388,7 @@ class _PlanCard extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsetsDirectional.only(bottom: 4),
                 child: Text(
                   period,
                   style: theme.textTheme.bodySmall?.copyWith(color: muted),
@@ -367,8 +397,10 @@ class _PlanCard extends StatelessWidget {
               if (savings != null) ...[
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: DsColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -393,7 +425,7 @@ class _PlanCard extends StatelessWidget {
           const SizedBox(height: DsSpacing.lg),
           ...features.map(
             (feature) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsetsDirectional.only(bottom: 8),
               child: Row(
                 children: [
                   Icon(
@@ -403,10 +435,7 @@ class _PlanCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      feature,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    child: Text(feature, style: theme.textTheme.bodyMedium),
                   ),
                 ],
               ),

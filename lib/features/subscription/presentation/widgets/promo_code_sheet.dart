@@ -9,10 +9,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 
 /// Bottom sheet for entering and redeeming promo codes.
 class PromoCodeSheet extends StatefulWidget {
-  const PromoCodeSheet({
-    super.key,
-    required this.repository,
-  });
+  const PromoCodeSheet({super.key, required this.repository});
 
   final SubscriptionRepository repository;
 
@@ -62,7 +59,7 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      padding: EdgeInsets.only(bottom: bottomPadding),
+      padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
       decoration: BoxDecoration(
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -156,8 +153,8 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
                   onSubmitted: (_) => _validateCode(),
                 ),
                 if (_isValidating)
-                  const Positioned(
-                    right: 16,
+                  const PositionedDirectional(
+                    end: 16,
                     child: SizedBox(
                       width: 20,
                       height: 20,
@@ -165,8 +162,8 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
                     ),
                   )
                 else if (_validatedCode != null)
-                  const Positioned(
-                    right: 16,
+                  const PositionedDirectional(
+                    end: 16,
                     child: Icon(Icons.check_circle, color: DsColors.success),
                   ),
               ],
@@ -212,9 +209,7 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
                     ? DsColors.info.withValues(alpha: 0.1)
                     : DsColors.info.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: DsColors.info.withValues(alpha: 0.2),
-                ),
+                border: Border.all(color: DsColors.info.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -328,20 +323,14 @@ class _PromoCodePreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: DsColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: DsColors.success.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: DsColors.success.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.check_circle,
-                color: DsColors.success,
-                size: 20,
-              ),
+              const Icon(Icons.check_circle, color: DsColors.success, size: 20),
               const SizedBox(width: 8),
               const Text(
                 'Valid Code',
@@ -413,10 +402,7 @@ class _PromoCodePreview extends StatelessWidget {
 }
 
 class _BenefitChip extends StatelessWidget {
-  const _BenefitChip({
-    required this.icon,
-    required this.label,
-  });
+  const _BenefitChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -438,10 +424,7 @@ class _BenefitChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),

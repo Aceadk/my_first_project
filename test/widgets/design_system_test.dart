@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/design_system/widgets/read_receipt.dart';
 import 'package:crushhour/design_system/widgets/profile_completion.dart';
 import 'package:crushhour/design_system/widgets/message_search.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 void main() {
   // Note: TypingIndicator tests are skipped because they have animations
@@ -271,19 +273,31 @@ void main() {
   });
 
   group('MessageSearchResult', () {
+    Widget wrapWithL10n(Widget child) {
+      return MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: child),
+      );
+    }
+
     testWidgets('displays sender name and message', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MessageSearchResult(
-              senderName: 'John',
-              message: 'Hello world',
-              timestamp: DateTime.now(),
-              query: '',
-            ),
+        wrapWithL10n(
+          MessageSearchResult(
+            senderName: 'John',
+            message: 'Hello world',
+            timestamp: DateTime.now(),
+            query: '',
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('John'), findsOneWidget);
       expect(find.text('Hello world'), findsOneWidget);
@@ -291,17 +305,16 @@ void main() {
 
     testWidgets('highlights search query in message', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MessageSearchResult(
-              senderName: 'John',
-              message: 'Hello world',
-              timestamp: DateTime.now(),
-              query: 'world',
-            ),
+        wrapWithL10n(
+          MessageSearchResult(
+            senderName: 'John',
+            message: 'Hello world',
+            timestamp: DateTime.now(),
+            query: 'world',
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // The message should contain RichText with highlighted portion
       expect(find.byType(RichText), findsWidgets);
@@ -311,18 +324,17 @@ void main() {
       bool tapped = false;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MessageSearchResult(
-              senderName: 'John',
-              message: 'Hello',
-              timestamp: DateTime.now(),
-              query: '',
-              onTap: () => tapped = true,
-            ),
+        wrapWithL10n(
+          MessageSearchResult(
+            senderName: 'John',
+            message: 'Hello',
+            timestamp: DateTime.now(),
+            query: '',
+            onTap: () => tapped = true,
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('John'));
       await tester.pump();

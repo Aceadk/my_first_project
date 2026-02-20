@@ -1,3 +1,4 @@
+import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
@@ -52,7 +53,7 @@ class SendMessageUseCase extends UseCase<void, SendMessageParams>
         matchId: params.matchId,
         fromUserId: params.fromUserId,
         toUserId: params.toUserId,
-        content: params.content.trim(),
+        content: InputSanitizer.sanitizeMessage(params.content),
         type: MessageType.text,
       ),
       logLabel: 'SendMessageUseCase',

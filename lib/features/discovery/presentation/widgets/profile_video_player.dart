@@ -135,7 +135,8 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
       return _buildLoadingState(borderRadius);
     }
 
-    final aspectRatio = widget.aspectRatio ??
+    final aspectRatio =
+        widget.aspectRatio ??
         (_controller.value.aspectRatio > 0
             ? _controller.value.aspectRatio
             : 9 / 16);
@@ -154,9 +155,9 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
 
               // Progress indicator at bottom
               if (widget.showControls)
-                Positioned(
-                  left: 0,
-                  right: 0,
+                PositionedDirectional(
+                  start: 0,
+                  end: 0,
                   bottom: 0,
                   child: _VideoProgressBar(controller: _controller),
                 ),
@@ -172,9 +173,9 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
 
               // Video duration badge (top right)
               if (widget.showControls && _isInitialized)
-                Positioned(
+                PositionedDirectional(
                   top: 8,
-                  right: 8,
+                  end: 8,
                   child: _VideoDurationBadge(controller: _controller),
                 ),
             ],
@@ -231,10 +232,7 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
 
 /// Glassmorphism-styled play button overlay.
 class _GlassPlayButton extends StatelessWidget {
-  const _GlassPlayButton({
-    required this.isPlaying,
-    required this.onTap,
-  });
+  const _GlassPlayButton({required this.isPlaying, required this.onTap});
 
   final bool isPlaying;
   final VoidCallback onTap;
@@ -246,10 +244,7 @@ class _GlassPlayButton extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(40),
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: DsBlur.light,
-            sigmaY: DsBlur.light,
-          ),
+          filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
           child: Container(
             width: 80,
             height: 80,
@@ -442,10 +437,7 @@ class VideoIndicatorBadge extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 6 : 8,

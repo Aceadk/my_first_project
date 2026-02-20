@@ -19,40 +19,40 @@ class PhotoVerificationService {
   static VerificationBadge getBadgeInfo(VerificationLevel level) {
     return switch (level) {
       VerificationLevel.none => const VerificationBadge(
-          level: VerificationLevel.none,
-          label: 'Not Verified',
-          description: 'This profile has not been verified',
-          iconName: 'shield_outlined',
-          color: 0xFF6B7280, // Gray
-        ),
+        level: VerificationLevel.none,
+        label: 'Not Verified',
+        description: 'This profile has not been verified',
+        iconName: 'shield_outlined',
+        color: 0xFF6B7280, // Gray
+      ),
       VerificationLevel.basic => const VerificationBadge(
-          level: VerificationLevel.basic,
-          label: 'Basic Verified',
-          description: 'Email or phone verified',
-          iconName: 'verified_outlined',
-          color: 0xFF3B82F6, // Blue
-        ),
+        level: VerificationLevel.basic,
+        label: 'Basic Verified',
+        description: 'Email or phone verified',
+        iconName: 'verified_outlined',
+        color: 0xFF3B82F6, // Blue
+      ),
       VerificationLevel.photo => const VerificationBadge(
-          level: VerificationLevel.photo,
-          label: 'Photo Verified',
-          description: 'Selfie matches profile photos',
-          iconName: 'verified',
-          color: 0xFF8B5CF6, // Purple
-        ),
+        level: VerificationLevel.photo,
+        label: 'Photo Verified',
+        description: 'Selfie matches profile photos',
+        iconName: 'verified',
+        color: 0xFF8B5CF6, // Purple
+      ),
       VerificationLevel.id => const VerificationBadge(
-          level: VerificationLevel.id,
-          label: 'ID Verified',
-          description: 'Government ID verified',
-          iconName: 'verified_user',
-          color: 0xFF10B981, // Green
-        ),
+        level: VerificationLevel.id,
+        label: 'ID Verified',
+        description: 'Government ID verified',
+        iconName: 'verified_user',
+        color: 0xFF10B981, // Green
+      ),
       VerificationLevel.premium => const VerificationBadge(
-          level: VerificationLevel.premium,
-          label: 'Premium Verified',
-          description: 'Full verification with video call',
-          iconName: 'workspace_premium',
-          color: 0xFFF59E0B, // Gold
-        ),
+        level: VerificationLevel.premium,
+        label: 'Premium Verified',
+        description: 'Full verification with video call',
+        iconName: 'workspace_premium',
+        color: 0xFFF59E0B, // Gold
+      ),
     };
   }
 
@@ -91,7 +91,8 @@ class PhotoVerificationService {
 
   /// Get a random verification pose for the user.
   VerificationPose getRandomPose() {
-    final random = DateTime.now().millisecondsSinceEpoch % verificationPoses.length;
+    final random =
+        DateTime.now().millisecondsSinceEpoch % verificationPoses.length;
     return verificationPoses[random];
   }
 
@@ -130,7 +131,9 @@ class PhotoVerificationService {
     if (kDebugMode) {
       AppLogger.debug('[PhotoVerification] Would call face comparison API');
       AppLogger.debug('[PhotoVerification] Session: ${session.sessionId}');
-      AppLogger.debug('[PhotoVerification] Required pose: ${session.requiredPose.id}');
+      AppLogger.debug(
+        '[PhotoVerification] Required pose: ${session.requiredPose.id}',
+      );
     }
 
     // Simulate verification for development
@@ -169,7 +172,8 @@ class PhotoVerificationService {
     return ImageQualityResult(
       isAcceptable: issues.isEmpty,
       issues: issues,
-      brightness: 0.7, // Placeholder - actual implementation would analyze image
+      brightness:
+          0.7, // Placeholder - actual implementation would analyze image
       sharpness: 0.8,
       faceDetected: true,
     );
@@ -246,13 +250,7 @@ class PhotoVerificationService {
 // =============================================================================
 
 /// Verification levels from lowest to highest trust.
-enum VerificationLevel {
-  none,
-  basic,
-  photo,
-  id,
-  premium,
-}
+enum VerificationLevel { none, basic, photo, id, premium }
 
 /// Extension for verification level comparison.
 extension VerificationLevelExtension on VerificationLevel {
@@ -326,9 +324,7 @@ class VerificationSession {
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
 
-  VerificationSession copyWith({
-    VerificationSessionStatus? status,
-  }) {
+  VerificationSession copyWith({VerificationSessionStatus? status}) {
     return VerificationSession(
       sessionId: sessionId,
       userId: userId,
@@ -437,7 +433,8 @@ class IdExtractedData {
   bool isAtLeastAge(int requiredAge) {
     if (dateOfBirth == null) return false;
     final now = DateTime.now();
-    final age = now.year -
+    final age =
+        now.year -
         dateOfBirth!.year -
         (now.month < dateOfBirth!.month ||
                 (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)

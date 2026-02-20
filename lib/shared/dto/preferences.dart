@@ -86,20 +86,20 @@ class DiscoveryPreferences extends Equatable {
 
   @override
   List<Object?> get props => [
-        minAge,
-        maxAge,
-        maxDistanceKm,
-        showMeGenders,
-        showMyDistance,
-        showMyAge,
-        hideFromDiscovery,
-        incognitoMode,
-        country,
-        city,
-        passportModeEnabled,
-        passportLocation,
-        passportLatitude,
-        passportLongitude,
-        localDeckExhausted,
-      ];
+    minAge,
+    maxAge,
+    maxDistanceKm,
+    showMeGenders,
+    showMyDistance,
+    showMyAge,
+    hideFromDiscovery,
+    incognitoMode,
+    country,
+    city,
+    passportModeEnabled,
+    passportLocation,
+    passportLatitude,
+    passportLongitude,
+    localDeckExhausted,
+  ];
 }

@@ -24,20 +24,24 @@ class StubCallRepository implements CallRepository {
     final channelName = 'demo_channel_$matchId';
 
     // Simulate joining channel
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.joinedChannel,
-    ));
+    _eventController.add(
+      CallEngineEvent(type: CallEngineEventType.joinedChannel),
+    );
 
     // Simulate remote user joining after 1-2 seconds (50% of the time)
-    _simulationTimer =
-        Timer(Duration(milliseconds: 1000 + _random.nextInt(1000)), () {
-      if (_isInCall && _random.nextBool()) {
-        _eventController.add(CallEngineEvent(
-          type: CallEngineEventType.userJoined,
-          remoteUid: _random.nextInt(100000),
-        ));
-      }
-    });
+    _simulationTimer = Timer(
+      Duration(milliseconds: 1000 + _random.nextInt(1000)),
+      () {
+        if (_isInCall && _random.nextBool()) {
+          _eventController.add(
+            CallEngineEvent(
+              type: CallEngineEventType.userJoined,
+              remoteUid: _random.nextInt(100000),
+            ),
+          );
+        }
+      },
+    );
 
     return CallSession(
       matchId: matchId,
@@ -53,9 +57,9 @@ class StubCallRepository implements CallRepository {
     _simulationTimer?.cancel();
 
     // Simulate disconnection
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.userOffline,
-    ));
+    _eventController.add(
+      CallEngineEvent(type: CallEngineEventType.userOffline),
+    );
   }
 
   @override

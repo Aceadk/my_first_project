@@ -70,32 +70,44 @@ class DsEdgeInsets {
   static const EdgeInsets allXxxl = EdgeInsets.all(DsSpacing.xxxl);
 
   // Horizontal only
-  static const EdgeInsets horizontalXs =
-      EdgeInsets.symmetric(horizontal: DsSpacing.xs);
-  static const EdgeInsets horizontalSm =
-      EdgeInsets.symmetric(horizontal: DsSpacing.sm);
-  static const EdgeInsets horizontalMd =
-      EdgeInsets.symmetric(horizontal: DsSpacing.md);
-  static const EdgeInsets horizontalLg =
-      EdgeInsets.symmetric(horizontal: DsSpacing.lg);
-  static const EdgeInsets horizontalXl =
-      EdgeInsets.symmetric(horizontal: DsSpacing.xl);
-  static const EdgeInsets horizontalXxl =
-      EdgeInsets.symmetric(horizontal: DsSpacing.xxl);
+  static const EdgeInsets horizontalXs = EdgeInsets.symmetric(
+    horizontal: DsSpacing.xs,
+  );
+  static const EdgeInsets horizontalSm = EdgeInsets.symmetric(
+    horizontal: DsSpacing.sm,
+  );
+  static const EdgeInsets horizontalMd = EdgeInsets.symmetric(
+    horizontal: DsSpacing.md,
+  );
+  static const EdgeInsets horizontalLg = EdgeInsets.symmetric(
+    horizontal: DsSpacing.lg,
+  );
+  static const EdgeInsets horizontalXl = EdgeInsets.symmetric(
+    horizontal: DsSpacing.xl,
+  );
+  static const EdgeInsets horizontalXxl = EdgeInsets.symmetric(
+    horizontal: DsSpacing.xxl,
+  );
 
   // Vertical only
-  static const EdgeInsets verticalXs =
-      EdgeInsets.symmetric(vertical: DsSpacing.xs);
-  static const EdgeInsets verticalSm =
-      EdgeInsets.symmetric(vertical: DsSpacing.sm);
-  static const EdgeInsets verticalMd =
-      EdgeInsets.symmetric(vertical: DsSpacing.md);
-  static const EdgeInsets verticalLg =
-      EdgeInsets.symmetric(vertical: DsSpacing.lg);
-  static const EdgeInsets verticalXl =
-      EdgeInsets.symmetric(vertical: DsSpacing.xl);
-  static const EdgeInsets verticalXxl =
-      EdgeInsets.symmetric(vertical: DsSpacing.xxl);
+  static const EdgeInsets verticalXs = EdgeInsets.symmetric(
+    vertical: DsSpacing.xs,
+  );
+  static const EdgeInsets verticalSm = EdgeInsets.symmetric(
+    vertical: DsSpacing.sm,
+  );
+  static const EdgeInsets verticalMd = EdgeInsets.symmetric(
+    vertical: DsSpacing.md,
+  );
+  static const EdgeInsets verticalLg = EdgeInsets.symmetric(
+    vertical: DsSpacing.lg,
+  );
+  static const EdgeInsets verticalXl = EdgeInsets.symmetric(
+    vertical: DsSpacing.xl,
+  );
+  static const EdgeInsets verticalXxl = EdgeInsets.symmetric(
+    vertical: DsSpacing.xxl,
+  );
 
   // Common combinations
   static const EdgeInsets screenPadding = EdgeInsets.symmetric(

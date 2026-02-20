@@ -1,5 +1,5 @@
 import 'package:crushhour/data/models/profile_story.dart';
-import 'package:crushhour/features/calls/data/models/call.dart';
+import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -21,7 +21,7 @@ void main() {
       expect(call.isVideo, isTrue);
       expect(call.durationDisplay, '2:05');
       expect(Call.maxFreeDuration, const Duration(minutes: 30));
-      expect(Call.ringTimeout, const Duration(seconds: 60));
+      expect(Call.ringTimeout, const Duration(seconds: 30));
     });
 
     test('copyWith and JSON round-trip preserve values', () {

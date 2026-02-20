@@ -1,6 +1,5 @@
 {
   "@@locale": "ur",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "منسوخ کریں",
   "commonSave": "محفوظ کریں",
@@ -44,7 +43,6 @@
   "commonUnblock": "ان بلاک کریں",
   "commonMute": "خاموش کریں",
   "commonUnmute": "آواز چالو کریں",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
   "errorNetwork": "کنکشن کی خرابی۔ اپنا انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں۔",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action} نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} Plus فیچر ہے۔ ان لاک کرنے کے لیے اپگریڈ کریں!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "واپس جائیں",
   "a11yCloseButton": "بند کریں",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name} کی پروفائل تصویر",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "صارف اوتار",
   "a11yAvatarOf": "{name} کا اوتار",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "پروفائل میں ترمیم کریں",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender} کا پیغام",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 غیر پڑھا پیغام} other{{count} غیر پڑھے پیغامات}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "پاس ورڈ دکھائیں",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "میچ ہو گیا! آپ {name} سے میچ ہوئے",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender} کا نیا پیغام",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "پروفائل لائک کیا گیا",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "پروفائل سپر لائک کیا گیا",
   "a11yMessageSent": "پیغام بھیجا گیا",
   "a11ySettingSaved": "ترتیب محفوظ ہو گئی",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "واپسی پر خوش آمدید",
   "authSignInToContinue": "Crush جاری رکھنے کے لیے سائن ان کریں",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "ہم نے {destination} پر کوڈ بھیجا",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6 ہندسوں کا کوڈ درج کریں",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "اپنا ای میل تصدیق کرنے کے لیے ہمارے بھیجے گئے لنک پر کلک کریں",
   "authEmailVerified": "ای میل کامیابی سے تصدیق ہو گئی!",
   "authSkipForNow": "ابھی کے لیے چھوڑیں",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "ترتیبات",
   "settingsAppearance": "ظاہری شکل",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} کلومیٹر",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "مجھے دکھائیں",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "اپنے پلان کا انتظام کریں",
   "settingsGetPlus": "Crush Plus حاصل کریں",
   "settingsRestorePurchases": "خریداری بحال کریں",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "دریافت کریں",
   "discoveryNoMatchesTitle": "ابھی تک کوئی میچ نہیں",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "آپ اور {name} نے ایک دوسرے کو پسند کیا",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "پیغام بھیجیں",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "آپ کو پسند کرتے ہیں",
   "discoveryTopPicks": "ٹاپ پکس",
   "discoveryNewArrivals": "نئے آنے والے",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "چیٹس",
   "chatMatches": "میچز",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name} کے ساتھ گفتگو شروع کریں",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "پیغام ٹائپ کریں...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "آخری بار دیکھا {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "ٹائپ کر رہا ہے...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "آپ {name} سے میچ ہوئے",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "پروفائل",
   "profileEdit": "پروفائل میں ترمیم کریں",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} سینٹی میٹر",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "زبانیں",
@@ -450,7 +472,6 @@
   "profileAboutMe": "میرے بارے میں",
   "profileMyDetails": "میری تفصیلات",
   "profileLifestyle": "طرز زندگی",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Crush میں خوش آمدید",
   "onboardingTagline": "اپنا بہترین میچ تلاش کریں",
@@ -458,8 +479,12 @@
   "onboardingStep": "مرحلہ {current} از {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "آپ کا نام کیا ہے؟",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "کم از کم 3 دلچسپیاں منتخب کریں",
   "onboardingAllSet": "آپ تیار ہیں!",
   "onboardingStartSwiping": "سوائپ کرنا شروع کریں",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "مفت",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "ماہانہ {count} بوسٹس",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "روزانہ {count} سپر لائکس",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "کوئی اشتہارات نہیں",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/ماہ",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/سال",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "بہترین قیمت",
   "subscriptionMostPopular": "سب سے زیادہ مقبول",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "صارف کی رپورٹ کریں",
   "safetyBlockUser": "صارف کو بلاک کریں",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name} کو بلاک کریں؟",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "وہ آپ کا پروفائل نہیں دیکھ سکیں گے یا آپ کو پیغام نہیں بھیج سکیں گے",
@@ -532,46 +565,50 @@
   "safetySpam": "سپیم",
   "safetyScam": "دھوکہ دہی",
   "safetyOther": "دیگر",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "ابھی ابھی",
   "timeMinutesAgo": "{count, plural, =1{1 منٹ پہلے} other{{count} منٹ پہلے}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 گھنٹہ پہلے} other{{count} گھنٹے پہلے}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 دن پہلے} other{{count} دن پہلے}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 ہفتہ پہلے} other{{count} ہفتے پہلے}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "کوئی نتائج نہیں ملے",
   "emptyTryAgain": "اپنی تلاش یا فلٹرز ایڈجسٹ کرنے کی کوشش کریں",
   "emptyNoData": "کوئی ڈیٹا دستیاب نہیں",
   "emptyCheckBackLater": "بعد میں واپس آئیں",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "ہوم",
   "wordExplore": "دریافت کریں",
-  "wordHelp": "مدد",
+  "wordHelp": "مدد کریں",
   "wordMenu": "مینو",
   "wordFeed": "فیڈ",
   "wordActivity": "سرگرمی",
@@ -579,7 +616,6 @@
   "wordInbox": "ان باکس",
   "wordFavorites": "پسندیدہ",
   "wordHistory": "تاریخ",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "کاپی کریں",
   "wordPaste": "پیسٹ کریں",
@@ -589,7 +625,7 @@
   "wordUpload": "اپ لوڈ کریں",
   "wordSelect": "منتخب کریں",
   "wordDeselect": "غیر منتخب کریں",
-  "wordOpen": "کھولیں",
+  "wordOpen": "کھلا",
   "wordCreate": "بنائیں",
   "wordConnect": "منسلک کریں",
   "wordDisconnect": "منقطع کریں",
@@ -609,7 +645,7 @@
   "wordAllow": "اجازت دیں",
   "wordEnable": "فعال کریں",
   "wordDisable": "غیر فعال کریں",
-  "wordShow": "دکھائیں",
+  "wordShow": "شو",
   "wordHide": "چھپائیں",
   "wordExpand": "پھیلائیں",
   "wordCollapse": "سکیڑیں",
@@ -663,7 +699,6 @@
   "wordSay": "کہیں",
   "wordTell": "بتائیں",
   "wordAsk": "پوچھیں",
-  "wordHelp": "مدد کریں",
   "wordWait": "انتظار کریں",
   "wordStay": "رہیں",
   "wordCome": "آئیں",
@@ -675,7 +710,7 @@
   "wordLive": "رہیں",
   "wordChange": "بدلیں",
   "wordTurn": "موڑیں",
-  "wordRead": "پڑھیں",
+  "wordRead": "پڑھا گیا",
   "wordWrite": "لکھیں",
   "wordLearn": "سیکھیں",
   "wordStudy": "پڑھائی کریں",
@@ -698,7 +733,6 @@
   "wordDecide": "فیصلہ کریں",
   "wordAgree": "متفق ہوں",
   "wordDisagree": "اختلاف کریں",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "فعال",
   "wordInactive": "غیر فعال",
@@ -759,13 +793,10 @@
   "wordNotDone": "نہیں ہوا",
   "wordSent": "بھیجا گیا",
   "wordReceived": "موصول ہوا",
-  "wordRead": "پڑھا گیا",
   "wordUnread": "نہیں پڑھا گیا",
   "wordSeen": "دیکھا گیا",
   "wordUnseen": "نہیں دیکھا گیا",
-  "wordOpen": "کھلا",
   "wordClosed": "بند",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "ابھی",
   "wordLater": "بعد میں",
@@ -807,7 +838,6 @@
   "wordYears": "سال",
   "wordSecond": "سیکنڈ",
   "wordSeconds": "سیکنڈ",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "اچھا",
   "wordBad": "برا",
@@ -932,7 +962,6 @@
   "wordFabulous": "لاجواب",
   "wordMagnificent": "عظیم الشان",
   "wordSpectacular": "شاندار",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "براہ کرم",
   "wordThanks": "شکریہ",
@@ -963,7 +992,6 @@
   "wordHaveFun": "مزے کریں",
   "wordEnjoy": "لطف اٹھائیں",
   "wordCheers": "چیئرز",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "کون",
   "wordWhat": "کیا",
@@ -979,7 +1007,6 @@
   "wordHowFar": "کتنا دور",
   "wordHowOld": "کتنی عمر",
   "wordHowOften": "کتنی بار",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "کے ساتھ",
   "wordWithout": "کے بغیر",
@@ -1003,7 +1030,6 @@
   "wordThrough": "سے گزر کر",
   "wordAlong": "کے ساتھ ساتھ",
   "wordToward": "کی طرف",
-  "wordAway": "دور",
   "wordBehind": "پیچھے",
   "wordAhead": "آگے",
   "wordFront": "سامنے",
@@ -1015,7 +1041,6 @@
   "wordCenter": "مرکز",
   "wordCorner": "کونا",
   "wordEdge": "کنارہ",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "کرش",
   "wordMatch": "میچ",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "سرشار",
   "wordCommitted": "پابند",
   "wordCommitment": "عہد",
-  "wordSerious": "سنجیدہ",
   "wordCasual": "غیر رسمی",
   "wordFriendship": "دوستی",
   "wordFriend": "دوست",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "تلاش میں",
   "wordWaiting": "انتظار کر رہا ہے",
   "wordSearching": "تلاش کر رہا ہے",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "اطلاع",
   "wordAlert": "الرٹ",
@@ -1396,7 +1419,6 @@
   "wordMovies": "فلمیں",
   "wordFilm": "فلم",
   "wordFilms": "فلمیں",
-  "wordShow": "شو",
   "wordShows": "شوز",
   "wordSeries": "سیریز",
   "wordBook": "کتاب",
@@ -1463,7 +1485,6 @@
   "wordSomething": "کچھ",
   "wordNothing": "کچھ نہیں",
   "wordAnything": "کچھ بھی",
-
   "@@_DISAMBIGUATION_WORDS": "Words with context-specific meanings",
   "wordHelpVerb": "مدد کرنا",
   "wordReadStatus": "پڑھا گیا",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "دور",
   "wordSeriousRel": "سنجیدہ",
   "wordSettingsNoun": "ترتیبات",
-  "wordShowNoun": "شو"
+  "wordShowNoun": "شو",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

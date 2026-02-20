@@ -10,9 +10,8 @@ import '../feature_flag_repository.dart';
 /// This implementation fetches feature flags from Firebase Remote Config
 /// and supports real-time updates in debug mode.
 class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
-  FirebaseFeatureFlagRepository({
-    FirebaseRemoteConfig? remoteConfig,
-  }) : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
+  FirebaseFeatureFlagRepository({FirebaseRemoteConfig? remoteConfig})
+    : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
 
   final FirebaseRemoteConfig _remoteConfig;
   final _flagsController = StreamController<FeatureFlags>.broadcast();
@@ -25,12 +24,15 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   Future<void> initialize() async {
     try {
       // Set config settings
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        // Fetch every 12 hours in production, 1 minute in debug
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval:
-            kDebugMode ? const Duration(minutes: 1) : const Duration(hours: 12),
-      ));
+      await _remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          // Fetch every 12 hours in production, 1 minute in debug
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: kDebugMode
+              ? const Duration(minutes: 1)
+              : const Duration(hours: 12),
+        ),
+      );
 
       // Set default values
       await _remoteConfig.setDefaults(FeatureFlags.defaults.toMap());
@@ -118,7 +120,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       return _remoteConfig.getBool(key);
     } catch (e) {
       AppLogger.debug(
-          'FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e');
+        'FirebaseFeatureFlagRepository: Error getting bool "$key", using default: $e',
+      );
       return defaultValue;
     }
   }
@@ -129,7 +132,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       return _remoteConfig.getInt(key);
     } catch (e) {
       AppLogger.debug(
-          'FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e');
+        'FirebaseFeatureFlagRepository: Error getting int "$key", using default: $e',
+      );
       return defaultValue;
     }
   }
@@ -140,7 +144,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       return _remoteConfig.getString(key);
     } catch (e) {
       AppLogger.debug(
-          'FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e');
+        'FirebaseFeatureFlagRepository: Error getting string "$key", using default: $e',
+      );
       return defaultValue;
     }
   }
@@ -151,7 +156,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       return _remoteConfig.getDouble(key);
     } catch (e) {
       AppLogger.debug(
-          'FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e');
+        'FirebaseFeatureFlagRepository: Error getting double "$key", using default: $e',
+      );
       return defaultValue;
     }
   }
@@ -160,19 +166,24 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   Future<void> forceRefresh() async {
     try {
       // Clear cache by setting minimum fetch interval to 0 temporarily
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: Duration.zero,
-      ));
+      await _remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: Duration.zero,
+        ),
+      );
 
       await fetchAndActivate();
 
       // Reset to normal fetch interval
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval:
-            kDebugMode ? const Duration(minutes: 1) : const Duration(hours: 12),
-      ));
+      await _remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: kDebugMode
+              ? const Duration(minutes: 1)
+              : const Duration(hours: 12),
+        ),
+      );
     } catch (e) {
       AppLogger.error('Error force refreshing Remote Config: $e');
     }

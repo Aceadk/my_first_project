@@ -49,10 +49,11 @@ class LikePriorityService {
     // In production, fetch from backend
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final likes = _receivedLikes.values
-        .where((like) => like.toUserId == userId && like.isActive)
-        .toList()
-      ..sort((a, b) => b.displayScore.compareTo(a.displayScore));
+    final likes =
+        _receivedLikes.values
+            .where((like) => like.toUserId == userId && like.isActive)
+            .toList()
+          ..sort((a, b) => b.displayScore.compareTo(a.displayScore));
 
     return likes;
   }

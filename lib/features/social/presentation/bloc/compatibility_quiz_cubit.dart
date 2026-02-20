@@ -5,7 +5,8 @@ import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
-import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 
 /// State for compatibility quiz.
 class CompatibilityQuizState extends Equatable {
@@ -59,14 +60,14 @@ class CompatibilityQuizState extends Equatable {
 
   @override
   List<Object?> get props => [
-        quiz,
-        currentQuestionIndex,
-        answers,
-        result,
-        isLoading,
-        isSubmitting,
-        errorMessage,
-      ];
+    quiz,
+    currentQuestionIndex,
+    answers,
+    result,
+    isLoading,
+    isSubmitting,
+    errorMessage,
+  ];
 }
 
 /// Cubit for managing compatibility quiz state.
@@ -74,9 +75,9 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   CompatibilityQuizCubit({
     required AuthRepository authRepository,
     required CompatibilityQuizRepository quizRepository,
-  })  : _authRepository = authRepository,
-        _service = quizRepository,
-        super(const CompatibilityQuizState()) {
+  }) : _authRepository = authRepository,
+       _service = quizRepository,
+       super(const CompatibilityQuizState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
         _resetState();
@@ -101,23 +102,21 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
 
     try {
       _currentMatchId = matchId;
-      final quiz = await _service.startQuiz(
-        quizId: quizId,
-        matchId: matchId,
-      );
+      final quiz = await _service.startQuiz(quizId: quizId, matchId: matchId);
 
-      emit(state.copyWith(
-        quiz: quiz,
-        currentQuestionIndex: 0,
-        answers: {},
-        result: null,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          quiz: quiz,
+          currentQuestionIndex: 0,
+          answers: {},
+          result: null,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to start quiz',
-      ));
+      emit(
+        state.copyWith(isLoading: false, errorMessage: ErrorMessages.generic),
+      );
     }
   }
 
@@ -150,7 +149,8 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   void nextQuestion() {
     if (state.currentQuestionIndex < state.totalQuestions - 1) {
       emit(
-          state.copyWith(currentQuestionIndex: state.currentQuestionIndex + 1));
+        state.copyWith(currentQuestionIndex: state.currentQuestionIndex + 1),
+      );
     }
   }
 
@@ -158,7 +158,8 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
   void previousQuestion() {
     if (state.currentQuestionIndex > 0) {
       emit(
-          state.copyWith(currentQuestionIndex: state.currentQuestionIndex - 1));
+        state.copyWith(currentQuestionIndex: state.currentQuestionIndex - 1),
+      );
     }
   }
 
@@ -193,15 +194,14 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
         user2Answers: user2Answers,
       );
 
-      emit(state.copyWith(
-        result: result,
-        isSubmitting: false,
-      ));
+      emit(state.copyWith(result: result, isSubmitting: false));
     } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        errorMessage: 'Failed to complete quiz',
-      ));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: ErrorMessages.generic,
+        ),
+      );
     }
   }
 

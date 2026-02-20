@@ -30,10 +30,7 @@ class DiscoverySwipedRight extends DiscoveryEvent {
 class DiscoverySwipedLeft extends DiscoveryEvent {
   final String userId;
   final String targetUserId;
-  DiscoverySwipedLeft({
-    required this.userId,
-    required this.targetUserId,
-  });
+  DiscoverySwipedLeft({required this.userId, required this.targetUserId});
 
   @override
   List<Object?> get props => [userId, targetUserId];
@@ -55,10 +52,7 @@ class DiscoveryMatchCelebrationShown extends DiscoveryEvent {}
 class DiscoverySuperLiked extends DiscoveryEvent {
   final String userId;
   final String targetUserId;
-  DiscoverySuperLiked({
-    required this.userId,
-    required this.targetUserId,
-  });
+  DiscoverySuperLiked({required this.userId, required this.targetUserId});
 
   @override
   List<Object?> get props => [userId, targetUserId];

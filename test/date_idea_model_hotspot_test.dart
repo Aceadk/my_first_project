@@ -1,4 +1,4 @@
-import 'package:crushhour/features/social/data/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

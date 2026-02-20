@@ -44,16 +44,16 @@ class MessageRequest extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        fromUserId,
-        toUserId,
-        content,
-        type,
-        sentAt,
-        expiresAt,
-        fromUserName,
-        fromUserPhotoUrl,
-        toUserName,
-        toUserPhotoUrl,
-      ];
+    id,
+    fromUserId,
+    toUserId,
+    content,
+    type,
+    sentAt,
+    expiresAt,
+    fromUserName,
+    fromUserPhotoUrl,
+    toUserName,
+    toUserPhotoUrl,
+  ];
 }

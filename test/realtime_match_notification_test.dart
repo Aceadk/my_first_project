@@ -1,4 +1,4 @@
-import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

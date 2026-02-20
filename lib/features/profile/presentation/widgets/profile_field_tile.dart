@@ -27,8 +27,9 @@ class ProfileFieldTile extends StatelessWidget {
     final hasValue = value != null && value!.isNotEmpty;
     final displayValue = hasValue ? value! : (placeholder ?? 'Add');
 
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
 
@@ -46,11 +47,7 @@ class ProfileFieldTile extends StatelessWidget {
             child: Row(
               children: [
                 if (leadingIcon != null) ...[
-                  Icon(
-                    leadingIcon,
-                    size: 22,
-                    color: textMuted,
-                  ),
+                  Icon(leadingIcon, size: 22, color: textMuted),
                   const SizedBox(width: DsSpacing.md),
                 ],
                 Expanded(
@@ -110,9 +107,9 @@ class ProfileSectionHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
-    this.padding = const EdgeInsets.only(
-      left: 16,
-      right: 16,
+    this.padding = const EdgeInsetsDirectional.only(
+      start: 16,
+      end: 16,
       top: 24,
       bottom: 8,
     ),
@@ -128,11 +125,7 @@ class ProfileSectionHeader extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: 20,
-              color: DsColors.primary,
-            ),
+            Icon(icon, size: 20, color: DsColors.primary),
             const SizedBox(width: DsSpacing.sm),
           ],
           Text(

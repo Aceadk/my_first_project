@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/features/discovery/data/services/incognito_service.dart';
-import 'package:crushhour/features/discovery/data/models/incognito_settings.dart';
+import 'package:crushhour/features/discovery/domain/models/incognito_settings.dart';
 
 void main() {
   group('IncognitoService', () {

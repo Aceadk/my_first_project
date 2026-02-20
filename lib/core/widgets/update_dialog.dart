@@ -50,8 +50,9 @@ class UpdateDialog extends StatelessWidget {
           message: result.message ?? _getMessageForStatus(result.status),
           isDismissible: isDismissible,
           onUpdate: onUpdate ?? () => _defaultOnUpdate(context),
-          onLater:
-              isDismissible ? (onLater ?? () => Navigator.pop(context)) : null,
+          onLater: isDismissible
+              ? (onLater ?? () => Navigator.pop(context))
+              : null,
         ),
       ),
     );
@@ -65,10 +66,8 @@ class UpdateDialog extends StatelessWidget {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => PopScope(
-        canPop: false,
-        child: MaintenanceDialog(message: message),
-      ),
+      builder: (context) =>
+          PopScope(canPop: false, child: MaintenanceDialog(message: message)),
     );
   }
 
@@ -124,9 +123,9 @@ class UpdateDialog extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -135,10 +134,7 @@ class UpdateDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(message, style: Theme.of(context).textTheme.bodyMedium),
           if (!isDismissible) ...[
             DsGap.lg,
             Container(
@@ -158,9 +154,9 @@ class UpdateDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'This update is required to continue using the app.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: DsColors.warning,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: DsColors.warning),
                     ),
                   ),
                 ],
@@ -171,10 +167,7 @@ class UpdateDialog extends StatelessWidget {
       ),
       actions: [
         if (isDismissible && onLater != null)
-          TextButton(
-            onPressed: onLater,
-            child: Text(laterButtonText),
-          ),
+          TextButton(onPressed: onLater, child: Text(laterButtonText)),
         ElevatedButton(
           onPressed: onUpdate,
           style: ElevatedButton.styleFrom(
@@ -190,10 +183,7 @@ class UpdateDialog extends StatelessWidget {
 
 /// A dialog shown when the app is in maintenance mode.
 class MaintenanceDialog extends StatelessWidget {
-  const MaintenanceDialog({
-    super.key,
-    required this.message,
-  });
+  const MaintenanceDialog({super.key, required this.message});
 
   final String message;
 
@@ -219,9 +209,9 @@ class MaintenanceDialog extends StatelessWidget {
           Expanded(
             child: Text(
               'Maintenance Mode',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -229,11 +219,7 @@ class MaintenanceDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.engineering,
-            size: 64,
-            color: DsColors.warning,
-          ),
+          const Icon(Icons.engineering, size: 64, color: DsColors.warning),
           DsGap.lg,
           Text(
             message,
@@ -245,12 +231,10 @@ class MaintenanceDialog extends StatelessWidget {
             'Please check back later.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.color
-                      ?.withAlpha((0.7 * 255).round()),
-                ),
+              color: Theme.of(
+                context,
+              ).textTheme.bodySmall?.color?.withAlpha((0.7 * 255).round()),
+            ),
           ),
         ],
       ),
@@ -309,7 +293,8 @@ class _UpdateCheckerState extends State<UpdateChecker> {
     if (widget.maintenanceMode) {
       await UpdateDialog.showMaintenance(
         context,
-        message: widget.maintenanceMessage ??
+        message:
+            widget.maintenanceMessage ??
             'We are performing maintenance. Please try again later.',
       );
       return;

@@ -1,4 +1,4 @@
-import 'package:crushhour/features/feature_flags/data/models/feature_flags.dart';
+import 'package:crushhour/features/feature_flags/domain/models/feature_flags.dart';
 
 /// Repository interface for managing feature flags.
 ///

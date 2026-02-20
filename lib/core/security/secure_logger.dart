@@ -42,51 +42,47 @@ class SecureLogger {
     if (!kDebugMode || !enableSensitiveLogging) return;
 
     final displayCode = redactSensitiveData ? _redact(code) : code;
-    final displayRecipient =
-        redactSensitiveData ? _redactEmail(recipient) : recipient;
+    final displayRecipient = redactSensitiveData
+        ? _redactEmail(recipient)
+        : recipient;
 
-    // ignore: avoid_print
-    print('');
-    // ignore: avoid_print
-    print('┌─────────────────────────────────────────────────────────┐');
-    // ignore: avoid_print
-    print('│  ⚠️  DEVELOPMENT ONLY - DO NOT SHARE                    │');
-    // ignore: avoid_print
-    print('├─────────────────────────────────────────────────────────┤');
-    // ignore: avoid_print
-    print('│  $type OTP');
-    // ignore: avoid_print
-    print('│  Recipient: $displayRecipient');
-    // ignore: avoid_print
-    print('│  Code: $displayCode');
-    // ignore: avoid_print
-    print('└─────────────────────────────────────────────────────────┘');
-    // ignore: avoid_print
-    print('');
+    AppLogger.debug('');
+    AppLogger.debug(
+      '┌─────────────────────────────────────────────────────────┐',
+    );
+    AppLogger.debug(
+      '│  DEVELOPMENT ONLY - DO NOT SHARE                        │',
+    );
+    AppLogger.debug(
+      '├─────────────────────────────────────────────────────────┤',
+    );
+    AppLogger.debug('│  $type OTP');
+    AppLogger.debug('│  Recipient: $displayRecipient');
+    AppLogger.debug('│  Code: $displayCode');
+    AppLogger.debug(
+      '└─────────────────────────────────────────────────────────┘',
+    );
+    AppLogger.debug('');
   }
 
   /// Log a debug message only in debug mode.
   static void debug(String message) {
     if (!kDebugMode) return;
-    // ignore: avoid_print
-    print('[DEBUG] $message');
+    AppLogger.debug('[SecureLogger] $message');
   }
 
   /// Log a warning message.
   static void warning(String message) {
     if (!kDebugMode) return;
-    // ignore: avoid_print
-    print('[WARNING] $message');
+    AppLogger.warning('[SecureLogger] $message');
   }
 
   /// Log an error message (always logs in debug mode).
   static void error(String message, [Object? error]) {
     if (!kDebugMode) return;
-    // ignore: avoid_print
-    print('[ERROR] $message');
+    AppLogger.error('[SecureLogger] $message');
     if (error != null) {
-      // ignore: avoid_print
-      print('[ERROR DETAILS] $error');
+      AppLogger.error('[SecureLogger DETAILS] $error');
     }
   }
 
@@ -136,10 +132,7 @@ class SecureLogger {
   }
 
   /// Log a token refresh event (safe - only logs metadata).
-  static void logTokenRefresh({
-    required String type,
-    required String? token,
-  }) {
+  static void logTokenRefresh({required String type, required String? token}) {
     if (!kDebugMode) return;
 
     if (token == null || token.isEmpty) {
@@ -159,7 +152,9 @@ class SecureLogger {
   }) {
     if (!kDebugMode) return;
 
-    AppLogger.error('[$type] $operation failed${error != null ? ': $error' : ''}');
+    AppLogger.error(
+      '[$type] $operation failed${error != null ? ': $error' : ''}',
+    );
   }
 
   /// Redact a token, showing only first 4 and last 4 chars + length.
@@ -170,8 +165,7 @@ class SecureLogger {
     if (_neverLogFullTokens || token.length > 12) {
       // Show: first4...last4 (length chars)
       final first = token.length >= 4 ? token.substring(0, 4) : token;
-      final last =
-          token.length >= 4 ? token.substring(token.length - 4) : '';
+      final last = token.length >= 4 ? token.substring(token.length - 4) : '';
       return '$first...$last (${token.length} chars)';
     }
     // For very short tokens (unusual), still partially redact

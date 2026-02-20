@@ -5,10 +5,7 @@ enum DeckStatus { initial, loading, ready, empty, error }
 
 /// Represents a match that just occurred.
 class MatchResult {
-  const MatchResult({
-    required this.matchId,
-    required this.matchedProfile,
-  });
+  const MatchResult({required this.matchId, required this.matchedProfile});
 
   final String matchId;
   final Profile matchedProfile;
@@ -92,7 +89,8 @@ class DiscoveryState extends Equatable {
   bool get hasFreeUndoAvailable {
     if (freeUndoLastUsedDate == null) return true;
     final now = DateTime.now();
-    final isNewDay = now.year != freeUndoLastUsedDate!.year ||
+    final isNewDay =
+        now.year != freeUndoLastUsedDate!.year ||
         now.month != freeUndoLastUsedDate!.month ||
         now.day != freeUndoLastUsedDate!.day;
     return isNewDay || !freeUndoUsedToday;
@@ -157,24 +155,24 @@ class DiscoveryState extends Equatable {
 
   @override
   List<Object?> get props => [
-        deck,
-        currentIndex,
-        isLoading,
-        isLoadingMore,
-        hasMoreProfiles,
-        status,
-        errorMessage,
-        nextRetrySeconds,
-        newMatch,
-        localDeckExhausted,
-        passportModeActive,
-        currentDistanceLimitKm,
-        superLikesRemaining,
-        superLikesResetDate,
-        lastSwipedProfile,
-        lastSwipeDirection,
-        canRewind,
-        freeUndoUsedToday,
-        freeUndoLastUsedDate,
-      ];
+    deck,
+    currentIndex,
+    isLoading,
+    isLoadingMore,
+    hasMoreProfiles,
+    status,
+    errorMessage,
+    nextRetrySeconds,
+    newMatch,
+    localDeckExhausted,
+    passportModeActive,
+    currentDistanceLimitKm,
+    superLikesRemaining,
+    superLikesResetDate,
+    lastSwipedProfile,
+    lastSwipeDirection,
+    canRewind,
+    freeUndoUsedToday,
+    freeUndoLastUsedDate,
+  ];
 }

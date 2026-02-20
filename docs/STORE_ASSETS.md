@@ -6,7 +6,7 @@ This document contains all the text content and asset specifications needed for 
 
 | Field | Value |
 |-------|-------|
-| App Name | CrushHour |
+| App Name | Crush|
 | Bundle ID (iOS) | com.ace.crush |
 | Package Name (Android) | com.ace.crush |
 | Category | Social Networking / Dating |

@@ -53,11 +53,13 @@ class MatchChatSettingsCubit extends Cubit<MatchChatSettingsState> {
     required String matchId,
     required ChatSettings initialSettings,
     required bool isPremium,
-  }) : super(MatchChatSettingsState(
-          matchId: matchId,
-          settings: initialSettings,
-          isPremium: isPremium,
-        ));
+  }) : super(
+         MatchChatSettingsState(
+           matchId: matchId,
+           settings: initialSettings,
+           isPremium: isPremium,
+         ),
+       );
 
   /// Toggle extended retention (24 hours instead of 1 hour) for this specific match.
   Future<void> toggleExtendedRetention(bool value) async {
@@ -67,8 +69,9 @@ class MatchChatSettingsCubit extends Cubit<MatchChatSettingsState> {
 
     try {
       // Update via Cloud Function for this specific match
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('updateMatchChatSettings');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'updateMatchChatSettings',
+      );
       await callable.call<void>({
         'matchId': state.matchId,
         'extendedRetention': value,
@@ -84,10 +87,12 @@ class MatchChatSettingsCubit extends Cubit<MatchChatSettingsState> {
         enabled: value,
       );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to update settings. Please try again.',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to update settings. Please try again.',
+        ),
+      );
     }
   }
 

@@ -31,12 +31,7 @@ class SessionTimeoutOccurred extends SessionEvent {}
 class SessionActivityRecorded extends SessionEvent {}
 
 // State
-enum SessionStatus {
-  unknown,
-  unauthenticated,
-  authenticating,
-  authenticated,
-}
+enum SessionStatus { unknown, unauthenticated, authenticating, authenticated }
 
 class SessionState extends Equatable {
   final SessionStatus status;
@@ -51,9 +46,8 @@ class SessionState extends Equatable {
     this.errorMessage,
   });
 
-  factory SessionState.unknown() => const SessionState(
-        status: SessionStatus.unknown,
-      );
+  factory SessionState.unknown() =>
+      const SessionState(status: SessionStatus.unknown);
 
   SessionState copyWith({
     SessionStatus? status,
@@ -123,11 +117,13 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     );
 
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        status: SessionStatus.unauthenticated,
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: SessionStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        ),
+      );
     }
   }
 
@@ -156,14 +152,16 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       await analytics.setUserId(null);
     }
 
-    emit(state.copyWith(
-      status: user == null
-          ? SessionStatus.unauthenticated
-          : SessionStatus.authenticated,
-      user: user,
-      isLoading: false,
-      clearError: true,
-    ));
+    emit(
+      state.copyWith(
+        status: user == null
+            ? SessionStatus.unauthenticated
+            : SessionStatus.authenticated,
+        user: user,
+        isLoading: false,
+        clearError: true,
+      ),
+    );
   }
 
   Future<void> _onSignOutRequested(
@@ -188,10 +186,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     );
 
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(state.copyWith(isLoading: false, errorMessage: result.errorMessage));
       return;
     }
 
@@ -207,12 +202,15 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     await authRepository.signOut();
     await _sessionManager.clearSession();
 
-    emit(state.copyWith(
-      status: SessionStatus.unauthenticated,
-      user: null,
-      isLoading: false,
-      errorMessage: 'Session expired due to inactivity. Please sign in again.',
-    ));
+    emit(
+      state.copyWith(
+        status: SessionStatus.unauthenticated,
+        user: null,
+        isLoading: false,
+        errorMessage:
+            'Session expired due to inactivity. Please sign in again.',
+      ),
+    );
   }
 
   void _onActivityRecorded(

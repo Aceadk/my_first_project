@@ -1,5 +1,6 @@
-import 'package:crushhour/features/calls/data/models/call.dart';
+import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -18,11 +19,15 @@ void main() {
     }
 
     setUp(() async {
+      service.setPreferRemoteSignalingForTest(false);
       await resetService();
+      service.clearHistoryForTest();
     });
 
     tearDown(() async {
       await resetService();
+      service.clearHistoryForTest();
+      service.setPreferRemoteSignalingForTest(true);
     });
 
     test('initiateCall creates an active outgoing call', () async {
@@ -38,10 +43,13 @@ void main() {
         callerName: 'Caller',
         receiverName: 'Receiver',
       );
+      await Future<void>.delayed(Duration.zero);
 
       expect(service.hasActiveCall, isTrue);
       expect(call.status, CallStatus.ringing);
       expect(service.isVideoEnabled, isFalse);
+      expect(callEvents, isNotEmpty);
+      expect(uiStates, isNotEmpty);
       expect(callEvents.last.id, call.id);
       expect(uiStates.last, CallUIState.outgoing);
 
@@ -64,6 +72,19 @@ void main() {
         ),
         throwsException,
       );
+    });
+
+    test('initiateCall no longer auto-connects after a delay', () async {
+      await service.initiateCall(
+        callerId: 'u1',
+        receiverId: 'u2',
+        type: CallType.audio,
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 3200));
+
+      expect(service.activeCall, isNotNull);
+      expect(service.activeCall!.status, CallStatus.ringing);
     });
 
     test(
@@ -151,9 +172,112 @@ void main() {
       expect(service.activeCall!.duration, greaterThanOrEqualTo(1));
     });
 
-    test('incoming call handling and call history placeholder', () async {
+    test(
+      'incoming call handling supports accept-as-audio and history',
+      () async {
+        final incoming = Call(
+          id: 'incoming-1',
+          callerId: 'u9',
+          receiverId: 'u1',
+          type: CallType.video,
+          status: CallStatus.ringing,
+          createdAt: DateTime.now(),
+        );
+
+        service.handleIncomingCall(incoming);
+        expect(service.activeCall?.id, 'incoming-1');
+
+        final busyIncoming = incoming.copyWith(id: 'incoming-2');
+        service.handleIncomingCall(busyIncoming);
+        expect(service.activeCall?.id, 'incoming-1');
+
+        await service.acceptCall(asType: CallType.audio);
+        expect(service.activeCall?.status, CallStatus.ongoing);
+        expect(service.activeCall?.type, CallType.audio);
+        await service.endCall();
+
+        final receiverHistory = await service.getCallHistory('u1');
+        final callerHistory = await service.getCallHistory('u9');
+        expect(receiverHistory, isNotEmpty);
+        expect(callerHistory, isNotEmpty);
+        expect(receiverHistory.first.id, 'incoming-1');
+        expect(callerHistory.first.id, 'incoming-1');
+      },
+    );
+
+    test('getCallHistory supports limit and before filtering', () async {
+      final now = DateTime.now();
+      final older = Call(
+        id: 'hist-older',
+        callerId: 'u9',
+        receiverId: 'u1',
+        type: CallType.audio,
+        status: CallStatus.ringing,
+        createdAt: now.subtract(const Duration(days: 2)),
+      );
+      final newer = older.copyWith(
+        id: 'hist-newer',
+        createdAt: now.subtract(const Duration(days: 1)),
+      );
+
+      service.handleIncomingCall(older);
+      await service.declineCall();
+      await Future<void>.delayed(const Duration(seconds: 2, milliseconds: 100));
+
+      service.handleIncomingCall(newer);
+      await service.declineCall();
+      await Future<void>.delayed(const Duration(seconds: 2, milliseconds: 100));
+
+      final latestOnly = await service.getCallHistory('u1', limit: 1);
+      expect(latestOnly.length, 1);
+      expect(latestOnly.first.id, 'hist-newer');
+
+      final olderOnly = await service.getCallHistory(
+        'u1',
+        before: now.subtract(const Duration(days: 1)),
+        limit: 10,
+      );
+      expect(olderOnly, isNotEmpty);
+      expect(olderOnly.first.id, 'hist-older');
+    });
+
+    test('missedCallStream emits and records missed calls', () async {
+      final missedEvents = <Call>[];
+      final missedSub = service.missedCallStream.listen(missedEvents.add);
+
       final incoming = Call(
-        id: 'incoming-1',
+        id: 'missed-1',
+        callerId: 'u9',
+        receiverId: 'u1',
+        type: CallType.audio,
+        status: CallStatus.ringing,
+        createdAt: DateTime.now(),
+        callerName: 'Alex',
+      );
+
+      service.handleIncomingCall(incoming);
+      service.markActiveCallMissedForTest();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(missedEvents.length, 1);
+      expect(missedEvents.single.id, 'missed-1');
+      expect(missedEvents.single.status, CallStatus.missed);
+      expect(missedEvents.single.endReason, CallEndReason.missed);
+
+      final history = await service.getCallHistory('u1');
+      expect(history, isNotEmpty);
+      expect(history.first.id, 'missed-1');
+      expect(history.first.status, CallStatus.missed);
+
+      await missedSub.cancel();
+    });
+
+    test('missedCallStream is not emitted for declined calls', () async {
+      final missedEvents = <Call>[];
+      final missedSub = service.missedCallStream.listen(missedEvents.add);
+
+      final incoming = Call(
+        id: 'declined-1',
         callerId: 'u9',
         receiverId: 'u1',
         type: CallType.video,
@@ -162,14 +286,12 @@ void main() {
       );
 
       service.handleIncomingCall(incoming);
-      expect(service.activeCall?.id, 'incoming-1');
+      await service.declineCall();
+      await Future<void>.delayed(Duration.zero);
 
-      final history = await service.getCallHistory('u1');
-      expect(history, isEmpty);
+      expect(missedEvents, isEmpty);
 
-      final busyIncoming = incoming.copyWith(id: 'incoming-2');
-      service.handleIncomingCall(busyIncoming);
-      expect(service.activeCall?.id, 'incoming-1');
+      await missedSub.cancel();
     });
   });
 }

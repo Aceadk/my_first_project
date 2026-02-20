@@ -55,9 +55,10 @@ class _ProfileCompletionIndicatorState extends State<ProfileCompletionIndicator>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _animation = Tween<double>(begin: 0, end: widget.percentage).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: widget.percentage,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     if (widget.animate) {
       _controller.forward();
@@ -68,12 +69,13 @@ class _ProfileCompletionIndicatorState extends State<ProfileCompletionIndicator>
   void didUpdateWidget(ProfileCompletionIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.percentage != widget.percentage) {
-      _animation = Tween<double>(
-        begin: _animation.value,
-        end: widget.percentage,
-      ).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-      );
+      _animation =
+          Tween<double>(
+            begin: _animation.value,
+            end: widget.percentage,
+          ).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+          );
       _controller.forward(from: 0);
     }
   }
@@ -95,57 +97,63 @@ class _ProfileCompletionIndicatorState extends State<ProfileCompletionIndicator>
         final value = widget.animate ? _animation.value : widget.percentage;
         final percentText = (value * 100).round();
 
-        return SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Background track
-              CustomPaint(
-                size: Size(widget.size, widget.size),
-                painter: _CircularProgressPainter(
-                  progress: 1.0,
-                  strokeWidth: widget.strokeWidth,
-                  color: bgColor,
+        return Semantics(
+          label: 'Profile $percentText% complete',
+          value: '$percentText%',
+          child: SizedBox(
+            width: widget.size,
+            height: widget.size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Background track
+                CustomPaint(
+                  size: Size(widget.size, widget.size),
+                  painter: _CircularProgressPainter(
+                    progress: 1.0,
+                    strokeWidth: widget.strokeWidth,
+                    color: bgColor,
+                  ),
                 ),
-              ),
-              // Progress arc
-              CustomPaint(
-                size: Size(widget.size, widget.size),
-                painter: _CircularProgressPainter(
-                  progress: value,
-                  strokeWidth: widget.strokeWidth,
-                  gradient: _getGradientForProgress(value),
+                // Progress arc
+                CustomPaint(
+                  size: Size(widget.size, widget.size),
+                  painter: _CircularProgressPainter(
+                    progress: value,
+                    strokeWidth: widget.strokeWidth,
+                    gradient: _getGradientForProgress(value),
+                  ),
                 ),
-              ),
-              // Center content
-              if (widget.showPercentage)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$percentText%',
-                      style: TextStyle(
-                        fontSize: widget.size * 0.22,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight,
-                      ),
+                // Center content (excluded from semantics — parent announces value)
+                if (widget.showPercentage)
+                  ExcludeSemantics(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$percentText%',
+                          style: TextStyle(
+                            fontSize: widget.size * 0.22,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
+                        ),
+                        Text(
+                          'Complete',
+                          style: TextStyle(
+                            fontSize: widget.size * 0.1,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Complete',
-                      style: TextStyle(
-                        fontSize: widget.size * 0.1,
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -213,11 +221,7 @@ class _CircularProgressPainter extends CustomPainter {
 
 /// A detailed profile completion card with checklist.
 class ProfileCompletionCard extends StatelessWidget {
-  const ProfileCompletionCard({
-    super.key,
-    required this.items,
-    this.onItemTap,
-  });
+  const ProfileCompletionCard({super.key, required this.items, this.onItemTap});
 
   /// List of completion items.
   final List<ProfileCompletionItem> items;
@@ -231,79 +235,89 @@ class ProfileCompletionCard extends StatelessWidget {
     return completed / items.length;
   }
 
+  String _accessibilitySummary() {
+    final percent = (completionPercentage * 100).round();
+    final missing = items
+        .where((i) => !i.isComplete)
+        .map((i) => i.label)
+        .toList();
+    if (missing.isEmpty) return 'Profile $percent% complete';
+    return 'Profile $percent% complete. Missing: ${missing.join(', ')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(DsRadius.lg),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(DsSpacing.lg),
-          decoration: BoxDecoration(
-            color: DsGlassColors.surfaceFor(
-              context,
-              strength: DsGlassSurfaceStrength.medium,
-            ),
-            borderRadius: BorderRadius.circular(DsRadius.lg),
-            border: Border.all(
-              color: DsGlassColors.borderFor(context),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  ProfileCompletionIndicator(
-                    percentage: completionPercentage,
-                    size: 60,
-                    strokeWidth: 5,
-                  ),
-                  const SizedBox(width: DsSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Complete Your Profile',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _getMotivationalText(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    return Semantics(
+      label: _accessibilitySummary(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DsRadius.lg),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
+          child: Container(
+            padding: const EdgeInsets.all(DsSpacing.lg),
+            decoration: BoxDecoration(
+              color: DsGlassColors.surfaceFor(
+                context,
+                strength: DsGlassSurfaceStrength.medium,
               ),
+              borderRadius: BorderRadius.circular(DsRadius.lg),
+              border: Border.all(color: DsGlassColors.borderFor(context)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    ProfileCompletionIndicator(
+                      percentage: completionPercentage,
+                      size: 60,
+                      strokeWidth: 5,
+                    ),
+                    const SizedBox(width: DsSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Complete Your Profile',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? DsColors.textPrimaryDark
+                                  : DsColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getMotivationalText(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
 
-              const SizedBox(height: DsSpacing.lg),
+                const SizedBox(height: DsSpacing.lg),
 
-              // Checklist
-              ...items.map((item) => _CompletionItemTile(
+                // Checklist
+                ...items.map(
+                  (item) => _CompletionItemTile(
                     item: item,
                     onTap: item.isComplete ? null : () => onItemTap?.call(item),
-                  )),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -325,10 +339,7 @@ class ProfileCompletionCard extends StatelessWidget {
 }
 
 class _CompletionItemTile extends StatelessWidget {
-  const _CompletionItemTile({
-    required this.item,
-    this.onTap,
-  });
+  const _CompletionItemTile({required this.item, this.onTap});
 
   final ProfileCompletionItem item;
   final VoidCallback? onTap;
@@ -337,79 +348,81 @@ class _CompletionItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: DsSpacing.sm,
-        ),
-        child: Row(
-          children: [
-            // Checkbox
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: item.isComplete
-                    ? const LinearGradient(
-                        colors: [DsColors.primary, DsColors.secondary],
-                      )
+    return Semantics(
+      label: '${item.label}, ${item.isComplete ? 'completed' : 'incomplete'}',
+      button: !item.isComplete && onTap != null,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: DsSpacing.sm),
+          child: Row(
+            children: [
+              // Checkbox
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: item.isComplete
+                      ? const LinearGradient(
+                          colors: [DsColors.primary, DsColors.secondary],
+                        )
+                      : null,
+                  border: item.isComplete
+                      ? null
+                      : Border.all(
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                          width: 2,
+                        ),
+                ),
+                child: item.isComplete
+                    ? const Icon(Icons.check, size: 16, color: Colors.white)
                     : null,
-                border: item.isComplete
-                    ? null
-                    : Border.all(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                        width: 2,
-                      ),
               ),
-              child: item.isComplete
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.white,
-                    )
-                  : null,
-            ),
-            const SizedBox(width: DsSpacing.md),
-            // Icon
-            Icon(
-              item.icon,
-              size: 20,
-              color: item.isComplete
-                  ? (isDark ? DsColors.textMutedDark : DsColors.textMutedLight)
-                  : DsColors.primary,
-            ),
-            const SizedBox(width: DsSpacing.sm),
-            // Label
-            Expanded(
-              child: Text(
-                item.label,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: item.isComplete
-                      ? (isDark
+              const SizedBox(width: DsSpacing.md),
+              // Icon
+              Icon(
+                item.icon,
+                size: 20,
+                color: item.isComplete
+                    ? (isDark
                           ? DsColors.textMutedDark
                           : DsColors.textMutedLight)
-                      : (isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight),
-                  decoration:
-                      item.isComplete ? TextDecoration.lineThrough : null,
+                    : DsColors.primary,
+              ),
+              const SizedBox(width: DsSpacing.sm),
+              // Label
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: item.isComplete
+                        ? (isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight)
+                        : (isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight),
+                    decoration: item.isComplete
+                        ? TextDecoration.lineThrough
+                        : null,
+                  ),
                 ),
               ),
-            ),
-            // Arrow for incomplete items
-            if (!item.isComplete)
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
-          ],
+              // Arrow for incomplete items
+              if (!item.isComplete)
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
+            ],
+          ),
         ),
       ),
     );

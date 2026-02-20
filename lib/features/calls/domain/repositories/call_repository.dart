@@ -23,21 +23,12 @@ class CallSession {
   });
 }
 
-enum CallEngineEventType {
-  joinedChannel,
-  userJoined,
-  userOffline,
-  error,
-}
+enum CallEngineEventType { joinedChannel, userJoined, userOffline, error }
 
 class CallEngineEvent {
   final CallEngineEventType type;
   final int? remoteUid;
   final String? error;
 
-  CallEngineEvent({
-    required this.type,
-    this.remoteUid,
-    this.error,
-  });
+  CallEngineEvent({required this.type, this.remoteUid, this.error});
 }

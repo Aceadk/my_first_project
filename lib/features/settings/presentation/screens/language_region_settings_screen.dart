@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 
@@ -14,168 +15,200 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.settingsLanguageRegion),
-      ),
-      body: BlocConsumer<LocaleCubit, LocaleState>(
-        listenWhen: (previous, current) =>
-            previous.errorMessage != current.errorMessage ||
-            (previous.isDetecting && !current.isDetecting),
-        listener: (context, localeState) {
-          if (localeState.errorMessage != null &&
-              localeState.errorMessage!.isNotEmpty) {
-            showErrorSnackBar(context, localeState.errorMessage!);
-          } else if (!localeState.isDetecting &&
-              localeState.errorMessage == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Region updated from device location.'),
-              ),
-            );
-          }
-        },
-        builder: (context, localeState) {
-          final localeCubit = context.read<LocaleCubit>();
-          return ListView(
-            children: [
-              // Header
-              Container(
-                padding: DsEdgeInsets.allLg,
-                margin: DsEdgeInsets.allLg,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      DsColors.secondary.withValues(alpha: 0.1),
-                      DsColors.primary.withValues(alpha: 0.1),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: DsEdgeInsets.allMd,
-                      decoration: BoxDecoration(
-                        color: DsColors.secondary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.language,
-                        color: DsColors.secondary,
-                        size: 28,
-                      ),
+      appBar: AppBar(title: Text(context.l10n.settingsLanguageRegion)),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: BlocConsumer<LocaleCubit, LocaleState>(
+              listenWhen: (previous, current) =>
+                  previous.errorMessage != current.errorMessage ||
+                  (previous.isDetecting && !current.isDetecting),
+              listener: (context, localeState) {
+                if (localeState.errorMessage != null &&
+                    localeState.errorMessage!.isNotEmpty) {
+                  showErrorSnackBar(context, localeState.errorMessage!);
+                } else if (!localeState.isDetecting &&
+                    localeState.errorMessage == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Region updated from device location.'),
                     ),
-                    DsGap.lgH,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  );
+                }
+              },
+              builder: (context, localeState) {
+                final localeCubit = context.read<LocaleCubit>();
+                return ListView(
+                  children: [
+                    // Header
+                    Container(
+                      padding: DsEdgeInsets.allLg,
+                      margin: DsEdgeInsets.allLg,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            DsColors.secondary.withValues(alpha: 0.1),
+                            DsColors.primary.withValues(alpha: 0.1),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            'Localization',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          Container(
+                            padding: DsEdgeInsets.allMd,
+                            decoration: BoxDecoration(
+                              color: DsColors.secondary.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.language,
+                              color: DsColors.secondary,
+                              size: 28,
+                            ),
                           ),
-                          DsGap.xs,
-                          Text(
-                            'Set your preferred language and region.',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: isDark
-                                          ? DsColors.textMutedDark
-                                          : DsColors.textMutedLight,
-                                    ),
+                          DsGap.lgH,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Localization',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                DsGap.xs,
+                                Text(
+                                  'Set your preferred language and region.',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              // Language
-              ListTile(
-                leading: const Icon(Icons.translate),
-                title: Text(context.l10n.settingsLanguage),
-                subtitle: Text(_languageLabel(localeState.languageCode)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () =>
-                    _showLanguageSheet(context, localeState.languageCode),
-              ),
-              const Divider(indent: 72),
-              // Region
-              ListTile(
-                leading: const Icon(Icons.public),
-                title: Text(context.l10n.settingsRegion),
-                subtitle: Text(localeState.region),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () =>
-                    _showRegionDialog(context, localeState.region, localeCubit),
-              ),
-              const Divider(indent: 72),
-              // Auto-detect
-              ListTile(
-                leading: const Icon(Icons.my_location),
-                title: Text(context.l10n.settingsDetectRegion),
-                subtitle: const Text('Detect your region automatically'),
-                trailing: localeState.isDetecting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.chevron_right),
-                onTap: localeState.isDetecting
-                    ? null
-                    : () => localeCubit.detectFromLocation(),
-              ),
-              DsGap.xxl,
-              // Info card
-              Padding(
-                padding: DsEdgeInsets.horizontalLg,
-                child: Container(
-                  padding: DsEdgeInsets.allMd,
-                  decoration: BoxDecoration(
-                    color:
-                        isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color:
-                          isDark ? DsColors.borderDark : DsColors.borderLight,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
+                    // Use device language
+                    SwitchListTile(
+                      secondary: const Icon(Icons.smartphone),
+                      title: const Text('Use device language'),
+                      subtitle: Text(
+                        localeState.useDeviceLocale
+                            ? 'Following system language'
+                            : 'Using manually selected language',
                       ),
-                      DsGap.mdH,
-                      Expanded(
-                        child: Text(
-                          'Your region helps us show you relevant matches nearby.',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                  ),
+                      value: localeState.useDeviceLocale,
+                      onChanged: (value) {
+                        if (value) {
+                          localeCubit.followDeviceLanguage();
+                        } else {
+                          localeCubit.setLanguage(localeState.languageCode);
+                        }
+                      },
+                    ),
+                    const Divider(indent: 72),
+                    // Language
+                    ListTile(
+                      leading: const Icon(Icons.translate),
+                      title: Text(context.l10n.settingsLanguage),
+                      subtitle: Text(_languageLabel(localeState.languageCode)),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: !localeState.useDeviceLocale,
+                      onTap: localeState.useDeviceLocale
+                          ? null
+                          : () => _showLanguageSheet(
+                              context,
+                              localeState.languageCode,
+                            ),
+                    ),
+                    const Divider(indent: 72),
+                    // Region
+                    ListTile(
+                      leading: const Icon(Icons.public),
+                      title: Text(context.l10n.settingsRegion),
+                      subtitle: Text(localeState.region),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showRegionDialog(
+                        context,
+                        localeState.region,
+                        localeCubit,
+                      ),
+                    ),
+                    const Divider(indent: 72),
+                    // Auto-detect
+                    ListTile(
+                      leading: const Icon(Icons.my_location),
+                      title: Text(context.l10n.settingsDetectRegion),
+                      subtitle: const Text('Detect your region automatically'),
+                      trailing: localeState.isDetecting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.chevron_right),
+                      onTap: localeState.isDetecting
+                          ? null
+                          : () => localeCubit.detectFromLocation(),
+                    ),
+                    DsGap.xxl,
+                    // Info card
+                    Padding(
+                      padding: DsEdgeInsets.horizontalLg,
+                      child: Container(
+                        padding: DsEdgeInsets.allMd,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? DsColors.surfaceDark
+                              : DsColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? DsColors.borderDark
+                                : DsColors.borderLight,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 20,
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
+                            ),
+                            DsGap.mdH,
+                            Expanded(
+                              child: Text(
+                                'Your region helps us show you relevant matches nearby.',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? DsColors.textMutedDark
+                                          : DsColors.textMutedLight,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -275,18 +308,14 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                         DsGap.mdH,
                         Text(
                           'Choose language',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
                         Text(
                           '${options.length} languages',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: DsColors.ink300,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: DsColors.ink300),
                         ),
                       ],
                     ),

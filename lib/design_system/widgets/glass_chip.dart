@@ -1,12 +1,13 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+import '../theme/theme_extensions.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
-import '../theme/theme_extensions.dart';
 
 /// A small glass-styled chip/tag for displaying labels, interests, etc.
 ///
@@ -82,8 +83,9 @@ class GlassChip extends StatelessWidget {
             color: isSelected ? null : bgColor,
             gradient: isSelected ? DsGradients.primaryHorizontal : null,
             borderRadius: BorderRadius.circular(DsRadius.round),
-            border:
-                isSelected ? null : Border.all(color: borderColor, width: 1),
+            border: isSelected
+                ? null
+                : Border.all(color: borderColor, width: 1),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
@@ -101,12 +103,16 @@ class GlassChip extends StatelessWidget {
                 Icon(icon, size: 16, color: textColor),
                 const SizedBox(width: DsSpacing.xs),
               ],
-              Text(
-                label,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -116,10 +122,7 @@ class GlassChip extends StatelessWidget {
     );
 
     if (onTap != null) {
-      chip = GestureDetector(
-        onTap: onTap,
-        child: chip,
-      );
+      chip = GestureDetector(onTap: onTap, child: chip);
     }
 
     return chip;
@@ -171,11 +174,7 @@ class GlassChipWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: spacing,
-      runSpacing: runSpacing,
-      children: chips,
-    );
+    return Wrap(spacing: spacing, runSpacing: runSpacing, children: chips);
   }
 }
 
@@ -191,17 +190,17 @@ class GlassStatusBadge extends StatelessWidget {
 
   /// Creates an "Online" status badge.
   factory GlassStatusBadge.online() => const GlassStatusBadge(
-        label: 'Online',
-        color: DsColors.onlineIndicator,
-        icon: Icons.circle,
-      );
+    label: 'Online',
+    color: DsColors.onlineIndicator,
+    icon: Icons.circle,
+  );
 
   /// Creates a "Verified" status badge.
   factory GlassStatusBadge.verified() => const GlassStatusBadge(
-        label: 'Verified',
-        color: DsColors.verified,
-        icon: Icons.verified,
-      );
+    label: 'Verified',
+    color: DsColors.verified,
+    icon: Icons.verified,
+  );
 
   final String label;
   final Color? color;
@@ -217,7 +216,8 @@ class GlassStatusBadge extends StatelessWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
-    final textColor = color ??
+    final textColor =
+        color ??
         (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight);
 
     return ClipRRect(

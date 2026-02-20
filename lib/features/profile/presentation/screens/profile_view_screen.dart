@@ -24,8 +24,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   @override
   void initState() {
     super.initState();
-    AppLogger.info(
-        '[ProfileViewScreen] initState - requesting profile load');
+    AppLogger.info('[ProfileViewScreen] initState - requesting profile load');
     context.read<ProfileBloc>().add(ProfileLoadRequested());
   }
 
@@ -34,13 +33,12 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
         AppLogger.info(
-            '[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}');
+          '[ProfileViewScreen] Building with state: status=${state.status}, isLoading=${state.isLoading}, hasProfile=${state.profile != null}, hasUser=${state.user != null}',
+        );
 
         if (state.isLoading && state.profile == null) {
           AppLogger.info('[ProfileViewScreen] Showing loading skeleton');
-          return const Scaffold(
-            body: GlassSkeletonProfile(),
-          );
+          return const Scaffold(body: GlassSkeletonProfile());
         }
 
         final profile = state.profile;
@@ -49,7 +47,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         if (state.status == ProfileStatus.empty || profile == null) {
           final isEmpty = state.status == ProfileStatus.empty;
           AppLogger.info(
-              '[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile');
+            '[ProfileViewScreen] Showing empty/error state: isEmpty=$isEmpty, profile=$profile',
+          );
           return Scaffold(
             body: Center(
               child: Padding(
@@ -72,10 +71,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     DsGap.xl,
                     Text(
                       isEmpty ? 'Complete Your Profile' : 'Profile not found',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     DsGap.sm,
                     Text(
@@ -89,9 +86,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     FilledButton.icon(
                       onPressed: () => isEmpty
                           ? context.push(CrushRoutes.profileEdit)
-                          : context
-                              .read<ProfileBloc>()
-                              .add(ProfileLoadRequested()),
+                          : context.read<ProfileBloc>().add(
+                              ProfileLoadRequested(),
+                            ),
                       icon: Icon(isEmpty ? Icons.edit : Icons.refresh),
                       label: Text(isEmpty ? 'Create Profile' : 'Retry'),
                       style: FilledButton.styleFrom(
@@ -116,379 +113,442 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         final hasBasicInfo = profile.age > 0;
 
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              // Profile Header with photo
-              SliverAppBar(
-                expandedHeight: 300,
-                pinned: true,
-                stretch: true,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.insights_outlined),
-                    tooltip: 'Profile Insights',
-                    onPressed: () => context.push(CrushRoutes.profileInsights),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined),
-                    onPressed: () => context.push(CrushRoutes.settings),
-                  ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: _ProfileHeader(profile: profile),
-                ),
-              ),
-              // Profile Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: DsEdgeInsets.screenPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name and basic info
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  hasBasicInfo
-                                      ? '${profile.fullName}, ${profile.age}'
-                                      : profile.fullName,
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                // Username display
-                                if (state.user?.username != null &&
-                                    state.user!.username!.isNotEmpty) ...[
-                                  DsGap.xs,
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.alternate_email,
-                                          size: 16, color: DsColors.primary),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        state.user!.username!,
-                                        style: const TextStyle(
-                                          color: DsColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                                if (profile.livingIn != null &&
-                                    profile.livingIn!.isNotEmpty) ...[
-                                  DsGap.xs,
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.location_on,
-                                          size: 16, color: DsColors.primary),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        profile.livingIn!,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                                if (profile.jobTitle != null ||
-                                    profile.company != null) ...[
-                                  DsGap.xs,
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.work_outline,
-                                          size: 16, color: DsColors.primary),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          [profile.jobTitle, profile.company]
-                                              .where((s) =>
-                                                  s != null && s.isNotEmpty)
-                                              .join(' at '),
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.color,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          // Edit button
-                          FilledButton.icon(
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = DsBreakpoints.contentMaxWidth(
+                constraints.maxWidth,
+              );
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: CustomScrollView(
+                    slivers: [
+                      // Profile Header with photo
+                      SliverAppBar(
+                        expandedHeight: 300,
+                        pinned: true,
+                        stretch: true,
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.insights_outlined),
+                            tooltip: 'Profile Insights',
                             onPressed: () =>
-                                context.push(CrushRoutes.profileEdit),
-                            icon: const Icon(Icons.edit, size: 18),
-                            label: const Text('Edit'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: DsColors.primary,
-                            ),
+                                context.push(CrushRoutes.profileInsights),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined),
+                            onPressed: () => context.push(CrushRoutes.settings),
                           ),
                         ],
-                      ),
-                      DsGap.lg,
-
-                      // Profile completion card (always show if incomplete or missing basic info)
-                      if (!isComplete || !hasBasicInfo) ...[
-                        _CompletionCard(
-                          percent: hasBasicInfo ? percent : 0,
-                          missing: hasBasicInfo
-                              ? summary.missing
-                              : ['age', 'gender', 'bio', 'photos'],
-                          isNewProfile: !hasBasicInfo,
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // About
-                      if (profile.bio.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'About',
-                          icon: Icons.person_outline,
-                          child: Text(
-                            profile.bio,
-                            style: const TextStyle(fontSize: 15, height: 1.5),
-                          ),
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // Photos Gallery with blend effect
-                      if (profile.photoUrls.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'My Photos',
-                          icon: Icons.photo_library_outlined,
-                          child: _PhotosGrid(photos: profile.photoUrls),
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // Profile Prompts
-                      if (profile.profilePrompts.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'Conversation Starters',
-                          icon: Icons.chat_bubble_outline,
-                          child: PromptCardColumn(
-                            prompts: profile.profilePrompts,
-                          ),
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // Interests
-                      if (profile.interests.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'Interests',
-                          icon: Icons.interests_outlined,
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: profile.interests.map((interest) {
-                              return GlassChip(label: interest);
-                            }).toList(),
-                          ),
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // Dating Basics
-                      _InfoSection(
-                        title: 'Dating Basics',
-                        icon: Icons.favorite_outline,
-                        child: Column(
-                          children: [
-                            if (profile.heightCm != null)
-                              _InfoRow(
-                                icon: Icons.height,
-                                label: 'Height',
-                                value: ProfileFieldOptions.formatHeightDisplay(
-                                    profile.heightCm!),
-                              ),
-                            if (profile.relationshipGoals != null)
-                              _InfoRow(
-                                icon: Icons.favorite,
-                                label: 'Looking for',
-                                value: ProfileFieldOptions
-                                        .getRelationshipGoalLabel(
-                                            profile.relationshipGoals) ??
-                                    '',
-                              ),
-                            if (profile.zodiacSign != null)
-                              _InfoRow(
-                                icon: Icons.auto_awesome,
-                                label: 'Zodiac',
-                                value: ProfileFieldOptions.getZodiacLabel(
-                                        profile.zodiacSign) ??
-                                    '',
-                              ),
-                          ],
+                        flexibleSpace: FlexibleSpaceBar(
+                          background: _ProfileHeader(profile: profile),
                         ),
                       ),
-                      DsGap.lg,
-
-                      // Languages
-                      if (profile.languages.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'Languages',
-                          icon: Icons.language,
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: profile.languages.map((lang) {
-                              return GlassChip(label: lang);
-                            }).toList(),
-                          ),
-                        ),
-                        DsGap.lg,
-                      ],
-
-                      // More About Me
-                      _InfoSection(
-                        title: 'More About Me',
-                        icon: Icons.psychology_outlined,
-                        child: Column(
-                          children: [
-                            if (profile.educationLevel != null)
-                              _InfoRow(
-                                icon: Icons.school_outlined,
-                                label: 'Education',
-                                value: ProfileFieldOptions.getEducationLabel(
-                                        profile.educationLevel) ??
-                                    '',
-                              ),
-                            if (profile.familyPlans != null)
-                              _InfoRow(
-                                icon: Icons.family_restroom,
-                                label: 'Family Plans',
-                                value: ProfileFieldOptions.getFamilyPlanLabel(
-                                        profile.familyPlans) ??
-                                    '',
-                              ),
-                            if (profile.personalityType != null)
-                              _InfoRow(
-                                icon: Icons.emoji_people,
-                                label: 'Personality',
-                                value: ProfileFieldOptions.getPersonalityLabel(
-                                        profile.personalityType) ??
-                                    '',
-                              ),
-                            if (profile.religion != null)
-                              _InfoRow(
-                                icon: Icons.self_improvement,
-                                label: 'Religion',
-                                value: ProfileFieldOptions.getReligionLabel(
-                                        profile.religion) ??
-                                    '',
-                              ),
-                          ],
-                        ),
-                      ),
-                      DsGap.lg,
-
-                      // Lifestyle
-                      _InfoSection(
-                        title: 'Lifestyle',
-                        icon: Icons.spa_outlined,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (profile.workout != null)
-                              GlassChip.icon(
-                                label: ProfileFieldOptions.getWorkoutLabel(
-                                        profile.workout) ??
-                                    '',
-                                icon: Icons.fitness_center,
-                              ),
-                            if (profile.sleepingHabits != null)
-                              GlassChip.icon(
-                                label: ProfileFieldOptions.getSleepingLabel(
-                                        profile.sleepingHabits) ??
-                                    '',
-                                icon: Icons.bedtime_outlined,
-                              ),
-                            if (profile.smoking != null)
-                              GlassChip.icon(
-                                label: ProfileFieldOptions.getSmokingLabel(
-                                        profile.smoking) ??
-                                    '',
-                                icon: Icons.smoking_rooms,
-                              ),
-                            if (profile.drinking != null)
-                              GlassChip.icon(
-                                label: ProfileFieldOptions.getDrinkingLabel(
-                                        profile.drinking) ??
-                                    '',
-                                icon: Icons.local_bar,
-                              ),
-                            if (profile.pets != null)
-                              GlassChip.icon(
-                                label: ProfileFieldOptions.getPetLabel(
-                                        profile.pets) ??
-                                    '',
-                                icon: Icons.pets,
-                              ),
-                          ],
-                        ),
-                      ),
-                      DsGap.lg,
-
-                      // Music
-                      if (profile.favoriteSinger != null ||
-                          profile.favoriteSongs.isNotEmpty) ...[
-                        _InfoSection(
-                          title: 'Music',
-                          icon: Icons.music_note_outlined,
+                      // Profile Content
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: DsEdgeInsets.screenPadding,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (profile.favoriteSinger != null)
-                                _InfoRow(
-                                  icon: Icons.person,
-                                  label: 'Favorite Artist',
-                                  value: profile.favoriteSinger!,
+                              // Name and basic info
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          hasBasicInfo
+                                              ? '${profile.fullName}, ${profile.age}'
+                                              : profile.fullName,
+                                          style: const TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        // Username display
+                                        if (state.user?.username != null &&
+                                            state
+                                                .user!
+                                                .username!
+                                                .isNotEmpty) ...[
+                                          DsGap.xs,
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.alternate_email,
+                                                size: 16,
+                                                color: DsColors.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                state.user!.username!,
+                                                style: const TextStyle(
+                                                  color: DsColors.primary,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                        if (profile.livingIn != null &&
+                                            profile.livingIn!.isNotEmpty) ...[
+                                          DsGap.xs,
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.location_on,
+                                                size: 16,
+                                                color: DsColors.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                profile.livingIn!,
+                                                style: TextStyle(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodySmall?.color,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                        if (profile.jobTitle != null ||
+                                            profile.company != null) ...[
+                                          DsGap.xs,
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.work_outline,
+                                                size: 16,
+                                                color: DsColors.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  [
+                                                        profile.jobTitle,
+                                                        profile.company,
+                                                      ]
+                                                      .where(
+                                                        (s) =>
+                                                            s != null &&
+                                                            s.isNotEmpty,
+                                                      )
+                                                      .join(' at '),
+                                                  style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.color,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  // Edit button
+                                  FilledButton.icon(
+                                    onPressed: () =>
+                                        context.push(CrushRoutes.profileEdit),
+                                    icon: const Icon(Icons.edit, size: 18),
+                                    label: const Text('Edit'),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: DsColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              DsGap.lg,
+
+                              // Profile completion card (always show if incomplete or missing basic info)
+                              if (!isComplete || !hasBasicInfo) ...[
+                                _CompletionCard(
+                                  percent: hasBasicInfo ? percent : 0,
+                                  missing: hasBasicInfo
+                                      ? summary.missing
+                                      : ['age', 'gender', 'bio', 'photos'],
+                                  isNewProfile: !hasBasicInfo,
                                 ),
-                              if (profile.favoriteSongs.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Wrap(
+                                DsGap.lg,
+                              ],
+
+                              // About
+                              if (profile.bio.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'About',
+                                  icon: Icons.person_outline,
+                                  child: Text(
+                                    profile.bio,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                                DsGap.lg,
+                              ],
+
+                              // Photos Gallery with blend effect
+                              if (profile.photoUrls.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'My Photos',
+                                  icon: Icons.photo_library_outlined,
+                                  child: _PhotosGrid(photos: profile.photoUrls),
+                                ),
+                                DsGap.lg,
+                              ],
+
+                              // Profile Prompts
+                              if (profile.profilePrompts.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'Conversation Starters',
+                                  icon: Icons.chat_bubble_outline,
+                                  child: PromptCardColumn(
+                                    prompts: profile.profilePrompts,
+                                  ),
+                                ),
+                                DsGap.lg,
+                              ],
+
+                              // Interests
+                              if (profile.interests.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'Interests',
+                                  icon: Icons.interests_outlined,
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: profile.interests.map((interest) {
+                                      return GlassChip(label: interest);
+                                    }).toList(),
+                                  ),
+                                ),
+                                DsGap.lg,
+                              ],
+
+                              // Dating Basics
+                              _InfoSection(
+                                title: 'Dating Basics',
+                                icon: Icons.favorite_outline,
+                                child: Column(
+                                  children: [
+                                    if (profile.heightCm != null)
+                                      _InfoRow(
+                                        icon: Icons.height,
+                                        label: 'Height',
+                                        value:
+                                            ProfileFieldOptions.formatHeightDisplay(
+                                              profile.heightCm!,
+                                            ),
+                                      ),
+                                    if (profile.relationshipGoals != null)
+                                      _InfoRow(
+                                        icon: Icons.favorite,
+                                        label: 'Looking for',
+                                        value:
+                                            ProfileFieldOptions.getRelationshipGoalLabel(
+                                              profile.relationshipGoals,
+                                            ) ??
+                                            '',
+                                      ),
+                                    if (profile.zodiacSign != null)
+                                      _InfoRow(
+                                        icon: Icons.auto_awesome,
+                                        label: 'Zodiac',
+                                        value:
+                                            ProfileFieldOptions.getZodiacLabel(
+                                              profile.zodiacSign,
+                                            ) ??
+                                            '',
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              DsGap.lg,
+
+                              // Languages
+                              if (profile.languages.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'Languages',
+                                  icon: Icons.language,
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: profile.languages.map((lang) {
+                                      return GlassChip(label: lang);
+                                    }).toList(),
+                                  ),
+                                ),
+                                DsGap.lg,
+                              ],
+
+                              // More About Me
+                              _InfoSection(
+                                title: 'More About Me',
+                                icon: Icons.psychology_outlined,
+                                child: Column(
+                                  children: [
+                                    if (profile.educationLevel != null)
+                                      _InfoRow(
+                                        icon: Icons.school_outlined,
+                                        label: 'Education',
+                                        value:
+                                            ProfileFieldOptions.getEducationLabel(
+                                              profile.educationLevel,
+                                            ) ??
+                                            '',
+                                      ),
+                                    if (profile.familyPlans != null)
+                                      _InfoRow(
+                                        icon: Icons.family_restroom,
+                                        label: 'Family Plans',
+                                        value:
+                                            ProfileFieldOptions.getFamilyPlanLabel(
+                                              profile.familyPlans,
+                                            ) ??
+                                            '',
+                                      ),
+                                    if (profile.personalityType != null)
+                                      _InfoRow(
+                                        icon: Icons.emoji_people,
+                                        label: 'Personality',
+                                        value:
+                                            ProfileFieldOptions.getPersonalityLabel(
+                                              profile.personalityType,
+                                            ) ??
+                                            '',
+                                      ),
+                                    if (profile.religion != null)
+                                      _InfoRow(
+                                        icon: Icons.self_improvement,
+                                        label: 'Religion',
+                                        value:
+                                            ProfileFieldOptions.getReligionLabel(
+                                              profile.religion,
+                                            ) ??
+                                            '',
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              DsGap.lg,
+
+                              // Lifestyle
+                              _InfoSection(
+                                title: 'Lifestyle',
+                                icon: Icons.spa_outlined,
+                                child: Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
-                                  children: profile.favoriteSongs.map((song) {
-                                    return GlassChip.icon(
-                                        label: song, icon: Icons.music_note);
-                                  }).toList(),
+                                  children: [
+                                    if (profile.workout != null)
+                                      GlassChip.icon(
+                                        label:
+                                            ProfileFieldOptions.getWorkoutLabel(
+                                              profile.workout,
+                                            ) ??
+                                            '',
+                                        icon: Icons.fitness_center,
+                                      ),
+                                    if (profile.sleepingHabits != null)
+                                      GlassChip.icon(
+                                        label:
+                                            ProfileFieldOptions.getSleepingLabel(
+                                              profile.sleepingHabits,
+                                            ) ??
+                                            '',
+                                        icon: Icons.bedtime_outlined,
+                                      ),
+                                    if (profile.smoking != null)
+                                      GlassChip.icon(
+                                        label:
+                                            ProfileFieldOptions.getSmokingLabel(
+                                              profile.smoking,
+                                            ) ??
+                                            '',
+                                        icon: Icons.smoking_rooms,
+                                      ),
+                                    if (profile.drinking != null)
+                                      GlassChip.icon(
+                                        label:
+                                            ProfileFieldOptions.getDrinkingLabel(
+                                              profile.drinking,
+                                            ) ??
+                                            '',
+                                        icon: Icons.local_bar,
+                                      ),
+                                    if (profile.pets != null)
+                                      GlassChip.icon(
+                                        label:
+                                            ProfileFieldOptions.getPetLabel(
+                                              profile.pets,
+                                            ) ??
+                                            '',
+                                        icon: Icons.pets,
+                                      ),
+                                  ],
                                 ),
+                              ),
+                              DsGap.lg,
+
+                              // Music
+                              if (profile.favoriteSinger != null ||
+                                  profile.favoriteSongs.isNotEmpty) ...[
+                                _InfoSection(
+                                  title: 'Music',
+                                  icon: Icons.music_note_outlined,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (profile.favoriteSinger != null)
+                                        _InfoRow(
+                                          icon: Icons.person,
+                                          label: 'Favorite Artist',
+                                          value: profile.favoriteSinger!,
+                                        ),
+                                      if (profile.favoriteSongs.isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: profile.favoriteSongs.map((
+                                            song,
+                                          ) {
+                                            return GlassChip.icon(
+                                              label: song,
+                                              icon: Icons.music_note,
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                DsGap.lg,
                               ],
+
+                              DsGap.xxl,
                             ],
                           ),
                         ),
-                        DsGap.lg,
-                      ],
-
-                      DsGap.xxl,
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         );
       },
@@ -521,9 +581,9 @@ class _ProfileHeader extends StatelessWidget {
           _buildPlaceholder(),
         // Subtle gradient overlay at bottom only (for text readability)
         // Does NOT blur or obscure the photo - only adds subtle shadow at bottom
-        Positioned(
-          left: 0,
-          right: 0,
+        PositionedDirectional(
+          start: 0,
+          end: 0,
           bottom: 0,
           height: 100,
           child: Container(
@@ -541,8 +601,8 @@ class _ProfileHeader extends StatelessWidget {
         ),
         // Photo count badge
         if (profile.photoUrls.length > 1)
-          Positioned(
-            right: 16,
+          PositionedDirectional(
+            end: 16,
             bottom: 16,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -553,8 +613,11 @@ class _ProfileHeader extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.photo_library,
-                      size: 16, color: DsColors.surfaceLight),
+                  const Icon(
+                    Icons.photo_library,
+                    size: 16,
+                    color: DsColors.surfaceLight,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${profile.photoUrls.length}',
@@ -575,11 +638,7 @@ class _ProfileHeader extends StatelessWidget {
     return Container(
       color: DsColors.primary.withValues(alpha: 0.2),
       child: const Center(
-        child: Icon(
-          Icons.person,
-          size: 80,
-          color: DsColors.primary,
-        ),
+        child: Icon(Icons.person, size: 80, color: DsColors.primary),
       ),
     );
   }
@@ -637,7 +696,9 @@ class _CompletionCard extends StatelessWidget {
                           ? 'Set up your profile'
                           : 'Complete your profile',
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     Text(
                       isNewProfile
@@ -655,8 +716,10 @@ class _CompletionCard extends StatelessWidget {
                 onPressed: () => context.push(CrushRoutes.profileEdit),
                 style: FilledButton.styleFrom(
                   backgroundColor: DsColors.primary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
                 child: Text(isNewProfile ? 'Get Started' : 'Complete'),
               ),
@@ -793,11 +856,11 @@ class _PhotosGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // Larger photos (2 columns instead of 3)
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: DsBreakpoints.gridColumnsOf(context).clamp(2, 4),
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.8, // Slightly taller aspect ratio for portraits
+        childAspectRatio: 0.8,
       ),
       itemCount: photos.length,
       itemBuilder: (context, index) {

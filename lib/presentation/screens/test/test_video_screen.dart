@@ -16,18 +16,11 @@ class TestVideoScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.videocam_off,
-                size: 80,
-                color: DsColors.ink300,
-              ),
+              Icon(Icons.videocam_off, size: 80, color: DsColors.ink300),
               SizedBox(height: 24),
               Text(
                 'Video Calling Not Configured',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 16),
@@ -39,10 +32,7 @@ class TestVideoScreen extends StatelessWidget {
                 '• Daily.co\n\n'
                 'See the documentation for setup instructions.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: DsColors.ink300,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: DsColors.ink300, fontSize: 14),
               ),
             ],
           ),

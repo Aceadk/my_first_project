@@ -98,8 +98,9 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     final status = prefs.getString(_statusKey);
     final renewalStr = prefs.getString(_renewalKey);
 
-    final plan =
-        planName == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    final plan = planName == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
     DateTime? renewal;
     if (renewalStr != null) {
       renewal = DateTime.tryParse(renewalStr);
@@ -220,9 +221,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     }
 
     if (promoCode.isExpired) {
-      return PromoCodeRedemptionResult.failure(
-        'This promo code has expired.',
-      );
+      return PromoCodeRedemptionResult.failure('This promo code has expired.');
     }
 
     if (promoCode.isMaxedOut) {
@@ -293,9 +292,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     return codesJson
         .map((json) {
           try {
-            return PromoCode.fromJson(
-              jsonDecode(json) as Map<String, dynamic>,
-            );
+            return PromoCode.fromJson(jsonDecode(json) as Map<String, dynamic>);
           } catch (_) {
             return null;
           }

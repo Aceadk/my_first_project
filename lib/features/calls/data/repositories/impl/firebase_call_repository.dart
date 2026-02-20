@@ -48,9 +48,9 @@ class FirebaseCallRepository implements CallRepository {
     );
 
     // Emit joined channel event
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.joinedChannel,
-    ));
+    _eventController.add(
+      CallEngineEvent(type: CallEngineEventType.joinedChannel),
+    );
 
     return _currentSession!;
   }
@@ -78,27 +78,30 @@ class FirebaseCallRepository implements CallRepository {
   /// Notify that a remote user joined the call.
   /// This should be called by the actual WebRTC/Agora integration.
   void notifyUserJoined(int remoteUid) {
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.userJoined,
-      remoteUid: remoteUid,
-    ));
+    _eventController.add(
+      CallEngineEvent(
+        type: CallEngineEventType.userJoined,
+        remoteUid: remoteUid,
+      ),
+    );
   }
 
   /// Notify that a remote user left the call.
   /// This should be called by the actual WebRTC/Agora integration.
   void notifyUserOffline(int remoteUid) {
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.userOffline,
-      remoteUid: remoteUid,
-    ));
+    _eventController.add(
+      CallEngineEvent(
+        type: CallEngineEventType.userOffline,
+        remoteUid: remoteUid,
+      ),
+    );
   }
 
   /// Notify of an error in the call.
   void notifyError(String error) {
-    _eventController.add(CallEngineEvent(
-      type: CallEngineEventType.error,
-      error: error,
-    ));
+    _eventController.add(
+      CallEngineEvent(type: CallEngineEventType.error, error: error),
+    );
   }
 
   /// Clean up resources.

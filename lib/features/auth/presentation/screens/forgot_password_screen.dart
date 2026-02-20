@@ -43,12 +43,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: DsEdgeInsets.allXxl,
-          child: _emailSent
-              ? _buildEmailSentView(context, isDark)
-              : _buildEmailInputView(context, isDark),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: DsEdgeInsets.allXxl,
+                child: _emailSent
+                    ? _buildEmailSentView(context, isDark)
+                    : _buildEmailInputView(context, isDark),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -77,9 +86,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'Forgot Password?',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         DsGap.sm,
         // Subtitle
@@ -87,9 +96,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           'No worries! Enter your email and we\'ll send you a link to reset your password.',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
+            color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+          ),
         ),
         DsGap.xxxl,
         // Email field
@@ -188,9 +196,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'Check Your Email',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         DsGap.md,
         // Email sent to
@@ -205,9 +213,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Text(
             _sentEmail ?? '',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: DsColors.primary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: DsColors.primary,
+            ),
           ),
         ),
         DsGap.xl,
@@ -219,9 +227,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ? DsColors.info.withValues(alpha: 0.1)
                 : DsColors.info.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: DsColors.info.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: DsColors.info.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -250,10 +256,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Open the email we sent to your inbox',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -284,10 +290,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Click the "Reset Password" link in the email',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -318,10 +324,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Text(
                       'Create your new password and sign in',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight,
-                          ),
+                        color: isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -344,10 +350,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Text(
                 'Check your spam folder if you don\'t see the email',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
               ),
             ),
           ],
@@ -368,10 +374,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   SizedBox(width: 8),
                   Text(
                     'Open Email App',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -389,10 +392,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               onPressed: () => context.go(CrushRoutes.login),
               child: const Text(
                 'Back to Sign In',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -405,10 +405,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Text(
               'Didn\'t receive the email? ',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
             ),
             Semantics(
               button: true,
@@ -417,9 +417,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 onPressed: _isLoading ? null : _resendEmail,
                 child: Text(
                   _isLoading ? 'Sending...' : 'Resend',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),

@@ -29,20 +29,11 @@ CrushBadge.count(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CrushBadge.count(
-                count: 3,
-                child: _buildIconButton(),
-              ),
+              CrushBadge.count(count: 3, child: _buildIconButton()),
               const SizedBox(width: 24),
-              CrushBadge.count(
-                count: 42,
-                child: _buildIconButton(),
-              ),
+              CrushBadge.count(count: 42, child: _buildIconButton()),
               const SizedBox(width: 24),
-              CrushBadge.count(
-                count: 150,
-                child: _buildIconButton(),
-              ),
+              CrushBadge.count(count: 150, child: _buildIconButton()),
             ],
           ),
         ),
@@ -56,9 +47,7 @@ CrushBadge.dot(
     onPressed: () {},
   ),
 )''',
-          child: CrushBadge.dot(
-            child: _buildIconButton(),
-          ),
+          child: CrushBadge.dot(child: _buildIconButton()),
         ),
         WidgetShowcase(
           title: 'New Badge',
@@ -90,9 +79,7 @@ CrushPulsingBadge(
     onPressed: () {},
   ),
 )''',
-          child: CrushPulsingBadge(
-            child: _buildIconButton(),
-          ),
+          child: CrushPulsingBadge(child: _buildIconButton()),
         ),
         WidgetVariants(
           title: 'Badge Types',
@@ -141,22 +128,13 @@ CrushPulsingBadge(
           child: NavigationBar(
             selectedIndex: 0,
             destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
+              NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
               NavigationDestination(
                 icon: Icon(Icons.favorite),
                 label: 'Matches',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.chat),
-                label: 'Chat',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
+              NavigationDestination(icon: Icon(Icons.chat), label: 'Chat'),
+              NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
             ],
           ),
         ),

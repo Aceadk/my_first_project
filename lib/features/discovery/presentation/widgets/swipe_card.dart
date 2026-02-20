@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,8 @@ import 'package:video_player/video_player.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/profile_reaction.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/story_ring.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
@@ -17,6 +19,7 @@ import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/core/accessibility/semantics_helper.dart';
 import 'package:crushhour/core/router.dart';
 
@@ -25,14 +28,15 @@ class SwipeCard extends StatefulWidget {
   final Profile profile;
 
   /// Callback when user reacts to content.
-  final void Function(String reactionType, ReactionContentType contentType,
-      int index, String? comment)? onReaction;
+  final void Function(
+    String reactionType,
+    ReactionContentType contentType,
+    int index,
+    String? comment,
+  )?
+  onReaction;
 
-  const SwipeCard({
-    super.key,
-    required this.profile,
-    this.onReaction,
-  });
+  const SwipeCard({super.key, required this.profile, this.onReaction});
 
   @override
   State<SwipeCard> createState() => _SwipeCardState();
@@ -43,6 +47,7 @@ class _SwipeCardState extends State<SwipeCard> {
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
   bool _isVideoPlaying = false;
+  bool _hasVideoError = false;
   String? _sentReactionEmoji;
   bool _showSentReaction = false;
 
@@ -112,6 +117,7 @@ class _SwipeCardState extends State<SwipeCard> {
 
     setState(() {
       _currentMediaIndex = index;
+      _hasVideoError = false;
     });
 
     // Initialize video if new media is video
@@ -141,22 +147,30 @@ class _SwipeCardState extends State<SwipeCard> {
         _videoController = VideoPlayerController.networkUrl(Uri.file(url));
       }
 
-      await _videoController!.initialize();
+      // Initialize with 10-second timeout
+      await _videoController!.initialize().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Video loading timed out after 10 seconds');
+        },
+      );
       _videoController!.setLooping(true);
       _videoController!.addListener(_onVideoStateChanged);
 
       if (mounted) {
         setState(() {
           _isVideoInitialized = true;
+          _hasVideoError = false;
         });
-        // Auto-play video
         _videoController!.play();
       }
     } catch (e) {
-      // Video failed to load
+      // Video failed to load — show fallback photo
+      _disposeVideoController();
       if (mounted) {
         setState(() {
           _isVideoInitialized = false;
+          _hasVideoError = true;
         });
       }
     }
@@ -263,8 +277,8 @@ class _SwipeCardState extends State<SwipeCard> {
     final displayName = profile.username != null && profile.username!.isNotEmpty
         ? '@${profile.username}'
         : profile.name.isNotEmpty
-            ? profile.name
-            : 'Someone new';
+        ? profile.name
+        : 'Someone new';
     final bio = profile.bio.trim().isEmpty
         ? 'This member has not added a bio yet.'
         : profile.bio;
@@ -274,7 +288,9 @@ class _SwipeCardState extends State<SwipeCard> {
       if (city.isNotEmpty) city,
       if (country.isNotEmpty) country,
     ].join(city.isNotEmpty && country.isNotEmpty ? ', ' : '');
-    final stories = profile.id.activeStories;
+    final stories = context.read<StoryRepository>().getStoriesForUser(
+      profile.id,
+    );
     final hasStories = stories.isNotEmpty;
 
     // Build semantic label for screen readers
@@ -303,19 +319,19 @@ class _SwipeCardState extends State<SwipeCard> {
             Semantics(
               label: currentMedia != null
                   ? currentMedia.isVideo
-                      ? 'Video ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
-                      : 'Photo ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
+                        ? 'Video ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
+                        : 'Photo ${_currentMediaIndex + 1} of ${_allMedia.length} for $displayName'
                   : 'No photo available for $displayName',
               image: currentMedia != null && !currentMedia.isVideo,
               child: currentMedia != null
                   ? currentMedia.isVideo
-                      ? _buildVideoPlayer(currentMedia.url)
-                      : CachedNetworkImage(
-                          imageUrl: currentMedia.url,
-                          fit: BoxFit.cover,
-                          placeholder: _placeholder(),
-                          errorWidget: _placeholder(),
-                        )
+                        ? _buildVideoPlayer(currentMedia.url)
+                        : CachedNetworkImage(
+                            imageUrl: currentMedia.url,
+                            fit: BoxFit.cover,
+                            placeholder: _placeholder(),
+                            errorWidget: _placeholder(),
+                          )
                   : _placeholder(),
             ),
 
@@ -387,7 +403,9 @@ class _SwipeCardState extends State<SwipeCard> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: const Alignment(
-                        0, -0.3), // Extend higher for action buttons
+                      0,
+                      -0.3,
+                    ), // Extend higher for action buttons
                     colors: [
                       DsColors.ink900.withValues(alpha: 0.85),
                       DsColors.ink900.withValues(alpha: 0.6),
@@ -419,10 +437,10 @@ class _SwipeCardState extends State<SwipeCard> {
             ),
 
             // Top navigation area with "For You" badge
-            Positioned(
+            PositionedDirectional(
               top: DsSpacing.md,
-              left: DsSpacing.md,
-              right: DsSpacing.md,
+              start: DsSpacing.md,
+              end: DsSpacing.md,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -464,15 +482,20 @@ class _SwipeCardState extends State<SwipeCard> {
                   // Media progress indicators (below badges)
                   if (media.length > 1)
                     Padding(
-                      padding: const EdgeInsets.only(top: DsSpacing.sm),
+                      padding: const EdgeInsetsDirectional.only(
+                        top: DsSpacing.sm,
+                      ),
                       child: _MediaProgressIndicators(
                         count: media.length,
                         currentIndex: _currentMediaIndex,
-                        videoProgress: _videoController != null &&
-                                _isVideoInitialized
+                        videoProgress:
+                            _videoController != null && _isVideoInitialized
                             ? _videoController!.value.position.inMilliseconds /
-                                (_videoController!.value.duration.inMilliseconds
-                                    .clamp(1, double.maxFinite.toInt()))
+                                  (_videoController!
+                                      .value
+                                      .duration
+                                      .inMilliseconds
+                                      .clamp(1, double.maxFinite.toInt()))
                             : null,
                       ),
                     ),
@@ -496,9 +519,14 @@ class _SwipeCardState extends State<SwipeCard> {
 
             // Reaction button (left side, above profile info since action buttons are on right)
             if (widget.onReaction != null)
-              Positioned(
-                left: DsSpacing.md,
-                bottom: 240, // Above the profile identity overlay
+              PositionedDirectional(
+                start: DsSpacing.md,
+                bottom: DsBreakpoints.of<double>(
+                  context,
+                  mobile: 240,
+                  tablet: 200,
+                  desktop: 200,
+                ),
                 child: ContentReactionButton(
                   onReaction: _handleReaction,
                   onComment: _handleCommentReaction,
@@ -520,18 +548,28 @@ class _SwipeCardState extends State<SwipeCard> {
               ),
 
             // Profile identity overlay (name, age, verification, traits) - positioned above info panel
-            Positioned(
-              left: 0,
-              right: 70, // Leave space for action buttons on right
-              bottom: 140, // Above the info panel, clear of bottom nav
+            PositionedDirectional(
+              start: 0,
+              end: DsSpacing.md + 52, // Action button width (52) + spacing
+              bottom: DsBreakpoints.of<double>(
+                context,
+                mobile: 140,
+                tablet: 120,
+                desktop: 120,
+              ),
               child: _ProfileIdentityOverlay(profile: profile),
             ),
 
             // Info panel (minimal prompt/bio + location) - no background, above bottom nav
-            Positioned(
-              left: 0,
-              right: 70, // Leave space for action buttons on right
-              bottom: 90, // Above bottom navigation bar
+            PositionedDirectional(
+              start: 0,
+              end: DsSpacing.md + 52, // Action button width (52) + spacing
+              bottom: DsBreakpoints.of<double>(
+                context,
+                mobile: 90,
+                tablet: 70,
+                desktop: 70,
+              ),
               child: GestureDetector(
                 onTap: () {
                   context.push(
@@ -575,8 +613,9 @@ class _SwipeCardState extends State<SwipeCard> {
                           Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color:
-                                DsColors.surfaceLight.withValues(alpha: 0.85),
+                            color: DsColors.surfaceLight.withValues(
+                              alpha: 0.85,
+                            ),
                             shadows: [
                               Shadow(
                                 color: DsColors.ink900.withValues(alpha: 0.8),
@@ -591,13 +630,15 @@ class _SwipeCardState extends State<SwipeCard> {
                                   ? 'Location unavailable'
                                   : location,
                               style: TextStyle(
-                                color: DsColors.surfaceLight
-                                    .withValues(alpha: 0.85),
+                                color: DsColors.surfaceLight.withValues(
+                                  alpha: 0.85,
+                                ),
                                 fontSize: 13,
                                 shadows: [
                                   Shadow(
-                                    color:
-                                        DsColors.ink900.withValues(alpha: 0.8),
+                                    color: DsColors.ink900.withValues(
+                                      alpha: 0.8,
+                                    ),
                                     blurRadius: 6,
                                   ),
                                 ],
@@ -615,8 +656,9 @@ class _SwipeCardState extends State<SwipeCard> {
                               ),
                               decoration: BoxDecoration(
                                 color: DsColors.primary.withValues(alpha: 0.3),
-                                borderRadius:
-                                    BorderRadius.circular(DsRadius.round),
+                                borderRadius: BorderRadius.circular(
+                                  DsRadius.round,
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -624,15 +666,17 @@ class _SwipeCardState extends State<SwipeCard> {
                                   Icon(
                                     Icons.near_me,
                                     size: 12,
-                                    color: DsColors.surfaceLight
-                                        .withValues(alpha: 0.95),
+                                    color: DsColors.surfaceLight.withValues(
+                                      alpha: 0.95,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     profile.distanceDisplay!,
                                     style: TextStyle(
-                                      color: DsColors.surfaceLight
-                                          .withValues(alpha: 0.95),
+                                      color: DsColors.surfaceLight.withValues(
+                                        alpha: 0.95,
+                                      ),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -655,6 +699,33 @@ class _SwipeCardState extends State<SwipeCard> {
   }
 
   Widget _buildVideoPlayer(String url) {
+    // Video error: show fallback photo with overlay
+    if (_hasVideoError) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          _placeholder(),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DsSpacing.lg,
+                vertical: DsSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: DsColors.ink900.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(DsRadius.md),
+              ),
+              child: const Text(
+                'Video unavailable',
+                style: TextStyle(color: DsColors.surfaceLight, fontSize: 14),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Video loading
     if (!_isVideoInitialized || _videoController == null) {
       return Stack(
         fit: StackFit.expand,
@@ -686,10 +757,7 @@ class _SwipeCardState extends State<SwipeCard> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            DsColors.ink700,
-            DsColors.ink800,
-          ],
+          colors: [DsColors.ink700, DsColors.ink800],
         ),
       ),
       child: Center(
@@ -725,53 +793,55 @@ class _MediaProgressIndicators extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(count, (index) {
-        final isActive = index == currentIndex;
-        final isPast = index < currentIndex;
+    return Semantics(
+      label: 'Photo ${currentIndex + 1} of $count',
+      child: Row(
+        children: List.generate(count, (index) {
+          final isActive = index == currentIndex;
+          final isPast = index < currentIndex;
 
-        return Expanded(
-          child: Container(
-            height: 3,
-            margin: EdgeInsets.only(right: index < count - 1 ? 4 : 0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              color: isPast
-                  ? DsColors.surfaceLight.withValues(alpha: 0.9)
-                  : DsColors.surfaceLight.withValues(alpha: 0.3),
-            ),
-            child: isActive
-                ? LayoutBuilder(
-                    builder: (context, constraints) {
-                      final progress = videoProgress ?? 1.0;
-                      return Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          width: constraints.maxWidth * progress,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2),
-                            gradient: const LinearGradient(
-                              colors: [DsColors.primary, DsColors.secondary],
+          return Expanded(
+            child: Container(
+              height: 3,
+              margin: EdgeInsetsDirectional.only(
+                end: index < count - 1 ? 4 : 0,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: isPast
+                    ? DsColors.surfaceLight.withValues(alpha: 0.9)
+                    : DsColors.surfaceLight.withValues(alpha: 0.3),
+              ),
+              child: isActive
+                  ? LayoutBuilder(
+                      builder: (context, constraints) {
+                        final progress = videoProgress ?? 1.0;
+                        return Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            width: constraints.maxWidth * progress,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(2),
+                              gradient: const LinearGradient(
+                                colors: [DsColors.primary, DsColors.secondary],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  )
-                : null,
-          ),
-        );
-      }),
+                        );
+                      },
+                    )
+                  : null,
+            ),
+          );
+        }),
+      ),
     );
   }
 }
 
 /// Glass-styled media badge (video count, etc.).
 class _GlassMediaBadge extends StatelessWidget {
-  const _GlassMediaBadge({
-    required this.icon,
-    required this.label,
-  });
+  const _GlassMediaBadge({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -781,10 +851,7 @@ class _GlassMediaBadge extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: DsSpacing.sm,
@@ -837,10 +904,7 @@ class _GlassPlayButton extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(40),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           width: 72,
           height: 72,
@@ -884,10 +948,7 @@ class _CompactPromptDisplayClean extends StatelessWidget {
       children: [
         Text(
           prompt.emoji,
-          style: TextStyle(
-            fontSize: 13,
-            shadows: textShadows,
-          ),
+          style: TextStyle(fontSize: 13, shadows: textShadows),
         ),
         const SizedBox(width: 6),
         Expanded(
@@ -911,9 +972,7 @@ class _CompactPromptDisplayClean extends StatelessWidget {
 /// Profile identity overlay with name, age, status badge, and trait chips.
 /// Displayed on the lower-left of the photo.
 class _ProfileIdentityOverlay extends StatelessWidget {
-  const _ProfileIdentityOverlay({
-    required this.profile,
-  });
+  const _ProfileIdentityOverlay({required this.profile});
 
   final Profile profile;
 
@@ -923,8 +982,8 @@ class _ProfileIdentityOverlay extends StatelessWidget {
     final displayName = profile.username != null && profile.username!.isNotEmpty
         ? '@${profile.username}'
         : profile.name.isNotEmpty
-            ? profile.name
-            : 'Someone new';
+        ? profile.name
+        : 'Someone new';
     final ageText = profile.age > 0 ? '${profile.age}' : '';
 
     // Collect trait chips (limit to 3-4 for clean layout)
@@ -939,7 +998,7 @@ class _ProfileIdentityOverlay extends StatelessWidget {
           // Status badge (Active or New here) - above the name
           if (profile.isActive || profile.isNewUser)
             Padding(
-              padding: const EdgeInsets.only(bottom: DsSpacing.xs),
+              padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.xs),
               child: _ProfileStatusBadge(
                 isActive: profile.isActive,
                 isNewUser: profile.isNewUser,
@@ -977,12 +1036,7 @@ class _ProfileIdentityOverlay extends StatelessWidget {
                   Icons.verified,
                   size: 22,
                   color: DsColors.info,
-                  shadows: [
-                    Shadow(
-                      color: DsColors.ink900,
-                      blurRadius: 4,
-                    ),
-                  ],
+                  shadows: [Shadow(color: DsColors.ink900, blurRadius: 4)],
                 ),
               ],
             ],
@@ -990,7 +1044,7 @@ class _ProfileIdentityOverlay extends StatelessWidget {
           // Trait chips below name
           if (traits.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: DsSpacing.sm),
+              padding: const EdgeInsetsDirectional.only(top: DsSpacing.sm),
               child: Wrap(
                 spacing: DsSpacing.xs,
                 runSpacing: DsSpacing.xs,
@@ -1008,51 +1062,58 @@ class _ProfileIdentityOverlay extends StatelessWidget {
 
     // Smoking
     if (profile.smoking != null && profile.smoking!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.smoking_rooms_outlined,
-        label: _formatSmoking(profile.smoking!),
-      ));
+      chips.add(
+        _TraitChip(
+          icon: Icons.smoking_rooms_outlined,
+          label: _formatSmoking(profile.smoking!),
+        ),
+      );
     }
 
     // Drinking
     if (profile.drinking != null && profile.drinking!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.local_bar_outlined,
-        label: _formatDrinking(profile.drinking!),
-      ));
+      chips.add(
+        _TraitChip(
+          icon: Icons.local_bar_outlined,
+          label: _formatDrinking(profile.drinking!),
+        ),
+      );
     }
 
     // Education
     if (profile.educationLevel != null && profile.educationLevel!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.school_outlined,
-        label: _formatEducation(profile.educationLevel!),
-      ));
+      chips.add(
+        _TraitChip(
+          icon: Icons.school_outlined,
+          label: _formatEducation(profile.educationLevel!),
+        ),
+      );
     }
 
     // Relationship goals
     if (profile.relationshipGoals != null &&
         profile.relationshipGoals!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.favorite_outline,
-        label: profile.relationshipGoals!,
-      ));
+      chips.add(
+        _TraitChip(
+          icon: Icons.favorite_outline,
+          label: profile.relationshipGoals!,
+        ),
+      );
     }
 
     // Workout/Fitness
     if (profile.workout != null && profile.workout!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.fitness_center_outlined,
-        label: profile.workout!,
-      ));
+      chips.add(
+        _TraitChip(
+          icon: Icons.fitness_center_outlined,
+          label: profile.workout!,
+        ),
+      );
     }
 
     // Pets
     if (profile.pets != null && profile.pets!.isNotEmpty) {
-      chips.add(_TraitChip(
-        icon: Icons.pets_outlined,
-        label: profile.pets!,
-      ));
+      chips.add(_TraitChip(icon: Icons.pets_outlined, label: profile.pets!));
     }
 
     return chips;
@@ -1096,10 +1157,7 @@ class _ProfileIdentityOverlay extends StatelessWidget {
 
 /// Compact trait chip with icon for profile overlay.
 class _TraitChip extends StatelessWidget {
-  const _TraitChip({
-    required this.icon,
-    required this.label,
-  });
+  const _TraitChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -1152,10 +1210,7 @@ class _ForYouBadge extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: DsSpacing.sm + 2,
@@ -1198,10 +1253,7 @@ class _ForYouBadge extends StatelessWidget {
 /// Small status badge showing "Active" or "New here".
 /// Prioritizes "Active" if both conditions apply.
 class _ProfileStatusBadge extends StatelessWidget {
-  const _ProfileStatusBadge({
-    required this.isActive,
-    required this.isNewUser,
-  });
+  const _ProfileStatusBadge({required this.isActive, required this.isNewUser});
 
   final bool isActive;
   final bool isNewUser;
@@ -1218,9 +1270,11 @@ class _ProfileStatusBadge extends StatelessWidget {
 
     final label = showActive ? 'Active' : 'New here';
     final color = showActive
-        ? DsColors.success // Active
-        : DsColors.secondary
-            .withValues(alpha: 0.9); // Muted accent for New here
+        ? DsColors
+              .success // Active
+        : DsColors.secondary.withValues(
+            alpha: 0.9,
+          ); // Muted accent for New here
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -1230,10 +1284,7 @@ class _ProfileStatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(DsRadius.round),
-        border: Border.all(
-          color: color.withValues(alpha: 0.5),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1242,11 +1293,8 @@ class _ProfileStatusBadge extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              margin: const EdgeInsets.only(right: 4),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              margin: const EdgeInsetsDirectional.only(end: 4),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
           Text(
             label,

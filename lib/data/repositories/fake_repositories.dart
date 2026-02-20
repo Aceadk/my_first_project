@@ -74,7 +74,8 @@ class FakeAuthRepository implements AuthRepository {
           .timeout(const Duration(seconds: 5));
     } catch (e) {
       AppLogger.error(
-          'FakeAuthRepository: Backend OTP send failed (expected in local dev): $e');
+        'FakeAuthRepository: Backend OTP send failed (expected in local dev): $e',
+      );
     }
 
     // Use secure logger for OTP (redacted by default)
@@ -105,7 +106,8 @@ class FakeAuthRepository implements AuthRepository {
       throw Exception('Invalid email link.');
     }
     _emailLinkStore.remove(email);
-    final user = _usersByEmail[email] ??
+    final user =
+        _usersByEmail[email] ??
         CrushUser(
           id: _uuid.v4(),
           phoneNumber: '',
@@ -230,9 +232,10 @@ class FakeAuthRepository implements AuthRepository {
     _emailOtpStore[key] = _OtpEntry(code: otp, expiresAt: expiresAt);
     // Use secure logger (redacted by default)
     SecureLogger.logOtp(
-        type: 'EMAIL_${purpose.value.toUpperCase()}',
-        recipient: identifier,
-        code: otp);
+      type: 'EMAIL_${purpose.value.toUpperCase()}',
+      recipient: identifier,
+      code: otp,
+    );
   }
 
   @override
@@ -258,7 +261,8 @@ class FakeAuthRepository implements AuthRepository {
       case EmailOtpPurpose.login:
         final isEmail = normalized.contains('@');
         if (isEmail) {
-          final user = _usersByEmail[normalized] ??
+          final user =
+              _usersByEmail[normalized] ??
               CrushUser(
                 id: _uuid.v4(),
                 phoneNumber: '',
@@ -275,7 +279,8 @@ class FakeAuthRepository implements AuthRepository {
           _controller.add(_current);
           return user;
         }
-        final user = _usersByUsername[normalized] ??
+        final user =
+            _usersByUsername[normalized] ??
             CrushUser(
               id: _uuid.v4(),
               phoneNumber: '',
@@ -325,7 +330,8 @@ class FakeAuthRepository implements AuthRepository {
     final stored = _otpStore[phoneNumber];
     if (stored == null || DateTime.now().isAfter(stored.expiresAt)) {
       throw Exception(
-          'OTP expired or not requested. Please request a new code.');
+        'OTP expired or not requested. Please request a new code.',
+      );
     }
     if (stored.code != otp) {
       throw Exception('Invalid OTP.');
@@ -398,11 +404,16 @@ class FakeAuthRepository implements AuthRepository {
     final normalized = email.trim().toLowerCase();
     final otp = (_rand.nextInt(900000) + 100000).toString();
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
-    _emailOtpStore['forgot_password:$normalized'] =
-        _OtpEntry(code: otp, expiresAt: expiresAt);
+    _emailOtpStore['forgot_password:$normalized'] = _OtpEntry(
+      code: otp,
+      expiresAt: expiresAt,
+    );
     // Use secure logger (redacted by default)
     SecureLogger.logOtp(
-        type: 'PASSWORD_RESET', recipient: normalized, code: otp);
+      type: 'PASSWORD_RESET',
+      recipient: normalized,
+      code: otp,
+    );
   }
 
   @override
@@ -422,8 +433,10 @@ class FakeAuthRepository implements AuthRepository {
     _emailOtpStore.remove(key);
     final resetToken = _uuid.v4();
     final expiresAt = DateTime.now().add(const Duration(minutes: 10));
-    _passwordResetTokens[normalized] =
-        _OtpEntry(code: resetToken, expiresAt: expiresAt);
+    _passwordResetTokens[normalized] = _OtpEntry(
+      code: resetToken,
+      expiresAt: expiresAt,
+    );
     return resetToken;
   }
 
@@ -665,9 +678,7 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
     }
 
     if (promoCode.isExpired) {
-      return PromoCodeRedemptionResult.failure(
-        'This promo code has expired.',
-      );
+      return PromoCodeRedemptionResult.failure('This promo code has expired.');
     }
 
     if (promoCode.isMaxedOut) {
@@ -789,19 +800,20 @@ class FakeProfileRepository implements ProfileRepository {
       privacySettings: privacy,
     );
 
-    _user = (_user ??
-            CrushUser(
-              id: _uuid.v4(),
-              phoneNumber: '',
-              email: null,
-              username: null,
-              isEmailVerified: false,
-              profile: null,
-              isPhoneVerified: true,
-              isIdVerified: false,
-              plan: SubscriptionPlan.free,
-            ))
-        .copyWith(profile: profile);
+    _user =
+        (_user ??
+                CrushUser(
+                  id: _uuid.v4(),
+                  phoneNumber: '',
+                  email: null,
+                  username: null,
+                  isEmailVerified: false,
+                  profile: null,
+                  isPhoneVerified: true,
+                  isIdVerified: false,
+                  plan: SubscriptionPlan.free,
+                ))
+            .copyWith(profile: profile);
     return _user!;
   }
 
@@ -905,22 +917,20 @@ class FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CrushUser> skipBasicInfo({required String username}) async {
-    _user = (_user ??
-            CrushUser(
-              id: _uuid.v4(),
-              phoneNumber: '',
-              email: null,
-              username: null,
-              isEmailVerified: false,
-              profile: null,
-              isPhoneVerified: true,
-              isIdVerified: false,
-              plan: SubscriptionPlan.free,
-            ))
-        .copyWith(
-      username: username,
-      hasSkippedBasicInfo: true,
-    );
+    _user =
+        (_user ??
+                CrushUser(
+                  id: _uuid.v4(),
+                  phoneNumber: '',
+                  email: null,
+                  username: null,
+                  isEmailVerified: false,
+                  profile: null,
+                  isPhoneVerified: true,
+                  isIdVerified: false,
+                  plan: SubscriptionPlan.free,
+                ))
+            .copyWith(username: username, hasSkippedBasicInfo: true);
     return _user!;
   }
 
@@ -948,7 +958,8 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
     DiscoveryFilter filter = const DiscoveryFilter(),
   }) async {
     final user = await profileRepo.getCurrentUser();
-    final prefs = user?.profile?.preferences ??
+    final prefs =
+        user?.profile?.preferences ??
         const DiscoveryPreferences(
           minAge: CrushConstants.minAge,
           maxAge: 45,
@@ -1123,8 +1134,9 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
         pinnedForUser: false,
       );
       final userMatches = _matchesByUser.putIfAbsent(userId, () => []);
-      final existingIndex =
-          userMatches.indexWhere((m) => m.otherUserId == targetUserId);
+      final existingIndex = userMatches.indexWhere(
+        (m) => m.otherUserId == targetUserId,
+      );
       if (existingIndex == -1) {
         userMatches.add(userMatch);
       } else {
@@ -1142,8 +1154,9 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
       pinnedForUser: false,
     );
     final userMatches = _matchesByUser.putIfAbsent(userId, () => []);
-    final existingIndex =
-        userMatches.indexWhere((m) => m.otherUserId == targetUserId);
+    final existingIndex = userMatches.indexWhere(
+      (m) => m.otherUserId == targetUserId,
+    );
     if (existingIndex == -1) {
       userMatches.add(pendingMatch);
     } else {
@@ -1152,8 +1165,10 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
 
     final likerProfile = (await profileRepo.getCurrentUser())?.profile;
     if (likerProfile != null) {
-      final likesForTarget =
-          _incomingRightSwipes.putIfAbsent(targetUserId, () => {});
+      final likesForTarget = _incomingRightSwipes.putIfAbsent(
+        targetUserId,
+        () => {},
+      );
       likesForTarget[userId] = likerProfile;
     }
 
@@ -1198,10 +1213,12 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
     }
 
     double score(Profile p) {
-      final sharedInterests =
-          p.interests.where((i) => interests.contains(i)).length;
+      final sharedInterests = p.interests
+          .where((i) => interests.contains(i))
+          .length;
       final ageScore = -((p.age - targetAgeCenter).abs());
-      final locationBoost = (p.city.toLowerCase() == city ? 5 : 0) +
+      final locationBoost =
+          (p.city.toLowerCase() == city ? 5 : 0) +
           (p.country.toLowerCase() == country ? 2 : 0);
       return sharedInterests * 10 + ageScore + locationBoost;
     }
@@ -1287,8 +1304,9 @@ class FakeChatRepository implements ChatRepository {
     var messages = _messagesByMatch[matchId] ?? [];
     messages.sort((a, b) => b.sentAt.compareTo(a.sentAt));
     if (beforeTimestamp != null) {
-      messages =
-          messages.where((m) => m.sentAt.isBefore(beforeTimestamp)).toList();
+      messages = messages
+          .where((m) => m.sentAt.isBefore(beforeTimestamp))
+          .toList();
     }
     final hasMore = messages.length > limit;
     final items = messages.take(limit).toList();
@@ -1304,8 +1322,10 @@ class FakeChatRepository implements ChatRepository {
     String matchId, {
     required DateTime afterTimestamp,
   }) {
-    return watchMessages(matchId).map((messages) =>
-        messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList());
+    return watchMessages(matchId).map(
+      (messages) =>
+          messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList(),
+    );
   }
 
   @override
@@ -1585,12 +1605,14 @@ class FakeChatRepository implements ChatRepository {
     }
 
     if (updatedForUser != null) {
-      final otherMatches =
-          await discoveryRepo.fetchMatches(updatedForUser.otherUserId);
+      final otherMatches = await discoveryRepo.fetchMatches(
+        updatedForUser.otherUserId,
+      );
       for (var i = 0; i < otherMatches.length; i++) {
         if (otherMatches[i].id == matchId) {
-          otherMatches[i] =
-              otherMatches[i].copyWith(status: MatchStatus.unmatched);
+          otherMatches[i] = otherMatches[i].copyWith(
+            status: MatchStatus.unmatched,
+          );
           break;
         }
       }
@@ -1628,13 +1650,10 @@ class FakeChatRepository implements ChatRepository {
     final allMatches = await discoveryRepo.fetchMatches(userId);
     final total = allMatches.length;
     final end = (offset + limit).clamp(0, total);
-    final items =
-        offset < total ? allMatches.sublist(offset, end) : <CrushMatch>[];
-    return PaginatedResult(
-      items: items,
-      total: total,
-      hasMore: end < total,
-    );
+    final items = offset < total
+        ? allMatches.sublist(offset, end)
+        : <CrushMatch>[];
+    return PaginatedResult(items: items, total: total, hasMore: end < total);
   }
 
   @override
@@ -1674,10 +1693,11 @@ class FakeChatRepository implements ChatRepository {
   @override
   Future<List<MessageRequest>> fetchMessageRequests(String userId) async {
     _pruneExpiredRequests();
-    final requests = _messageRequestsByPair.values
-        .where((r) => r.fromUserId == userId || r.toUserId == userId)
-        .toList()
-      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    final requests =
+        _messageRequestsByPair.values
+            .where((r) => r.fromUserId == userId || r.toUserId == userId)
+            .toList()
+          ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
     return requests;
   }
 

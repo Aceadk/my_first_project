@@ -15,7 +15,7 @@ class RecordLikeReceivedUseCase
   final ProfileInsightsService _service;
 
   RecordLikeReceivedUseCase([ProfileInsightsService? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   Future<Result<void>> call(RecordLikeReceivedParams params) {

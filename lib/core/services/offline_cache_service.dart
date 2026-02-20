@@ -98,7 +98,9 @@ class OfflineCacheService {
           .map((cached) => cached.profile)
           .toList();
     } catch (e) {
-      AppLogger.error('[OfflineCache] Error retrieving all cached profiles: $e');
+      AppLogger.error(
+        '[OfflineCache] Error retrieving all cached profiles: $e',
+      );
     }
     return [];
   }
@@ -109,10 +111,7 @@ class OfflineCacheService {
       final prefs = await SharedPreferences.getInstance();
 
       final deckCache = profiles
-          .map((p) => _CachedProfile(
-                profile: p,
-                cachedAt: DateTime.now(),
-              ))
+          .map((p) => _CachedProfile(profile: p, cachedAt: DateTime.now()))
           .toList();
 
       final jsonList = deckCache.map((c) => c.toJson()).toList();
@@ -140,7 +139,9 @@ class OfflineCacheService {
           .map((cached) => cached.profile)
           .toList();
 
-      AppLogger.debug('[OfflineCache] Retrieved ${cachedList.length} deck profiles');
+      AppLogger.debug(
+        '[OfflineCache] Retrieved ${cachedList.length} deck profiles',
+      );
       return cachedList;
     } catch (e) {
       AppLogger.error('[OfflineCache] Error retrieving deck profiles: $e');
@@ -207,7 +208,8 @@ class OfflineCacheService {
       if (validProfiles.length != cachedProfiles.length) {
         await _saveCachedProfiles(prefs, validProfiles);
         AppLogger.debug(
-            '[OfflineCache] Cleaned up ${cachedProfiles.length - validProfiles.length} expired entries');
+          '[OfflineCache] Cleaned up ${cachedProfiles.length - validProfiles.length} expired entries',
+        );
       }
     } catch (e) {
       AppLogger.error('[OfflineCache] Error cleaning up cache: $e');
@@ -244,21 +246,28 @@ class OfflineCacheService {
   }
 
   Future<Map<String, _CachedProfile>> _getCachedProfiles(
-      SharedPreferences prefs) async {
+    SharedPreferences prefs,
+  ) async {
     final jsonStr = prefs.getString(_profileCacheKey);
     if (jsonStr == null) return {};
 
     try {
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      return jsonMap.map((key, value) => MapEntry(
-          key, _CachedProfile.fromJson(value as Map<String, dynamic>)));
+      return jsonMap.map(
+        (key, value) => MapEntry(
+          key,
+          _CachedProfile.fromJson(value as Map<String, dynamic>),
+        ),
+      );
     } catch (e) {
       return {};
     }
   }
 
   Future<void> _saveCachedProfiles(
-      SharedPreferences prefs, Map<String, _CachedProfile> profiles) async {
+    SharedPreferences prefs,
+    Map<String, _CachedProfile> profiles,
+  ) async {
     final jsonMap = profiles.map((key, value) => MapEntry(key, value.toJson()));
     await prefs.setString(_profileCacheKey, jsonEncode(jsonMap));
   }
@@ -273,15 +282,12 @@ class _CachedProfile {
   final Profile profile;
   final DateTime cachedAt;
 
-  _CachedProfile({
-    required this.profile,
-    required this.cachedAt,
-  });
+  _CachedProfile({required this.profile, required this.cachedAt});
 
   Map<String, dynamic> toJson() => {
-        'profile': _profileToJson(profile),
-        'cachedAt': cachedAt.toIso8601String(),
-      };
+    'profile': _profileToJson(profile),
+    'cachedAt': cachedAt.toIso8601String(),
+  };
 
   factory _CachedProfile.fromJson(Map<String, dynamic> json) {
     return _CachedProfile(
@@ -291,54 +297,57 @@ class _CachedProfile {
   }
 
   static Map<String, dynamic> _profileToJson(Profile p) => {
-        'id': p.id,
-        'name': p.name,
-        'lastName': p.lastName,
-        'age': p.age,
-        'gender': p.gender,
-        'sexualOrientation': p.sexualOrientation,
-        'dateOfBirth': p.dateOfBirth?.toIso8601String(),
-        'photoUrls': p.photoUrls,
-        'videoUrls': p.videoUrls,
-        'primaryPhotoIndex': p.primaryPhotoIndex,
-        'bio': p.bio,
-        'interests': p.interests,
-        'profilePrompts': p.profilePrompts
-            .map((pp) => {'questionId': pp.questionId, 'answer': pp.answer})
-            .toList(),
-        'heightCm': p.heightCm,
-        'relationshipGoals': p.relationshipGoals,
-        'languages': p.languages,
-        'zodiacSign': p.zodiacSign,
-        'educationLevel': p.educationLevel,
-        'familyPlans': p.familyPlans,
-        'personalityType': p.personalityType,
-        'religion': p.religion,
-        'workout': p.workout,
-        'smoking': p.smoking,
-        'drinking': p.drinking,
-        'pets': p.pets,
-        'jobTitle': p.jobTitle,
-        'company': p.company,
-        'school': p.school,
-        'country': p.country,
-        'city': p.city,
-        'livingIn': p.livingIn,
-        'latitude': p.latitude,
-        'longitude': p.longitude,
-        'distance': p.distance,
-        'distanceUnit': p.distanceUnit,
-        'isVerified': p.isVerified,
-        'verificationBadge': p.verificationBadge,
-        'privacySettings': p.privacySettings.toJson(),
-      };
+    'id': p.id,
+    'name': p.name,
+    'lastName': p.lastName,
+    'age': p.age,
+    'gender': p.gender,
+    'sexualOrientation': p.sexualOrientation,
+    'dateOfBirth': p.dateOfBirth?.toIso8601String(),
+    'photoUrls': p.photoUrls,
+    'videoUrls': p.videoUrls,
+    'primaryPhotoIndex': p.primaryPhotoIndex,
+    'bio': p.bio,
+    'interests': p.interests,
+    'profilePrompts': p.profilePrompts
+        .map((pp) => {'questionId': pp.questionId, 'answer': pp.answer})
+        .toList(),
+    'heightCm': p.heightCm,
+    'relationshipGoals': p.relationshipGoals,
+    'languages': p.languages,
+    'zodiacSign': p.zodiacSign,
+    'educationLevel': p.educationLevel,
+    'familyPlans': p.familyPlans,
+    'personalityType': p.personalityType,
+    'religion': p.religion,
+    'workout': p.workout,
+    'smoking': p.smoking,
+    'drinking': p.drinking,
+    'pets': p.pets,
+    'jobTitle': p.jobTitle,
+    'company': p.company,
+    'school': p.school,
+    'country': p.country,
+    'city': p.city,
+    'livingIn': p.livingIn,
+    'latitude': p.latitude,
+    'longitude': p.longitude,
+    'distance': p.distance,
+    'distanceUnit': p.distanceUnit,
+    'isVerified': p.isVerified,
+    'verificationBadge': p.verificationBadge,
+    'privacySettings': p.privacySettings.toJson(),
+  };
 
   static Profile _profileFromJson(Map<String, dynamic> json) {
-    final prompts = (json['profilePrompts'] as List<dynamic>?)
-            ?.map((p) => ProfilePrompt(
-                  questionId: p['questionId'] as String? ?? '',
-                  answer: p['answer'] as String? ?? '',
-                ))
+    final prompts =
+        (json['profilePrompts'] as List<dynamic>?)
+            ?.map(
+              (p) => ProfilePrompt(
+                questionId: p['questionId'] as String? ?? '',
+                answer: p['answer'] as String? ?? '',
+              ),
+            )
             .toList() ??
         [];
 

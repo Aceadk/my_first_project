@@ -1,6 +1,5 @@
 {
   "@@locale": "pt",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Cancelar",
   "commonSave": "Salvar",
@@ -44,7 +43,6 @@
   "commonUnblock": "Desbloquear",
   "commonMute": "Silenciar",
   "commonUnmute": "Ativar som",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Algo deu errado. Por favor, tente novamente.",
   "errorNetwork": "Erro de conexão. Verifique sua internet e tente novamente.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Não foi possível {action}. Por favor, tente novamente.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} é um recurso Plus. Faça upgrade para desbloquear!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Voltar",
   "a11yCloseButton": "Fechar",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Foto do perfil de {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Avatar do usuário",
   "a11yAvatarOf": "Avatar de {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Editar perfil",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Mensagem de {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 mensagem não lida} other{{count} mensagens não lidas}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Mostrar senha",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "É um match! Você combinou com {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "Nova mensagem de {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Perfil curtido",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Perfil super curtido",
   "a11yMessageSent": "Mensagem enviada",
   "a11ySettingSaved": "Configuração salva",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Bem-vindo de volta",
   "authSignInToContinue": "Entre para continuar no Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "Enviamos um código para {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Digite o código de 6 dígitos",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Clique no link que enviamos para verificar seu e-mail",
   "authEmailVerified": "E-mail verificado com sucesso!",
   "authSkipForNow": "Pular por agora",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Configurações",
   "settingsAppearance": "Aparência",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Mostrar-me",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Gerencie seu plano",
   "settingsGetPlus": "Obter Crush Plus",
   "settingsRestorePurchases": "Restaurar compras",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Descobrir",
   "discoveryNoMatchesTitle": "Nenhum match ainda",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Você e {name} se curtiram",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Enviar Mensagem",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Curtiram Você",
   "discoveryTopPicks": "Melhores Escolhas",
   "discoveryNewArrivals": "Recém-chegados",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Conversas",
   "chatMatches": "Matches",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Iniciar conversa com {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Digite uma mensagem...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Visto por último {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "digitando...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "Você deu match com {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Perfil",
   "profileEdit": "Editar Perfil",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Idiomas",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Sobre Mim",
   "profileMyDetails": "Meus Detalhes",
   "profileLifestyle": "Estilo de Vida",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Bem-vindo ao Crush",
   "onboardingTagline": "Encontre seu match perfeito",
@@ -458,8 +479,12 @@
   "onboardingStep": "Passo {current} de {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "Qual é o seu nome?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Escolha pelo menos 3 interesses",
   "onboardingAllSet": "Tudo pronto!",
   "onboardingStartSwiping": "Começar a deslizar",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Grátis",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} impulsos por mês",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} super curtidas por dia",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Sem anúncios",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/mês",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/ano",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Melhor valor",
   "subscriptionMostPopular": "Mais popular",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Denunciar usuário",
   "safetyBlockUser": "Bloquear usuário",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Bloquear {name}?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Essa pessoa não poderá ver seu perfil ou enviar mensagens",
@@ -532,46 +565,50 @@
   "safetySpam": "Spam",
   "safetyScam": "Golpe",
   "safetyOther": "Outro",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Agora mesmo",
   "timeMinutesAgo": "{count, plural, =1{1 minuto atrás} other{{count} minutos atrás}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 hora atrás} other{{count} horas atrás}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 dia atrás} other{{count} dias atrás}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 semana atrás} other{{count} semanas atrás}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Nenhum resultado encontrado",
   "emptyTryAgain": "Tente ajustar sua busca ou filtros",
   "emptyNoData": "Sem dados disponíveis",
   "emptyCheckBackLater": "Volte mais tarde",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Início",
   "wordExplore": "Explorar",
-  "wordHelp": "Ajuda",
+  "wordHelp": "Ajudar",
   "wordMenu": "Menu",
   "wordFeed": "Feed",
   "wordActivity": "Atividade",
@@ -579,7 +616,6 @@
   "wordInbox": "Caixa de entrada",
   "wordFavorites": "Favoritos",
   "wordHistory": "Histórico",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Copiar",
   "wordPaste": "Colar",
@@ -589,7 +625,7 @@
   "wordUpload": "Enviar",
   "wordSelect": "Selecionar",
   "wordDeselect": "Desmarcar",
-  "wordOpen": "Abrir",
+  "wordOpen": "Aberto",
   "wordCreate": "Criar",
   "wordConnect": "Conectar",
   "wordDisconnect": "Desconectar",
@@ -609,7 +645,7 @@
   "wordAllow": "Permitir",
   "wordEnable": "Ativar",
   "wordDisable": "Desativar",
-  "wordShow": "Mostrar",
+  "wordShow": "Show",
   "wordHide": "Ocultar",
   "wordExpand": "Expandir",
   "wordCollapse": "Recolher",
@@ -663,7 +699,6 @@
   "wordSay": "Dizer",
   "wordTell": "Contar",
   "wordAsk": "Perguntar",
-  "wordHelp": "Ajudar",
   "wordWait": "Esperar",
   "wordStay": "Ficar",
   "wordCome": "Vir",
@@ -675,7 +710,7 @@
   "wordLive": "Morar",
   "wordChange": "Mudar",
   "wordTurn": "Virar",
-  "wordRead": "Ler",
+  "wordRead": "Lido",
   "wordWrite": "Escrever",
   "wordLearn": "Aprender",
   "wordStudy": "Estudar",
@@ -698,14 +733,13 @@
   "wordDecide": "Decidir",
   "wordAgree": "Concordar",
   "wordDisagree": "Discordar",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Ativo",
   "wordInactive": "Inativo",
   "wordAvailable": "Disponível",
   "wordUnavailable": "Indisponível",
   "wordBusy": "Ocupado",
-  "wordAway": "Ausente",
+  "wordAway": "Longe",
   "wordInvisible": "Invisível",
   "wordOnline": "Online",
   "wordOffline": "Offline",
@@ -759,13 +793,10 @@
   "wordNotDone": "Não feito",
   "wordSent": "Enviado",
   "wordReceived": "Recebido",
-  "wordRead": "Lido",
   "wordUnread": "Não lido",
   "wordSeen": "Visto",
   "wordUnseen": "Não visto",
-  "wordOpen": "Aberto",
   "wordClosed": "Fechado",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Agora",
   "wordLater": "Depois",
@@ -807,7 +838,6 @@
   "wordYears": "Anos",
   "wordSecond": "Segundo",
   "wordSeconds": "Segundos",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "Bom",
   "wordBad": "Ruim",
@@ -932,7 +962,6 @@
   "wordFabulous": "Fabuloso",
   "wordMagnificent": "Magnífico",
   "wordSpectacular": "Espetacular",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Por favor",
   "wordThanks": "Obrigado",
@@ -963,7 +992,6 @@
   "wordHaveFun": "Divirta-se",
   "wordEnjoy": "Aproveite",
   "wordCheers": "Saúde",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Quem",
   "wordWhat": "O quê",
@@ -979,7 +1007,6 @@
   "wordHowFar": "Quão longe",
   "wordHowOld": "Quantos anos",
   "wordHowOften": "Com que frequência",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "Com",
   "wordWithout": "Sem",
@@ -1003,7 +1030,6 @@
   "wordThrough": "Por",
   "wordAlong": "Ao longo",
   "wordToward": "Em direção",
-  "wordAway": "Longe",
   "wordBehind": "Atrás",
   "wordAhead": "À frente",
   "wordFront": "Frente",
@@ -1015,7 +1041,6 @@
   "wordCenter": "Centro",
   "wordCorner": "Canto",
   "wordEdge": "Borda",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Crush",
   "wordMatch": "Match",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "Devotado",
   "wordCommitted": "Comprometido",
   "wordCommitment": "Compromisso",
-  "wordSerious": "Sério",
   "wordCasual": "Casual",
   "wordFriendship": "Amizade",
   "wordFriend": "Amigo",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "Buscando",
   "wordWaiting": "Esperando",
   "wordSearching": "Procurando",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Notificação",
   "wordAlert": "Alerta",
@@ -1396,7 +1419,6 @@
   "wordMovies": "Filmes",
   "wordFilm": "Filme",
   "wordFilms": "Filmes",
-  "wordShow": "Show",
   "wordShows": "Shows",
   "wordSeries": "Séries",
   "wordBook": "Livro",
@@ -1463,7 +1485,6 @@
   "wordSomething": "Algo",
   "wordNothing": "Nada",
   "wordAnything": "Qualquer coisa",
-
   "@@_DISAMBIGUATION_WORDS": "Words with context-specific meanings",
   "wordHelpVerb": "Ajudar",
   "wordReadStatus": "Lido",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "Longe",
   "wordSeriousRel": "Sério",
   "wordSettingsNoun": "Configurações",
-  "wordShowNoun": "Show"
+  "wordShowNoun": "Show",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

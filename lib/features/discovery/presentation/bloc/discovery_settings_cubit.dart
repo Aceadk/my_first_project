@@ -129,30 +129,30 @@ class DiscoverySettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        distanceKm,
-        minAge,
-        maxAge,
-        interests,
-        showDistance,
-        visible,
-        passportModeEnabled,
-        passportLocation,
-        passportLatitude,
-        passportLongitude,
-        minHeightCm,
-        maxHeightCm,
-        educationLevels,
-        relationshipGoals,
-        verifiedOnly,
-        languageFilters,
-        smokingFilter,
-        drinkingFilter,
-        exerciseFilter,
-        petsFilter,
-        familyPlansFilter,
-        zodiacFilter,
-        religionFilter,
-      ];
+    distanceKm,
+    minAge,
+    maxAge,
+    interests,
+    showDistance,
+    visible,
+    passportModeEnabled,
+    passportLocation,
+    passportLatitude,
+    passportLongitude,
+    minHeightCm,
+    maxHeightCm,
+    educationLevels,
+    relationshipGoals,
+    verifiedOnly,
+    languageFilters,
+    smokingFilter,
+    drinkingFilter,
+    exerciseFilter,
+    petsFilter,
+    familyPlansFilter,
+    zodiacFilter,
+    religionFilter,
+  ];
 
   DiscoverySettingsState copyWith({
     double? distanceKm,
@@ -205,28 +205,33 @@ class DiscoverySettingsState extends Equatable {
       relationshipGoals: relationshipGoals ?? this.relationshipGoals,
       verifiedOnly: verifiedOnly ?? this.verifiedOnly,
       languageFilters: languageFilters ?? this.languageFilters,
-      smokingFilter:
-          clearSmokingFilter ? null : (smokingFilter ?? this.smokingFilter),
-      drinkingFilter:
-          clearDrinkingFilter ? null : (drinkingFilter ?? this.drinkingFilter),
-      exerciseFilter:
-          clearExerciseFilter ? null : (exerciseFilter ?? this.exerciseFilter),
+      smokingFilter: clearSmokingFilter
+          ? null
+          : (smokingFilter ?? this.smokingFilter),
+      drinkingFilter: clearDrinkingFilter
+          ? null
+          : (drinkingFilter ?? this.drinkingFilter),
+      exerciseFilter: clearExerciseFilter
+          ? null
+          : (exerciseFilter ?? this.exerciseFilter),
       petsFilter: clearPetsFilter ? null : (petsFilter ?? this.petsFilter),
       familyPlansFilter: clearFamilyPlansFilter
           ? null
           : (familyPlansFilter ?? this.familyPlansFilter),
-      zodiacFilter:
-          clearZodiacFilter ? null : (zodiacFilter ?? this.zodiacFilter),
-      religionFilter:
-          clearReligionFilter ? null : (religionFilter ?? this.religionFilter),
+      zodiacFilter: clearZodiacFilter
+          ? null
+          : (zodiacFilter ?? this.zodiacFilter),
+      religionFilter: clearReligionFilter
+          ? null
+          : (religionFilter ?? this.religionFilter),
     );
   }
 }
 
 class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
   DiscoverySettingsCubit({required SharedPreferences preferences})
-      : _preferences = preferences,
-        super(_readInitial(preferences));
+    : _preferences = preferences,
+      super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
 
@@ -336,18 +341,18 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
     required double latitude,
     required double longitude,
   }) async {
-    await _persist(state.copyWith(
-      passportLocation: locationName,
-      passportLatitude: latitude,
-      passportLongitude: longitude,
-    ));
+    await _persist(
+      state.copyWith(
+        passportLocation: locationName,
+        passportLatitude: latitude,
+        passportLongitude: longitude,
+      ),
+    );
   }
 
   /// Clear passport location (return to current location).
   Future<void> clearPassportLocation() async {
-    emit(state.copyWith(
-      passportModeEnabled: false,
-    ));
+    emit(state.copyWith(passportModeEnabled: false));
     await _preferences.setBool(_passportEnabledKey, false);
     await _preferences.remove(_passportLocationKey);
     await _preferences.remove(_passportLatKey);
@@ -362,20 +367,19 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
   Future<void> setHeightRange({int? minCm, int? maxCm}) async {
     final safeMin = minCm?.clamp(120, 220);
     final safeMax = maxCm?.clamp(safeMin ?? 120, 220);
-    await _persist(state.copyWith(
-      minHeightCm: safeMin,
-      maxHeightCm: safeMax,
-      clearMinHeight: minCm == null,
-      clearMaxHeight: maxCm == null,
-    ));
+    await _persist(
+      state.copyWith(
+        minHeightCm: safeMin,
+        maxHeightCm: safeMax,
+        clearMinHeight: minCm == null,
+        clearMaxHeight: maxCm == null,
+      ),
+    );
   }
 
   /// Clear height filter.
   Future<void> clearHeightFilter() async {
-    await _persist(state.copyWith(
-      clearMinHeight: true,
-      clearMaxHeight: true,
-    ));
+    await _persist(state.copyWith(clearMinHeight: true, clearMaxHeight: true));
     await _preferences.remove(_minHeightKey);
     await _preferences.remove(_maxHeightKey);
   }
@@ -402,77 +406,75 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
 
   /// Set smoking preference filter.
   Future<void> setSmokingFilter(String? value) async {
-    await _persist(state.copyWith(
-      smokingFilter: value,
-      clearSmokingFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(smokingFilter: value, clearSmokingFilter: value == null),
+    );
   }
 
   /// Set drinking preference filter.
   Future<void> setDrinkingFilter(String? value) async {
-    await _persist(state.copyWith(
-      drinkingFilter: value,
-      clearDrinkingFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(drinkingFilter: value, clearDrinkingFilter: value == null),
+    );
   }
 
   /// Set exercise preference filter.
   Future<void> setExerciseFilter(String? value) async {
-    await _persist(state.copyWith(
-      exerciseFilter: value,
-      clearExerciseFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(exerciseFilter: value, clearExerciseFilter: value == null),
+    );
   }
 
   /// Set pets preference filter.
   Future<void> setPetsFilter(String? value) async {
-    await _persist(state.copyWith(
-      petsFilter: value,
-      clearPetsFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(petsFilter: value, clearPetsFilter: value == null),
+    );
   }
 
   /// Set family plans filter.
   Future<void> setFamilyPlansFilter(String? value) async {
-    await _persist(state.copyWith(
-      familyPlansFilter: value,
-      clearFamilyPlansFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(
+        familyPlansFilter: value,
+        clearFamilyPlansFilter: value == null,
+      ),
+    );
   }
 
   /// Set zodiac sign filter.
   Future<void> setZodiacFilter(String? value) async {
-    await _persist(state.copyWith(
-      zodiacFilter: value,
-      clearZodiacFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(zodiacFilter: value, clearZodiacFilter: value == null),
+    );
   }
 
   /// Set religion filter.
   Future<void> setReligionFilter(String? value) async {
-    await _persist(state.copyWith(
-      religionFilter: value,
-      clearReligionFilter: value == null,
-    ));
+    await _persist(
+      state.copyWith(religionFilter: value, clearReligionFilter: value == null),
+    );
   }
 
   /// Clear all advanced filters.
   Future<void> clearAllAdvancedFilters() async {
-    await _persist(state.copyWith(
-      clearMinHeight: true,
-      clearMaxHeight: true,
-      educationLevels: [],
-      relationshipGoals: [],
-      verifiedOnly: false,
-      languageFilters: [],
-      clearSmokingFilter: true,
-      clearDrinkingFilter: true,
-      clearExerciseFilter: true,
-      clearPetsFilter: true,
-      clearFamilyPlansFilter: true,
-      clearZodiacFilter: true,
-      clearReligionFilter: true,
-    ));
+    await _persist(
+      state.copyWith(
+        clearMinHeight: true,
+        clearMaxHeight: true,
+        educationLevels: [],
+        relationshipGoals: [],
+        verifiedOnly: false,
+        languageFilters: [],
+        clearSmokingFilter: true,
+        clearDrinkingFilter: true,
+        clearExerciseFilter: true,
+        clearPetsFilter: true,
+        clearFamilyPlansFilter: true,
+        clearZodiacFilter: true,
+        clearReligionFilter: true,
+      ),
+    );
     // Clear from prefs
     await _preferences.remove(_minHeightKey);
     await _preferences.remove(_maxHeightKey);
@@ -496,7 +498,9 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
     await _preferences.setBool(_passportEnabledKey, next.passportModeEnabled);
     if (next.passportLocation != null) {
       await _preferences.setString(
-          _passportLocationKey, next.passportLocation!);
+        _passportLocationKey,
+        next.passportLocation!,
+      );
     }
     if (next.passportLatitude != null) {
       await _preferences.setDouble(_passportLatKey, next.passportLatitude!);
@@ -513,7 +517,9 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
     }
     await _preferences.setStringList(_educationLevelsKey, next.educationLevels);
     await _preferences.setStringList(
-        _relationshipGoalsKey, next.relationshipGoals);
+      _relationshipGoalsKey,
+      next.relationshipGoals,
+    );
     await _preferences.setBool(_verifiedOnlyKey, next.verifiedOnly);
     await _preferences.setStringList(_languageFiltersKey, next.languageFilters);
     if (next.smokingFilter != null) {
@@ -530,7 +536,9 @@ class DiscoverySettingsCubit extends Cubit<DiscoverySettingsState> {
     }
     if (next.familyPlansFilter != null) {
       await _preferences.setString(
-          _familyPlansFilterKey, next.familyPlansFilter!);
+        _familyPlansFilterKey,
+        next.familyPlansFilter!,
+      );
     }
     if (next.zodiacFilter != null) {
       await _preferences.setString(_zodiacFilterKey, next.zodiacFilter!);

@@ -15,7 +15,7 @@ class CancelDatePlanUseCase extends UseCase<void, CancelDatePlanParams>
   final DatePlanService _service;
 
   CancelDatePlanUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(CancelDatePlanParams params) {

@@ -57,9 +57,7 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
         'Add at least 3 interests',
         'Add your city and country',
       ],
-      recommended: [
-        'Answer prompts to stand out',
-      ],
+      recommended: ['Answer prompts to stand out'],
     );
   }
 
@@ -105,7 +103,8 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
   }
 
   // Location: 20% weight (city + country required)
-  final hasLocation = profile.city.trim().isNotEmpty &&
+  final hasLocation =
+      profile.city.trim().isNotEmpty &&
       profile.country.trim().isNotEmpty &&
       profile.country.trim().toLowerCase() != 'unknown';
   final locationScore = hasLocation ? 1.0 : 0.0;
@@ -127,11 +126,12 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
   }
 
   // Calculate total score (photos + bio + interests + location = 100%)
-  final score = (breakdown['photos']! +
-          breakdown['bio']! +
-          breakdown['interests']! +
-          breakdown['location']!)
-      .clamp(0.0, 1.0);
+  final score =
+      (breakdown['photos']! +
+              breakdown['bio']! +
+              breakdown['interests']! +
+              breakdown['location']!)
+          .clamp(0.0, 1.0);
 
   return ProfileCompletenessSummary(
     score: score,

@@ -8,7 +8,7 @@ class GetRandomPoseUseCase extends UseCase<VerificationPose, NoParams> {
   final PhotoVerificationService _service;
 
   GetRandomPoseUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   Future<Result<VerificationPose>> call(NoParams params) {

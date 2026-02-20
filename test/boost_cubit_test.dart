@@ -4,6 +4,7 @@ import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart'
 import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
+import 'mock/noop_auth_repository.dart';
 import 'mock/stub_analytics_service.dart';
 
 void main() {
@@ -262,6 +263,7 @@ void main() {
     group('Initial State', () {
       test('starts with default empty state', () {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(),
         );
         expect(cubit.state.isLoading, false);
@@ -275,6 +277,7 @@ void main() {
     group('initialize', () {
       test('loads boost status and emits loaded state', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: true,
@@ -308,6 +311,7 @@ void main() {
 
       test('handles status fetch failure', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(shouldFailGetStatus: true),
         );
 
@@ -333,6 +337,7 @@ void main() {
         final endsAt = now.add(const Duration(minutes: 30));
 
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: true,
@@ -375,6 +380,7 @@ void main() {
 
       test('does nothing when userId is null (not initialized)', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(),
         );
 
@@ -393,6 +399,7 @@ void main() {
 
       test('does nothing when canBoost is false', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: false,
@@ -420,6 +427,7 @@ void main() {
 
       test('handles activation failure', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: true,
@@ -452,6 +460,7 @@ void main() {
     group('Lifecycle', () {
       test('can close cleanly', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(),
         );
         await expectLater(cubit.close(), completes);
@@ -459,6 +468,7 @@ void main() {
 
       test('can close after initialization', () async {
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: true,
@@ -476,6 +486,7 @@ void main() {
       test('can close after activating boost with countdown timer', () async {
         final now = DateTime.now();
         final cubit = BoostCubit(
+          authRepository: NoopAuthRepository(),
           boostRepository: _StubBoostRepository(
             statusToReturn: const BoostStatus(
               canBoost: true,

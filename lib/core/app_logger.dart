@@ -48,8 +48,11 @@ class AppLogger {
   ///
   /// Use for potentially problematic situations that don't cause errors
   /// but might indicate issues (e.g., deprecated API usage, slow operations).
-  static void warning(String message,
-      {Object? error, Map<String, dynamic>? data}) {
+  static void warning(
+    String message, {
+    Object? error,
+    Map<String, dynamic>? data,
+  }) {
     if (!kDebugMode) return;
 
     final formattedMessage = _formatMessage('WARN', message, data);
@@ -106,6 +109,44 @@ class AppLogger {
     }
   }
 
+  /// Log a BLoC/Cubit error with standardized context.
+  ///
+  /// Attaches BLoC name, action, and optional entity ID as structured
+  /// Crashlytics custom keys. Use this instead of raw [error] in BLoC
+  /// error handlers for consistent crash report context.
+  ///
+  /// ```dart
+  /// AppLogger.blocError(
+  ///   bloc: 'ProfileBloc',
+  ///   action: 'load',
+  ///   error: e,
+  ///   stackTrace: stack,
+  ///   entityId: userId,
+  /// );
+  /// ```
+  static void blocError({
+    required String bloc,
+    required String action,
+    required Object error,
+    StackTrace? stackTrace,
+    String? entityId,
+    Map<String, dynamic>? extra,
+  }) {
+    final context = <String, dynamic>{
+      'bloc': bloc,
+      'action': action,
+      ...?extra,
+    };
+    if (entityId != null) context['entityId'] = entityId;
+
+    AppLogger.error(
+      '$bloc.$action failed',
+      error: error,
+      stackTrace: stackTrace,
+      data: context,
+    );
+  }
+
   /// Log a network request (debug only).
   ///
   /// Use for tracking API calls and their results.
@@ -138,8 +179,11 @@ class AppLogger {
   /// Log a performance metric (debug only).
   ///
   /// Use for tracking timing and performance data.
-  static void performance(String operation, Duration duration,
-      {Map<String, dynamic>? data}) {
+  static void performance(
+    String operation,
+    Duration duration, {
+    Map<String, dynamic>? data,
+  }) {
     if (!kDebugMode) return;
 
     final dataStr = data != null ? ' ${_formatData(data)}' : '';
@@ -151,7 +195,10 @@ class AppLogger {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static String _formatMessage(
-      String level, String message, Map<String, dynamic>? data) {
+    String level,
+    String message,
+    Map<String, dynamic>? data,
+  ) {
     final dataStr = data != null ? ' ${_formatData(data)}' : '';
     return '[$level] $message$dataStr';
   }

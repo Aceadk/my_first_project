@@ -201,9 +201,7 @@ class SupportConfig {
     final email = category == 'safety' ? safetyEmail : supportEmail;
     final effectiveSubject = subject ?? 'CrushHour Support Request';
 
-    final queryParams = <String, String>{
-      'subject': effectiveSubject,
-    };
+    final queryParams = <String, String>{'subject': effectiveSubject};
     if (body != null) {
       queryParams['body'] = body;
     }
@@ -263,7 +261,9 @@ class SupportConfig {
     buffer.writeln('--- Technical Info ---');
     if (userId != null) buffer.writeln('User ID: $userId');
     if (deviceInfo != null) buffer.writeln('Device: $deviceInfo');
-    buffer.writeln('App Version: ${const String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0')}');
+    buffer.writeln(
+      'App Version: ${const String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0')}',
+    );
     buffer.writeln('Platform: ${defaultTargetPlatform.name}');
 
     return buffer.toString();
@@ -290,11 +290,7 @@ class SupportCategory {
 }
 
 /// Priority level for support requests.
-enum SupportPriority {
-  normal,
-  high,
-  urgent,
-}
+enum SupportPriority { normal, high, urgent }
 
 /// A frequently asked question item.
 class FaqItem {

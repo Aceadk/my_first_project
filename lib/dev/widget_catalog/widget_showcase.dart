@@ -28,7 +28,7 @@ class WidgetShowcase extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsetsDirectional.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -98,7 +98,7 @@ class WidgetVariants extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsetsDirectional.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -134,16 +134,21 @@ class WidgetVariants extends StatelessWidget {
                 ? Wrap(
                     spacing: 16,
                     runSpacing: 16,
-                    children:
-                        variants.map((v) => _VariantItem(variant: v)).toList(),
+                    children: variants
+                        .map((v) => _VariantItem(variant: v))
+                        .toList(),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: variants
-                        .map((v) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _VariantItem(variant: v),
-                            ))
+                        .map(
+                          (v) => Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              bottom: 12,
+                            ),
+                            child: _VariantItem(variant: v),
+                          ),
+                        )
                         .toList(),
                   ),
           ),
@@ -157,10 +162,7 @@ class WidgetVariant {
   final String label;
   final Widget child;
 
-  const WidgetVariant({
-    required this.label,
-    required this.child,
-  });
+  const WidgetVariant({required this.label, required this.child});
 }
 
 class _VariantItem extends StatelessWidget {
@@ -270,18 +272,14 @@ class ShowcaseSection extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  const ShowcaseSection({
-    super.key,
-    required this.title,
-    this.subtitle,
-  });
+  const ShowcaseSection({super.key, required this.title, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 24, 0, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

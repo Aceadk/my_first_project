@@ -108,24 +108,40 @@ DsColors.info''',
               Row(
                 children: [
                   Expanded(
-                      child: _buildColorSwatch(
-                          context, 'bgLight', DsColors.backgroundLight)),
+                    child: _buildColorSwatch(
+                      context,
+                      'bgLight',
+                      DsColors.backgroundLight,
+                    ),
+                  ),
                   const SizedBox(width: DsSpacing.sm),
                   Expanded(
-                      child: _buildColorSwatch(
-                          context, 'bgDark', DsColors.backgroundDark)),
+                    child: _buildColorSwatch(
+                      context,
+                      'bgDark',
+                      DsColors.backgroundDark,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: DsSpacing.sm),
               Row(
                 children: [
                   Expanded(
-                      child: _buildColorSwatch(
-                          context, 'surfaceLight', DsColors.surfaceLight)),
+                    child: _buildColorSwatch(
+                      context,
+                      'surfaceLight',
+                      DsColors.surfaceLight,
+                    ),
+                  ),
                   const SizedBox(width: DsSpacing.sm),
                   Expanded(
-                      child: _buildColorSwatch(
-                          context, 'surfaceDark', DsColors.surfaceDark)),
+                    child: _buildColorSwatch(
+                      context,
+                      'surfaceDark',
+                      DsColors.surfaceDark,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -144,13 +160,25 @@ Text(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTextColorRow(
-                  context, 'textPrimaryLight', DsColors.textPrimaryLight),
+                context,
+                'textPrimaryLight',
+                DsColors.textPrimaryLight,
+              ),
               _buildTextColorRow(
-                  context, 'textPrimaryDark', DsColors.textPrimaryDark),
+                context,
+                'textPrimaryDark',
+                DsColors.textPrimaryDark,
+              ),
               _buildTextColorRow(
-                  context, 'textMutedLight', DsColors.textMutedLight),
+                context,
+                'textMutedLight',
+                DsColors.textMutedLight,
+              ),
               _buildTextColorRow(
-                  context, 'textMutedDark', DsColors.textMutedDark),
+                context,
+                'textMutedDark',
+                DsColors.textMutedDark,
+              ),
             ],
           ),
         ),
@@ -160,12 +188,20 @@ Text(
           child: Row(
             children: [
               Expanded(
-                  child: _buildColorSwatch(
-                      context, 'borderLight', DsColors.borderLight)),
+                child: _buildColorSwatch(
+                  context,
+                  'borderLight',
+                  DsColors.borderLight,
+                ),
+              ),
               const SizedBox(width: DsSpacing.sm),
               Expanded(
-                  child: _buildColorSwatch(
-                      context, 'borderDark', DsColors.borderDark)),
+                child: _buildColorSwatch(
+                  context,
+                  'borderDark',
+                  DsColors.borderDark,
+                ),
+              ),
             ],
           ),
         ),
@@ -207,9 +243,9 @@ Container(
             width: 50,
             child: Text(
               name,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
             ),
           ),
           Container(
@@ -244,9 +280,9 @@ Container(
         const SizedBox(height: DsSpacing.xs),
         Text(
           name,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontFamily: 'monospace',
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
         ),
         Text(
           '${radius.toInt()}px',
@@ -296,9 +332,9 @@ Container(
           const SizedBox(width: DsSpacing.sm),
           Text(
             name,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
           ),
         ],
       ),

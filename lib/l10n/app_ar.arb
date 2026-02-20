@@ -1,6 +1,5 @@
 {
   "@@locale": "ar",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "إلغاء",
   "commonSave": "حفظ",
@@ -44,7 +43,6 @@
   "commonUnblock": "إلغاء الحظر",
   "commonMute": "كتم",
   "commonUnmute": "إلغاء الكتم",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
   "errorNetwork": "خطأ في الاتصال. تحقق من الإنترنت وحاول مرة أخرى.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "تعذر {action}. يرجى المحاولة مرة أخرى.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} ميزة Plus. قم بالترقية لإلغاء القفل!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "رجوع",
   "a11yCloseButton": "إغلاق",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "صورة الملف الشخصي لـ {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "صورة المستخدم",
   "a11yAvatarOf": "صورة {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "تعديل الملف الشخصي",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "رسالة من {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{رسالة واحدة غير مقروءة} other{{count} رسائل غير مقروءة}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "إظهار كلمة المرور",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "تم التطابق! تطابقت مع {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "رسالة جديدة من {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "تم الإعجاب بالملف الشخصي",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "تم السوبر لايك للملف الشخصي",
   "a11yMessageSent": "تم إرسال الرسالة",
   "a11ySettingSaved": "تم حفظ الإعداد",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "مرحباً بعودتك",
   "authSignInToContinue": "سجل دخولك للمتابعة إلى Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "أرسلنا رمزاً إلى {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "أدخل الرمز المكون من 6 أرقام",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "انقر على الرابط الذي أرسلناه للتحقق من بريدك الإلكتروني",
   "authEmailVerified": "تم التحقق من البريد الإلكتروني بنجاح!",
   "authSkipForNow": "تخطي الآن",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "الإعدادات",
   "settingsAppearance": "المظهر",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} كم",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "أظهر لي",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "إدارة خطتك",
   "settingsGetPlus": "احصل على Crush Plus",
   "settingsRestorePurchases": "استعادة المشتريات",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "اكتشف",
   "discoveryNoMatchesTitle": "لا توجد تطابقات بعد",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "أنت و{name} أعجبتما ببعضكما",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "إرسال رسالة",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "معجب بك",
   "discoveryTopPicks": "أفضل الاختيارات",
   "discoveryNewArrivals": "الوافدون الجدد",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "المحادثات",
   "chatMatches": "التطابقات",
@@ -367,7 +382,9 @@
   "chatStartConversation": "ابدأ محادثة مع {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "اكتب رسالة...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "آخر ظهور {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "يكتب...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "تطابقت مع {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "الملف الشخصي",
   "profileEdit": "تعديل الملف الشخصي",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} سم",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "اللغات",
@@ -450,7 +472,6 @@
   "profileAboutMe": "عني",
   "profileMyDetails": "تفاصيلي",
   "profileLifestyle": "نمط الحياة",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "مرحباً بك في Crush",
   "onboardingTagline": "اعثر على تطابقك المثالي",
@@ -458,8 +479,12 @@
   "onboardingStep": "الخطوة {current} من {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "ما اسمك؟",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "اختر 3 اهتمامات على الأقل",
   "onboardingAllSet": "أنت جاهز!",
   "onboardingStartSwiping": "ابدأ السحب",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "مجاني",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} تعزيزات شهرياً",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} سوبر لايك يومياً",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "بدون إعلانات",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/شهرياً",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/سنوياً",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "أفضل قيمة",
   "subscriptionMostPopular": "الأكثر شعبية",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "الإبلاغ عن المستخدم",
   "safetyBlockUser": "حظر المستخدم",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "حظر {name}؟",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "لن يتمكنوا من رؤية ملفك الشخصي أو مراسلتك",
@@ -532,46 +565,50 @@
   "safetySpam": "رسائل مزعجة",
   "safetyScam": "احتيال",
   "safetyOther": "أخرى",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "الآن",
   "timeMinutesAgo": "{count, plural, =1{منذ دقيقة} other{منذ {count} دقائق}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{منذ ساعة} other{منذ {count} ساعات}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{منذ يوم} other{منذ {count} أيام}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{منذ أسبوع} other{منذ {count} أسابيع}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "لم يتم العثور على نتائج",
   "emptyTryAgain": "حاول تعديل البحث أو الفلاتر",
   "emptyNoData": "لا توجد بيانات متاحة",
   "emptyCheckBackLater": "عد لاحقاً",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "الرئيسية",
   "wordExplore": "استكشف",
-  "wordHelp": "مساعدة",
+  "wordHelp": "ساعد",
   "wordMenu": "القائمة",
   "wordFeed": "الموجز",
   "wordActivity": "النشاط",
@@ -579,7 +616,6 @@
   "wordInbox": "صندوق الوارد",
   "wordFavorites": "المفضلة",
   "wordHistory": "السجل",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "نسخ",
   "wordPaste": "لصق",
@@ -589,7 +625,7 @@
   "wordUpload": "رفع",
   "wordSelect": "تحديد",
   "wordDeselect": "إلغاء التحديد",
-  "wordOpen": "فتح",
+  "wordOpen": "مفتوح",
   "wordCreate": "إنشاء",
   "wordConnect": "اتصال",
   "wordDisconnect": "قطع الاتصال",
@@ -609,7 +645,7 @@
   "wordAllow": "سماح",
   "wordEnable": "تفعيل",
   "wordDisable": "تعطيل",
-  "wordShow": "إظهار",
+  "wordShow": "عرض",
   "wordHide": "إخفاء",
   "wordExpand": "توسيع",
   "wordCollapse": "طي",
@@ -663,7 +699,6 @@
   "wordSay": "قل",
   "wordTell": "أخبر",
   "wordAsk": "اسأل",
-  "wordHelp": "ساعد",
   "wordWait": "انتظر",
   "wordStay": "ابقَ",
   "wordCome": "تعال",
@@ -675,7 +710,7 @@
   "wordLive": "عِش",
   "wordChange": "غيّر",
   "wordTurn": "حوّل",
-  "wordRead": "اقرأ",
+  "wordRead": "مقروء",
   "wordWrite": "اكتب",
   "wordLearn": "تعلم",
   "wordStudy": "ادرس",
@@ -698,14 +733,13 @@
   "wordDecide": "قرر",
   "wordAgree": "وافق",
   "wordDisagree": "لا توافق",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "نشط",
   "wordInactive": "غير نشط",
   "wordAvailable": "متاح",
   "wordUnavailable": "غير متاح",
   "wordBusy": "مشغول",
-  "wordAway": "بعيد",
+  "wordAway": "بعيداً",
   "wordInvisible": "مخفي",
   "wordOnline": "متصل",
   "wordOffline": "غير متصل",
@@ -759,13 +793,10 @@
   "wordNotDone": "لم يتم",
   "wordSent": "مُرسَل",
   "wordReceived": "مُستلَم",
-  "wordRead": "مقروء",
   "wordUnread": "غير مقروء",
   "wordSeen": "مشاهَد",
   "wordUnseen": "غير مشاهَد",
-  "wordOpen": "مفتوح",
   "wordClosed": "مغلق",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "الآن",
   "wordLater": "لاحقاً",
@@ -807,7 +838,6 @@
   "wordYears": "سنوات",
   "wordSecond": "ثانية",
   "wordSeconds": "ثوانٍ",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "جيد",
   "wordBad": "سيئ",
@@ -932,7 +962,6 @@
   "wordFabulous": "خرافي",
   "wordMagnificent": "عظيم",
   "wordSpectacular": "مذهل",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "من فضلك",
   "wordThanks": "شكراً",
@@ -963,7 +992,6 @@
   "wordHaveFun": "استمتع",
   "wordEnjoy": "استمتع",
   "wordCheers": "في صحتك",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "من",
   "wordWhat": "ماذا",
@@ -979,7 +1007,6 @@
   "wordHowFar": "كم المسافة",
   "wordHowOld": "كم العمر",
   "wordHowOften": "كم مرة",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "مع",
   "wordWithout": "بدون",
@@ -1003,7 +1030,6 @@
   "wordThrough": "خلال",
   "wordAlong": "على طول",
   "wordToward": "نحو",
-  "wordAway": "بعيداً",
   "wordBehind": "خلف",
   "wordAhead": "أمام",
   "wordFront": "أمام",
@@ -1015,7 +1041,6 @@
   "wordCenter": "مركز",
   "wordCorner": "زاوية",
   "wordEdge": "حافة",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "إعجاب",
   "wordMatch": "تطابق",
@@ -1111,7 +1136,7 @@
   "wordTravel": "سفر",
   "wordTraveling": "يسافر",
   "wordExploring": "يستكشف",
-  "wordFun": "مرح",
+  "wordFun": "ممتع",
   "wordLaughter": "ضحك",
   "wordSmile": "ابتسامة",
   "wordSmiles": "ابتسامات",
@@ -1131,9 +1156,7 @@
   "wordDevoted": "مخلص",
   "wordCommitted": "ملتزم",
   "wordCommitment": "التزام",
-  "wordSerious": "جدي",
   "wordCasual": "عادي",
-  "wordFun": "ممتع",
   "wordFriendship": "صداقة",
   "wordFriend": "صديق",
   "wordFriends": "أصدقاء",
@@ -1146,7 +1169,6 @@
   "wordSeekingFor": "يسعى إلى",
   "wordWaiting": "ينتظر",
   "wordSearching": "يبحث",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "إشعار",
   "wordAlert": "تنبيه",
@@ -1316,7 +1338,6 @@
   "wordReport": "تقرير",
   "wordReports": "تقارير",
   "wordDashboard": "لوحة التحكم",
-  "wordHome": "الرئيسية",
   "wordWorld": "عالم",
   "wordCountry": "بلد",
   "wordCity": "مدينة",
@@ -1398,7 +1419,6 @@
   "wordMovies": "أفلام",
   "wordFilm": "فيلم",
   "wordFilms": "أفلام",
-  "wordShow": "عرض",
   "wordShows": "عروض",
   "wordSeries": "مسلسل",
   "wordBook": "كتاب",
@@ -1465,7 +1485,6 @@
   "wordSomething": "شيء ما",
   "wordNothing": "لا شيء",
   "wordAnything": "أي شيء",
-
   "@@_ADDITIONAL_DISAMBIGUATED_WORDS": "Additional words with specific context disambiguation",
   "wordHelpVerb": "مساعدة",
   "wordReadStatus": "مقروء",
@@ -1473,5 +1492,46 @@
   "wordAwayFrom": "بعيد",
   "wordSeriousRel": "جاد",
   "wordSettingsNoun": "الإعدادات",
-  "wordShowNoun": "عرض"
+  "wordShowNoun": "عرض",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{لا توجد إشعارات} =1{إشعار واحد} =2{إشعاران} few{{count} إشعارات} many{{count} إشعاراً} other{{count} إشعار}}",
+  "matchCount": "{count, plural, =0{لا توجد تطابقات} =1{تطابق واحد} =2{تطابقان} few{{count} تطابقات} many{{count} تطابقاً} other{{count} تطابق}}",
+  "likesCount": "{count, plural, =0{لا توجد إعجابات} =1{إعجاب واحد} =2{إعجابين} few{{count} إعجابات} many{{count} إعجاباً} other{{count} إعجاب}}",
+  "photosCount": "{count, plural, =0{لا توجد صور} =1{صورة واحدة} =2{صورتان} few{{count} صور} many{{count} صورة} other{{count} صورة}}",
+  "distanceKm": "{count, plural, =0{أقل من 1 كم} =1{1 كم} =2{2 كم} few{{count} كم} many{{count} كم} other{{count} كم}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

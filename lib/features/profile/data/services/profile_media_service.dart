@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/media/image_optimizer.dart';
+import 'package:crushhour/core/performance/performance_monitor.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 
 typedef MediaUploadHandler =
     Future<String> Function({
@@ -19,7 +22,8 @@ typedef MediaDeleteHandler = Future<void> Function(String url);
 /// In debug mode, if Firebase Storage upload fails (e.g., due to security rules),
 /// it will fall back to using local file paths. This allows development to continue
 /// while Firebase Storage rules are being configured.
-class ProfileMediaService {
+
+class ProfileMediaService implements ProfileMediaRepository {
   ProfileMediaService({
     MediaUploadHandler? uploadHandler,
     MediaDeleteHandler? deleteHandler,
@@ -45,22 +49,40 @@ class ProfileMediaService {
 
   /// Upload a photo to Firebase Storage and return the download URL.
   /// In debug mode with fallback enabled, returns local path if upload fails.
+  @override
   Future<String> uploadPhoto({
     required String userId,
     required String filePath,
   }) async {
-    final file = File(filePath);
+    var file = File(filePath);
     if (!await file.exists()) {
       throw Exception('Photo file not found: $filePath');
     }
 
     try {
-      // Generate unique filename
-      final extension = path.extension(filePath).toLowerCase();
+      // Optimize image before upload: resize, compress, strip EXIF
+      try {
+        final optimized = await ImageOptimizer.instance.optimize(file);
+        file = optimized.optimizedFile;
+        AppLogger.debug(
+          'ProfileMediaService: Optimized photo — '
+          'saved ${(optimized.savedBytes / 1024).toStringAsFixed(0)} KB',
+        );
+      } catch (e) {
+        // Optimization failure is non-fatal — upload the original
+        AppLogger.warning(
+          'ProfileMediaService: Image optimization failed, uploading original',
+          error: e,
+        );
+      }
+
+      // Generate unique filename (always .jpg after optimization)
+      final extension = path.extension(file.path).toLowerCase();
       final filename = '${_uuidGenerator()}$extension';
       final storagePath = 'users/$userId/photos/$filename';
 
       // Upload to Firebase Storage
+      await PerformanceMonitor.instance.startTrace('image_upload');
       final downloadUrl = await _uploadHandler(
         storagePath: storagePath,
         file: file,
@@ -71,6 +93,10 @@ class ProfileMediaService {
             'userId': userId,
           },
         ),
+      );
+      await PerformanceMonitor.instance.stopTrace(
+        'image_upload',
+        metrics: {'size_bytes': await file.length()},
       );
 
       AppLogger.debug('ProfileMediaService: Photo uploaded - $downloadUrl');
@@ -118,6 +144,7 @@ class ProfileMediaService {
 
   /// Upload a video to Firebase Storage and return the download URL.
   /// In debug mode with fallback enabled, returns local path if upload fails.
+  @override
   Future<String> uploadVideo({
     required String userId,
     required String filePath,
@@ -176,6 +203,7 @@ class ProfileMediaService {
   }
 
   /// Delete a media file from Firebase Storage.
+  @override
   Future<void> deleteMedia(String url) async {
     try {
       if (!url.startsWith('https://firebasestorage.googleapis.com')) {
@@ -192,12 +220,14 @@ class ProfileMediaService {
   }
 
   /// Check if a path is a local file (not a remote URL).
+  @override
   bool isLocalFile(String path) {
     return !path.startsWith('http://') && !path.startsWith('https://');
   }
 
   /// Upload local files and return list of URLs (local files get uploaded, remote URLs pass through).
   /// Skips local files that no longer exist (e.g., temp files that were cleaned up).
+  @override
   Future<({List<String> photoUrls, List<String> videoUrls})> ensureRemoteUrls({
     required String userId,
     required List<String> photoPaths,

@@ -7,10 +7,7 @@ class GetBoolFlagParams {
   final String key;
   final bool defaultValue;
 
-  const GetBoolFlagParams({
-    required this.key,
-    this.defaultValue = false,
-  });
+  const GetBoolFlagParams({required this.key, this.defaultValue = false});
 }
 
 /// Use case for getting a boolean feature flag value.
@@ -31,10 +28,8 @@ class GetBoolFlagUseCase extends UseCase<bool, GetBoolFlagParams>
   @override
   Future<Result<bool>> execute(GetBoolFlagParams params) {
     return Result.guard(
-      () async => _repository.getBool(
-        params.key,
-        defaultValue: params.defaultValue,
-      ),
+      () async =>
+          _repository.getBool(params.key, defaultValue: params.defaultValue),
       logLabel: 'GetBoolFlagUseCase',
       fallbackError: 'Unable to get flag value.',
     );

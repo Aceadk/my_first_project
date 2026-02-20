@@ -26,10 +26,7 @@ class AuthScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: title != null
-          ? AppBar(
-              title: Text(title!),
-              actions: actions,
-            )
+          ? AppBar(title: Text(title!), actions: actions)
           : null,
       body: SafeArea(
         child: LayoutBuilder(
@@ -40,25 +37,20 @@ class AuthScaffold extends StatelessWidget {
             final maxWidth = isDesktop
                 ? desktopMaxWidth
                 : isTablet
-                    ? tabletMaxWidth
-                    : width;
-            final padding = contentPadding ??
+                ? tabletMaxWidth
+                : width;
+            final padding =
+                contentPadding ??
                 const EdgeInsets.symmetric(
                   horizontal: DsSpacing.xxl,
                   vertical: DsSpacing.xl,
                 );
 
-            Widget content = Padding(
-              padding: padding,
-              child: child,
-            );
+            Widget content = Padding(padding: padding, child: child);
 
             if (isDesktop) {
               content = Card(
-                child: Padding(
-                  padding: padding,
-                  child: child,
-                ),
+                child: Padding(padding: padding, child: child),
               );
             }
 
@@ -68,19 +60,13 @@ class AuthScaffold extends StatelessWidget {
               horizontal: DsSpacing.xl,
             );
 
-            Widget scrollChild = SizedBox(
-              width: maxWidth,
-              child: content,
-            );
+            Widget scrollChild = SizedBox(width: maxWidth, child: content);
 
             if (centerContent) {
               scrollChild = ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight:
-                      (constraints.maxHeight - scrollPadding.vertical).clamp(
-                    0,
-                    double.infinity,
-                  ),
+                  minHeight: (constraints.maxHeight - scrollPadding.vertical)
+                      .clamp(0, double.infinity),
                 ),
                 child: Center(child: scrollChild),
               );

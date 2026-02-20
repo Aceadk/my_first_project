@@ -6,7 +6,9 @@ import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Service for recording voice notes.
-class VoiceRecorderService {
+import 'package:crushhour/features/chat/domain/repositories/voice_recorder_repository.dart';
+
+class VoiceRecorderService implements VoiceRecorderRepository {
   VoiceRecorderService();
 
   final _recorder = AudioRecorder();
@@ -16,12 +18,15 @@ class VoiceRecorderService {
   final _durationController = StreamController<Duration>.broadcast();
 
   /// Stream of recording duration updates (every 100ms).
+  @override
   Stream<Duration> get durationStream => _durationController.stream;
 
   /// Whether currently recording.
+  @override
   bool get isRecording => _isRecording;
 
   /// Current recording duration.
+  @override
   Duration get currentDuration {
     if (_recordingStartTime == null) return Duration.zero;
     return DateTime.now().difference(_recordingStartTime!);
@@ -34,18 +39,21 @@ class VoiceRecorderService {
   static const minDuration = Duration(seconds: 1);
 
   /// Request microphone permission.
+  @override
   Future<bool> requestPermission() async {
     final status = await Permission.microphone.request();
     return status.isGranted;
   }
 
   /// Check if microphone permission is granted.
+  @override
   Future<bool> hasPermission() async {
     return await Permission.microphone.isGranted;
   }
 
   /// Start recording a voice note.
   /// Returns the file path where the recording will be saved.
+  @override
   Future<String?> startRecording() async {
     if (_isRecording) return null;
 
@@ -74,18 +82,15 @@ class VoiceRecorderService {
       _recordingStartTime = DateTime.now();
 
       // Start duration timer
-      _durationTimer = Timer.periodic(
-        const Duration(milliseconds: 100),
-        (_) {
-          final duration = currentDuration;
-          _durationController.add(duration);
+      _durationTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+        final duration = currentDuration;
+        _durationController.add(duration);
 
-          // Auto-stop at max duration
-          if (duration >= maxDuration) {
-            stopRecording();
-          }
-        },
-      );
+        // Auto-stop at max duration
+        if (duration >= maxDuration) {
+          stopRecording();
+        }
+      });
 
       return filePath;
     } catch (e) {
@@ -97,6 +102,7 @@ class VoiceRecorderService {
 
   /// Stop recording and return the file path.
   /// Returns null if recording was too short or failed.
+  @override
   Future<String?> stopRecording() async {
     if (!_isRecording) return null;
 
@@ -130,6 +136,7 @@ class VoiceRecorderService {
   }
 
   /// Cancel the current recording without saving.
+  @override
   Future<void> cancelRecording() async {
     if (!_isRecording) return;
 
@@ -155,6 +162,7 @@ class VoiceRecorderService {
   }
 
   /// Dispose resources.
+  @override
   Future<void> dispose() async {
     await cancelRecording();
     await _durationController.close();

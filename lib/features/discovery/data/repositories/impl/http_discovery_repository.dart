@@ -9,9 +9,8 @@ import 'package:crushhour/features/discovery/domain/repositories/discovery_repos
 
 /// HTTP-based implementation of DiscoveryRepository.
 class HttpDiscoveryRepository implements DiscoveryRepository {
-  HttpDiscoveryRepository({
-    required ApiClient apiClient,
-  }) : _apiClient = apiClient;
+  HttpDiscoveryRepository({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 
@@ -42,7 +41,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Failed to fetch deck - ${result.error}');
+        'HttpDiscoveryRepository: Failed to fetch deck - ${result.error}',
+      );
       return [];
     }
 
@@ -72,15 +72,18 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Swipe right failed - ${result.error}');
+        'HttpDiscoveryRepository: Swipe right failed - ${result.error}',
+      );
       return null;
     }
 
     final response = SwipeResponseDto.fromJson(result.data!);
 
     if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(response.match!,
-          currentUserId: userId);
+      return DiscoveryMapper.matchFromDto(
+        response.match!,
+        currentUserId: userId,
+      );
     }
 
     return null;
@@ -103,7 +106,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Swipe left failed - ${result.error}');
+        'HttpDiscoveryRepository: Swipe left failed - ${result.error}',
+      );
     }
   }
 
@@ -116,18 +120,22 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Failed to fetch top picks - ${result.error}');
+        'HttpDiscoveryRepository: Failed to fetch top picks - ${result.error}',
+      );
       return [];
     }
 
     // Support both 'candidates' (new) and 'profiles' (legacy) keys
-    final profiles = result.data!['candidates'] as List<dynamic>? ??
+    final profiles =
+        result.data!['candidates'] as List<dynamic>? ??
         result.data!['profiles'] as List<dynamic>? ??
         [];
     return profiles
-        .map((json) => DiscoveryMapper.profileFromDiscoveryDto(
-              DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
-            ))
+        .map(
+          (json) => DiscoveryMapper.profileFromDiscoveryDto(
+            DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
+          ),
+        )
         .toList();
   }
 
@@ -140,18 +148,22 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Failed to fetch likes - ${result.error}');
+        'HttpDiscoveryRepository: Failed to fetch likes - ${result.error}',
+      );
       return [];
     }
 
     // Support both 'candidates' (new) and 'profiles' (legacy) keys
-    final profiles = result.data!['candidates'] as List<dynamic>? ??
+    final profiles =
+        result.data!['candidates'] as List<dynamic>? ??
         result.data!['profiles'] as List<dynamic>? ??
         [];
     return profiles
-        .map((json) => DiscoveryMapper.profileFromDiscoveryDto(
-              DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
-            ))
+        .map(
+          (json) => DiscoveryMapper.profileFromDiscoveryDto(
+            DiscoveryProfileDto.fromJson(json as Map<String, dynamic>),
+          ),
+        )
         .toList();
   }
 
@@ -164,7 +176,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Failed to fetch matches - ${result.error}');
+        'HttpDiscoveryRepository: Failed to fetch matches - ${result.error}',
+      );
       return [];
     }
 
@@ -183,7 +196,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Failed to fetch profile - ${result.error}');
+        'HttpDiscoveryRepository: Failed to fetch profile - ${result.error}',
+      );
       return null;
     }
 
@@ -212,14 +226,17 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpDiscoveryRepository: Super like failed - ${result.error}');
+        'HttpDiscoveryRepository: Super like failed - ${result.error}',
+      );
       return null;
     }
 
     final response = SwipeResponseDto.fromJson(result.data!);
     if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(response.match!,
-          currentUserId: userId);
+      return DiscoveryMapper.matchFromDto(
+        response.match!,
+        currentUserId: userId,
+      );
     }
 
     return null;
@@ -233,7 +250,9 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     if (result.isFailure) {
-      AppLogger.error('HttpDiscoveryRepository: Rewind failed - ${result.error}');
+      AppLogger.error(
+        'HttpDiscoveryRepository: Rewind failed - ${result.error}',
+      );
       return null;
     }
 

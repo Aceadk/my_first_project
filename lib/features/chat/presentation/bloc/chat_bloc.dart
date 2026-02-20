@@ -33,10 +33,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription<Set<String>>? _typingSub;
   StreamSubscription<bool>? _presenceSub;
   StreamSubscription<bool>? _mediaSub;
+  // ignore: cancel_subscriptions
   StreamSubscription? _authSubscription;
 
+  // ignore: cancel_subscriptions
   StreamSubscription<RealtimeState>? _realtimeStateSub;
+  // ignore: cancel_subscriptions
   StreamSubscription<ChatSessionState>? _sessionStateSub;
+  // ignore: cancel_subscriptions
   StreamSubscription<MessageHandlingState>? _messageStateSub;
 
   ChatBloc({
@@ -54,12 +58,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
 
     // Listen to sub-BLoC state changes and re-aggregate into ChatState
+    // ignore: cancel_subscriptions
     _realtimeStateSub = _realtimeCubit.stream.listen((_) {
       if (!isClosed) add(ChatSubBlocChanged());
     });
+    // ignore: cancel_subscriptions
     _sessionStateSub = _sessionCubit.stream.listen((_) {
       if (!isClosed) add(ChatSubBlocChanged());
     });
+    // ignore: cancel_subscriptions
     _messageStateSub = _messageBloc.stream.listen((_) {
       if (!isClosed) add(ChatSubBlocChanged());
     });
@@ -85,10 +92,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatLoadMoreMessagesRequested>(_onLoadMoreMessages);
     on<ChatNewMessagesReceived>(_onNewMessagesReceived);
     on<ChatMessageRetryRequested>(_onMessageRetryRequested);
+    on<ChatMessageDiscardRequested>(_onMessageDiscardRequested);
     on<ChatResetRequested>(_onResetRequested);
     on<ChatE2eeToggled>(_onE2eeToggled);
 
     // Subscribe to auth state changes to reset on logout
+    // ignore: cancel_subscriptions
     _authSubscription = authRepository.authStateChanges().listen((user) {
       if (user == null) {
         add(ChatResetRequested());
@@ -137,18 +146,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
   }
 
-  /// Called when any sub-BLoC emits a new state. Re-emits combined ChatState.
-  void _onSubBlocChanged(
-      ChatSubBlocChanged event, Emitter<ChatState> emit) {
-    emit(_buildAggregatedState());
+  /// Called when any sub-BLoC emits a new state. Re-emits combined ChatState
+  /// only if the aggregated result differs (Equatable comparison prevents
+  /// redundant widget rebuilds from high-frequency typing/presence updates).
+  void _onSubBlocChanged(ChatSubBlocChanged event, Emitter<ChatState> emit) {
+    final newState = _buildAggregatedState();
+    if (newState != state) {
+      emit(newState);
+    }
   }
 
   // =========================================================================
   // Event handlers -- thin routing to sub-BLoCs
   // =========================================================================
 
-  Future<void> _onChatOpened(
-      ChatOpened event, Emitter<ChatState> emit) async {
+  Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
     // Reset realtime state
     _realtimeCubit.reset();
     _realtimeCubit.updateMediaEnabled(true);
@@ -175,29 +187,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
 
     // Delegate message loading to MessageHandlingBloc
-    _messageBloc.add(MsgInitialLoadRequested(
-      matchId: event.matchId,
-      currentUserId: event.currentUserId,
-    ));
+    _messageBloc.add(
+      MsgInitialLoadRequested(
+        matchId: event.matchId,
+        currentUserId: event.currentUserId,
+      ),
+    );
 
     // Start realtime watchers
-    _typingSub =
-        chatRepository.watchTyping(event.matchId).listen((typingUsers) {
+    _typingSub = chatRepository.watchTyping(event.matchId).listen((
+      typingUsers,
+    ) {
       add(ChatTypingUsersUpdated(typingUsers));
     });
-    _presenceSub =
-        chatRepository.watchPresence(event.otherUserId).listen((isOnline) {
+    _presenceSub = chatRepository.watchPresence(event.otherUserId).listen((
+      isOnline,
+    ) {
       add(ChatPresenceUpdated(isOnline));
     });
-    _mediaSub = chatRepository
-        .watchMediaSendingEnabled(event.matchId)
-        .listen((enabled) {
+    _mediaSub = chatRepository.watchMediaSendingEnabled(event.matchId).listen((
+      enabled,
+    ) {
       add(ChatMediaStatusUpdated(enabled));
     });
   }
 
-  Future<void> _onChatClosed(
-      ChatClosed event, Emitter<ChatState> emit) async {
+  Future<void> _onChatClosed(ChatClosed event, Emitter<ChatState> emit) async {
     await Result.guard(
       () => chatRepository.setTyping(
         matchId: event.matchId,
@@ -224,100 +239,141 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // ---- Message events -> MessageHandlingBloc ----
 
   Future<void> _onMessageSent(
-      ChatMessageSent event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgSendRequested(
-      matchId: event.matchId,
-      fromUserId: event.fromUserId,
-      toUserId: event.toUserId,
-      content: event.content,
-      type: event.type,
-    ));
+    ChatMessageSent event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgSendRequested(
+        matchId: event.matchId,
+        fromUserId: event.fromUserId,
+        toUserId: event.toUserId,
+        content: event.content,
+        type: event.type,
+      ),
+    );
   }
 
   Future<void> _onMediaSendRequested(
-      ChatMediaSendRequested event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgMediaSendRequested(
-      matchId: event.matchId,
-      fromUserId: event.fromUserId,
-      toUserId: event.toUserId,
-      filePath: event.filePath,
-      type: event.type,
-      mediaSendingEnabled: _realtimeCubit.state.mediaSendingEnabled,
-    ));
+    ChatMediaSendRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgMediaSendRequested(
+        matchId: event.matchId,
+        fromUserId: event.fromUserId,
+        toUserId: event.toUserId,
+        filePath: event.filePath,
+        type: event.type,
+        mediaSendingEnabled: _realtimeCubit.state.mediaSendingEnabled,
+      ),
+    );
   }
 
   Future<void> _onUnsendRequested(
-      ChatMessageUnsendRequested event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgUnsendRequested(
-      matchId: event.matchId,
-      messageId: event.messageId,
-    ));
+    ChatMessageUnsendRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgUnsendRequested(matchId: event.matchId, messageId: event.messageId),
+    );
   }
 
   Future<void> _onEditRequested(
-      ChatMessageEditRequested event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgEditRequested(
-      matchId: event.matchId,
-      messageId: event.messageId,
-      newContent: event.newContent,
-    ));
+    ChatMessageEditRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgEditRequested(
+        matchId: event.matchId,
+        messageId: event.messageId,
+        newContent: event.newContent,
+      ),
+    );
   }
 
   Future<void> _onDeleteForMeRequested(
-      ChatMessageDeleteForMeRequested event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgDeleteForMeRequested(
-      matchId: event.matchId,
-      messageId: event.messageId,
-      userId: event.userId,
-    ));
+    ChatMessageDeleteForMeRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgDeleteForMeRequested(
+        matchId: event.matchId,
+        messageId: event.messageId,
+        userId: event.userId,
+      ),
+    );
   }
 
   Future<void> _onMessagesUpdated(
-      ChatMessagesUpdated event, Emitter<ChatState> emit) async {
+    ChatMessagesUpdated event,
+    Emitter<ChatState> emit,
+  ) async {
     _messageBloc.add(MsgLegacyMessagesUpdated(event.messages, event.plan));
   }
 
   Future<void> _onReactionAdded(
-      ChatReactionAdded event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgReactionAdded(
-      matchId: event.matchId,
-      messageId: event.messageId,
-      userId: event.userId,
-      emoji: event.emoji,
-    ));
+    ChatReactionAdded event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgReactionAdded(
+        matchId: event.matchId,
+        messageId: event.messageId,
+        userId: event.userId,
+        emoji: event.emoji,
+      ),
+    );
   }
 
   Future<void> _onReactionRemoved(
-      ChatReactionRemoved event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgReactionRemoved(
-      matchId: event.matchId,
-      messageId: event.messageId,
-      userId: event.userId,
-    ));
+    ChatReactionRemoved event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgReactionRemoved(
+        matchId: event.matchId,
+        messageId: event.messageId,
+        userId: event.userId,
+      ),
+    );
   }
 
   Future<void> _onLoadMoreMessages(
-      ChatLoadMoreMessagesRequested event, Emitter<ChatState> emit) async {
+    ChatLoadMoreMessagesRequested event,
+    Emitter<ChatState> emit,
+  ) async {
     _messageBloc.add(MsgLoadMoreRequested(event.matchId));
   }
 
   Future<void> _onNewMessagesReceived(
-      ChatNewMessagesReceived event, Emitter<ChatState> emit) async {
+    ChatNewMessagesReceived event,
+    Emitter<ChatState> emit,
+  ) async {
     _messageBloc.add(MsgNewMessagesReceived(event.newMessages));
   }
 
   Future<void> _onMessageRetryRequested(
-      ChatMessageRetryRequested event, Emitter<ChatState> emit) async {
-    _messageBloc.add(MsgRetryRequested(
-      matchId: event.matchId,
-      messageId: event.messageId,
-    ));
+    ChatMessageRetryRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    _messageBloc.add(
+      MsgRetryRequested(matchId: event.matchId, messageId: event.messageId),
+    );
+  }
+
+  void _onMessageDiscardRequested(
+    ChatMessageDiscardRequested event,
+    Emitter<ChatState> emit,
+  ) {
+    _messageBloc.add(MsgDiscardFailedRequested(messageId: event.messageId));
   }
 
   // ---- Typing events -> RealtimeStateCubit (+ repository call) ----
 
   Future<void> _onTypingChanged(
-      ChatTypingStatusChanged event, Emitter<ChatState> emit) async {
+    ChatTypingStatusChanged event,
+    Emitter<ChatState> emit,
+  ) async {
     await Result.guard(
       () => chatRepository.setTyping(
         matchId: event.matchId,
@@ -330,15 +386,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onTypingUsersUpdated(
-      ChatTypingUsersUpdated event, Emitter<ChatState> emit) {
+    ChatTypingUsersUpdated event,
+    Emitter<ChatState> emit,
+  ) {
     _realtimeCubit.updateTyping(event.typingUserIds);
     emit(_buildAggregatedState());
   }
 
   // ---- Presence events -> RealtimeStateCubit ----
 
-  void _onPresenceUpdated(
-      ChatPresenceUpdated event, Emitter<ChatState> emit) {
+  void _onPresenceUpdated(ChatPresenceUpdated event, Emitter<ChatState> emit) {
     _realtimeCubit.updatePresence(event.isOnline);
     emit(_buildAggregatedState());
   }
@@ -346,7 +403,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // ---- Media toggle -> repository + RealtimeStateCubit ----
 
   Future<void> _onMediaToggleRequested(
-      ChatMediaToggleRequested event, Emitter<ChatState> emit) async {
+    ChatMediaToggleRequested event,
+    Emitter<ChatState> emit,
+  ) async {
     final result = await Result.guard(
       () => chatRepository.setMediaSendingEnabled(
         matchId: event.matchId,
@@ -362,7 +421,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onMediaStatusUpdated(
-      ChatMediaStatusUpdated event, Emitter<ChatState> emit) {
+    ChatMediaStatusUpdated event,
+    Emitter<ChatState> emit,
+  ) {
     _realtimeCubit.updateMediaEnabled(event.enabled);
     emit(_buildAggregatedState());
   }
@@ -370,15 +431,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // ---- Unmatch -> ChatSessionCubit ----
 
   Future<void> _onUnmatchRequested(
-      ChatUnmatchRequested event, Emitter<ChatState> emit) async {
+    ChatUnmatchRequested event,
+    Emitter<ChatState> emit,
+  ) async {
     // Listen to session cubit changes and emit intermediate states
     final sub = _sessionCubit.stream.listen((_) {
       emit(_buildAggregatedState());
     });
-    await _sessionCubit.unmatch(
-      matchId: event.matchId,
-      userId: event.userId,
-    );
+    await _sessionCubit.unmatch(matchId: event.matchId, userId: event.userId);
     await sub.cancel();
   }
 
@@ -412,18 +472,33 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // =========================================================================
 
   @override
-  Future<void> close() {
-    _typingSub?.cancel();
-    _presenceSub?.cancel();
-    _mediaSub?.cancel();
-    _authSubscription?.cancel();
-    _realtimeStateSub?.cancel();
-    _sessionStateSub?.cancel();
-    _messageStateSub?.cancel();
+  Future<void> close() async {
+    // Cancel all stream subscriptions with error isolation so one failure
+    // doesn't prevent others from being cleaned up.
+    for (final sub in [
+      _typingSub,
+      _presenceSub,
+      _mediaSub,
+      _authSubscription,
+      _realtimeStateSub,
+      _sessionStateSub,
+      _messageStateSub,
+    ]) {
+      try {
+        await sub?.cancel();
+      } catch (e) {
+        AppLogger.error('ChatBloc: Error cancelling subscription: $e');
+      }
+    }
 
-    _realtimeCubit.close();
-    _sessionCubit.close();
-    _messageBloc.close();
+    // Close sub-BLoCs with error isolation
+    for (final bloc in [_realtimeCubit, _sessionCubit, _messageBloc]) {
+      try {
+        await bloc.close();
+      } catch (e) {
+        AppLogger.error('ChatBloc: Error closing sub-bloc: $e');
+      }
+    }
 
     return super.close();
   }

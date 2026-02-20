@@ -27,6 +27,8 @@ class CrushRoutes {
   static const chat = '/chat';
   static const messageRequests = '/message-requests';
   static const call = '/call';
+  static const incomingCall = '/incoming-call';
+  static const callHistory = '/call-history';
   static const videoCall = '/video-call';
   static const logout = '/logout';
   static const safety = '/safety';
@@ -47,6 +49,7 @@ class CrushRoutes {
   static const securitySettings = '/settings/security';
   static const accountSettings = '/settings/account';
   static const chatSettings = '/settings/chat';
+  static const subscriptionSettings = '/settings/subscription';
   static const widgetCatalog = '/dev/widget-catalog';
   static const likesYou = '/likes-you';
   static const weeklyPicks = '/weekly-picks';
@@ -59,4 +62,5 @@ class CrushRoutes {
   static const communityGuidelines = '/community-guidelines';
   static const productFeatures = '/product-features';
   static const pricing = '/pricing';
+  static const notificationCenter = '/notifications';
 }

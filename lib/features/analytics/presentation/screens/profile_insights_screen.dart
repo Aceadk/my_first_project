@@ -23,8 +23,9 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -45,15 +46,17 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                color: isDark
+                    ? DsColors.backgroundDark
+                    : DsColors.backgroundLight,
               ),
               child: const Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration:
-                          BoxDecoration(gradient: DsGradients.meshRadial),
+                      decoration: BoxDecoration(
+                        gradient: DsGradients.meshRadial,
+                      ),
                     ),
                   ),
                 ],
@@ -62,20 +65,39 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
           ),
           // Content
           SafeArea(
-            child: BlocBuilder<ProfileInsightsCubit, ProfileInsightsState>(
-              builder: (context, state) {
-                if (state.isLoading) {
-                  return _buildSkeletonLoading(context);
-                }
-                if (state.errorMessage != null) {
-                  return _buildErrorState(
-                      context, textColor, state.errorMessage!);
-                }
-                if (state.insights == null) {
-                  return _buildEmptyState(textColor);
-                }
-                return _buildInsightsContent(context, textColor, state);
-              },
+            child: LayoutBuilder(
+              builder: (context, constraints) => Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: DsBreakpoints.contentMaxWidth(
+                      constraints.maxWidth,
+                    ),
+                  ),
+                  child:
+                      BlocBuilder<ProfileInsightsCubit, ProfileInsightsState>(
+                        builder: (context, state) {
+                          if (state.isLoading) {
+                            return _buildSkeletonLoading(context);
+                          }
+                          if (state.errorMessage != null) {
+                            return _buildErrorState(
+                              context,
+                              textColor,
+                              state.errorMessage!,
+                            );
+                          }
+                          if (state.insights == null) {
+                            return _buildEmptyState(textColor);
+                          }
+                          return _buildInsightsContent(
+                            context,
+                            textColor,
+                            state,
+                          );
+                        },
+                      ),
+                ),
+              ),
             ),
           ),
         ],
@@ -84,44 +106,42 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   }
 
   Widget _buildSkeletonLoading(BuildContext context) {
-    return DsShimmer(
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(DsSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SkeletonBox(width: 120, height: 24),
-            DsGap.md,
-            Row(
-              children: [
-                Expanded(child: _buildSkeletonStatCard(context)),
-                DsGap.mdH,
-                Expanded(child: _buildSkeletonStatCard(context)),
-              ],
-            ),
-            DsGap.md,
-            Row(
-              children: [
-                Expanded(child: _buildSkeletonStatCard(context)),
-                DsGap.mdH,
-                Expanded(child: _buildSkeletonStatCard(context)),
-              ],
-            ),
-            DsGap.xl,
-            _buildSkeletonSection(context, height: 160),
-            DsGap.xl,
-            _buildSkeletonSection(context, height: 80),
-            DsGap.xl,
-            const SkeletonBox(width: 150, height: 20),
-            DsGap.md,
-            _buildSkeletonSection(context, height: 140),
-            DsGap.xl,
-            const SkeletonBox(width: 120, height: 20),
-            DsGap.md,
-            _buildSkeletonSection(context, height: 150),
-          ],
-        ),
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(DsSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const GlassSkeleton(width: 120, height: 24),
+          DsGap.md,
+          Row(
+            children: [
+              Expanded(child: _buildSkeletonStatCard(context)),
+              DsGap.mdH,
+              Expanded(child: _buildSkeletonStatCard(context)),
+            ],
+          ),
+          DsGap.md,
+          Row(
+            children: [
+              Expanded(child: _buildSkeletonStatCard(context)),
+              DsGap.mdH,
+              Expanded(child: _buildSkeletonStatCard(context)),
+            ],
+          ),
+          DsGap.xl,
+          _buildSkeletonSection(context, height: 160),
+          DsGap.xl,
+          _buildSkeletonSection(context, height: 80),
+          DsGap.xl,
+          const GlassSkeleton(width: 150, height: 20),
+          DsGap.md,
+          _buildSkeletonSection(context, height: 140),
+          DsGap.xl,
+          const GlassSkeleton(width: 120, height: 20),
+          DsGap.md,
+          _buildSkeletonSection(context, height: 150),
+        ],
       ),
     );
   }
@@ -137,11 +157,11 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
       ),
       child: const Column(
         children: [
-          SkeletonBox(width: 40, height: 40, borderRadius: DsRadius.sm),
+          GlassSkeleton(width: 40, height: 40, borderRadius: DsRadius.sm),
           SizedBox(height: DsSpacing.md),
-          SkeletonBox(width: 60, height: 28),
+          GlassSkeleton(width: 60, height: 28),
           SizedBox(height: DsSpacing.xs),
-          SkeletonBox(width: 80, height: 14),
+          GlassSkeleton(width: 80, height: 14),
         ],
       ),
     );
@@ -161,7 +181,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   }
 
   Widget _buildErrorState(
-      BuildContext context, Color textColor, String errorMessage) {
+    BuildContext context,
+    Color textColor,
+    String errorMessage,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(DsSpacing.xl),
@@ -220,8 +243,11 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.analytics_outlined,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.analytics_outlined,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'No insights available yet',
@@ -238,7 +264,10 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   }
 
   Widget _buildInsightsContent(
-      BuildContext context, Color textColor, ProfileInsightsState state) {
+    BuildContext context,
+    Color textColor,
+    ProfileInsightsState state,
+  ) {
     final cubit = context.read<ProfileInsightsCubit>();
 
     return RefreshIndicator(
@@ -383,10 +412,7 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
         ),
         Text(
           value,
-          style: TextStyle(
-            color: textColor,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -403,8 +429,11 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
               color: DsColors.surfaceLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(DsRadius.md),
             ),
-            child: const Icon(Icons.access_time,
-                color: DsColors.surfaceLight, size: 28),
+            child: const Icon(
+              Icons.access_time,
+              color: DsColors.surfaceLight,
+              size: 28,
+            ),
           ),
           DsGap.lgH,
           Expanded(
@@ -436,7 +465,9 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
   }
 
   Widget _buildPhotoPerformanceSection(
-      Color textColor, ProfileInsightsState state) {
+    Color textColor,
+    ProfileInsightsState state,
+  ) {
     final photos = state.photoPerformance;
     if (photos.isEmpty) return const SizedBox.shrink();
 
@@ -551,10 +582,12 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: trend.map((metric) {
-                final maxViews =
-                    trend.map((m) => m.views).reduce((a, b) => a > b ? a : b);
-                final height =
-                    maxViews > 0 ? (metric.views / maxViews) * 80 : 0.0;
+                final maxViews = trend
+                    .map((m) => m.views)
+                    .reduce((a, b) => a > b ? a : b);
+                final height = maxViews > 0
+                    ? (metric.views / maxViews) * 80
+                    : 0.0;
 
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -628,10 +661,7 @@ class _StatCard extends StatelessWidget {
           DsGap.md,
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           DsGap.xs,
           Text(

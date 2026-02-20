@@ -199,33 +199,27 @@ class DatePlan extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        matchId,
-        matchName,
-        matchPhotoUrl,
-        dateTime,
-        location,
-        locationAddress,
-        locationLatitude,
-        locationLongitude,
-        notes,
-        sharedWith,
-        createdAt,
-        checkInTime,
-        checkedInAt,
-        status,
-      ];
+    id,
+    userId,
+    matchId,
+    matchName,
+    matchPhotoUrl,
+    dateTime,
+    location,
+    locationAddress,
+    locationLatitude,
+    locationLongitude,
+    notes,
+    sharedWith,
+    createdAt,
+    checkInTime,
+    checkedInAt,
+    status,
+  ];
 }
 
 /// Status of a date plan.
-enum DatePlanStatus {
-  scheduled,
-  ongoing,
-  completed,
-  cancelled,
-  emergency,
-}
+enum DatePlanStatus { scheduled, ongoing, completed, cancelled, emergency }
 
 /// An emergency contact for sharing date details.
 class EmergencyContact extends Equatable {
@@ -269,11 +263,11 @@ class EmergencyContact extends Equatable {
 
   @override
   List<Object?> get props => [
-        name,
-        phone,
-        email,
-        relationship,
-        notifyBySms,
-        notifyByEmail,
-      ];
+    name,
+    phone,
+    email,
+    relationship,
+    notifyBySms,
+    notifyByEmail,
+  ];
 }

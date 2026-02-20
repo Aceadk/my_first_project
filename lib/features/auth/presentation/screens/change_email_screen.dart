@@ -7,7 +7,7 @@ import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/presentation/widgets/primary_button.dart';
+import 'package:crushhour/design_system/widgets/primary_button.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({super.key});
@@ -163,10 +163,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().requestEmailOtp(
-            identifier: email,
-            purpose: EmailOtpPurpose.changeEmail,
-            email: email,
-          ),
+        identifier: email,
+        purpose: EmailOtpPurpose.changeEmail,
+        email: email,
+      ),
       logLabel: 'AuthRepository.requestEmailOtp',
       fallbackError: 'Could not send code. Please try again.',
     );
@@ -205,11 +205,11 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().verifyEmailOtp(
-            identifier: email,
-            otp: otp,
-            purpose: EmailOtpPurpose.changeEmail,
-            newEmail: email,
-          ),
+        identifier: email,
+        otp: otp,
+        purpose: EmailOtpPurpose.changeEmail,
+        newEmail: email,
+      ),
       logLabel: 'AuthRepository.verifyEmailOtp',
       fallbackError: 'Invalid or expired code. Please try again.',
     );

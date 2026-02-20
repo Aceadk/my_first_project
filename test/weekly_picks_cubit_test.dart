@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/weekly_picks_cubit.dart';
 
@@ -533,7 +533,10 @@ void main() {
       authRepo = MockAuthRepository();
       // Clear singleton state from previous tests
       WeeklyPicksService.instance.clearUserData();
-      cubit = WeeklyPicksCubit(authRepository: authRepo);
+      cubit = WeeklyPicksCubit(
+        authRepository: authRepo,
+        weeklyPicksRepository: WeeklyPicksService.instance,
+      );
     });
 
     tearDown(() {

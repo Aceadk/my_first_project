@@ -97,23 +97,26 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
 
     if (result.isSuccess && result.data != null) {
       final paginated = result.data!;
-      emit(state.copyWith(
-        matches: [...state.matches, ...paginated.items],
-        isLoadingMore: false,
-        hasMore: paginated.hasMore,
-        total: paginated.total,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          matches: [...state.matches, ...paginated.items],
+          isLoadingMore: false,
+          hasMore: paginated.hasMore,
+          total: paginated.total,
+          errorMessage: null,
+        ),
+      );
     } else {
-      emit(state.copyWith(
-        isLoadingMore: false,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(isLoadingMore: false, errorMessage: result.errorMessage),
+      );
     }
   }
 
-  Future<void> _fetchMatches(Emitter<MatchesState> emit,
-      {required bool refresh}) async {
+  Future<void> _fetchMatches(
+    Emitter<MatchesState> emit, {
+    required bool refresh,
+  }) async {
     // Track if this is a manual refresh vs auto-retry
     final isManualRefresh =
         _isManualRefresh || state.status != MatchesStatus.error;
@@ -125,14 +128,16 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
     _isManualRefresh = false;
     _retryTimer?.cancel();
 
-    emit(state.copyWith(
-      isLoading: true,
-      status: MatchesStatus.loading,
-      errorMessage: null,
-      nextRetrySeconds: null,
-      // Reset pagination on refresh
-      hasMore: true,
-    ));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        status: MatchesStatus.loading,
+        errorMessage: null,
+        nextRetrySeconds: null,
+        // Reset pagination on refresh
+        hasMore: true,
+      ),
+    );
 
     final result = await Result.guard(
       () => chatRepository.fetchUserMatchesPaginated(userId, limit: _pageSize),
@@ -149,15 +154,17 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
       final paginated = result.data!;
       final hasMatches = paginated.items.isNotEmpty;
 
-      emit(state.copyWith(
-        matches: paginated.items,
-        isLoading: false,
-        status: hasMatches ? MatchesStatus.loaded : MatchesStatus.empty,
-        hasMore: paginated.hasMore,
-        total: paginated.total,
-        errorMessage: null,
-        nextRetrySeconds: null,
-      ));
+      emit(
+        state.copyWith(
+          matches: paginated.items,
+          isLoading: false,
+          status: hasMatches ? MatchesStatus.loaded : MatchesStatus.empty,
+          hasMore: paginated.hasMore,
+          total: paginated.total,
+          errorMessage: null,
+          nextRetrySeconds: null,
+        ),
+      );
 
       // Best-effort migration of message requests into chats for new matches.
       try {
@@ -168,7 +175,8 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
       } catch (e) {
         // Ignore migration errors to avoid blocking matches view.
         AppLogger.debug(
-            'MatchesBloc: Message request migration failed (non-blocking): $e');
+          'MatchesBloc: Message request migration failed (non-blocking): $e',
+        );
       }
     } else {
       _retryCount++;
@@ -179,23 +187,27 @@ class MatchesBloc extends Bloc<MatchesEvent, MatchesState> {
 
       // If we've retried enough times or error indicates no matches, show empty state
       if (_retryCount > _maxAutoRetries || isNoMatchesError) {
-        emit(state.copyWith(
-          isLoading: false,
-          status: MatchesStatus.empty,
-          matches: const [],
-          errorMessage: null,
-          nextRetrySeconds: null,
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            status: MatchesStatus.empty,
+            matches: const [],
+            errorMessage: null,
+            nextRetrySeconds: null,
+          ),
+        );
         return;
       }
 
       // Otherwise show error and schedule retry
-      emit(state.copyWith(
-        isLoading: false,
-        status: MatchesStatus.error,
-        errorMessage: errorMsg,
-        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          status: MatchesStatus.error,
+          errorMessage: errorMsg,
+          nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
+        ),
+      );
       _scheduleRetry();
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
@@ -36,9 +37,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
           (uri.isScheme('http') || uri.isScheme('https'));
     }).toList();
     _videoControllers = _validVideoUrls
-        .map(
-          (url) => VideoPlayerController.networkUrl(Uri.parse(url)),
-        )
+        .map((url) => VideoPlayerController.networkUrl(Uri.parse(url)))
         .toList();
     _videoInits = _videoControllers.map((c) => c.initialize()).toList();
   }
@@ -78,70 +77,88 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            if (photos.isEmpty)
-              const Center(child: Text('No photos yet'))
-            else
-              Column(
-                children: [
-                  Expanded(
-                    child: PageView.builder(
-                      itemCount: photos.length,
-                      itemBuilder: (context, index) {
-                        final url = photos[index];
-                        return InteractiveViewer(
-                          child: CachedNetworkImage(
-                            imageUrl: url,
-                            fit: BoxFit.contain,
-                            errorWidget: const Center(
-                              child: Text('Photo unavailable'),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = DsBreakpoints.contentMaxWidth(
+              constraints.maxWidth,
+            );
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: TabBarView(
+                  children: [
+                    if (photos.isEmpty)
+                      const Center(child: Text('No photos yet'))
+                    else
+                      Column(
+                        children: [
+                          Expanded(
+                            child: PageView.builder(
+                              itemCount: photos.length,
+                              itemBuilder: (context, index) {
+                                final url = photos[index];
+                                return InteractiveViewer(
+                                  child: CachedNetworkImage(
+                                    imageUrl: url,
+                                    fit: BoxFit.contain,
+                                    errorWidget: const Center(
+                                      child: Text('Photo unavailable'),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                      '${photos.length} photo${photos.length == 1 ? '' : 's'}'),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            if (videos.isEmpty)
-              const Center(child: Text('No videos yet'))
-            else
-              ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: videos.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final controller = _videoControllers[index];
-                  final init = _videoInits[index];
-                  return FutureBuilder<void>(
-                    future: init,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const SizedBox(
-                          height: 200,
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        return Container(
-                          height: 200,
-                          color: DsColors.ink900.withValues(alpha: 0.12),
-                          child: const Center(
-                            child: Text('Could not load video'),
+                          const SizedBox(height: 12),
+                          Text(
+                            '${photos.length} photo${photos.length == 1 ? '' : 's'}',
                           ),
-                        );
-                      }
-                      return _VideoPlayerTile(controller: controller);
-                    },
-                  );
-                },
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    if (videos.isEmpty)
+                      const Center(child: Text('No videos yet'))
+                    else
+                      ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: videos.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final controller = _videoControllers[index];
+                          final init = _videoInits[index];
+                          return FutureBuilder<void>(
+                            future: init,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const SizedBox(
+                                  height: 200,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              if (snapshot.hasError) {
+                                return Container(
+                                  height: 200,
+                                  color: DsColors.ink900.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  child: const Center(
+                                    child: Text('Could not load video'),
+                                  ),
+                                );
+                              }
+                              return _VideoPlayerTile(controller: controller);
+                            },
+                          );
+                        },
+                      ),
+                  ],
+                ),
               ),
-          ],
+            );
+          },
         ),
       ),
     );

@@ -1,5 +1,6 @@
+import 'package:crushhour/design_system/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
-import 'package:crushhour/design_system/widgets/crush_empty_state.dart';
+
 import 'package:crushhour/design_system/widgets/loading_overlay.dart';
 import 'package:crushhour/design_system/widgets/error_banner.dart';
 import '../widget_showcase.dart';
@@ -21,50 +22,42 @@ class _StatesShowcaseState extends State<StatesShowcase> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const ShowcaseSection(
-          title: 'CrushEmptyState',
-          subtitle: 'Empty state displays for various scenarios',
+          title: 'DsEmptyState',
         ),
         WidgetShowcase(
           title: 'No Matches',
           description: 'Shown when user has no matches yet',
           codeExample: '''
-CrushEmptyState.noMatches(
-  onKeepSwiping: () => navigateToDeck(),
+EmptyStateNoMatches(
+  onRefresh: () {},
 )''',
           child: SizedBox(
             height: 280,
-            child: CrushEmptyState.noMatches(
-              onKeepSwiping: () {},
-            ),
+            child: EmptyStateNoMatches(onRefresh: () {}),
           ),
         ),
         WidgetShowcase(
           title: 'No Messages',
           description: 'Shown when chat list is empty',
           codeExample: '''
-CrushEmptyState.noMessages(
-  onFindMatches: () => navigateToDeck(),
-)''',
+EmptyStateNoMessages(otherName: 'Someone')''',
           child: SizedBox(
             height: 250,
-            child: CrushEmptyState.noMessages(
-              onFindMatches: () {},
-            ),
+            child: EmptyStateNoMessages(otherName: 'Someone', onSendHi: () {}),
           ),
         ),
         WidgetShowcase(
           title: 'Connection Error',
           description: 'Shown when network request fails',
           codeExample: '''
-CrushEmptyState.connectionError(
+EmptyStateError(
   onRetry: () => reload(),
-  message: 'Custom error message',
 )''',
           child: SizedBox(
             height: 250,
-            child: CrushEmptyState.connectionError(
+            child: EmptyStateError(
               onRetry: () {},
-              message: 'Check your connection and try again.',
+              
             ),
           ),
         ),
@@ -72,19 +65,18 @@ CrushEmptyState.connectionError(
           title: 'Custom Empty State',
           description: 'Build your own empty state',
           codeExample: '''
-CrushEmptyState(
+DsEmptyState( 
   icon: Icons.star_border,
   title: 'Custom Title',
-  subtitle: 'Your custom message here.',
   actionLabel: 'Primary Action',
   onAction: () {},
 )''',
           child: SizedBox(
             height: 250,
-            child: CrushEmptyState(
+            child: DsEmptyState(
               icon: Icons.star_border,
               title: 'Custom Title',
-              subtitle: 'You can customize icon, title, subtitle, and actions.',
+              
               actionLabel: 'Primary Action',
               onAction: () {},
             ),
@@ -92,7 +84,6 @@ CrushEmptyState(
         ),
         const ShowcaseSection(
           title: 'LoadingOverlay',
-          subtitle: 'Overlay loading indicator on content',
         ),
         WidgetShowcase(
           title: 'Loading Overlay',
@@ -100,7 +91,6 @@ CrushEmptyState(
           codeExample: '''
 LoadingOverlay(
   isLoading: state.isLoading,
-  message: 'Saving...',
   child: YourContent(),
 )''',
           child: GestureDetector(
@@ -111,7 +101,6 @@ LoadingOverlay(
               height: 200,
               child: LoadingOverlay(
                 isLoading: _isLoading,
-                message: 'Loading...',
                 child: Card(
                   child: Center(
                     child: Text(
@@ -128,7 +117,6 @@ LoadingOverlay(
         ),
         const ShowcaseSection(
           title: 'ErrorBanner',
-          subtitle: 'Dismissible error message banner',
         ),
         WidgetShowcase(
           title: 'Error Banner',
@@ -148,15 +136,14 @@ ErrorBanner(
           description: 'Error banner without dismiss button',
           codeExample: '''
 ErrorBanner(
-  message: 'Persistent error message.',
+  message: 'Unable to load data right now.',
 )''',
           child: ErrorBanner(
-            message: 'This error cannot be dismissed.',
+            message: 'Unable to load data right now.',
           ),
         ),
         const ShowcaseSection(
           title: 'Progress Indicators',
-          subtitle: 'Standard Flutter loading indicators',
         ),
         const WidgetVariants(
           title: 'Loading Indicators',
@@ -172,10 +159,7 @@ ErrorBanner(
             ),
             WidgetVariant(
               label: 'Linear',
-              child: SizedBox(
-                width: 120,
-                child: LinearProgressIndicator(),
-              ),
+              child: SizedBox(width: 120, child: LinearProgressIndicator()),
             ),
             WidgetVariant(
               label: 'Adaptive',

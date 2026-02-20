@@ -82,12 +82,9 @@ void main() {
         expect(stories.length, 2);
         expect(stories.first.id, newer.id);
         expect(stories.last.id, older.id);
-        expect('user_b'.hasStories, isTrue);
-        expect('user_b'.storyCount, 2);
-        expect(
-          'user_b'.activeStories.map((s) => s.id),
-          containsAll([older.id, newer.id]),
-        );
+        expect(service.hasActiveStories('user_b'), isTrue);
+        expect(service.getActiveStoryCount('user_b'), 2);
+        expect(stories.map((s) => s.id), containsAll([older.id, newer.id]));
       },
     );
 

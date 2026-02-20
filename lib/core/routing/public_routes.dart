@@ -10,39 +10,37 @@ import 'page_builder.dart';
 
 /// Legal, safety, and public information routes.
 List<RouteBase> publicRoutes() => [
-      GoRoute(
-        path: CrushRoutes.safety,
-        pageBuilder: (context, state) =>
-            buildPage(state, const SafetyScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.safetyGuidelines,
-        pageBuilder: (context, state) =>
-            buildPage(state, const CommunityGuidelinesScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.privacyPolicy,
-        pageBuilder: (context, state) =>
-            buildPage(state, const PrivacyPolicyScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.termsOfService,
-        pageBuilder: (context, state) =>
-            buildPage(state, const TermsOfServiceScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.communityGuidelines,
-        pageBuilder: (context, state) =>
-            buildPage(state, const CommunityGuidelinesScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.productFeatures,
-        pageBuilder: (context, state) =>
-            buildPage(state, const ProductFeaturesScreen()),
-      ),
-      GoRoute(
-        path: CrushRoutes.pricing,
-        pageBuilder: (context, state) =>
-            buildPage(state, const PricingScreen()),
-      ),
-    ];
+  GoRoute(
+    path: CrushRoutes.safety,
+    pageBuilder: (context, state) => buildPage(state, const SafetyScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.safetyGuidelines,
+    pageBuilder: (context, state) =>
+        buildPage(state, const CommunityGuidelinesScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.privacyPolicy,
+    pageBuilder: (context, state) =>
+        buildPage(state, const PrivacyPolicyScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.termsOfService,
+    pageBuilder: (context, state) =>
+        buildPage(state, const TermsOfServiceScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.communityGuidelines,
+    pageBuilder: (context, state) =>
+        buildPage(state, const CommunityGuidelinesScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.productFeatures,
+    pageBuilder: (context, state) =>
+        buildPage(state, const ProductFeaturesScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.pricing,
+    pageBuilder: (context, state) => buildPage(state, const PricingScreen()),
+  ),
+];

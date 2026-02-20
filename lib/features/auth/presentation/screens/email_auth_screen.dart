@@ -57,8 +57,9 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
         bottom: TabBar(
           controller: _tabController,
           labelColor: DsColors.primary,
-          unselectedLabelColor:
-              theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          unselectedLabelColor: theme.colorScheme.onSurface.withValues(
+            alpha: 0.6,
+          ),
           indicatorColor: DsColors.primary,
           tabs: const [
             Tab(text: 'Email link'),
@@ -66,82 +67,92 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
           ],
         ),
       ),
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listenWhen: (previous, current) =>
-            previous.status != current.status ||
-            previous.errorMessage != current.errorMessage,
-        listener: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            _routeAfterAuth(context, state);
-          } else if (state.status == AuthStatus.emailLinkSent &&
-              state.emailInProgress != null) {
-            showSuccessSnackBar(
-              context,
-              'Check your email! We sent a sign-in link to ${state.emailInProgress}',
-            );
-          }
-          final error = state.errorMessage;
-          if (error != null && error.isNotEmpty) {
-            showErrorSnackBar(context, error);
-          }
-        },
-        builder: (context, state) {
-          return Column(
-            children: [
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: BlocConsumer<AuthBloc, AuthState>(
+              listenWhen: (previous, current) =>
+                  previous.status != current.status ||
+                  previous.errorMessage != current.errorMessage,
+              listener: (context, state) {
+                if (state.status == AuthStatus.authenticated) {
+                  _routeAfterAuth(context, state);
+                } else if (state.status == AuthStatus.emailLinkSent &&
+                    state.emailInProgress != null) {
+                  showSuccessSnackBar(
+                    context,
+                    'Check your email! We sent a sign-in link to ${state.emailInProgress}',
+                  );
+                }
+                final error = state.errorMessage;
+                if (error != null && error.isNotEmpty) {
+                  showErrorSnackBar(context, error);
+                }
+              },
+              builder: (context, state) {
+                return Column(
                   children: [
-                    _EmailLinkTab(
-                      emailController: _emailLinkController,
-                      emailTouched: _emailLinkTouched,
-                      onEmailTouched: () =>
-                          setState(() => _emailLinkTouched = true),
-                      state: state,
-                    ),
-                    _EmailPasswordTab(
-                      emailController: _emailPasswordController,
-                      passwordController: _passwordController,
-                      emailTouched: _emailPasswordTouched,
-                      passwordTouched: _passwordTouched,
-                      obscurePassword: _obscurePassword,
-                      onEmailTouched: () =>
-                          setState(() => _emailPasswordTouched = true),
-                      onPasswordTouched: () =>
-                          setState(() => _passwordTouched = true),
-                      onToggleObscure: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                      state: state,
-                    ),
-                  ],
-                ),
-              ),
-              // Bottom navigation to phone auth
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Semantics(
-                    button: true,
-                    label: 'Use phone number instead',
-                    child: GlassSmallButton(
-                      onPressed: state.isLoading
-                          ? null
-                          : () => context.go(CrushRoutes.phoneAuth),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
                         children: [
-                          Icon(Icons.phone_outlined, size: 18),
-                          SizedBox(width: 8),
-                          Text('Use phone number instead'),
+                          _EmailLinkTab(
+                            emailController: _emailLinkController,
+                            emailTouched: _emailLinkTouched,
+                            onEmailTouched: () =>
+                                setState(() => _emailLinkTouched = true),
+                            state: state,
+                          ),
+                          _EmailPasswordTab(
+                            emailController: _emailPasswordController,
+                            passwordController: _passwordController,
+                            emailTouched: _emailPasswordTouched,
+                            passwordTouched: _passwordTouched,
+                            obscurePassword: _obscurePassword,
+                            onEmailTouched: () =>
+                                setState(() => _emailPasswordTouched = true),
+                            onPasswordTouched: () =>
+                                setState(() => _passwordTouched = true),
+                            onToggleObscure: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
+                            state: state,
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+                    // Bottom navigation to phone auth
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Semantics(
+                          button: true,
+                          label: 'Use phone number instead',
+                          child: GlassSmallButton(
+                            onPressed: state.isLoading
+                                ? null
+                                : () => context.go(CrushRoutes.phoneAuth),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.phone_outlined, size: 18),
+                                SizedBox(width: 8),
+                                Text('Use phone number instead'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -197,7 +208,8 @@ class _EmailLinkTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final linkSent = state.status == AuthStatus.emailLinkSent &&
+    final linkSent =
+        state.status == AuthStatus.emailLinkSent &&
         (state.emailInProgress?.isNotEmpty ?? false);
     final isLoading = state.isLoading;
 
@@ -273,7 +285,8 @@ class _EmailLinkTab extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              DsColors.backgroundLight),
+                            DsColors.backgroundLight,
+                          ),
                         ),
                       )
                     : Text(
@@ -295,8 +308,9 @@ class _EmailLinkTab extends StatelessWidget {
               decoration: BoxDecoration(
                 color: DsColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: DsColors.success.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: DsColors.success.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
@@ -376,11 +390,7 @@ class _EmailPasswordTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          const Icon(
-            Icons.lock_outline,
-            size: 48,
-            color: DsColors.primary,
-          ),
+          const Icon(Icons.lock_outline, size: 48, color: DsColors.primary),
           DsGap.lg,
           Text(
             'Sign in with password',
@@ -471,7 +481,8 @@ class _EmailPasswordTab extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              DsColors.backgroundLight),
+                            DsColors.backgroundLight,
+                          ),
                         ),
                       )
                     : const Text(
@@ -505,8 +516,9 @@ class _EmailPasswordTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.5),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -562,7 +574,7 @@ class _EmailPasswordTab extends StatelessWidget {
     }
     final email = normalizeEmail(emailController.text);
     context.read<AuthBloc>().add(
-          AuthEmailPasswordSubmitted(email, passwordController.text),
-        );
+      AuthEmailPasswordSubmitted(email, passwordController.text),
+    );
   }
 }

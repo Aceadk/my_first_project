@@ -12,12 +12,13 @@ class ThemeCubit extends Cubit<AppThemeMode> {
     required SharedPreferences preferences,
     required AuthRepository authRepository,
     required ProfileRepository profileRepository,
-  })  : _preferences = preferences,
-        _authRepository = authRepository,
-        _profileRepository = profileRepository,
-        super(_readInitial(preferences)) {
-    _authSubscription =
-        _authRepository.authStateChanges().listen(_syncFromUser);
+  }) : _preferences = preferences,
+       _authRepository = authRepository,
+       _profileRepository = profileRepository,
+       super(_readInitial(preferences)) {
+    _authSubscription = _authRepository.authStateChanges().listen(
+      _syncFromUser,
+    );
   }
 
   final SharedPreferences _preferences;

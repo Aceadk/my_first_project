@@ -6,9 +6,7 @@ import 'package:crushhour/features/subscription/domain/repositories/subscription
 
 /// Stub implementation of BoostRepository using SharedPreferences.
 class StubBoostRepository implements BoostRepository {
-  StubBoostRepository({
-    required this.subscriptionRepository,
-  });
+  StubBoostRepository({required this.subscriptionRepository});
 
   final SubscriptionRepository subscriptionRepository;
 
@@ -95,11 +93,7 @@ class StubBoostRepository implements BoostRepository {
     await prefs.setInt(_lastBoostKey, now.millisecondsSinceEpoch);
     await prefs.setInt(_boostEndKey, endTime.millisecondsSinceEpoch);
 
-    return BoostSession(
-      startedAt: now,
-      endsAt: endTime,
-      isActive: true,
-    );
+    return BoostSession(startedAt: now, endsAt: endTime, isActive: true);
   }
 
   @override

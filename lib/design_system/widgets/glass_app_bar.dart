@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 
@@ -82,7 +83,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     final isDark = brightness == Brightness.dark;
     final theme = Theme.of(context);
 
-    final bgColor = backgroundColor ??
+    final bgColor =
+        backgroundColor ??
         DsGlassColors.surfaceFor(
           context,
           strength: DsGlassSurfaceStrength.heavy,
@@ -90,12 +92,14 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     // Determine system UI overlay style
-    final systemStyle =
-        isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark;
+    final systemStyle = isDark
+        ? SystemUiOverlayStyle.light
+        : SystemUiOverlayStyle.dark;
 
     Widget titleContent;
     if (titleWidget != null) {
@@ -103,6 +107,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     } else if (title != null) {
       titleContent = Text(
         title!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleLarge?.copyWith(
           color: textColor,
           fontWeight: FontWeight.w600,
@@ -130,11 +136,14 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: SizedBox(
                   height: toolbarHeight,
                   child: NavigationToolbar(
-                    leading: leading ??
+                    leading:
+                        leading ??
                         (automaticallyImplyLeading && Navigator.canPop(context)
                             ? IconButton(
-                                icon: Icon(Icons.arrow_back_ios_new,
-                                    color: textColor),
+                                icon: Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: textColor,
+                                ),
                                 onPressed: () => Navigator.pop(context),
                               )
                             : null),
@@ -197,14 +206,16 @@ class GlassSliverAppBar extends StatelessWidget {
     final isDark = brightness == Brightness.dark;
     final theme = Theme.of(context);
 
-    final bgColor = backgroundColor ??
+    final bgColor =
+        backgroundColor ??
         DsGlassColors.surfaceFor(
           context,
           strength: DsGlassSurfaceStrength.heavy,
         );
 
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     Widget? titleContent;
     if (titleWidget != null) {
@@ -212,6 +223,8 @@ class GlassSliverAppBar extends StatelessWidget {
     } else if (title != null) {
       titleContent = Text(
         title!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleLarge?.copyWith(
           color: textColor,
           fontWeight: FontWeight.w600,

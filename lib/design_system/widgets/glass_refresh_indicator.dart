@@ -114,7 +114,8 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
     final effects = Theme.of(context).extension<CrushThemeEffects>();
     final motionScale = effects?.motionScale ?? 1.0;
     final indicatorColor = widget.color ?? DsColors.primary;
-    final bgColor = widget.backgroundColor ??
+    final bgColor =
+        widget.backgroundColor ??
         DsGlassColors.surfaceFor(
           context,
           strength: DsGlassSurfaceStrength.medium,
@@ -125,10 +126,10 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
     return Stack(
       children: [
         // Indicator
-        Positioned(
+        PositionedDirectional(
           top: 0,
-          left: 0,
-          right: 0,
+          start: 0,
+          end: 0,
           child: AnimatedContainer(
             duration: _isRefreshing
                 ? Duration.zero
@@ -172,8 +173,9 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
                                   padding: const EdgeInsets.all(12),
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(indicatorColor),
+                                    valueColor: AlwaysStoppedAnimation(
+                                      indicatorColor,
+                                    ),
                                   ),
                                 ),
                               )

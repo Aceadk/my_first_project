@@ -10,7 +10,7 @@ class GetPhotoPerformanceUseCase
   final ProfileInsightsRepository _service;
 
   GetPhotoPerformanceUseCase([ProfileInsightsRepository? service])
-      : _service = service ?? ProfileInsightsService.instance;
+    : _service = service ?? ProfileInsightsService.instance;
 
   @override
   Future<Result<List<PhotoPerformance>>> call(NoParams params) {

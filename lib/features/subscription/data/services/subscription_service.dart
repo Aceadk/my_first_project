@@ -17,8 +17,9 @@ class SubscriptionService {
     final status = prefs.getString(_statusKey);
     final renewalStr = prefs.getString(_renewalKey);
 
-    final plan =
-        planName == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    final plan = planName == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
     DateTime? renewal;
     if (renewalStr != null) {
       renewal = DateTime.tryParse(renewalStr);

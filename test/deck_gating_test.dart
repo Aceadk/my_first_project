@@ -84,7 +84,7 @@ void main() {
   testWidgets('deck shows gating dialog when profile incomplete on like tap', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'has_seen_deck_tutorial': true});
     final prefsInstance = await SharedPreferences.getInstance();
 
     const user = CrushUser(
@@ -129,11 +129,14 @@ void main() {
             BlocProvider<SubscriptionBloc>(
               create: (_) => SubscriptionBloc(
                 subscriptionRepository: _StubSubscriptionRepository(),
+                authRepository: _StubAuthRepository(user),
               ),
             ),
             BlocProvider<BoostCubit>(
-              create: (_) =>
-                  BoostCubit(boostRepository: _StubBoostRepository()),
+              create: (_) => BoostCubit(
+                boostRepository: _StubBoostRepository(),
+                authRepository: _StubAuthRepository(user),
+              ),
             ),
           ],
           child: const MaterialApp(home: DeckScreen()),

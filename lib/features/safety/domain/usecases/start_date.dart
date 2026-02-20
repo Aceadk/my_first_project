@@ -16,7 +16,7 @@ class StartDateUseCase extends UseCase<DatePlan, StartDateParams>
   final DatePlanService _service;
 
   StartDateUseCase([DatePlanService? service])
-      : _service = service ?? DatePlanService.instance;
+    : _service = service ?? DatePlanService.instance;
 
   @override
   String? validate(StartDateParams params) {

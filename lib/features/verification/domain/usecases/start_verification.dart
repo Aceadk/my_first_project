@@ -17,7 +17,7 @@ class StartVerificationUseCase
   final PhotoVerificationService _service;
 
   StartVerificationUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   String? validate(StartVerificationParams params) {

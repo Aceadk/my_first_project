@@ -1,9 +1,10 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Screen displaying weekly curated picks for the user.
 class WeeklyPicksScreen extends StatefulWidget {
@@ -16,11 +17,12 @@ class WeeklyPicksScreen extends StatefulWidget {
 }
 
 class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
-  final _service = WeeklyPicksService.instance;
   WeeklyPicks? _picks;
   bool _isLoading = true;
   String? _errorMessage;
   int _currentIndex = 0;
+
+  late final _service = context.read<WeeklyPicksRepository>();
 
   @override
   void initState() {
@@ -50,8 +52,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final textColor = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -60,7 +63,7 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
         actions: [
           if (_picks != null)
             Padding(
-              padding: const EdgeInsets.only(right: DsSpacing.md),
+              padding: const EdgeInsetsDirectional.only(end: DsSpacing.md),
               child: GlassChip(
                 label: '${_service.unseenCount} new',
                 icon: Icons.star,
@@ -74,15 +77,17 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? DsColors.backgroundDark : DsColors.backgroundLight,
+                color: isDark
+                    ? DsColors.backgroundDark
+                    : DsColors.backgroundLight,
               ),
               child: const Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration:
-                          BoxDecoration(gradient: DsGradients.meshRadial),
+                      decoration: BoxDecoration(
+                        gradient: DsGradients.meshRadial,
+                      ),
                     ),
                   ),
                 ],
@@ -91,13 +96,25 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
           ),
           // Content
           SafeArea(
-            child: _isLoading
-                ? _buildSkeletonLoading()
-                : _errorMessage != null
-                    ? _buildErrorState(textColor)
-                    : _picks == null || _picks!.picks.isEmpty
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxWidth = DsBreakpoints.contentMaxWidth(
+                  constraints.maxWidth,
+                );
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    child: _isLoading
+                        ? _buildSkeletonLoading()
+                        : _errorMessage != null
+                        ? _buildErrorState(textColor)
+                        : _picks == null || _picks!.picks.isEmpty
                         ? _buildEmptyState(textColor)
                         : _buildPicksContent(context, textColor),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -105,9 +122,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   }
 
   Widget _buildSkeletonLoading() {
-    return DsShimmer(
-      child: Column(
-        children: [
+    return Column(
+      children: [
           // Timer skeleton
           Padding(
             padding: const EdgeInsets.all(DsSpacing.lg),
@@ -135,9 +151,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                 child: Stack(
                   children: [
                     // Top badge skeleton
-                    Positioned(
+                    PositionedDirectional(
                       top: DsSpacing.lg,
-                      left: DsSpacing.lg,
+                      start: DsSpacing.lg,
                       child: Container(
                         width: 120,
                         height: 32,
@@ -150,9 +166,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                       ),
                     ),
                     // Bottom info skeleton
-                    Positioned(
-                      left: 0,
-                      right: 0,
+                    PositionedDirectional(
+                      start: 0,
+                      end: 0,
                       bottom: 0,
                       child: Container(
                         height: 100,
@@ -193,9 +209,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
           ),
           // Buttons skeleton
           Padding(
-            padding: const EdgeInsets.only(
-              left: DsSpacing.xl,
-              right: DsSpacing.xl,
+            padding: const EdgeInsetsDirectional.only(
+              start: DsSpacing.xl,
+              end: DsSpacing.xl,
               bottom: DsSpacing.xl,
             ),
             child: Row(
@@ -226,8 +242,7 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
               ],
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -288,8 +303,11 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.star_outline,
-              size: 64, color: textColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.star_outline,
+            size: 64,
+            color: textColor.withValues(alpha: 0.5),
+          ),
           DsGap.md,
           Text(
             'No picks available',
@@ -371,8 +389,8 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                   color: isActive
                       ? DsColors.primary
                       : isViewed
-                          ? DsColors.primary.withValues(alpha: 0.3)
-                          : textColor.withValues(alpha: 0.2),
+                      ? DsColors.primary.withValues(alpha: 0.3)
+                      : textColor.withValues(alpha: 0.2),
                 ),
               );
             }),
@@ -381,9 +399,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
 
         // Action buttons
         Padding(
-          padding: const EdgeInsets.only(
-            left: DsSpacing.xl,
-            right: DsSpacing.xl,
+          padding: const EdgeInsetsDirectional.only(
+            start: DsSpacing.xl,
+            end: DsSpacing.xl,
             bottom: DsSpacing.xl,
           ),
           child: Row(
@@ -471,9 +489,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
             ),
 
             // Pick reason badge
-            Positioned(
+            PositionedDirectional(
               top: DsSpacing.lg,
-              left: DsSpacing.lg,
+              start: DsSpacing.lg,
               child: GlassChip.selected(
                 label: '${pick.reason.emoji} ${pick.reason.displayText}',
               ),
@@ -481,9 +499,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
 
             // Viewed indicator
             if (isViewed)
-              Positioned(
+              PositionedDirectional(
                 top: DsSpacing.lg,
-                right: DsSpacing.lg,
+                end: DsSpacing.lg,
                 child: GlassStatusBadge(
                   label: isLiked ? 'Liked' : 'Viewed',
                   icon: isLiked ? Icons.favorite : Icons.visibility,
@@ -492,9 +510,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
               ),
 
             // Bottom info
-            Positioned(
-              left: 0,
-              right: 0,
+            PositionedDirectional(
+              start: 0,
+              end: 0,
               bottom: 0,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
@@ -502,7 +520,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                 ),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(
-                      sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
+                    sigmaX: DsBlur.medium,
+                    sigmaY: DsBlur.medium,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(DsSpacing.lg),
                     decoration: BoxDecoration(
@@ -518,8 +538,11 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                         if (pick.matchScore != null) ...[
                           Row(
                             children: [
-                              const Icon(Icons.favorite,
-                                  color: DsColors.primary, size: 16),
+                              const Icon(
+                                Icons.favorite,
+                                color: DsColors.primary,
+                                size: 16,
+                              ),
                               DsGap.xsH,
                               Text(
                                 '${pick.matchScore}% Match',
@@ -544,8 +567,9 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                           Wrap(
                             spacing: DsSpacing.xs,
                             runSpacing: DsSpacing.xs,
-                            children:
-                                pick.commonInterests.take(3).map((interest) {
+                            children: pick.commonInterests.take(3).map((
+                              interest,
+                            ) {
                               return GlassChip(label: interest, height: 28);
                             }).toList(),
                           ),

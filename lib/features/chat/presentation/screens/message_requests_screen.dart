@@ -23,10 +23,7 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
     preferredSize: const Size.fromHeight(kToolbarHeight),
     child: ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.heavy,
-          sigmaY: DsBlur.heavy,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -51,8 +48,8 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Positioned(
-                    left: DsSpacing.sm,
+                  PositionedDirectional(
+                    start: DsSpacing.sm,
                     child: GlassIconButton(
                       icon: Icons.arrow_back,
                       onPressed: () => context.pop(),
@@ -66,9 +63,9 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
                       child: Text(
                         'Message Requests',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: DsColors.surfaceLight,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: DsColors.surfaceLight,
+                        ),
                       ),
                     ),
                   ),
@@ -133,9 +130,9 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
             child: Text(
               'No message requests',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: DsColors.surfaceLight,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: DsColors.surfaceLight,
+              ),
             ),
           ),
           DsGap.sm,
@@ -143,9 +140,8 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
             'When someone sends you a message request,\nit will show up here for 48 hours.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-                ),
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
           ),
         ],
       ),
@@ -204,10 +200,11 @@ class _MessageRequestsView extends StatelessWidget {
 
   void _showMatchCelebration(BuildContext context, String userName) {
     DsHaptics.match();
-    showDialog(
+    MatchCelebration.show(
       context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => _MatchCelebrationDialog(userName: userName),
+      yourImageUrl: '',
+      matchImageUrl: '',
+      matchName: userName,
     ).then((_) {
       if (context.mounted) {
         context.read<MessageRequestsCubit>().clearMatchNotification();
@@ -241,34 +238,47 @@ class _MessageRequestsView extends StatelessWidget {
           empty: state.requests.isEmpty
               ? _buildMessageRequestsEmptyState(context)
               : null,
-          body: RefreshIndicator(
-            onRefresh: () => context.read<MessageRequestsCubit>().refresh(),
-            child: ListView.separated(
-              padding: DsEdgeInsets.allLg,
-              itemCount: state.requests.length,
-              separatorBuilder: (_, _) => DsGap.md,
-              itemBuilder: (context, index) {
-                final request = state.requests[index];
-                return _MessageRequestCard(
-                  request: request,
-                  currentUserId: currentUserId,
-                  isProcessing: state.isProcessing(request.id),
-                  onTap: () => _openProfile(context, request),
-                  onAccept: request.isInboundFor(currentUserId)
-                      ? () {
-                          DsHaptics.medium();
-                          context
-                              .read<MessageRequestsCubit>()
-                              .acceptRequest(request);
-                        }
-                      : null,
-                  onDecline: () {
-                    DsHaptics.light();
-                    _showDeclineConfirmation(context, request);
-                  },
-                );
-              },
-            ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = DsBreakpoints.contentMaxWidth(
+                constraints.maxWidth,
+              );
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: RefreshIndicator(
+                    onRefresh: () =>
+                        context.read<MessageRequestsCubit>().refresh(),
+                    child: ListView.separated(
+                      padding: DsEdgeInsets.allLg,
+                      itemCount: state.requests.length,
+                      separatorBuilder: (_, _) => DsGap.md,
+                      itemBuilder: (context, index) {
+                        final request = state.requests[index];
+                        return _MessageRequestCard(
+                          request: request,
+                          currentUserId: currentUserId,
+                          isProcessing: state.isProcessing(request.id),
+                          onTap: () => _openProfile(context, request),
+                          onAccept: request.isInboundFor(currentUserId)
+                              ? () {
+                                  DsHaptics.medium();
+                                  context
+                                      .read<MessageRequestsCubit>()
+                                      .acceptRequest(request);
+                                }
+                              : null,
+                          onDecline: () {
+                            DsHaptics.light();
+                            _showDeclineConfirmation(context, request);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         );
       },
@@ -384,8 +394,9 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
   Widget build(BuildContext context) {
     final otherName =
         widget.request.otherUserNameFor(widget.currentUserId) ?? 'Unknown';
-    final otherPhotoUrl =
-        widget.request.otherUserPhotoUrlFor(widget.currentUserId);
+    final otherPhotoUrl = widget.request.otherUserPhotoUrlFor(
+      widget.currentUserId,
+    );
     final inbound = widget.request.isInboundFor(widget.currentUserId);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isExpired = _remaining == Duration.zero;
@@ -398,10 +409,7 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(DsRadius.lg),
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: DsBlur.light,
-            sigmaY: DsBlur.light,
-          ),
+          filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -486,12 +494,12 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                                         .textTheme
                                         .labelSmall
                                         ?.copyWith(
-                                      color: _getCountdownColor(isDark),
-                                      fontWeight: FontWeight.w600,
-                                      fontFeatures: const [
-                                        FontFeature.tabularFigures(),
-                                      ],
-                                    ),
+                                          color: _getCountdownColor(isDark),
+                                          fontWeight: FontWeight.w600,
+                                          fontFeatures: const [
+                                            FontFeature.tabularFigures(),
+                                          ],
+                                        ),
                                   ),
                                 ],
                               ),
@@ -526,8 +534,9 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                         children: [
                           Expanded(
                             child: _ActionButton(
-                              onPressed:
-                                  widget.isProcessing ? null : widget.onDecline,
+                              onPressed: widget.isProcessing
+                                  ? null
+                                  : widget.onDecline,
                               icon: Icons.close_rounded,
                               label: 'Decline',
                               isDestructive: true,
@@ -537,8 +546,9 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                           Expanded(
                             flex: 2,
                             child: _ActionButton(
-                              onPressed:
-                                  widget.isProcessing ? null : widget.onAccept,
+                              onPressed: widget.isProcessing
+                                  ? null
+                                  : widget.onAccept,
                               icon: Icons.favorite_rounded,
                               label: 'Accept & Match',
                               isPrimary: true,
@@ -565,9 +575,7 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                           const SizedBox(width: 4),
                           Text(
                             'Sent • Waiting for response',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: isDark
                                       ? DsColors.textMutedDark
@@ -597,10 +605,7 @@ class _DirectionBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         gradient: isInbound
             ? LinearGradient(
@@ -625,9 +630,9 @@ class _DirectionBadge extends StatelessWidget {
           Text(
             isInbound ? 'Received' : 'Sent',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: isInbound ? DsColors.primary : DsColors.secondary,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: isInbound ? DsColors.primary : DsColors.secondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -667,14 +672,16 @@ class _ActionButton extends StatelessWidget {
       backgroundColor = isDark
           ? DsColors.surfaceLight.withValues(alpha: 0.1)
           : DsColors.ink900.withValues(alpha: 0.05);
-      foregroundColor =
-          isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
+      foregroundColor = isDark
+          ? DsColors.textMutedDark
+          : DsColors.textMutedLight;
     } else {
       backgroundColor = isDark
           ? DsColors.surfaceLight.withValues(alpha: 0.1)
           : DsColors.ink900.withValues(alpha: 0.05);
-      foregroundColor =
-          isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+      foregroundColor = isDark
+          ? DsColors.textPrimaryDark
+          : DsColors.textPrimaryLight;
     }
 
     return Material(
@@ -706,180 +713,14 @@ class _ActionButton extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: foregroundColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Match celebration dialog.
-class _MatchCelebrationDialog extends StatefulWidget {
-  final String userName;
-
-  const _MatchCelebrationDialog({required this.userName});
-
-  @override
-  State<_MatchCelebrationDialog> createState() =>
-      _MatchCelebrationDialogState();
-}
-
-class _MatchCelebrationDialogState extends State<_MatchCelebrationDialog>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: Dialog(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(DsRadius.xl),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(DsSpacing.xl),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          DsColors.primary.withValues(alpha: 0.3),
-                          DsColors.secondary.withValues(alpha: 0.2),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(DsRadius.xl),
-                      border: Border.all(
-                        color: DsColors.surfaceLight.withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Heart icon with glow
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: DsGradients.primaryHorizontal,
-                            boxShadow: [
-                              BoxShadow(
-                                color: DsColors.primary.withValues(alpha: 0.5),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.favorite_rounded,
-                            color: DsColors.surfaceLight,
-                            size: 40,
-                          ),
-                        ),
-                        const SizedBox(height: DsSpacing.lg),
-                        ShaderMask(
-                          shaderCallback: (bounds) => DsGradients
-                              .primaryHorizontal
-                              .createShader(bounds),
-                          child: Text(
-                            "It's a Match!",
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: DsColors.surfaceLight,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(height: DsSpacing.sm),
-                        Text(
-                          'You and ${widget.userName} liked each other!',
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                  ),
-                        ),
-                        const SizedBox(height: DsSpacing.xl),
-                        // Actions
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GlassOutlinedButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                height: 44,
-                                child: const Text('Keep Browsing'),
-                              ),
-                            ),
-                            const SizedBox(width: DsSpacing.sm),
-                            Expanded(
-                              child: GlassPrimaryButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  // Navigate to chats
-                                  context.go(CrushRoutes.chat);
-                                },
-                                height: 44,
-                                child: const Text('Start Chatting'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

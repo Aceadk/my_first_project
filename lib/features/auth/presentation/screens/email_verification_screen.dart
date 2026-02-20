@@ -53,7 +53,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     if (state == AppLifecycleState.resumed) {
       // App came back to foreground - immediately check verification
       AppLogger.info(
-          '[EmailVerificationScreen] App resumed, checking verification...');
+        '[EmailVerificationScreen] App resumed, checking verification...',
+      );
       _checkVerification();
     }
   }
@@ -76,7 +77,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
       if (user != null && user.isEmailVerified) {
         AppLogger.info(
-            '[EmailVerificationScreen] Email verified! Navigating to home...');
+          '[EmailVerificationScreen] Email verified! Navigating to home...',
+        );
         _checkTimer?.cancel();
 
         if (mounted) {
@@ -97,7 +99,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       }
     } catch (e) {
       AppLogger.error(
-          '[EmailVerificationScreen] Error checking verification', error: e);
+        '[EmailVerificationScreen] Error checking verification',
+        error: e,
+      );
     } finally {
       if (mounted) {
         setState(() => _isChecking = false);
@@ -126,7 +130,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       }
     } catch (e) {
       AppLogger.error(
-          '[EmailVerificationScreen] Error sending verification', error: e);
+        '[EmailVerificationScreen] Error sending verification',
+        error: e,
+      );
       if (mounted) {
         setState(() {
           _message = 'Failed to send email. Please try again.';
@@ -169,192 +175,204 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     );
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: DsEdgeInsets.screenPadding,
-          child: Column(
-            children: [
-              const Spacer(),
-
-              // Email icon
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: DsColors.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.mark_email_unread_outlined,
-                  size: 64,
-                  color: DsColors.primary,
-                ),
-              ),
-              DsGap.xl,
-
-              // Title
-              Text(
-                'Verify Your Email',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              DsGap.md,
-
-              // Description
-              Text(
-                'We\'ve sent a verification link to:',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-              DsGap.sm,
-              Text(
-                user ?? 'your email',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              DsGap.md,
-              Text(
-                'Click the link in the email to verify your account and continue.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-              DsGap.xl,
-
-              // Status message
-              if (_message != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DsSpacing.lg,
-                    vertical: DsSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _message!.contains('Failed')
-                        ? DsColors.error.withValues(alpha: 0.1)
-                        : DsColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _message!.contains('Failed')
-                            ? Icons.error_outline
-                            : Icons.check_circle_outline,
-                        color: _message!.contains('Failed')
-                            ? DsColors.error
-                            : DsColors.success,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          _message!,
-                          style: TextStyle(
-                            color: _message!.contains('Failed')
-                                ? DsColors.error
-                                : DsColors.success,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                DsGap.lg,
-              ],
-
-              // Checking indicator
-              if (_isChecking) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: DsEdgeInsets.screenPadding,
+                child: Column(
                   children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
+                    const Spacer(),
+
+                    // Email icon
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: DsColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.mark_email_unread_outlined,
+                        size: 64,
+                        color: DsColors.primary,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    DsGap.xl,
+
+                    // Title
                     Text(
-                      'Checking verification status...',
+                      'Verify Your Email',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    DsGap.md,
+
+                    // Description
+                    Text(
+                      'We\'ve sent a verification link to:',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontSize: 13,
                       ),
                     ),
-                  ],
-                ),
-                DsGap.lg,
-              ],
+                    DsGap.sm,
+                    Text(
+                      user ?? 'your email',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    DsGap.md,
+                    Text(
+                      'Click the link in the email to verify your account and continue.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                    DsGap.xl,
 
-              // Resend button
-              Semantics(
-                button: true,
-                label: 'Resend verification email',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: GlassPrimaryButton(
-                    onPressed: (_isSending || _resendCooldown > 0)
-                        ? null
-                        : _sendVerificationEmail,
-                    child: _isSending
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
+                    // Status message
+                    if (_message != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DsSpacing.lg,
+                          vertical: DsSpacing.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _message!.contains('Failed')
+                              ? DsColors.error.withValues(alpha: 0.1)
+                              : DsColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _message!.contains('Failed')
+                                  ? Icons.error_outline
+                                  : Icons.check_circle_outline,
+                              color: _message!.contains('Failed')
+                                  ? DsColors.error
+                                  : DsColors.success,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _message!,
+                                style: TextStyle(
+                                  color: _message!.contains('Failed')
+                                      ? DsColors.error
+                                      : DsColors.success,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DsGap.lg,
+                    ],
+
+                    // Checking indicator
+                    if (_isChecking) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: DsColors.backgroundLight,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
                             ),
-                          )
-                        : Text(
-                            _resendCooldown > 0
-                                ? 'Resend in ${_resendCooldown}s'
-                                : 'Resend Verification Email',
                           ),
-                  ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Checking verification status...',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                      DsGap.lg,
+                    ],
+
+                    // Resend button
+                    Semantics(
+                      button: true,
+                      label: 'Resend verification email',
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: GlassPrimaryButton(
+                          onPressed: (_isSending || _resendCooldown > 0)
+                              ? null
+                              : _sendVerificationEmail,
+                          child: _isSending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: DsColors.backgroundLight,
+                                  ),
+                                )
+                              : Text(
+                                  _resendCooldown > 0
+                                      ? 'Resend in ${_resendCooldown}s'
+                                      : 'Resend Verification Email',
+                                ),
+                        ),
+                      ),
+                    ),
+                    DsGap.md,
+
+                    // Check now button
+                    Semantics(
+                      button: true,
+                      label: 'I have verified, check now',
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: GlassOutlinedButton(
+                          onPressed: _isChecking ? null : _checkVerification,
+                          child: const Text('I\'ve Verified - Check Now'),
+                        ),
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // Sign out / Use different email
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GlassSmallButton(
+                          onPressed: _signOut,
+                          child: const Text('Sign Out'),
+                        ),
+                        const Text(' • '),
+                        GlassSmallButton(
+                          onPressed: _signOut,
+                          child: const Text('Use Different Email'),
+                        ),
+                      ],
+                    ),
+                    DsGap.lg,
+                  ],
                 ),
               ),
-              DsGap.md,
-
-              // Check now button
-              Semantics(
-                button: true,
-                label: 'I have verified, check now',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: GlassOutlinedButton(
-                    onPressed: _isChecking ? null : _checkVerification,
-                    child: const Text('I\'ve Verified - Check Now'),
-                  ),
-                ),
-              ),
-
-              const Spacer(),
-
-              // Sign out / Use different email
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GlassSmallButton(
-                    onPressed: _signOut,
-                    child: const Text('Sign Out'),
-                  ),
-                  const Text(' • '),
-                  GlassSmallButton(
-                    onPressed: _signOut,
-                    child: const Text('Use Different Email'),
-                  ),
-                ],
-              ),
-              DsGap.lg,
-            ],
+            ),
           ),
         ),
       ),

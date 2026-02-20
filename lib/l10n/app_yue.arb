@@ -1,6 +1,5 @@
 {
   "@@locale": "yue",
-
   "@@_COMMON": "成個app都會用到嘅通用UI元素",
   "commonCancel": "取消",
   "commonSave": "儲存",
@@ -44,7 +43,6 @@
   "commonUnblock": "解除封鎖",
   "commonMute": "靜音",
   "commonUnmute": "取消靜音",
-
   "@@_ERRORS": "錯誤訊息",
   "errorGeneric": "出咗啲問題。請再試吓。",
   "errorNetwork": "連線錯誤。檢查吓你嘅網絡再試吓。",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action}唔到。請再試吓。",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature}係Plus功能。升級嚟解鎖！",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "無障礙標籤同提示",
   "a11yBackButton": "返回",
   "a11yCloseButton": "關閉",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name}嘅個人檔案相片",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "用戶頭像",
   "a11yAvatarOf": "{name}嘅頭像",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "編輯個人檔案",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender}嘅訊息",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1則未讀訊息} other{{count}則未讀訊息}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "顯示密碼",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "配對成功！你同{name}配對咗",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender}嘅新訊息",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "已讚好個人檔案",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "已超級讚好個人檔案",
   "a11yMessageSent": "訊息已傳送",
   "a11ySettingSaved": "設定已儲存",
-
   "@@_AUTH": "驗證畫面",
   "authWelcomeBack": "歡迎返嚟",
   "authSignInToContinue": "登入嚟繼續使用Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "我哋已經傳送驗證碼去{destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "輸入6位數驗證碼",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "撳我哋傳送嘅連結嚟驗證你嘅電郵",
   "authEmailVerified": "電郵驗證成功！",
   "authSkipForNow": "暫時跳過",
-
   "@@_SETTINGS": "設定畫面",
   "settingsTitle": "設定",
   "settingsAppearance": "外觀",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance}公里",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "顯示畀我睇",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "管理你嘅計劃",
   "settingsGetPlus": "取得Crush Plus",
   "settingsRestorePurchases": "還原購買項目",
-
   "@@_DISCOVERY": "探索/牌組畫面",
   "discoveryTitle": "探索",
   "discoveryNoMatchesTitle": "仲未有配對",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "你同{name}互相讚好咗",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "傳送訊息",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "讚好你",
   "discoveryTopPicks": "精選推薦",
   "discoveryNewArrivals": "新加入嘅人",
-
   "@@_CHAT": "對話/訊息畫面",
   "chatTitle": "對話",
   "chatMatches": "配對",
@@ -367,7 +382,9 @@
   "chatStartConversation": "同{name}開始對話",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "輸入訊息...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "最後上線於{time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "正在輸入...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "你同{name}配對咗",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "個人檔案畫面",
   "profileTitle": "個人檔案",
   "profileEdit": "編輯個人檔案",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height}厘米",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "語言",
@@ -450,7 +472,6 @@
   "profileAboutMe": "關於我",
   "profileMyDetails": "我嘅詳細資料",
   "profileLifestyle": "生活方式",
-
   "@@_ONBOARDING": "入門畫面",
   "onboardingWelcome": "歡迎嚟到Crush",
   "onboardingTagline": "搵到你嘅完美對象",
@@ -458,8 +479,12 @@
   "onboardingStep": "第{current}步，共{total}步",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "你叫咩名？",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "揀最少3個興趣",
   "onboardingAllSet": "準備好晒喇！",
   "onboardingStartSwiping": "開始滑動",
-
   "@@_SUBSCRIPTION": "訂閱畫面",
   "subscriptionFree": "免費",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "每月{count}次加強",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "每日{count}次超級讚好",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "冇廣告",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/月",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/年",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "最抵",
   "subscriptionMostPopular": "最受歡迎",
-
   "@@_SAFETY": "安全同舉報",
   "safetyReportUser": "舉報用戶",
   "safetyBlockUser": "封鎖用戶",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "封鎖{name}？",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "佢哋將睇唔到你嘅個人檔案或者傳訊息畀你",
@@ -532,42 +565,46 @@
   "safetySpam": "垃圾訊息",
   "safetyScam": "詐騙",
   "safetyOther": "其他",
-
   "@@_TIME": "時間相關字串",
   "timeJustNow": "啱啱",
   "timeMinutesAgo": "{count, plural, =1{1分鐘前} other{{count}分鐘前}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1小時前} other{{count}小時前}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1日前} other{{count}日前}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1個禮拜前} other{{count}個禮拜前}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "空白狀態訊息",
   "emptyNoResults": "搵唔到結果",
   "emptyTryAgain": "試吓調整你嘅搜尋或篩選",
   "emptyNoData": "冇數據",
   "emptyCheckBackLater": "遲啲再嚟睇吓",
-
   "@@_ADDITIONAL_WORDS": "額外常用詞彙用於靈活檢測",
-
   "@@_NAV_WORDS": "導航詞彙",
   "wordHome": "主頁",
   "wordExplore": "探索",
@@ -579,7 +616,6 @@
   "wordInbox": "收件箱",
   "wordFavorites": "我的最愛",
   "wordHistory": "歷史",
-
   "@@_ACTION_WORDS": "動作詞彙",
   "wordCopy": "複製",
   "wordPaste": "貼上",
@@ -698,7 +734,6 @@
   "wordDecide": "決定",
   "wordAgree": "同意",
   "wordDisagree": "唔同意",
-
   "@@_STATUS_WORDS": "狀態詞彙",
   "wordActive": "活躍",
   "wordInactive": "唔活躍",
@@ -765,7 +800,6 @@
   "wordUnseen": "未睇",
   "wordOpenStatus": "開啟中",
   "wordClosed": "已關閉",
-
   "@@_TIME_WORDS": "時間相關詞彙",
   "wordNow": "而家",
   "wordLater": "遲啲",
@@ -807,7 +841,6 @@
   "wordYears": "年",
   "wordSecond": "秒",
   "wordSeconds": "秒",
-
   "@@_ADJECTIVE_WORDS": "常用形容詞",
   "wordGood": "好",
   "wordBad": "差",
@@ -932,7 +965,6 @@
   "wordFabulous": "好正",
   "wordMagnificent": "宏偉",
   "wordSpectacular": "壯觀",
-
   "@@_GREETING_WORDS": "問候同禮貌用語",
   "wordPlease": "唔該",
   "wordThanks": "多謝",
@@ -963,7 +995,6 @@
   "wordHaveFun": "玩得開心",
   "wordEnjoy": "享受",
   "wordCheers": "乾杯",
-
   "@@_QUESTION_WORDS": "疑問詞",
   "wordWho": "邊個",
   "wordWhat": "乜嘢",
@@ -979,7 +1010,6 @@
   "wordHowFar": "幾遠",
   "wordHowOld": "幾大",
   "wordHowOften": "幾密",
-
   "@@_PREPOSITION_WORDS": "介詞同位置",
   "wordWith": "同",
   "wordWithout": "冇",
@@ -1015,7 +1045,6 @@
   "wordCenter": "中心",
   "wordCorner": "角落",
   "wordEdge": "邊緣",
-
   "@@_DATING_WORDS": "約會詞彙",
   "wordCrush": "暗戀對象",
   "wordMatch": "配對",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "搵緊",
   "wordWaiting": "等緊",
   "wordSearching": "搵緊",
-
   "@@_COMMON_NOUNS": "常用名詞",
   "wordNotification": "通知",
   "wordAlert": "警報",
@@ -1462,5 +1490,46 @@
   "wordEverything": "所有嘢",
   "wordSomething": "啲嘢",
   "wordNothing": "冇嘢",
-  "wordAnything": "任何嘢"
+  "wordAnything": "任何嘢",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

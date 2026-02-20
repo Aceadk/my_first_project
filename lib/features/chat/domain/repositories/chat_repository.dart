@@ -98,10 +98,7 @@ abstract class ChatRepository {
 
   Stream<bool> watchPresence(String userId);
 
-  Future<void> setPresence({
-    required String userId,
-    required bool isOnline,
-  });
+  Future<void> setPresence({required String userId, required bool isOnline});
 
   Stream<bool> watchMediaSendingEnabled(String matchId);
 
@@ -121,10 +118,7 @@ abstract class ChatRepository {
     required String blockedId,
   });
 
-  Future<void> unmatch({
-    required String matchId,
-    required String userId,
-  });
+  Future<void> unmatch({required String matchId, required String userId});
 
   Future<List<CrushMatch>> fetchUserMatches(String userId);
 

@@ -26,6 +26,7 @@ class ApiClient {
   ApiClient({
     ApiConfig? config,
     this.authTokenProvider,
+    this.tokenRefreshProvider,
     this.onAuthError,
     this.onVersionMismatch,
     this.enableCertificatePinning = true,
@@ -48,7 +49,11 @@ class ApiClient {
   /// Callback to get the current auth token.
   final Future<String?> Function()? authTokenProvider;
 
-  /// Callback when auth error occurs (401).
+  /// Callback to refresh the auth token when a 401 is received.
+  /// Returns the new token, or null if refresh failed.
+  final Future<String?> Function()? tokenRefreshProvider;
+
+  /// Callback when auth error occurs (401 after refresh attempt fails).
   final void Function()? onAuthError;
 
   /// Callback when API version mismatch is detected.
@@ -422,6 +427,7 @@ class ApiClient {
   }) async {
     final requestId = _generateRequestId();
     int attempt = 0;
+    bool hasAttemptedTokenRefresh = false;
 
     while (attempt <= config.retryCount) {
       try {
@@ -451,6 +457,24 @@ class ApiClient {
 
         for (final interceptor in _responseInterceptors) {
           apiResponse = await interceptor.onResponse(apiResponse);
+        }
+
+        // On 401, attempt token refresh before calling onAuthError
+        if (apiResponse.statusCode == 401 &&
+            requiresAuth &&
+            tokenRefreshProvider != null &&
+            !hasAttemptedTokenRefresh) {
+          hasAttemptedTokenRefresh = true;
+          try {
+            final newToken = await tokenRefreshProvider!();
+            if (newToken != null) {
+              // Retry the request with the refreshed token
+              continue;
+            }
+          } catch (e) {
+            AppLogger.error('ApiClient: Token refresh failed - $e');
+          }
+          // Refresh failed or returned null — fall through to normal 401 handling
         }
 
         // Handle response

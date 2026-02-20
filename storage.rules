@@ -72,16 +72,11 @@ service firebase.storage {
     }
 
     // Chat media (images, videos in messages) - legacy path
+    // Direct access blocked; use getChatMediaSignedUrl Cloud Function
+    // which verifies match participation (CR-AUD-030).
     match /chats/{matchId}/{messageId}/{fileName} {
-      // Direct reads restricted to authenticated users.
-      // For proper per-match access control, use getChatMediaSignedUrl
-      // Cloud Function which verifies match participation (CR-AUD-030).
-      allow read: if isSignedIn();
-
-      // Only signed-in users can upload chat media with valid types
-      allow write: if isSignedIn()
-                   && isValidMediaType()
-                   && isUnderSizeLimit();
+      allow read: if false;
+      allow write: if false;
     }
 
     // Chat media - current path used by Firebase repository

@@ -62,8 +62,9 @@ class CrushAvatar extends StatelessWidget {
                 height: size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                      isDark ? DsColors.surfaceDark : DsColors.inputFillLight,
+                  color: isDark
+                      ? DsColors.surfaceDark
+                      : DsColors.inputFillLight,
                   border: Border.all(
                     color: isDark ? DsColors.borderDark : DsColors.borderLight,
                     width: 2,
@@ -85,8 +86,8 @@ class CrushAvatar extends StatelessWidget {
                 ),
               ),
               if (showOnlineIndicator)
-                Positioned(
-                  right: 0,
+                PositionedDirectional(
+                  end: 0,
                   bottom: 0,
                   child: _OnlineIndicator(
                     isOnline: isOnline,
@@ -94,8 +95,8 @@ class CrushAvatar extends StatelessWidget {
                   ),
                 ),
               if (showVerifiedBadge && isVerified)
-                Positioned(
-                  right: -2,
+                PositionedDirectional(
+                  end: -2,
                   top: -2,
                   child: _VerifiedBadge(size: size * 0.35),
                 ),
@@ -122,8 +123,9 @@ class CrushAvatar extends StatelessWidget {
             : Icon(
                 Icons.person,
                 size: size * 0.5,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
       ),
     );
@@ -159,10 +161,7 @@ class _OnlineIndicator extends StatelessWidget {
   final bool isOnline;
   final double size;
 
-  const _OnlineIndicator({
-    required this.isOnline,
-    required this.size,
-  });
+  const _OnlineIndicator({required this.isOnline, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -196,11 +195,7 @@ class _VerifiedBadge extends StatelessWidget {
         shape: BoxShape.circle,
         color: Colors.lightBlueAccent,
       ),
-      child: Icon(
-        Icons.check,
-        size: size * 0.65,
-        color: Colors.white,
-      ),
+      child: Icon(Icons.check, size: size * 0.65, color: Colors.white),
     );
   }
 }
@@ -228,22 +223,20 @@ class CrushAvatarStack extends StatelessWidget {
 
     return SizedBox(
       height: avatarSize,
-      width: avatarSize +
+      width:
+          avatarSize +
           (visible.length - 1) * (avatarSize - effectiveOverlap) +
           (remaining > 0 ? avatarSize - effectiveOverlap : 0),
       child: Stack(
         children: [
           for (var i = 0; i < visible.length; i++)
-            Positioned(
-              left: i * (avatarSize - effectiveOverlap),
-              child: CrushAvatar(
-                imageUrl: visible[i],
-                size: avatarSize,
-              ),
+            PositionedDirectional(
+              start: i * (avatarSize - effectiveOverlap),
+              child: CrushAvatar(imageUrl: visible[i], size: avatarSize),
             ),
           if (remaining > 0)
-            Positioned(
-              left: visible.length * (avatarSize - effectiveOverlap),
+            PositionedDirectional(
+              start: visible.length * (avatarSize - effectiveOverlap),
               child: Container(
                 width: avatarSize,
                 height: avatarSize,

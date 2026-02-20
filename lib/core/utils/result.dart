@@ -29,7 +29,7 @@ class Result<T> {
 
   /// Create a failed result with an error message.
   const Result.failure(String message, {String? code})
-      : this._(errorMessage: message, errorCode: code);
+    : this._(errorMessage: message, errorCode: code);
 
   /// Whether this result represents a success (no error).
   bool get isSuccess => errorMessage == null;
@@ -50,7 +50,8 @@ class Result<T> {
   /// ```dart
   /// final user = result.getOrElse(CrushUser.anonymous());
   /// ```
-  T getOrElse(T defaultValue) => (isSuccess && data != null) ? data as T : defaultValue;
+  T getOrElse(T defaultValue) =>
+      (isSuccess && data != null) ? data as T : defaultValue;
 
   /// Transforms the success value using [transform], preserving failures.
   ///
@@ -61,10 +62,7 @@ class Result<T> {
     if (isSuccess && data != null) {
       return Result<R>.success(transform(data as T));
     }
-    return Result<R>.failure(
-      errorMessage ?? 'Unknown error',
-      code: errorCode,
-    );
+    return Result<R>.failure(errorMessage ?? 'Unknown error', code: errorCode);
   }
 
   /// Chains a Result-returning transformation on the success value.
@@ -77,10 +75,7 @@ class Result<T> {
     if (isSuccess && data != null) {
       return transform(data as T);
     }
-    return Result<R>.failure(
-      errorMessage ?? 'Unknown error',
-      code: errorCode,
-    );
+    return Result<R>.failure(errorMessage ?? 'Unknown error', code: errorCode);
   }
 
   /// Collapses both success and failure cases into a single value.
@@ -115,7 +110,11 @@ class Result<T> {
       final value = await run();
       return Result._(data: value);
     } catch (error, stackTrace) {
-      AppLogger.error(logLabel ?? 'Operation failed', error: error, stackTrace: stackTrace);
+      AppLogger.error(
+        logLabel ?? 'Operation failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       String? message =
           fallbackError ?? 'Something went wrong. Please try again.';
       String? code;
@@ -127,10 +126,7 @@ class Result<T> {
         message = error.message;
         code = error.code;
       }
-      return Result._(
-        errorMessage: message,
-        errorCode: code,
-      );
+      return Result._(errorMessage: message, errorCode: code);
     }
   }
 
@@ -144,7 +140,11 @@ class Result<T> {
       final value = run();
       return Result.success(value);
     } catch (error, stackTrace) {
-      AppLogger.error(logLabel ?? 'Operation failed', error: error, stackTrace: stackTrace);
+      AppLogger.error(
+        logLabel ?? 'Operation failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       String? message =
           fallbackError ?? 'Something went wrong. Please try again.';
       String? code;
@@ -156,10 +156,7 @@ class Result<T> {
         message = error.message;
         code = error.code;
       }
-      return Result._(
-        errorMessage: message,
-        errorCode: code,
-      );
+      return Result._(errorMessage: message, errorCode: code);
     }
   }
 

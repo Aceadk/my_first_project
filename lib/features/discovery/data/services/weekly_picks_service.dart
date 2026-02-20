@@ -3,20 +3,27 @@ import 'dart:math';
 import '../models/weekly_picks.dart';
 
 /// Service for managing weekly curated picks.
-class WeeklyPicksService {
+import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
+
+class WeeklyPicksService implements WeeklyPicksRepository {
   WeeklyPicksService._();
   static final WeeklyPicksService instance = WeeklyPicksService._();
 
   final _picksController = StreamController<WeeklyPicks>.broadcast();
+  @override
   Stream<WeeklyPicks> get picksStream => _picksController.stream;
 
   WeeklyPicks? _currentPicks;
 
+  @override
   WeeklyPicks? get currentPicks => _currentPicks;
+  @override
   bool get hasUnseenPicks => (_currentPicks?.unseenCount ?? 0) > 0;
+  @override
   int get unseenCount => _currentPicks?.unseenCount ?? 0;
 
   /// Load weekly picks for user.
+  @override
   Future<WeeklyPicks> loadPicks(String userId) async {
     // In production, fetch from backend
     await Future.delayed(const Duration(milliseconds: 500));
@@ -43,6 +50,7 @@ class WeeklyPicksService {
   }
 
   /// Mark a pick as viewed.
+  @override
   Future<void> markPickViewed(String pickId) async {
     if (_currentPicks == null) return;
 
@@ -51,6 +59,7 @@ class WeeklyPicksService {
   }
 
   /// Mark a pick as liked (also marks as viewed).
+  @override
   Future<void> markPickLiked(String pickId) async {
     if (_currentPicks == null) return;
 
@@ -59,16 +68,19 @@ class WeeklyPicksService {
   }
 
   /// Check if a pick has been viewed.
+  @override
   bool isPickViewed(String pickId) {
     return _currentPicks?.viewedPicks.contains(pickId) ?? false;
   }
 
   /// Check if a pick has been liked.
+  @override
   bool isPickLiked(String pickId) {
     return _currentPicks?.likedPicks.contains(pickId) ?? false;
   }
 
   /// Get unviewed picks.
+  @override
   List<WeeklyPick> getUnviewedPicks() {
     if (_currentPicks == null) return [];
     return _currentPicks!.picks
@@ -77,21 +89,25 @@ class WeeklyPicksService {
   }
 
   /// Get all picks.
+  @override
   List<WeeklyPick> getAllPicks() {
     return _currentPicks?.picks ?? [];
   }
 
   /// Get time until next refresh.
+  @override
   Duration getTimeUntilRefresh() {
     return _currentPicks?.timeUntilNewPicks ?? Duration.zero;
   }
 
   /// Get formatted time until new picks.
+  @override
   String getNewPicksTimeDisplay() {
     return _currentPicks?.newPicksTimeDisplay ?? 'Loading...';
   }
 
   /// Check if picks are current.
+  @override
   bool get isCurrentWeek => _currentPicks?.isCurrentWeek ?? false;
 
   void _scheduleRefresh() {
@@ -137,10 +153,12 @@ class WeeklyPicksService {
     return allInterests.take(Random().nextInt(3) + 2).toList();
   }
 
+  @override
   void clearUserData() {
     _currentPicks = null;
   }
 
+  @override
   void dispose() {
     _picksController.close();
   }

@@ -72,8 +72,9 @@ class _ProfileMultiSelectSheetState<T>
             _selected.length >= widget.maxSelections!) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('Maximum ${widget.maxSelections} selections allowed'),
+              content: Text(
+                'Maximum ${widget.maxSelections} selections allowed',
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -87,10 +88,12 @@ class _ProfileMultiSelectSheetState<T>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor =
-        isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final backgroundColor = isDark
+        ? DsColors.surfaceDark
+        : DsColors.surfaceLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
     final chipBg = isDark ? DsColors.inputFillDark : DsColors.inputFillLight;
@@ -108,7 +111,7 @@ class _ProfileMultiSelectSheetState<T>
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsetsDirectional.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -136,10 +139,7 @@ class _ProfileMultiSelectSheetState<T>
                       if (widget.maxSelections != null)
                         Text(
                           '${_selected.length}/${widget.maxSelections} selected',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textMuted,
-                          ),
+                          style: TextStyle(fontSize: 13, color: textMuted),
                         ),
                     ],
                   ),
@@ -206,8 +206,9 @@ class _ProfileMultiSelectSheetState<T>
                     checkmarkColor: DsColors.primary,
                     labelStyle: TextStyle(
                       color: isSelected ? DsColors.primary : textPrimary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),

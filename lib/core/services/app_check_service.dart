@@ -1,5 +1,6 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crushhour/config/app_config.dart';
 import 'package:crushhour/core/security/secure_logger.dart';
 import 'package:crushhour/core/app_logger.dart';
 
@@ -47,37 +48,45 @@ class AppCheckService {
   Future<void> initialize() async {
     if (_initialized) return;
 
+    // In non-release builds, avoid App Check token churn unless explicitly enabled.
+    // This prevents noisy "Too many attempts" warnings during local development.
+    if (!kReleaseMode && !AppConfig.enforceAppCheck) {
+      _initialized = true;
+      AppLogger.debug(
+        'AppCheckService: Skipped (non-release, ENFORCE_APP_CHECK=false). '
+        'Use --dart-define=ENFORCE_APP_CHECK=true to enable in debug/profile.',
+      );
+      return;
+    }
+
     try {
       await FirebaseAppCheck.instance.activate(
         // iOS: Use Device Check for iOS 14+, falls back to App Attest
         // ignore: deprecated_member_use
-        appleProvider:
-            kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
+        appleProvider: kReleaseMode
+            ? AppleProvider.deviceCheck
+            : AppleProvider.debug,
 
-        // Android: Use Play Integrity (recommended over SafetyNet)
+        // Android: Use Play Integrity in release, debug provider otherwise.
         // ignore: deprecated_member_use
-        androidProvider:
-            kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+        androidProvider: kReleaseMode
+            ? AndroidProvider.playIntegrity
+            : AndroidProvider.debug,
       );
 
       _initialized = true;
 
-      if (kDebugMode) {
-        AppLogger.debug('AppCheckService: Initialized with DEBUG provider');
+      if (!kReleaseMode) {
         AppLogger.debug(
-            '  WARNING: Debug provider should NEVER be used in production!');
-
-        // Log debug token info (redacted) for Firebase Console registration
-        // SECURITY: Never log full tokens - use SecureLogger
-        final token = await getToken();
-        SecureLogger.logToken(
-          type: 'AppCheck',
-          token: token,
-          context: 'Debug token for Firebase Console',
+          'AppCheckService: Initialized in non-release mode with DEBUG provider.',
+        );
+        AppLogger.debug(
+          'If Firebase rejects requests, register your App Check debug token in Firebase Console.',
         );
       } else {
         AppLogger.debug(
-            'AppCheckService: Initialized with device attestation (RELEASE)');
+          'AppCheckService: Initialized with device attestation (RELEASE)',
+        );
       }
 
       // Listen for token changes - use secure logging

@@ -73,24 +73,29 @@ class DateIdeaService implements DateIdeaRepository {
     // Filter by budget
     if (maxBudget != null) {
       ideas = ideas
-          .where((i) =>
-              i.estimatedCost != null &&
-              i.estimatedCost!.index <= maxBudget.index)
+          .where(
+            (i) =>
+                i.estimatedCost != null &&
+                i.estimatedCost!.index <= maxBudget.index,
+          )
           .toList();
     }
 
     // Filter by preferred categories
     if (preferredCategories != null && preferredCategories.isNotEmpty) {
-      ideas =
-          ideas.where((i) => preferredCategories.contains(i.category)).toList();
+      ideas = ideas
+          .where((i) => preferredCategories.contains(i.category))
+          .toList();
     }
 
     // Filter by season
     if (currentSeason != null) {
       ideas = ideas
-          .where((i) =>
-              i.seasonalAvailability == null ||
-              i.seasonalAvailability!.contains(currentSeason))
+          .where(
+            (i) =>
+                i.seasonalAvailability == null ||
+                i.seasonalAvailability!.contains(currentSeason),
+          )
           .toList();
     }
 

@@ -55,10 +55,12 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
 
     // Initialize feet/inches controllers
     final feetInches = ProfileFieldOptions.cmToFeetInchesValues(_heightCm);
-    _feetController =
-        FixedExtentScrollController(initialItem: feetInches.feet - 3);
-    _inchesController =
-        FixedExtentScrollController(initialItem: feetInches.inches);
+    _feetController = FixedExtentScrollController(
+      initialItem: feetInches.feet - 3,
+    );
+    _inchesController = FixedExtentScrollController(
+      initialItem: feetInches.inches,
+    );
   }
 
   @override
@@ -104,10 +106,12 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor =
-        isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
-    final textPrimary =
-        isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight;
+    final backgroundColor = isDark
+        ? DsColors.surfaceDark
+        : DsColors.surfaceLight;
+    final textPrimary = isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
     final dividerColor = isDark ? DsColors.dividerDark : DsColors.dividerLight;
 
@@ -125,7 +129,7 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsetsDirectional.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -216,7 +220,8 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
                 : _buildFeetInchesPicker(textPrimary),
           ),
           SizedBox(
-              height: MediaQuery.of(context).padding.bottom + DsSpacing.lg),
+            height: MediaQuery.of(context).padding.bottom + DsSpacing.lg,
+          ),
         ],
       ),
     );
@@ -276,8 +281,9 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
                     "$feet'",
                     style: TextStyle(
                       fontSize: isSelected ? 28 : 20,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isSelected
                           ? DsColors.primary
                           : textColor.withValues(alpha: 0.5),
@@ -308,8 +314,9 @@ class _ProfileHeightPickerState extends State<ProfileHeightPicker> {
                     '$index"',
                     style: TextStyle(
                       fontSize: isSelected ? 28 : 20,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isSelected
                           ? DsColors.primary
                           : textColor.withValues(alpha: 0.5),

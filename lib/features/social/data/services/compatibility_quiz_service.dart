@@ -89,7 +89,11 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
       overallScore: scoreData.overallScore,
       categoryScores: scoreData.categoryScores,
       insights: _generateInsights(
-          scoreData.overallScore, quiz, user1Answers, user2Answers),
+        scoreData.overallScore,
+        quiz,
+        user1Answers,
+        user2Answers,
+      ),
     );
 
     _results['${matchId}_$quizId'] = result;
@@ -160,8 +164,9 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
     // Convert category counts to percentages
     final categoryPercentages = <String, int>{};
     for (final entry in categoryScores.entries) {
-      final categoryQuestions =
-          quiz.questions.where((q) => q.category?.name == entry.key).length;
+      final categoryQuestions = quiz.questions
+          .where((q) => q.category?.name == entry.key)
+          .length;
       if (categoryQuestions > 0) {
         categoryPercentages[entry.key] =
             ((entry.value / categoryQuestions) * 100).round();
@@ -184,29 +189,37 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
 
     // Overall insight
     if (score >= 80) {
-      insights.add(const CompatibilityInsight(
-        type: InsightType.strength,
-        title: 'Great Match!',
-        description: 'You both see eye to eye on most things.',
-        emoji: '💫',
-        isPositive: true,
-      ));
+      insights.add(
+        const CompatibilityInsight(
+          type: InsightType.strength,
+          title: 'Great Match!',
+          description: 'You both see eye to eye on most things.',
+          emoji: '💫',
+          isPositive: true,
+        ),
+      );
     } else if (score >= 60) {
-      insights.add(const CompatibilityInsight(
-        type: InsightType.general,
-        title: 'Good Foundation',
-        description: 'You have a solid base with room to explore differences.',
-        emoji: '🌱',
-        isPositive: true,
-      ));
+      insights.add(
+        const CompatibilityInsight(
+          type: InsightType.general,
+          title: 'Good Foundation',
+          description:
+              'You have a solid base with room to explore differences.',
+          emoji: '🌱',
+          isPositive: true,
+        ),
+      );
     } else {
-      insights.add(const CompatibilityInsight(
-        type: InsightType.growthArea,
-        title: 'Interesting Contrast',
-        description: 'Different perspectives can lead to growth and learning.',
-        emoji: '🔮',
-        isPositive: true,
-      ));
+      insights.add(
+        const CompatibilityInsight(
+          type: InsightType.growthArea,
+          title: 'Interesting Contrast',
+          description:
+              'Different perspectives can lead to growth and learning.',
+          emoji: '🔮',
+          isPositive: true,
+        ),
+      );
     }
 
     // Find a matching answer for fun fact
@@ -218,26 +231,30 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
           (o) => o.id == a1,
           orElse: () => question.options.first,
         );
-        insights.add(CompatibilityInsight(
-          type: InsightType.funFact,
-          title: 'You Both Agree',
-          description:
-              'On "${question.question.replaceAll("'", "")}" - ${option.text}',
-          emoji: question.emoji ?? '🎯',
-          isPositive: true,
-        ));
+        insights.add(
+          CompatibilityInsight(
+            type: InsightType.funFact,
+            title: 'You Both Agree',
+            description:
+                'On "${question.question.replaceAll("'", "")}" - ${option.text}',
+            emoji: question.emoji ?? '🎯',
+            isPositive: true,
+          ),
+        );
         break;
       }
     }
 
     // Add a tip
-    insights.add(const CompatibilityInsight(
-      type: InsightType.tip,
-      title: 'Conversation Starter',
-      description: 'Ask about their favorite weekend activity!',
-      emoji: '💡',
-      isPositive: true,
-    ));
+    insights.add(
+      const CompatibilityInsight(
+        type: InsightType.tip,
+        title: 'Conversation Starter',
+        description: 'Ask about their favorite weekend activity!',
+        emoji: '💡',
+        isPositive: true,
+      ),
+    );
 
     return insights;
   }
@@ -256,10 +273,7 @@ class CompatibilityQuizService implements CompatibilityQuizRepository {
 }
 
 class _ScoreData {
-  const _ScoreData({
-    required this.overallScore,
-    required this.categoryScores,
-  });
+  const _ScoreData({required this.overallScore, required this.categoryScores});
 
   final int overallScore;
   final Map<String, int> categoryScores;

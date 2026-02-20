@@ -17,6 +17,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
 
+    <!-- Biometric Authentication -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+
     <!-- Network & Storage -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
@@ -28,7 +32,8 @@
     <application
         android:label="Crush"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -37,6 +42,8 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user

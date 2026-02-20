@@ -7,10 +7,7 @@ class StartCallParams {
   final String matchId;
   final bool isVideoCall;
 
-  const StartCallParams({
-    required this.matchId,
-    this.isVideoCall = false,
-  });
+  const StartCallParams({required this.matchId, this.isVideoCall = false});
 }
 
 /// Use case for starting an audio or video call with a match.

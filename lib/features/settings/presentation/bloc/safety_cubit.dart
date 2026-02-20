@@ -28,11 +28,7 @@ class SafetyProfileInfo {
   }
 
   factory SafetyProfileInfo.placeholder(String id) {
-    return SafetyProfileInfo(
-      id: id,
-      name: 'User $id',
-      photoUrl: null,
-    );
+    return SafetyProfileInfo(id: id, name: 'User $id', photoUrl: null);
   }
 }
 
@@ -87,10 +83,10 @@ class SafetyCubit extends Cubit<SafetyState> {
     required SharedPreferences preferences,
     required ChatRepository chatRepository,
     required DiscoveryRepository discoveryRepository,
-  })  : _preferences = preferences,
-        _chatRepository = chatRepository,
-        _discoveryRepository = discoveryRepository,
-        super(_readInitial(preferences));
+  }) : _preferences = preferences,
+       _chatRepository = chatRepository,
+       _discoveryRepository = discoveryRepository,
+       super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
   final ChatRepository _chatRepository;
@@ -149,9 +145,9 @@ class SafetyCubit extends Cubit<SafetyState> {
     required String currentUserId,
   }) async {
     if (currentUserId.isEmpty) {
-      emit(state.copyWith(
-        errorMessage: 'Sign in again to manage safety actions.',
-      ));
+      emit(
+        state.copyWith(errorMessage: 'Sign in again to manage safety actions.'),
+      );
       return;
     }
     final updated = Set<String>.from(state.blockedUsers);
@@ -249,10 +245,9 @@ class SafetyCubit extends Cubit<SafetyState> {
       // Add user to reported list to hide them for 10 days
       final updatedReported = Map<String, DateTime>.from(state.reportedUsers);
       updatedReported[reportedId] = DateTime.now();
-      await _persist(state.copyWith(
-        reportedUsers: updatedReported,
-        errorMessage: null,
-      ));
+      await _persist(
+        state.copyWith(reportedUsers: updatedReported, errorMessage: null),
+      );
     }
   }
 
@@ -290,8 +285,9 @@ class SafetyCubit extends Cubit<SafetyState> {
     };
 
     // Filter out already cached profiles
-    final idsToFetch =
-        allIds.where((id) => !state.profileCache.containsKey(id)).toList();
+    final idsToFetch = allIds
+        .where((id) => !state.profileCache.containsKey(id))
+        .toList();
 
     if (idsToFetch.isEmpty) return;
 
@@ -311,15 +307,13 @@ class SafetyCubit extends Cubit<SafetyState> {
       } catch (e) {
         // Use placeholder on error
         AppLogger.error(
-            'SafetyCubit: Error fetching profile for $userId, using placeholder: $e');
+          'SafetyCubit: Error fetching profile for $userId, using placeholder: $e',
+        );
         newCache[userId] = SafetyProfileInfo.placeholder(userId);
       }
     }
 
-    emit(state.copyWith(
-      profileCache: newCache,
-      isLoadingProfiles: false,
-    ));
+    emit(state.copyWith(profileCache: newCache, isLoadingProfiles: false));
   }
 
   /// Get profile info for a user, with fallback to ID
@@ -329,18 +323,12 @@ class SafetyCubit extends Cubit<SafetyState> {
 
   Future<void> _persist(SafetyState next) async {
     emit(next);
-    await _preferences.setStringList(
-      _blockedKey,
-      next.blockedUsers.toList(),
-    );
+    await _preferences.setStringList(_blockedKey, next.blockedUsers.toList());
     await _preferences.setStringList(
       _mutedMessagesKey,
       next.mutedMessages.toList(),
     );
-    await _preferences.setStringList(
-      _mutedCallsKey,
-      next.mutedCalls.toList(),
-    );
+    await _preferences.setStringList(_mutedCallsKey, next.mutedCalls.toList());
     // Store reported users as "userId:timestamp" format
     await _preferences.setStringList(
       _reportedUsersKey,

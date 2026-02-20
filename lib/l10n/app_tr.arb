@@ -1,6 +1,5 @@
 {
   "@@locale": "tr",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "İptal",
   "commonSave": "Kaydet",
@@ -44,7 +43,6 @@
   "commonUnblock": "Engeli Kaldır",
   "commonMute": "Sessize Al",
   "commonUnmute": "Sesi Aç",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
   "errorNetwork": "Bağlantı hatası. İnternetinizi kontrol edip tekrar deneyin.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action} yapılamadı. Lütfen tekrar deneyin.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} Plus özelliğidir. Kilidi açmak için yükseltin!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Geri git",
   "a11yCloseButton": "Kapat",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name} profil fotoğrafı",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Kullanıcı avatarı",
   "a11yAvatarOf": "{name} avatarı",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Profili düzenle",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender} mesajı",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 okunmamış mesaj} other{{count} okunmamış mesaj}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Şifreyi göster",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "Eşleşme! {name} ile eşleştin",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender} yeni mesaj",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Profil beğenildi",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Profile süper beğeni verildi",
   "a11yMessageSent": "Mesaj gönderildi",
   "a11ySettingSaved": "Ayar kaydedildi",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Tekrar hoş geldin",
   "authSignInToContinue": "Crush'a devam etmek için giriş yap",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "{destination} adresine kod gönderdik",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6 haneli kodu gir",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "E-postanı doğrulamak için gönderdiğimiz bağlantıya tıkla",
   "authEmailVerified": "E-posta başarıyla doğrulandı!",
   "authSkipForNow": "Şimdilik atla",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Ayarlar",
   "settingsAppearance": "Görünüm",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Bana göster",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Planını yönet",
   "settingsGetPlus": "Crush Plus'ı Edin",
   "settingsRestorePurchases": "Satın almaları geri yükle",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Keşfet",
   "discoveryNoMatchesTitle": "Henüz eşleşme yok",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Sen ve {name} birbirinizi beğendiniz",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Mesaj Gönder",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Seni Beğenenler",
   "discoveryTopPicks": "En İyi Seçmeler",
   "discoveryNewArrivals": "Yeni Gelenler",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Sohbetler",
   "chatMatches": "Eşleşmeler",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name} ile sohbet başlat",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Bir mesaj yaz...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Son görülme {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "yazıyor...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "{name} ile eşleştin",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Profil",
   "profileEdit": "Profili Düzenle",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Diller",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Hakkımda",
   "profileMyDetails": "Bilgilerim",
   "profileLifestyle": "Yaşam Tarzı",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Crush'a Hoş Geldin",
   "onboardingTagline": "Mükemmel eşleşmeni bul",
@@ -458,8 +479,12 @@
   "onboardingStep": "Adım {current}/{total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "İsmin ne?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "En az 3 ilgi alanı seç",
   "onboardingAllSet": "Hazırsın!",
   "onboardingStartSwiping": "Kaydırmaya başla",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Ücretsiz",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "Ayda {count} öne çıkarma",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "Günde {count} süper beğeni",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Reklamsız",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/ay",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/yıl",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "En iyi değer",
   "subscriptionMostPopular": "En popüler",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Kullanıcıyı şikayet et",
   "safetyBlockUser": "Kullanıcıyı engelle",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name} engellensin mi?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Profilini göremeyecek ve sana mesaj atamayacak",
@@ -532,46 +565,50 @@
   "safetySpam": "Spam",
   "safetyScam": "Dolandırıcılık",
   "safetyOther": "Diğer",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Az önce",
   "timeMinutesAgo": "{count, plural, =1{1 dakika önce} other{{count} dakika önce}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 saat önce} other{{count} saat önce}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 gün önce} other{{count} gün önce}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 hafta önce} other{{count} hafta önce}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Sonuç bulunamadı",
   "emptyTryAgain": "Aramanı veya filtrelerini ayarlamayı dene",
   "emptyNoData": "Veri mevcut değil",
   "emptyCheckBackLater": "Daha sonra tekrar kontrol et",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Ana Sayfa",
   "wordExplore": "Keşfet",
-  "wordHelp": "Yardım",
+  "wordHelp": "Yardım Et",
   "wordMenu": "Menü",
   "wordFeed": "Akış",
   "wordActivity": "Etkinlik",
@@ -579,7 +616,6 @@
   "wordInbox": "Gelen Kutusu",
   "wordFavorites": "Favoriler",
   "wordHistory": "Geçmiş",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Kopyala",
   "wordPaste": "Yapıştır",
@@ -589,7 +625,7 @@
   "wordUpload": "Yükle",
   "wordSelect": "Seç",
   "wordDeselect": "Seçimi Kaldır",
-  "wordOpen": "Aç",
+  "wordOpen": "Açık",
   "wordCreate": "Oluştur",
   "wordConnect": "Bağlan",
   "wordDisconnect": "Bağlantıyı Kes",
@@ -609,7 +645,7 @@
   "wordAllow": "İzin Ver",
   "wordEnable": "Etkinleştir",
   "wordDisable": "Devre Dışı Bırak",
-  "wordShow": "Göster",
+  "wordShow": "Dizi",
   "wordHide": "Gizle",
   "wordExpand": "Genişlet",
   "wordCollapse": "Daralt",
@@ -663,7 +699,6 @@
   "wordSay": "Söyle",
   "wordTell": "Anlat",
   "wordAsk": "Sor",
-  "wordHelp": "Yardım Et",
   "wordWait": "Bekle",
   "wordStay": "Kal",
   "wordCome": "Gel",
@@ -675,7 +710,7 @@
   "wordLive": "Yaşa",
   "wordChange": "Değiştir",
   "wordTurn": "Dön",
-  "wordRead": "Oku",
+  "wordRead": "Okundu",
   "wordWrite": "Yaz",
   "wordLearn": "Öğren",
   "wordStudy": "Çalış",
@@ -698,7 +733,6 @@
   "wordDecide": "Karar Ver",
   "wordAgree": "Kabul Et",
   "wordDisagree": "Katılma",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Aktif",
   "wordInactive": "Pasif",
@@ -759,13 +793,10 @@
   "wordNotDone": "Tamamlanmadı",
   "wordSent": "Gönderildi",
   "wordReceived": "Alındı",
-  "wordRead": "Okundu",
   "wordUnread": "Okunmadı",
   "wordSeen": "Görüldü",
   "wordUnseen": "Görülmedi",
-  "wordOpen": "Açık",
   "wordClosed": "Kapalı",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Şimdi",
   "wordLater": "Sonra",
@@ -807,7 +838,6 @@
   "wordYears": "Yıl",
   "wordSecond": "Saniye",
   "wordSeconds": "Saniye",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "İyi",
   "wordBad": "Kötü",
@@ -932,7 +962,6 @@
   "wordFabulous": "Fevkalade",
   "wordMagnificent": "Muhteşem",
   "wordSpectacular": "Göz Kamaştırıcı",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Lütfen",
   "wordThanks": "Teşekkürler",
@@ -963,7 +992,6 @@
   "wordHaveFun": "İyi Eğlenceler",
   "wordEnjoy": "Keyfini Çıkar",
   "wordCheers": "Şerefe",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Kim",
   "wordWhat": "Ne",
@@ -979,7 +1007,6 @@
   "wordHowFar": "Ne Kadar Uzak",
   "wordHowOld": "Kaç Yaşında",
   "wordHowOften": "Ne Sıklıkta",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "İle",
   "wordWithout": "Olmadan",
@@ -1003,7 +1030,6 @@
   "wordThrough": "Boyunca",
   "wordAlong": "Boyunca",
   "wordToward": "Doğru",
-  "wordAway": "Uzakta",
   "wordBehind": "Arkasında",
   "wordAhead": "İleride",
   "wordFront": "Önde",
@@ -1015,7 +1041,6 @@
   "wordCenter": "Merkez",
   "wordCorner": "Köşe",
   "wordEdge": "Kenar",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Hoşlanılan",
   "wordMatch": "Eşleşme",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "Sadık",
   "wordCommitted": "Bağlı",
   "wordCommitment": "Bağlılık",
-  "wordSerious": "Ciddi",
   "wordCasual": "Rahat",
   "wordFriendship": "Arkadaşlık",
   "wordFriend": "Arkadaş",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "Arıyor",
   "wordWaiting": "Bekliyor",
   "wordSearching": "Arıyor",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Bildirim",
   "wordAlert": "Uyarı",
@@ -1396,7 +1419,6 @@
   "wordMovies": "Filmler",
   "wordFilm": "Film",
   "wordFilms": "Filmler",
-  "wordShow": "Dizi",
   "wordShows": "Diziler",
   "wordSeries": "Dizi",
   "wordBook": "Kitap",
@@ -1463,7 +1485,6 @@
   "wordSomething": "Bir Şey",
   "wordNothing": "Hiçbir Şey",
   "wordAnything": "Herhangi Bir Şey",
-
   "@@_DISAMBIGUATION_WORDS": "Words with context-specific meanings",
   "wordHelpVerb": "Yardım etmek",
   "wordReadStatus": "Okundu",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "Uzakta",
   "wordSeriousRel": "Ciddi",
   "wordSettingsNoun": "Ayarlar",
-  "wordShowNoun": "Gösteri"
+  "wordShowNoun": "Gösteri",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

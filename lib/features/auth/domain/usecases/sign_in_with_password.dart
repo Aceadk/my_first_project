@@ -8,10 +8,7 @@ class SignInParams {
   final String identifier; // email or username
   final String password;
 
-  const SignInParams({
-    required this.identifier,
-    required this.password,
-  });
+  const SignInParams({required this.identifier, required this.password});
 }
 
 /// Use case for signing in with email/username and password.

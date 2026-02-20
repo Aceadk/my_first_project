@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
@@ -11,113 +13,93 @@ class ChatDateSeparator extends StatelessWidget {
 
   final DateTime date;
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final dateOnly = DateTime(date.year, date.month, date.day);
-
-    if (dateOnly == today) {
-      return 'Today';
-    } else if (dateOnly == yesterday) {
-      return 'Yesterday';
-    } else if (now.difference(date).inDays < 7) {
-      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return weekdays[date.weekday - 1];
-    } else {
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
-      return '${months[date.month - 1]} ${date.day}, ${date.year}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final locale = Localizations.localeOf(context).toString();
+    final label = DateTimeFormatter.formatChatSeparator(
+      date,
+      l10n: context.l10n,
+      locale: locale,
+    );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: DsSpacing.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 0.5,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    (isDark
-                        ? DsColors.surfaceLight.withValues(alpha: 0.24)
-                        : DsColors.ink900.withValues(alpha: 0.12)),
-                  ],
+    return Semantics(
+      label: 'Messages from $label',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: DsSpacing.md),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 0.5,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      (isDark
+                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                          : DsColors.ink900.withValues(alpha: 0.12)),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(DsRadius.round),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: DsBlur.subtle, sigmaY: DsBlur.subtle),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DsSpacing.md,
-                    vertical: DsSpacing.xs,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: DsSpacing.md),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(DsRadius.round),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: DsBlur.subtle,
+                    sigmaY: DsBlur.subtle,
                   ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? DsColors.surfaceLight.withValues(alpha: 0.08)
-                        : DsColors.ink900.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(DsRadius.round),
-                    border: Border.all(
-                      color: DsGlassColors.borderFor(context),
-                      width: 0.5,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DsSpacing.md,
+                      vertical: DsSpacing.xs,
                     ),
-                  ),
-                  child: Text(
-                    _formatDate(date),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
+                          ? DsColors.surfaceLight.withValues(alpha: 0.08)
+                          : DsColors.ink900.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(DsRadius.round),
+                      border: Border.all(
+                        color: DsGlassColors.borderFor(context),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              height: 0.5,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    (isDark
-                        ? DsColors.surfaceLight.withValues(alpha: 0.24)
-                        : DsColors.ink900.withValues(alpha: 0.12)),
-                    Colors.transparent,
-                  ],
+            Expanded(
+              child: Container(
+                height: 0.5,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      (isDark
+                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
+                          : DsColors.ink900.withValues(alpha: 0.12)),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

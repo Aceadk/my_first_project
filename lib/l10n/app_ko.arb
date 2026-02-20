@@ -1,6 +1,5 @@
 {
   "@@locale": "ko",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "취소",
   "commonSave": "저장",
@@ -44,7 +43,6 @@
   "commonUnblock": "차단 해제",
   "commonMute": "음소거",
   "commonUnmute": "음소거 해제",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "문제가 발생했습니다. 다시 시도해 주세요.",
   "errorNetwork": "연결 오류입니다. 인터넷을 확인하고 다시 시도해 주세요.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action}할 수 없습니다. 다시 시도해 주세요.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature}은(는) Plus 기능입니다. 업그레이드하여 잠금 해제하세요!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "뒤로 가기",
   "a11yCloseButton": "닫기",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name}의 프로필 사진",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "사용자 아바타",
   "a11yAvatarOf": "{name}의 아바타",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "프로필 편집",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender}의 메시지",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{읽지 않은 메시지 1개} other{읽지 않은 메시지 {count}개}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "비밀번호 표시",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "매치되었습니다! {name}님과 매치",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender}님의 새 메시지",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "프로필에 좋아요 함",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "프로필에 슈퍼 좋아요 함",
   "a11yMessageSent": "메시지 전송됨",
   "a11ySettingSaved": "설정 저장됨",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "다시 오신 것을 환영합니다",
   "authSignInToContinue": "Crush를 계속하려면 로그인하세요",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "{destination}(으)로 코드를 보냈습니다",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6자리 코드를 입력하세요",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "보내드린 링크를 클릭하여 이메일을 인증하세요",
   "authEmailVerified": "이메일이 인증되었습니다!",
   "authSkipForNow": "지금은 건너뛰기",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "설정",
   "settingsAppearance": "모양",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance}km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "표시 대상",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "플랜 관리",
   "settingsGetPlus": "Crush Plus 받기",
   "settingsRestorePurchases": "구매 복원",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "발견",
   "discoveryNoMatchesTitle": "아직 매치가 없습니다",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "당신과 {name}님이 서로 좋아합니다",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "메시지 보내기",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "나를 좋아하는 사람",
   "discoveryTopPicks": "탑 픽",
   "discoveryNewArrivals": "신규 가입",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "채팅",
   "chatMatches": "매치",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name}님과 대화 시작",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "메시지 입력...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "마지막 접속 {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "입력 중...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "{name}님과 매치되었습니다",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "프로필",
   "profileEdit": "프로필 편집",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height}cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "언어",
@@ -450,7 +472,6 @@
   "profileAboutMe": "나에 대해",
   "profileMyDetails": "내 정보",
   "profileLifestyle": "라이프스타일",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Crush에 오신 것을 환영합니다",
   "onboardingTagline": "완벽한 매치를 찾으세요",
@@ -458,8 +479,12 @@
   "onboardingStep": "{current}/{total}단계",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "이름이 무엇인가요?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "최소 3개의 관심사를 선택하세요",
   "onboardingAllSet": "준비 완료!",
   "onboardingStartSwiping": "스와이프 시작",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "무료",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "월 {count}회 부스트",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "일 {count}회 슈퍼 좋아요",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "광고 없음",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/월",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/년",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "최고 가치",
   "subscriptionMostPopular": "가장 인기",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "사용자 신고",
   "safetyBlockUser": "사용자 차단",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name}님을 차단하시겠습니까?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "상대방이 프로필을 보거나 메시지를 보낼 수 없게 됩니다",
@@ -532,46 +565,50 @@
   "safetySpam": "스팸",
   "safetyScam": "사기",
   "safetyOther": "기타",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "방금",
   "timeMinutesAgo": "{count, plural, =1{1분 전} other{{count}분 전}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1시간 전} other{{count}시간 전}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1일 전} other{{count}일 전}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1주 전} other{{count}주 전}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "결과를 찾을 수 없습니다",
   "emptyTryAgain": "검색 또는 필터를 조정해 보세요",
   "emptyNoData": "사용 가능한 데이터가 없습니다",
   "emptyCheckBackLater": "나중에 다시 확인하세요",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "홈",
   "wordExplore": "탐색",
-  "wordHelp": "도움말",
+  "wordHelp": "돕다",
   "wordMenu": "메뉴",
   "wordFeed": "피드",
   "wordActivity": "활동",
@@ -579,7 +616,6 @@
   "wordInbox": "받은편지함",
   "wordFavorites": "즐겨찾기",
   "wordHistory": "기록",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "복사",
   "wordPaste": "붙여넣기",
@@ -589,7 +625,7 @@
   "wordUpload": "업로드",
   "wordSelect": "선택",
   "wordDeselect": "선택 해제",
-  "wordOpen": "열기",
+  "wordOpen": "열림",
   "wordCreate": "만들기",
   "wordConnect": "연결",
   "wordDisconnect": "연결 해제",
@@ -609,7 +645,7 @@
   "wordAllow": "허용",
   "wordEnable": "활성화",
   "wordDisable": "비활성화",
-  "wordShow": "표시",
+  "wordShow": "쇼",
   "wordHide": "숨기기",
   "wordExpand": "펼치기",
   "wordCollapse": "접기",
@@ -663,7 +699,6 @@
   "wordSay": "말하다",
   "wordTell": "알려주다",
   "wordAsk": "묻다",
-  "wordHelp": "돕다",
   "wordWait": "기다리다",
   "wordStay": "머물다",
   "wordCome": "오다",
@@ -675,7 +710,7 @@
   "wordLive": "살다",
   "wordChange": "바꾸다",
   "wordTurn": "돌다",
-  "wordRead": "읽다",
+  "wordRead": "읽음",
   "wordWrite": "쓰다",
   "wordLearn": "배우다",
   "wordStudy": "공부하다",
@@ -698,14 +733,13 @@
   "wordDecide": "결정하다",
   "wordAgree": "동의",
   "wordDisagree": "반대",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "활성",
   "wordInactive": "비활성",
   "wordAvailable": "사용 가능",
   "wordUnavailable": "사용 불가",
   "wordBusy": "바쁨",
-  "wordAway": "자리 비움",
+  "wordAway": "멀리",
   "wordInvisible": "숨김",
   "wordOnline": "온라인",
   "wordOffline": "오프라인",
@@ -759,13 +793,10 @@
   "wordNotDone": "미완료",
   "wordSent": "전송됨",
   "wordReceived": "수신됨",
-  "wordRead": "읽음",
   "wordUnread": "읽지 않음",
   "wordSeen": "봄",
   "wordUnseen": "보지 않음",
-  "wordOpen": "열림",
   "wordClosed": "닫힘",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "지금",
   "wordLater": "나중에",
@@ -807,7 +838,6 @@
   "wordYears": "년",
   "wordSecond": "초",
   "wordSeconds": "초",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "좋은",
   "wordBad": "나쁜",
@@ -932,7 +962,6 @@
   "wordFabulous": "멋진",
   "wordMagnificent": "웅장한",
   "wordSpectacular": "장관인",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "제발",
   "wordThanks": "고마워",
@@ -963,7 +992,6 @@
   "wordHaveFun": "즐거운 시간 보내세요",
   "wordEnjoy": "즐기세요",
   "wordCheers": "건배",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "누구",
   "wordWhat": "무엇",
@@ -979,7 +1007,6 @@
   "wordHowFar": "얼마나 멀리",
   "wordHowOld": "몇 살",
   "wordHowOften": "얼마나 자주",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "와 함께",
   "wordWithout": "없이",
@@ -1003,7 +1030,6 @@
   "wordThrough": "통해서",
   "wordAlong": "따라서",
   "wordToward": "향해",
-  "wordAway": "멀리",
   "wordBehind": "뒤에",
   "wordAhead": "앞에",
   "wordFront": "앞",
@@ -1015,7 +1041,6 @@
   "wordCenter": "중심",
   "wordCorner": "모서리",
   "wordEdge": "가장자리",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "짝사랑",
   "wordMatch": "매치",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "헌신적인",
   "wordCommitted": "진지한",
   "wordCommitment": "헌신",
-  "wordSerious": "진지한",
   "wordCasual": "캐주얼",
   "wordFriendship": "우정",
   "wordFriend": "친구",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "구하는",
   "wordWaiting": "기다리는",
   "wordSearching": "검색 중",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "알림",
   "wordAlert": "경고",
@@ -1396,7 +1419,6 @@
   "wordMovies": "영화",
   "wordFilm": "영화",
   "wordFilms": "영화",
-  "wordShow": "쇼",
   "wordShows": "쇼",
   "wordSeries": "시리즈",
   "wordBook": "책",
@@ -1463,7 +1485,6 @@
   "wordSomething": "무언가",
   "wordNothing": "아무것도",
   "wordAnything": "무엇이든지",
-
   "@@_DISAMBIGUATION_WORDS": "Words that need context disambiguation",
   "wordHelpVerb": "돕다",
   "wordReadStatus": "읽음",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "멀리",
   "wordSeriousRel": "진지한",
   "wordSettingsNoun": "설정",
-  "wordShowNoun": "쇼"
+  "wordShowNoun": "쇼",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

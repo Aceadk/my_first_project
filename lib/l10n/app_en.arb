@@ -1,6 +1,5 @@
 {
   "@@locale": "en",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Cancel",
   "commonSave": "Save",
@@ -44,7 +43,6 @@
   "commonUnblock": "Unblock",
   "commonMute": "Mute",
   "commonUnmute": "Unmute",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Something went wrong. Please try again.",
   "errorNetwork": "Connection error. Check your internet and try again.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Could not {action}. Please try again.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} is a Plus feature. Upgrade to unlock!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Go back",
   "a11yCloseButton": "Close",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Profile photo of {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "User avatar",
   "a11yAvatarOf": "Avatar of {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Edit profile",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Message from {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 unread message} other{{count} unread messages}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Show password",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "It's a match! You matched with {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "New message from {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Profile liked",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Profile super liked",
   "a11yMessageSent": "Message sent",
   "a11ySettingSaved": "Setting saved",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Welcome back",
   "authSignInToContinue": "Sign in to continue to Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "We sent a code to {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Enter the 6-digit code",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Click the link we sent to verify your email",
   "authEmailVerified": "Email verified successfully!",
   "authSkipForNow": "Skip for now",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Settings",
   "settingsAppearance": "Appearance",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Show me",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Manage your plan",
   "settingsGetPlus": "Get Crush Plus",
   "settingsRestorePurchases": "Restore purchases",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Discover",
   "discoveryNoMatchesTitle": "No matches yet",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "You and {name} liked each other",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Send Message",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Likes You",
   "discoveryTopPicks": "Top Picks",
   "discoveryNewArrivals": "New Arrivals",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Chats",
   "chatMatches": "Matches",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Start a conversation with {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Type a message...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Last seen {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "typing...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "You matched with {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Profile",
   "profileEdit": "Edit Profile",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Languages",
@@ -450,7 +472,6 @@
   "profileAboutMe": "About Me",
   "profileMyDetails": "My Details",
   "profileLifestyle": "Lifestyle",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Welcome to Crush",
   "onboardingTagline": "Find your perfect match",
@@ -458,8 +479,12 @@
   "onboardingStep": "Step {current} of {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "What's your name?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Choose at least 3 interests",
   "onboardingAllSet": "You're all set!",
   "onboardingStartSwiping": "Start swiping",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Free",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} boosts per month",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} super likes per day",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "No ads",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/month",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/year",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Best value",
   "subscriptionMostPopular": "Most popular",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Report user",
   "safetyBlockUser": "Block user",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Block {name}?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "They won't be able to see your profile or message you",
@@ -532,42 +565,46 @@
   "safetySpam": "Spam",
   "safetyScam": "Scam",
   "safetyOther": "Other",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Just now",
   "timeMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "No results found",
   "emptyTryAgain": "Try adjusting your search or filters",
   "emptyNoData": "No data available",
   "emptyCheckBackLater": "Check back later",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Home",
   "wordExplore": "Explore",
@@ -579,7 +616,6 @@
   "wordInbox": "Inbox",
   "wordFavorites": "Favorites",
   "wordHistory": "History",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Copy",
   "wordPaste": "Paste",
@@ -698,7 +734,6 @@
   "wordDecide": "Decide",
   "wordAgree": "Agree",
   "wordDisagree": "Disagree",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Active",
   "wordInactive": "Inactive",
@@ -765,7 +800,6 @@
   "wordUnseen": "Unseen",
   "wordOpenStatus": "Open",
   "wordClosed": "Closed",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Now",
   "wordLater": "Later",
@@ -807,7 +841,6 @@
   "wordYears": "Years",
   "wordSecond": "Second",
   "wordSeconds": "Seconds",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "Good",
   "wordBad": "Bad",
@@ -932,7 +965,6 @@
   "wordFabulous": "Fabulous",
   "wordMagnificent": "Magnificent",
   "wordSpectacular": "Spectacular",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Please",
   "wordThanks": "Thanks",
@@ -963,7 +995,6 @@
   "wordHaveFun": "Have fun",
   "wordEnjoy": "Enjoy",
   "wordCheers": "Cheers",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Who",
   "wordWhat": "What",
@@ -979,7 +1010,6 @@
   "wordHowFar": "How far",
   "wordHowOld": "How old",
   "wordHowOften": "How often",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "With",
   "wordWithout": "Without",
@@ -1015,7 +1045,6 @@
   "wordCenter": "Center",
   "wordCorner": "Corner",
   "wordEdge": "Edge",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Crush",
   "wordMatch": "Match",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "Seeking",
   "wordWaiting": "Waiting",
   "wordSearching": "Searching",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Notification",
   "wordAlert": "Alert",
@@ -1462,5 +1490,46 @@
   "wordEverything": "Everything",
   "wordSomething": "Something",
   "wordNothing": "Nothing",
-  "wordAnything": "Anything"
+  "wordAnything": "Anything",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

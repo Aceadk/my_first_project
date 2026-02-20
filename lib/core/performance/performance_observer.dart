@@ -6,10 +6,7 @@ import 'performance_monitor.dart';
 /// Add this to your Navigator or GoRouter to automatically track
 /// how long each screen takes to load.
 class PerformanceNavigatorObserver extends NavigatorObserver {
-  PerformanceNavigatorObserver({
-    this.nameExtractor,
-    this.shouldTrack,
-  });
+  PerformanceNavigatorObserver({this.nameExtractor, this.shouldTrack});
 
   /// Optional function to extract a clean screen name from the route.
   /// If not provided, uses the route's settings name or 'unknown'.

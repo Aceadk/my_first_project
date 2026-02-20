@@ -10,15 +10,12 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/presentation/widgets/primary_button.dart';
+import 'package:crushhour/design_system/widgets/primary_button.dart';
 
 class EmailProtectionScreen extends StatefulWidget {
   final bool redirectOnSuccess;
 
-  const EmailProtectionScreen({
-    super.key,
-    this.redirectOnSuccess = false,
-  });
+  const EmailProtectionScreen({super.key, this.redirectOnSuccess = false});
 
   @override
   State<EmailProtectionScreen> createState() => _EmailProtectionScreenState();
@@ -83,16 +80,16 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   Text(
                     'Email Verified',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: DsColors.success,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: DsColors.success,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     currentEmail,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -146,18 +143,18 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       Text(
                         'Want to use a different email?',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: DsColors.warning,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: DsColors.warning,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'To use a different email address, you will need to delete this account and create a new one with the new email.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: DsColors.warning,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: DsColors.warning),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
@@ -372,11 +369,11 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     });
     final result = await Result.guard(
       () => context.read<AuthRepository>().verifyEmailOtp(
-            identifier: email,
-            otp: otp,
-            purpose: EmailOtpPurpose.addEmail,
-            newEmail: email,
-          ),
+        identifier: email,
+        otp: otp,
+        purpose: EmailOtpPurpose.addEmail,
+        newEmail: email,
+      ),
       logLabel: 'AuthRepository.verifyEmailOtp',
       fallbackError: 'Invalid or expired code. Please try again.',
     );

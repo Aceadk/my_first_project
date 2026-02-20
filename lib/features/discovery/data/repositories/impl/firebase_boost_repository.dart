@@ -14,9 +14,7 @@ import 'package:crushhour/features/subscription/domain/repositories/subscription
 /// - profileViewsGained: Number of profile views during boost
 /// - status: 'active' or 'completed'
 class FirebaseBoostRepository implements BoostRepository {
-  FirebaseBoostRepository({
-    required this.subscriptionRepository,
-  });
+  FirebaseBoostRepository({required this.subscriptionRepository});
 
   final SubscriptionRepository subscriptionRepository;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -107,7 +105,8 @@ class FirebaseBoostRepository implements BoostRepository {
     final status = await getBoostStatus(userId);
     if (!status.canBoost) {
       throw Exception(
-          'Cannot activate boost: on cooldown or boost already active');
+        'Cannot activate boost: on cooldown or boost already active',
+      );
     }
 
     // Calculate boost duration based on subscription
@@ -190,9 +189,7 @@ class FirebaseBoostRepository implements BoostRepository {
     final batch = _firestore.batch();
 
     // Update boost status
-    batch.update(_boostsCollection.doc(boostId), {
-      'status': 'completed',
-    });
+    batch.update(_boostsCollection.doc(boostId), {'status': 'completed'});
 
     // Remove boost flag from user profile
     batch.update(_firestore.collection('users').doc(userId), {

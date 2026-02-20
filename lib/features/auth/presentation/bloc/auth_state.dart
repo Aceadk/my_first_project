@@ -32,14 +32,14 @@ class AuthState extends Equatable {
   });
 
   factory AuthState.unknown() => const AuthState(
-        status: AuthStatus.unknown,
-        user: null,
-        phoneInProgress: null,
-        emailInProgress: null,
-        emailOtpIdentifier: null,
-        isLoading: false,
-        errorMessage: null,
-      );
+    status: AuthStatus.unknown,
+    user: null,
+    phoneInProgress: null,
+    emailInProgress: null,
+    emailOtpIdentifier: null,
+    isLoading: false,
+    errorMessage: null,
+  );
 
   AuthState copyWith({
     AuthStatus? status,
@@ -65,12 +65,12 @@ class AuthState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        user,
-        phoneInProgress,
-        emailInProgress,
-        emailOtpIdentifier,
-        isLoading,
-        errorMessage,
-      ];
+    status,
+    user,
+    phoneInProgress,
+    emailInProgress,
+    emailOtpIdentifier,
+    isLoading,
+    errorMessage,
+  ];
 }

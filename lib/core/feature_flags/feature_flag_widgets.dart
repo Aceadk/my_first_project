@@ -204,9 +204,9 @@ class _PremiumUpsellCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

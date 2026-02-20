@@ -1,4 +1,4 @@
-import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 
 /// Abstract interface for compatibility quiz operations.
 abstract class CompatibilityQuizRepository {

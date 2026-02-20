@@ -21,35 +21,19 @@ class AvatarsShowcase extends StatelessWidget {
           variants: [
             WidgetVariant(
               label: 'Small (32)',
-              child: CrushAvatar(
-                imageUrl: null,
-                name: 'Jane Doe',
-                size: 32,
-              ),
+              child: CrushAvatar(imageUrl: null, name: 'Jane Doe', size: 32),
             ),
             WidgetVariant(
               label: 'Medium (48)',
-              child: CrushAvatar(
-                imageUrl: null,
-                name: 'Jane Doe',
-                size: 48,
-              ),
+              child: CrushAvatar(imageUrl: null, name: 'Jane Doe', size: 48),
             ),
             WidgetVariant(
               label: 'Large (64)',
-              child: CrushAvatar(
-                imageUrl: null,
-                name: 'Jane Doe',
-                size: 64,
-              ),
+              child: CrushAvatar(imageUrl: null, name: 'Jane Doe', size: 64),
             ),
             WidgetVariant(
               label: 'XLarge (96)',
-              child: CrushAvatar(
-                imageUrl: null,
-                name: 'Jane Doe',
-                size: 96,
-              ),
+              child: CrushAvatar(imageUrl: null, name: 'Jane Doe', size: 96),
             ),
           ],
         ),

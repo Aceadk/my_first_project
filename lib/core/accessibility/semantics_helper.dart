@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:intl/intl.dart' as intl;
 
 /// Helper utilities for accessibility and screen reader support.
 class SemanticsHelper {
@@ -133,12 +134,13 @@ class SemanticsHelper {
   static String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
+    final locale = intl.Intl.getCurrentLocale();
 
     if (diff.inMinutes < 1) return 'just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes} minutes ago';
     if (diff.inHours < 24) return '${diff.inHours} hours ago';
     if (diff.inDays < 7) return '${diff.inDays} days ago';
-    return '${dateTime.month}/${dateTime.day}/${dateTime.year}';
+    return intl.DateFormat.yMd(locale).format(dateTime);
   }
 }
 

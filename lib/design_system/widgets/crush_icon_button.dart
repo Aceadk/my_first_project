@@ -99,7 +99,7 @@ class CrushIconButton extends StatelessWidget {
                       color: isEnabled
                           ? color
                           : (color ?? Theme.of(context).iconTheme.color)
-                              ?.withAlpha((0.38 * 255).round()),
+                                ?.withAlpha((0.38 * 255).round()),
                     ),
             ),
           ),
@@ -108,10 +108,7 @@ class CrushIconButton extends StatelessWidget {
     );
 
     if (tooltip != null) {
-      button = Tooltip(
-        message: tooltip!,
-        child: button,
-      );
+      button = Tooltip(message: tooltip!, child: button);
     }
 
     return button;

@@ -26,7 +26,8 @@ class WidgetCatalogScreen extends StatelessWidget {
               // Toggle theme for testing
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text('Use app settings to change theme')),
+                  content: Text('Use app settings to change theme'),
+                ),
               );
             },
             tooltip: 'Toggle theme',
@@ -163,7 +164,7 @@ class _CategoryTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsetsDirectional.only(bottom: 12),
       child: ListTile(
         leading: Container(
           width: 48,
@@ -172,10 +173,7 @@ class _CategoryTile extends StatelessWidget {
             color: category.color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            category.icon,
-            color: category.color,
-          ),
+          child: Icon(category.icon, color: category.color),
         ),
         title: Text(
           category.title,
@@ -183,10 +181,7 @@ class _CategoryTile extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        subtitle: Text(
-          category.description,
-          style: theme.textTheme.bodySmall,
-        ),
+        subtitle: Text(category.description, style: theme.textTheme.bodySmall),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
           Navigator.of(context).push(
@@ -208,9 +203,7 @@ class _CategoryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(category.title),
-      ),
+      appBar: AppBar(title: Text(category.title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: category.builder(context),

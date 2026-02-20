@@ -79,14 +79,8 @@ class _DsFadeInState extends State<DsFadeIn>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
+    _animation = CurvedAnimation(parent: _controller, curve: widget.curve);
 
     if (widget.delay == Duration.zero) {
       _controller.forward();
@@ -105,10 +99,11 @@ class _DsFadeInState extends State<DsFadeIn>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _animation,
-      child: widget.child,
-    );
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    if (reduceMotion) {
+      return widget.child;
+    }
+    return FadeTransition(opacity: _animation, child: widget.child);
   }
 }
 
@@ -178,21 +173,12 @@ class _DsSlideInState extends State<DsSlideIn>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
     _slideAnimation = Tween<Offset>(
       begin: widget.begin,
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    ));
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: widget.curve);
 
     if (widget.delay == Duration.zero) {
       _controller.forward();
@@ -211,12 +197,13 @@ class _DsSlideInState extends State<DsSlideIn>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    if (reduceMotion) {
+      return widget.child;
+    }
     return SlideTransition(
       position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: widget.child,
-      ),
+      child: FadeTransition(opacity: _fadeAnimation, child: widget.child),
     );
   }
 }
@@ -251,17 +238,11 @@ class _DsScaleInState extends State<DsScaleIn>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
     _scaleAnimation = Tween<double>(
       begin: widget.begin,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: DsCurves.enter,
@@ -284,12 +265,13 @@ class _DsScaleInState extends State<DsScaleIn>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    if (reduceMotion) {
+      return widget.child;
+    }
     return ScaleTransition(
       scale: _scaleAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: widget.child,
-      ),
+      child: FadeTransition(opacity: _fadeAnimation, child: widget.child),
     );
   }
 }
@@ -349,17 +331,22 @@ class _DsPressableState extends State<DsPressable> {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
+      onTapDown: reduceMotion ? null : (_) => setState(() => _isPressed = true),
+      onTapUp: reduceMotion ? null : (_) => setState(() => _isPressed = false),
+      onTapCancel: reduceMotion
+          ? null
+          : () => setState(() => _isPressed = false),
       onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _isPressed ? widget.scaleDown : 1.0,
-        duration: widget.duration,
-        curve: DsCurves.standard,
-        child: widget.child,
-      ),
+      child: reduceMotion
+          ? widget.child
+          : AnimatedScale(
+              scale: _isPressed ? widget.scaleDown : 1.0,
+              duration: widget.duration,
+              curve: DsCurves.standard,
+              child: widget.child,
+            ),
     );
   }
 }

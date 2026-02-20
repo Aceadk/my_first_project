@@ -1,10 +1,4 @@
-enum AppThemeMode {
-  system,
-  light,
-  dark,
-  darkLuxury,
-  darkLuxuryModern,
-}
+enum AppThemeMode { system, light, dark, darkLuxury, darkLuxuryModern }
 
 extension AppThemeModeX on AppThemeMode {
   bool get isLuxury =>

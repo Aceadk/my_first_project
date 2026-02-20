@@ -13,6 +13,7 @@ import 'package:crushhour/features/subscription/domain/repositories/subscription
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/performance/performance_monitor.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
@@ -89,9 +90,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   }
 
   Future<void> _onDeckRequested(
-      DiscoveryDeckRequested event, Emitter<DiscoveryState> emit) async {
+    DiscoveryDeckRequested event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     // Track if this is a manual refresh (user-triggered) vs auto-retry
-    final isManualRefresh = _lastRequestedUserId != event.userId ||
+    final isManualRefresh =
+        _lastRequestedUserId != event.userId ||
         _isManualRefresh ||
         state.status != DeckStatus.error;
 
@@ -103,12 +107,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     _lastRequestedUserId = event.userId;
     _retryTimer?.cancel();
-    emit(state.copyWith(
-      isLoading: true,
-      status: DeckStatus.loading,
-      errorMessage: null,
-      nextRetrySeconds: null,
-    ));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        status: DeckStatus.loading,
+        errorMessage: null,
+        nextRetrySeconds: null,
+      ),
+    );
 
     // Get subscription plan first to check for Plus/Passport mode
     final planResult = await Result.guard(
@@ -123,8 +129,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     final plan = planResult.data ?? SubscriptionPlan.free;
-    _remainingFreeSwipesToday =
-        plan.isFree ? CrushConstants.freeDailySwipeLimit : null;
+    _remainingFreeSwipesToday = plan.isFree
+        ? CrushConstants.freeDailySwipeLimit
+        : null;
 
     // Load user profile to get location and preferences
     await _loadUserPreferencesAndLocation();
@@ -161,6 +168,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     );
 
     // Fetch deck with distance filter
+    await PerformanceMonitor.instance.startTrace('deck_fetch');
     final deckResult = await Result.guard(
       () => discoveryRepository.fetchDeck(event.userId, filter: filter),
       logLabel: 'DiscoveryRepository.fetchDeck',
@@ -168,11 +176,19 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     );
 
     if (!deckResult.isSuccess) {
+      await PerformanceMonitor.instance.stopTrace(
+        'deck_fetch',
+        metrics: {'success': 0},
+      );
       _handleFetchError(deckResult.errorMessage, emit);
       return;
     }
 
     var deck = deckResult.data ?? const [];
+    await PerformanceMonitor.instance.stopTrace(
+      'deck_fetch',
+      metrics: {'success': 1, 'card_count': deck.length},
+    );
 
     // If local deck is empty and not yet exhausted, try extended distance
     if (deck.isEmpty && !localDeckExhausted && !passportModeEnabled) {
@@ -211,17 +227,19 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       AnalyticsService.instance.logDeckLoaded(cardCount: deck.length);
     }
 
-    emit(state.copyWith(
-      isLoading: false,
-      deck: deck,
-      currentIndex: 0,
-      status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
-      errorMessage: null,
-      nextRetrySeconds: null,
-      localDeckExhausted: localDeckExhausted,
-      passportModeActive: passportModeEnabled,
-      currentDistanceLimitKm: distanceLimit.isFinite ? distanceLimit : 0,
-    ));
+    emit(
+      state.copyWith(
+        isLoading: false,
+        deck: deck,
+        currentIndex: 0,
+        status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
+        errorMessage: null,
+        nextRetrySeconds: null,
+        localDeckExhausted: localDeckExhausted,
+        passportModeActive: passportModeEnabled,
+        currentDistanceLimitKm: distanceLimit.isFinite ? distanceLimit : 0,
+      ),
+    );
   }
 
   /// Load user preferences and location from profile repository.
@@ -253,25 +271,29 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     // If we've retried enough times or error indicates no people, show empty state
     if (_retryCount > _maxAutoRetries || isNoPeopleError) {
-      emit(state.copyWith(
-        isLoading: false,
-        status: DeckStatus.empty,
-        deck: const [],
-        currentIndex: 0,
-        errorMessage: null,
-        nextRetrySeconds: null,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          status: DeckStatus.empty,
+          deck: const [],
+          currentIndex: 0,
+          errorMessage: null,
+          nextRetrySeconds: null,
+        ),
+      );
       AnalyticsService.instance.logDeckEmpty();
       return;
     }
 
     // Otherwise show error and schedule retry
-    emit(state.copyWith(
-      isLoading: false,
-      status: DeckStatus.error,
-      errorMessage: errorMsg,
-      nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
-    ));
+    emit(
+      state.copyWith(
+        isLoading: false,
+        status: DeckStatus.error,
+        errorMessage: errorMsg,
+        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
+      ),
+    );
     _scheduleRetry();
   }
 
@@ -289,15 +311,18 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   }
 
   Future<void> _onSwipedRight(
-      DiscoverySwipedRight event, Emitter<DiscoveryState> emit) async {
+    DiscoverySwipedRight event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     if (state.deck.isEmpty) return;
 
     final currentIndex = state.currentIndex;
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being swiped on for match celebration
-    final swipedProfile =
-        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
+    final swipedProfile = currentIndex < state.deck.length
+        ? state.deck[currentIndex]
+        : null;
 
     final planResult = await Result.guard(
       () => subscriptionRepository.getCurrentPlan(),
@@ -305,11 +330,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       fallbackError: 'Could not like this profile. Please try again.',
     );
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        currentIndex: currentIndex,
-        status: DeckStatus.ready,
-        errorMessage: planResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          currentIndex: currentIndex,
+          status: DeckStatus.ready,
+          errorMessage: planResult.errorMessage,
+        ),
+      );
       return;
     }
     final plan = planResult.data ?? SubscriptionPlan.free;
@@ -318,21 +345,25 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         : null;
 
     if (plan.isFree && remainingSwipes != null && remainingSwipes <= 0) {
-      emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage: 'Daily swipe limit reached.',
-      ));
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: 'Daily swipe limit reached.',
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(
-      currentIndex: nextIndex,
-      status: DeckStatus.ready,
-      lastSwipedProfile: swipedProfile,
-      lastSwipeDirection: 'right',
-      canRewind: true,
-      errorMessage: planResult.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        currentIndex: nextIndex,
+        status: DeckStatus.ready,
+        lastSwipedProfile: swipedProfile,
+        lastSwipeDirection: 'right',
+        canRewind: true,
+        errorMessage: planResult.errorMessage,
+      ),
+    );
 
     final swipeResult = await Result.guard(
       () => discoveryRepository.swipeRight(
@@ -356,23 +387,27 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       if (match != null && swipedProfile != null) {
         AnalyticsService.instance.logMatch(matchId: match.id);
         // Emit the match result for celebration modal
-        emit(state.copyWith(
-          newMatch: MatchResult(
-            matchId: match.id,
-            matchedProfile: swipedProfile,
+        emit(
+          state.copyWith(
+            newMatch: MatchResult(
+              matchId: match.id,
+              matchedProfile: swipedProfile,
+            ),
           ),
-        ));
+        );
       }
 
       if (plan.isFree && remainingSwipes != null) {
         _remainingFreeSwipesToday = remainingSwipes - 1;
       }
     } else {
-      emit(state.copyWith(
-        currentIndex: currentIndex,
-        status: DeckStatus.ready,
-        errorMessage: swipeResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          currentIndex: currentIndex,
+          status: DeckStatus.ready,
+          errorMessage: swipeResult.errorMessage,
+        ),
+      );
     }
 
     // Preload more profiles if running low
@@ -380,24 +415,29 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   }
 
   Future<void> _onSwipedLeft(
-      DiscoverySwipedLeft event, Emitter<DiscoveryState> emit) async {
+    DiscoverySwipedLeft event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     if (state.deck.isEmpty) return;
 
     final currentIndex = state.currentIndex;
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being swiped for rewind support
-    final swipedProfile =
-        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
+    final swipedProfile = currentIndex < state.deck.length
+        ? state.deck[currentIndex]
+        : null;
 
-    emit(state.copyWith(
-      currentIndex: nextIndex,
-      status: DeckStatus.ready,
-      lastSwipedProfile: swipedProfile,
-      lastSwipeDirection: 'left',
-      canRewind: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        currentIndex: nextIndex,
+        status: DeckStatus.ready,
+        lastSwipedProfile: swipedProfile,
+        lastSwipeDirection: 'left',
+        canRewind: true,
+        errorMessage: null,
+      ),
+    );
 
     final result = await Result.guard(
       () => discoveryRepository.swipeLeft(
@@ -414,11 +454,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     if (!result.isSuccess) {
-      emit(state.copyWith(
-        currentIndex: currentIndex,
-        status: DeckStatus.ready,
-        errorMessage: result.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          currentIndex: currentIndex,
+          status: DeckStatus.ready,
+          errorMessage: result.errorMessage,
+        ),
+      );
     }
 
     // Preload more profiles if running low
@@ -427,7 +469,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
   /// Handle Super Like - higher priority like with daily limits.
   Future<void> _onSuperLiked(
-      DiscoverySuperLiked event, Emitter<DiscoveryState> emit) async {
+    DiscoverySuperLiked event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     if (state.deck.isEmpty) return;
 
     // Check and reset daily super likes if needed
@@ -453,11 +497,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     // Check if user has super likes remaining
     if (superLikesRemaining <= 0) {
-      emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage:
-            'No super likes remaining today. Upgrade to Plus for more!',
-      ));
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage:
+              'No super likes remaining today. Upgrade to Plus for more!',
+        ),
+      );
       return;
     }
 
@@ -465,20 +511,23 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     final nextIndex = (currentIndex + 1).clamp(0, state.deck.length);
 
     // Get the profile being super liked
-    final swipedProfile =
-        currentIndex < state.deck.length ? state.deck[currentIndex] : null;
+    final swipedProfile = currentIndex < state.deck.length
+        ? state.deck[currentIndex]
+        : null;
 
     // Optimistically update UI
-    emit(state.copyWith(
-      currentIndex: nextIndex,
-      status: DeckStatus.ready,
-      superLikesRemaining: superLikesRemaining - 1,
-      superLikesResetDate: resetDate,
-      lastSwipedProfile: swipedProfile,
-      lastSwipeDirection: 'superlike',
-      canRewind: true,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        currentIndex: nextIndex,
+        status: DeckStatus.ready,
+        superLikesRemaining: superLikesRemaining - 1,
+        superLikesResetDate: resetDate,
+        lastSwipedProfile: swipedProfile,
+        lastSwipeDirection: 'superlike',
+        canRewind: true,
+        errorMessage: null,
+      ),
+    );
 
     // Call repository
     final superLikeResult = await Result.guard(
@@ -498,22 +547,26 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final match = superLikeResult.data;
       if (match != null && swipedProfile != null) {
         AnalyticsService.instance.logMatch(matchId: match.id);
-        emit(state.copyWith(
-          newMatch: MatchResult(
-            matchId: match.id,
-            matchedProfile: swipedProfile,
+        emit(
+          state.copyWith(
+            newMatch: MatchResult(
+              matchId: match.id,
+              matchedProfile: swipedProfile,
+            ),
           ),
-        ));
+        );
       }
     } else {
       // Rollback on error
-      emit(state.copyWith(
-        currentIndex: currentIndex,
-        status: DeckStatus.ready,
-        superLikesRemaining: superLikesRemaining,
-        errorMessage: superLikeResult.errorMessage,
-        canRewind: false,
-      ));
+      emit(
+        state.copyWith(
+          currentIndex: currentIndex,
+          status: DeckStatus.ready,
+          superLikesRemaining: superLikesRemaining,
+          errorMessage: superLikeResult.errorMessage,
+          canRewind: false,
+        ),
+      );
     }
 
     // Preload more profiles if running low
@@ -522,13 +575,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
   /// Handle Rewind - undo last swipe (premium only).
   Future<void> _onRewindRequested(
-      DiscoveryRewindRequested event, Emitter<DiscoveryState> emit) async {
+    DiscoveryRewindRequested event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     // Check if rewind is available
     if (!state.canRewind || state.lastSwipedProfile == null) {
-      emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage: ErrorMessages.noSwipeToUndo,
-      ));
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: ErrorMessages.noSwipeToUndo,
+        ),
+      );
       return;
     }
 
@@ -540,10 +597,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     );
 
     if (!planResult.isSuccess) {
-      emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage: planResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: planResult.errorMessage,
+        ),
+      );
       return;
     }
 
@@ -555,7 +614,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final lastUsedDate = state.freeUndoLastUsedDate;
 
       // Check if it's a new day (reset at midnight)
-      final isNewDay = lastUsedDate == null ||
+      final isNewDay =
+          lastUsedDate == null ||
           now.year != lastUsedDate.year ||
           now.month != lastUsedDate.month ||
           now.day != lastUsedDate.day;
@@ -563,18 +623,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final hasUsedFreeUndo = !isNewDay && state.freeUndoUsedToday;
 
       if (hasUsedFreeUndo) {
-        emit(state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: ErrorMessages.freeUndoUsed,
-        ));
+        emit(
+          state.copyWith(
+            status: DeckStatus.ready,
+            errorMessage: ErrorMessages.freeUndoUsed,
+          ),
+        );
         return;
       }
 
       // Mark free undo as used for today
-      emit(state.copyWith(
-        freeUndoUsedToday: true,
-        freeUndoLastUsedDate: now,
-      ));
+      emit(state.copyWith(freeUndoUsedToday: true, freeUndoLastUsedDate: now));
     }
 
     // Call repository to rewind
@@ -606,30 +665,36 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         superLikesRemaining = state.superLikesRemaining + 1;
       }
 
-      emit(state.copyWith(
-        deck: updatedDeck,
-        currentIndex: newIndex,
-        status: DeckStatus.ready,
-        lastSwipedProfile: null,
-        lastSwipeDirection: null,
-        canRewind: false,
-        superLikesRemaining: superLikesRemaining,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          deck: updatedDeck,
+          currentIndex: newIndex,
+          status: DeckStatus.ready,
+          lastSwipedProfile: null,
+          lastSwipeDirection: null,
+          canRewind: false,
+          superLikesRemaining: superLikesRemaining,
+          errorMessage: null,
+        ),
+      );
 
       // Track rewind
       AnalyticsService.instance.logRewind();
     } else {
-      emit(state.copyWith(
-        status: DeckStatus.ready,
-        errorMessage: rewindResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: rewindResult.errorMessage,
+        ),
+      );
     }
   }
 
   /// Load more profiles when approaching end of deck.
   Future<void> _onLoadMoreRequested(
-      DiscoveryLoadMoreRequested event, Emitter<DiscoveryState> emit) async {
+    DiscoveryLoadMoreRequested event,
+    Emitter<DiscoveryState> emit,
+  ) async {
     // Don't load if already loading or no more profiles
     if (state.isLoadingMore || !state.hasMoreProfiles) return;
 
@@ -663,14 +728,17 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     // Filter out profiles already in the deck
     final existingIds = state.deck.map((p) => p.id).toSet();
-    final uniqueNewProfiles =
-        newProfiles.where((p) => !existingIds.contains(p.id)).toList();
+    final uniqueNewProfiles = newProfiles
+        .where((p) => !existingIds.contains(p.id))
+        .toList();
 
-    emit(state.copyWith(
-      isLoadingMore: false,
-      deck: [...state.deck, ...uniqueNewProfiles],
-      hasMoreProfiles: uniqueNewProfiles.isNotEmpty,
-    ));
+    emit(
+      state.copyWith(
+        isLoadingMore: false,
+        deck: [...state.deck, ...uniqueNewProfiles],
+        hasMoreProfiles: uniqueNewProfiles.isNotEmpty,
+      ),
+    );
   }
 
   /// Check if we should preload more and trigger loading if needed.

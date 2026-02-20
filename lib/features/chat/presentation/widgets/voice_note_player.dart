@@ -129,29 +129,33 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
         : DsColors.primary.withValues(alpha: 0.3);
 
     if (_hasError) {
-      return Container(
-        padding: EdgeInsets.all(widget.compact ? DsSpacing.sm : DsSpacing.md),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(DsRadius.lg),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: primaryColor.withValues(alpha: 0.7),
-              size: widget.compact ? 20 : 24,
-            ),
-            const SizedBox(width: DsSpacing.sm),
-            Text(
-              'Unable to load audio',
-              style: TextStyle(
+      return Semantics(
+        label: 'Voice message, unable to load audio',
+        excludeSemantics: true,
+        child: Container(
+          padding: EdgeInsets.all(widget.compact ? DsSpacing.sm : DsSpacing.md),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
                 color: primaryColor.withValues(alpha: 0.7),
-                fontSize: widget.compact ? 12 : 14,
+                size: widget.compact ? 20 : 24,
               ),
-            ),
-          ],
+              const SizedBox(width: DsSpacing.sm),
+              Text(
+                'Unable to load audio',
+                style: TextStyle(
+                  color: primaryColor.withValues(alpha: 0.7),
+                  fontSize: widget.compact ? 12 : 14,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -173,32 +177,41 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Play/Pause button
-          GestureDetector(
-            onTap: _isLoading ? null : _togglePlayPause,
-            child: Container(
-              width: widget.compact ? 32 : 40,
-              height: widget.compact ? 32 : 40,
-              decoration: BoxDecoration(
-                color: primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: _isLoading
-                    ? SizedBox(
-                        width: widget.compact ? 14 : 18,
-                        height: widget.compact ? 14 : 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color:
-                              isSent ? DsColors.primary : DsColors.surfaceLight,
+          Semantics(
+            button: true,
+            label: _isLoading
+                ? 'Loading voice message'
+                : (_isPlaying ? 'Pause voice message' : 'Play voice message'),
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: _isLoading ? null : _togglePlayPause,
+              child: Container(
+                width: widget.compact ? 32 : 40,
+                height: widget.compact ? 32 : 40,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: _isLoading
+                      ? SizedBox(
+                          width: widget.compact ? 14 : 18,
+                          height: widget.compact ? 14 : 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: isSent
+                                ? DsColors.primary
+                                : DsColors.surfaceLight,
+                          ),
+                        )
+                      : Icon(
+                          _isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: isSent
+                              ? DsColors.primary
+                              : DsColors.surfaceLight,
+                          size: widget.compact ? 18 : 22,
                         ),
-                      )
-                    : Icon(
-                        _isPlaying ? Icons.pause : Icons.play_arrow,
-                        color:
-                            isSent ? DsColors.primary : DsColors.surfaceLight,
-                        size: widget.compact ? 18 : 22,
-                      ),
+                ),
               ),
             ),
           ),
@@ -230,8 +243,8 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
                         : 0,
                     onChanged: (value) {
                       final newPosition = Duration(
-                        milliseconds:
-                            (value * _duration.inMilliseconds).toInt(),
+                        milliseconds: (value * _duration.inMilliseconds)
+                            .toInt(),
                       );
                       _player.seek(newPosition);
                     },
@@ -239,9 +252,7 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer> {
                 ),
                 // Duration text
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DsSpacing.xs,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: DsSpacing.xs),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -314,7 +325,9 @@ class VoiceNoteWaveform extends StatelessWidget {
           final barHeight = barHeights[i] * height;
 
           return Padding(
-            padding: EdgeInsets.only(right: i < barCount - 1 ? gap : 0),
+            padding: EdgeInsetsDirectional.only(
+              end: i < barCount - 1 ? gap : 0,
+            ),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               width: barWidth,

@@ -115,27 +115,21 @@ class ProfileReaction extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        fromUserId,
-        toUserId,
-        contentType,
-        contentIndex,
-        reactionType,
-        createdAt,
-        comment,
-        contentPreview,
-        isRead,
-      ];
+    id,
+    fromUserId,
+    toUserId,
+    contentType,
+    contentIndex,
+    reactionType,
+    createdAt,
+    comment,
+    contentPreview,
+    isRead,
+  ];
 }
 
 /// Types of content that can receive reactions.
-enum ReactionContentType {
-  photo,
-  video,
-  prompt,
-  bio,
-  interest,
-}
+enum ReactionContentType { photo, video, prompt, bio, interest }
 
 /// Available reaction emojis.
 const Map<String, String> _reactionEmojis = {

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/performance/performance_monitor.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
@@ -276,6 +277,14 @@ class MsgRetryRequested extends MessageHandlingEvent {
   List<Object?> get props => [matchId, messageId];
 }
 
+class MsgDiscardFailedRequested extends MessageHandlingEvent {
+  final String messageId;
+  MsgDiscardFailedRequested({required this.messageId});
+
+  @override
+  List<Object?> get props => [messageId];
+}
+
 class MsgResetRequested extends MessageHandlingEvent {}
 
 // ---------------------------------------------------------------------------
@@ -295,7 +304,11 @@ class MessageHandlingBloc
   StreamSubscription<List<Message>>? _sub;
   StreamSubscription<List<Message>>? _newMessagesSub;
 
-  static const int _pageSize = 30;
+  static const int _pageSize = 50;
+
+  /// Maximum messages kept in memory to prevent unbounded growth.
+  /// When exceeded, oldest messages are trimmed (they can be re-fetched via pagination).
+  static const int _maxMessagesInMemory = 100;
 
   MessageHandlingBloc({
     required this.chatRepository,
@@ -314,6 +327,7 @@ class MessageHandlingBloc
     on<MsgNewMessagesReceived>(_onNewMessages);
     on<MsgLegacyMessagesUpdated>(_onLegacyMessages);
     on<MsgRetryRequested>(_onRetry);
+    on<MsgDiscardFailedRequested>(_onDiscardFailed);
     on<MsgResetRequested>(_onReset);
   }
 
@@ -453,6 +467,7 @@ class MessageHandlingBloc
       ),
     );
 
+    await PerformanceMonitor.instance.startTrace('message_send');
     final result = await Result.guard(
       () => chatRepository.sendMessage(
         matchId: event.matchId,
@@ -475,6 +490,10 @@ class MessageHandlingBloc
     );
 
     if (result.isSuccess) {
+      await PerformanceMonitor.instance.stopTrace(
+        'message_send',
+        metrics: {'success': 1},
+      );
       AnalyticsService.instance.logMessageSent(
         matchId: event.matchId,
         messageType: event.type.name,
@@ -485,6 +504,10 @@ class MessageHandlingBloc
         state.copyWith(sendStatus: SendStatus.idle, failedMessages: newPending),
       );
     } else {
+      await PerformanceMonitor.instance.stopTrace(
+        'message_send',
+        metrics: {'success': 0},
+      );
       final newFailed = Map<String, Message>.from(state.failedMessages);
       newFailed[tempId] = optimisticMessage.copyWith(
         sendStatus: MessageSendStatus.failed,
@@ -796,7 +819,13 @@ class MessageHandlingBloc
     if (result.isSuccess && result.data != null) {
       final paginated = result.data!;
       final decrypted = await _maybeDecryptMessages(paginated.items);
-      final allMessages = [...decrypted, ...state.messages];
+      var allMessages = [...decrypted, ...state.messages];
+
+      // Trim newest messages if exceeding memory cap (user is scrolling up)
+      if (allMessages.length > _maxMessagesInMemory) {
+        allMessages = allMessages.sublist(0, _maxMessagesInMemory);
+      }
+
       emit(
         state.copyWith(
           messages: allMessages,
@@ -827,7 +856,15 @@ class MessageHandlingBloc
     if (uniqueNewMessages.isEmpty) return;
 
     final decryptedNewMessages = await _maybeDecryptMessages(uniqueNewMessages);
-    final allMessages = [...state.messages, ...decryptedNewMessages];
+    var allMessages = [...state.messages, ...decryptedNewMessages];
+
+    // Trim oldest messages if exceeding memory cap
+    if (allMessages.length > _maxMessagesInMemory) {
+      allMessages = allMessages.sublist(
+        allMessages.length - _maxMessagesInMemory,
+      );
+    }
+
     emit(state.copyWith(messages: allMessages));
   }
 
@@ -939,6 +976,17 @@ class MessageHandlingBloc
         ),
       );
     }
+  }
+
+  // ---- Discard failed message ----
+
+  void _onDiscardFailed(
+    MsgDiscardFailedRequested event,
+    Emitter<MessageHandlingState> emit,
+  ) {
+    final newFailed = Map<String, Message>.from(state.failedMessages);
+    newFailed.remove(event.messageId);
+    emit(state.copyWith(failedMessages: newFailed));
   }
 
   // ---- Reset ----

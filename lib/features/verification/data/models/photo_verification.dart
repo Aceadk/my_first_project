@@ -122,36 +122,23 @@ class PhotoVerification extends Equatable {
 
   @override
   List<Object?> get props => [
-        userId,
-        status,
-        submittedAt,
-        verifiedAt,
-        selfieUrl,
-        poseType,
-        confidenceScore,
-        rejectionReason,
-        attempts,
-      ];
+    userId,
+    status,
+    submittedAt,
+    verifiedAt,
+    selfieUrl,
+    poseType,
+    confidenceScore,
+    rejectionReason,
+    attempts,
+  ];
 }
 
 /// Verification status states.
-enum VerificationStatus {
-  unverified,
-  pending,
-  verified,
-  rejected,
-  expired,
-}
+enum VerificationStatus { unverified, pending, verified, rejected, expired }
 
 /// Pose types for verification selfies.
-enum VerificationPose {
-  neutral,
-  smiling,
-  thumbsUp,
-  peace,
-  waving,
-  pointingUp,
-}
+enum VerificationPose { neutral, smiling, thumbsUp, peace, waving, pointingUp }
 
 /// Get display name for a pose.
 extension VerificationPoseExtension on VerificationPose {

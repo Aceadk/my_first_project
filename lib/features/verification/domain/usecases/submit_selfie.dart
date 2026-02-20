@@ -8,10 +8,7 @@ class SubmitSelfieParams {
   final String userId;
   final String selfieUrl;
 
-  const SubmitSelfieParams({
-    required this.userId,
-    required this.selfieUrl,
-  });
+  const SubmitSelfieParams({required this.userId, required this.selfieUrl});
 }
 
 /// Use case for submitting a selfie for photo verification.
@@ -20,7 +17,7 @@ class SubmitSelfieUseCase extends UseCase<PhotoVerification, SubmitSelfieParams>
   final PhotoVerificationService _service;
 
   SubmitSelfieUseCase([PhotoVerificationService? service])
-      : _service = service ?? PhotoVerificationService.instance;
+    : _service = service ?? PhotoVerificationService.instance;
 
   @override
   String? validate(SubmitSelfieParams params) {

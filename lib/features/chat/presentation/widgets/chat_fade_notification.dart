@@ -39,17 +39,18 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
 
     _fadeAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 15,
       ),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 55),
       TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 55,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 30,
       ),
     ]).animate(_controller);
@@ -62,10 +63,7 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
         ).chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 15,
       ),
-      TweenSequenceItem(
-        tween: ConstantTween<Offset>(Offset.zero),
-        weight: 55,
-      ),
+      TweenSequenceItem(tween: ConstantTween<Offset>(Offset.zero), weight: 55),
       TweenSequenceItem(
         tween: Tween<Offset>(
           begin: Offset.zero,
@@ -91,81 +89,85 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseSurface = DsGlassColors.surfaceFor(context);
 
-    return Positioned(
+    return PositionedDirectional(
       top: MediaQuery.of(context).padding.top + 100,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: child,
-              ),
-            );
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DsRadius.round),
-            child: BackdropFilter(
-              filter:
-                  ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DsSpacing.lg,
-                  vertical: DsSpacing.md,
+      start: 0,
+      end: 0,
+      child: Semantics(
+        liveRegion: true,
+        label: widget.message,
+        excludeSemantics: true,
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(position: _slideAnimation, child: child),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DsRadius.round),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: DsBlur.heavy,
+                  sigmaY: DsBlur.heavy,
                 ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      baseSurface.withValues(alpha: 0.9),
-                      baseSurface.withValues(alpha: 0.8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpacing.lg,
+                    vertical: DsSpacing.md,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        baseSurface.withValues(alpha: 0.9),
+                        baseSurface.withValues(alpha: 0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(DsRadius.round),
+                    border: Border.all(
+                      color: DsGlassColors.borderFor(context),
+                      width: 0.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.ink900.withValues(alpha: 0.2),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(DsRadius.round),
-                  border: Border.all(
-                    color: DsGlassColors.borderFor(context),
-                    width: 0.5,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          gradient: DsGradients.primaryHorizontal,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          widget.icon,
+                          size: 20,
+                          color: DsColors.surfaceLight,
+                        ),
+                      ),
+                      const SizedBox(width: DsSpacing.md),
+                      Text(
+                        widget.message,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight,
+                        ),
+                      ),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: DsColors.ink900.withValues(alpha: 0.2),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        gradient: DsGradients.primaryHorizontal,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        widget.icon,
-                        size: 20,
-                        color: DsColors.surfaceLight,
-                      ),
-                    ),
-                    const SizedBox(width: DsSpacing.md),
-                    Text(
-                      widget.message,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),

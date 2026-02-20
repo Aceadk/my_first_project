@@ -100,6 +100,7 @@ class TestApp extends StatelessWidget {
       BlocProvider<SubscriptionBloc>(
         create: (context) => SubscriptionBloc(
           subscriptionRepository: context.read<SubscriptionRepository>(),
+          authRepository: context.read<AuthRepository>(),
         )..add(SubscriptionWatchStarted()),
       ),
       BlocProvider<ProfileBloc>(

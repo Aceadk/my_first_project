@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:crushhour/features/social/data/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 
 void main() {
   group('CompatibilityQuiz model', () {

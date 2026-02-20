@@ -115,7 +115,8 @@ class LocationService {
       ).timeout(timeout);
 
       developer.log(
-          'LocationService: Got position: ${position.latitude}, ${position.longitude}');
+        'LocationService: Got position: ${position.latitude}, ${position.longitude}',
+      );
 
       // Reverse geocode if requested
       String? city, state, country, displayLocation;
@@ -136,8 +137,9 @@ class LocationService {
               if (city != null && city.isNotEmpty) city,
               if (country != null && country.isNotEmpty) country,
             ];
-            displayLocation =
-                components.isNotEmpty ? components.join(', ') : null;
+            displayLocation = components.isNotEmpty
+                ? components.join(', ')
+                : null;
           }
         } catch (geocodeError) {
           developer.log('LocationService: Geocoding error: $geocodeError');
@@ -209,54 +211,55 @@ class LocationService {
       );
     }
 
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: locationSettings,
-    ).listen(
-      (Position position) async {
-        developer.log(
-            'LocationService: Stream update: ${position.latitude}, ${position.longitude}');
+    _positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          (Position position) async {
+            developer.log(
+              'LocationService: Stream update: ${position.latitude}, ${position.longitude}',
+            );
 
-        // Reverse geocode for each update
-        String? city, state, country, displayLocation;
-        try {
-          final placemarks = await placemarkFromCoordinates(
-            position.latitude,
-            position.longitude,
-          ).timeout(const Duration(seconds: 5));
+            // Reverse geocode for each update
+            String? city, state, country, displayLocation;
+            try {
+              final placemarks = await placemarkFromCoordinates(
+                position.latitude,
+                position.longitude,
+              ).timeout(const Duration(seconds: 5));
 
-          if (placemarks.isNotEmpty) {
-            final place = placemarks.first;
-            city = place.locality;
-            state = place.administrativeArea;
-            country = place.country;
+              if (placemarks.isNotEmpty) {
+                final place = placemarks.first;
+                city = place.locality;
+                state = place.administrativeArea;
+                country = place.country;
 
-            final components = <String>[
-              if (city != null && city.isNotEmpty) city,
-              if (country != null && country.isNotEmpty) country,
-            ];
-            displayLocation =
-                components.isNotEmpty ? components.join(', ') : null;
-          }
-        } catch (e) {
-          developer.log('LocationService: Geocoding error in stream: $e');
-        }
+                final components = <String>[
+                  if (city != null && city.isNotEmpty) city,
+                  if (country != null && country.isNotEmpty) country,
+                ];
+                displayLocation = components.isNotEmpty
+                    ? components.join(', ')
+                    : null;
+              }
+            } catch (e) {
+              developer.log('LocationService: Geocoding error in stream: $e');
+            }
 
-        final result = LocationResult(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          city: city,
-          state: state,
-          country: country,
-          displayLocation: displayLocation,
-          timestamp: position.timestamp,
+            final result = LocationResult(
+              latitude: position.latitude,
+              longitude: position.longitude,
+              city: city,
+              state: state,
+              country: country,
+              displayLocation: displayLocation,
+              timestamp: position.timestamp,
+            );
+
+            _locationController.add(result);
+          },
+          onError: (error) {
+            developer.log('LocationService: Stream error: $error');
+          },
         );
-
-        _locationController.add(result);
-      },
-      onError: (error) {
-        developer.log('LocationService: Stream error: $error');
-      },
-    );
 
     developer.log('LocationService: Location stream started');
   }

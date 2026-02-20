@@ -1,6 +1,5 @@
 {
   "@@locale": "te",
-
   "@@_COMMON": "సాధారణ UI అంశాలు యాప్ అంతటా ఉపయోగించబడతాయి",
   "commonCancel": "రద్దు చేయి",
   "commonSave": "సేవ్ చేయి",
@@ -44,7 +43,6 @@
   "commonUnblock": "అన్‌బ్లాక్ చేయి",
   "commonMute": "మ్యూట్ చేయి",
   "commonUnmute": "అన్‌మ్యూట్ చేయి",
-
   "@@_ERRORS": "దోష సందేశాలు",
   "errorGeneric": "ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
   "errorNetwork": "కనెక్షన్ లోపం. మీ ఇంటర్నెట్ తనిఖీ చేసి మళ్ళీ ప్రయత్నించండి.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action} చేయలేకపోయాము. దయచేసి మళ్ళీ ప్రయత్నించండి.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} Plus ఫీచర్. అన్‌లాక్ చేయడానికి అప్‌గ్రేడ్ చేయండి!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "అందుబాటు లేబుల్స్ మరియు సూచనలు",
   "a11yBackButton": "వెనుకకు వెళ్ళు",
   "a11yCloseButton": "మూసివేయి",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name} యొక్క ప్రొఫైల్ ఫోటో",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "వినియోగదారు అవతార్",
   "a11yAvatarOf": "{name} యొక్క అవతార్",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "ప్రొఫైల్ సవరించు",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender} నుండి సందేశం",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 చదవని సందేశం} other{{count} చదవని సందేశాలు}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "పాస్‌వర్డ్ చూపించు",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "మ్యాచ్ అయింది! మీరు {name}తో మ్యాచ్ అయ్యారు",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender} నుండి కొత్త సందేశం",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "ప్రొఫైల్ లైక్ చేయబడింది",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "ప్రొఫైల్ సూపర్ లైక్ చేయబడింది",
   "a11yMessageSent": "సందేశం పంపబడింది",
   "a11ySettingSaved": "సెట్టింగ్ సేవ్ చేయబడింది",
-
   "@@_AUTH": "ప్రమాణీకరణ స్క్రీన్‌లు",
   "authWelcomeBack": "తిరిగి స్వాగతం",
   "authSignInToContinue": "Crush కి కొనసాగించడానికి సైన్ ఇన్ చేయండి",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "మేము {destination}కి కోడ్ పంపాము",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6-అంకెల కోడ్ నమోదు చేయండి",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "మీ ఇమెయిల్‌ను ధృవీకరించడానికి మేము పంపిన లింక్‌పై క్లిక్ చేయండి",
   "authEmailVerified": "ఇమెయిల్ విజయవంతంగా ధృవీకరించబడింది!",
   "authSkipForNow": "ఇప్పటికి దాటవేయి",
-
   "@@_SETTINGS": "సెట్టింగ్‌ల స్క్రీన్‌లు",
   "settingsTitle": "సెట్టింగ్‌లు",
   "settingsAppearance": "రూపం",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} కి.మీ.",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "నాకు చూపించు",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "మీ ప్లాన్‌ను నిర్వహించండి",
   "settingsGetPlus": "Crush Plus పొందండి",
   "settingsRestorePurchases": "కొనుగోళ్లు పునరుద్ధరించు",
-
   "@@_DISCOVERY": "డిస్కవరీ/డెక్ స్క్రీన్‌లు",
   "discoveryTitle": "డిస్కవర్",
   "discoveryNoMatchesTitle": "ఇంకా మ్యాచ్‌లు లేవు",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "మీరు మరియు {name} ఒకరినొకరు ఇష్టపడ్డారు",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "సందేశం పంపు",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "మిమ్మల్ని ఇష్టపడతారు",
   "discoveryTopPicks": "టాప్ పిక్స్",
   "discoveryNewArrivals": "కొత్త వచ్చినవారు",
-
   "@@_CHAT": "చాట్/మెసేజింగ్ స్క్రీన్‌లు",
   "chatTitle": "చాట్‌లు",
   "chatMatches": "మ్యాచ్‌లు",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name}తో సంభాషణ ప్రారంభించండి",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "సందేశం టైప్ చేయండి...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "చివరిగా చూసింది {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "టైప్ చేస్తోంది...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "మీరు {name}తో మ్యాచ్ అయ్యారు",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "ప్రొఫైల్ స్క్రీన్‌లు",
   "profileTitle": "ప్రొఫైల్",
   "profileEdit": "ప్రొఫైల్ సవరించు",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} సెం.మీ.",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "భాషలు",
@@ -450,7 +472,6 @@
   "profileAboutMe": "నా గురించి",
   "profileMyDetails": "నా వివరాలు",
   "profileLifestyle": "జీవనశైలి",
-
   "@@_ONBOARDING": "ఆన్‌బోర్డింగ్ స్క్రీన్‌లు",
   "onboardingWelcome": "Crush కి స్వాగతం",
   "onboardingTagline": "మీ పరిపూర్ణ జోడీని కనుగొనండి",
@@ -458,8 +479,12 @@
   "onboardingStep": "దశ {current} / {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "మీ పేరు ఏమిటి?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "కనీసం 3 ఆసక్తులను ఎంచుకోండి",
   "onboardingAllSet": "మీరు సిద్ధంగా ఉన్నారు!",
   "onboardingStartSwiping": "స్వైప్ చేయడం ప్రారంభించు",
-
   "@@_SUBSCRIPTION": "సబ్‌స్క్రిప్షన్ స్క్రీన్‌లు",
   "subscriptionFree": "ఉచితం",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "నెలకు {count} బూస్ట్‌లు",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "రోజుకు {count} సూపర్ లైక్‌లు",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "ప్రకటనలు లేవు",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/నెలకు",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/సంవత్సరానికి",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "అత్యుత్తమ విలువ",
   "subscriptionMostPopular": "అత్యంత ప్రజాదరణ పొందినది",
-
   "@@_SAFETY": "భద్రత మరియు రిపోర్టింగ్",
   "safetyReportUser": "వినియోగదారుని రిపోర్ట్ చేయి",
   "safetyBlockUser": "వినియోగదారుని బ్లాక్ చేయి",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name}ని బ్లాక్ చేయాలా?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "వారు మీ ప్రొఫైల్ చూడలేరు లేదా మీకు సందేశం పంపలేరు",
@@ -532,42 +565,46 @@
   "safetySpam": "స్పామ్",
   "safetyScam": "మోసం",
   "safetyOther": "ఇతరం",
-
   "@@_TIME": "సమయ సంబంధిత స్ట్రింగ్‌లు",
   "timeJustNow": "ఇప్పుడే",
   "timeMinutesAgo": "{count, plural, =1{1 నిమిషం క్రితం} other{{count} నిమిషాల క్రితం}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 గంట క్రితం} other{{count} గంటల క్రితం}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 రోజు క్రితం} other{{count} రోజుల క్రితం}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 వారం క్రితం} other{{count} వారాల క్రితం}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "ఖాళీ స్థితి సందేశాలు",
   "emptyNoResults": "ఫలితాలు కనుగొనబడలేదు",
   "emptyTryAgain": "మీ శోధన లేదా ఫిల్టర్లను సర్దుబాటు చేయడానికి ప్రయత్నించండి",
   "emptyNoData": "డేటా అందుబాటులో లేదు",
   "emptyCheckBackLater": "తర్వాత మళ్ళీ తనిఖీ చేయండి",
-
   "@@_ADDITIONAL_WORDS": "సౌకర్యవంతమైన గుర్తింపు కోసం అదనపు సాధారణ పదాలు",
-
   "@@_NAV_WORDS": "నావిగేషన్ పదాలు",
   "wordHome": "హోమ్",
   "wordExplore": "అన్వేషించు",
@@ -579,7 +616,6 @@
   "wordInbox": "ఇన్‌బాక్స్",
   "wordFavorites": "ఇష్టమైనవి",
   "wordHistory": "చరిత్ర",
-
   "@@_ACTION_WORDS": "చర్య పదాలు",
   "wordCopy": "కాపీ చేయి",
   "wordPaste": "పేస్ట్ చేయి",
@@ -698,7 +734,6 @@
   "wordDecide": "నిర్ణయించు",
   "wordAgree": "అంగీకరించు",
   "wordDisagree": "అంగీకరించకు",
-
   "@@_STATUS_WORDS": "స్థితి పదాలు",
   "wordActive": "యాక్టివ్",
   "wordInactive": "ఇన్‌యాక్టివ్",
@@ -765,7 +800,6 @@
   "wordUnseen": "చూడలేదు",
   "wordOpenStatus": "తెరవబడింది",
   "wordClosed": "మూసివేయబడింది",
-
   "@@_TIME_WORDS": "సమయ సంబంధిత పదాలు",
   "wordNow": "ఇప్పుడు",
   "wordLater": "తర్వాత",
@@ -807,7 +841,6 @@
   "wordYears": "సంవత్సరాలు",
   "wordSecond": "సెకను",
   "wordSeconds": "సెకన్లు",
-
   "@@_ADJECTIVE_WORDS": "సాధారణ విశేషణాలు",
   "wordGood": "మంచి",
   "wordBad": "చెడు",
@@ -932,7 +965,6 @@
   "wordFabulous": "అద్భుతమైన",
   "wordMagnificent": "భవ్యమైన",
   "wordSpectacular": "అద్భుతమైన",
-
   "@@_GREETING_WORDS": "అభివాదనలు మరియు మర్యాదపూర్వక వ్యక్తీకరణలు",
   "wordPlease": "దయచేసి",
   "wordThanks": "ధన్యవాదాలు",
@@ -963,7 +995,6 @@
   "wordHaveFun": "ఆనందించండి",
   "wordEnjoy": "ఆస్వాదించండి",
   "wordCheers": "చీర్స్",
-
   "@@_QUESTION_WORDS": "ప్రశ్న పదాలు",
   "wordWho": "ఎవరు",
   "wordWhat": "ఏమిటి",
@@ -979,7 +1010,6 @@
   "wordHowFar": "ఎంత దూరం",
   "wordHowOld": "ఎంత వయసు",
   "wordHowOften": "ఎంత తరచుగా",
-
   "@@_PREPOSITION_WORDS": "సంబంధసూచకాలు మరియు స్థానాలు",
   "wordWith": "తో",
   "wordWithout": "లేకుండా",
@@ -1015,7 +1045,6 @@
   "wordCenter": "కేంద్రం",
   "wordCorner": "మూల",
   "wordEdge": "అంచు",
-
   "@@_DATING_WORDS": "డేటింగ్ సంబంధిత పదాలు",
   "wordCrush": "క్రష్",
   "wordMatch": "మ్యాచ్",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "వెతుకుతున్నారు",
   "wordWaiting": "వేచి ఉన్నారు",
   "wordSearching": "శోధిస్తున్నారు",
-
   "@@_COMMON_NOUNS": "సాధారణ నామవాచకాలు",
   "wordNotification": "నోటిఫికేషన్",
   "wordAlert": "అలర్ట్",
@@ -1462,5 +1490,46 @@
   "wordEverything": "అన్నీ",
   "wordSomething": "ఏదో",
   "wordNothing": "ఏమీ లేదు",
-  "wordAnything": "ఏదైనా"
+  "wordAnything": "ఏదైనా",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

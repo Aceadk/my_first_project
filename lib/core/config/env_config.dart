@@ -30,8 +30,10 @@ class EnvConfig {
   static const String _smtpPortStr = String.fromEnvironment('SMTP_PORT');
   static const String _smtpEmail = String.fromEnvironment('SMTP_EMAIL');
   static const String _smtpPassword = String.fromEnvironment('SMTP_PASSWORD');
-  static const String _smtpSenderName =
-      String.fromEnvironment('SMTP_SENDER_NAME', defaultValue: 'Crush');
+  static const String _smtpSenderName = String.fromEnvironment(
+    'SMTP_SENDER_NAME',
+    defaultValue: 'Crush',
+  );
 
   // Secure storage keys
   static const String _keySmtpHost = 'smtp_host';

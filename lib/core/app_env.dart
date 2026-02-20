@@ -2,14 +2,13 @@ import 'package:flutter/foundation.dart';
 
 import 'app_logger.dart';
 
-enum AppEnv {
-  dev,
-  prod,
-}
+enum AppEnv { dev, prod }
 
 class AppEnvConfig {
-  static const String _envRaw =
-      String.fromEnvironment('APP_ENV', defaultValue: 'prod');
+  static const String _envRaw = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'prod',
+  );
   static final AppEnv env = _parse(_envRaw);
   static bool _loggedBypass = false;
 

@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
@@ -72,18 +74,13 @@ class _MessageSearchBarState extends State<MessageSearchBar> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           height: 44,
           decoration: BoxDecoration(
             color: DsGlassColors.surfaceFor(context),
             borderRadius: BorderRadius.circular(DsRadius.round),
-            border: Border.all(
-              color: DsGlassColors.borderFor(context),
-            ),
+            border: Border.all(color: DsGlassColors.borderFor(context)),
           ),
           child: Row(
             children: [
@@ -91,8 +88,9 @@ class _MessageSearchBarState extends State<MessageSearchBar> {
               Icon(
                 Icons.search,
                 size: 20,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
               const SizedBox(width: DsSpacing.sm),
               Expanded(
@@ -195,8 +193,9 @@ class MessageSearchResult extends StatelessWidget {
                 context,
                 strength: DsGlassSurfaceStrength.medium,
               ),
-              backgroundImage:
-                  avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+              backgroundImage: avatarUrl != null
+                  ? NetworkImage(avatarUrl!)
+                  : null,
               child: avatarUrl == null
                   ? Icon(
                       Icons.person,
@@ -224,7 +223,11 @@ class MessageSearchResult extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        _formatTime(timestamp),
+                        DateTimeFormatter.formatSearchResultTime(
+                          timestamp,
+                          l10n: context.l10n,
+                          locale: Localizations.localeOf(context).toString(),
+                        ),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark
@@ -260,26 +263,6 @@ class MessageSearchResult extends StatelessWidget {
       ),
     );
   }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-
-    if (diff.inDays == 0) {
-      final hour = time.hour;
-      final minute = time.minute.toString().padLeft(2, '0');
-      final period = hour >= 12 ? 'PM' : 'AM';
-      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-      return '$displayHour:$minute $period';
-    } else if (diff.inDays == 1) {
-      return 'Yesterday';
-    } else if (diff.inDays < 7) {
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return days[time.weekday - 1];
-    } else {
-      return '${time.month}/${time.day}/${time.year}';
-    }
-  }
 }
 
 class _HighlightedText extends StatelessWidget {
@@ -298,8 +281,12 @@ class _HighlightedText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (query.isEmpty) {
-      return Text(text,
-          style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
+      return Text(
+        text,
+        style: style,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      );
     }
 
     final lowerText = text.toLowerCase();
@@ -318,10 +305,12 @@ class _HighlightedText extends StatelessWidget {
         spans.add(TextSpan(text: text.substring(start, index), style: style));
       }
 
-      spans.add(TextSpan(
-        text: text.substring(index, index + query.length),
-        style: highlightStyle,
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + query.length),
+          style: highlightStyle,
+        ),
+      );
 
       start = index + query.length;
     }
@@ -367,9 +356,11 @@ class _MessageSearchOverlayState extends State<MessageSearchOverlay> {
         _results = [];
       } else {
         _results = widget.messages
-            .where((m) =>
-                m.content.toLowerCase().contains(query.toLowerCase()) ||
-                m.senderName.toLowerCase().contains(query.toLowerCase()))
+            .where(
+              (m) =>
+                  m.content.toLowerCase().contains(query.toLowerCase()) ||
+                  m.senderName.toLowerCase().contains(query.toLowerCase()),
+            )
             .toList();
       }
     });
@@ -407,21 +398,21 @@ class _MessageSearchOverlayState extends State<MessageSearchOverlay> {
               child: _query.isEmpty
                   ? _EmptySearchState()
                   : _results.isEmpty
-                      ? _NoResultsState(query: _query)
-                      : ListView.builder(
-                          itemCount: _results.length,
-                          itemBuilder: (context, index) {
-                            final message = _results[index];
-                            return MessageSearchResult(
-                              senderName: message.senderName,
-                              message: message.content,
-                              timestamp: message.timestamp,
-                              query: _query,
-                              avatarUrl: message.avatarUrl,
-                              onTap: () => widget.onMessageTap(message),
-                            );
-                          },
-                        ),
+                  ? _NoResultsState(query: _query)
+                  : ListView.builder(
+                      itemCount: _results.length,
+                      itemBuilder: (context, index) {
+                        final message = _results[index];
+                        return MessageSearchResult(
+                          senderName: message.senderName,
+                          message: message.content,
+                          timestamp: message.timestamp,
+                          query: _query,
+                          avatarUrl: message.avatarUrl,
+                          onTap: () => widget.onMessageTap(message),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'package:crushhour/features/discovery/data/services/realtime_match_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
 import 'mock/firebase_mock.dart';
 
 void main() {

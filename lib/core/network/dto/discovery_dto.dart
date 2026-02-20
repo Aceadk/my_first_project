@@ -23,7 +23,8 @@ class DiscoveryDeckDto extends BaseDto {
 
   factory DiscoveryDeckDto.fromJson(Map<String, dynamic> json) {
     // Support both 'candidates' (new) and 'profiles' (legacy) keys
-    final profilesList = json.getList(
+    final profilesList =
+        json.getList(
           'candidates',
           (e) => DiscoveryProfileDto.fromJson(e as Map<String, dynamic>),
         ) ??
@@ -44,14 +45,14 @@ class DiscoveryDeckDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'profiles': profiles.map((p) => p.toJson()).toList(),
-        if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
-        if (nextRefreshAt != null)
-          'next_refresh_at': nextRefreshAt!.toIso8601String(),
-        if (boostActive != null) 'boost_active': boostActive,
-        if (boostExpiresAt != null)
-          'boost_expires_at': boostExpiresAt!.toIso8601String(),
-      };
+    'profiles': profiles.map((p) => p.toJson()).toList(),
+    if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
+    if (nextRefreshAt != null)
+      'next_refresh_at': nextRefreshAt!.toIso8601String(),
+    if (boostActive != null) 'boost_active': boostActive,
+    if (boostExpiresAt != null)
+      'boost_expires_at': boostExpiresAt!.toIso8601String(),
+  };
 }
 
 /// Discovery profile (subset of full profile for deck).
@@ -121,7 +122,9 @@ class DiscoveryProfileDto extends BaseDto {
       age: json.getInt('age'),
       bio: json.getString('bio'),
       photos: json.getList(
-          'photos', (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>)),
+        'photos',
+        (e) => ProfilePhotoDto.fromJson(e as Map<String, dynamic>),
+      ),
       distance: json.getDouble('distance'),
       distanceUnit: json.getString('distance_unit'),
       location: json.getString('location'),
@@ -140,25 +143,25 @@ class DiscoveryProfileDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'display_name': displayName,
-        if (age != null) 'age': age,
-        if (bio != null) 'bio': bio,
-        if (photos != null) 'photos': photos!.map((p) => p.toJson()).toList(),
-        if (distance != null) 'distance': distance,
-        if (distanceUnit != null) 'distance_unit': distanceUnit,
-        if (location != null) 'location': location,
-        if (jobTitle != null) 'job_title': jobTitle,
-        if (company != null) 'company': company,
-        if (education != null) 'education': education,
-        if (height != null) 'height': height,
-        if (interests != null) 'interests': interests,
-        if (isVerified != null) 'is_verified': isVerified,
-        if (isPremium != null) 'is_premium': isPremium,
-        if (lastActive != null) 'last_active': lastActive!.toIso8601String(),
-        if (commonInterests != null) 'common_interests': commonInterests,
-        if (commonConnections != null) 'common_connections': commonConnections,
-      };
+    'id': id,
+    'display_name': displayName,
+    if (age != null) 'age': age,
+    if (bio != null) 'bio': bio,
+    if (photos != null) 'photos': photos!.map((p) => p.toJson()).toList(),
+    if (distance != null) 'distance': distance,
+    if (distanceUnit != null) 'distance_unit': distanceUnit,
+    if (location != null) 'location': location,
+    if (jobTitle != null) 'job_title': jobTitle,
+    if (company != null) 'company': company,
+    if (education != null) 'education': education,
+    if (height != null) 'height': height,
+    if (interests != null) 'interests': interests,
+    if (isVerified != null) 'is_verified': isVerified,
+    if (isPremium != null) 'is_premium': isPremium,
+    if (lastActive != null) 'last_active': lastActive!.toIso8601String(),
+    if (commonInterests != null) 'common_interests': commonInterests,
+    if (commonConnections != null) 'common_connections': commonConnections,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -196,10 +199,10 @@ class SwipeRequestDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'target_user_id': targetUserId,
-        'action': action.toJson(),
-        if (superLikeMessage != null) 'super_like_message': superLikeMessage,
-      };
+    'target_user_id': targetUserId,
+    'action': action.toJson(),
+    if (superLikeMessage != null) 'super_like_message': superLikeMessage,
+  };
 
   @override
   String? validate() {
@@ -243,14 +246,14 @@ class SwipeResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'success': success,
-        if (isMatch != null) 'is_match': isMatch,
-        if (match != null) 'match': match!.toJson(),
-        if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
-        if (remainingSuperLikes != null)
-          'remaining_super_likes': remainingSuperLikes,
-        if (message != null) 'message': message,
-      };
+    'success': success,
+    if (isMatch != null) 'is_match': isMatch,
+    if (match != null) 'match': match!.toJson(),
+    if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
+    if (remainingSuperLikes != null)
+      'remaining_super_likes': remainingSuperLikes,
+    if (message != null) 'message': message,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -304,16 +307,16 @@ class MatchDto extends BaseDto with DtoMetadata {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'user_id': userId,
-        'matched_user_id': matchedUserId,
-        if (matchedUser != null) 'matched_user': matchedUser!.toJson(),
-        if (conversationId != null) 'conversation_id': conversationId,
-        if (isSuperLike != null) 'is_super_like': isSuperLike,
-        if (superLikeMessage != null) 'super_like_message': superLikeMessage,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'id': id,
+    'user_id': userId,
+    'matched_user_id': matchedUserId,
+    if (matchedUser != null) 'matched_user': matchedUser!.toJson(),
+    if (conversationId != null) 'conversation_id': conversationId,
+    if (isSuperLike != null) 'is_super_like': isSuperLike,
+    if (superLikeMessage != null) 'super_like_message': superLikeMessage,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 }
 
 /// Matches list response.
@@ -330,7 +333,8 @@ class MatchesResponseDto extends BaseDto {
 
   factory MatchesResponseDto.fromJson(Map<String, dynamic> json) {
     return MatchesResponseDto(
-      matches: json.getList(
+      matches:
+          json.getList(
             'matches',
             (e) => MatchDto.fromJson(e as Map<String, dynamic>),
           ) ??
@@ -342,8 +346,8 @@ class MatchesResponseDto extends BaseDto {
 
   @override
   Map<String, dynamic> toJson() => {
-        'matches': matches.map((m) => m.toJson()).toList(),
-        if (totalCount != null) 'total_count': totalCount,
-        if (newMatchCount != null) 'new_match_count': newMatchCount,
-      };
+    'matches': matches.map((m) => m.toJson()).toList(),
+    if (totalCount != null) 'total_count': totalCount,
+    if (newMatchCount != null) 'new_match_count': newMatchCount,
+  };
 }

@@ -1,6 +1,5 @@
 {
   "@@locale": "id",
-
   "@@_COMMON": "Common UI elements used throughout the app",
   "commonCancel": "Batal",
   "commonSave": "Simpan",
@@ -44,7 +43,6 @@
   "commonUnblock": "Buka Blokir",
   "commonMute": "Bisukan",
   "commonUnmute": "Suarakan",
-
   "@@_ERRORS": "Error messages",
   "errorGeneric": "Terjadi kesalahan. Silakan coba lagi.",
   "errorNetwork": "Kesalahan koneksi. Periksa internet Anda dan coba lagi.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "Tidak bisa {action}. Silakan coba lagi.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} adalah fitur Plus. Upgrade untuk membuka!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "Accessibility labels and hints",
   "a11yBackButton": "Kembali",
   "a11yCloseButton": "Tutup",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "Foto profil {name}",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "Avatar pengguna",
   "a11yAvatarOf": "Avatar {name}",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "Edit profil",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "Pesan dari {sender}",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 pesan belum dibaca} other{{count} pesan belum dibaca}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "Tampilkan kata sandi",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "Cocok! Anda cocok dengan {name}",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "Pesan baru dari {sender}",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "Profil disukai",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "Profil di-super like",
   "a11yMessageSent": "Pesan terkirim",
   "a11ySettingSaved": "Pengaturan disimpan",
-
   "@@_AUTH": "Authentication screens",
   "authWelcomeBack": "Selamat datang kembali",
   "authSignInToContinue": "Masuk untuk melanjutkan ke Crush",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "Kami mengirim kode ke {destination}",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "Masukkan kode 6 digit",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "Klik link yang kami kirim untuk memverifikasi email Anda",
   "authEmailVerified": "Email berhasil diverifikasi!",
   "authSkipForNow": "Lewati untuk sekarang",
-
   "@@_SETTINGS": "Settings screens",
   "settingsTitle": "Pengaturan",
   "settingsAppearance": "Tampilan",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} km",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "Tampilkan kepada saya",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "Kelola paket Anda",
   "settingsGetPlus": "Dapatkan Crush Plus",
   "settingsRestorePurchases": "Pulihkan pembelian",
-
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Temukan",
   "discoveryNoMatchesTitle": "Belum ada kecocokan",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "Anda dan {name} saling menyukai",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "Kirim Pesan",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "Menyukai Anda",
   "discoveryTopPicks": "Pilihan Teratas",
   "discoveryNewArrivals": "Pendatang Baru",
-
   "@@_CHAT": "Chat/Messaging screens",
   "chatTitle": "Obrolan",
   "chatMatches": "Kecocokan",
@@ -367,7 +382,9 @@
   "chatStartConversation": "Mulai percakapan dengan {name}",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "Ketik pesan...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "Terakhir dilihat {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "mengetik...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "Anda cocok dengan {name}",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "Profile screens",
   "profileTitle": "Profil",
   "profileEdit": "Edit Profil",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} cm",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "Bahasa",
@@ -450,7 +472,6 @@
   "profileAboutMe": "Tentang Saya",
   "profileMyDetails": "Detail Saya",
   "profileLifestyle": "Gaya Hidup",
-
   "@@_ONBOARDING": "Onboarding screens",
   "onboardingWelcome": "Selamat Datang di Crush",
   "onboardingTagline": "Temukan kecocokan sempurna Anda",
@@ -458,8 +479,12 @@
   "onboardingStep": "Langkah {current} dari {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "Siapa nama Anda?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "Pilih minimal 3 minat",
   "onboardingAllSet": "Anda siap!",
   "onboardingStartSwiping": "Mulai swipe",
-
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Gratis",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "{count} boost per bulan",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "{count} super like per hari",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "Tanpa iklan",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/bulan",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/tahun",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "Nilai terbaik",
   "subscriptionMostPopular": "Paling populer",
-
   "@@_SAFETY": "Safety and reporting",
   "safetyReportUser": "Laporkan pengguna",
   "safetyBlockUser": "Blokir pengguna",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "Blokir {name}?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "Mereka tidak bisa melihat profil Anda atau mengirim pesan",
@@ -532,46 +565,50 @@
   "safetySpam": "Spam",
   "safetyScam": "Penipuan",
   "safetyOther": "Lainnya",
-
   "@@_TIME": "Time-related strings",
   "timeJustNow": "Baru saja",
   "timeMinutesAgo": "{count, plural, =1{1 menit yang lalu} other{{count} menit yang lalu}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 jam yang lalu} other{{count} jam yang lalu}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 hari yang lalu} other{{count} hari yang lalu}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 minggu yang lalu} other{{count} minggu yang lalu}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "Empty state messages",
   "emptyNoResults": "Tidak ada hasil ditemukan",
   "emptyTryAgain": "Coba sesuaikan pencarian atau filter Anda",
   "emptyNoData": "Tidak ada data tersedia",
   "emptyCheckBackLater": "Cek lagi nanti",
-
   "@@_ADDITIONAL_WORDS": "Additional commonly used words for flexible detection",
-
   "@@_NAV_WORDS": "Navigation words",
   "wordHome": "Beranda",
   "wordExplore": "Jelajahi",
-  "wordHelp": "Bantuan",
+  "wordHelp": "Bantu",
   "wordMenu": "Menu",
   "wordFeed": "Feed",
   "wordActivity": "Aktivitas",
@@ -579,7 +616,6 @@
   "wordInbox": "Kotak Masuk",
   "wordFavorites": "Favorit",
   "wordHistory": "Riwayat",
-
   "@@_ACTION_WORDS": "Action words",
   "wordCopy": "Salin",
   "wordPaste": "Tempel",
@@ -589,7 +625,7 @@
   "wordUpload": "Unggah",
   "wordSelect": "Pilih",
   "wordDeselect": "Batalkan Pilihan",
-  "wordOpen": "Buka",
+  "wordOpen": "Terbuka",
   "wordCreate": "Buat",
   "wordConnect": "Hubungkan",
   "wordDisconnect": "Putuskan",
@@ -609,7 +645,7 @@
   "wordAllow": "Izinkan",
   "wordEnable": "Aktifkan",
   "wordDisable": "Nonaktifkan",
-  "wordShow": "Tampilkan",
+  "wordShow": "Acara",
   "wordHide": "Sembunyikan",
   "wordExpand": "Perluas",
   "wordCollapse": "Ciutkan",
@@ -663,7 +699,6 @@
   "wordSay": "Katakan",
   "wordTell": "Ceritakan",
   "wordAsk": "Tanya",
-  "wordHelp": "Bantu",
   "wordWait": "Tunggu",
   "wordStay": "Tinggal",
   "wordCome": "Datang",
@@ -675,7 +710,7 @@
   "wordLive": "Tinggal",
   "wordChange": "Ubah",
   "wordTurn": "Putar",
-  "wordRead": "Baca",
+  "wordRead": "Dibaca",
   "wordWrite": "Tulis",
   "wordLearn": "Pelajari",
   "wordStudy": "Belajar",
@@ -698,14 +733,13 @@
   "wordDecide": "Putuskan",
   "wordAgree": "Setuju",
   "wordDisagree": "Tidak Setuju",
-
   "@@_STATUS_WORDS": "Status words",
   "wordActive": "Aktif",
   "wordInactive": "Tidak Aktif",
   "wordAvailable": "Tersedia",
   "wordUnavailable": "Tidak Tersedia",
   "wordBusy": "Sibuk",
-  "wordAway": "Pergi",
+  "wordAway": "Menjauh",
   "wordInvisible": "Tidak Terlihat",
   "wordOnline": "Online",
   "wordOffline": "Offline",
@@ -759,13 +793,10 @@
   "wordNotDone": "Belum Selesai",
   "wordSent": "Terkirim",
   "wordReceived": "Diterima",
-  "wordRead": "Dibaca",
   "wordUnread": "Belum Dibaca",
   "wordSeen": "Dilihat",
   "wordUnseen": "Belum Dilihat",
-  "wordOpen": "Terbuka",
   "wordClosed": "Tertutup",
-
   "@@_TIME_WORDS": "Time-related words",
   "wordNow": "Sekarang",
   "wordLater": "Nanti",
@@ -807,7 +838,6 @@
   "wordYears": "Tahun",
   "wordSecond": "Detik",
   "wordSeconds": "Detik",
-
   "@@_ADJECTIVE_WORDS": "Common adjectives",
   "wordGood": "Bagus",
   "wordBad": "Buruk",
@@ -932,7 +962,6 @@
   "wordFabulous": "Luar Biasa",
   "wordMagnificent": "Megah",
   "wordSpectacular": "Spektakuler",
-
   "@@_GREETING_WORDS": "Greetings and polite expressions",
   "wordPlease": "Tolong",
   "wordThanks": "Terima Kasih",
@@ -963,7 +992,6 @@
   "wordHaveFun": "Bersenang-senanglah",
   "wordEnjoy": "Nikmati",
   "wordCheers": "Bersulang",
-
   "@@_QUESTION_WORDS": "Question words",
   "wordWho": "Siapa",
   "wordWhat": "Apa",
@@ -979,7 +1007,6 @@
   "wordHowFar": "Seberapa jauh",
   "wordHowOld": "Berapa umur",
   "wordHowOften": "Seberapa sering",
-
   "@@_PREPOSITION_WORDS": "Prepositions and locations",
   "wordWith": "Dengan",
   "wordWithout": "Tanpa",
@@ -1003,7 +1030,6 @@
   "wordThrough": "Melalui",
   "wordAlong": "Sepanjang",
   "wordToward": "Menuju",
-  "wordAway": "Menjauh",
   "wordBehind": "Di belakang",
   "wordAhead": "Di depan",
   "wordFront": "Depan",
@@ -1015,7 +1041,6 @@
   "wordCenter": "Pusat",
   "wordCorner": "Sudut",
   "wordEdge": "Tepi",
-
   "@@_DATING_WORDS": "Dating-specific words",
   "wordCrush": "Gebetan",
   "wordMatch": "Kecocokan",
@@ -1131,7 +1156,6 @@
   "wordDevoted": "Setia",
   "wordCommitted": "Berkomitmen",
   "wordCommitment": "Komitmen",
-  "wordSerious": "Serius",
   "wordCasual": "Santai",
   "wordFriendship": "Persahabatan",
   "wordFriend": "Teman",
@@ -1145,7 +1169,6 @@
   "wordSeekingFor": "Mencari",
   "wordWaiting": "Menunggu",
   "wordSearching": "Mencari",
-
   "@@_COMMON_NOUNS": "Common nouns",
   "wordNotification": "Notifikasi",
   "wordAlert": "Peringatan",
@@ -1396,7 +1419,6 @@
   "wordMovies": "Film",
   "wordFilm": "Film",
   "wordFilms": "Film",
-  "wordShow": "Acara",
   "wordShows": "Acara",
   "wordSeries": "Serial",
   "wordBook": "Buku",
@@ -1463,7 +1485,6 @@
   "wordSomething": "Sesuatu",
   "wordNothing": "Tidak Ada",
   "wordAnything": "Apa Saja",
-
   "@@_DISAMBIGUATION_WORDS": "Words that need context disambiguation",
   "wordHelpVerb": "Membantu",
   "wordReadStatus": "Dibaca",
@@ -1471,5 +1492,46 @@
   "wordAwayFrom": "Jauh",
   "wordSeriousRel": "Serius",
   "wordSettingsNoun": "Pengaturan",
-  "wordShowNoun": "Acara"
+  "wordShowNoun": "Acara",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -104,9 +104,9 @@ class _ContentReactionButtonState extends State<ContentReactionButton>
 
         // Expanded reaction picker
         if (_showReactions)
-          Positioned(
+          PositionedDirectional(
             bottom: buttonSize + 8,
-            left: -(widget.reactions.length * 24.0),
+            start: -(widget.reactions.length * 24.0),
             child: ScaleTransition(
               scale: _scaleAnimation,
               alignment: Alignment.bottomCenter,
@@ -140,10 +140,7 @@ class _GlassIconButton extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(size / 2.0),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: size,
@@ -165,11 +162,7 @@ class _GlassIconButton extends StatelessWidget {
               width: 1.5,
             ),
           ),
-          child: Icon(
-            icon,
-            color: DsColors.surfaceLight,
-            size: size * 0.5,
-          ),
+          child: Icon(icon, color: DsColors.surfaceLight, size: size * 0.5),
         ),
       ),
     );
@@ -197,10 +190,7 @@ class _ReactionPicker extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.xl),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.medium,
-          sigmaY: DsBlur.medium,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.medium, sigmaY: DsBlur.medium),
         child: Container(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? DsSpacing.sm : DsSpacing.md,
@@ -232,11 +222,13 @@ class _ReactionPicker extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Emoji reactions
-              ...reactions.map((reaction) => _ReactionItem(
-                    reaction: reaction,
-                    size: itemSize,
-                    onTap: () => onSelect(reaction.type),
-                  )),
+              ...reactions.map(
+                (reaction) => _ReactionItem(
+                  reaction: reaction,
+                  size: itemSize,
+                  onTap: () => onSelect(reaction.type),
+                ),
+              ),
 
               // Divider and comment button
               if (onComment != null) ...[
@@ -246,10 +238,7 @@ class _ReactionPicker extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: DsSpacing.xs),
                   color: DsColors.surfaceLight.withValues(alpha: 0.3),
                 ),
-                _CommentButton(
-                  size: itemSize,
-                  onTap: onComment!,
-                ),
+                _CommentButton(size: itemSize, onTap: onComment!),
               ],
             ],
           ),
@@ -307,10 +296,7 @@ class _ReactionItemState extends State<_ReactionItem>
 
 /// Comment button in reaction picker.
 class _CommentButton extends StatelessWidget {
-  const _CommentButton({
-    required this.size,
-    required this.onTap,
-  });
+  const _CommentButton({required this.size, required this.onTap});
 
   final double size;
   final VoidCallback onTap;
@@ -368,44 +354,41 @@ class _SentReactionIndicatorState extends State<SentReactionIndicator>
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.5)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween(
+          begin: 0.0,
+          end: 1.5,
+        ).chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 30,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.5, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: 1.5,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 20,
       ),
       TweenSequenceItem(
-        tween:
-            Tween(begin: 1.0, end: 0.8).chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween(
+          begin: 1.0,
+          end: 0.8,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
       ),
     ]).animate(_controller);
 
     _opacityAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.0),
-        weight: 30,
-      ),
-      TweenSequenceItem(
-        tween: ConstantTween(1.0),
-        weight: 40,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.0),
-        weight: 30,
-      ),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 30),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
     ]).animate(_controller);
 
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0, -1),
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(0, -1)).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+          ),
+        );
 
     _controller.forward().then((_) {
       widget.onAnimationComplete?.call();
@@ -429,10 +412,7 @@ class _SentReactionIndicatorState extends State<SentReactionIndicator>
             opacity: _opacityAnimation.value,
             child: Transform.scale(
               scale: _scaleAnimation.value,
-              child: Text(
-                widget.emoji,
-                style: const TextStyle(fontSize: 48),
-              ),
+              child: Text(widget.emoji, style: const TextStyle(fontSize: 48)),
             ),
           ),
         );
@@ -485,10 +465,7 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(DsRadius.xl),
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: DsBlur.heavy,
-            sigmaY: DsBlur.heavy,
-          ),
+          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
           child: Container(
             padding: const EdgeInsets.all(DsSpacing.lg),
             decoration: BoxDecoration(
@@ -511,8 +488,8 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                       ? 'React to this answer'
                       : 'React to this photo',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: DsSpacing.lg),
@@ -527,8 +504,8 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                   child: Text(
                     widget.contentPreview,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
+                      fontStyle: FontStyle.italic,
+                    ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),

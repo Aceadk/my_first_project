@@ -19,12 +19,13 @@ class HttpAuthRepository implements AuthRepository {
   HttpAuthRepository({
     ApiClient? apiClient,
     FlutterSecureStorage? secureStorage,
-  })  : _apiClient = apiClient ??
-            ApiClient(
-              config: ApiConfig.production,
-              authTokenProvider: null, // Set after initialization
-            ),
-        _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  }) : _apiClient =
+           apiClient ??
+           ApiClient(
+             config: ApiConfig.production,
+             authTokenProvider: null, // Set after initialization
+           ),
+       _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   final ApiClient _apiClient;
   final FlutterSecureStorage _secureStorage;
@@ -174,7 +175,8 @@ class HttpAuthRepository implements AuthRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to sign in with email link');
+        result.error?.message ?? 'Failed to sign in with email link',
+      );
     }
 
     final response = VerifyOtpResponseDto.fromJson(result.data!);
@@ -242,11 +244,7 @@ class HttpAuthRepository implements AuthRepository {
   }) async {
     final result = await _apiClient.post<Map<String, dynamic>>(
       '/auth/signup',
-      body: {
-        'username': username,
-        'email': email,
-        'password': password,
-      },
+      body: {'username': username, 'email': email, 'password': password},
       requiresAuth: false,
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -332,8 +330,9 @@ class HttpAuthRepository implements AuthRepository {
 
     // For other purposes, update current user if needed
     if (result.data?['user'] != null) {
-      final userDto =
-          UserDto.fromJson(result.data!['user'] as Map<String, dynamic>);
+      final userDto = UserDto.fromJson(
+        result.data!['user'] as Map<String, dynamic>,
+      );
       _currentUser = AuthMapper.userFromDto(userDto, plan: _currentUser?.plan);
       _emitAuthState(_currentUser);
       return _currentUser;
@@ -356,7 +355,8 @@ class HttpAuthRepository implements AuthRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to request password reset');
+        result.error?.message ?? 'Failed to request password reset',
+      );
     }
   }
 
@@ -374,7 +374,8 @@ class HttpAuthRepository implements AuthRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to verify password reset OTP');
+        result.error?.message ?? 'Failed to verify password reset OTP',
+      );
     }
 
     final resetToken = result.data?['reset_token'] as String?;
@@ -434,8 +435,9 @@ class HttpAuthRepository implements AuthRepository {
 
   @override
   Future<CrushUser?> checkEmailVerification() async {
-    final result = await _apiClient
-        .get<Map<String, dynamic>>('/auth/check-email-verification');
+    final result = await _apiClient.get<Map<String, dynamic>>(
+      '/auth/check-email-verification',
+    );
     if (result.isSuccess && result.data != null) {
       final verified = result.data!['email_verified'] as bool? ?? false;
       if (verified && _currentUser != null) {
@@ -466,7 +468,9 @@ class HttpAuthRepository implements AuthRepository {
   Future<void> _storeTokens(AuthTokensDto tokens) async {
     await _secureStorage.write(key: _accessTokenKey, value: tokens.accessToken);
     await _secureStorage.write(
-        key: _refreshTokenKey, value: tokens.refreshToken);
+      key: _refreshTokenKey,
+      value: tokens.refreshToken,
+    );
   }
 
   Future<void> _clearTokens() async {
@@ -513,7 +517,8 @@ class HttpAuthRepository implements AuthRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to schedule phone deletion');
+        result.error?.message ?? 'Failed to schedule phone deletion',
+      );
     }
   }
 
@@ -524,10 +529,7 @@ class HttpAuthRepository implements AuthRepository {
   }) async {
     final result = await _apiClient.post<void>(
       '/auth/password/change',
-      body: {
-        'current_password': currentPassword,
-        'new_password': newPassword,
-      },
+      body: {'current_password': currentPassword, 'new_password': newPassword},
     );
 
     if (result.isFailure) {
@@ -558,15 +560,13 @@ class HttpAuthRepository implements AuthRepository {
   }) async {
     final result = await _apiClient.post<void>(
       '/auth/account/delete',
-      body: {
-        'password': password,
-        'reason': reason,
-      },
+      body: {'password': password, 'reason': reason},
     );
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to schedule account deletion');
+        result.error?.message ?? 'Failed to schedule account deletion',
+      );
     }
 
     await _clearTokens();

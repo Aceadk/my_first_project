@@ -162,8 +162,10 @@ Card(
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    child:
-                        const Text('JD', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'JD',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(width: DsSpacing.md),
                   Expanded(
@@ -256,10 +258,7 @@ Card(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Later'),
-                      ),
+                      TextButton(onPressed: () {}, child: const Text('Later')),
                       const SizedBox(width: DsSpacing.sm),
                       FilledButton(
                         onPressed: () {},
@@ -281,14 +280,11 @@ Card(
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }

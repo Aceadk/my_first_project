@@ -138,14 +138,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [
-                        DsColors.backgroundDark,
-                        DsColors.surfaceDark,
-                      ]
-                    : [
-                        DsColors.backgroundLight,
-                        DsColors.surfaceLight,
-                      ],
+                    ? [DsColors.backgroundDark, DsColors.surfaceDark]
+                    : [DsColors.backgroundLight, DsColors.surfaceLight],
               ),
             ),
           ),
@@ -167,9 +161,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           ),
 
           // Bottom controls
-          Positioned(
-            left: 0,
-            right: 0,
+          PositionedDirectional(
+            start: 0,
+            end: 0,
             bottom: 0,
             child: SafeArea(
               child: Padding(
@@ -227,10 +221,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 }
 
 class _OnboardingPageView extends StatelessWidget {
-  const _OnboardingPageView({
-    required this.page,
-    required this.isActive,
-  });
+  const _OnboardingPageView({required this.page, required this.isActive});
 
   final OnboardingPage page;
   final bool isActive;
@@ -251,14 +242,12 @@ class _OnboardingPageView extends StatelessWidget {
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeOutBack,
             builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: child,
-              );
+              return Transform.scale(scale: value, child: child);
             },
             child: _AnimatedIconContainer(
               icon: page.icon,
-              gradient: page.iconGradient ??
+              gradient:
+                  page.iconGradient ??
                   const LinearGradient(
                     colors: [DsColors.primary, DsColors.secondary],
                   ),
@@ -310,8 +299,9 @@ class _OnboardingPageView extends StatelessWidget {
               page.description,
               style: TextStyle(
                 fontSize: 16,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -325,10 +315,7 @@ class _OnboardingPageView extends StatelessWidget {
 }
 
 class _AnimatedIconContainer extends StatefulWidget {
-  const _AnimatedIconContainer({
-    required this.icon,
-    required this.gradient,
-  });
+  const _AnimatedIconContainer({required this.icon, required this.gradient});
 
   final IconData icon;
   final LinearGradient gradient;
@@ -350,9 +337,10 @@ class _AnimatedIconContainerState extends State<_AnimatedIconContainer>
       duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -366,10 +354,7 @@ class _AnimatedIconContainerState extends State<_AnimatedIconContainer>
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _pulseAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _pulseAnimation.value, child: child);
       },
       child: Container(
         width: 140,
@@ -385,21 +370,14 @@ class _AnimatedIconContainerState extends State<_AnimatedIconContainer>
             ),
           ],
         ),
-        child: Icon(
-          widget.icon,
-          size: 64,
-          color: Colors.white,
-        ),
+        child: Icon(widget.icon, size: 64, color: Colors.white),
       ),
     );
   }
 }
 
 class _PageIndicators extends StatelessWidget {
-  const _PageIndicators({
-    required this.count,
-    required this.currentIndex,
-  });
+  const _PageIndicators({required this.count, required this.currentIndex});
 
   final int count;
   final int currentIndex;
@@ -478,13 +456,15 @@ class _OnboardingTooltipState extends State<OnboardingTooltip>
       duration: const Duration(milliseconds: 300),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -509,11 +489,11 @@ class _OnboardingTooltipState extends State<OnboardingTooltip>
       clipBehavior: Clip.none,
       children: [
         widget.child,
-        Positioned(
+        PositionedDirectional(
           bottom: widget.arrowPosition == ArrowPosition.bottom ? null : -80,
           top: widget.arrowPosition == ArrowPosition.top ? null : -80,
-          left: 0,
-          right: 0,
+          start: 0,
+          end: 0,
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {

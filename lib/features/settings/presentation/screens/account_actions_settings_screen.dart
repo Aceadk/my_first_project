@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/services/data_export_service.dart';
@@ -14,6 +15,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/adaptive_dialog.dart';
@@ -41,251 +43,271 @@ class _AccountActionsSettingsScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Account Actions')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              children: [
-                // Header
-                Container(
-                  padding: DsEdgeInsets.allLg,
-                  margin: DsEdgeInsets.allLg,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        DsColors.secondary.withValues(alpha: 0.1),
-                        DsColors.secondary.withValues(alpha: 0.1),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView(
                     children: [
+                      // Header
                       Container(
-                        padding: DsEdgeInsets.allMd,
+                        padding: DsEdgeInsets.allLg,
+                        margin: DsEdgeInsets.allLg,
                         decoration: BoxDecoration(
-                          color: DsColors.secondary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              DsColors.secondary.withValues(alpha: 0.1),
+                              DsColors.secondary.withValues(alpha: 0.1),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Icon(
-                          Icons.manage_accounts_outlined,
-                          color: DsColors.secondary,
-                          size: 28,
-                        ),
-                      ),
-                      DsGap.lgH,
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              'Manage Your Account',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            Container(
+                              padding: DsEdgeInsets.allMd,
+                              decoration: BoxDecoration(
+                                color: DsColors.secondary.withValues(
+                                  alpha: 0.2,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.manage_accounts_outlined,
+                                color: DsColors.secondary,
+                                size: 28,
+                              ),
                             ),
-                            DsGap.xs,
-                            Text(
-                              'Manage security, password, and account status.',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
+                            DsGap.lgH,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Manage Your Account',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
+                                  DsGap.xs,
+                                  Text(
+                                    'Manage security, password, and account status.',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: isDark
+                                              ? DsColors.textMutedDark
+                                              : DsColors.textMutedLight,
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
+
+                      // Security section
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: Text(
+                          'Security',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DsGap.md,
+
+                      // Phone verification
+                      _ActionTile(
+                        icon: phoneVerified
+                            ? Icons.verified_outlined
+                            : Icons.phone_android,
+                        iconColor: phoneVerified
+                            ? DsColors.success
+                            : DsColors.info,
+                        title: phoneVerified
+                            ? 'Phone verified'
+                            : (hasPhone
+                                  ? 'Verify phone number'
+                                  : 'Add phone number'),
+                        subtitle: phoneVerified
+                            ? 'Your phone is verified and secured'
+                            : 'Verify your phone for account security',
+                        trailing: phoneVerified
+                            ? const Icon(
+                                Icons.lock_outline,
+                                color: DsColors.success,
+                              )
+                            : const Icon(Icons.chevron_right),
+                        onTap: () => context.push(CrushRoutes.phoneProtection),
+                      ),
+                      const Divider(indent: 72),
+
+                      // Change password
+                      _ActionTile(
+                        icon: Icons.lock_reset_outlined,
+                        iconColor: DsColors.secondary,
+                        title: 'Change password',
+                        subtitle: 'Update your account password',
+                        onTap: () => _showChangePasswordDialog(context),
+                      ),
+                      const Divider(indent: 72),
+
+                      // Account security settings
+                      _ActionTile(
+                        icon: Icons.shield_outlined,
+                        iconColor: DsColors.accent,
+                        title: 'Account security',
+                        subtitle: 'Email and phone verification settings',
+                        onTap: () => context.push(CrushRoutes.securitySettings),
+                      ),
+
+                      DsGap.xxl,
+
+                      // Account status section
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: Text(
+                          'Account Status',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DsGap.md,
+
+                      // Deactivate account
+                      _ActionTile(
+                        icon: Icons.pause_circle_outline,
+                        iconColor: DsColors.warning,
+                        title: 'Deactivate account',
+                        subtitle: 'Hide your profile temporarily',
+                        onTap: () => _showDeactivateFlow(context),
+                      ),
+
+                      DsGap.xxl,
+
+                      // Data & Privacy section
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: Text(
+                          'Data & Privacy',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DsGap.md,
+
+                      // Export your data (GDPR)
+                      _ActionTile(
+                        icon: Icons.download_outlined,
+                        iconColor: DsColors.info,
+                        title: 'Export your data',
+                        subtitle: 'Download a copy of your personal data',
+                        onTap: () => _showExportDataDialog(context),
+                      ),
+
+                      DsGap.xxl,
+
+                      // Danger zone
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: Text(
+                          'Danger zone',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: DsColors.error,
+                              ),
+                        ),
+                      ),
+                      DsGap.md,
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: DsColors.error.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: DsColors.error.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.error.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_forever_outlined,
+                                    color: DsColors.error,
+                                    size: 22,
+                                  ),
+                                ),
+                                title: const Text(
+                                  'Delete account',
+                                  style: TextStyle(color: DsColors.error),
+                                ),
+                                subtitle: const Text(
+                                  'Permanently remove your account',
+                                ),
+                                trailing: const Icon(
+                                  Icons.chevron_right,
+                                  color: DsColors.error,
+                                ),
+                                onTap: () => _showDeleteFlow(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      DsGap.xxl,
+
+                      // Info boxes
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: _InfoBox(
+                          icon: Icons.pause_circle_outline,
+                          iconColor: DsColors.warning,
+                          title: 'About Deactivation',
+                          description:
+                              'When you deactivate your account, your profile will be hidden. '
+                              'You can reactivate anytime by signing back in. '
+                              'If you don\'t sign in for 6 months, your account will be permanently deleted.',
+                          isDark: isDark,
+                        ),
+                      ),
+                      DsGap.md,
+                      Padding(
+                        padding: DsEdgeInsets.horizontalLg,
+                        child: _InfoBox(
+                          icon: Icons.delete_forever_outlined,
+                          iconColor: DsColors.error,
+                          title: 'About Deletion',
+                          description:
+                              'When you delete your account, you have 14 days to change your mind. '
+                              'Simply sign in within 14 days to recover your account. '
+                              'After 14 days, all your data will be permanently deleted.',
+                          isDark: isDark,
+                        ),
+                      ),
+                      DsGap.xl,
                     ],
                   ),
-                ),
-
-                // Security section
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Text(
-                    'Security',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                DsGap.md,
-
-                // Phone verification
-                _ActionTile(
-                  icon: phoneVerified
-                      ? Icons.verified_outlined
-                      : Icons.phone_android,
-                  iconColor: phoneVerified ? DsColors.success : DsColors.info,
-                  title: phoneVerified
-                      ? 'Phone verified'
-                      : (hasPhone ? 'Verify phone number' : 'Add phone number'),
-                  subtitle: phoneVerified
-                      ? 'Your phone is verified and secured'
-                      : 'Verify your phone for account security',
-                  trailing: phoneVerified
-                      ? const Icon(Icons.lock_outline, color: DsColors.success)
-                      : const Icon(Icons.chevron_right),
-                  onTap: () => context.push(CrushRoutes.phoneProtection),
-                ),
-                const Divider(indent: 72),
-
-                // Change password
-                _ActionTile(
-                  icon: Icons.lock_reset_outlined,
-                  iconColor: DsColors.secondary,
-                  title: 'Change password',
-                  subtitle: 'Update your account password',
-                  onTap: () => _showChangePasswordDialog(context),
-                ),
-                const Divider(indent: 72),
-
-                // Account security settings
-                _ActionTile(
-                  icon: Icons.shield_outlined,
-                  iconColor: DsColors.accent,
-                  title: 'Account security',
-                  subtitle: 'Email and phone verification settings',
-                  onTap: () => context.push(CrushRoutes.securitySettings),
-                ),
-
-                DsGap.xxl,
-
-                // Account status section
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Text(
-                    'Account Status',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                DsGap.md,
-
-                // Deactivate account
-                _ActionTile(
-                  icon: Icons.pause_circle_outline,
-                  iconColor: DsColors.warning,
-                  title: 'Deactivate account',
-                  subtitle: 'Hide your profile temporarily',
-                  onTap: () => _showDeactivateFlow(context),
-                ),
-
-                DsGap.xxl,
-
-                // Data & Privacy section
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Text(
-                    'Data & Privacy',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                DsGap.md,
-
-                // Export your data (GDPR)
-                _ActionTile(
-                  icon: Icons.download_outlined,
-                  iconColor: DsColors.info,
-                  title: 'Export your data',
-                  subtitle: 'Download a copy of your personal data',
-                  onTap: () => _showExportDataDialog(context),
-                ),
-
-                DsGap.xxl,
-
-                // Danger zone
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Text(
-                    'Danger zone',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: DsColors.error,
-                    ),
-                  ),
-                ),
-                DsGap.md,
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: DsColors.error.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: DsColors.error.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: DsColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.delete_forever_outlined,
-                              color: DsColors.error,
-                              size: 22,
-                            ),
-                          ),
-                          title: const Text(
-                            'Delete account',
-                            style: TextStyle(color: DsColors.error),
-                          ),
-                          subtitle: const Text(
-                            'Permanently remove your account',
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: DsColors.error,
-                          ),
-                          onTap: () => _showDeleteFlow(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                DsGap.xxl,
-
-                // Info boxes
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: _InfoBox(
-                    icon: Icons.pause_circle_outline,
-                    iconColor: DsColors.warning,
-                    title: 'About Deactivation',
-                    description:
-                        'When you deactivate your account, your profile will be hidden. '
-                        'You can reactivate anytime by signing back in. '
-                        'If you don\'t sign in for 6 months, your account will be permanently deleted.',
-                    isDark: isDark,
-                  ),
-                ),
-                DsGap.md,
-                Padding(
-                  padding: DsEdgeInsets.horizontalLg,
-                  child: _InfoBox(
-                    icon: Icons.delete_forever_outlined,
-                    iconColor: DsColors.error,
-                    title: 'About Deletion',
-                    description:
-                        'When you delete your account, you have 14 days to change your mind. '
-                        'Simply sign in within 14 days to recover your account. '
-                        'After 14 days, all your data will be permanently deleted.',
-                    isDark: isDark,
-                  ),
-                ),
-                DsGap.xl,
-              ],
-            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1164,7 +1186,8 @@ class _AccountActionsSettingsScreenState
   }
 
   String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
+    final locale = Localizations.localeOf(context).toString();
+    return DateTimeFormatter.formatDate(date, locale: locale);
   }
 
   Future<String?> _showReasonDialog({
@@ -1207,8 +1230,8 @@ class _AccountActionsSettingsScreenState
                             ),
                             if (isOther && selectedReason == 'Other reason')
                               Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 16,
+                                padding: const EdgeInsetsDirectional.only(
+                                  start: 16,
                                   bottom: 8,
                                 ),
                                 child: TextField(

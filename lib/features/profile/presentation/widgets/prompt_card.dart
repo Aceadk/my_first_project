@@ -71,11 +71,11 @@ class PromptCard extends StatelessWidget {
                       child: Text(
                         prompt.question,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -85,9 +85,9 @@ class PromptCard extends StatelessWidget {
                 Text(
                   prompt.answer,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                      ),
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
                   maxLines: compact ? 3 : null,
                   overflow: compact ? TextOverflow.ellipsis : null,
                 ),
@@ -146,11 +146,7 @@ class PromptCardList extends StatelessWidget {
 
 /// A single-column vertical list of prompt cards.
 class PromptCardColumn extends StatelessWidget {
-  const PromptCardColumn({
-    super.key,
-    required this.prompts,
-    this.onPromptTap,
-  });
+  const PromptCardColumn({super.key, required this.prompts, this.onPromptTap});
 
   final List<ProfilePrompt> prompts;
   final void Function(ProfilePrompt)? onPromptTap;
@@ -164,7 +160,7 @@ class PromptCardColumn extends StatelessWidget {
     return Column(
       children: prompts.map((prompt) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsetsDirectional.only(bottom: 12),
           child: PromptCard(
             prompt: prompt,
             onTap: onPromptTap != null ? () => onPromptTap!(prompt) : null,
@@ -177,10 +173,7 @@ class PromptCardColumn extends StatelessWidget {
 
 /// Empty state prompting user to add prompts.
 class AddPromptsEmptyState extends StatelessWidget {
-  const AddPromptsEmptyState({
-    super.key,
-    required this.onAdd,
-  });
+  const AddPromptsEmptyState({super.key, required this.onAdd});
 
   final VoidCallback onAdd;
 
@@ -231,17 +224,17 @@ class AddPromptsEmptyState extends StatelessWidget {
                 Text(
                   'Add Conversation Starters',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 DsGap.xs,
                 Text(
                   'Help others start a conversation with you',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 DsGap.md,
@@ -257,9 +250,9 @@ class AddPromptsEmptyState extends StatelessWidget {
                     Text(
                       'Add up to ${PromptQuestions.maxPromptsPerProfile} prompts',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: DsColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: DsColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),

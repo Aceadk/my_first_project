@@ -21,10 +21,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   bool _isManualRefresh = false;
   StreamSubscription? _authSubscription;
 
-  ProfileBloc({
-    required this.profileRepository,
-    required this.authRepository,
-  }) : super(const ProfileState()) {
+  ProfileBloc({required this.profileRepository, required this.authRepository})
+    : super(const ProfileState()) {
     on<ProfileLoadRequested>(_onLoadRequested);
     on<ProfileSaveRequested>(_onSaveRequested);
     on<ProfileBasicInfoSubmitted>(_onBasicInfoSubmitted);
@@ -49,7 +47,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onLoadRequested(
-      ProfileLoadRequested event, Emitter<ProfileState> emit) async {
+    ProfileLoadRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     AppLogger.info('[ProfileBloc] _onLoadRequested called');
 
     // Track if this is a manual refresh (user-triggered) vs auto-retry
@@ -57,7 +57,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         _isManualRefresh || state.status != ProfileStatus.error;
 
     AppLogger.info(
-        '[ProfileBloc] isManualRefresh: $isManualRefresh, retryCount: $_retryCount');
+      '[ProfileBloc] isManualRefresh: $isManualRefresh, retryCount: $_retryCount',
+    );
 
     if (isManualRefresh) {
       _retryCount = 0;
@@ -66,15 +67,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     _isManualRefresh = false;
     _retryTimer?.cancel();
 
-    emit(state.copyWith(
-      isLoading: true,
-      status: ProfileStatus.loading,
-      errorMessage: null,
-      nextRetrySeconds: null,
-    ));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        status: ProfileStatus.loading,
+        errorMessage: null,
+        nextRetrySeconds: null,
+      ),
+    );
 
     AppLogger.info(
-        '[ProfileBloc] Calling profileRepository.getCurrentUser()...');
+      '[ProfileBloc] Calling profileRepository.getCurrentUser()...',
+    );
 
     final result = await Result.guard(
       () => profileRepository.getCurrentUser(),
@@ -83,14 +87,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
 
     AppLogger.info(
-        '[ProfileBloc] Result: isSuccess=${result.isSuccess}, data=${result.data}, error=${result.errorMessage}');
+      '[ProfileBloc] Result: isSuccess=${result.isSuccess}, data=${result.data}, error=${result.errorMessage}',
+    );
 
     if (!result.isSuccess) {
       _retryCount++;
       final errorMsg = result.errorMessage;
 
       AppLogger.info(
-          '[ProfileBloc] Load failed: $errorMsg (retryCount: $_retryCount)');
+        '[ProfileBloc] Load failed: $errorMsg (retryCount: $_retryCount)',
+      );
 
       // Check if error indicates "no profile" rather than actual failure
       final isNoProfileError = _isNoProfileError(errorMsg);
@@ -100,24 +106,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       // If we've retried enough times or error indicates no profile, show empty state
       if (_retryCount > _maxAutoRetries || isNoProfileError) {
         AppLogger.info('[ProfileBloc] Emitting ProfileStatus.empty');
-        emit(state.copyWith(
-          isLoading: false,
-          status: ProfileStatus.empty,
-          errorMessage: null,
-          nextRetrySeconds: null,
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            status: ProfileStatus.empty,
+            errorMessage: null,
+            nextRetrySeconds: null,
+          ),
+        );
         return;
       }
 
       // Otherwise show error and schedule retry
       AppLogger.info(
-          '[ProfileBloc] Emitting ProfileStatus.error, scheduling retry');
-      emit(state.copyWith(
-        isLoading: false,
-        status: ProfileStatus.error,
-        errorMessage: errorMsg,
-        nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
-      ));
+        '[ProfileBloc] Emitting ProfileStatus.error, scheduling retry',
+      );
+      emit(
+        state.copyWith(
+          isLoading: false,
+          status: ProfileStatus.error,
+          errorMessage: errorMsg,
+          nextRetrySeconds: (_retryDelayMs / 1000).ceil(),
+        ),
+      );
       _scheduleRetry();
       return;
     }
@@ -129,11 +140,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final user = result.data;
 
     AppLogger.info(
-        '[ProfileBloc] User loaded: id=${user?.id}, hasProfile=${user?.profile != null}');
+      '[ProfileBloc] User loaded: id=${user?.id}, hasProfile=${user?.profile != null}',
+    );
     final profile = user?.profile;
     if (profile != null) {
       AppLogger.info(
-          '[ProfileBloc] Profile: name=${profile.name}, age=${profile.age}');
+        '[ProfileBloc] Profile: name=${profile.name}, age=${profile.age}',
+      );
     }
 
     // Track profile viewed
@@ -145,16 +158,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final hasProfile = user?.profile != null;
 
     AppLogger.info(
-        '[ProfileBloc] Emitting status: ${hasProfile ? 'loaded' : 'empty'}');
+      '[ProfileBloc] Emitting status: ${hasProfile ? 'loaded' : 'empty'}',
+    );
 
-    emit(state.copyWith(
-      user: user,
-      profile: user?.profile,
-      isLoading: false,
-      status: hasProfile ? ProfileStatus.loaded : ProfileStatus.empty,
-      errorMessage: null,
-      nextRetrySeconds: null,
-    ));
+    emit(
+      state.copyWith(
+        user: user,
+        profile: user?.profile,
+        isLoading: false,
+        status: hasProfile ? ProfileStatus.loaded : ProfileStatus.empty,
+        errorMessage: null,
+        nextRetrySeconds: null,
+      ),
+    );
   }
 
   /// Check if error message indicates no profile available vs actual error.
@@ -184,9 +200,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onBasicInfoSubmitted(
-      ProfileBasicInfoSubmitted event, Emitter<ProfileState> emit) async {
+    ProfileBasicInfoSubmitted event,
+    Emitter<ProfileState> emit,
+  ) async {
     AppLogger.info(
-        '[ProfileBloc] _onBasicInfoSubmitted: firstName=${event.name}, lastName=${event.lastName}, age=${event.age}, gender=${event.gender}');
+      '[ProfileBloc] _onBasicInfoSubmitted: firstName=${event.name}, lastName=${event.lastName}, age=${event.age}, gender=${event.gender}',
+    );
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final result = await Result.guard(
       () => profileRepository.saveBasicInfo(
@@ -205,7 +224,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
 
     AppLogger.info(
-        '[ProfileBloc] saveBasicInfo result: isSuccess=${result.isSuccess}, error=${result.errorMessage}');
+      '[ProfileBloc] saveBasicInfo result: isSuccess=${result.isSuccess}, error=${result.errorMessage}',
+    );
 
     // Track profile update
     if (result.isSuccess) {
@@ -215,29 +235,35 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           'lastName',
           'age',
           'gender',
-          'sexualOrientation'
+          'sexualOrientation',
         ],
       );
     }
 
     final user = result.data;
     AppLogger.info(
-        '[ProfileBloc] After save: hasUser=${user != null}, hasProfile=${user?.profile != null}');
+      '[ProfileBloc] After save: hasUser=${user != null}, hasProfile=${user?.profile != null}',
+    );
     if (user != null) {
       AppLogger.info(
-          '[ProfileBloc] User profile: firstName=${user.profile?.name}, lastName=${user.profile?.lastName}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}');
+        '[ProfileBloc] User profile: firstName=${user.profile?.name}, lastName=${user.profile?.lastName}, age=${user.profile?.age}, gender=${user.profile?.gender}, hasCompletedBasicInfo=${user.hasCompletedBasicInfo}',
+      );
     }
 
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      isSaving: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        isSaving: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onDetailsSubmitted(
-      ProfileDetailsSubmitted event, Emitter<ProfileState> emit) async {
+    ProfileDetailsSubmitted event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
     final oldPhotoCount = state.profile?.photoUrls.length ?? 0;
@@ -285,16 +311,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
 
     final user = result.data;
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      isSaving: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        isSaving: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onIdDocumentUploaded(
-      ProfileIdDocumentUploaded event, Emitter<ProfileState> emit) async {
+    ProfileIdDocumentUploaded event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
     final uploadResult = await Result.guard(
       () => profileRepository.uploadIdDocument(),
@@ -302,10 +332,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       fallbackError: ErrorMessages.uploadIdFailed,
     );
     if (!uploadResult.isSuccess) {
-      emit(state.copyWith(
-        isSaving: false,
-        errorMessage: uploadResult.errorMessage,
-      ));
+      emit(
+        state.copyWith(
+          isSaving: false,
+          errorMessage: uploadResult.errorMessage,
+        ),
+      );
       return;
     }
 
@@ -315,31 +347,39 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       fallbackError: ErrorMessages.uploadIdFailed,
     );
     final user = userResult.data;
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      isSaving: false,
-      errorMessage: userResult.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        isSaving: false,
+        errorMessage: userResult.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onIdVerifiedMarked(
-      ProfileIdVerifiedMarked event, Emitter<ProfileState> emit) async {
+    ProfileIdVerifiedMarked event,
+    Emitter<ProfileState> emit,
+  ) async {
     final result = await Result.guard(
       () => profileRepository.markIdVerified(),
       logLabel: 'ProfileRepository.markIdVerified',
       fallbackError: 'Could not mark ID verified. Please try again.',
     );
     final user = result.data;
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onSaveRequested(
-      ProfileSaveRequested event, Emitter<ProfileState> emit) async {
+    ProfileSaveRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     AppLogger.info('[ProfileBloc] _onSaveRequested called');
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
@@ -360,23 +400,28 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
 
     final updatedUser = result.data;
-    emit(state.copyWith(
-      user: updatedUser ?? state.user,
-      profile: updatedUser?.profile ?? state.profile,
-      isSaving: false,
-      status: ProfileStatus.loaded,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: updatedUser ?? state.user,
+        profile: updatedUser?.profile ?? state.profile,
+        isSaving: false,
+        status: ProfileStatus.loaded,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onLocationUpdateRequested(
-      ProfileLocationUpdateRequested event, Emitter<ProfileState> emit) async {
+    ProfileLocationUpdateRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     // Only update if we have a profile
     final currentProfile = state.profile;
     if (currentProfile == null) return;
 
     AppLogger.info(
-        '[ProfileBloc] Updating location: ${event.latitude}, ${event.longitude}');
+      '[ProfileBloc] Updating location: ${event.latitude}, ${event.longitude}',
+    );
 
     // Update profile with new location
     final updatedProfile = currentProfile.copyWith(
@@ -395,10 +440,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     if (result.isSuccess) {
       final updatedUser = result.data;
-      emit(state.copyWith(
-        user: updatedUser ?? state.user,
-        profile: updatedUser?.profile ?? updatedProfile,
-      ));
+      emit(
+        state.copyWith(
+          user: updatedUser ?? state.user,
+          profile: updatedUser?.profile ?? updatedProfile,
+        ),
+      );
 
       AnalyticsService.instance.logProfileUpdated(
         fieldsUpdated: ['latitude', 'longitude', 'city', 'country'],
@@ -407,7 +454,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onBasicInfoSkipped(
-      ProfileBasicInfoSkipped event, Emitter<ProfileState> emit) async {
+    ProfileBasicInfoSkipped event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
     final result = await Result.guard(
@@ -417,16 +466,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
 
     final user = result.data;
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      isSaving: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        isSaving: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   Future<void> _onSetupSkipped(
-      ProfileSetupSkipped event, Emitter<ProfileState> emit) async {
+    ProfileSetupSkipped event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
     final result = await Result.guard(
@@ -436,18 +489,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
 
     final user = result.data;
-    emit(state.copyWith(
-      user: user ?? state.user,
-      profile: user?.profile ?? state.profile,
-      isSaving: false,
-      errorMessage: result.errorMessage,
-    ));
+    emit(
+      state.copyWith(
+        user: user ?? state.user,
+        profile: user?.profile ?? state.profile,
+        isSaving: false,
+        errorMessage: result.errorMessage,
+      ),
+    );
   }
 
   /// Reset profile state on logout.
   /// CRITICAL: This prevents the next user from seeing the previous user's profile data.
   void _onResetRequested(
-      ProfileResetRequested event, Emitter<ProfileState> emit) {
+    ProfileResetRequested event,
+    Emitter<ProfileState> emit,
+  ) {
     AppLogger.info('[ProfileBloc] Resetting profile state on logout');
     _retryTimer?.cancel();
     _retryCount = 0;

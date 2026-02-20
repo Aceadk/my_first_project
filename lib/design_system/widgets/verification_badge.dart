@@ -54,10 +54,7 @@ class DsVerificationBadge extends StatelessWidget {
     }
 
     if (showTooltip) {
-      icon = Tooltip(
-        message: badge.description,
-        child: icon,
-      );
+      icon = Tooltip(message: badge.description, child: icon);
     }
 
     return Semantics(
@@ -98,12 +95,7 @@ class DsVerificationBadge extends StatelessWidget {
 }
 
 /// Sizes for verification badge.
-enum DsVerificationBadgeSize {
-  tiny,
-  small,
-  medium,
-  large,
-}
+enum DsVerificationBadgeSize { tiny, small, medium, large }
 
 /// A row showing verification status with text.
 class DsVerificationStatus extends StatelessWidget {
@@ -130,10 +122,7 @@ class DsVerificationStatus extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(compact ? 12 : 16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -195,10 +184,7 @@ class DsVerificationPrompt extends StatelessWidget {
             ],
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1,
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,8 +238,9 @@ class DsVerificationPrompt extends StatelessWidget {
               _getPromptText(target),
               style: TextStyle(
                 fontSize: 14,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
             ),
             const SizedBox(height: 16),

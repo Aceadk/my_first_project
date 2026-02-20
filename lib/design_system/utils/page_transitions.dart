@@ -18,10 +18,7 @@ class DsPageTransitions {
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: DsCurves.enter,
-          ),
+          opacity: CurvedAnimation(parent: animation, curve: DsCurves.enter),
           child: child,
         );
       },
@@ -43,18 +40,12 @@ class DsPageTransitions {
         final slideAnimation = Tween<Offset>(
           begin: const Offset(0, 0.15),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.enter,
-        ));
+        ).animate(CurvedAnimation(parent: animation, curve: DsCurves.enter));
 
         return SlideTransition(
           position: slideAnimation,
           child: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: DsCurves.enter,
-            ),
+            opacity: CurvedAnimation(parent: animation, curve: DsCurves.enter),
             child: child,
           ),
         );
@@ -77,15 +68,9 @@ class DsPageTransitions {
         final slideAnimation = Tween<Offset>(
           begin: const Offset(1, 0),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.enter,
-        ));
+        ).animate(CurvedAnimation(parent: animation, curve: DsCurves.enter));
 
-        return SlideTransition(
-          position: slideAnimation,
-          child: child,
-        );
+        return SlideTransition(position: slideAnimation, child: child);
       },
     );
   }
@@ -105,18 +90,12 @@ class DsPageTransitions {
         final scaleAnimation = Tween<double>(
           begin: 0.9,
           end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.spring,
-        ));
+        ).animate(CurvedAnimation(parent: animation, curve: DsCurves.spring));
 
         return ScaleTransition(
           scale: scaleAnimation,
           child: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: DsCurves.enter,
-            ),
+            opacity: CurvedAnimation(parent: animation, curve: DsCurves.enter),
             child: child,
           ),
         );
@@ -138,13 +117,13 @@ class DsPageTransitions {
       reverseTransitionDuration: duration,
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideAnimation = Tween<Offset>(
-          begin: Offset(0.3 * direction, 0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.emphasized,
-        ));
+        final slideAnimation =
+            Tween<Offset>(
+              begin: Offset(0.3 * direction, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: animation, curve: DsCurves.emphasized),
+            );
 
         return SlideTransition(
           position: slideAnimation,
@@ -171,13 +150,9 @@ class DsPageTransitions {
       reverseTransitionDuration: DsDurations.normal,
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleAnimation = Tween<double>(
-          begin: 0.85,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.emphasized,
-        ));
+        final scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: DsCurves.emphasized),
+        );
 
         return ScaleTransition(
           scale: scaleAnimation,
@@ -209,17 +184,11 @@ class DsPageTransitions {
         final scaleAnimation = Tween<double>(
           begin: 0.0,
           end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: DsCurves.bounce,
-        ));
+        ).animate(CurvedAnimation(parent: animation, curve: DsCurves.bounce));
 
         return ScaleTransition(
           scale: scaleAnimation,
-          child: FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          child: FadeTransition(opacity: animation, child: child),
         );
       },
     );

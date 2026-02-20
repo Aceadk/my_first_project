@@ -1,6 +1,6 @@
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/domain/use_cases/use_case.dart';
-import 'package:crushhour/features/social/data/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 
 /// Parameters for getting personalized date suggestions.
@@ -26,7 +26,7 @@ class GetPersonalizedSuggestionsUseCase
   final DateIdeaService _service;
 
   GetPersonalizedSuggestionsUseCase([DateIdeaService? service])
-      : _service = service ?? DateIdeaService.instance;
+    : _service = service ?? DateIdeaService.instance;
 
   @override
   Future<Result<List<DateIdea>>> call(GetPersonalizedSuggestionsParams params) {

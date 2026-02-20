@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:crushhour/core/utils/result.dart' as app_result;
+import 'package:crushhour/core/media/image_optimizer.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/match.dart';
@@ -59,23 +60,23 @@ class FirebaseChatRepository implements ChatRepository {
         .orderBy('sentAt', descending: false)
         .snapshots()
         .map((snapshot) {
-      final userId = _currentUserId;
-      return snapshot.docs
-          .where((doc) {
-            final data = doc.data();
-            final msg = _messageFromFirestore(doc.id, data);
-            // Filter out messages deleted for the current user
-            if (userId != null &&
-                msg.fromUserId == userId &&
-                msg.isDeletedForSender) {
-              return false;
-            }
-            final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
-            return !deletedFor.contains(userId);
-          })
-          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
-          .toList();
-    });
+          final userId = _currentUserId;
+          return snapshot.docs
+              .where((doc) {
+                final data = doc.data();
+                final msg = _messageFromFirestore(doc.id, data);
+                // Filter out messages deleted for the current user
+                if (userId != null &&
+                    msg.fromUserId == userId &&
+                    msg.isDeletedForSender) {
+                  return false;
+                }
+                final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+                return !deletedFor.contains(userId);
+              })
+              .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+              .toList();
+        });
   }
 
   @override
@@ -95,8 +96,10 @@ class FirebaseChatRepository implements ChatRepository {
 
     // Apply cursor for pagination (fetch older messages)
     if (beforeTimestamp != null) {
-      query = query.where('sentAt',
-          isLessThan: Timestamp.fromDate(beforeTimestamp));
+      query = query.where(
+        'sentAt',
+        isLessThan: Timestamp.fromDate(beforeTimestamp),
+      );
     }
 
     // Limit results
@@ -148,22 +151,22 @@ class FirebaseChatRepository implements ChatRepository {
         .orderBy('sentAt', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .where((doc) {
-            final data = doc.data();
-            final msg = _messageFromFirestore(doc.id, data);
-            // Filter out messages deleted for the current user
-            if (userId != null &&
-                msg.fromUserId == userId &&
-                msg.isDeletedForSender) {
-              return false;
-            }
-            final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
-            return !deletedFor.contains(userId);
-          })
-          .map((doc) => _messageFromFirestore(doc.id, doc.data()))
-          .toList();
-    });
+          return snapshot.docs
+              .where((doc) {
+                final data = doc.data();
+                final msg = _messageFromFirestore(doc.id, data);
+                // Filter out messages deleted for the current user
+                if (userId != null &&
+                    msg.fromUserId == userId &&
+                    msg.isDeletedForSender) {
+                  return false;
+                }
+                final deletedFor = (data['deletedFor'] as List<dynamic>?) ?? [];
+                return !deletedFor.contains(userId);
+              })
+              .map((doc) => _messageFromFirestore(doc.id, doc.data()))
+              .toList();
+        });
   }
 
   @override
@@ -200,7 +203,24 @@ class FirebaseChatRepository implements ChatRepository {
     final userId = _currentUserId;
     if (userId == null) throw Exception('No user logged in');
 
-    final file = File(filePath);
+    var file = File(filePath);
+
+    // Strip EXIF metadata from images before upload for privacy (GPS, device info)
+    if (type == MessageType.image) {
+      try {
+        final optimized = await ImageOptimizer.instance.optimize(
+          file,
+          config: const ImageOptimizeConfig(
+            stripExif: true,
+            generateThumbnail: false,
+          ),
+        );
+        file = optimized.optimizedFile;
+      } catch (e) {
+        AppLogger.error('Chat media EXIF strip failed, uploading original: $e');
+      }
+    }
+
     final fileName =
         '${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}';
     final ref = _storage.ref('chat_media/$matchId/$userId/$fileName');
@@ -212,9 +232,7 @@ class FirebaseChatRepository implements ChatRepository {
   @override
   Future<void> markMessagesRead(String matchId, String userId) async {
     final callable = _functions.httpsCallable('markMessagesRead');
-    await callable.call<Map<String, dynamic>>({
-      'matchId': matchId,
-    });
+    await callable.call<Map<String, dynamic>>({'matchId': matchId});
   }
 
   @override
@@ -280,8 +298,8 @@ class FirebaseChatRepository implements ChatRepository {
         .collection('messages')
         .doc(messageId)
         .update({
-      'deletedFor': FieldValue.arrayUnion([userId]),
-    });
+          'deletedFor': FieldValue.arrayUnion([userId]),
+        });
   }
 
   @override
@@ -317,9 +335,7 @@ class FirebaseChatRepository implements ChatRepository {
         .doc(matchId)
         .collection('messages')
         .doc(messageId)
-        .update({
-      'reactions.$userId': emoji,
-    });
+        .update({'reactions.$userId': emoji});
   }
 
   @override
@@ -333,9 +349,7 @@ class FirebaseChatRepository implements ChatRepository {
         .doc(matchId)
         .collection('messages')
         .doc(messageId)
-        .update({
-      'reactions.$userId': FieldValue.delete(),
-    });
+        .update({'reactions.$userId': FieldValue.delete()});
   }
 
   @override
@@ -361,17 +375,17 @@ class FirebaseChatRepository implements ChatRepository {
         .collection('typing')
         .snapshots()
         .map((snapshot) {
-      final now = DateTime.now();
-      return snapshot.docs
-          .where((doc) {
-            final timestamp = doc.data()['timestamp'] as Timestamp?;
-            if (timestamp == null) return false;
-            // Only show typing if updated within last 5 seconds
-            return now.difference(timestamp.toDate()).inSeconds < 5;
-          })
-          .map((doc) => doc.id)
-          .toSet();
-    });
+          final now = DateTime.now();
+          return snapshot.docs
+              .where((doc) {
+                final timestamp = doc.data()['timestamp'] as Timestamp?;
+                if (timestamp == null) return false;
+                // Only show typing if updated within last 5 seconds
+                return now.difference(timestamp.toDate()).inSeconds < 5;
+              })
+              .map((doc) => doc.id)
+              .toSet();
+        });
   }
 
   @override
@@ -448,9 +462,7 @@ class FirebaseChatRepository implements ChatRepository {
     required String blockedId,
   }) async {
     final callable = _functions.httpsCallable('blockUser');
-    await callable.call<Map<String, dynamic>>({
-      'blockedId': blockedId,
-    });
+    await callable.call<Map<String, dynamic>>({'blockedId': blockedId});
   }
 
   @override
@@ -459,9 +471,7 @@ class FirebaseChatRepository implements ChatRepository {
     required String blockedId,
   }) async {
     final callable = _functions.httpsCallable('unblockUser');
-    await callable.call<Map<String, dynamic>>({
-      'blockedId': blockedId,
-    });
+    await callable.call<Map<String, dynamic>>({'blockedId': blockedId});
   }
 
   @override
@@ -470,9 +480,7 @@ class FirebaseChatRepository implements ChatRepository {
     required String userId,
   }) async {
     final callable = _functions.httpsCallable('unmatch');
-    await callable.call<Map<String, dynamic>>({
-      'matchId': matchId,
-    });
+    await callable.call<Map<String, dynamic>>({'matchId': matchId});
   }
 
   @override
@@ -678,7 +686,8 @@ class FirebaseChatRepository implements ChatRepository {
       } catch (e) {
         // Ignore failures; keep request for retry.
         AppLogger.error(
-            'FirebaseChatRepository: Message request migration failed (will retry): $e');
+          'FirebaseChatRepository: Message request migration failed (will retry): $e',
+        );
       }
     }
 
@@ -751,15 +760,10 @@ class FirebaseChatRepository implements ChatRepository {
       final nonce = base64Url.decode(parts[0]);
       final cipherText = base64Url.decode(parts[1]);
       final macBytes = base64Url.decode(parts[2]);
-      final secretBox = SecretBox(
-        cipherText,
-        nonce: nonce,
-        mac: Mac(macBytes),
-      );
+      final secretBox = SecretBox(cipherText, nonce: nonce, mac: Mac(macBytes));
       final keyBytes = _deriveKeyBytes(matchId, fromUserId, toUserId);
       final secretKey = SecretKey(keyBytes);
-      final clearText =
-          await _cipher.decrypt(secretBox, secretKey: secretKey);
+      final clearText = await _cipher.decrypt(secretBox, secretKey: secretKey);
       return utf8.decode(clearText);
     } catch (e) {
       AppLogger.error('FirebaseChatRepository: E2EE decrypt failed: $e');
@@ -891,7 +895,8 @@ class FirebaseChatRepository implements ChatRepository {
       content: data['content'] ?? '',
       type: _parseMessageType(data['type']),
       sentAt: _parseTimestamp(data['sentAt']) ?? DateTime.now(),
-      expiresAt: _parseTimestamp(data['expiresAt']) ??
+      expiresAt:
+          _parseTimestamp(data['expiresAt']) ??
           DateTime.now().add(const Duration(hours: 48)),
       fromUserName: data['fromUserName'] as String?,
       fromUserPhotoUrl: data['fromUserPhotoUrl'] as String?,
@@ -946,7 +951,9 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   Future<app_result.Result<void>> markMessagesReadResult(
-      String matchId, String userId) {
+    String matchId,
+    String userId,
+  ) {
     return app_result.Result.guard(
       () => markMessagesRead(matchId, userId),
       logLabel: 'FirebaseChatRepository.markMessagesReadResult',
@@ -1016,7 +1023,8 @@ class FirebaseChatRepository implements ChatRepository {
   }
 
   Future<app_result.Result<List<CrushMatch>>> fetchUserMatchesResult(
-      String userId) {
+    String userId,
+  ) {
     return app_result.Result.guard(
       () => fetchUserMatches(userId),
       logLabel: 'FirebaseChatRepository.fetchUserMatchesResult',

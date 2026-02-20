@@ -1,6 +1,5 @@
 {
   "@@locale": "ta",
-
   "@@_COMMON": "பயன்பாடு முழுவதும் பயன்படுத்தப்படும் பொதுவான UI உறுப்புகள்",
   "commonCancel": "ரத்து செய்",
   "commonSave": "சேமி",
@@ -44,7 +43,6 @@
   "commonUnblock": "தடை நீக்கு",
   "commonMute": "ஒலி நிறுத்து",
   "commonUnmute": "ஒலி இயக்கு",
-
   "@@_ERRORS": "பிழை செய்திகள்",
   "errorGeneric": "ஏதோ தவறாகிவிட்டது. மீண்டும் முயற்சிக்கவும்.",
   "errorNetwork": "இணைப்பு பிழை. உங்கள் இணையத்தை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
@@ -99,16 +97,19 @@
   "errorCouldNot": "{action} செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
   "@errorCouldNot": {
     "placeholders": {
-      "action": {"type": "String"}
+      "action": {
+        "type": "String"
+      }
     }
   },
   "errorPlusFeature": "{feature} Plus அம்சமாகும். திறக்க மேம்படுத்தவும்!",
   "@errorPlusFeature": {
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
-
   "@@_ACCESSIBILITY": "அணுகல்தன்மை லேபிள்கள் மற்றும் குறிப்புகள்",
   "a11yBackButton": "பின்னால் செல்",
   "a11yCloseButton": "மூடு",
@@ -125,14 +126,18 @@
   "a11yProfilePhotoOf": "{name} இன் சுயவிவர புகைப்படம்",
   "@a11yProfilePhotoOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yUserAvatar": "பயனர் அவதார்",
   "a11yAvatarOf": "{name} இன் அவதார்",
   "@a11yAvatarOf": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yEditProfile": "சுயவிவரத்தை திருத்து",
@@ -149,13 +154,17 @@
   "a11yMessageFrom": "{sender} இடமிருந்து செய்தி",
   "@a11yMessageFrom": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yUnreadMessages": "{count, plural, =1{1 படிக்காத செய்தி} other{{count} படிக்காத செய்திகள்}}",
   "@a11yUnreadMessages": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "a11yShowPassword": "கடவுச்சொல்லை காட்டு",
@@ -190,13 +199,17 @@
   "a11yMatchFound": "பொருத்தம் கிடைத்தது! நீங்கள் {name} உடன் பொருந்தினீர்கள்",
   "@a11yMatchFound": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "a11yNewMessage": "{sender} இடமிருந்து புதிய செய்தி",
   "@a11yNewMessage": {
     "placeholders": {
-      "sender": {"type": "String"}
+      "sender": {
+        "type": "String"
+      }
     }
   },
   "a11yProfileLiked": "சுயவிவரம் லைக் செய்யப்பட்டது",
@@ -204,7 +217,6 @@
   "a11yProfileSuperLiked": "சுயவிவரம் சூப்பர் லைக் செய்யப்பட்டது",
   "a11yMessageSent": "செய்தி அனுப்பப்பட்டது",
   "a11ySettingSaved": "அமைப்பு சேமிக்கப்பட்டது",
-
   "@@_AUTH": "அங்கீகார திரைகள்",
   "authWelcomeBack": "மீண்டும் வரவேற்கிறோம்",
   "authSignInToContinue": "Crush தொடர உள்நுழையவும்",
@@ -237,7 +249,9 @@
   "authCodeSentTo": "{destination} க்கு குறியீட்டை அனுப்பினோம்",
   "@authCodeSentTo": {
     "placeholders": {
-      "destination": {"type": "String"}
+      "destination": {
+        "type": "String"
+      }
     }
   },
   "authEnterCodeHint": "6-இலக்க குறியீட்டை உள்ளிடவும்",
@@ -262,7 +276,6 @@
   "authClickLinkToVerify": "உங்கள் மின்னஞ்சலை சரிபார்க்க நாங்கள் அனுப்பிய இணைப்பை கிளிக் செய்யவும்",
   "authEmailVerified": "மின்னஞ்சல் வெற்றிகரமாக சரிபார்க்கப்பட்டது!",
   "authSkipForNow": "இப்போதைக்கு தவிர்",
-
   "@@_SETTINGS": "அமைப்புகள் திரைகள்",
   "settingsTitle": "அமைப்புகள்",
   "settingsAppearance": "தோற்றம்",
@@ -289,7 +302,9 @@
   "settingsDistanceKm": "{distance} கி.மீ.",
   "@settingsDistanceKm": {
     "placeholders": {
-      "distance": {"type": "int"}
+      "distance": {
+        "type": "int"
+      }
     }
   },
   "settingsShowMe": "எனக்கு காட்டு",
@@ -323,7 +338,6 @@
   "settingsSubscriptionSubtitle": "உங்கள் திட்டத்தை நிர்வகிக்கவும்",
   "settingsGetPlus": "Crush Plus பெறுங்கள்",
   "settingsRestorePurchases": "வாங்குதல்களை மீட்டெடு",
-
   "@@_DISCOVERY": "கண்டுபிடிப்பு/டெக் திரைகள்",
   "discoveryTitle": "கண்டறி",
   "discoveryNoMatchesTitle": "இன்னும் பொருத்தங்கள் இல்லை",
@@ -345,7 +359,9 @@
   "discoveryMatchMessage": "நீங்களும் {name} ஒருவரை ஒருவர் விரும்பினீர்கள்",
   "@discoveryMatchMessage": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "discoverySendMessage": "செய்தி அனுப்பு",
@@ -354,7 +370,6 @@
   "discoveryLikesYou": "உங்களை விரும்புகிறார்கள்",
   "discoveryTopPicks": "சிறந்த தேர்வுகள்",
   "discoveryNewArrivals": "புதிய வருகைகள்",
-
   "@@_CHAT": "அரட்டை/செய்தியிடல் திரைகள்",
   "chatTitle": "அரட்டைகள்",
   "chatMatches": "பொருத்தங்கள்",
@@ -367,7 +382,9 @@
   "chatStartConversation": "{name} உடன் உரையாடலை தொடங்குங்கள்",
   "@chatStartConversation": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "chatTypeMessage": "செய்தி தட்டச்சு செய்யவும்...",
@@ -378,7 +395,9 @@
   "chatLastSeen": "கடைசியாக பார்த்தது {time}",
   "@chatLastSeen": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "chatTyping": "தட்டச்சு செய்கிறார்...",
@@ -393,10 +412,11 @@
   "chatMatchedWith": "நீங்கள் {name} உடன் பொருந்தினீர்கள்",
   "@chatMatchedWith": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "@@_PROFILE": "சுயவிவர திரைகள்",
   "profileTitle": "சுயவிவரம்",
   "profileEdit": "சுயவிவரத்தை திருத்து",
@@ -426,7 +446,9 @@
   "profileHeightCm": "{height} செ.மீ.",
   "@profileHeightCm": {
     "placeholders": {
-      "height": {"type": "int"}
+      "height": {
+        "type": "int"
+      }
     }
   },
   "profileLanguages": "மொழிகள்",
@@ -450,7 +472,6 @@
   "profileAboutMe": "என்னைப் பற்றி",
   "profileMyDetails": "எனது விவரங்கள்",
   "profileLifestyle": "வாழ்க்கை முறை",
-
   "@@_ONBOARDING": "ஆன்போர்டிங் திரைகள்",
   "onboardingWelcome": "Crush க்கு வரவேற்கிறோம்",
   "onboardingTagline": "உங்கள் சரியான ஜோடியை கண்டறியுங்கள்",
@@ -458,8 +479,12 @@
   "onboardingStep": "படி {current} / {total}",
   "@onboardingStep": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "onboardingWhatsYourName": "உங்கள் பெயர் என்ன?",
@@ -472,7 +497,6 @@
   "onboardingInterestsHint": "குறைந்தது 3 ஆர்வங்களை தேர்ந்தெடுக்கவும்",
   "onboardingAllSet": "நீங்கள் தயாராகிவிட்டீர்கள்!",
   "onboardingStartSwiping": "ஸ்வைப் செய்ய தொடங்கு",
-
   "@@_SUBSCRIPTION": "சந்தா திரைகள்",
   "subscriptionFree": "இலவசம்",
   "subscriptionPlus": "Plus",
@@ -485,13 +509,17 @@
   "subscriptionBoostsPerMonth": "மாதத்திற்கு {count} பூஸ்ட்கள்",
   "@subscriptionBoostsPerMonth": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionSuperLikesPerDay": "நாளுக்கு {count} சூப்பர் லைக்குகள்",
   "@subscriptionSuperLikesPerDay": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "subscriptionNoAds": "விளம்பரங்கள் இல்லை",
@@ -499,18 +527,21 @@
   "subscriptionPerMonth": "{price}/மாதம்",
   "@subscriptionPerMonth": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionPerYear": "{price}/வருடம்",
   "@subscriptionPerYear": {
     "placeholders": {
-      "price": {"type": "String"}
+      "price": {
+        "type": "String"
+      }
     }
   },
   "subscriptionBestValue": "சிறந்த மதிப்பு",
   "subscriptionMostPopular": "மிகவும் பிரபலமானது",
-
   "@@_SAFETY": "பாதுகாப்பு மற்றும் புகாரிடுதல்",
   "safetyReportUser": "பயனரை புகார் செய்",
   "safetyBlockUser": "பயனரை தடு",
@@ -519,7 +550,9 @@
   "safetyBlockConfirm": "{name} ஐ தடுக்கவா?",
   "@safetyBlockConfirm": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "safetyBlockMessage": "அவர்களால் உங்கள் சுயவிவரத்தை பார்க்கவோ உங்களுக்கு செய்தி அனுப்பவோ முடியாது",
@@ -532,42 +565,46 @@
   "safetySpam": "ஸ்பேம்",
   "safetyScam": "மோசடி",
   "safetyOther": "மற்றவை",
-
   "@@_TIME": "நேர தொடர்பான சரங்கள்",
   "timeJustNow": "இப்போதுதான்",
   "timeMinutesAgo": "{count, plural, =1{1 நிமிடம் முன்பு} other{{count} நிமிடங்கள் முன்பு}}",
   "@timeMinutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count, plural, =1{1 மணி நேரம் முன்பு} other{{count} மணி நேரங்கள் முன்பு}}",
   "@timeHoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count, plural, =1{1 நாள் முன்பு} other{{count} நாட்கள் முன்பு}}",
   "@timeDaysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeWeeksAgo": "{count, plural, =1{1 வாரம் முன்பு} other{{count} வாரங்கள் முன்பு}}",
   "@timeWeeksAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "@@_EMPTY_STATES": "காலி நிலை செய்திகள்",
   "emptyNoResults": "முடிவுகள் இல்லை",
   "emptyTryAgain": "உங்கள் தேடல் அல்லது வடிப்பான்களை சரிசெய்து முயற்சிக்கவும்",
   "emptyNoData": "தரவு இல்லை",
   "emptyCheckBackLater": "பின்னர் மீண்டும் சரிபார்க்கவும்",
-
   "@@_ADDITIONAL_WORDS": "நெகிழ்வான கண்டறிதலுக்கான கூடுதல் பொதுவான சொற்கள்",
-
   "@@_NAV_WORDS": "வழிசெலுத்தல் சொற்கள்",
   "wordHome": "முகப்பு",
   "wordExplore": "ஆராய்",
@@ -579,7 +616,6 @@
   "wordInbox": "இன்பாக்ஸ்",
   "wordFavorites": "பிடித்தவை",
   "wordHistory": "வரலாறு",
-
   "@@_ACTION_WORDS": "செயல் சொற்கள்",
   "wordCopy": "நகலெடு",
   "wordPaste": "ஒட்டு",
@@ -698,7 +734,6 @@
   "wordDecide": "முடிவுசெய்",
   "wordAgree": "ஒப்புக்கொள்",
   "wordDisagree": "மறு",
-
   "@@_STATUS_WORDS": "நிலை சொற்கள்",
   "wordActive": "செயலில்",
   "wordInactive": "செயலற்ற",
@@ -765,7 +800,6 @@
   "wordUnseen": "பார்க்கப்படாத",
   "wordOpenStatus": "திறந்த",
   "wordClosed": "மூடப்பட்ட",
-
   "@@_TIME_WORDS": "நேரம் தொடர்பான சொற்கள்",
   "wordNow": "இப்போது",
   "wordLater": "பின்னர்",
@@ -807,7 +841,6 @@
   "wordYears": "வருடங்கள்",
   "wordSecond": "விநாடி",
   "wordSeconds": "விநாடிகள்",
-
   "@@_ADJECTIVE_WORDS": "பொதுவான பெயரடைகள்",
   "wordGood": "நல்ல",
   "wordBad": "கெட்ட",
@@ -932,7 +965,6 @@
   "wordFabulous": "அற்புதமான",
   "wordMagnificent": "மகத்தான",
   "wordSpectacular": "கண்கவர்",
-
   "@@_GREETING_WORDS": "வாழ்த்துக்கள் மற்றும் கண்ணியமான வெளிப்பாடுகள்",
   "wordPlease": "தயவுசெய்து",
   "wordThanks": "நன்றி",
@@ -963,7 +995,6 @@
   "wordHaveFun": "மகிழுங்கள்",
   "wordEnjoy": "மகிழுங்கள்",
   "wordCheers": "சியர்ஸ்",
-
   "@@_QUESTION_WORDS": "கேள்வி சொற்கள்",
   "wordWho": "யார்",
   "wordWhat": "என்ன",
@@ -979,7 +1010,6 @@
   "wordHowFar": "எவ்வளவு தூரம்",
   "wordHowOld": "எத்தனை வயது",
   "wordHowOften": "எவ்வளவு அடிக்கடி",
-
   "@@_PREPOSITION_WORDS": "முன்னிடைச்சொற்கள் மற்றும் இடங்கள்",
   "wordWith": "உடன்",
   "wordWithout": "இல்லாமல்",
@@ -1015,7 +1045,6 @@
   "wordCenter": "மையம்",
   "wordCorner": "மூலை",
   "wordEdge": "விளிம்பு",
-
   "@@_DATING_WORDS": "டேட்டிங் சொற்கள்",
   "wordCrush": "க்ரஷ்",
   "wordMatch": "பொருத்தம்",
@@ -1145,7 +1174,6 @@
   "wordSeekingFor": "தேடுகிறது",
   "wordWaiting": "காத்திருக்கிறது",
   "wordSearching": "தேடுகிறது",
-
   "@@_COMMON_NOUNS": "பொதுவான பெயர்ச்சொற்கள்",
   "wordNotification": "அறிவிப்பு",
   "wordAlert": "எச்சரிக்கை",
@@ -1462,5 +1490,46 @@
   "wordEverything": "எல்லாம்",
   "wordSomething": "ஏதோ",
   "wordNothing": "எதுவும் இல்லை",
-  "wordAnything": "எதுவும்"
+  "wordAnything": "எதுவும்",
+  "@@_PLURALS_NEW": "New plural items added",
+  "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}}",
+  "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}}",
+  "likesCount": "{count, plural, =0{No likes} =1{1 like} other{{count} likes}}",
+  "photosCount": "{count, plural, =0{No photos} =1{1 photo} other{{count} photos}}",
+  "distanceKm": "{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}",
+  "@notificationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@distanceKm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

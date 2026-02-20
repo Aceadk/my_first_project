@@ -23,8 +23,8 @@ class HttpChatRepository implements ChatRepository {
   HttpChatRepository({
     required ApiClient apiClient,
     WebSocketConnection? webSocket,
-  })  : _apiClient = apiClient,
-        _webSocket = webSocket;
+  }) : _apiClient = apiClient,
+       _webSocket = webSocket;
 
   final ApiClient _apiClient;
   final WebSocketConnection? _webSocket;
@@ -68,9 +68,7 @@ class HttpChatRepository implements ChatRepository {
     int limit = 30,
     DateTime? beforeTimestamp,
   }) async {
-    final queryParams = <String, String>{
-      'limit': limit.toString(),
-    };
+    final queryParams = <String, String>{'limit': limit.toString()};
     if (beforeTimestamp != null) {
       queryParams['before'] = beforeTimestamp.toIso8601String();
     }
@@ -103,8 +101,10 @@ class HttpChatRepository implements ChatRepository {
     required DateTime afterTimestamp,
   }) {
     // Use the existing message stream but filter for new messages
-    return watchMessages(matchId).map((messages) =>
-        messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList());
+    return watchMessages(matchId).map(
+      (messages) =>
+          messages.where((m) => m.sentAt.isAfter(afterTimestamp)).toList(),
+    );
   }
 
   void _startMessagePolling(String matchId) {
@@ -114,7 +114,8 @@ class HttpChatRepository implements ChatRepository {
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
       AppLogger.debug(
-          'HttpChatRepository: WebSocket connected, skipping message polling');
+        'HttpChatRepository: WebSocket connected, skipping message polling',
+      );
       return;
     }
 
@@ -212,13 +213,12 @@ class HttpChatRepository implements ChatRepository {
 
   @override
   Future<void> markMessagesRead(String matchId, String userId) async {
-    final result = await _apiClient.post<void>(
-      ApiEndpoints.chatRead(matchId),
-    );
+    final result = await _apiClient.post<void>(ApiEndpoints.chatRead(matchId));
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpChatRepository: Failed to mark messages read - ${result.error}');
+        'HttpChatRepository: Failed to mark messages read - ${result.error}',
+      );
     }
   }
 
@@ -381,11 +381,13 @@ class HttpChatRepository implements ChatRepository {
   }) async {
     // Send via WebSocket if available
     if (_webSocket?.isConnected == true) {
-      _webSocket!.sendEvent(TypingEvent(
-        conversationId: matchId,
-        userId: userId,
-        isTyping: isTyping,
-      ));
+      _webSocket!.sendEvent(
+        TypingEvent(
+          conversationId: matchId,
+          userId: userId,
+          isTyping: isTyping,
+        ),
+      );
       return;
     }
 
@@ -415,7 +417,8 @@ class HttpChatRepository implements ChatRepository {
     // Skip polling if WebSocket is connected (real-time events will be used)
     if (_webSocket?.isConnected == true) {
       AppLogger.debug(
-          'HttpChatRepository: WebSocket connected, skipping presence polling');
+        'HttpChatRepository: WebSocket connected, skipping presence polling',
+      );
       return;
     }
 
@@ -446,10 +449,7 @@ class HttpChatRepository implements ChatRepository {
   }) async {
     // Send via WebSocket if available
     if (_webSocket?.isConnected == true) {
-      _webSocket!.sendEvent(PresenceEvent(
-        userId: userId,
-        isOnline: isOnline,
-      ));
+      _webSocket!.sendEvent(PresenceEvent(userId: userId, isOnline: isOnline));
       return;
     }
 
@@ -486,7 +486,8 @@ class HttpChatRepository implements ChatRepository {
 
     if (result.isFailure) {
       throw Exception(
-          result.error?.message ?? 'Failed to update media settings');
+        result.error?.message ?? 'Failed to update media settings',
+      );
     }
 
     _mediaSendingControllers[matchId]?.add(enabled);
@@ -531,9 +532,7 @@ class HttpChatRepository implements ChatRepository {
     required String matchId,
     required String userId,
   }) async {
-    final result = await _apiClient.post<void>(
-      ApiEndpoints.unmatch(matchId),
-    );
+    final result = await _apiClient.post<void>(ApiEndpoints.unmatch(matchId));
 
     if (result.isFailure) {
       throw Exception(result.error?.message ?? 'Failed to unmatch');
@@ -554,16 +553,14 @@ class HttpChatRepository implements ChatRepository {
   }) async {
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.matches,
-      queryParams: {
-        'offset': offset.toString(),
-        'limit': limit.toString(),
-      },
+      queryParams: {'offset': offset.toString(), 'limit': limit.toString()},
       parser: (data) => data as Map<String, dynamic>,
     );
 
     if (result.isFailure) {
       AppLogger.error(
-          'HttpChatRepository: Failed to fetch matches - ${result.error}');
+        'HttpChatRepository: Failed to fetch matches - ${result.error}',
+      );
       return const PaginatedResult(items: [], total: 0, hasMore: false);
     }
 
@@ -591,7 +588,8 @@ class HttpChatRepository implements ChatRepository {
     String? toUserPhotoUrl,
   }) async {
     throw UnsupportedError(
-        'Message requests are not supported in HTTP backend.');
+      'Message requests are not supported in HTTP backend.',
+    );
   }
 
   @override

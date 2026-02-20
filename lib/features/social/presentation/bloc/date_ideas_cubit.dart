@@ -5,7 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
-import 'package:crushhour/features/social/data/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 
 /// State for date ideas.
 class DateIdeasState extends Equatable {
@@ -52,10 +52,12 @@ class DateIdeasState extends Equatable {
       filteredIdeas: filteredIdeas ?? this.filteredIdeas,
       savedIdeas: savedIdeas ?? this.savedIdeas,
       suggestedIdeas: suggestedIdeas ?? this.suggestedIdeas,
-      selectedCategory:
-          clearCategory ? null : (selectedCategory ?? this.selectedCategory),
-      selectedCostLevel:
-          clearCostLevel ? null : (selectedCostLevel ?? this.selectedCostLevel),
+      selectedCategory: clearCategory
+          ? null
+          : (selectedCategory ?? this.selectedCategory),
+      selectedCostLevel: clearCostLevel
+          ? null
+          : (selectedCostLevel ?? this.selectedCostLevel),
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
@@ -64,16 +66,16 @@ class DateIdeasState extends Equatable {
 
   @override
   List<Object?> get props => [
-        ideas,
-        filteredIdeas,
-        savedIdeas,
-        suggestedIdeas,
-        selectedCategory,
-        selectedCostLevel,
-        searchQuery,
-        isLoading,
-        errorMessage,
-      ];
+    ideas,
+    filteredIdeas,
+    savedIdeas,
+    suggestedIdeas,
+    selectedCategory,
+    selectedCostLevel,
+    searchQuery,
+    isLoading,
+    errorMessage,
+  ];
 }
 
 /// Cubit for managing date ideas state.
@@ -81,9 +83,9 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
   DateIdeasCubit({
     required AuthRepository authRepository,
     required DateIdeaRepository dateIdeaRepository,
-  })  : _authRepository = authRepository,
-        _service = dateIdeaRepository,
-        super(const DateIdeasState()) {
+  }) : _authRepository = authRepository,
+       _service = dateIdeaRepository,
+       super(const DateIdeasState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
       if (user == null) {
         _resetState();
@@ -104,23 +106,25 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
       final ideas = _service.getAllIdeas();
 
       _ideasSubscription?.cancel();
-      _ideasSubscription = _service.ideasStream.listen(
-        (suggestedIdeas) {
-          emit(state.copyWith(suggestedIdeas: suggestedIdeas));
-        },
-      );
+      _ideasSubscription = _service.ideasStream.listen((suggestedIdeas) {
+        emit(state.copyWith(suggestedIdeas: suggestedIdeas));
+      });
 
-      emit(state.copyWith(
-        ideas: ideas,
-        filteredIdeas: ideas,
-        savedIdeas: _service.savedIdeas,
-        isLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          ideas: ideas,
+          filteredIdeas: ideas,
+          savedIdeas: _service.savedIdeas,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load date ideas',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to load date ideas',
+        ),
+      );
     }
   }
 
@@ -142,10 +146,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
         count: count,
       );
 
-      emit(state.copyWith(
-        suggestedIdeas: suggestions,
-        isLoading: false,
-      ));
+      emit(state.copyWith(suggestedIdeas: suggestions, isLoading: false));
     } catch (e) {
       emit(state.copyWith(isLoading: false));
     }
@@ -153,19 +154,23 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
 
   /// Filter ideas by category.
   void filterByCategory(DateCategory? category) {
-    emit(state.copyWith(
-      selectedCategory: category,
-      clearCategory: category == null,
-    ));
+    emit(
+      state.copyWith(
+        selectedCategory: category,
+        clearCategory: category == null,
+      ),
+    );
     _applyFilters();
   }
 
   /// Filter ideas by cost level.
   void filterByCostLevel(DateCostLevel? costLevel) {
-    emit(state.copyWith(
-      selectedCostLevel: costLevel,
-      clearCostLevel: costLevel == null,
-    ));
+    emit(
+      state.copyWith(
+        selectedCostLevel: costLevel,
+        clearCostLevel: costLevel == null,
+      ),
+    );
     _applyFilters();
   }
 
@@ -177,12 +182,14 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
 
   /// Clear all filters.
   void clearFilters() {
-    emit(state.copyWith(
-      clearCategory: true,
-      clearCostLevel: true,
-      searchQuery: '',
-      filteredIdeas: state.ideas,
-    ));
+    emit(
+      state.copyWith(
+        clearCategory: true,
+        clearCostLevel: true,
+        searchQuery: '',
+        filteredIdeas: state.ideas,
+      ),
+    );
   }
 
   void _applyFilters() {
@@ -198,9 +205,11 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
     // Filter by cost level
     if (state.selectedCostLevel != null) {
       filtered = filtered
-          .where((idea) =>
-              idea.estimatedCost != null &&
-              idea.estimatedCost!.index <= state.selectedCostLevel!.index)
+          .where(
+            (idea) =>
+                idea.estimatedCost != null &&
+                idea.estimatedCost!.index <= state.selectedCostLevel!.index,
+          )
           .toList();
     }
 

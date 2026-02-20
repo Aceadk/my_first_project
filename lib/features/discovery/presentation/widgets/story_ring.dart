@@ -50,11 +50,7 @@ class StoryRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!hasStories) {
-      return SizedBox(
-        width: size,
-        height: size,
-        child: child,
-      );
+      return SizedBox(width: size, height: size, child: child);
     }
 
     return GestureDetector(
@@ -75,10 +71,7 @@ class StoryRing extends StatelessWidget {
               ),
             ),
             // Avatar with gap
-            Padding(
-              padding: EdgeInsets.all(strokeWidth + gap),
-              child: child,
-            ),
+            Padding(padding: EdgeInsets.all(strokeWidth + gap), child: child),
           ],
         ),
       ),
@@ -109,7 +102,7 @@ class _StoryRingPainter extends CustomPainter {
         : [
             DsColors.textMutedLight,
             DsColors.offlineIndicator,
-            DsColors.textMutedLight
+            DsColors.textMutedLight,
           ];
 
     final gradient = SweepGradient(
@@ -176,10 +169,7 @@ class StoryBadge extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: DsBlur.light,
-          sigmaY: DsBlur.light,
-        ),
+        filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
         child: Container(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 6 : 8,
@@ -372,7 +362,7 @@ class _AnimatedStoryRingPainter extends CustomPainter {
         : [
             DsColors.textMutedLight,
             DsColors.offlineIndicator,
-            DsColors.textMutedLight
+            DsColors.textMutedLight,
           ];
 
     final gradient = SweepGradient(

@@ -1,79 +1,33 @@
+import 'package:crushhour/design_system/tokens/spacing.dart';
+import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
 import 'package:flutter/material.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/widgets/skeleton_loader.dart';
 
 /// Skeleton loading state for the discovery deck.
+///
+/// Uses design system [SkeletonBox] and [SkeletonCircle] instead of
+/// local duplicates.
 class DeckSkeletonList extends StatelessWidget {
   const DeckSkeletonList({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const DsShimmer(
-      child: Column(
-        children: [
-          SizedBox(height: 16),
-          SkeletonCard(height: 18, widthFactor: 0.6),
-          SizedBox(height: 12),
-          SkeletonCard(height: 250),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SkeletonCircle(size: 60),
-              SkeletonCircle(size: 60),
-              SkeletonCircle(size: 60),
-            ],
-          ),
-          SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-}
-
-/// A rectangular skeleton placeholder for loading states.
-class SkeletonCard extends StatelessWidget {
-  const SkeletonCard({
-    super.key,
-    required this.height,
-    this.widthFactor,
-  });
-
-  final double height;
-  final double? widthFactor;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return FractionallySizedBox(
-      widthFactor: widthFactor ?? 0.9,
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          color: isDark ? DsColors.skeletonDark : DsColors.skeletonLight,
-          borderRadius: BorderRadius.circular(12),
+    return const Column(
+      children: [
+        SizedBox(height: DsSpacing.lg),
+        FractionallySizedBox(widthFactor: 0.6, child: GlassSkeleton(height: 18)),
+        SizedBox(height: DsSpacing.md),
+        FractionallySizedBox(widthFactor: 0.9, child: GlassSkeleton(height: 250)),
+        SizedBox(height: DsSpacing.md),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            GlassSkeleton(width: 60, height: 60, isCircle: true),
+            GlassSkeleton(width: 60, height: 60, isCircle: true),
+            GlassSkeleton(width: 60, height: 60, isCircle: true),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-/// A circular skeleton placeholder for loading states.
-class SkeletonCircle extends StatelessWidget {
-  const SkeletonCircle({super.key, required this.size});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: isDark ? DsColors.skeletonDark : DsColors.skeletonLight,
-        shape: BoxShape.circle,
-      ),
+        SizedBox(height: DsSpacing.lg),
+      ],
     );
   }
 }

@@ -101,10 +101,7 @@ class DeepLinkConfig {
         final token = uri.queryParameters['token'];
         return DeepLinkResult(
           route: CrushRoutes.emailVerification,
-          queryParams: {
-            'email': ?email,
-            'token': ?token,
-          },
+          queryParams: {'email': ?email, 'token': ?token},
         );
 
       case 'reset-password':
@@ -196,10 +193,7 @@ class DeepLinkConfig {
 
   /// Build a referral signup link.
   static Uri buildReferralLink(String referralCode) {
-    return buildShareLink(
-      path: '/signup',
-      queryParams: {'ref': referralCode},
-    );
+    return buildShareLink(path: '/signup', queryParams: {'ref': referralCode});
   }
 }
 
@@ -234,8 +228,10 @@ class DeepLinkResult {
       return route;
     }
     final query = queryParams!.entries
-        .map((e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
     return '$route?$query';
   }
@@ -247,10 +243,7 @@ class DeepLinkResult {
 
 /// Handler for processing incoming deep links.
 class DeepLinkHandler {
-  DeepLinkHandler({
-    required this.onNavigate,
-    required this.onAuthRequired,
-  });
+  DeepLinkHandler({required this.onNavigate, required this.onAuthRequired});
 
   /// Callback to navigate to a route.
   final void Function(String route, {Object? extra}) onNavigate;

@@ -8,9 +8,8 @@ import '../feature_flag_repository.dart';
 /// This implementation uses local defaults and allows overriding flags
 /// programmatically for testing different configurations.
 class StubFeatureFlagRepository implements FeatureFlagRepository {
-  StubFeatureFlagRepository({
-    FeatureFlags? initialFlags,
-  }) : _currentFlags = initialFlags ?? FeatureFlags.defaults;
+  StubFeatureFlagRepository({FeatureFlags? initialFlags})
+    : _currentFlags = initialFlags ?? FeatureFlags.defaults;
 
   FeatureFlags _currentFlags;
   final _flagsController = StreamController<FeatureFlags>.broadcast();

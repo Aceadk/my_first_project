@@ -138,22 +138,19 @@ class ProfileStory extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        mediaUrl,
-        mediaType,
-        createdAt,
-        expiresAt,
-        viewCount,
-        thumbnailUrl,
-      ];
+    id,
+    userId,
+    mediaUrl,
+    mediaType,
+    createdAt,
+    expiresAt,
+    viewCount,
+    thumbnailUrl,
+  ];
 }
 
 /// Type of media in a story.
-enum StoryMediaType {
-  photo,
-  video,
-}
+enum StoryMediaType { photo, video }
 
 /// Extension to get active stories from a list.
 extension ProfileStoryListExtension on List<ProfileStory> {

@@ -4008,4 +4008,64 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get wordAnything => 'ఏదైనా';
+
+  @override
+  String notificationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notifications',
+      one: '1 notification',
+      zero: 'No notifications',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String matchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count matches',
+      one: '1 match',
+      zero: 'No matches',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String likesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count likes',
+      one: '1 like',
+      zero: 'No likes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+      zero: 'No photos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String distanceKm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count km away',
+      one: '1 km away',
+      zero: 'Less than 1 km away',
+    );
+    return '$_temp0';
+  }
 }

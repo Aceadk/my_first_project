@@ -39,7 +39,8 @@ class DsAccessibleIconButton extends StatelessWidget {
     final buttonSize = _getButtonSize();
     final iconSize = _getIconSize();
 
-    final effectiveColor = color ??
+    final effectiveColor =
+        color ??
         (enabled
             ? (isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight)
             : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight));
@@ -71,11 +72,7 @@ class DsAccessibleIconButton extends StatelessWidget {
                 minHeight: buttonSize,
               ),
               child: Center(
-                child: Icon(
-                  icon,
-                  size: iconSize,
-                  color: effectiveColor,
-                ),
+                child: Icon(icon, size: iconSize, color: effectiveColor),
               ),
             ),
           ),
@@ -84,10 +81,7 @@ class DsAccessibleIconButton extends StatelessWidget {
     );
 
     if (tooltip != null) {
-      button = Tooltip(
-        message: tooltip!,
-        child: button,
-      );
+      button = Tooltip(message: tooltip!, child: button);
     }
 
     return button;
@@ -111,11 +105,7 @@ class DsAccessibleIconButton extends StatelessWidget {
 }
 
 /// Sizes for icon buttons.
-enum DsIconButtonSize {
-  small,
-  medium,
-  large,
-}
+enum DsIconButtonSize { small, medium, large }
 
 /// An accessible action button for the discovery deck.
 class DsActionButton extends StatelessWidget {
@@ -149,7 +139,8 @@ class DsActionButton extends StatelessWidget {
     final iconSize = _getIconSize();
 
     final effectiveColor = color ?? Colors.white;
-    final effectiveBgColor = backgroundColor ??
+    final effectiveBgColor =
+        backgroundColor ??
         (isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight);
 
     return Semantics(
@@ -162,7 +153,9 @@ class DsActionButton extends StatelessWidget {
         width: buttonSize,
         height: buttonSize,
         decoration: BoxDecoration(
-          color: enabled ? effectiveBgColor : effectiveBgColor.withValues(alpha: 0.5),
+          color: enabled
+              ? effectiveBgColor
+              : effectiveBgColor.withValues(alpha: 0.5),
           shape: BoxShape.circle,
           boxShadow: enabled
               ? [
@@ -221,11 +214,7 @@ class DsActionButton extends StatelessWidget {
 }
 
 /// Sizes for action buttons.
-enum DsActionButtonSize {
-  small,
-  medium,
-  large,
-}
+enum DsActionButtonSize { small, medium, large }
 
 /// A labeled action button for discovery deck.
 class DsLabeledActionButton extends StatelessWidget {
@@ -268,11 +257,11 @@ class DsLabeledActionButton extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: enabled
                 ? (Theme.of(context).brightness == Brightness.dark
-                    ? DsColors.textMutedDark
-                    : DsColors.textMutedLight)
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight)
                 : (Theme.of(context).brightness == Brightness.dark
-                    ? DsColors.textMutedDark.withValues(alpha: 0.5)
-                    : DsColors.textMutedLight.withValues(alpha: 0.5)),
+                      ? DsColors.textMutedDark.withValues(alpha: 0.5)
+                      : DsColors.textMutedLight.withValues(alpha: 0.5)),
           ),
         ),
       ],

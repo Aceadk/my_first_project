@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../config/support_config.dart';
 import '../../../../design_system/design_system.dart';
+import '../../../../design_system/widgets/adaptive_dialog.dart';
 
 /// Customer support screen with help categories, FAQ, and contact options.
 class SupportScreen extends StatefulWidget {
@@ -44,57 +45,68 @@ class _SupportScreenState extends State<SupportScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(DsSpacing.lg),
-        children: [
-          // Quick Actions
-          _buildQuickActions(context),
-          const SizedBox(height: DsSpacing.xl),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: ListView(
+              padding: const EdgeInsets.all(DsSpacing.lg),
+              children: [
+                // Quick Actions
+                _buildQuickActions(context),
+                const SizedBox(height: DsSpacing.xl),
 
-          // Help Categories
-          Text(
-            'How can we help?',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+                // Help Categories
+                Text(
+                  'How can we help?',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: DsSpacing.md),
+                _buildCategoryGrid(context),
+                const SizedBox(height: DsSpacing.xl),
+
+                // FAQ Section
+                Text(
+                  'Frequently Asked Questions',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: DsSpacing.md),
+                _buildFaqList(context),
+                const SizedBox(height: DsSpacing.xl),
+
+                // Contact Options
+                Text(
+                  'Still need help?',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: DsSpacing.md),
+                _buildContactOptions(context),
+                const SizedBox(height: DsSpacing.xl),
+
+                // App Info
+                Center(
+                  child: Text(
+                    'CrushHour v$_appVersion',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: DsSpacing.lg),
+              ],
             ),
           ),
-          const SizedBox(height: DsSpacing.md),
-          _buildCategoryGrid(context),
-          const SizedBox(height: DsSpacing.xl),
-
-          // FAQ Section
-          Text(
-            'Frequently Asked Questions',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DsSpacing.md),
-          _buildFaqList(context),
-          const SizedBox(height: DsSpacing.xl),
-
-          // Contact Options
-          Text(
-            'Still need help?',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DsSpacing.md),
-          _buildContactOptions(context),
-          const SizedBox(height: DsSpacing.xl),
-
-          // App Info
-          Center(
-            child: Text(
-              'CrushHour v$_appVersion',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-              ),
-            ),
-          ),
-          const SizedBox(height: DsSpacing.lg),
-        ],
+        ),
       ),
     );
   }
@@ -169,7 +181,9 @@ class _SupportScreenState extends State<SupportScreen> {
           subtitle: const Text(SupportConfig.supportEmail),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showContactSheet(context),
-          tileColor: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+          tileColor: isDark
+              ? DsColors.surfaceElevatedDark
+              : DsColors.surfaceElevatedLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DsRadius.md),
           ),
@@ -181,7 +195,9 @@ class _SupportScreenState extends State<SupportScreen> {
           subtitle: const Text('Browse articles and guides'),
           trailing: const Icon(Icons.open_in_new, size: 18),
           onTap: () => SupportConfig.openHelpCenter(),
-          tileColor: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+          tileColor: isDark
+              ? DsColors.surfaceElevatedDark
+              : DsColors.surfaceElevatedLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DsRadius.md),
           ),
@@ -193,7 +209,9 @@ class _SupportScreenState extends State<SupportScreen> {
           subtitle: const Text('Our rules and standards'),
           trailing: const Icon(Icons.open_in_new, size: 18),
           onTap: () => SupportConfig.openHelpCenter('guidelines'),
-          tileColor: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+          tileColor: isDark
+              ? DsColors.surfaceElevatedDark
+              : DsColors.surfaceElevatedLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DsRadius.md),
           ),
@@ -203,7 +221,7 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   void _showContactSheet(BuildContext context) {
-    showModalBottomSheet(
+    AdaptiveBottomSheet.show<void>(
       context: context,
       builder: (context) => const _ContactSupportSheet(),
     );
@@ -229,7 +247,9 @@ class _QuickActionCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Material(
-      color: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+      color: isDark
+          ? DsColors.surfaceElevatedDark
+          : DsColors.surfaceElevatedLight,
       borderRadius: BorderRadius.circular(DsRadius.md),
       child: InkWell(
         onTap: onTap,
@@ -259,10 +279,7 @@ class _CategoryCard extends StatelessWidget {
   final SupportCategory category;
   final VoidCallback onTap;
 
-  const _CategoryCard({
-    required this.category,
-    required this.onTap,
-  });
+  const _CategoryCard({required this.category, required this.onTap});
 
   IconData get _iconData {
     switch (category.icon) {
@@ -292,7 +309,9 @@ class _CategoryCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Material(
-      color: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+      color: isDark
+          ? DsColors.surfaceElevatedDark
+          : DsColors.surfaceElevatedLight,
       borderRadius: BorderRadius.circular(DsRadius.md),
       child: InkWell(
         onTap: onTap,
@@ -322,7 +341,9 @@ class _CategoryCard extends StatelessWidget {
               Text(
                 category.description,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -352,9 +373,11 @@ class _FaqCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+      padding: const EdgeInsetsDirectional.only(bottom: DsSpacing.sm),
       child: Material(
-        color: isDark ? DsColors.surfaceElevatedDark : DsColors.surfaceElevatedLight,
+        color: isDark
+            ? DsColors.surfaceElevatedDark
+            : DsColors.surfaceElevatedLight,
         borderRadius: BorderRadius.circular(DsRadius.md),
         child: InkWell(
           onTap: onTap,
@@ -376,7 +399,9 @@ class _FaqCard extends StatelessWidget {
                     ),
                     Icon(
                       isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
                     ),
                   ],
                 ),
@@ -385,7 +410,9 @@ class _FaqCard extends StatelessWidget {
                   Text(
                     faq.answer,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                      color: isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight,
                     ),
                   ),
                 ],
@@ -421,9 +448,9 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: DsSpacing.lg,
-        right: DsSpacing.lg,
+      padding: EdgeInsetsDirectional.only(
+        start: DsSpacing.lg,
+        end: DsSpacing.lg,
         top: DsSpacing.lg,
         bottom: MediaQuery.of(context).viewInsets.bottom + DsSpacing.lg,
       ),
@@ -448,10 +475,7 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
                 border: OutlineInputBorder(),
               ),
               items: SupportConfig.categories.map((cat) {
-                return DropdownMenuItem(
-                  value: cat.id,
-                  child: Text(cat.title),
-                );
+                return DropdownMenuItem(value: cat.id, child: Text(cat.title));
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -491,7 +515,9 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
             Text(
               'This will open your email app with the support details.',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
               textAlign: TextAlign.center,
             ),

@@ -294,7 +294,8 @@ class VersionNegotiationResult {
     required ApiVersion serverMaxVersion,
     ApiVersion? serverRecommendedVersion,
   }) {
-    final isCompatible = clientVersion >= serverMinVersion &&
+    final isCompatible =
+        clientVersion >= serverMinVersion &&
         clientVersion.isCompatibleWith(serverMaxVersion);
 
     final upgradeRequired = clientVersion < serverMinVersion;
@@ -302,13 +303,15 @@ class VersionNegotiationResult {
     String? warning;
     if (serverRecommendedVersion != null &&
         clientVersion < serverRecommendedVersion) {
-      warning = 'A newer API version ($serverRecommendedVersion) is available. '
+      warning =
+          'A newer API version ($serverRecommendedVersion) is available. '
           'Please update for the best experience.';
     }
 
     // Use the highest compatible version
-    final negotiated =
-        clientVersion <= serverMaxVersion ? clientVersion : serverMaxVersion;
+    final negotiated = clientVersion <= serverMaxVersion
+        ? clientVersion
+        : serverMaxVersion;
 
     return VersionNegotiationResult(
       clientVersion: clientVersion,

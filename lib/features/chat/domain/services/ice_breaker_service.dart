@@ -32,28 +32,33 @@ class IceBreakerService {
 
   /// Generate suggestions based on the other user's profile.
   static List<IceBreakerSuggestion> _getProfileBasedSuggestions(
-      Profile profile) {
+    Profile profile,
+  ) {
     final suggestions = <IceBreakerSuggestion>[];
 
     // Based on interests
     if (profile.interests.isNotEmpty) {
       final interest =
           profile.interests[_random.nextInt(profile.interests.length)];
-      suggestions.add(IceBreakerSuggestion(
-        text: "I noticed you're into $interest! What got you started?",
-        category: IceBreakerCategory.interest,
-        icon: '🌟',
-      ));
+      suggestions.add(
+        IceBreakerSuggestion(
+          text: "I noticed you're into $interest! What got you started?",
+          category: IceBreakerCategory.interest,
+          icon: '🌟',
+        ),
+      );
 
       if (profile.interests.length > 1) {
         final anotherInterest = profile.interests
             .where((i) => i != interest)
             .elementAt(_random.nextInt(profile.interests.length - 1));
-        suggestions.add(IceBreakerSuggestion(
-          text: "Do you prefer $interest or $anotherInterest?",
-          category: IceBreakerCategory.interest,
-          icon: '🤔',
-        ));
+        suggestions.add(
+          IceBreakerSuggestion(
+            text: "Do you prefer $interest or $anotherInterest?",
+            category: IceBreakerCategory.interest,
+            icon: '🤔',
+          ),
+        );
       }
     }
 
@@ -61,29 +66,35 @@ class IceBreakerService {
     if (profile.profilePrompts.isNotEmpty) {
       final prompt = profile
           .profilePrompts[_random.nextInt(profile.profilePrompts.length)];
-      suggestions.add(IceBreakerSuggestion(
-        text: "Love your answer about '${prompt.question}' - tell me more!",
-        category: IceBreakerCategory.prompt,
-        icon: '💬',
-      ));
+      suggestions.add(
+        IceBreakerSuggestion(
+          text: "Love your answer about '${prompt.question}' - tell me more!",
+          category: IceBreakerCategory.prompt,
+          icon: '💬',
+        ),
+      );
     }
 
     // Based on job
     if (profile.jobTitle != null && profile.jobTitle!.isNotEmpty) {
-      suggestions.add(IceBreakerSuggestion(
-        text: "What's the best part about being a ${profile.jobTitle}?",
-        category: IceBreakerCategory.work,
-        icon: '💼',
-      ));
+      suggestions.add(
+        IceBreakerSuggestion(
+          text: "What's the best part about being a ${profile.jobTitle}?",
+          category: IceBreakerCategory.work,
+          icon: '💼',
+        ),
+      );
     }
 
     // Based on location
     if (profile.livingIn != null && profile.livingIn!.isNotEmpty) {
-      suggestions.add(IceBreakerSuggestion(
-        text: "What's your favorite spot in ${profile.livingIn}?",
-        category: IceBreakerCategory.location,
-        icon: '📍',
-      ));
+      suggestions.add(
+        IceBreakerSuggestion(
+          text: "What's your favorite spot in ${profile.livingIn}?",
+          category: IceBreakerCategory.location,
+          icon: '📍',
+        ),
+      );
     }
 
     // Based on pets
@@ -97,21 +108,25 @@ class IceBreakerService {
       };
       final petQ = petQuestions[profile.pets];
       if (petQ != null) {
-        suggestions.add(IceBreakerSuggestion(
-          text: petQ,
-          category: IceBreakerCategory.lifestyle,
-          icon: '🐾',
-        ));
+        suggestions.add(
+          IceBreakerSuggestion(
+            text: petQ,
+            category: IceBreakerCategory.lifestyle,
+            icon: '🐾',
+          ),
+        );
       }
     }
 
     // Based on zodiac
     if (profile.zodiacSign != null) {
-      suggestions.add(IceBreakerSuggestion(
-        text: "Do you actually relate to being a ${profile.zodiacSign}?",
-        category: IceBreakerCategory.personality,
-        icon: '✨',
-      ));
+      suggestions.add(
+        IceBreakerSuggestion(
+          text: "Do you actually relate to being a ${profile.zodiacSign}?",
+          category: IceBreakerCategory.personality,
+          icon: '✨',
+        ),
+      );
     }
 
     return suggestions;

@@ -66,12 +66,14 @@ class ProfileMapper {
       photos: profile.photoUrls
           .asMap()
           .entries
-          .map((e) => ProfilePhotoDto(
-                id: 'photo_${e.key}',
-                url: e.value,
-                isPrimary: e.key == profile.primaryPhotoIndex,
-                order: e.key,
-              ))
+          .map(
+            (e) => ProfilePhotoDto(
+              id: 'photo_${e.key}',
+              url: e.value,
+              isPrimary: e.key == profile.primaryPhotoIndex,
+              order: e.key,
+            ),
+          )
           .toList(),
       location: LocationDto(
         latitude: profile.latitude,

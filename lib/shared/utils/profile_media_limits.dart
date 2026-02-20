@@ -12,6 +12,15 @@ class ProfileMediaLimits {
   /// Maximum video duration
   static const Duration maxVideoDuration = ValidationConstants.maxVideoDuration;
 
+  /// Maximum file size for photos (bytes).
+  static const int maxPhotoSizeBytes = ValidationConstants.maxPhotoSizeBytes;
+
+  /// Maximum photo dimension (width or height, pixels).
+  static const int maxPhotoDimension = ValidationConstants.maxPhotoDimension;
+
+  /// Minimum photo dimension (width and height, pixels).
+  static const int minPhotoDimension = ValidationConstants.minPhotoDimension;
+
   static const int maxTotal = maxPhotos + maxVideos;
 
   const ProfileMediaLimits._();

@@ -15,7 +15,7 @@ class RemoveSavedIdeaUseCase extends UseCase<void, RemoveSavedIdeaParams>
   final DateIdeaService _service;
 
   RemoveSavedIdeaUseCase([DateIdeaService? service])
-      : _service = service ?? DateIdeaService.instance;
+    : _service = service ?? DateIdeaService.instance;
 
   @override
   String? validate(RemoveSavedIdeaParams params) {

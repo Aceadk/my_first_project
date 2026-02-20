@@ -53,10 +53,7 @@ class OtpInput extends StatelessWidget {
           LengthLimitingTextInputFormatter(length),
         ],
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          letterSpacing: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(letterSpacing: 12, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           labelText: label,
           helperText: helperText,

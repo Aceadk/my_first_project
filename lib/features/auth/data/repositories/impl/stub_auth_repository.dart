@@ -102,10 +102,7 @@ class StubAuthRepository implements AuthRepository {
 
     // Check if user exists or create new one
     var user = await _getUserByPhone(phoneNumber);
-    user ??= await _createUser(
-      phoneNumber: phoneNumber,
-      isPhoneVerified: true,
-    );
+    user ??= await _createUser(phoneNumber: phoneNumber, isPhoneVerified: true);
 
     await _setCurrentUser(user);
     return user;
@@ -139,10 +136,7 @@ class StubAuthRepository implements AuthRepository {
 
     // For mock, accept any link with the email
     var user = await _getUserByEmail(email);
-    user ??= await _createUser(
-      email: email,
-      isEmailVerified: true,
-    );
+    user ??= await _createUser(email: email, isEmailVerified: true);
 
     await _setCurrentUser(user);
     return user;
@@ -209,7 +203,8 @@ class StubAuthRepository implements AuthRepository {
     final username = 'apple$uniqueId';
 
     final existing = await _getUserByEmail(email);
-    final user = existing ??
+    final user =
+        existing ??
         await _createUser(
           email: email,
           username: username,
@@ -573,8 +568,9 @@ class StubAuthRepository implements AuthRepository {
         age: p['age'] ?? 0,
         gender: p['gender'] ?? '',
         sexualOrientation: p['sexualOrientation'],
-        dateOfBirth:
-            p['dateOfBirth'] != null ? DateTime.parse(p['dateOfBirth']) : null,
+        dateOfBirth: p['dateOfBirth'] != null
+            ? DateTime.parse(p['dateOfBirth'])
+            : null,
         lastNameChangeAt: p['lastNameChangeAt'] != null
             ? DateTime.parse(p['lastNameChangeAt'])
             : null,
@@ -616,7 +612,8 @@ class StubAuthRepository implements AuthRepository {
           maxAge: p['preferences']?['maxAge'] ?? 50,
           maxDistanceKm: (p['preferences']?['maxDistanceKm'] ?? 100).toDouble(),
           showMeGenders: List<String>.from(
-              p['preferences']?['showMeGenders'] ?? ['male', 'female']),
+            p['preferences']?['showMeGenders'] ?? ['male', 'female'],
+          ),
           showMyDistance: p['preferences']?['showMyDistance'] ?? true,
           showMyAge: p['preferences']?['showMyAge'] ?? true,
           hideFromDiscovery: p['preferences']?['hideFromDiscovery'] ?? false,
@@ -754,15 +751,18 @@ class StubAuthRepository implements AuthRepository {
     }
 
     // Verify current password
-    final storedPassword =
-        await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    final storedPassword = await _secureStorage.read(
+      key: 'pwd_${_currentUser!.id}',
+    );
     if (storedPassword != currentPassword) {
       throw Exception('Current password is incorrect');
     }
 
     // Update password
     await _secureStorage.write(
-        key: 'pwd_${_currentUser!.id}', value: newPassword);
+      key: 'pwd_${_currentUser!.id}',
+      value: newPassword,
+    );
   }
 
   @override
@@ -789,8 +789,9 @@ class StubAuthRepository implements AuthRepository {
     }
 
     // Verify password
-    final storedPassword =
-        await _secureStorage.read(key: 'pwd_${_currentUser!.id}');
+    final storedPassword = await _secureStorage.read(
+      key: 'pwd_${_currentUser!.id}',
+    );
     if (storedPassword != null && storedPassword != password) {
       throw Exception('Password is incorrect');
     }

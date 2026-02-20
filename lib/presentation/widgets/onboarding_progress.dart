@@ -2,16 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/design_system.dart';
 
 /// Shared onboarding progress indicator used across splash/auth/setup screens.
+///
+/// Displays a step label, a linear progress bar, and an optional caption.
+/// When [showSkip] is true, a "Skip" text button is displayed next to the
+/// step label, invoking [onSkip] when tapped.
 class OnboardingProgress extends StatelessWidget {
   const OnboardingProgress({
     super.key,
     required this.currentStep,
     this.caption,
+    this.showSkip = false,
+    this.onSkip,
   });
 
   /// Zero-based index into [onboardingSteps].
   final int currentStep;
   final String? caption;
+
+  /// Whether to show a "Skip" button next to the step label.
+  final bool showSkip;
+
+  /// Callback invoked when the user taps "Skip".
+  /// Only used when [showSkip] is true.
+  final VoidCallback? onSkip;
 
   static const List<String> onboardingSteps = [
     'Welcome',
@@ -44,7 +57,28 @@ class OnboardingProgress extends StatelessWidget {
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(width: DsSpacing.sm),
-            Text(stepLabel, style: theme.textTheme.bodyMedium),
+            Expanded(child: Text(stepLabel, style: theme.textTheme.bodyMedium)),
+            if (showSkip && onSkip != null)
+              Semantics(
+                button: true,
+                label: 'Skip this step',
+                child: GestureDetector(
+                  onTap: onSkip,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DsSpacing.sm,
+                      vertical: DsSpacing.xs,
+                    ),
+                    child: Text(
+                      'Skip',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: DsColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: DsSpacing.xs),

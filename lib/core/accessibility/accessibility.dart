@@ -110,11 +110,7 @@ class A11yAnnounce {
   /// Announce a polite message (waits for current speech to finish).
   static void polite(BuildContext context, String message) {
     final view = View.of(context);
-    SemanticsService.sendAnnouncement(
-      view,
-      message,
-      TextDirection.ltr,
-    );
+    SemanticsService.sendAnnouncement(view, message, TextDirection.ltr);
   }
 
   /// Announce an assertive message (interrupts current speech).
@@ -367,11 +363,7 @@ class A11yHeading extends StatelessWidget {
   final Widget child;
   final String label;
 
-  const A11yHeading({
-    super.key,
-    required this.child,
-    required this.label,
-  });
+  const A11yHeading({super.key, required this.child, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -463,10 +455,7 @@ class A11yTapTarget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minWidth: minSize,
-        minHeight: minSize,
-      ),
+      constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
       child: child,
     );
   }

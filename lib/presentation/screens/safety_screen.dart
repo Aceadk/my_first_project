@@ -67,7 +67,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
       await _datePlanService.checkIn(planId);
       if (mounted) {
         showSuccessSnackBar(
-            context, 'Checked in safely! Your contacts have been notified.');
+          context,
+          'Checked in safely! Your contacts have been notified.',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -81,7 +83,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
       await _datePlanService.startDate(planId);
       if (mounted) {
         showSuccessSnackBar(
-            context, 'Date started! Your contacts have been notified.');
+          context,
+          'Date started! Your contacts have been notified.',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -95,7 +99,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
       await _datePlanService.endDateSafely(planId);
       if (mounted) {
         showSuccessSnackBar(
-            context, 'Date ended safely! Your contacts have been notified.');
+          context,
+          'Date ended safely! Your contacts have been notified.',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -153,7 +159,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
           messenger.showSnackBar(
             const SnackBar(
               content: Text(
-                  'Could not send alert. Please call emergency services directly.'),
+                'Could not send alert. Please call emergency services directly.',
+              ),
               backgroundColor: DsColors.error,
             ),
           );
@@ -178,7 +185,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
           Navigator.pop(ctx);
           _loadDatePlans();
           showSuccessSnackBar(
-              context, 'Date plan created! We emailed your contact.');
+            context,
+            'Date plan created! We emailed your contact.',
+          );
         },
       ),
     );
@@ -186,120 +195,127 @@ class _SafetyScreenState extends State<SafetyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId =
-        context.select<AuthBloc, String?>((bloc) => bloc.state.user?.id);
+    final currentUserId = context.select<AuthBloc, String?>(
+      (bloc) => bloc.state.user?.id,
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Safety & blocking')),
-      body: BlocConsumer<SafetyCubit, SafetyState>(
-        listenWhen: (previous, current) =>
-            previous.errorMessage != current.errorMessage,
-        listener: (context, state) {
-          final error = state.errorMessage;
-          if (error != null && error.isNotEmpty) {
-            showErrorSnackBar(context, error);
-          }
-        },
-        builder: (context, state) {
-          final cubit = context.read<SafetyCubit>();
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const _SafetyEducationCard(),
-              const SizedBox(height: 16),
-              _DatePlansSection(
-                plans: _activePlans,
-                isLoading: _isLoadingPlans,
-                onCreatePlan: () =>
-                    _showCreateDatePlanSheet(context, currentUserId),
-                onCheckIn: (planId) => _checkIn(planId),
-                onEndDate: (planId) => _endDateSafely(planId),
-                onEmergency: (planId) => _triggerEmergency(context, planId),
-                onStartDate: (planId) => _startDate(planId),
-              ),
-              const SizedBox(height: 16),
-              _Section(
-                title: 'Blocked users',
-                emptyText:
-                    "People you block can't see your profile, message, or call you.",
-                items: state.blockedUsers.toList(),
-                profileCache: state.profileCache,
-                isLoading: state.isLoadingProfiles,
-                onRemove: (userId) => _unblock(
-                  context,
-                  cubit,
-                  currentUserId,
-                  userId,
-                ),
-                removeLabel: 'Unblock',
-              ),
-              const SizedBox(height: 16),
-              _Section(
-                title: 'Muted messages',
-                emptyText:
-                    'Mute message alerts for someone without blocking them.',
-                items: state.mutedMessages.toList(),
-                profileCache: state.profileCache,
-                isLoading: state.isLoadingProfiles,
-                onRemove: (userId) =>
-                    cubit.toggleMuteMessages(userId, mute: false),
-                removeLabel: 'Unmute messages',
-              ),
-              const SizedBox(height: 16),
-              _Section(
-                title: 'Muted calls',
-                emptyText: 'Silence call alerts from selected people.',
-                items: state.mutedCalls.toList(),
-                profileCache: state.profileCache,
-                isLoading: state.isLoadingProfiles,
-                onRemove: (userId) =>
-                    cubit.toggleMuteCalls(userId, mute: false),
-                removeLabel: 'Unmute calls',
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
+            ),
+            child: BlocConsumer<SafetyCubit, SafetyState>(
+              listenWhen: (previous, current) =>
+                  previous.errorMessage != current.errorMessage,
+              listener: (context, state) {
+                final error = state.errorMessage;
+                if (error != null && error.isNotEmpty) {
+                  showErrorSnackBar(context, error);
+                }
+              },
+              builder: (context, state) {
+                final cubit = context.read<SafetyCubit>();
+                return ListView(
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Need to report someone?',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  children: [
+                    const _SafetyEducationCard(),
+                    const SizedBox(height: 16),
+                    _DatePlansSection(
+                      plans: _activePlans,
+                      isLoading: _isLoadingPlans,
+                      onCreatePlan: () =>
+                          _showCreateDatePlanSheet(context, currentUserId),
+                      onCheckIn: (planId) => _checkIn(planId),
+                      onEndDate: (planId) => _endDateSafely(planId),
+                      onEmergency: (planId) =>
+                          _triggerEmergency(context, planId),
+                      onStartDate: (planId) => _startDate(planId),
+                    ),
+                    const SizedBox(height: 16),
+                    _Section(
+                      title: 'Blocked users',
+                      emptyText:
+                          "People you block can't see your profile, message, or call you.",
+                      items: state.blockedUsers.toList(),
+                      profileCache: state.profileCache,
+                      isLoading: state.isLoadingProfiles,
+                      onRemove: (userId) =>
+                          _unblock(context, cubit, currentUserId, userId),
+                      removeLabel: 'Unblock',
+                    ),
+                    const SizedBox(height: 16),
+                    _Section(
+                      title: 'Muted messages',
+                      emptyText:
+                          'Mute message alerts for someone without blocking them.',
+                      items: state.mutedMessages.toList(),
+                      profileCache: state.profileCache,
+                      isLoading: state.isLoadingProfiles,
+                      onRemove: (userId) =>
+                          cubit.toggleMuteMessages(userId, mute: false),
+                      removeLabel: 'Unmute messages',
+                    ),
+                    const SizedBox(height: 16),
+                    _Section(
+                      title: 'Muted calls',
+                      emptyText: 'Silence call alerts from selected people.',
+                      items: state.mutedCalls.toList(),
+                      profileCache: state.profileCache,
+                      isLoading: state.isLoadingProfiles,
+                      onRemove: (userId) =>
+                          cubit.toggleMuteCalls(userId, mute: false),
+                      removeLabel: 'Unmute calls',
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Need to report someone?',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Open their profile or chat, choose Report, and pick a reason. '
+                              'We review reports to keep the community safe.',
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                context.push(CrushRoutes.safetyGuidelines);
+                              },
+                              icon: const Icon(Icons.policy),
+                              label: const Text('Read community guidelines'),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: currentUserId == null
+                                  ? null
+                                  : () => _showAppealDialog(
+                                      context,
+                                      cubit,
+                                      currentUserId,
+                                    ),
+                              icon: const Icon(Icons.gavel_outlined),
+                              label: const Text('Submit an appeal'),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Open their profile or chat, choose Report, and pick a reason. '
-                        'We review reports to keep the community safe.',
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          context.push(CrushRoutes.safetyGuidelines);
-                        },
-                        icon: const Icon(Icons.policy),
-                        label: const Text('Read community guidelines'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: currentUserId == null
-                            ? null
-                            : () => _showAppealDialog(
-                                  context,
-                                  cubit,
-                                  currentUserId,
-                                ),
-                        icon: const Icon(Icons.gavel_outlined),
-                        label: const Text('Submit an appeal'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -314,11 +330,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
       showErrorSnackBar(context, 'Sign in again to manage safety actions.');
       return;
     }
-    await cubit.toggleBlock(
-      userId,
-      block: false,
-      currentUserId: currentUserId,
-    );
+    await cubit.toggleBlock(userId, block: false, currentUserId: currentUserId);
   }
 
   Future<void> _showAppealDialog(
@@ -334,8 +346,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration:
-              const InputDecoration(hintText: 'Share why you are appealing'),
+          decoration: const InputDecoration(
+            hintText: 'Share why you are appealing',
+          ),
         ),
         actions: [
           TextButton(
@@ -363,9 +376,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
         reason: reason,
         targetType: 'account',
       );
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Appeal submitted')),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text('Appeal submitted')));
     }
   }
 }
@@ -387,10 +398,7 @@ class _SafetyEducationCard extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Stay safe while you connect',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -505,8 +513,9 @@ class _Section extends StatelessWidget {
               Text(
                 emptyText,
                 style: TextStyle(
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
               )
             else
@@ -616,10 +625,7 @@ class _DatePlansSection extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'Date Plans',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (isLoading)
@@ -634,8 +640,9 @@ class _DatePlansSection extends StatelessWidget {
             Text(
               'Share your date details with trusted contacts who can check on you.',
               style: TextStyle(
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
                 fontSize: 13,
               ),
             ),
@@ -643,13 +650,15 @@ class _DatePlansSection extends StatelessWidget {
             if (plans.isEmpty)
               _EmptyDatePlans(onCreatePlan: onCreatePlan)
             else
-              ...plans.map((plan) => _DatePlanCard(
-                    plan: plan,
-                    onCheckIn: () => onCheckIn(plan.id),
-                    onEndDate: () => onEndDate(plan.id),
-                    onEmergency: () => onEmergency(plan.id),
-                    onStartDate: () => onStartDate(plan.id),
-                  )),
+              ...plans.map(
+                (plan) => _DatePlanCard(
+                  plan: plan,
+                  onCheckIn: () => onCheckIn(plan.id),
+                  onEndDate: () => onEndDate(plan.id),
+                  onEmergency: () => onEmergency(plan.id),
+                  onStartDate: () => onStartDate(plan.id),
+                ),
+              ),
             if (plans.isNotEmpty) ...[
               DsGap.md,
               SizedBox(
@@ -691,18 +700,11 @@ class _EmptyDatePlans extends StatelessWidget {
           ),
           child: const Column(
             children: [
-              Icon(
-                Icons.favorite_border,
-                size: 48,
-                color: DsColors.primary,
-              ),
+              Icon(Icons.favorite_border, size: 48, color: DsColors.primary),
               DsGap.md,
               Text(
                 'No active date plans',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
               DsGap.sm,
               Text(
@@ -756,7 +758,7 @@ class _DatePlanCard extends StatelessWidget {
     final mutedFill = isDark ? DsColors.ink600 : DsColors.ink100;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsetsDirectional.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
@@ -820,8 +822,9 @@ class _DatePlanCard extends StatelessWidget {
               Icon(
                 Icons.place_outlined,
                 size: 14,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -844,8 +847,9 @@ class _DatePlanCard extends StatelessWidget {
                 Icon(
                   Icons.people_outline,
                   size: 14,
-                  color:
-                      isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -885,10 +889,12 @@ class _DatePlanCard extends StatelessWidget {
                       size: 18,
                     ),
                     label: Text(
-                        plan.hasCheckedIn ? 'Checked In' : 'Check In Safe'),
+                      plan.hasCheckedIn ? 'Checked In' : 'Check In Safe',
+                    ),
                     style: FilledButton.styleFrom(
-                      backgroundColor:
-                          plan.hasCheckedIn ? mutedFill : DsColors.success,
+                      backgroundColor: plan.hasCheckedIn
+                          ? mutedFill
+                          : DsColors.success,
                     ),
                   ),
                 ),
@@ -907,8 +913,11 @@ class _DatePlanCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: onEmergency,
-                icon: const Icon(Icons.warning_amber_rounded,
-                    size: 18, color: DsColors.error),
+                icon: const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 18,
+                  color: DsColors.error,
+                ),
                 label: const Text(
                   'Emergency Alert',
                   style: TextStyle(color: DsColors.error),
@@ -1002,7 +1011,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      padding: EdgeInsets.only(bottom: bottomPadding),
+      padding: EdgeInsetsDirectional.only(bottom: bottomPadding),
       decoration: BoxDecoration(
         color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -1026,17 +1035,15 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             DsGap.lg,
             const Text(
               'Create Date Plan',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             DsGap.sm,
             Text(
               'Share your date details with someone you trust.',
               style: TextStyle(
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
             ),
             DsGap.xl,
@@ -1081,18 +1088,16 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             // Emergency contact section
             const Text(
               'Emergency Contact',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             DsGap.sm,
             Text(
               'This person will be notified of your date details and can check on you.',
               style: TextStyle(
                 fontSize: 13,
-                color:
-                    isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
               ),
             ),
             DsGap.md,

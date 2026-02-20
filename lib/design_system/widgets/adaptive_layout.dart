@@ -61,17 +61,11 @@ class AdaptiveLayout extends StatelessWidget {
         // Tablet: two columns
         if (width < tabletMax) {
           if (sidePanel == null) {
-            return _CenteredContent(
-              maxWidth: 720,
-              child: body,
-            );
+            return _CenteredContent(maxWidth: 720, child: body);
           }
           return Row(
             children: [
-              SizedBox(
-                width: sidePanelWidth,
-                child: sidePanel,
-              ),
+              SizedBox(width: sidePanelWidth, child: sidePanel),
               const VerticalDivider(width: 1),
               Expanded(child: body),
             ],
@@ -80,28 +74,19 @@ class AdaptiveLayout extends StatelessWidget {
 
         // Desktop: three columns (or centered if no panels)
         if (sidePanel == null && detailPanel == null) {
-          return _CenteredContent(
-            maxWidth: 960,
-            child: body,
-          );
+          return _CenteredContent(maxWidth: 960, child: body);
         }
 
         return Row(
           children: [
             if (sidePanel != null) ...[
-              SizedBox(
-                width: sidePanelWidth,
-                child: sidePanel,
-              ),
+              SizedBox(width: sidePanelWidth, child: sidePanel),
               const VerticalDivider(width: 1),
             ],
             Expanded(child: body),
             if (detailPanel != null) ...[
               const VerticalDivider(width: 1),
-              SizedBox(
-                width: detailPanelWidth,
-                child: detailPanel,
-              ),
+              SizedBox(width: detailPanelWidth, child: detailPanel),
             ],
           ],
         );
@@ -112,10 +97,7 @@ class AdaptiveLayout extends StatelessWidget {
 
 /// A centered content wrapper with max width constraint.
 class _CenteredContent extends StatelessWidget {
-  const _CenteredContent({
-    required this.maxWidth,
-    required this.child,
-  });
+  const _CenteredContent({required this.maxWidth, required this.child});
 
   final double maxWidth;
   final Widget child;
@@ -165,10 +147,9 @@ class AdaptiveScaffold extends StatelessWidget {
             appBar: appBar,
             body: body,
             floatingActionButton: floatingActionButton,
-            bottomNavigationBar: bottomNavigationBar ??
-                (destinations.isNotEmpty
-                    ? _buildBottomNav(context)
-                    : null),
+            bottomNavigationBar:
+                bottomNavigationBar ??
+                (destinations.isNotEmpty ? _buildBottomNav(context) : null),
           );
         }
 
@@ -184,11 +165,13 @@ class AdaptiveScaffold extends StatelessWidget {
                     onDestinationSelected: onDestinationSelected,
                     labelType: NavigationRailLabelType.selected,
                     destinations: destinations
-                        .map((d) => NavigationRailDestination(
-                              icon: Icon(d.icon),
-                              selectedIcon: Icon(d.selectedIcon ?? d.icon),
-                              label: Text(d.label),
-                            ))
+                        .map(
+                          (d) => NavigationRailDestination(
+                            icon: Icon(d.icon),
+                            selectedIcon: Icon(d.selectedIcon ?? d.icon),
+                            label: Text(d.label),
+                          ),
+                        )
                         .toList(),
                   ),
                 if (destinations.isNotEmpty) const VerticalDivider(width: 1),
@@ -211,11 +194,13 @@ class AdaptiveScaffold extends StatelessWidget {
                   extended: true,
                   minExtendedWidth: 200,
                   destinations: destinations
-                      .map((d) => NavigationRailDestination(
-                            icon: Icon(d.icon),
-                            selectedIcon: Icon(d.selectedIcon ?? d.icon),
-                            label: Text(d.label),
-                          ))
+                      .map(
+                        (d) => NavigationRailDestination(
+                          icon: Icon(d.icon),
+                          selectedIcon: Icon(d.selectedIcon ?? d.icon),
+                          label: Text(d.label),
+                        ),
+                      )
                       .toList(),
                 ),
               if (destinations.isNotEmpty) const VerticalDivider(width: 1),
@@ -238,11 +223,13 @@ class AdaptiveScaffold extends StatelessWidget {
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,
       destinations: destinations
-          .map((d) => NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selectedIcon ?? d.icon),
-                label: d.label,
-              ))
+          .map(
+            (d) => NavigationDestination(
+              icon: Icon(d.icon),
+              selectedIcon: Icon(d.selectedIcon ?? d.icon),
+              label: d.label,
+            ),
+          )
           .toList(),
     );
   }
@@ -285,22 +272,24 @@ class AdaptiveCard extends StatelessWidget {
         final isTablet = DsBreakpoints.isTablet(constraints.maxWidth);
         final isDesktop = DsBreakpoints.isDesktop(constraints.maxWidth);
 
-        final effectivePadding = padding ??
+        final effectivePadding =
+            padding ??
             EdgeInsets.all(
               isDesktop
                   ? DsSpacing.xxl
                   : isTablet
-                      ? DsSpacing.xl
-                      : DsSpacing.lg,
+                  ? DsSpacing.xl
+                  : DsSpacing.lg,
             );
 
-        final effectiveMargin = margin ??
+        final effectiveMargin =
+            margin ??
             EdgeInsets.symmetric(
               horizontal: isDesktop
                   ? DsSpacing.xxl
                   : isTablet
-                      ? DsSpacing.lg
-                      : DsSpacing.md,
+                  ? DsSpacing.lg
+                  : DsSpacing.md,
               vertical: DsSpacing.sm,
             );
 
@@ -311,10 +300,7 @@ class AdaptiveCard extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            child: Padding(
-              padding: effectivePadding,
-              child: child,
-            ),
+            child: Padding(padding: effectivePadding, child: child),
           ),
         );
       },
@@ -351,8 +337,8 @@ class AdaptiveGrid extends StatelessWidget {
         final columns = DsBreakpoints.isDesktop(width)
             ? desktopColumns
             : DsBreakpoints.isTablet(width)
-                ? tabletColumns
-                : mobileColumns;
+            ? tabletColumns
+            : mobileColumns;
 
         return GridView.builder(
           shrinkWrap: true,
@@ -390,19 +376,15 @@ extension ResponsiveContext on BuildContext {
 
   /// Get responsive padding.
   EdgeInsets get responsivePadding => EdgeInsets.symmetric(
-        horizontal: isDesktop
-            ? DsSpacing.xxxl
-            : isTablet
-                ? DsSpacing.xxl
-                : DsSpacing.lg,
-      );
+    horizontal: isDesktop
+        ? DsSpacing.xxxl
+        : isTablet
+        ? DsSpacing.xxl
+        : DsSpacing.lg,
+  );
 
   /// Get responsive value.
-  T responsive<T>({
-    required T mobile,
-    T? tablet,
-    T? desktop,
-  }) {
+  T responsive<T>({required T mobile, T? tablet, T? desktop}) {
     if (isDesktop) return desktop ?? tablet ?? mobile;
     if (isTablet) return tablet ?? mobile;
     return mobile;
