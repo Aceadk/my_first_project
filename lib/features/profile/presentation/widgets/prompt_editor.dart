@@ -6,6 +6,7 @@ import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Editor for managing profile prompts.
 class PromptEditor extends StatelessWidget {
@@ -142,8 +143,8 @@ class _PromptTile extends StatelessWidget {
           padding: DsEdgeInsets.allMd,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 DsGlassColors.surfaceFor(context),
                 DsGlassColors.surfaceFor(
@@ -219,38 +220,41 @@ class _AddPromptButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: DsEdgeInsets.allLg,
-        decoration: BoxDecoration(
-          color: isDark
-              ? DsColors.surfaceLight.withValues(alpha: 0.05)
-              : DsColors.ink900.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(DsRadius.lg),
-          border: Border.all(
-            color: DsColors.primary.withValues(alpha: 0.3),
-            width: 1.5,
-            style: BorderStyle.solid,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: DsEdgeInsets.allLg,
+          decoration: BoxDecoration(
+            color: isDark
+                ? DsColors.surfaceLight.withValues(alpha: 0.05)
+                : DsColors.ink900.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            border: Border.all(
+              color: DsColors.primary.withValues(alpha: 0.3),
+              width: 1.5,
+              style: BorderStyle.solid,
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.add_circle_outline,
-              color: DsColors.primary,
-              size: 24,
-            ),
-            DsGap.smH,
-            Text(
-              'Add a conversation starter',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.add_circle_outline,
                 color: DsColors.primary,
-                fontWeight: FontWeight.w600,
+                size: 24,
               ),
-            ),
-          ],
+              DsGap.smH,
+              Text(
+                'Add a conversation starter',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: DsColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -620,7 +624,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                           ),
                         );
                       },
-                child: const Text('Save'),
+                child: Text(AppLocalizations.of(context).save),
               ),
             ),
           ],
@@ -735,7 +739,7 @@ class _PromptAnswerEditorState extends State<_PromptAnswerEditor> {
                           ),
                         );
                       },
-                child: const Text('Save'),
+                child: Text(AppLocalizations.of(context).save),
               ),
             ),
           ),

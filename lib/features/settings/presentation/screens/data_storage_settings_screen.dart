@@ -4,6 +4,7 @@ import 'package:crushhour/features/settings/presentation/bloc/storage_settings_c
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class DataStorageSettingsScreen extends StatelessWidget {
   const DataStorageSettingsScreen({super.key});
@@ -13,7 +14,7 @@ class DataStorageSettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Data & Storage')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).dataStorage)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -36,8 +37,8 @@ class DataStorageSettingsScreen extends StatelessWidget {
                             DsColors.info.withValues(alpha: 0.1),
                             DsColors.info.withValues(alpha: 0.1),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -85,7 +86,9 @@ class DataStorageSettingsScreen extends StatelessWidget {
                     const _SectionHeader(title: 'Media Downloads'),
                     SwitchListTile(
                       secondary: const Icon(Icons.cloud_download_outlined),
-                      title: const Text('Auto-download media'),
+                      title: Text(
+                        AppLocalizations.of(context).autodownloadMedia,
+                      ),
                       subtitle: Text(
                         storageState.mediaDownloadEnabled
                             ? storageState.mediaDownloadWifiOnly
@@ -100,8 +103,10 @@ class DataStorageSettingsScreen extends StatelessWidget {
                     const Divider(indent: 72),
                     SwitchListTile(
                       secondary: const Icon(Icons.wifi_outlined),
-                      title: const Text('Wi-Fi only'),
-                      subtitle: const Text('Avoid using mobile data for media'),
+                      title: Text(AppLocalizations.of(context).wifiOnly),
+                      subtitle: Text(
+                        AppLocalizations.of(context).avoidUsingMobileDataFor,
+                      ),
                       value: storageState.mediaDownloadWifiOnly,
                       onChanged: storageState.mediaDownloadEnabled
                           ? (value) => cubit.setMediaDownloadWifiOnly(value)
@@ -187,14 +192,18 @@ class DataStorageSettingsScreen extends StatelessWidget {
                           await cubit.clearCache();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cache cleared successfully.'),
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).cacheClearedSuccessfully,
+                                ),
                               ),
                             );
                           }
                         },
                         icon: const Icon(Icons.cleaning_services_outlined),
-                        label: const Text('Clear cache now'),
+                        label: Text(AppLocalizations.of(context).clearCacheNow),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 48),
                         ),

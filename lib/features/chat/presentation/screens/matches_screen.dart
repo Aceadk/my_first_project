@@ -28,6 +28,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'chat_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Helper to check internet connectivity.
 Future<bool> _checkInternetConnectivity() async {
@@ -57,8 +58,10 @@ class MatchesScreen extends StatelessWidget {
     );
 
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Sign in to view your matches.')),
+      return Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context).signInToViewYour1),
+        ),
       );
     }
 
@@ -231,12 +234,12 @@ class _MatchesViewState extends State<_MatchesView> {
                           PlusCheckoutRequested(),
                         );
                       },
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.star, size: 20),
-                          SizedBox(width: 8),
-                          Text('Upgrade to Plus'),
+                          const Icon(Icons.star, size: 20),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context).upgradeToPlus),
                         ],
                       ),
                     ),
@@ -244,7 +247,7 @@ class _MatchesViewState extends State<_MatchesView> {
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => Navigator.pop(sheetContext),
-                    child: const Text('Maybe Later'),
+                    child: Text(AppLocalizations.of(context).maybeLater),
                   ),
                 ],
               ),
@@ -291,8 +294,8 @@ class _MatchesViewState extends State<_MatchesView> {
                               DsColors.primary.withValues(alpha: 0.1),
                               DsColors.secondary.withValues(alpha: 0.1),
                             ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
                           ),
                           shape: BoxShape.circle,
                         ),
@@ -322,7 +325,7 @@ class _MatchesViewState extends State<_MatchesView> {
                         child: FilledButton.icon(
                           onPressed: widget.onBackToDeck,
                           icon: const Icon(Icons.style_outlined),
-                          label: const Text('Back to deck'),
+                          label: Text(AppLocalizations.of(context).backToDeck),
                         ),
                       ),
                       DsGap.lg,
@@ -550,8 +553,8 @@ class _MatchTile extends StatelessWidget {
               padding: const EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: [
                     baseSurface.withValues(alpha: 0.5),
                     baseSurface.withValues(alpha: 0.3),
@@ -710,7 +713,7 @@ class _LikesYouSection extends StatelessWidget {
                 ? null
                 : TextButton(
                     onPressed: onUpgradeRequested,
-                    child: const Text('Upgrade'),
+                    child: Text(AppLocalizations.of(context).upgrade),
                   ),
           ),
           DsGap.md,
@@ -747,7 +750,10 @@ class _LikesYouSection extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
-                    TextButton(onPressed: onRetry, child: const Text('Retry')),
+                    TextButton(
+                      onPressed: onRetry,
+                      child: Text(AppLocalizations.of(context).retry),
+                    ),
                   ],
                 ),
               ),
@@ -904,99 +910,104 @@ class _LikesYouCard extends StatelessWidget {
     final dobLabel = _formatDob(profile);
     final distanceLabel = _formatDistance(profile);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DsRadius.lg),
-        child: SizedBox(
-          width: 150,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (photoUrl != null)
-                CachedImage(imageUrl: photoUrl, fit: BoxFit.cover)
-              else
-                Container(
-                  color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                  child: const Icon(Icons.person, size: 48),
-                ),
-              if (isBlurred)
-                BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: DsBlur.heavy,
-                    sigmaY: DsBlur.heavy,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(DsRadius.lg),
+          child: SizedBox(
+            width: 150,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (photoUrl != null)
+                  CachedImage(imageUrl: photoUrl, fit: BoxFit.cover)
+                else
+                  Container(
+                    color: isDark
+                        ? DsColors.surfaceDark
+                        : DsColors.surfaceLight,
+                    child: const Icon(Icons.person, size: 48),
                   ),
-                  child: Container(
-                    color: DsColors.ink900.withValues(alpha: 0.15),
-                  ),
-                ),
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        DsColors.ink900.withValues(alpha: 0.75),
-                      ],
+                if (isBlurred)
+                  BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: DsBlur.heavy,
+                      sigmaY: DsBlur.heavy,
+                    ),
+                    child: Container(
+                      color: DsColors.ink900.withValues(alpha: 0.15),
                     ),
                   ),
-                ),
-              ),
-              PositionedDirectional(
-                start: DsSpacing.sm,
-                end: DsSpacing.sm,
-                bottom: DsSpacing.sm,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isBlurred ? 'Likes You' : profile.publicDisplayName,
-                      style: const TextStyle(
-                        color: DsColors.surfaceLight,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      dobLabel,
-                      style: TextStyle(
-                        color: DsColors.surfaceLight.withValues(alpha: 0.85),
-                        fontSize: 11,
-                      ),
-                    ),
-                    Text(
-                      distanceLabel,
-                      style: TextStyle(
-                        color: DsColors.surfaceLight.withValues(alpha: 0.85),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isBlurred)
-                PositionedDirectional(
-                  top: DsSpacing.sm,
-                  end: DsSpacing.sm,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
+                Positioned.fill(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: DsColors.ink900.withValues(alpha: 0.6),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock,
-                      color: DsColors.surfaceLight,
-                      size: 14,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          DsColors.ink900.withValues(alpha: 0.75),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-            ],
+                PositionedDirectional(
+                  start: DsSpacing.sm,
+                  end: DsSpacing.sm,
+                  bottom: DsSpacing.sm,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isBlurred ? 'Likes You' : profile.publicDisplayName,
+                        style: const TextStyle(
+                          color: DsColors.surfaceLight,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        dobLabel,
+                        style: TextStyle(
+                          color: DsColors.surfaceLight.withValues(alpha: 0.85),
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        distanceLabel,
+                        style: TextStyle(
+                          color: DsColors.surfaceLight.withValues(alpha: 0.85),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isBlurred)
+                  PositionedDirectional(
+                    top: DsSpacing.sm,
+                    end: DsSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: DsColors.ink900.withValues(alpha: 0.6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: DsColors.surfaceLight,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1034,7 +1045,7 @@ class _EmptyMatchedCard extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onBackToDeck,
                 icon: const Icon(Icons.style_outlined),
-                label: const Text('Back to deck'),
+                label: Text(AppLocalizations.of(context).backToDeck),
               ),
             ),
           ],
@@ -1061,8 +1072,8 @@ class _PlusOfferCard extends StatelessWidget {
             DsColors.secondary.withValues(alpha: 0.1),
             DsColors.primary.withValues(alpha: 0.1),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: DsColors.primary.withValues(alpha: 0.2)),
@@ -1109,7 +1120,7 @@ class _PlusOfferCard extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Try Plus intro offer'),
+                  : Text(AppLocalizations.of(context).tryPlusIntroOffer),
             ),
           ),
         ],

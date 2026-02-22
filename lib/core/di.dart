@@ -123,7 +123,17 @@ class CrushDI {
   /// Current backend mode. Change this to switch between implementations.
   /// In production builds, this should be [BackendMode.firebase] or [BackendMode.http].
   /// For development/demo, use [BackendMode.stub] or [BackendMode.hybrid].
-  static const BackendMode backendMode = BackendMode.firebase;
+  static BackendMode _backendMode = BackendMode.firebase;
+
+  static BackendMode get backendMode => _backendMode;
+
+  static void setBackendModeForTesting(BackendMode mode) {
+    _backendMode = mode;
+  }
+
+  static void resetBackendModeForTesting() {
+    _backendMode = BackendMode.firebase;
+  }
 
   /// Singleton API client for HTTP mode.
   static ApiClient? _apiClient;
@@ -163,7 +173,7 @@ class CrushDI {
     final FeatureFlagRepository featureFlagRepo;
     final BoostRepository boostRepo;
 
-    switch (backendMode) {
+    switch (_backendMode) {
       case BackendMode.stub:
         // Stub implementations for development/demo
         authRepo = StubAuthRepository();
@@ -235,11 +245,11 @@ class CrushDI {
         value: WeeklyPicksService.instance,
       ),
       RepositoryProvider<StoryRepository>.value(value: StoryService.instance),
-      RepositoryProvider<ProfileValidationRepository>.value(
-        value: ProfileValidationService(),
+      RepositoryProvider<ProfileValidationRepository>(
+        create: (_) => ProfileValidationService(),
       ),
-      RepositoryProvider<ProfileMediaRepository>.value(
-        value: ProfileMediaService(),
+      RepositoryProvider<ProfileMediaRepository>(
+        create: (_) => ProfileMediaService(),
       ),
       RepositoryProvider<PassportLocationsRepository>.value(
         value: PassportLocationsService.instance,
@@ -262,8 +272,8 @@ class CrushDI {
       RepositoryProvider<ProfileInsightsRepository>.value(
         value: ProfileInsightsService.instance,
       ),
-      RepositoryProvider<NotificationRepository>.value(
-        value: FirebaseNotificationRepository(),
+      RepositoryProvider<NotificationRepository>(
+        create: (_) => FirebaseNotificationRepository(),
       ),
     ];
   }

@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 import 'package:crushhour/features/discovery/data/services/weekly_picks_service.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/weekly_picks_cubit.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
 
@@ -17,13 +17,13 @@ import 'mock/firebase_mock.dart';
 const _testUserId = 'user-weekly-123';
 
 CrushUser _makeUser({String id = _testUserId}) => CrushUser(
-      id: id,
-      phoneNumber: '+1234567890',
-      isEmailVerified: true,
-      isPhoneVerified: true,
-      isIdVerified: false,
-      plan: SubscriptionPlan.free,
-    );
+  id: id,
+  phoneNumber: '+1234567890',
+  isEmailVerified: true,
+  isPhoneVerified: true,
+  isIdVerified: false,
+  plan: SubscriptionPlan.free,
+);
 
 WeeklyPick _makePick({
   required String id,
@@ -55,7 +55,8 @@ WeeklyPicks _makeWeeklyPicks({
     userId: userId,
     weekStart: DateTime(weekStart.year, weekStart.month, weekStart.day),
     weekEnd: DateTime(weekEnd.year, weekEnd.month, weekEnd.day),
-    picks: picks ??
+    picks:
+        picks ??
         [
           _makePick(id: 'pick-0'),
           _makePick(id: 'pick-1', reason: PickReason.sharedInterests),
@@ -93,55 +94,62 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<void> sendOtp(String phoneNumber) async {}
   @override
-  Future<CrushUser> verifyOtp(
-          {required String phoneNumber, required String otp}) =>
-      throw UnimplementedError();
+  Future<CrushUser> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) => throw UnimplementedError();
   @override
   Future<void> sendEmailSignInLink(String email) async {}
   @override
-  Future<CrushUser> signInWithEmailLink(
-          {required String email, required String emailLink}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) => throw UnimplementedError();
   @override
-  Future<CrushUser> signInWithEmailPassword(
-          {required String email, required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) => throw UnimplementedError();
   @override
-  Future<CrushUser> loginWithPassword(
-          {required String identifier, required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) => throw UnimplementedError();
   @override
   Future<CrushUser> signInWithApple() => throw UnimplementedError();
   @override
-  Future<CrushUser> signUpWithPassword(
-          {required String username,
-          required String email,
-          required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) => throw UnimplementedError();
   @override
-  Future<void> requestEmailOtp(
-          {required String identifier,
-          required EmailOtpPurpose purpose,
-          String? email}) async {}
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {}
   @override
-  Future<CrushUser?> verifyEmailOtp(
-          {required String identifier,
-          required String otp,
-          required EmailOtpPurpose purpose,
-          String? newEmail,
-          String? newPassword}) async =>
-      null;
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async => null;
   @override
   Future<void> requestPasswordReset({required String email}) async {}
   @override
-  Future<String> verifyPasswordResetOtp(
-          {required String email, required String otp}) =>
-      throw UnimplementedError();
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) => throw UnimplementedError();
   @override
-  Future<void> resetPasswordWithToken(
-          {required String email,
-          required String resetToken,
-          required String newPassword}) async {}
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {}
   @override
   Future<void> signOut() async {}
   @override
@@ -151,14 +159,21 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<void> schedulePhoneDeletion() async {}
   @override
-  Future<void> changePassword(
-          {required String currentPassword,
-          required String newPassword}) async {}
+  Future<void> verifyPassword(String password) async {}
+
+  @override
+@override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
   @override
   Future<void> deactivateAccount({required String reason}) async {}
   @override
-  Future<void> deleteAccount(
-          {required String password, required String reason}) async {}
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {}
   @override
   Future<bool> isEmailRegistered(String email) async => false;
   @override
@@ -196,33 +211,45 @@ void main() {
     });
 
     test('reasonDisplay returns correct text', () {
-      expect(_makePick(id: 'a', reason: PickReason.topPick).reasonDisplay,
-          'Top Pick for You');
       expect(
-          _makePick(id: 'b', reason: PickReason.sharedInterests).reasonDisplay,
-          'Shared Interests');
+        _makePick(id: 'a', reason: PickReason.topPick).reasonDisplay,
+        'Top Pick for You',
+      );
       expect(
-          _makePick(id: 'c', reason: PickReason.nearbyLocation).reasonDisplay,
-          'Lives Nearby');
+        _makePick(id: 'b', reason: PickReason.sharedInterests).reasonDisplay,
+        'Shared Interests',
+      );
       expect(
-          _makePick(id: 'd', reason: PickReason.highCompatibility)
-              .reasonDisplay,
-          'High Compatibility');
-      expect(_makePick(id: 'e', reason: PickReason.newToArea).reasonDisplay,
-          'New to Your Area');
+        _makePick(id: 'c', reason: PickReason.nearbyLocation).reasonDisplay,
+        'Lives Nearby',
+      );
       expect(
-          _makePick(id: 'f', reason: PickReason.popularProfile).reasonDisplay,
-          'Popular Profile');
+        _makePick(id: 'd', reason: PickReason.highCompatibility).reasonDisplay,
+        'High Compatibility',
+      );
       expect(
-          _makePick(id: 'g', reason: PickReason.similarLifestyle).reasonDisplay,
-          'Similar Lifestyle');
+        _makePick(id: 'e', reason: PickReason.newToArea).reasonDisplay,
+        'New to Your Area',
+      );
       expect(
-          _makePick(id: 'h', reason: PickReason.educationMatch).reasonDisplay,
-          'Education Match');
+        _makePick(id: 'f', reason: PickReason.popularProfile).reasonDisplay,
+        'Popular Profile',
+      );
       expect(
-          _makePick(id: 'i', reason: PickReason.relationshipGoalsMatch)
-              .reasonDisplay,
-          'Same Relationship Goals');
+        _makePick(id: 'g', reason: PickReason.similarLifestyle).reasonDisplay,
+        'Similar Lifestyle',
+      );
+      expect(
+        _makePick(id: 'h', reason: PickReason.educationMatch).reasonDisplay,
+        'Education Match',
+      );
+      expect(
+        _makePick(
+          id: 'i',
+          reason: PickReason.relationshipGoalsMatch,
+        ).reasonDisplay,
+        'Same Relationship Goals',
+      );
     });
 
     test('copyWith preserves unchanged fields', () {
@@ -306,8 +333,9 @@ void main() {
     });
 
     test('allViewed returns true when all picks are viewed', () {
-      final picks =
-          _makeWeeklyPicks(viewedPicks: ['pick-0', 'pick-1', 'pick-2']);
+      final picks = _makeWeeklyPicks(
+        viewedPicks: ['pick-0', 'pick-1', 'pick-2'],
+      );
       expect(picks.allViewed, isTrue);
     });
 
@@ -565,7 +593,9 @@ void main() {
       expect(states.first.errorMessage, isNull);
 
       // Should eventually have data loaded
-      final dataState = states.lastWhere((s) => !s.isLoading && s.picks != null);
+      final dataState = states.lastWhere(
+        (s) => !s.isLoading && s.picks != null,
+      );
       expect(dataState.picks, isNotNull);
       expect(dataState.picks!.picks, hasLength(WeeklyPicks.maxPicks));
       expect(dataState.isLoading, isFalse);
@@ -852,8 +882,7 @@ void main() {
 
     test('markPickViewed reduces unseenCount', () async {
       await WeeklyPicksService.instance.loadPicks('user-1');
-      final pickId =
-          WeeklyPicksService.instance.currentPicks!.picks.first.id;
+      final pickId = WeeklyPicksService.instance.currentPicks!.picks.first.id;
 
       await WeeklyPicksService.instance.markPickViewed(pickId);
 
@@ -863,8 +892,7 @@ void main() {
 
     test('markPickLiked also marks as viewed', () async {
       await WeeklyPicksService.instance.loadPicks('user-1');
-      final pickId =
-          WeeklyPicksService.instance.currentPicks!.picks.first.id;
+      final pickId = WeeklyPicksService.instance.currentPicks!.picks.first.id;
 
       await WeeklyPicksService.instance.markPickLiked(pickId);
 
@@ -884,14 +912,12 @@ void main() {
 
     test('getUnviewedPicks returns all picks initially', () async {
       await WeeklyPicksService.instance.loadPicks('user-1');
-      expect(
-          WeeklyPicksService.instance.getUnviewedPicks(), hasLength(10));
+      expect(WeeklyPicksService.instance.getUnviewedPicks(), hasLength(10));
     });
 
     test('getUnviewedPicks decreases after viewing', () async {
       await WeeklyPicksService.instance.loadPicks('user-1');
-      final pickId =
-          WeeklyPicksService.instance.currentPicks!.picks.first.id;
+      final pickId = WeeklyPicksService.instance.currentPicks!.picks.first.id;
       await WeeklyPicksService.instance.markPickViewed(pickId);
 
       expect(WeeklyPicksService.instance.getUnviewedPicks(), hasLength(9));
@@ -917,7 +943,9 @@ void main() {
 
     test('getNewPicksTimeDisplay returns "Loading..." before loading', () {
       expect(
-          WeeklyPicksService.instance.getNewPicksTimeDisplay(), 'Loading...');
+        WeeklyPicksService.instance.getNewPicksTimeDisplay(),
+        'Loading...',
+      );
     });
 
     test('clearUserData clears currentPicks', () async {
@@ -940,8 +968,7 @@ void main() {
 
     test('picksStream emits updates when picks change', () async {
       final emissions = <WeeklyPicks>[];
-      final sub =
-          WeeklyPicksService.instance.picksStream.listen(emissions.add);
+      final sub = WeeklyPicksService.instance.picksStream.listen(emissions.add);
 
       await WeeklyPicksService.instance.loadPicks('user-1');
       await Future.delayed(const Duration(milliseconds: 100));
@@ -954,12 +981,10 @@ void main() {
 
     test('picksStream emits on markPickViewed', () async {
       await WeeklyPicksService.instance.loadPicks('user-1');
-      final pickId =
-          WeeklyPicksService.instance.currentPicks!.picks.first.id;
+      final pickId = WeeklyPicksService.instance.currentPicks!.picks.first.id;
 
       final emissions = <WeeklyPicks>[];
-      final sub =
-          WeeklyPicksService.instance.picksStream.listen(emissions.add);
+      final sub = WeeklyPicksService.instance.picksStream.listen(emissions.add);
 
       await WeeklyPicksService.instance.markPickViewed(pickId);
       await Future.delayed(const Duration(milliseconds: 100));
@@ -971,8 +996,7 @@ void main() {
     });
 
     test('getTimeUntilRefresh returns Duration.zero before loading', () {
-      expect(
-          WeeklyPicksService.instance.getTimeUntilRefresh(), Duration.zero);
+      expect(WeeklyPicksService.instance.getTimeUntilRefresh(), Duration.zero);
     });
   });
 }

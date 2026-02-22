@@ -130,8 +130,8 @@ class GlassContainerShimmer extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(color: borderClr, width: 1),
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: [
                     Colors.white.withValues(alpha: isDark ? 0.1 : 0.2),
                     Colors.white.withValues(alpha: isDark ? 0.02 : 0.05),

@@ -122,7 +122,10 @@ class GlassChip extends StatelessWidget {
     );
 
     if (onTap != null) {
-      chip = GestureDetector(onTap: onTap, child: chip);
+      chip = Semantics(
+        button: true,
+        child: GestureDetector(onTap: onTap, child: chip),
+      );
     }
 
     return chip;

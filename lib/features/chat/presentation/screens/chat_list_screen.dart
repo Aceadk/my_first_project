@@ -29,6 +29,7 @@ import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'chat_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -40,8 +41,10 @@ class ChatListScreen extends StatelessWidget {
     );
 
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Sign in to view your chats.')),
+      return Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context).signInToViewYour),
+        ),
       );
     }
 
@@ -105,8 +108,8 @@ class _ChatListViewState extends State<_ChatListView> {
                         DsColors.secondary.withValues(alpha: 0.2),
                         DsColors.primary.withValues(alpha: 0.15),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -136,7 +139,10 @@ class _ChatListViewState extends State<_ChatListView> {
             DsGap.xxl,
             ShaderMask(
               shaderCallback: (bounds) =>
-                  DsGradients.primaryHorizontal.createShader(bounds),
+                  DsGradients.primaryHorizontal.createShader(
+                    bounds,
+                    textDirection: Directionality.of(context),
+                  ),
               child: Text(
                 'No conversations yet',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -172,8 +178,8 @@ class _ChatListViewState extends State<_ChatListView> {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: [
                   baseSurface.withValues(alpha: 0.8),
                   baseSurface.withValues(alpha: 0.6),
@@ -382,8 +388,8 @@ class _MessageRequestsTile extends StatelessWidget {
               padding: const EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: [
                     baseSurface.withValues(alpha: 0.6),
                     baseSurface.withValues(alpha: 0.4),
@@ -609,8 +615,8 @@ class _ChatTileState extends State<_ChatTile>
               padding: const EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: [
                     baseSurface.withValues(alpha: hasUnread ? 0.7 : 0.5),
                     baseSurface.withValues(alpha: hasUnread ? 0.5 : 0.3),

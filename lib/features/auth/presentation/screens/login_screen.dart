@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
   bool _obscurePassword = true;
   String? _identifierError;
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authRepo = context.read<AuthRepository>();
     final supportsUsernameLogin = authRepo.supportsUsernameLogin;
+    final showGoogleButton = authRepo.supportsGoogleSignIn;
     final showAppleButton =
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
@@ -86,8 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [DsColors.primary, DsColors.secondary],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
                           ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
@@ -164,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       DsGap.md,
                       // Forgot password link
                       Align(
-                        alignment: Alignment.centerRight,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: Semantics(
                           button: true,
                           label: context.l10n.authForgotPassword,
@@ -225,6 +227,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       DsGap.xxl,
+                      if (showGoogleButton) ...[
+                        Semantics(
+                          button: true,
+                          label: 'Continue with Google',
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: GlassOutlinedButton(
+                              onPressed: _isGoogleLoading
+                                  ? null
+                                  : _signInWithGoogle,
+                              backgroundColor: Colors.white,
+                              borderColor: const Color(0xFFDADCE0),
+                              isExpanded: true,
+                              isLoading: _isGoogleLoading,
+                              child: const Text(
+                                'Continue with Google',
+                                style: TextStyle(
+                                  color: Color(0xFF1F1F1F),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        DsGap.md,
+                      ],
                       if (showAppleButton) ...[
                         Semantics(
                           button: true,
@@ -299,67 +328,71 @@ class _LoginScreenState extends State<LoginScreen> {
                         Semantics(
                           button: true,
                           label: 'Fill test credentials',
-                          child: GestureDetector(
-                            onTap: () {
-                              _identifierController.text = 'admin123';
-                              _passwordController.text = 'admin123';
-                              setState(() {
-                                _identifierError = null;
-                                _passwordError = null;
-                              });
-                            },
-                            child: Container(
-                              padding: DsEdgeInsets.allMd,
-                              decoration: BoxDecoration(
-                                color: DsColors.info.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: DsColors.info.withValues(alpha: 0.2),
+                          child: Semantics(
+                            button: true,
+                            child: GestureDetector(
+                              onTap: () {
+                                _identifierController.text = 'admin123';
+                                _passwordController.text = 'admin123';
+                                setState(() {
+                                  _identifierError = null;
+                                  _passwordError = null;
+                                });
+                              },
+                              child: Container(
+                                padding: DsEdgeInsets.allMd,
+                                decoration: BoxDecoration(
+                                  color: DsColors.info.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: DsColors.info.withValues(alpha: 0.2),
+                                  ),
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.developer_mode,
-                                    color: DsColors.info,
-                                    size: 20,
-                                  ),
-                                  DsGap.mdH,
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Development Build',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: DsColors.info,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                        Text(
-                                          'Tap to fill test credentials',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: DsColors.info.withValues(
-                                                  alpha: 0.7,
-                                                ),
-                                              ),
-                                        ),
-                                      ],
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.developer_mode,
+                                      color: DsColors.info,
+                                      size: 20,
                                     ),
-                                  ),
-                                  Icon(
-                                    Icons.touch_app_outlined,
-                                    color: DsColors.info.withValues(alpha: 0.6),
-                                    size: 18,
-                                  ),
-                                ],
+                                    DsGap.mdH,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Development Build',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: DsColors.info,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                          Text(
+                                            'Tap to fill test credentials',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: DsColors.info
+                                                      .withValues(alpha: 0.7),
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.touch_app_outlined,
+                                      color: DsColors.info.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      size: 18,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -452,6 +485,38 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!result.isSuccess) {
       showErrorSnackBar(context, result.errorMessage ?? 'Login failed.');
+      return;
+    }
+
+    final user = result.data;
+    if (user?.email != null &&
+        user!.email!.isNotEmpty &&
+        !user.isEmailVerified) {
+      context.go('${CrushRoutes.emailProtection}?redirect=1');
+      return;
+    }
+    context.go(CrushRoutes.home);
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (_isGoogleLoading) return;
+
+    setState(() => _isGoogleLoading = true);
+    final authRepo = context.read<AuthRepository>();
+    final result = await Result.guard(
+      () => authRepo.signInWithGoogle(),
+      logLabel: 'AuthRepository.signInWithGoogle',
+      fallbackError: 'Google Sign-In failed. Please try again.',
+    );
+
+    if (!mounted) return;
+    setState(() => _isGoogleLoading = false);
+
+    if (!result.isSuccess) {
+      showErrorSnackBar(
+        context,
+        result.errorMessage ?? 'Google Sign-In failed. Please try again.',
+      );
       return;
     }
 

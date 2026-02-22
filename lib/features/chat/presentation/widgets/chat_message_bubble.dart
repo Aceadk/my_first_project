@@ -14,6 +14,7 @@ import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A single chat message bubble with glass morphism styling.
 ///
@@ -71,33 +72,35 @@ class ChatMessageBubble extends StatelessWidget {
               desktop: 480,
             ),
           ),
-          child: GestureDetector(
-            onLongPress: onLongPress,
-            child: Column(
-              crossAxisAlignment: isMe
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                _buildBubble(
-                  context,
-                  text,
-                  isHeld: isHeld,
-                  pendingScan: pendingScan,
-                ),
-                _buildSendStatus(context),
-                if (isFlagged || pendingScan)
-                  _buildModerationBadge(
+          child: Semantics(
+            child: GestureDetector(
+              onLongPress: onLongPress,
+              child: Column(
+                crossAxisAlignment: isMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  _buildBubble(
                     context,
+                    text,
                     isHeld: isHeld,
                     pendingScan: pendingScan,
                   ),
-                if (reactionCounts.isNotEmpty)
-                  _buildReactionPills(context, reactionCounts),
-                if (isMe && message.sendStatus == MessageSendStatus.failed)
-                  _buildFailedActions(context),
-                if (isMe && message.sendStatus == MessageSendStatus.sending)
-                  _buildSendingIndicator(),
-              ],
+                  _buildSendStatus(context),
+                  if (isFlagged || pendingScan)
+                    _buildModerationBadge(
+                      context,
+                      isHeld: isHeld,
+                      pendingScan: pendingScan,
+                    ),
+                  if (reactionCounts.isNotEmpty)
+                    _buildReactionPills(context, reactionCounts),
+                  if (isMe && message.sendStatus == MessageSendStatus.failed)
+                    _buildFailedActions(context),
+                  if (isMe && message.sendStatus == MessageSendStatus.sending)
+                    _buildSendingIndicator(),
+                ],
+              ),
             ),
           ),
         ),
@@ -123,8 +126,8 @@ class ChatMessageBubble extends StatelessWidget {
           padding: const EdgeInsets.all(DsSpacing.sm + DsSpacing.xxs),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: isMe
                   ? [
                       DsColors.primary.withValues(alpha: 0.85),
@@ -322,28 +325,34 @@ class ChatMessageBubble extends StatelessWidget {
             style: TextStyle(fontSize: 11, color: DsColors.error),
           ),
           DsGap.smH,
-          GestureDetector(
-            onTap: onRetry,
-            child: const Text(
-              'Retry',
-              style: TextStyle(
-                fontSize: 12,
-                color: DsColors.info,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline,
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: onRetry,
+              child: const Text(
+                'Retry',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DsColors.info,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
           ),
           DsGap.smH,
-          GestureDetector(
-            onTap: onDiscard,
-            child: const Text(
-              'Delete',
-              style: TextStyle(
-                fontSize: 12,
-                color: DsColors.error,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline,
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: onDiscard,
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DsColors.error,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
           ),
@@ -421,39 +430,42 @@ class ChatMessageBubble extends StatelessWidget {
     switch (message.type) {
       case MessageType.image:
         if (pendingScan) {
-          return const Text('Image pending safety scan…');
+          return Text(AppLocalizations.of(context).imagePendingSafetyScan);
         }
         final isLocalFile =
             message.content.startsWith('/') ||
             message.content.startsWith('file://');
-        return GestureDetector(
-          onTap: () => isLocalFile ? null : _launchUrl(message.content),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DsRadius.media),
-            child: isLocalFile
-                ? Image.file(
-                    File(message.content.replaceFirst('file://', '')),
-                    width: mediaWidth,
-                    height: mediaHeight,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _buildMediaErrorPlaceholder(
-                      context,
-                      Icons.broken_image_outlined,
-                      'Image unavailable',
+        return Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: () => isLocalFile ? null : _launchUrl(message.content),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DsRadius.media),
+              child: isLocalFile
+                  ? Image.file(
+                      File(message.content.replaceFirst('file://', '')),
+                      width: mediaWidth,
+                      height: mediaHeight,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _buildMediaErrorPlaceholder(
+                        context,
+                        Icons.broken_image_outlined,
+                        'Image unavailable',
+                      ),
+                    )
+                  : CachedImage(
+                      imageUrl: message.content,
+                      width: mediaWidth,
+                      height: mediaHeight,
+                      fit: BoxFit.cover,
+                      borderRadius: BorderRadius.circular(DsRadius.media),
+                      errorWidget: _buildMediaErrorPlaceholder(
+                        context,
+                        Icons.broken_image_outlined,
+                        'Image unavailable',
+                      ),
                     ),
-                  )
-                : CachedImage(
-                    imageUrl: message.content,
-                    width: mediaWidth,
-                    height: mediaHeight,
-                    fit: BoxFit.cover,
-                    borderRadius: BorderRadius.circular(DsRadius.media),
-                    errorWidget: _buildMediaErrorPlaceholder(
-                      context,
-                      Icons.broken_image_outlined,
-                      'Image unavailable',
-                    ),
-                  ),
+            ),
           ),
         );
       case MessageType.video:

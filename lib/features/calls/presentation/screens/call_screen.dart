@@ -25,6 +25,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class CallScreenArgs {
   final String matchId;
@@ -191,9 +192,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     switch (event.type) {
       case ScreenCaptureEventType.screenshot:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Screenshot detected. The other person was notified.',
+              AppLocalizations.of(context).screenshotDetectedTheOtherPerson,
             ),
           ),
         );
@@ -203,9 +204,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         if (_isScreenRecordingDetected) return;
         _isScreenRecordingDetected = true;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Screen recording detected. The other person was notified.',
+              AppLocalizations.of(context).screenRecordingDetectedTheOther,
             ),
           ),
         );
@@ -215,7 +216,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         if (!_isScreenRecordingDetected) return;
         _isScreenRecordingDetected = false;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Screen recording stopped.')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).screenRecordingStopped),
+          ),
         );
         unawaited(_notifyOtherPartyOfCaptureEvent('recording_stopped'));
         break;
@@ -415,8 +418,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 DsColors.primary.withValues(alpha: 0.4),
                 DsColors.secondary.withValues(alpha: 0.3),
@@ -729,30 +732,33 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           button: true,
           label: 'End call',
           enabled: true,
-          child: GestureDetector(
-            onTap: _endCall,
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [DsColors.error, DsColors.primaryDark],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: DsColors.error.withValues(alpha: 0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+          child: Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: _endCall,
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
+                    colors: [DsColors.error, DsColors.primaryDark],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.call_end_rounded,
-                color: DsColors.surfaceLight,
-                size: 32,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: DsColors.error.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.call_end_rounded,
+                  color: DsColors.surfaceLight,
+                  size: 32,
+                ),
               ),
             ),
           ),
@@ -947,8 +953,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       _autoSwitchedToAudio = true;
       DsHaptics.medium();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Network is weak. Switched to audio-only mode.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).networkIsWeakSwitchedTo),
         ),
       );
     }
@@ -977,8 +983,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         setState(() => _uiState = CallUIState.connected);
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Connection unstable. Recovered with reduced quality.'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).connectionUnstableRecoveredWithReduced,
+          ),
         ),
       );
     });
@@ -1078,7 +1086,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: () => Navigator.of(sheetContext).pop(),
-                          child: const Text('I felt safe'),
+                          child: Text(AppLocalizations.of(context).iFeltSafe),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1090,7 +1098,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                             _showReportSheet(context, safety);
                           },
                           icon: const Icon(Icons.report_outlined),
-                          label: const Text('Report user'),
+                          label: Text(AppLocalizations.of(context).reportUser),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1102,7 +1110,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                             await _blockUserFromCall();
                           },
                           icon: const Icon(Icons.block_outlined),
-                          label: const Text('Block user'),
+                          label: Text(AppLocalizations.of(context).blockUser),
                         ),
                       ),
                     ],
@@ -1120,8 +1128,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     final uid = _currentUserId;
     if (uid == null || uid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sign in again to manage safety actions.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).signInAgainToManage),
         ),
       );
       return;
@@ -1145,13 +1153,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
-                title: Text(
+              ListTile(
+                title: const Text(
                   'Report user',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  'Reports are anonymous and reviewed by our team.',
+                  AppLocalizations.of(context).reportsAreAnonymousAndReviewed,
                 ),
               ),
               ..._reportReasons.map(
@@ -1180,11 +1188,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 ),
               ),
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
                   onPressed: () => context.push(CrushRoutes.safetyGuidelines),
                   icon: const Icon(Icons.shield_outlined),
-                  label: const Text('View community guidelines'),
+                  label: Text(
+                    AppLocalizations.of(context).viewCommunityGuidelines,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
@@ -1203,7 +1213,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       builder: (dialogContext) {
         final navigator = Navigator.of(dialogContext);
         return AlertDialog(
-          title: const Text('Report details'),
+          title: Text(AppLocalizations.of(context).reportDetails),
           content: TextField(
             controller: controller,
             minLines: 2,
@@ -1215,7 +1225,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -1236,7 +1246,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 }
                 navigator.pop();
               },
-              child: const Text('Submit'),
+              child: Text(AppLocalizations.of(context).submit),
             ),
           ],
         );
@@ -1311,41 +1321,44 @@ class _GlassControlButton extends StatelessWidget {
       label: label,
       enabled: true,
       toggled: isActive,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: Column(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? DsColors.surfaceLight
-                    : DsColors.surfaceLight.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                border: Border.all(
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onPressed,
+          child: Column(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
                   color: isActive
-                      ? Colors.transparent
-                      : DsColors.surfaceLight.withValues(alpha: 0.2),
-                  width: 1,
+                      ? DsColors.surfaceLight
+                      : DsColors.surfaceLight.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isActive
+                        ? Colors.transparent
+                        : DsColors.surfaceLight.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: isActive ? DsColors.ink900 : DsColors.surfaceLight,
+                  size: 24,
                 ),
               ),
-              child: Icon(
-                icon,
-                color: isActive ? DsColors.ink900 : DsColors.surfaceLight,
-                size: 24,
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: DsColors.surfaceLight.withValues(alpha: 0.8),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: DsColors.surfaceLight.withValues(alpha: 0.8),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

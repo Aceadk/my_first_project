@@ -5,6 +5,7 @@ import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen displaying weekly curated picks for the user.
 class WeeklyPicksScreen extends StatefulWidget {
@@ -124,124 +125,124 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
   Widget _buildSkeletonLoading() {
     return Column(
       children: [
-          // Timer skeleton
-          Padding(
-            padding: const EdgeInsets.all(DsSpacing.lg),
+        // Timer skeleton
+        Padding(
+          padding: const EdgeInsets.all(DsSpacing.lg),
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? DsColors.surfaceDark
+                  : DsColors.surfaceLight,
+              borderRadius: BorderRadius.circular(DsRadius.lg),
+            ),
+          ),
+        ),
+        // Card skeleton
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
             child: Container(
-              height: 56,
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? DsColors.surfaceDark
-                    : DsColors.surfaceLight,
-                borderRadius: BorderRadius.circular(DsRadius.lg),
+                    ? DsColors.skeletonDark
+                    : DsColors.skeletonLight,
+                borderRadius: BorderRadius.circular(DsRadius.xl),
+              ),
+              child: Stack(
+                children: [
+                  // Top badge skeleton
+                  PositionedDirectional(
+                    top: DsSpacing.lg,
+                    start: DsSpacing.lg,
+                    child: Container(
+                      width: 120,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? DsColors.surfaceDark
+                            : DsColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(DsRadius.round),
+                      ),
+                    ),
+                  ),
+                  // Bottom info skeleton
+                  PositionedDirectional(
+                    start: 0,
+                    end: 0,
+                    bottom: 0,
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? DsColors.surfaceDark
+                            : DsColors.surfaceLight,
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(DsRadius.xl),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          // Card skeleton
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
-              child: Container(
+        ),
+        // Dots skeleton
+        Padding(
+          padding: const EdgeInsets.all(DsSpacing.lg),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: index == 0 ? 24 : 8,
+                height: 8,
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? DsColors.skeletonDark
                       : DsColors.skeletonLight,
-                  borderRadius: BorderRadius.circular(DsRadius.xl),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                child: Stack(
-                  children: [
-                    // Top badge skeleton
-                    PositionedDirectional(
-                      top: DsSpacing.lg,
-                      start: DsSpacing.lg,
-                      child: Container(
-                        width: 120,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DsColors.surfaceDark
-                              : DsColors.surfaceLight,
-                          borderRadius: BorderRadius.circular(DsRadius.round),
-                        ),
-                      ),
-                    ),
-                    // Bottom info skeleton
-                    PositionedDirectional(
-                      start: 0,
-                      end: 0,
-                      bottom: 0,
-                      child: Container(
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? DsColors.surfaceDark
-                              : DsColors.surfaceLight,
-                          borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(DsRadius.xl),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              );
+            }),
+          ),
+        ),
+        // Buttons skeleton
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: DsSpacing.xl,
+            end: DsSpacing.xl,
+            bottom: DsSpacing.xl,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? DsColors.surfaceDark
+                        : DsColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(DsRadius.round),
+                  ),
                 ),
               ),
-            ),
-          ),
-          // Dots skeleton
-          Padding(
-            padding: const EdgeInsets.all(DsSpacing.lg),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: index == 0 ? 24 : 8,
-                  height: 8,
+              DsGap.lgH,
+              Expanded(
+                child: Container(
+                  height: 48,
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? DsColors.skeletonDark
                         : DsColors.skeletonLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                );
-              }),
-            ),
-          ),
-          // Buttons skeleton
-          Padding(
-            padding: const EdgeInsetsDirectional.only(
-              start: DsSpacing.xl,
-              end: DsSpacing.xl,
-              bottom: DsSpacing.xl,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DsColors.surfaceDark
-                          : DsColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(DsRadius.round),
-                    ),
+                    borderRadius: BorderRadius.circular(DsRadius.round),
                   ),
                 ),
-                DsGap.lgH,
-                Expanded(
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? DsColors.skeletonDark
-                          : DsColors.skeletonLight,
-                      borderRadius: BorderRadius.circular(DsRadius.round),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -283,12 +284,12 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
             DsGap.xl,
             GlassPrimaryButton(
               onPressed: _loadPicks,
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.refresh, size: 18),
-                  SizedBox(width: 8),
-                  Text('Try Again'),
+                  const Icon(Icons.refresh, size: 18),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).tryAgain),
                 ],
               ),
             ),
@@ -413,7 +414,7 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                       setState(() => _currentIndex++);
                     }
                   },
-                  child: const Text('Pass'),
+                  child: Text(AppLocalizations.of(context).pass),
                 ),
               ),
               DsGap.lgH,
@@ -432,7 +433,7 @@ class _WeeklyPicksScreenState extends State<WeeklyPicksScreen> {
                       setState(() => _currentIndex++);
                     }
                   },
-                  child: const Text('Like'),
+                  child: Text(AppLocalizations.of(context).like),
                 ),
               ),
             ],

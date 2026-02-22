@@ -1,0 +1,1 @@
+# Performance Module\n\nPriority: P1-P2\n\nThis document tracks outstanding remediation and audit actions for the Performance domain.\n\n## Action Items\n\n*(Pending population via automated deep analysis scripts)*

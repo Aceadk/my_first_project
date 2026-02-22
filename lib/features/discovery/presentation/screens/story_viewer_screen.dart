@@ -306,101 +306,103 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               desktop: 480,
             ),
           ),
-          child: GestureDetector(
-            onTapDown: (_) => _pause(),
-            onTapUp: (details) {
-              _resume();
+          child: Semantics(
+            child: GestureDetector(
+              onTapDown: (_) => _pause(),
+              onTapUp: (details) {
+                _resume();
 
-              // Determine tap zone
-              final width = MediaQuery.of(context).size.width;
-              final x = details.globalPosition.dx;
+                // Determine tap zone
+                final width = MediaQuery.of(context).size.width;
+                final x = details.globalPosition.dx;
 
-              if (x < width / 3) {
-                _goToPreviousStory();
-              } else if (x > width * 2 / 3) {
-                _goToNextStory();
-              }
-            },
-            onLongPressStart: (_) => _pause(),
-            onLongPressEnd: (_) => _resume(),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Story content
-                story.isVideo
-                    ? _buildVideoContent()
-                    : CachedNetworkImage(
-                        imageUrl: story.mediaUrl,
-                        fit: BoxFit.cover,
-                        placeholder: _buildLoading(),
-                        errorWidget: _buildError(),
+                if (x < width / 3) {
+                  _goToPreviousStory();
+                } else if (x > width * 2 / 3) {
+                  _goToNextStory();
+                }
+              },
+              onLongPressStart: (_) => _pause(),
+              onLongPressEnd: (_) => _resume(),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Story content
+                  story.isVideo
+                      ? _buildVideoContent()
+                      : CachedNetworkImage(
+                          imageUrl: story.mediaUrl,
+                          fit: BoxFit.cover,
+                          placeholder: _buildLoading(),
+                          errorWidget: _buildError(),
+                        ),
+
+                  // Top gradient
+                  IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.center,
+                          colors: [
+                            DsColors.ink900.withValues(alpha: 0.6),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.4],
+                        ),
                       ),
+                    ),
+                  ),
 
-                // Top gradient
-                IgnorePointer(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.center,
-                        colors: [
-                          DsColors.ink900.withValues(alpha: 0.6),
-                          Colors.transparent,
+                  // Bottom gradient
+                  IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.center,
+                          colors: [
+                            DsColors.ink900.withValues(alpha: 0.4),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.3],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Progress indicators
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DsSpacing.md,
+                        vertical: DsSpacing.sm,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Progress bars
+                          _buildProgressIndicators(),
+                          const SizedBox(height: DsSpacing.md),
+                          // User info and close button
+                          _buildHeader(),
                         ],
-                        stops: const [0.0, 0.4],
                       ),
                     ),
                   ),
-                ),
 
-                // Bottom gradient
-                IgnorePointer(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.center,
-                        colors: [
-                          DsColors.ink900.withValues(alpha: 0.4),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.3],
-                      ),
-                    ),
+                  // Story info (bottom)
+                  PositionedDirectional(
+                    start: 0,
+                    end: 0,
+                    bottom: 0,
+                    child: SafeArea(child: _buildStoryInfo(story)),
                   ),
-                ),
 
-                // Progress indicators
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DsSpacing.md,
-                      vertical: DsSpacing.sm,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Progress bars
-                        _buildProgressIndicators(),
-                        const SizedBox(height: DsSpacing.md),
-                        // User info and close button
-                        _buildHeader(),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Story info (bottom)
-                PositionedDirectional(
-                  start: 0,
-                  end: 0,
-                  bottom: 0,
-                  child: SafeArea(child: _buildStoryInfo(story)),
-                ),
-
-                // Pause indicator
-                if (_isPaused) Center(child: _buildPauseIndicator()),
-              ],
+                  // Pause indicator
+                  if (_isPaused) Center(child: _buildPauseIndicator()),
+                ],
+              ),
             ),
           ),
         ),
@@ -434,7 +436,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   color: DsColors.surfaceLight.withValues(alpha: 0.3),
                 ),
                 child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   widthFactor: progress,
                   child: Container(
                     decoration: BoxDecoration(

@@ -1,3 +1,0 @@
-/Users/ace/my_first_project/functions/src/index.ts:3386:    // NOTE: Don't enforce profile quality for browsing - let users discover others
-/Users/ace/my_first_project/functions/src/index.ts:3461:      // NOTE: Don't filter out incomplete profiles - let all users appear in discovery
-/Users/ace/my_first_project/lib/core/di.dart:93:  /// NOTE: Set to [BackendMode.hybrid] to show both real Firebase profiles AND

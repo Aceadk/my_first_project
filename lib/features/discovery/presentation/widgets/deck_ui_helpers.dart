@@ -333,87 +333,92 @@ class DeckSearchModeIndicator extends StatelessWidget {
           horizontal: DsSpacing.md,
           vertical: DsSpacing.xs,
         ),
-        child: GestureDetector(
-          onTap: onTapPassport,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DsSpacing.sm),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: DsBlur.light,
-                sigmaY: DsBlur.light,
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DsSpacing.md,
-                  vertical: DsSpacing.sm,
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: onTapPassport,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DsSpacing.sm),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: DsBlur.light,
+                  sigmaY: DsBlur.light,
                 ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      DsColors.info.withValues(alpha: isDark ? 0.2 : 0.15),
-                      DsColors.secondary.withValues(alpha: isDark ? 0.15 : 0.1),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpacing.md,
+                    vertical: DsSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        DsColors.info.withValues(alpha: isDark ? 0.2 : 0.15),
+                        DsColors.secondary.withValues(
+                          alpha: isDark ? 0.15 : 0.1,
+                        ),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(DsSpacing.sm),
+                    border: Border.all(
+                      color: DsColors.info.withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DsColors.info.withValues(alpha: 0.1),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(DsSpacing.sm),
-                  border: Border.all(
-                    color: DsColors.info.withValues(alpha: 0.4),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: DsColors.info.withValues(alpha: 0.1),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [DsColors.info, DsColors.secondary],
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [DsColors.info, DsColors.secondary],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        child: const Icon(
+                          Icons.flight_takeoff,
+                          size: 14,
+                          color: DsColors.surfaceLight,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.flight_takeoff,
-                        size: 14,
-                        color: DsColors.surfaceLight,
-                      ),
-                    ),
-                    const SizedBox(width: DsSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Passport Mode',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: DsColors.info,
-                              fontWeight: FontWeight.bold,
+                      const SizedBox(width: DsSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Passport Mode',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: DsColors.info,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            passportLocation ?? 'Exploring globally',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight,
-                              fontSize: 11,
+                            Text(
+                              passportLocation ?? 'Exploring globally',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                                fontSize: 11,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: DsColors.info.withValues(alpha: 0.8),
-                    ),
-                  ],
+                      Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: DsColors.info.withValues(alpha: 0.8),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

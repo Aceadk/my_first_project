@@ -332,21 +332,28 @@ class _DsPressableState extends State<DsPressable> {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
-    return GestureDetector(
-      onTapDown: reduceMotion ? null : (_) => setState(() => _isPressed = true),
-      onTapUp: reduceMotion ? null : (_) => setState(() => _isPressed = false),
-      onTapCancel: reduceMotion
-          ? null
-          : () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: reduceMotion
-          ? widget.child
-          : AnimatedScale(
-              scale: _isPressed ? widget.scaleDown : 1.0,
-              duration: widget.duration,
-              curve: DsCurves.standard,
-              child: widget.child,
-            ),
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTapDown: reduceMotion
+            ? null
+            : (_) => setState(() => _isPressed = true),
+        onTapUp: reduceMotion
+            ? null
+            : (_) => setState(() => _isPressed = false),
+        onTapCancel: reduceMotion
+            ? null
+            : () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: reduceMotion
+            ? widget.child
+            : AnimatedScale(
+                scale: _isPressed ? widget.scaleDown : 1.0,
+                duration: widget.duration,
+                curve: DsCurves.standard,
+                child: widget.child,
+              ),
+      ),
     );
   }
 }

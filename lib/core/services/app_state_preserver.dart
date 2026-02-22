@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Service to preserve and restore app state across background/foreground transitions.
 /// This allows the app to resume where the user left off instead of always starting from splash.
@@ -16,49 +16,54 @@ class AppStatePreserver {
 
   AppStatePreserver._();
 
-  SharedPreferences? _prefs;
+  FlutterSecureStorage? _secureStorage;
   String? _currentRoute;
 
-  /// Initialize with SharedPreferences instance
-  Future<void> initialize(SharedPreferences prefs) async {
-    _prefs = prefs;
+  /// Initialize with FlutterSecureStorage instance
+  Future<void> initialize(FlutterSecureStorage secureStorage) async {
+    _secureStorage = secureStorage;
   }
 
   /// Save the current route when app goes to background
   Future<void> saveCurrentRoute(String route) async {
-    if (_prefs == null) return;
+    if (_secureStorage == null) return;
 
     // Don't save splash, auth routes, or onboarding routes
     if (_shouldNotPreserve(route)) return;
 
     _currentRoute = route;
-    await _prefs!.setString(_lastRouteKey, route);
-    await _prefs!.setInt(
-      _lastRouteTimestampKey,
-      DateTime.now().millisecondsSinceEpoch,
+    await _secureStorage!.write(key: _lastRouteKey, value: route);
+    await _secureStorage!.write(
+      key: _lastRouteTimestampKey,
+      value: DateTime.now().millisecondsSinceEpoch.toString(),
     );
   }
 
   /// Get the last saved route if it's still valid
-  String? getPreservedRoute() {
-    if (_prefs == null) return null;
+  Future<String?> getPreservedRoute() async {
+    if (_secureStorage == null) return null;
 
-    final route = _prefs!.getString(_lastRouteKey);
-    final timestamp = _prefs!.getInt(_lastRouteTimestampKey);
+    final route = await _secureStorage!.read(key: _lastRouteKey);
+    final timestampStr = await _secureStorage!.read(
+      key: _lastRouteTimestampKey,
+    );
 
-    if (route == null || timestamp == null) return null;
+    if (route == null || timestampStr == null) return null;
+
+    final timestamp = int.tryParse(timestampStr);
+    if (timestamp == null) return null;
 
     // Check if route is still valid (not too old)
     final age = DateTime.now().millisecondsSinceEpoch - timestamp;
     if (age > _maxRouteAgeMs) {
       // Route is too old, clear it
-      clearPreservedRoute();
+      await clearPreservedRoute();
       return null;
     }
 
     // Don't restore auth/onboarding routes
     if (_shouldNotPreserve(route)) {
-      clearPreservedRoute();
+      await clearPreservedRoute();
       return null;
     }
 
@@ -67,9 +72,9 @@ class AppStatePreserver {
 
   /// Clear the preserved route (call after successful restoration or on logout)
   Future<void> clearPreservedRoute() async {
-    if (_prefs == null) return;
-    await _prefs!.remove(_lastRouteKey);
-    await _prefs!.remove(_lastRouteTimestampKey);
+    if (_secureStorage == null) return;
+    await _secureStorage!.delete(key: _lastRouteKey);
+    await _secureStorage!.delete(key: _lastRouteTimestampKey);
     _currentRoute = null;
   }
 

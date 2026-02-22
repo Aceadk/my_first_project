@@ -242,91 +242,94 @@ class _SwipeableCardState extends State<SwipeableCard>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _isDragging ? null : widget.onTap,
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      // RepaintBoundary isolates repaints to this subtree
-      child: RepaintBoundary(
-        child: ValueListenableBuilder<double>(
-          valueListenable: _dragXNotifier,
-          builder: (context, dragX, _) {
-            return ValueListenableBuilder<double>(
-              valueListenable: _dragYNotifier,
-              builder: (context, dragY, child) {
-                final rotation = (dragX / _rotationDivisor).clamp(
-                  -_maxRotation,
-                  _maxRotation,
-                );
-                final horizontalOpacity =
-                    1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
-                final verticalOpacity =
-                    1 - (dragY.abs() / _opacityDivisor).clamp(0.0, 0.3);
-                final opacity = horizontalOpacity < verticalOpacity
-                    ? horizontalOpacity
-                    : verticalOpacity;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: _isDragging ? null : widget.onTap,
+        onPanStart: _onPanStart,
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        // RepaintBoundary isolates repaints to this subtree
+        child: RepaintBoundary(
+          child: ValueListenableBuilder<double>(
+            valueListenable: _dragXNotifier,
+            builder: (context, dragX, _) {
+              return ValueListenableBuilder<double>(
+                valueListenable: _dragYNotifier,
+                builder: (context, dragY, child) {
+                  final rotation = (dragX / _rotationDivisor).clamp(
+                    -_maxRotation,
+                    _maxRotation,
+                  );
+                  final horizontalOpacity =
+                      1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
+                  final verticalOpacity =
+                      1 - (dragY.abs() / _opacityDivisor).clamp(0.0, 0.3);
+                  final opacity = horizontalOpacity < verticalOpacity
+                      ? horizontalOpacity
+                      : verticalOpacity;
 
-                return Transform(
-                  transform: Matrix4.identity()
-                    ..setTranslationRaw(dragX, dragY, 0)
-                    ..rotateZ(rotation),
-                  alignment: Alignment.center,
-                  child: Stack(
-                    children: [
-                      Opacity(
-                        opacity: opacity,
-                        // Use child parameter for static content optimization
-                        child: child,
-                      ),
-                      // Like indicator (right side) - Red heart icon
-                      if (dragX > _indicatorVisibilityThreshold)
-                        const Positioned(
-                          left: 30.0,
-                          top: 30.0,
-                          child: _SwipeIconIndicator(
-                            icon: Icons.favorite_rounded,
-                            color: DsColors.primary,
-                            angle: -0.3,
-                          ),
+                  return Transform(
+                    transform: Matrix4.identity()
+                      ..setTranslationRaw(dragX, dragY, 0)
+                      ..rotateZ(rotation),
+                    alignment: Alignment.center,
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: opacity,
+                          // Use child parameter for static content optimization
+                          child: child,
                         ),
-                      // Pass indicator (left side) - Bold red X icon
-                      if (dragX < -_indicatorVisibilityThreshold)
-                        const Positioned(
-                          right: 30.0,
-                          top: 30.0,
-                          child: _SwipeIconIndicator(
-                            icon: Icons.close_rounded,
-                            color: DsColors.error,
-                            angle: 0.3,
-                          ),
-                        ),
-                      // SuperLike indicator (top center) - Purple star icon
-                      if (dragY < -_indicatorVisibilityThreshold &&
-                          widget.superLikeEnabled)
-                        const PositionedDirectional(
-                          start: 0,
-                          end: 0,
-                          bottom: 100.0,
-                          child: Center(
+                        // Like indicator (right side) - Red heart icon
+                        if (dragX > _indicatorVisibilityThreshold)
+                          const PositionedDirectional(
+                            start: 30.0,
+                            top: 30.0,
                             child: _SwipeIconIndicator(
-                              icon: Icons.star_rounded,
-                              color: DsColors.secondary,
-                              angle: 0,
+                              icon: Icons.favorite_rounded,
+                              color: DsColors.primary,
+                              angle: -0.3,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-              // Static child passed to builder for optimization
-              child: SwipeCard(
-                profile: widget.profile,
-                onReaction: widget.onReaction,
-              ),
-            );
-          },
+                        // Pass indicator (left side) - Bold red X icon
+                        if (dragX < -_indicatorVisibilityThreshold)
+                          const PositionedDirectional(
+                            end: 30.0,
+                            top: 30.0,
+                            child: _SwipeIconIndicator(
+                              icon: Icons.close_rounded,
+                              color: DsColors.error,
+                              angle: 0.3,
+                            ),
+                          ),
+                        // SuperLike indicator (top center) - Purple star icon
+                        if (dragY < -_indicatorVisibilityThreshold &&
+                            widget.superLikeEnabled)
+                          const PositionedDirectional(
+                            start: 0,
+                            end: 0,
+                            bottom: 100.0,
+                            child: Center(
+                              child: _SwipeIconIndicator(
+                                icon: Icons.star_rounded,
+                                color: DsColors.secondary,
+                                angle: 0,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+                // Static child passed to builder for optimization
+                child: SwipeCard(
+                  profile: widget.profile,
+                  onReaction: widget.onReaction,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

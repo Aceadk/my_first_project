@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class PrivacySettingsScreen extends StatelessWidget {
   const PrivacySettingsScreen({super.key});
@@ -38,33 +39,33 @@ class PrivacySettingsScreen extends StatelessWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'public',
                 child: Row(
                   children: [
-                    Icon(Icons.public, size: 20),
-                    SizedBox(width: 12),
-                    Text('Make all public'),
+                    const Icon(Icons.public, size: 20),
+                    const SizedBox(width: 12),
+                    Text(AppLocalizations.of(context).makeAllPublic),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'private',
                 child: Row(
                   children: [
-                    Icon(Icons.lock, size: 20),
-                    SizedBox(width: 12),
-                    Text('Make all private'),
+                    const Icon(Icons.lock, size: 20),
+                    const SizedBox(width: 12),
+                    Text(AppLocalizations.of(context).makeAllPrivate),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'reset',
                 child: Row(
                   children: [
-                    Icon(Icons.refresh, size: 20),
-                    SizedBox(width: 12),
-                    Text('Reset to defaults'),
+                    const Icon(Icons.refresh, size: 20),
+                    const SizedBox(width: 12),
+                    Text(AppLocalizations.of(context).resetToDefaults),
                   ],
                 ),
               ),
@@ -93,8 +94,8 @@ class PrivacySettingsScreen extends StatelessWidget {
                             DsColors.primary.withValues(alpha: 0.1),
                             DsColors.secondary.withValues(alpha: 0.1),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),

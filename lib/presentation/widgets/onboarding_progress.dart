@@ -62,18 +62,21 @@ class OnboardingProgress extends StatelessWidget {
               Semantics(
                 button: true,
                 label: 'Skip this step',
-                child: GestureDetector(
-                  onTap: onSkip,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DsSpacing.sm,
-                      vertical: DsSpacing.xs,
-                    ),
-                    child: Text(
-                      'Skip',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: DsColors.primary,
-                        fontWeight: FontWeight.w600,
+                child: Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    onTap: onSkip,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DsSpacing.sm,
+                        vertical: DsSpacing.xs,
+                      ),
+                      child: Text(
+                        'Skip',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: DsColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

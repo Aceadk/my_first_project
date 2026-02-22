@@ -19,6 +19,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_e
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen showing profiles that have liked the current user.
 /// Free users see blurred profiles; Premium users see full profiles.
@@ -81,7 +82,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Likes You'),
+        title: Text(AppLocalizations.of(context).likesYou),
         centerTitle: true,
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadLikes),
@@ -137,7 +138,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
             const SizedBox(height: DsSpacing.lg),
             GlassPrimaryButton(
               onPressed: _loadLikes,
-              child: const Text('Try Again'),
+              child: Text(AppLocalizations.of(context).tryAgain),
             ),
           ],
         ),
@@ -271,7 +272,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                       ),
                       const SizedBox(width: DsSpacing.xs),
                       Text(
-                        '$count ${count == 1 ? 'person likes' : 'people like'} you',
+                        AppLocalizations.of(context).personLikesYou(count),
                         style: const TextStyle(
                           color: DsColors.surfaceLight,
                           fontWeight: FontWeight.bold,
@@ -295,12 +296,12 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                   width: double.infinity,
                   child: GlassPrimaryButton(
                     onPressed: () => _showUpgradePrompt(context),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.star, size: 20),
-                        SizedBox(width: 8),
-                        Text('Upgrade to Plus'),
+                        const Icon(Icons.star, size: 20),
+                        const SizedBox(width: 8),
+                        Text(AppLocalizations.of(context).upgradeToPlus),
                       ],
                     ),
                   ),
@@ -364,8 +365,8 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not like back. Please try again.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).couldNotLikeBackPlease),
             backgroundColor: DsColors.error,
           ),
         );
@@ -388,8 +389,8 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not pass. Please try again.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).couldNotPassPleaseTry),
             backgroundColor: DsColors.error,
           ),
         );
@@ -475,12 +476,12 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                           PlusCheckoutRequested(),
                         );
                       },
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.star, size: 20),
-                          SizedBox(width: 8),
-                          Text('Upgrade to Plus'),
+                          const Icon(Icons.star, size: 20),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context).upgradeToPlus),
                         ],
                       ),
                     ),
@@ -488,7 +489,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => Navigator.pop(sheetContext),
-                    child: const Text('Maybe Later'),
+                    child: Text(AppLocalizations.of(context).maybeLater),
                   ),
                 ],
               ),
@@ -525,101 +526,106 @@ class _LikeCard extends StatelessWidget {
           : '${profile.publicDisplayName}, ${profile.age} years old',
       hint: isBlurred ? 'Double tap to upgrade' : 'Double tap to view profile',
       image: !isBlurred && photoUrl != null,
-      child: GestureDetector(
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(DsSpacing.md),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Photo
-              if (photoUrl != null)
-                CachedNetworkImage(imageUrl: photoUrl, fit: BoxFit.cover)
-              else
-                Container(
-                  color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
-                  child: const Icon(Icons.person, size: 64),
-                ),
-
-              // Blur overlay for free users
-              if (isBlurred)
-                BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: DsBlur.heavy,
-                    sigmaY: DsBlur.heavy,
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(DsSpacing.md),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Photo
+                if (photoUrl != null)
+                  CachedNetworkImage(imageUrl: photoUrl, fit: BoxFit.cover)
+                else
+                  Container(
+                    color: isDark
+                        ? DsColors.surfaceDark
+                        : DsColors.surfaceLight,
+                    child: const Icon(Icons.person, size: 64),
                   ),
-                  child: Container(
-                    color: DsColors.ink900.withValues(alpha: 0.1),
-                  ),
-                ),
 
-              // Gradient overlay
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        DsColors.ink900.withValues(alpha: 0.7),
-                      ],
-                      stops: const [0.5, 1.0],
+                // Blur overlay for free users
+                if (isBlurred)
+                  BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: DsBlur.heavy,
+                      sigmaY: DsBlur.heavy,
+                    ),
+                    child: Container(
+                      color: DsColors.ink900.withValues(alpha: 0.1),
                     ),
                   ),
-                ),
-              ),
 
-              // Name and age (blurred for free users)
-              PositionedDirectional(
-                bottom: DsSpacing.sm,
-                start: DsSpacing.sm,
-                end: DsSpacing.sm,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isBlurred ? '???' : profile.publicDisplayName,
-                      style: const TextStyle(
-                        color: DsColors.surfaceLight,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (!isBlurred)
-                      Text(
-                        '${profile.age}',
-                        style: TextStyle(
-                          color: DsColors.surfaceLight.withValues(alpha: 0.8),
-                          fontSize: 14,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Lock icon for blurred cards
-              if (isBlurred)
-                PositionedDirectional(
-                  top: DsSpacing.sm,
-                  end: DsSpacing.sm,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
+                // Gradient overlay
+                Positioned.fill(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: DsColors.ink900.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock,
-                      color: DsColors.surfaceLight,
-                      size: 16,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          DsColors.ink900.withValues(alpha: 0.7),
+                        ],
+                        stops: const [0.5, 1.0],
+                      ),
                     ),
                   ),
                 ),
-            ],
+
+                // Name and age (blurred for free users)
+                PositionedDirectional(
+                  bottom: DsSpacing.sm,
+                  start: DsSpacing.sm,
+                  end: DsSpacing.sm,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isBlurred ? '???' : profile.publicDisplayName,
+                        style: const TextStyle(
+                          color: DsColors.surfaceLight,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (!isBlurred)
+                        Text(
+                          '${profile.age}',
+                          style: TextStyle(
+                            color: DsColors.surfaceLight.withValues(alpha: 0.8),
+                            fontSize: 14,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Lock icon for blurred cards
+                if (isBlurred)
+                  PositionedDirectional(
+                    top: DsSpacing.sm,
+                    end: DsSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: DsColors.ink900.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: DsColors.surfaceLight,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -762,12 +768,12 @@ class _ProfileDetailSheet extends StatelessWidget {
                       Expanded(
                         child: GlassOutlinedButton(
                           onPressed: onPass,
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.close, size: 20),
-                              SizedBox(width: 8),
-                              Text('Pass'),
+                              const Icon(Icons.close, size: 20),
+                              const SizedBox(width: 8),
+                              Text(AppLocalizations.of(context).pass),
                             ],
                           ),
                         ),
@@ -777,12 +783,12 @@ class _ProfileDetailSheet extends StatelessWidget {
                         flex: 2,
                         child: GlassPrimaryButton(
                           onPressed: onLikeBack,
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.favorite, size: 20),
-                              SizedBox(width: 8),
-                              Text('Like Back'),
+                              const Icon(Icons.favorite, size: 20),
+                              const SizedBox(width: 8),
+                              Text(AppLocalizations.of(context).likeBack),
                             ],
                           ),
                         ),

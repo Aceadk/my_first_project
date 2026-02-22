@@ -49,6 +49,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class DeckScreen extends StatefulWidget {
   const DeckScreen({super.key, this.validationService});
@@ -224,10 +225,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   }
 
   List<Profile> _buildUpcomingProfiles(List<Profile> deck, int currentIndex) {
-    if (deck.isEmpty) return const [];
+    if (deck.isEmpty) return [];
     final start = currentIndex + 1;
     final end = (currentIndex + 1 + _previewCount).clamp(0, deck.length);
-    if (start >= deck.length) return const [];
+    if (start >= deck.length) return [];
     return deck.sublist(start, end);
   }
 
@@ -262,7 +263,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
           // Show the celebration modal
           MatchCelebration.show(
             context: context,
-            matchName: newMatch.matchedProfile.name, matchImageUrl: newMatch.matchedProfile.photoUrls.isNotEmpty ? newMatch.matchedProfile.photoUrls.first : '',
+            matchName: newMatch.matchedProfile.name,
+            matchImageUrl: newMatch.matchedProfile.photoUrls.isNotEmpty
+                ? newMatch.matchedProfile.photoUrls.first
+                : '',
             yourImageUrl: currentUserPhotoUrl ?? '',
             onKeepSwiping: () {
               // Just close the modal - state already cleared
@@ -608,18 +612,30 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                     currentProfile: currentProfile,
                                     currentUserId: userId,
                                   ),
-                                  itemBuilder: (context) => const [
+                                  itemBuilder: (context) => [
                                     PopupMenuItem(
                                       value: _DeckSafetyAction.viewProfile,
-                                      child: Text('View full profile'),
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).viewFullProfile,
+                                      ),
                                     ),
                                     PopupMenuItem(
                                       value: _DeckSafetyAction.report,
-                                      child: Text('Report profile'),
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).reportProfile,
+                                      ),
                                     ),
                                     PopupMenuItem(
                                       value: _DeckSafetyAction.block,
-                                      child: Text('Block & hide profile'),
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).blockHideProfile,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -738,82 +754,91 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   top: DsSpacing.md,
                                   start: DsSpacing.md,
                                   end: DsSpacing.md,
-                                  child: GestureDetector(
-                                    onTap: _requestLocationPermission,
-                                    child: AnimatedOpacity(
-                                      opacity: _showLocationBanner ? 1.0 : 0.0,
-                                      duration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: DsSpacing.md,
-                                          vertical: DsSpacing.sm,
+                                  child: Semantics(
+                                    button: true,
+                                    child: GestureDetector(
+                                      onTap: _requestLocationPermission,
+                                      child: AnimatedOpacity(
+                                        opacity: _showLocationBanner
+                                            ? 1.0
+                                            : 0.0,
+                                        duration: const Duration(
+                                          milliseconds: 300,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: DsColors.primary.withValues(
-                                            alpha: 0.9,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: DsSpacing.md,
+                                            vertical: DsSpacing.sm,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            DsRadius.md,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: DsColors.ink900.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
+                                          decoration: BoxDecoration(
+                                            color: DsColors.primary.withValues(
+                                              alpha: 0.9,
                                             ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.location_on,
-                                              color: DsColors.surfaceLight,
-                                              size: 20,
+                                            borderRadius: BorderRadius.circular(
+                                              DsRadius.md,
                                             ),
-                                            const SizedBox(width: DsSpacing.sm),
-                                            Expanded(
-                                              child: Text(
-                                                'Enable location for better matches nearby',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      color:
-                                                          DsColors.surfaceLight,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: DsSpacing.sm),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: DsSpacing.sm,
-                                                    vertical: DsSpacing.xs,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: DsColors.surfaceLight
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: DsColors.ink900
                                                     .withValues(alpha: 0.2),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      DsRadius.sm,
-                                                    ),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
                                               ),
-                                              child: const Text(
-                                                'Enable',
-                                                style: TextStyle(
-                                                  color: DsColors.surfaceLight,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.location_on,
+                                                color: DsColors.surfaceLight,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(
+                                                width: DsSpacing.sm,
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  'Enable location for better matches nearby',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: DsColors
+                                                            .surfaceLight,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(
+                                                width: DsSpacing.sm,
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: DsSpacing.sm,
+                                                      vertical: DsSpacing.xs,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: DsColors.surfaceLight
+                                                      .withValues(alpha: 0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        DsRadius.sm,
+                                                      ),
+                                                ),
+                                                child: const Text(
+                                                  'Enable',
+                                                  style: TextStyle(
+                                                    color:
+                                                        DsColors.surfaceLight,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1313,7 +1338,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                 ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(AppLocalizations.of(context).retry),
                 onPressed: userId == null
                     ? null
                     : () => context.read<DiscoveryBloc>().add(
@@ -1334,7 +1359,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                 DsGap.lg,
                 OutlinedButton.icon(
                   icon: const Icon(Icons.flight_takeoff),
-                  label: const Text('Try Passport with Plus'),
+                  label: Text(AppLocalizations.of(context).tryPassportWithPlus),
                   onPressed: () => _showPassportUpsell(context),
                 ),
                 DsGap.sm,
@@ -1496,7 +1521,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                   DsGap.md,
                   OutlinedButton.icon(
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Refresh deck'),
+                    label: Text(AppLocalizations.of(context).refreshDeck),
                     onPressed: userId == null
                         ? null
                         : () => context.read<DiscoveryBloc>().add(
@@ -1677,21 +1702,19 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Verify your account'),
-          content: const Text(
-            'Please verify your email or phone number to start swiping and matching with others.',
-          ),
+          title: Text(AppLocalizations.of(context).verifyYourAccount),
+          content: Text(AppLocalizations.of(context).pleaseVerifyYourEmailOr),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Later'),
+              child: Text(AppLocalizations.of(context).later),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 context.push(CrushRoutes.emailProtection);
               },
-              child: const Text('Verify now'),
+              child: Text(AppLocalizations.of(context).verifyNow),
             ),
           ],
         ),
@@ -1702,7 +1725,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Complete your profile'),
+        title: Text(AppLocalizations.of(context).completeYourProfile),
         content: Text(
           percent >= 100
               ? 'Your profile looks good.'
@@ -1711,14 +1734,14 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Later'),
+            child: Text(AppLocalizations.of(context).later),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               _goToProfileEdit(context);
             },
-            child: const Text('Complete profile'),
+            child: Text(AppLocalizations.of(context).completeProfile),
           ),
         ],
       ),
@@ -1736,8 +1759,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: [
                   baseSurface.withValues(alpha: 0.8),
                   baseSurface.withValues(alpha: 0.6),
@@ -1761,7 +1784,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                     Center(
                       child: ShaderMask(
                         shaderCallback: (bounds) =>
-                            DsGradients.primaryHorizontal.createShader(bounds),
+                            DsGradients.primaryHorizontal.createShader(
+                              bounds,
+                              textDirection: Directionality.of(context),
+                            ),
                         child: Text(
                           'Crush',
                           style: Theme.of(context).textTheme.titleLarge
@@ -1970,7 +1996,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                     if (!isPlus)
                       TextButton(
                         onPressed: () => Navigator.of(sheetContext).pop(),
-                        child: const Text('Maybe later'),
+                        child: Text(AppLocalizations.of(context).maybeLater1),
                       ),
                   ],
                 ),
@@ -2011,9 +2037,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
             children: [
               ListTile(
                 title: Text('Report $reportedName'),
-                subtitle: const Text(
-                  'We will review and may limit accounts that violate guidelines.',
-                ),
+                subtitle: Text(AppLocalizations.of(context).weWillReviewAndMay),
               ),
               ...reasons.map(
                 (reason) => ListTile(
@@ -2049,12 +2073,12 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context).cancel),
               ),
               TextButton(
                 onPressed: () =>
                     Navigator.pop(dialogContext, controller.text.trim()),
-                child: const Text('Submit'),
+                child: Text(AppLocalizations.of(context).submit),
               ),
             ],
           );

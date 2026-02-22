@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:crushhour/core/theme/app_theme_mode.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
@@ -11,6 +9,8 @@ import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('ThemeCubit', () {
@@ -149,8 +149,7 @@ class _ProfileRepositoryStub implements ProfileRepository {
     DateTime? dateOfBirth,
     bool? showFirstName,
     bool? showLastName,
-  }) async =>
-      _testUser();
+  }) async => _testUser();
 
   @override
   Future<CrushUser> saveProfileDetails({
@@ -168,8 +167,7 @@ class _ProfileRepositoryStub implements ProfileRepository {
     List<String>? showMeGenders,
     double? latitude,
     double? longitude,
-  }) async =>
-      _testUser();
+  }) async => _testUser();
 
   @override
   Future<void> uploadIdDocument() async {}
@@ -194,6 +192,54 @@ class _ProfileRepositoryStub implements ProfileRepository {
 
   @override
   Future<CrushUser> skipProfileSetup() async => _testUser();
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async => Result.success(_testUser());
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async => Result.success(_testUser());
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async =>
+      Result.success(_testUser());
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async =>
+      Result.success(_testUser());
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async => Result.success(_testUser());
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async =>
+      Result.success(_testUser());
 }
 
 class _AuthRepositoryStub implements AuthRepository {
@@ -228,8 +274,7 @@ class _AuthRepositoryStub implements AuthRepository {
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> sendEmailSignInLink(String email) async =>
@@ -239,22 +284,19 @@ class _AuthRepositoryStub implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithApple() async => throw UnimplementedError();
@@ -264,16 +306,14 @@ class _AuthRepositoryStub implements AuthRepository {
     required String username,
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestEmailOtp({
     required String identifier,
     required EmailOtpPurpose purpose,
     String? email,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser?> verifyEmailOtp({
@@ -282,8 +322,7 @@ class _AuthRepositoryStub implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset({required String email}) async =>
@@ -293,16 +332,14 @@ class _AuthRepositoryStub implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> resetPasswordWithToken({
     required String email,
     required String resetToken,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> signOut() async => _controller.add(null);
@@ -318,11 +355,14 @@ class _AuthRepositoryStub implements AuthRepository {
   Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
 
   @override
+  @override
+  Future<void> verifyPassword(String password) async {}
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> deactivateAccount({required String reason}) async =>
@@ -332,8 +372,7 @@ class _AuthRepositoryStub implements AuthRepository {
   Future<void> deleteAccount({
     required String password,
     required String reason,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> isEmailRegistered(String email) async => false;

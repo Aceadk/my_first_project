@@ -2,11 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../theme/theme_extensions.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
-import '../theme/theme_extensions.dart';
 
 /// A glassmorphism-styled text field with frosted background.
 ///
@@ -207,12 +208,15 @@ class _GlassTextFieldState extends State<GlassTextField> {
                       ? Icon(widget.prefixIcon, color: hintColor, size: 22)
                       : null,
                   suffixIcon: widget.suffixIcon != null
-                      ? GestureDetector(
-                          onTap: widget.onSuffixTap,
-                          child: Icon(
-                            widget.suffixIcon,
-                            color: hintColor,
-                            size: 22,
+                      ? Semantics(
+                          button: true,
+                          child: GestureDetector(
+                            onTap: widget.onSuffixTap,
+                            child: Icon(
+                              widget.suffixIcon,
+                              color: hintColor,
+                              size: 22,
+                            ),
                           ),
                         )
                       : null,
@@ -247,8 +251,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
   }
 }
 
-/// A search input with glass styling.
-class GlassSearchField extends StatelessWidget {
+class GlassSearchField extends StatefulWidget {
   const GlassSearchField({
     super.key,
     this.controller,
@@ -267,13 +270,38 @@ class GlassSearchField extends StatelessWidget {
   final double blur;
 
   @override
+  State<GlassSearchField> createState() => _GlassSearchFieldState();
+}
+
+class _GlassSearchFieldState extends State<GlassSearchField> {
+  late FocusNode _focusNode;
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
     final bgColor = DsGlassColors.surfaceFor(context);
 
-    final borderColor = DsGlassColors.borderFor(context);
+    final borderColor = _isFocused
+        ? DsColors.primary
+        : DsGlassColors.borderFor(context);
 
     final textColor = isDark
         ? DsColors.textPrimaryDark
@@ -284,23 +312,24 @@ class GlassSearchField extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(DsRadius.round),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
         child: Container(
           height: 48,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(DsRadius.round),
-            border: Border.all(color: borderColor, width: 1),
+            border: Border.all(color: borderColor, width: _isFocused ? 2 : 1),
           ),
           child: TextField(
-            controller: controller,
-            onChanged: onChanged,
-            onSubmitted: onSubmitted,
-            autofocus: autofocus,
+            controller: widget.controller,
+            focusNode: _focusNode,
+            onChanged: widget.onChanged,
+            onSubmitted: widget.onSubmitted,
+            autofocus: widget.autofocus,
             style: TextStyle(color: textColor),
             cursorColor: DsColors.primary,
             decoration: InputDecoration(
-              hintText: hintText,
+              hintText: widget.hintText,
               hintStyle: TextStyle(color: hintColor),
               prefixIcon: Icon(Icons.search, color: hintColor, size: 22),
               border: InputBorder.none,

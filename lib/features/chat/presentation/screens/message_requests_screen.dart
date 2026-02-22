@@ -1,21 +1,22 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/router.dart';
-import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
-import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/data/models/message_request.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_requests_state.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 
 PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
   final baseSurface = DsGlassColors.surfaceFor(context);
@@ -27,8 +28,8 @@ PreferredSizeWidget _buildMessageRequestsAppBar(BuildContext context) {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 baseSurface.withValues(alpha: 0.8),
                 baseSurface.withValues(alpha: 0.6),
@@ -102,8 +103,8 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
                       DsColors.secondary.withValues(alpha: 0.2),
                       DsColors.primary.withValues(alpha: 0.15),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -126,7 +127,10 @@ Widget _buildMessageRequestsEmptyState(BuildContext context) {
           DsGap.xxl,
           ShaderMask(
             shaderCallback: (bounds) =>
-                DsGradients.primaryHorizontal.createShader(bounds),
+                DsGradients.primaryHorizontal.createShader(
+                  bounds,
+                  textDirection: Directionality.of(context),
+                ),
             child: Text(
               'No message requests',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -159,8 +163,10 @@ class MessageRequestsScreen extends StatelessWidget {
     );
 
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Sign in to view message requests.')),
+      return Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context).signInToViewMessage),
+        ),
       );
     }
 
@@ -294,7 +300,7 @@ class _MessageRequestsView extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DsRadius.lg),
         ),
-        title: const Text('Decline request?'),
+        title: Text(AppLocalizations.of(context).declineRequest),
         content: const Text(
           'This will remove the message request. '
           'You can still match with them later through discovery.',
@@ -302,7 +308,7 @@ class _MessageRequestsView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -310,7 +316,7 @@ class _MessageRequestsView extends StatelessWidget {
               context.read<MessageRequestsCubit>().declineRequest(request);
             },
             style: TextButton.styleFrom(foregroundColor: DsColors.error),
-            child: const Text('Decline'),
+            child: Text(AppLocalizations.of(context).decline),
           ),
         ],
       ),
@@ -419,8 +425,8 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                 padding: const EdgeInsets.all(DsSpacing.md),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                     colors: [
                       baseSurface.withValues(alpha: 0.6),
                       baseSurface.withValues(alpha: 0.3),
@@ -496,8 +502,8 @@ class _MessageRequestCardState extends State<_MessageRequestCard> {
                                         ?.copyWith(
                                           color: _getCountdownColor(isDark),
                                           fontWeight: FontWeight.w600,
-                                          fontFeatures: const [
-                                            FontFeature.tabularFigures(),
+                                          fontFeatures: [
+                                            const FontFeature.tabularFigures(),
                                           ],
                                         ),
                                   ),

@@ -11,6 +11,7 @@ import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class SubscriptionSettingsScreen extends StatelessWidget {
   const SubscriptionSettingsScreen({super.key});
@@ -20,7 +21,7 @@ class SubscriptionSettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Subscription')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).subscription)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -113,13 +114,17 @@ class SubscriptionSettingsScreen extends StatelessWidget {
                                 ),
                               )
                             : const Icon(Icons.sync),
-                        label: const Text('Refresh subscription status'),
+                        label: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).refreshSubscriptionStatus,
+                        ),
                       ),
                       DsGap.sm,
                       OutlinedButton.icon(
                         onPressed: () => context.push(CrushRoutes.support),
                         icon: const Icon(Icons.receipt_long_outlined),
-                        label: const Text('Billing help'),
+                        label: Text(AppLocalizations.of(context).billingHelp),
                       ),
                     ] else ...[
                       FilledButton.icon(
@@ -137,7 +142,7 @@ class SubscriptionSettingsScreen extends StatelessWidget {
                                 ),
                               )
                             : const Icon(Icons.upgrade),
-                        label: const Text('Upgrade to Plus'),
+                        label: Text(AppLocalizations.of(context).upgradeToPlus),
                       ),
                       DsGap.sm,
                       OutlinedButton.icon(
@@ -147,15 +152,21 @@ class SubscriptionSettingsScreen extends StatelessWidget {
                                 SubscriptionRestoreRequested(),
                               ),
                         icon: const Icon(Icons.restore),
-                        label: const Text('Restore purchases'),
+                        label: Text(
+                          AppLocalizations.of(context).restorePurchases,
+                        ),
                       ),
                     ],
                     DsGap.lg,
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.sell_outlined),
-                      title: const Text('Plan details and pricing'),
-                      subtitle: const Text('Compare plan benefits'),
+                      title: Text(
+                        AppLocalizations.of(context).planDetailsAndPricing,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(context).comparePlanBenefits,
+                      ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(CrushRoutes.pricing),
                     ),

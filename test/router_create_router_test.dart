@@ -11,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'package:crushhour/data/models/match.dart';
-import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
@@ -40,19 +39,45 @@ import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart
 import 'package:crushhour/features/auth/presentation/screens/splash_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
 import 'package:crushhour/features/calls/domain/models/call.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_history_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/video_call_screen.dart';
+import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_repository.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
+import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_validation_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_edit_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_setup_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
+import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
+import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
+import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
+import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
@@ -60,6 +85,7 @@ import 'package:crushhour/data/models/profile_story.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
 import 'package:crushhour/presentation/screens/community_guidelines_screen.dart';
+import 'package:crushhour/presentation/screens/home_screen.dart';
 import 'package:crushhour/presentation/screens/privacy_policy_screen.dart';
 import 'package:crushhour/presentation/screens/terms_of_service_screen.dart';
 
@@ -145,7 +171,7 @@ void main() {
 
   Future<void> pumpRouterSettled(
     WidgetTester tester, {
-    int maxPumps = 4,
+    int maxPumps = 20,
   }) async {
     for (var i = 0; i < maxPumps; i++) {
       await tester.pump(const Duration(milliseconds: 16));
@@ -153,6 +179,12 @@ void main() {
         break;
       }
     }
+  }
+
+  Future<void> disposePumpedTree(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 16));
+    drainRouterTestExceptions(tester);
   }
 
   Future<void> pumpRouterApp(
@@ -167,28 +199,150 @@ void main() {
     ChatRepository? chatRepository,
     BadgeCounterCubit? badgeCounterCubit,
     SafetyCubit? safetyCubit,
+    bool lightweight = false,
     bool settle = true,
   }) async {
     final effectiveInitialRoute = routeExtra == null
         ? initialRoute
         : CrushRoutes.splash;
     final router = createRouter(authBloc, initialRoute: effectiveInitialRoute);
+
+    if (lightweight) {
+      addTearDown(() async {
+        await disposePumpedTree(tester);
+        router.dispose();
+        await authBloc.close();
+      });
+
+      await tester.pumpWidget(
+        RepositoryProvider<AuthRepository>.value(
+          value: authRepository,
+          child: BlocProvider<AuthBloc>.value(
+            value: authBloc,
+            child: MaterialApp.router(
+              routerConfig: router,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      if (routeExtra != null) {
+        router.go(initialRoute, extra: routeExtra);
+        await tester.pump();
+      }
+      if (settle) {
+        await pumpRouterSettled(tester);
+      }
+      return;
+    }
+
     final repo = discoveryRepository ?? _NoopDiscoveryRepository();
-    final chatRepo = chatRepository;
+    final chatRepo = chatRepository ?? StubChatRepository();
     final profRepo =
         profileRepository ??
         _NoopProfileRepository(currentUser: authBloc.state.user);
+    final validationRepo = ProfileValidationService();
+    final callManagerRepository = _NoopCallManagerRepository();
+    final storyRepository = _NoopStoryRepository();
+    final boostRepository = _NoopBoostRepository();
+    final dateIdeaRepository = _NoopDateIdeaRepository();
+    final compatibilityQuizRepository = _NoopCompatibilityQuizRepository();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final preferences = await SharedPreferences.getInstance();
+    final effectiveBadgeCounterCubit = badgeCounterCubit ?? BadgeCounterCubit();
+    final effectiveSafetyCubit =
+        safetyCubit ??
+        SafetyCubit(
+          preferences: preferences,
+          chatRepository: chatRepo,
+          discoveryRepository: repo,
+        );
+    final effectiveSubscriptionBloc =
+        subscriptionBloc ??
+        _TestSubscriptionBloc(
+          const SubscriptionState(plan: SubscriptionPlan.free),
+        );
+    final effectiveChatBloc = ChatBloc(
+      chatRepository: chatRepo,
+      subscriptionRepository: _NoopSubscriptionRepository(),
+      authRepository: authRepository,
+    );
+    final createdBadgeCubit = badgeCounterCubit == null;
+    final createdSafetyCubit = safetyCubit == null;
+    final createdSubscriptionBloc = subscriptionBloc == null;
     final profileBloc = ProfileBloc(
       profileRepository: profRepo,
       authRepository: authRepository,
     );
+    final discoveryBloc = DiscoveryBloc(
+      discoveryRepository: repo,
+      subscriptionRepository: _NoopSubscriptionRepository(),
+      authRepository: authRepository,
+      profileRepository: profRepo,
+    );
+    final discoverySettingsCubit = DiscoverySettingsCubit(
+      preferences: preferences,
+    );
+    final boostCubit = BoostCubit(
+      boostRepository: boostRepository,
+      authRepository: authRepository,
+    );
+    final dateIdeasCubit = DateIdeasCubit(
+      authRepository: authRepository,
+      dateIdeaRepository: dateIdeaRepository,
+    );
+    final compatibilityQuizCubit = CompatibilityQuizCubit(
+      authRepository: authRepository,
+      quizRepository: compatibilityQuizRepository,
+    );
+    final notificationSettingsCubit = NotificationSettingsCubit(
+      preferences: preferences,
+    );
+    final privacySettingsCubit = PrivacySettingsCubit(preferences: preferences);
+    final storageSettingsCubit = StorageSettingsCubit(preferences: preferences);
+    final themeCubit = ThemeCubit(
+      preferences: preferences,
+      authRepository: authRepository,
+      profileRepository: profRepo,
+    );
+    final localeCubit = LocaleCubit(preferences: preferences);
 
     addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 16));
+      drainRouterTestExceptions(tester);
       router.dispose();
-      if (subscriptionBloc != null) {
-        await subscriptionBloc.close();
+      if (createdSubscriptionBloc) {
+        await effectiveSubscriptionBloc.close();
       }
+      if (createdSafetyCubit) {
+        await effectiveSafetyCubit.close();
+      }
+      if (createdBadgeCubit) {
+        await effectiveBadgeCounterCubit.close();
+      }
+      await localeCubit.close();
+      await themeCubit.close();
+      await storageSettingsCubit.close();
+      await privacySettingsCubit.close();
+      await notificationSettingsCubit.close();
+      await compatibilityQuizCubit.close();
+      await dateIdeasCubit.close();
+      await boostCubit.close();
+      await discoverySettingsCubit.close();
+      await discoveryBloc.close();
+      await effectiveChatBloc.close();
       await profileBloc.close();
+      storyRepository.dispose();
+      callManagerRepository.dispose();
       await authBloc.close();
     });
 
@@ -198,19 +352,54 @@ void main() {
           RepositoryProvider<AuthRepository>.value(value: authRepository),
           RepositoryProvider<DiscoveryRepository>.value(value: repo),
           RepositoryProvider<ProfileRepository>.value(value: profRepo),
-          if (chatRepo != null)
-            RepositoryProvider<ChatRepository>.value(value: chatRepo),
+          RepositoryProvider<ChatRepository>.value(value: chatRepo),
+          RepositoryProvider<CallManagerRepository>.value(
+            value: callManagerRepository,
+          ),
+          RepositoryProvider<StoryRepository>.value(value: storyRepository),
+          RepositoryProvider<BoostRepository>.value(value: boostRepository),
+          RepositoryProvider<DateIdeaRepository>.value(
+            value: dateIdeaRepository,
+          ),
+          RepositoryProvider<CompatibilityQuizRepository>.value(
+            value: compatibilityQuizRepository,
+          ),
+          RepositoryProvider<ProfileValidationRepository>.value(
+            value: validationRepo,
+          ),
         ],
         child: MultiBlocProvider(
           providers: [
             BlocProvider<AuthBloc>.value(value: authBloc),
             BlocProvider<ProfileBloc>.value(value: profileBloc),
-            if (badgeCounterCubit != null)
-              BlocProvider<BadgeCounterCubit>.value(value: badgeCounterCubit),
-            if (safetyCubit != null)
-              BlocProvider<SafetyCubit>.value(value: safetyCubit),
-            if (subscriptionBloc != null)
-              BlocProvider<SubscriptionBloc>.value(value: subscriptionBloc),
+            BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+            BlocProvider<DiscoverySettingsCubit>.value(
+              value: discoverySettingsCubit,
+            ),
+            BlocProvider<BoostCubit>.value(value: boostCubit),
+            BlocProvider<DateIdeasCubit>.value(value: dateIdeasCubit),
+            BlocProvider<CompatibilityQuizCubit>.value(
+              value: compatibilityQuizCubit,
+            ),
+            BlocProvider<NotificationSettingsCubit>.value(
+              value: notificationSettingsCubit,
+            ),
+            BlocProvider<PrivacySettingsCubit>.value(
+              value: privacySettingsCubit,
+            ),
+            BlocProvider<StorageSettingsCubit>.value(
+              value: storageSettingsCubit,
+            ),
+            BlocProvider<ThemeCubit>.value(value: themeCubit),
+            BlocProvider<LocaleCubit>.value(value: localeCubit),
+            BlocProvider<BadgeCounterCubit>.value(
+              value: effectiveBadgeCounterCubit,
+            ),
+            BlocProvider<SafetyCubit>.value(value: effectiveSafetyCubit),
+            BlocProvider<SubscriptionBloc>.value(
+              value: effectiveSubscriptionBloc,
+            ),
+            BlocProvider<ChatBloc>.value(value: effectiveChatBloc),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -276,6 +465,7 @@ void main() {
           authBloc: authBloc,
           authRepository: authRepository,
           initialRoute: CrushRoutes.root,
+          lightweight: true,
         );
 
         expect(find.byType(AuthGatewayScreen), findsOneWidget);
@@ -295,6 +485,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: CrushRoutes.home,
+        lightweight: true,
       );
 
       expect(find.byType(AuthGatewayScreen), findsOneWidget);
@@ -311,6 +502,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: '/auth/not-a-real-route',
+        lightweight: true,
       );
 
       expect(find.byType(AuthGatewayScreen), findsOneWidget);
@@ -372,6 +564,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: CrushRoutes.otp,
+        lightweight: true,
       );
 
       expect(find.byType(AuthGatewayScreen), findsOneWidget);
@@ -391,6 +584,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: '${CrushRoutes.otp}?phone=15555550123',
+        lightweight: true,
       );
 
       expect(find.byType(OtpScreen), findsOneWidget);
@@ -419,6 +613,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: '${CrushRoutes.emailProtection}?redirect=true',
+        lightweight: true,
       );
 
       expect(find.byType(EmailProtectionScreen), findsOneWidget);
@@ -446,6 +641,7 @@ void main() {
         authBloc: authBloc,
         authRepository: authRepository,
         initialRoute: CrushRoutes.emailVerification,
+        lightweight: true,
       );
 
       expect(find.byType(EmailVerificationScreen), findsOneWidget);
@@ -549,6 +745,7 @@ void main() {
           authBloc: authBloc,
           authRepository: authRepository,
           initialRoute: route,
+          lightweight: true,
         );
 
         expect(find.byType(widgetType), findsOneWidget);
@@ -770,8 +967,8 @@ void main() {
       );
 
       await tester.pump();
-      final error = drainRouterTestExceptions(tester);
-      expect(error, isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
 
     testWidgets('chat route extra and fallback branches execute', (
@@ -796,7 +993,9 @@ void main() {
         settle: false,
       );
       await tester.pump();
-      expect(drainRouterTestExceptions(tester), isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(ChatScreen), findsOneWidget);
+      await disposePumpedTree(tester);
 
       final authBlocWithoutUser = _TestAuthBloc(
         buildState(status: AuthStatus.authenticated, user: null),
@@ -809,7 +1008,9 @@ void main() {
         settle: false,
       );
       await tester.pump();
-      expect(drainRouterTestExceptions(tester), isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await disposePumpedTree(tester);
     });
 
     testWidgets('call, incoming call, and video call route branches execute', (
@@ -828,7 +1029,9 @@ void main() {
         settle: false,
       );
       await tester.pump();
-      expect(drainRouterTestExceptions(tester), isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await disposePumpedTree(tester);
 
       final authBlocIncoming = _TestAuthBloc(
         buildState(status: AuthStatus.authenticated, user: buildUser()),
@@ -851,6 +1054,7 @@ void main() {
         ),
       );
       expect(find.byType(IncomingCallScreen), findsOneWidget);
+      await disposePumpedTree(tester);
 
       final authBlocIncomingFallback = _TestAuthBloc(
         buildState(status: AuthStatus.authenticated, user: buildUser()),
@@ -863,7 +1067,9 @@ void main() {
         settle: false,
       );
       await tester.pump();
-      expect(drainRouterTestExceptions(tester), isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await disposePumpedTree(tester);
 
       final authBlocVideo = _TestAuthBloc(
         buildState(status: AuthStatus.authenticated, user: buildUser()),
@@ -880,6 +1086,7 @@ void main() {
         ),
       );
       expect(find.byType(VideoCallScreen), findsOneWidget);
+      await disposePumpedTree(tester);
 
       final authBlocVideoFallback = _TestAuthBloc(
         buildState(status: AuthStatus.authenticated, user: buildUser()),
@@ -892,7 +1099,69 @@ void main() {
         settle: false,
       );
       await tester.pump();
-      expect(drainRouterTestExceptions(tester), isNotNull);
+      drainRouterTestExceptions(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await disposePumpedTree(tester);
+    });
+
+    testWidgets('main app route page-builder branches execute', (tester) async {
+      final authRepository = _NoopAuthRepository();
+      final initialAuthState = buildState(
+        status: AuthStatus.authenticated,
+        user: buildUser(),
+      );
+
+      Future<void> assertRouteWidget({
+        required String route,
+        Type? widgetType,
+        Object? extra,
+      }) async {
+        final authBloc = _TestAuthBloc(initialAuthState);
+        await pumpRouterApp(
+          tester,
+          authBloc: authBloc,
+          authRepository: authRepository,
+          initialRoute: route,
+          routeExtra: extra,
+          settle: false,
+        );
+        await tester.pump();
+        drainRouterTestExceptions(tester);
+        if (widgetType != null) {
+          expect(find.byType(widgetType), findsOneWidget);
+        }
+        await disposePumpedTree(tester);
+      }
+
+      await assertRouteWidget(
+        route: CrushRoutes.call,
+        extra: const CallScreenArgs(
+          matchId: 'route-match-1',
+          isVideoCall: true,
+          matchName: 'Route Match',
+          matchPhotoUrl: 'https://example.com/match.jpg',
+        ),
+      );
+      await assertRouteWidget(
+        route: CrushRoutes.callHistory,
+        widgetType: CallHistoryScreen,
+      );
+      await assertRouteWidget(route: CrushRoutes.notificationCenter);
+      await assertRouteWidget(route: CrushRoutes.likesYou);
+      await assertRouteWidget(route: CrushRoutes.weeklyPicks);
+      await assertRouteWidget(
+        route: CrushRoutes.compatibilityQuiz,
+        extra: const <String, String>{'matchId': 'route-quiz-1'},
+      );
+      await assertRouteWidget(route: CrushRoutes.profileInsights);
+      await assertRouteWidget(
+        route: CrushRoutes.profile,
+        widgetType: ProfileViewScreen,
+      );
+      await assertRouteWidget(
+        route: CrushRoutes.profileEdit,
+        widgetType: ProfileEditScreen,
+      );
     });
 
     testWidgets('additional protected route pageBuilder branches execute', (
@@ -906,7 +1175,7 @@ void main() {
         SubscriptionBloc? subscriptionBloc,
       }) async {
         final discoveryRepository = _NoopDiscoveryRepository();
-        final chatRepository = _NoopChatRepository();
+        final chatRepository = StubChatRepository();
         SharedPreferences.setMockInitialValues(<String, Object>{});
         final preferences = await SharedPreferences.getInstance();
         final safetyCubit = SafetyCubit(
@@ -941,6 +1210,7 @@ void main() {
         drainRouterTestExceptions(tester);
         await tester.pump(const Duration(milliseconds: 50));
         drainRouterTestExceptions(tester);
+        await disposePumpedTree(tester);
       }
 
       await smokeRoute(route: CrushRoutes.messageRequests);
@@ -1017,7 +1287,10 @@ void main() {
         ),
       ]);
       await tester.pump();
+      expect(drainRouterTestExceptions(tester), isNull);
+      await pumpRouterSettled(tester, maxPumps: 30);
       drainRouterTestExceptions(tester);
+      await disposePumpedTree(tester);
     });
   });
 }
@@ -1106,6 +1379,317 @@ class _TestSubscriptionBloc extends SubscriptionBloc {
       const Stream<SubscriptionState>.empty();
 }
 
+class _NoopCallManagerRepository implements CallManagerRepository {
+  static const _stateStream = Stream<CallUIState>.empty();
+  static const _callStream = Stream<Call>.empty();
+
+  @override
+  Stream<Call> get callStream => _callStream;
+
+  @override
+  Stream<CallUIState> get callStateStream => _stateStream;
+
+  @override
+  Stream<Call> get missedCallStream => _callStream;
+
+  @override
+  Call? get activeCall => null;
+
+  @override
+  bool get hasActiveCall => false;
+
+  @override
+  bool get isMuted => false;
+
+  @override
+  bool get isSpeakerOn => false;
+
+  @override
+  bool get isVideoEnabled => true;
+
+  @override
+  bool get isFrontCamera => true;
+
+  @override
+  Future<Call> initiateCall({
+    required String callerId,
+    required String receiverId,
+    required CallType type,
+    String? callerName,
+    String? receiverName,
+    String? callerPhotoUrl,
+    String? receiverPhotoUrl,
+  }) async {
+    return Call(
+      id: 'noop-call',
+      callerId: callerId,
+      receiverId: receiverId,
+      type: type,
+      status: CallStatus.ringing,
+      createdAt: DateTime(2026, 1, 1),
+      callerName: callerName,
+      receiverName: receiverName,
+      callerPhotoUrl: callerPhotoUrl,
+      receiverPhotoUrl: receiverPhotoUrl,
+    );
+  }
+
+  @override
+  Future<void> acceptCall({CallType? asType}) async {}
+
+  @override
+  Future<void> declineCall() async {}
+
+  @override
+  Future<void> endCall() async {}
+
+  @override
+  void toggleMute() {}
+
+  @override
+  void toggleSpeaker() {}
+
+  @override
+  void toggleVideo() {}
+
+  @override
+  void switchCamera() {}
+
+  @override
+  void handleIncomingCall(Call incomingCall) {}
+
+  @override
+  Future<List<Call>> getCallHistory(
+    String userId, {
+    int limit = 20,
+    DateTime? before,
+  }) async => const [];
+
+  @override
+  void dispose() {}
+}
+
+class _NoopBoostRepository implements BoostRepository {
+  @override
+  Future<BoostStatus> getBoostStatus(String userId) async =>
+      const BoostStatus(canBoost: false, nextBoostAvailableAt: null);
+
+  @override
+  Future<BoostSession> activateBoost(String userId) async => BoostSession(
+    startedAt: DateTime(2026, 1, 1),
+    endsAt: DateTime(2026, 1, 1, 0, 30),
+    isActive: true,
+  );
+
+  @override
+  Future<List<BoostSession>> getBoostHistory(String userId) async => const [];
+}
+
+class _NoopDateIdeaRepository implements DateIdeaRepository {
+  @override
+  Stream<List<DateIdea>> get ideasStream =>
+      const Stream<List<DateIdea>>.empty();
+
+  @override
+  List<DateIdea> get savedIdeas => const [];
+
+  @override
+  List<DateIdea> get suggestedIdeas => const [];
+
+  @override
+  List<DateIdea> getAllIdeas() => const [];
+
+  @override
+  List<DateIdea> getIdeasByCategory(DateCategory category) => const [];
+
+  @override
+  List<DateIdea> getIdeasForDateType(DateType type) => const [];
+
+  @override
+  List<DateIdea> getIdeasByBudget(DateCostLevel maxCost) => const [];
+
+  @override
+  List<DateIdea> getRandomSuggestions(int count) => const [];
+
+  @override
+  Future<List<DateIdea>> getPersonalizedSuggestions({
+    DateType? dateType,
+    DateCostLevel? maxBudget,
+    List<DateCategory>? preferredCategories,
+    Season? currentSeason,
+    int count = 5,
+  }) async => const [];
+
+  @override
+  Future<void> saveIdea(DateIdea idea) async {}
+
+  @override
+  Future<void> removeSavedIdea(String ideaId) async {}
+
+  @override
+  bool isIdeaSaved(String ideaId) => false;
+
+  @override
+  Future<void> sendIdeaToMatch({
+    required String matchId,
+    required DateIdea idea,
+    String? personalMessage,
+  }) async {}
+
+  @override
+  Season getCurrentSeason() => Season.spring;
+
+  @override
+  List<DateIdea> searchIdeas(String query) => const [];
+
+  @override
+  void clearUserData() {}
+
+  @override
+  void dispose() {}
+}
+
+class _NoopCompatibilityQuizRepository implements CompatibilityQuizRepository {
+  static const _emptyQuizStream = Stream<CompatibilityQuiz>.empty();
+  static const _emptyResultStream = Stream<QuizResult>.empty();
+
+  @override
+  Stream<CompatibilityQuiz> get quizStream => _emptyQuizStream;
+
+  @override
+  Stream<QuizResult> get resultStream => _emptyResultStream;
+
+  @override
+  List<CompatibilityQuiz> getAllQuizzes() => const [];
+
+  @override
+  CompatibilityQuiz? getQuiz(String quizId) => null;
+
+  @override
+  Future<CompatibilityQuiz> startQuiz({
+    required String quizId,
+    required String matchId,
+  }) async {
+    return const CompatibilityQuiz(
+      id: 'basic_compatibility',
+      title: 'Compatibility Quiz',
+      description: 'Quick compatibility check',
+      questions: [
+        QuizQuestion(
+          id: 'q1',
+          question: 'Pick one',
+          options: [QuizOption(id: 'o1', text: 'Option 1')],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> submitAnswer({
+    required String matchId,
+    required String questionId,
+    required String optionId,
+  }) async {}
+
+  @override
+  Future<QuizResult> completeQuiz({
+    required String quizId,
+    required String matchId,
+    required String user1Id,
+    required String user2Id,
+    required Map<String, String> user1Answers,
+    required Map<String, String> user2Answers,
+  }) async {
+    return QuizResult(
+      quizId: quizId,
+      user1Id: user1Id,
+      user2Id: user2Id,
+      user1Answers: user1Answers,
+      user2Answers: user2Answers,
+      completedAt: DateTime(2026, 1, 1),
+      overallScore: 0,
+    );
+  }
+
+  @override
+  QuizResult? getResult(String matchId, String quizId) => null;
+
+  @override
+  List<QuizResult> getAllResultsForMatch(String matchId) => const [];
+
+  @override
+  Future<void> inviteToQuiz({
+    required String matchId,
+    required String quizId,
+    String? message,
+  }) async {}
+
+  @override
+  void clearUserData() {}
+
+  @override
+  void dispose() {}
+}
+
+class _NoopStoryRepository implements StoryRepository {
+  @override
+  Stream<StoryUpdate> get storyUpdates => const Stream<StoryUpdate>.empty();
+
+  @override
+  void initialize() {}
+
+  @override
+  void dispose() {}
+
+  @override
+  List<ProfileStory> getStoriesForUser(String userId) => const [];
+
+  @override
+  bool hasActiveStories(String userId) => false;
+
+  @override
+  int getActiveStoryCount(String userId) => 0;
+
+  @override
+  Future<ProfileStory> addStory({
+    required String userId,
+    required String mediaUrl,
+    required StoryMediaType mediaType,
+    String? thumbnailUrl,
+    Duration? customDuration,
+  }) async {
+    return ProfileStory(
+      id: 'story',
+      userId: userId,
+      mediaUrl: mediaUrl,
+      mediaType: mediaType,
+      createdAt: DateTime(2026, 1, 1),
+      thumbnailUrl: thumbnailUrl,
+    );
+  }
+
+  @override
+  Future<void> removeStory({
+    required String userId,
+    required String storyId,
+  }) async {}
+
+  @override
+  Future<void> viewStory({
+    required String storyId,
+    required String viewerId,
+  }) async {}
+
+  @override
+  List<String> getUsersWithActiveStories() => const [];
+
+  @override
+  void forceCleanup() {}
+
+  @override
+  void addMockStories() {}
+}
+
 const _testPreferences = DiscoveryPreferences(
   minAge: 18,
   maxAge: 50,
@@ -1176,7 +1760,7 @@ class _NoopDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
-  }) async => const [];
+  }) async => [_testProfile('deck-$userId')];
 
   @override
   Future<CrushMatch?> swipeRight({
@@ -1218,18 +1802,7 @@ class _NoopDiscoveryRepository implements DiscoveryRepository {
   }
 }
 
-class _NoopChatRepository implements ChatRepository {
-  @override
-  Future<List<MessageRequest>> fetchMessageRequests(String userId) async =>
-      const [];
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-}
-
-class _TestDiscoveryRepository implements DiscoveryRepository {
+class _TestDiscoveryRepository extends _NoopDiscoveryRepository {
   _TestDiscoveryRepository({
     required this.fetchMatchesHandler,
     required this.fetchProfileByIdHandler,
@@ -1239,6 +1812,12 @@ class _TestDiscoveryRepository implements DiscoveryRepository {
   final Future<Profile?> Function(String profileId) fetchProfileByIdHandler;
 
   @override
+  Future<List<Profile>> fetchDeck(
+    String userId, {
+    DiscoveryFilter filter = const DiscoveryFilter(),
+  }) async => [_testProfile('deck-$userId')];
+
+  @override
   Future<List<CrushMatch>> fetchMatches(String userId) {
     return fetchMatchesHandler(userId);
   }
@@ -1246,10 +1825,5 @@ class _TestDiscoveryRepository implements DiscoveryRepository {
   @override
   Future<Profile?> fetchProfileById(String profileId) {
     return fetchProfileByIdHandler(profileId);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
   }
 }

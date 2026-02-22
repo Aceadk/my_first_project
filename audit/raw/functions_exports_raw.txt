@@ -1,2 +1,0 @@
-4093:export const stripeWebhook = functions.https.onRequest(async (req, res) => {
-5677:export const api = functions.https.onRequest(app);

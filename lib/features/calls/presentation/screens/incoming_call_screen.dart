@@ -376,24 +376,26 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               PositionedDirectional(
                 start: outerPadding + offset,
                 top: outerPadding,
-                child: GestureDetector(
-                  key: const Key('incoming_slide_knob'),
-                  onHorizontalDragUpdate: (details) {
-                    _onSlideUpdate(details.delta.dx, maxOffset);
-                  },
-                  onHorizontalDragEnd: (_) => _onSlideEnd(selectedType),
-                  child: Container(
-                    width: knobSize,
-                    height: knobSize,
-                    decoration: const BoxDecoration(
-                      color: DsColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.chevron_right_rounded,
-                      color: DsColors.surfaceLight,
-                      size: 34,
+                child: Semantics(
+                  child: GestureDetector(
+                    key: const Key('incoming_slide_knob'),
+                    onHorizontalDragUpdate: (details) {
+                      _onSlideUpdate(details.delta.dx, maxOffset);
+                    },
+                    onHorizontalDragEnd: (_) => _onSlideEnd(selectedType),
+                    child: Container(
+                      width: knobSize,
+                      height: knobSize,
+                      decoration: const BoxDecoration(
+                        color: DsColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: DsColors.surfaceLight,
+                        size: 34,
+                      ),
                     ),
                   ),
                 ),

@@ -9,6 +9,7 @@ import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class AccountSecuritySettingsScreen extends StatefulWidget {
   const AccountSecuritySettingsScreen({super.key});
@@ -181,7 +182,7 @@ class _AccountSecuritySettingsScreenState
     ].where((v) => v).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Account Security')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).accountSecurity)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -200,8 +201,8 @@ class _AccountSecuritySettingsScreenState
                         DsColors.success.withValues(alpha: 0.1),
                         DsColors.accent.withValues(alpha: 0.1),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -507,9 +508,11 @@ class _AccountSecuritySettingsScreenState
                       ? () {
                           if (linkedRecoveryCount <= 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Cannot unlink the last recovery method. Add another provider first.',
+                                  AppLocalizations.of(
+                                    context,
+                                  ).cannotUnlinkTheLastRecovery,
                                 ),
                               ),
                             );
@@ -540,9 +543,11 @@ class _AccountSecuritySettingsScreenState
                       ? () {
                           if (linkedRecoveryCount <= 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Cannot unlink the last recovery method. Add another provider first.',
+                                  AppLocalizations.of(
+                                    context,
+                                  ).cannotUnlinkTheLastRecovery,
                                 ),
                               ),
                             );
@@ -742,7 +747,7 @@ class _LinkedAccountTile extends StatelessWidget {
           if (isLinked && onUnlink != null)
             TextButton(
               onPressed: isBusy ? null : onUnlink,
-              child: const Text('Unlink'),
+              child: Text(AppLocalizations.of(context).unlink),
             ),
         ],
       ),

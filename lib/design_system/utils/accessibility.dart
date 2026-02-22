@@ -373,10 +373,13 @@ class SemanticButton extends StatelessWidget {
       enabled: enabled,
       child: ConstrainedBox(
         constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
-        child: GestureDetector(
-          onTap: enabled ? onTap : null,
-          behavior: HitTestBehavior.opaque,
-          child: child,
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: enabled ? onTap : null,
+            behavior: HitTestBehavior.opaque,
+            child: child,
+          ),
         ),
       ),
     );

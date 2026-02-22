@@ -59,6 +59,9 @@ class CertificatePinning {
     return false;
   }
 
+  @visibleForTesting
+  static bool get hasPinsConfiguredForTesting => _hasPinsConfigured;
+
   /// Creates an HTTP client with certificate pinning enabled.
   ///
   /// In debug mode, pinning can be bypassed for development.
@@ -143,6 +146,11 @@ class CertificatePinning {
     return _trustedGoogleDomains.any((domain) => host.endsWith(domain));
   }
 
+  @visibleForTesting
+  static bool isTrustedGoogleDomainForTesting(String host) {
+    return _isTrustedGoogleDomain(host);
+  }
+
   /// Checks if a host requires certificate pinning.
   /// Returns false for trusted Google domains and hosts not in the pinned list.
   static bool _isPinnedHost(String host) {
@@ -153,12 +161,22 @@ class CertificatePinning {
     return _pinnedHosts.any((pinnedHost) => host.endsWith(pinnedHost));
   }
 
+  @visibleForTesting
+  static bool isPinnedHostForTesting(String host) {
+    return _isPinnedHost(host);
+  }
+
   /// Gets the expected fingerprints for a host.
   static List<String> _getFingerprintsForHost(String host) {
     if (host.contains('staging')) {
       return _stagingFingerprints;
     }
     return _productionFingerprints;
+  }
+
+  @visibleForTesting
+  static List<String> fingerprintsForHostForTesting(String host) {
+    return _getFingerprintsForHost(host);
   }
 
   /// Computes the SHA-256 fingerprint of a certificate.
@@ -171,6 +189,23 @@ class CertificatePinning {
       AppLogger.error('CertificatePinning: Error computing fingerprint: $e');
       return null;
     }
+  }
+
+  @visibleForTesting
+  static String? certificateFingerprintForTesting(X509Certificate cert) {
+    return _getCertificateFingerprint(cert);
+  }
+
+  @visibleForTesting
+  static bool validateFingerprintForTesting({
+    required X509Certificate cert,
+    required List<String> expectedFingerprints,
+  }) {
+    final fingerprint = _getCertificateFingerprint(cert);
+    if (fingerprint == null) {
+      return false;
+    }
+    return expectedFingerprints.contains(fingerprint);
   }
 
   /// Validates a certificate fingerprint manually.

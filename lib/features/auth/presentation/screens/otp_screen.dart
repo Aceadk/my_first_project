@@ -10,6 +10,7 @@ import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
 import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -50,7 +51,7 @@ class _OtpScreenState extends State<OtpScreen> {
         widget.phoneNumber;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify OTP')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).verifyOtp)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -128,7 +129,7 @@ class _OtpScreenState extends State<OtpScreen> {
                               : () => context.read<AuthBloc>().add(
                                   AuthOtpResendRequested(currentPhone),
                                 ),
-                          child: const Text('Resend code'),
+                          child: Text(AppLocalizations.of(context).resendCode),
                         ),
                       ),
                     ],

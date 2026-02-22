@@ -53,8 +53,8 @@ class DsLuxuryGradients {
   DsLuxuryGradients._();
 
   static const LinearGradient goldSheen = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       DsLuxuryColors.goldDark,
       DsLuxuryColors.goldPrimary,
@@ -63,8 +63,8 @@ class DsLuxuryGradients {
   );
 
   static const LinearGradient premiumBadge = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       DsLuxuryColors.goldDark,
       DsLuxuryColors.goldPrimary,
@@ -119,8 +119,8 @@ class DsLuxuryModernGradients {
   DsLuxuryModernGradients._();
 
   static const LinearGradient goldSheen = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       DsLuxuryModernColors.goldDark,
       DsLuxuryModernColors.goldPrimary,
@@ -129,8 +129,8 @@ class DsLuxuryModernGradients {
   );
 
   static const LinearGradient premiumBadge = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       DsLuxuryModernColors.goldDark,
       DsLuxuryModernColors.goldPrimary,

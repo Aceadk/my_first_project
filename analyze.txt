@@ -1,0 +1,9 @@
+Waiting for another flutter command to release the startup lock...
+Analyzing my_first_project...                                   
+
+   info • Don't use 'BuildContext's across async gaps • lib/features/chat/presentation/widgets/chat_attachment_tile.dart:90:45 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/features/profile/presentation/widgets/profile_media_picker.dart:188:19 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/features/profile/presentation/widgets/profile_media_picker.dart:192:40 • use_build_context_synchronously
+warning • Unused import: 'package:crushhour/data/models/message_request.dart' • test/router_create_router_test.dart:14:8 • unused_import
+
+4 issues found. (ran in 96.0s)

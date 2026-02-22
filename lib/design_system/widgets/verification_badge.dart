@@ -176,8 +176,8 @@ class DsVerificationPrompt extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
             colors: [
               color.withValues(alpha: isDark ? 0.15 : 0.08),
               DsColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),

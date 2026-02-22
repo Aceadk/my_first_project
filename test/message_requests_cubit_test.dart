@@ -721,10 +721,7 @@ void main() {
 
       final errorState = states.last;
       expect(errorState.actionStatus, RequestActionStatus.error);
-      expect(
-        errorState.actionErrorMessage,
-        contains('Could not accept request'),
-      );
+      expect(errorState.actionErrorMessage, contains('Something went wrong'));
 
       await sub.cancel();
     });

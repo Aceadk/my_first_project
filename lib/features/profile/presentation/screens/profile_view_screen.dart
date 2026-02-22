@@ -12,6 +12,7 @@ import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -262,7 +263,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                     onPressed: () =>
                                         context.push(CrushRoutes.profileEdit),
                                     icon: const Icon(Icons.edit, size: 18),
-                                    label: const Text('Edit'),
+                                    label: Text(
+                                      AppLocalizations.of(context).edit,
+                                    ),
                                     style: FilledButton.styleFrom(
                                       backgroundColor: DsColors.primary,
                                     ),

@@ -6,6 +6,7 @@ import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart'
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class LanguageRegionSettingsScreen extends StatelessWidget {
   const LanguageRegionSettingsScreen({super.key});
@@ -33,8 +34,12 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                 } else if (!localeState.isDetecting &&
                     localeState.errorMessage == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Region updated from device location.'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).regionUpdatedFromDeviceLocation,
+                      ),
                     ),
                   );
                 }
@@ -53,8 +58,8 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                             DsColors.secondary.withValues(alpha: 0.1),
                             DsColors.primary.withValues(alpha: 0.1),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -101,7 +106,9 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                     // Use device language
                     SwitchListTile(
                       secondary: const Icon(Icons.smartphone),
-                      title: const Text('Use device language'),
+                      title: Text(
+                        AppLocalizations.of(context).useDeviceLanguage,
+                      ),
                       subtitle: Text(
                         localeState.useDeviceLocale
                             ? 'Following system language'
@@ -149,7 +156,11 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
                     ListTile(
                       leading: const Icon(Icons.my_location),
                       title: Text(context.l10n.settingsDetectRegion),
-                      subtitle: const Text('Detect your region automatically'),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).detectYourRegionAutomatically,
+                      ),
                       trailing: localeState.isDetecting
                           ? const SizedBox(
                               width: 20,
@@ -370,7 +381,7 @@ class LanguageRegionSettingsScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Set region'),
+          title: Text(AppLocalizations.of(context).setRegion),
           content: TextField(
             controller: controller,
             decoration: const InputDecoration(

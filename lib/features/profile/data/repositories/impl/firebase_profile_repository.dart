@@ -1,16 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/models/privacy_settings.dart';
-import 'package:crushhour/data/models/profile_prompt.dart';
-import 'package:crushhour/data/models/favourites.dart';
-import 'package:crushhour/data/models/chat_settings.dart';
-import '../profile_repository.dart';
-import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/chat_settings.dart';
+import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../profile_repository.dart';
 
 /// Firebase implementation of ProfileRepository.
 class FirebaseProfileRepository implements ProfileRepository {
@@ -485,6 +487,110 @@ class FirebaseProfileRepository implements ProfileRepository {
     AppLogger.info('[FirebaseProfileRepo] skipProfileSetup');
 
     return (await getCurrentUser())!;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async {
+    return Result.guard(
+      () => saveBasicInfo(
+        username: username,
+        name: name,
+        lastName: lastName,
+        age: age,
+        gender: gender,
+        sexualOrientation: sexualOrientation,
+        dateOfBirth: dateOfBirth,
+        showFirstName: showFirstName,
+        showLastName: showLastName,
+      ),
+      logLabel: 'FirebaseProfileRepository.saveBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async {
+    return Result.guard(
+      () => saveProfileDetails(
+        bio: bio,
+        photoUrls: photoUrls,
+        videoUrls: videoUrls,
+        jobTitle: jobTitle,
+        company: company,
+        school: school,
+        interests: interests,
+        prompts: prompts,
+        city: city,
+        country: country,
+        favourites: favourites,
+        showMeGenders: showMeGenders,
+        latitude: latitude,
+        longitude: longitude,
+      ),
+      logLabel: 'FirebaseProfileRepository.saveProfileDetailsResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async {
+    return Result.guard(
+      () => markIdVerified(),
+      logLabel: 'FirebaseProfileRepository.markIdVerifiedResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async {
+    return Result.guard(
+      () => updateProfile(profile),
+      logLabel: 'FirebaseProfileRepository.updateProfileResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async {
+    return Result.guard(
+      () => skipBasicInfo(username: username),
+      logLabel: 'FirebaseProfileRepository.skipBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async {
+    return Result.guard(
+      () => skipProfileSetup(),
+      logLabel: 'FirebaseProfileRepository.skipProfileSetupResult',
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

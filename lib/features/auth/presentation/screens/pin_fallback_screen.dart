@@ -211,15 +211,18 @@ class _PinFallbackScreenState extends State<PinFallbackScreen> {
                   ),
                 ),
                 // Tap to focus the keyboard
-                GestureDetector(
-                  onTap: () => _focusNode.requestFocus(),
-                  child: Text(
-                    'Tap here to show keyboard',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
+                Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    onTap: () => _focusNode.requestFocus(),
+                    child: Text(
+                      'Tap here to show keyboard',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
                     ),
                   ),
                 ),

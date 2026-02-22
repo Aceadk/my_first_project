@@ -4014,4 +4014,705 @@ class AppLocalizationsYue extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get callHistory => 'Call History';
+
+  @override
+  String get unableToLoadMoreCall => 'Unable to load more call history.';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get reportDetails => 'Report details';
+
+  @override
+  String get viewCommunityGuidelines => 'View community guidelines';
+
+  @override
+  String get reportsAreAnonymousAndReviewed =>
+      'Reports are anonymous and reviewed by our team.';
+
+  @override
+  String get signInAgainToManage => 'Sign in again to manage safety actions.';
+
+  @override
+  String get blockUser => 'Block user';
+
+  @override
+  String get reportUser => 'Report user';
+
+  @override
+  String get iFeltSafe => 'I felt safe';
+
+  @override
+  String get connectionUnstableRecoveredWithReduced =>
+      'Connection unstable. Recovered with reduced quality.';
+
+  @override
+  String get networkIsWeakSwitchedTo =>
+      'Network is weak. Switched to audio-only mode.';
+
+  @override
+  String get screenRecordingStopped => 'Screen recording stopped.';
+
+  @override
+  String get screenRecordingDetectedTheOther =>
+      'Screen recording detected. The other person was notified.';
+
+  @override
+  String get screenshotDetectedTheOtherPerson =>
+      'Screenshot detected. The other person was notified.';
+
+  @override
+  String get viewSafetyGuidelines => 'View safety guidelines';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get resetPreview => 'Reset preview';
+
+  @override
+  String get upgrade => 'Upgrade';
+
+  @override
+  String get appearanceThemes => 'Appearance & Themes';
+
+  @override
+  String get darkLuxuryThemesAreA =>
+      'Dark Luxury themes are a Plus feature. Upgrade to unlock them.';
+
+  @override
+  String get endTime => 'End time';
+
+  @override
+  String get startTime => 'Start time';
+
+  @override
+  String get unlink => 'Unlink';
+
+  @override
+  String get cannotUnlinkTheLastRecovery =>
+      'Cannot unlink the last recovery method. Add another provider first.';
+
+  @override
+  String get accountSecurity => 'Account Security';
+
+  @override
+  String get enableIncognito => 'Enable Incognito';
+
+  @override
+  String get turnOffIncognito => 'Turn off Incognito';
+
+  @override
+  String get pricing => 'Pricing';
+
+  @override
+  String get features => 'Features';
+
+  @override
+  String get safety => 'Safety';
+
+  @override
+  String get communityGuidelines => 'Community Guidelines';
+
+  @override
+  String get promoCode => 'Promo code';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get resetToDefaults => 'Reset to defaults';
+
+  @override
+  String get makeAllPrivate => 'Make all private';
+
+  @override
+  String get makeAllPublic => 'Make all public';
+
+  @override
+  String get openEmail => 'Open Email';
+
+  @override
+  String get ourRulesAndStandards => 'Our rules and standards';
+
+  @override
+  String get browseArticlesAndGuides => 'Browse articles and guides';
+
+  @override
+  String get helpCenter => 'Help Center';
+
+  @override
+  String get emailSupport => 'Email Support';
+
+  @override
+  String get helpSupport => 'Help & Support';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get onlySeeVerifiedProfiles => 'Only see verified profiles';
+
+  @override
+  String get verifiedProfilesOnly => 'Verified profiles only';
+
+  @override
+  String get upgradeToPlus => 'Upgrade to Plus';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get editInterests => 'Edit interests';
+
+  @override
+  String get turnOffToHideYour => 'Turn off to hide your profile';
+
+  @override
+  String get showMeInDiscovery => 'Show me in discovery';
+
+  @override
+  String get displayHowFarAwayYou => 'Display how far away you are';
+
+  @override
+  String get showMyDistance => 'Show my distance';
+
+  @override
+  String get myInterests => 'My interests';
+
+  @override
+  String get discoveryFilters => 'Discovery & Filters';
+
+  @override
+  String get keepMessagesFor24Hours => 'Keep messages for 24 hours';
+
+  @override
+  String get chatSettings => 'Chat Settings';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get finalConfirmation => 'Final confirmation';
+
+  @override
+  String get requestExport => 'Request Export';
+
+  @override
+  String get beforeDeletionYouCanRequest =>
+      'Before deletion, you can request a full data export for your records.';
+
+  @override
+  String get downloadYourDataFirst => 'Download your data first?';
+
+  @override
+  String get youWillLose => 'You will lose:';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get whenYouDeactivateYourAccount =>
+      'When you deactivate your account:';
+
+  @override
+  String get deactivateAccount => 'Deactivate Account';
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get shareExport => 'Share Export';
+
+  @override
+  String get yourDataExportHasBeen =>
+      'Your data export has been generated successfully. Would you like to share/download it now?';
+
+  @override
+  String get exportReady => 'Export Ready';
+
+  @override
+  String get preparingYourExport => 'Preparing your export';
+
+  @override
+  String get yourExportIncludesProfilePhotos =>
+      'Your export includes profile, photos, likes, matches, messages, and preferences.';
+
+  @override
+  String get requestDataExport => 'Request Data Export';
+
+  @override
+  String get permanentlyRemoveYourAccount => 'Permanently remove your account';
+
+  @override
+  String get accountActions => 'Account Actions';
+
+  @override
+  String get setRegion => 'Set region';
+
+  @override
+  String get detectYourRegionAutomatically =>
+      'Detect your region automatically';
+
+  @override
+  String get useDeviceLanguage => 'Use device language';
+
+  @override
+  String get regionUpdatedFromDeviceLocation =>
+      'Region updated from device location.';
+
+  @override
+  String get comparePlanBenefits => 'Compare plan benefits';
+
+  @override
+  String get planDetailsAndPricing => 'Plan details and pricing';
+
+  @override
+  String get restorePurchases => 'Restore purchases';
+
+  @override
+  String get billingHelp => 'Billing help';
+
+  @override
+  String get refreshSubscriptionStatus => 'Refresh subscription status';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get clearCacheNow => 'Clear cache now';
+
+  @override
+  String get cacheClearedSuccessfully => 'Cache cleared successfully.';
+
+  @override
+  String get avoidUsingMobileDataFor => 'Avoid using mobile data for media';
+
+  @override
+  String get wifiOnly => 'Wi-Fi only';
+
+  @override
+  String get autodownloadMedia => 'Auto-download media';
+
+  @override
+  String get dataStorage => 'Data & Storage';
+
+  @override
+  String get unmatch => 'Unmatch';
+
+  @override
+  String get unmatch1 => 'Unmatch?';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get startAudioCall => 'Start audio call';
+
+  @override
+  String get enable => 'Enable';
+
+  @override
+  String get mediaSendingIsDisabledFor =>
+      'Media sending is disabled for this match. Enable it from the toolbar to share photos, videos, or audio.';
+
+  @override
+  String get unmute => 'Unmute';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get verifyYourIdToAdd =>
+      'Verify your ID to add a trust badge to your messages and matches.';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get declineRequest => 'Decline request?';
+
+  @override
+  String get signInToViewMessage => 'Sign in to view message requests.';
+
+  @override
+  String get signInToViewYour => 'Sign in to view your chats.';
+
+  @override
+  String get tryPlusIntroOffer => 'Try Plus intro offer';
+
+  @override
+  String get backToDeck => 'Back to deck';
+
+  @override
+  String get maybeLater => 'Maybe Later';
+
+  @override
+  String get signInToViewYour1 => 'Sign in to view your matches.';
+
+  @override
+  String get imagePendingSafetyScan => 'Image pending safety scan…';
+
+  @override
+  String get openSafetyCenter => 'Open Safety Center';
+
+  @override
+  String get viewProfile => 'View Profile';
+
+  @override
+  String get showDifferentSuggestions => 'Show different suggestions';
+
+  @override
+  String get messageCopiedWillClearIn =>
+      'Message copied — will clear in 60 seconds';
+
+  @override
+  String get copyText => 'Copy text';
+
+  @override
+  String get deleteForMe => 'Delete for me';
+
+  @override
+  String get unsendPlus => 'Unsend (Plus)';
+
+  @override
+  String get editPlus => 'Edit (Plus)';
+
+  @override
+  String get removeMyReaction => 'Remove my reaction';
+
+  @override
+  String get editMessage => 'Edit message';
+
+  @override
+  String get couldNotOpenAttachment => 'Could not open attachment.';
+
+  @override
+  String get mediaSavedLocallyOnYour => 'Media saved locally on your device.';
+
+  @override
+  String get grant => 'Grant';
+
+  @override
+  String get microphonePermissionRequired => 'Microphone permission required';
+
+  @override
+  String get recordingTooShortMinimum1 =>
+      'Recording too short (minimum 1 second)';
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String get useEmailInstead => 'Use email instead';
+
+  @override
+  String get signUpWithPhone => 'Sign up with phone';
+
+  @override
+  String get logOut => 'Log out';
+
+  @override
+  String get signUpWithEmailInstead => 'Sign up with email instead';
+
+  @override
+  String get sendCode => 'Send Code';
+
+  @override
+  String get openEmailApp => 'Open Email App';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get yesIAm18 => 'Yes, I am 18+';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get usePhoneNumberInstead => 'Use phone number instead';
+
+  @override
+  String get signInWithEmail => 'Sign in with email';
+
+  @override
+  String get useDifferentEmail => 'Use Different Email';
+
+  @override
+  String get emptyString => ' • ';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get backToSignIn => 'Back to Sign In';
+
+  @override
+  String get selectExistingPhoto => 'Select existing photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get useCameraToCaptureId => 'Use camera to capture ID';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get removePhoneNumber => 'Remove Phone Number?';
+
+  @override
+  String get removePhoneNumber1 => 'Remove Phone Number';
+
+  @override
+  String get continueAnyway => 'Continue Anyway';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get verifyOtp => 'Verify OTP';
+
+  @override
+  String get termsConditions => 'Terms & Conditions';
+
+  @override
+  String get crush => 'Crush';
+
+  @override
+  String get like => 'Like';
+
+  @override
+  String get pass => 'Pass';
+
+  @override
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get weWillReviewAndMay =>
+      'We will review and may limit accounts that violate guidelines.';
+
+  @override
+  String get maybeLater1 => 'Maybe later';
+
+  @override
+  String get completeProfile => 'Complete profile';
+
+  @override
+  String get completeYourProfile => 'Complete your profile';
+
+  @override
+  String get verifyNow => 'Verify now';
+
+  @override
+  String get pleaseVerifyYourEmailOr =>
+      'Please verify your email or phone number to start swiping and matching with others.';
+
+  @override
+  String get verifyYourAccount => 'Verify your account';
+
+  @override
+  String get refreshDeck => 'Refresh deck';
+
+  @override
+  String get tryPassportWithPlus => 'Try Passport with Plus';
+
+  @override
+  String get blockHideProfile => 'Block & hide profile';
+
+  @override
+  String get reportProfile => 'Report profile';
+
+  @override
+  String get viewFullProfile => 'View full profile';
+
+  @override
+  String get likeBack => 'Like Back';
+
+  @override
+  String get couldNotPassPleaseTry => 'Could not pass. Please try again.';
+
+  @override
+  String get couldNotLikeBackPlease => 'Could not like back. Please try again.';
+
+  @override
+  String get likesYou => 'Likes You';
+
+  @override
+  String get boostNow => 'Boost Now';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get gotIt => 'Got it!';
+
+  @override
+  String get ideaSent => 'Idea sent!';
+
+  @override
+  String get savedToYourIdeas => 'Saved to your ideas!';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get completeYourProfile1 => 'Complete Your Profile';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get confirmDateOfBirth => 'Confirm Date of Birth';
+
+  @override
+  String get ageNotice => 'Age Notice';
+
+  @override
+  String get changeDateOfBirth => 'Change Date of Birth';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get reportSubmittedThanksForKeeping =>
+      'Report submitted. Thanks for keeping Crush safe!';
+
+  @override
+  String get shareFeatureComingSoon => 'Share feature coming soon';
+
+  @override
+  String get shareProfile => 'Share Profile';
+
+  @override
+  String get report => 'Report';
+
+  @override
+  String get messageRequestSent => 'Message request sent.';
+
+  @override
+  String get liked => 'Liked!';
+
+  @override
+  String get sendMessage => 'Send Message';
+
+  @override
+  String get couldNotLoadVideo => 'Could not load video';
+
+  @override
+  String get noVideosYet => 'No videos yet';
+
+  @override
+  String get photoUnavailable => 'Photo unavailable';
+
+  @override
+  String get noPhotosYet => 'No photos yet';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String photosRejected(int count, String reason) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos rejected: $reason',
+      one: '1 photo rejected: $reason',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photoSlotsAvailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Only $count more photo slots available.',
+      one: 'Only 1 more photo slot available.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyCountStr(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      one: 'Story',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personLikesYou(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people like you',
+      one: '1 person likes you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String blockedUserCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocked users',
+      one: '1 blocked user',
+    );
+    return '$_temp0';
+  }
 }

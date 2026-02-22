@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../config/support_config.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../design_system/widgets/adaptive_dialog.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Customer support screen with help categories, FAQ, and contact options.
 class SupportScreen extends StatefulWidget {
@@ -36,7 +37,7 @@ class _SupportScreenState extends State<SupportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Help & Support'),
+        title: Text(AppLocalizations.of(context).helpSupport),
         actions: [
           IconButton(
             icon: const Icon(Icons.open_in_browser),
@@ -177,7 +178,7 @@ class _SupportScreenState extends State<SupportScreen> {
       children: [
         ListTile(
           leading: const Icon(Icons.email_outlined),
-          title: const Text('Email Support'),
+          title: Text(AppLocalizations.of(context).emailSupport),
           subtitle: const Text(SupportConfig.supportEmail),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showContactSheet(context),
@@ -191,8 +192,8 @@ class _SupportScreenState extends State<SupportScreen> {
         const SizedBox(height: DsSpacing.sm),
         ListTile(
           leading: const Icon(Icons.help_outline),
-          title: const Text('Help Center'),
-          subtitle: const Text('Browse articles and guides'),
+          title: Text(AppLocalizations.of(context).helpCenter),
+          subtitle: Text(AppLocalizations.of(context).browseArticlesAndGuides),
           trailing: const Icon(Icons.open_in_new, size: 18),
           onTap: () => SupportConfig.openHelpCenter(),
           tileColor: isDark
@@ -205,8 +206,8 @@ class _SupportScreenState extends State<SupportScreen> {
         const SizedBox(height: DsSpacing.sm),
         ListTile(
           leading: const Icon(Icons.description_outlined),
-          title: const Text('Community Guidelines'),
-          subtitle: const Text('Our rules and standards'),
+          title: Text(AppLocalizations.of(context).communityGuidelines),
+          subtitle: Text(AppLocalizations.of(context).ourRulesAndStandards),
           trailing: const Icon(Icons.open_in_new, size: 18),
           onTap: () => SupportConfig.openHelpCenter('guidelines'),
           tileColor: isDark
@@ -503,7 +504,7 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
               child: FilledButton.icon(
                 onPressed: _sendSupportEmail,
                 icon: const Icon(Icons.email),
-                label: const Text('Open Email'),
+                label: Text(AppLocalizations.of(context).openEmail),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(0, DsSizes.tapTargetPreferred),
                 ),

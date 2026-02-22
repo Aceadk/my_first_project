@@ -115,6 +115,10 @@ abstract class AuthRepository {
   /// and added to a cooldown list preventing reuse until then.
   Future<void> schedulePhoneDeletion();
 
+  /// Verify the user's current password.
+  /// Used for securing sensitive actions like changing email/phone.
+  Future<void> verifyPassword(String password);
+
   /// Change the user's password.
   /// Requires current password for verification.
   /// Sends notification to email/phone after successful change.
@@ -147,4 +151,31 @@ abstract class AuthRepository {
   /// Refresh the current user from storage/backend.
   /// Used to sync auth state after profile changes.
   Future<CrushUser?> refreshCurrentUser();
+}
+
+/// Optional capability for auth repositories that support Google Sign-In.
+abstract class GoogleSignInAuthRepository {
+  /// Whether Google Sign-In is available on the current platform/runtime.
+  bool get supportsGoogleSignIn;
+
+  Future<CrushUser> signInWithGoogle();
+}
+
+extension AuthRepositoryGoogleSignInX on AuthRepository {
+  /// Whether Google Sign-In is supported by the current backend/platform.
+  bool get supportsGoogleSignIn {
+    final repo = this;
+    return repo is GoogleSignInAuthRepository && repo.supportsGoogleSignIn;
+  }
+
+  /// Sign in with Google if supported.
+  Future<CrushUser> signInWithGoogle() {
+    final repo = this;
+    if (repo is GoogleSignInAuthRepository) {
+      return repo.signInWithGoogle();
+    }
+    throw UnimplementedError(
+      'Google Sign-In is not supported by this auth repository.',
+    );
+  }
 }

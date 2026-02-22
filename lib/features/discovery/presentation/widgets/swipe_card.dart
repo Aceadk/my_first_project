@@ -346,10 +346,13 @@ class _SwipeCardState extends State<SwipeCard> {
                     hint: _currentMediaIndex > 0
                         ? 'Double tap to view previous photo'
                         : 'No previous photo',
-                    child: GestureDetector(
-                      onTap: _goPrevious,
-                      behavior: HitTestBehavior.opaque,
-                      child: const SizedBox.expand(),
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: _goPrevious,
+                        behavior: HitTestBehavior.opaque,
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
                 ),
@@ -362,19 +365,22 @@ class _SwipeCardState extends State<SwipeCard> {
                         : 'View full profile',
                     hint:
                         'Double tap to ${currentMedia?.isVideo == true ? 'toggle video playback' : 'see full profile'}',
-                    child: GestureDetector(
-                      onTap: () {
-                        if (currentMedia?.isVideo == true) {
-                          _toggleVideoPlayPause();
-                        } else {
-                          context.push(
-                            CrushRoutes.profileMedia,
-                            extra: ProfileMediaArgs(profile: profile),
-                          );
-                        }
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: const SizedBox.expand(),
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (currentMedia?.isVideo == true) {
+                            _toggleVideoPlayPause();
+                          } else {
+                            context.push(
+                              CrushRoutes.profileMedia,
+                              extra: ProfileMediaArgs(profile: profile),
+                            );
+                          }
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
                 ),
@@ -386,10 +392,13 @@ class _SwipeCardState extends State<SwipeCard> {
                     hint: _currentMediaIndex < _allMedia.length - 1
                         ? 'Double tap to view next photo'
                         : 'No next photo',
-                    child: GestureDetector(
-                      onTap: _goNext,
-                      behavior: HitTestBehavior.opaque,
-                      child: const SizedBox.expand(),
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: _goNext,
+                        behavior: HitTestBehavior.opaque,
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
                 ),
@@ -460,19 +469,22 @@ class _SwipeCardState extends State<SwipeCard> {
                         Semantics(
                           button: true,
                           label: 'View stories',
-                          child: GestureDetector(
-                            onTap: () {
-                              context.push(
-                                CrushRoutes.storyViewer,
-                                extra: StoryViewerArgs(
-                                  stories: stories,
-                                  profile: profile,
-                                ),
-                              );
-                            },
-                            child: StoryBadge(
-                              storyCount: stories.length,
-                              hasUnseen: false,
+                          child: Semantics(
+                            button: true,
+                            child: GestureDetector(
+                              onTap: () {
+                                context.push(
+                                  CrushRoutes.storyViewer,
+                                  extra: StoryViewerArgs(
+                                    stories: stories,
+                                    profile: profile,
+                                  ),
+                                );
+                              },
+                              child: StoryBadge(
+                                storyCount: stories.length,
+                                hasUnseen: false,
+                              ),
                             ),
                           ),
                         ),
@@ -570,124 +582,133 @@ class _SwipeCardState extends State<SwipeCard> {
                 tablet: 70,
                 desktop: 70,
               ),
-              child: GestureDetector(
-                onTap: () {
-                  context.push(
-                    CrushRoutes.profileMedia,
-                    extra: ProfileMediaArgs(profile: profile),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: DsSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Minimal bio or first prompt - single line for cleaner look
-                      if (profile.profilePrompts.isNotEmpty)
-                        _CompactPromptDisplayClean(
-                          prompt: profile.profilePrompts.first,
-                        )
-                      else if (bio.isNotEmpty &&
-                          bio != 'This member has not added a bio yet.')
-                        Text(
-                          bio,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: DsColors.surfaceLight.withValues(alpha: 0.9),
-                            fontSize: 13,
-                            shadows: [
-                              Shadow(
-                                color: DsColors.ink900.withValues(alpha: 0.8),
-                                blurRadius: 8,
-                                offset: const Offset(0, 1),
+              child: Semantics(
+                button: true,
+                child: GestureDetector(
+                  onTap: () {
+                    context.push(
+                      CrushRoutes.profileMedia,
+                      extra: ProfileMediaArgs(profile: profile),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DsSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Minimal bio or first prompt - single line for cleaner look
+                        if (profile.profilePrompts.isNotEmpty)
+                          _CompactPromptDisplayClean(
+                            prompt: profile.profilePrompts.first,
+                          )
+                        else if (bio.isNotEmpty &&
+                            bio != 'This member has not added a bio yet.')
+                          Text(
+                            bio,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: DsColors.surfaceLight.withValues(
+                                alpha: 0.9,
                               ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: DsSpacing.xs),
-                      // Location and distance row
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: DsColors.surfaceLight.withValues(
-                              alpha: 0.85,
-                            ),
-                            shadows: [
-                              Shadow(
-                                color: DsColors.ink900.withValues(alpha: 0.8),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: DsSpacing.xs / 2),
-                          Flexible(
-                            child: Text(
-                              location.isEmpty
-                                  ? 'Location unavailable'
-                                  : location,
-                              style: TextStyle(
-                                color: DsColors.surfaceLight.withValues(
-                                  alpha: 0.85,
+                              fontSize: 13,
+                              shadows: [
+                                Shadow(
+                                  color: DsColors.ink900.withValues(alpha: 0.8),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 1),
                                 ),
-                                fontSize: 13,
-                                shadows: [
-                                  Shadow(
-                                    color: DsColors.ink900.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                              ],
                             ),
                           ),
-                          // Distance indicator
-                          if (profile.distanceDisplay != null) ...[
-                            const SizedBox(width: DsSpacing.sm),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: DsSpacing.sm,
-                                vertical: DsSpacing.xs / 2,
+                        const SizedBox(height: DsSpacing.xs),
+                        // Location and distance row
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: DsColors.surfaceLight.withValues(
+                                alpha: 0.85,
                               ),
-                              decoration: BoxDecoration(
-                                color: DsColors.primary.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(
-                                  DsRadius.round,
+                              shadows: [
+                                Shadow(
+                                  color: DsColors.ink900.withValues(alpha: 0.8),
+                                  blurRadius: 6,
                                 ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.near_me,
-                                    size: 12,
-                                    color: DsColors.surfaceLight.withValues(
-                                      alpha: 0.95,
-                                    ),
+                              ],
+                            ),
+                            const SizedBox(width: DsSpacing.xs / 2),
+                            Flexible(
+                              child: Text(
+                                location.isEmpty
+                                    ? 'Location unavailable'
+                                    : location,
+                                style: TextStyle(
+                                  color: DsColors.surfaceLight.withValues(
+                                    alpha: 0.85,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    profile.distanceDisplay!,
-                                    style: TextStyle(
+                                  fontSize: 13,
+                                  shadows: [
+                                    Shadow(
+                                      color: DsColors.ink900.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Distance indicator
+                            if (profile.distanceDisplay != null) ...[
+                              const SizedBox(width: DsSpacing.sm),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DsSpacing.sm,
+                                  vertical: DsSpacing.xs / 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: DsColors.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    DsRadius.round,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.near_me,
+                                      size: 12,
                                       color: DsColors.surfaceLight.withValues(
                                         alpha: 0.95,
                                       ),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      profile.distanceDisplay!,
+                                      style: TextStyle(
+                                        color: DsColors.surfaceLight.withValues(
+                                          alpha: 0.95,
+                                        ),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -755,8 +776,8 @@ class _SwipeCardState extends State<SwipeCard> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [DsColors.ink700, DsColors.ink800],
         ),
       ),
@@ -817,7 +838,7 @@ class _MediaProgressIndicators extends StatelessWidget {
                       builder: (context, constraints) {
                         final progress = videoProgress ?? 1.0;
                         return Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: Container(
                             width: constraints.maxWidth * progress,
                             decoration: BoxDecoration(
@@ -859,8 +880,8 @@ class _GlassMediaBadge extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 DsColors.secondary.withValues(alpha: 0.5),
                 DsColors.primary.withValues(alpha: 0.3),

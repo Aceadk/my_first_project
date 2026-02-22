@@ -1,21 +1,25 @@
 import 'dart:async';
 
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/profile_story.dart';
 import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
-import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
+import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
@@ -26,8 +30,10 @@ import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart'
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,6 +41,13 @@ import 'mock/stub_analytics_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  Future<void> settleDeck(WidgetTester tester) async {
+    // DeckScreen contains repeating animations; bounded pumping avoids
+    // pumpAndSettle hanging during full-suite runs.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+  }
 
   setUp(() {
     AnalyticsService.setInstance(StubAnalyticsService());
@@ -110,6 +123,9 @@ void main() {
         providers: [
           RepositoryProvider<AuthRepository>.value(value: authRepo),
           RepositoryProvider<ProfileRepository>.value(value: profileRepo),
+          RepositoryProvider<StoryRepository>.value(
+            value: const _StubStoryRepository(),
+          ),
           RepositoryProvider<SubscriptionRepository>.value(
             value: _StubSubscriptionRepository(),
           ),
@@ -139,15 +155,25 @@ void main() {
               ),
             ),
           ],
-          child: const MaterialApp(home: DeckScreen()),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DeckScreen(),
+          ),
         ),
       ),
     );
 
-    await tester.pumpAndSettle();
+    await settleDeck(tester);
 
     await tester.tap(find.byIcon(Icons.favorite_rounded));
-    await tester.pumpAndSettle();
+    await settleDeck(tester);
 
     expect(find.textContaining('Complete your profile'), findsOneWidget);
   });
@@ -261,6 +287,10 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async {}
 
   @override
+  @override
+  Future<void> verifyPassword(String password) async {}
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -342,6 +372,56 @@ class _StubProfileRepository implements ProfileRepository {
   @override
   Future<CrushUser> skipProfileSetup() async =>
       user.copyWith(hasSkippedProfileSetup: true);
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async => Result.success(user);
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async => Result.success(user);
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async =>
+      Result.success(user);
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async =>
+      Result.success(user.copyWith(profile: profile));
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async => Result.success(
+    user.copyWith(username: username, hasSkippedBasicInfo: true),
+  );
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async =>
+      Result.success(user.copyWith(hasSkippedProfileSetup: true));
 }
 
 class _StubDiscoveryRepository implements DiscoveryRepository {
@@ -676,4 +756,68 @@ class _StubBoostRepository implements BoostRepository {
 
   @override
   Future<List<BoostSession>> getBoostHistory(String userId) async => [];
+}
+
+class _StubStoryRepository implements StoryRepository {
+  const _StubStoryRepository();
+
+  @override
+  Stream<StoryUpdate> get storyUpdates => const Stream.empty();
+
+  @override
+  void initialize() {}
+
+  @override
+  void dispose() {}
+
+  @override
+  List<ProfileStory> getStoriesForUser(String userId) => const [];
+
+  @override
+  bool hasActiveStories(String userId) => false;
+
+  @override
+  int getActiveStoryCount(String userId) => 0;
+
+  @override
+  Future<ProfileStory> addStory({
+    required String userId,
+    required String mediaUrl,
+    required StoryMediaType mediaType,
+    String? thumbnailUrl,
+    Duration? customDuration,
+  }) async {
+    return ProfileStory(
+      id: 'story-$userId',
+      userId: userId,
+      mediaUrl: mediaUrl,
+      mediaType: mediaType,
+      createdAt: DateTime.now(),
+      thumbnailUrl: thumbnailUrl,
+      expiresAt: customDuration == null
+          ? null
+          : DateTime.now().add(customDuration),
+    );
+  }
+
+  @override
+  Future<void> removeStory({
+    required String userId,
+    required String storyId,
+  }) async {}
+
+  @override
+  Future<void> viewStory({
+    required String storyId,
+    required String viewerId,
+  }) async {}
+
+  @override
+  List<String> getUsersWithActiveStories() => const [];
+
+  @override
+  void forceCleanup() {}
+
+  @override
+  void addMockStories() {}
 }

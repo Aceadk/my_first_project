@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
@@ -11,6 +12,7 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
 import 'package:crushhour/features/settings/presentation/screens/account_security_settings_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 void main() {
   Finder tileForProvider(String provider) {
@@ -52,6 +54,14 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: RepositoryProvider<AuthRepository>.value(
           value: repository,
           child: MultiBlocProvider(

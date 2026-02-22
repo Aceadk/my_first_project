@@ -35,6 +35,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ChatScreenArgs {
   final String matchId;
@@ -183,7 +184,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     // Use stored reference instead of context.read() which is unsafe in dispose
-    _chatBloc?.add(ChatClosed(widget.args.matchId, widget.args.currentUserId));
+    final chatBloc = _chatBloc;
+    if (chatBloc != null && !chatBloc.isClosed) {
+      chatBloc.add(ChatClosed(widget.args.matchId, widget.args.currentUserId));
+    }
     _typingTimer?.cancel();
     _verificationBannerTimer?.cancel();
     _scrollController.removeListener(_onScroll);
@@ -279,9 +283,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: DsColors.warning,
                           ),
                           DsGap.smH,
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Verify your ID to add a trust badge to your messages and matches.',
+                              AppLocalizations.of(context).verifyYourIdToAdd,
                             ),
                           ),
                           TextButton(
@@ -289,7 +293,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               _dismissVerificationBanner();
                               context.push(CrushRoutes.idVerification);
                             },
-                            child: const Text('Verify'),
+                            child: Text(AppLocalizations.of(context).verify),
                           ),
                         ],
                       ),
@@ -403,7 +407,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           TextButton(
                             onPressed: () =>
                                 _toggleBlock(context, safety, block: false),
-                            child: const Text('Unblock'),
+                            child: Text(AppLocalizations.of(context).unblock),
                           ),
                         ],
                       ),
@@ -447,7 +451,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           TextButton(
                             onPressed: () => _goToProfileEdit(context),
-                            child: const Text('Finish'),
+                            child: Text(AppLocalizations.of(context).finish),
                           ),
                         ],
                       ),
@@ -486,7 +490,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 );
                               }
                             },
-                            child: const Text('Unmute'),
+                            child: Text(AppLocalizations.of(context).unmute),
                           ),
                         ],
                       ),
@@ -503,14 +507,16 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: DsColors.surfaceLight.withValues(alpha: 0.7),
                           ),
                           DsGap.smH,
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Media sending is disabled for this match. Enable it from the toolbar to share photos, videos, or audio.',
+                              AppLocalizations.of(
+                                context,
+                              ).mediaSendingIsDisabledFor,
                             ),
                           ),
                           TextButton(
                             onPressed: () => _toggleMedia(state),
-                            child: const Text('Enable'),
+                            child: Text(AppLocalizations.of(context).enable),
                           ),
                         ],
                       ),
@@ -540,8 +546,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
                   ChatSendStatusBar(state: state),
-                  if (isOtherTyping)
-                    const TypingIndicator(),
+                  if (isOtherTyping) const TypingIndicator(),
                   ChatInputBar(
                     state: state,
                     isBlocked: isBlocked,
@@ -586,17 +591,17 @@ class _ChatScreenState extends State<ChatScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Start audio call'),
+        title: Text(AppLocalizations.of(context).startAudioCall),
         content: Text('Call ${widget.args.otherName}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             icon: const Icon(Icons.call),
-            label: const Text('Call'),
+            label: Text(AppLocalizations.of(context).call),
           ),
         ],
       ),
@@ -791,18 +796,18 @@ class _ChatScreenState extends State<ChatScreen> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('Unmatch?'),
+            title: Text(AppLocalizations.of(context).unmatch1),
             content: Text(
               'This will remove your match with ${widget.args.otherName}. You will not be able to message unless you match again.',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context).cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Unmatch'),
+                child: Text(AppLocalizations.of(context).unmatch),
               ),
             ],
           ),
@@ -1019,7 +1024,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         // Header
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            20,
+                            8,
+                            20,
+                            16,
+                          ),
                           child: Row(
                             children: [
                               Container(
@@ -1398,11 +1408,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
                   onPressed: () => context.push(CrushRoutes.safetyGuidelines),
                   icon: const Icon(Icons.shield_outlined),
-                  label: const Text('View community guidelines'),
+                  label: Text(
+                    AppLocalizations.of(context).viewCommunityGuidelines,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
@@ -1421,7 +1433,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (dialogContext) {
         final navigator = Navigator.of(dialogContext);
         return AlertDialog(
-          title: const Text('Report details'),
+          title: Text(AppLocalizations.of(context).reportDetails),
           content: TextField(
             controller: controller,
             minLines: 2,
@@ -1433,7 +1445,7 @@ class _ChatScreenState extends State<ChatScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -1455,7 +1467,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
                 navigator.pop();
               },
-              child: const Text('Submit'),
+              child: Text(AppLocalizations.of(context).submit),
             ),
           ],
         );

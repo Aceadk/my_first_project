@@ -384,8 +384,8 @@ class ChatInputBarState extends State<ChatInputBar> {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 baseSurface.withValues(alpha: 0.85),
                 baseSurface.withValues(alpha: 0.7),
@@ -414,8 +414,8 @@ class ChatInputBarState extends State<ChatInputBar> {
                             ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                                begin: AlignmentDirectional.topStart,
+                                end: AlignmentDirectional.bottomEnd,
                                 colors: isDark
                                     ? [
                                         DsColors.surfaceLight.withValues(
@@ -482,8 +482,8 @@ class ChatInputBarState extends State<ChatInputBar> {
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                           colors: isDark
                               ? [
                                   DsColors.surfaceLight.withValues(alpha: 0.1),
@@ -546,8 +546,8 @@ class ChatInputBarState extends State<ChatInputBar> {
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                           colors: [DsColors.primary, DsColors.secondary],
                         ),
                         shape: BoxShape.circle,

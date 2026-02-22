@@ -135,8 +135,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: isDark
                     ? [DsColors.backgroundDark, DsColors.surfaceDark]
                     : [DsColors.backgroundLight, DsColors.surfaceLight],
@@ -505,59 +505,62 @@ class _OnboardingTooltipState extends State<OnboardingTooltip>
                 ),
               );
             },
-            child: GestureDetector(
-              onTap: _dismiss,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(DsRadius.md),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: DsBlur.light,
-                    sigmaY: DsBlur.light,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(DsSpacing.md),
-                    decoration: BoxDecoration(
-                      color: DsGlassColors.surfaceFor(
-                        context,
-                        strength: DsGlassSurfaceStrength.medium,
-                      ),
-                      borderRadius: BorderRadius.circular(DsRadius.md),
-                      border: Border.all(
-                        color: DsColors.primary.withValues(alpha: 0.3),
-                      ),
+            child: Semantics(
+              button: true,
+              child: GestureDetector(
+                onTap: _dismiss,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(DsRadius.md),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: DsBlur.light,
+                      sigmaY: DsBlur.light,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (widget.title != null) ...[
+                    child: Container(
+                      padding: const EdgeInsets.all(DsSpacing.md),
+                      decoration: BoxDecoration(
+                        color: DsGlassColors.surfaceFor(
+                          context,
+                          strength: DsGlassSurfaceStrength.medium,
+                        ),
+                        borderRadius: BorderRadius.circular(DsRadius.md),
+                        border: Border.all(
+                          color: DsColors.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.title != null) ...[
+                            Text(
+                              widget.title!,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
                           Text(
-                            widget.title!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                            widget.message,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Tap to dismiss',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: DsColors.primary,
+                            ),
+                          ),
                         ],
-                        Text(
-                          widget.message,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Tap to dismiss',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: DsColors.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

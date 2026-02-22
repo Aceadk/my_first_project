@@ -12,6 +12,7 @@ import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 enum ChatSafetyAction {
   viewProfile,
@@ -70,8 +71,8 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: [
                   baseSurface.withValues(alpha: 0.85),
                   baseSurface.withValues(alpha: 0.7),
@@ -99,85 +100,88 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
                     Semantics(
                       button: true,
                       label: 'View $otherName profile',
-                      child: GestureDetector(
-                        onTap: onNavigateToProfile,
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: DsSizes.avatarMd,
-                              height: DsSizes.avatarMd,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: state.otherUserOnline
-                                      ? DsColors.onlineIndicator
-                                      : DsGlassColors.borderFor(context),
-                                  width: 2,
+                      child: Semantics(
+                        button: true,
+                        child: GestureDetector(
+                          onTap: onNavigateToProfile,
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: DsSizes.avatarMd,
+                                height: DsSizes.avatarMd,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: state.otherUserOnline
+                                        ? DsColors.onlineIndicator
+                                        : DsGlassColors.borderFor(context),
+                                    width: 2,
+                                  ),
+                                  boxShadow: state.otherUserOnline
+                                      ? [
+                                          BoxShadow(
+                                            color: DsColors.onlineIndicator
+                                                .withValues(alpha: 0.3),
+                                            blurRadius: 8,
+                                            spreadRadius: 1,
+                                          ),
+                                        ]
+                                      : null,
                                 ),
-                                boxShadow: state.otherUserOnline
-                                    ? [
+                                child: ClipOval(
+                                  child: state.otherUserPhotoUrl != null
+                                      ? CachedImage(
+                                          imageUrl: state.otherUserPhotoUrl!,
+                                          width: DsSizes.buttonHeightSm,
+                                          height: DsSizes.buttonHeightSm,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          color: DsGlassColors.surfaceFor(
+                                            context,
+                                          ),
+                                          child: Icon(
+                                            Icons.person,
+                                            size: 20,
+                                            color: isDark
+                                                ? DsColors.surfaceLight
+                                                      .withValues(alpha: 0.54)
+                                                : DsColors.ink900.withValues(
+                                                    alpha: 0.38,
+                                                  ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              if (state.otherUserOnline)
+                                PositionedDirectional(
+                                  end: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: DsSizes.iconXs,
+                                    height: DsSizes.iconXs,
+                                    decoration: BoxDecoration(
+                                      color: DsColors.onlineIndicator,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isDark
+                                            ? DsColors.ink900
+                                            : DsColors.surfaceLight,
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
                                         BoxShadow(
                                           color: DsColors.onlineIndicator
-                                              .withValues(alpha: 0.3),
-                                          blurRadius: 8,
+                                              .withValues(alpha: 0.5),
+                                          blurRadius: 4,
                                           spreadRadius: 1,
                                         ),
-                                      ]
-                                    : null,
-                              ),
-                              child: ClipOval(
-                                child: state.otherUserPhotoUrl != null
-                                    ? CachedImage(
-                                        imageUrl: state.otherUserPhotoUrl!,
-                                        width: DsSizes.buttonHeightSm,
-                                        height: DsSizes.buttonHeightSm,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        color: DsGlassColors.surfaceFor(
-                                          context,
-                                        ),
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 20,
-                                          color: isDark
-                                              ? DsColors.surfaceLight
-                                                    .withValues(alpha: 0.54)
-                                              : DsColors.ink900.withValues(
-                                                  alpha: 0.38,
-                                                ),
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            if (state.otherUserOnline)
-                              PositionedDirectional(
-                                end: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: DsSizes.iconXs,
-                                  height: DsSizes.iconXs,
-                                  decoration: BoxDecoration(
-                                    color: DsColors.onlineIndicator,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: isDark
-                                          ? DsColors.ink900
-                                          : DsColors.surfaceLight,
-                                      width: 2,
+                                      ],
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: DsColors.onlineIndicator
-                                            .withValues(alpha: 0.5),
-                                        blurRadius: 4,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -187,86 +191,94 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
                       child: Semantics(
                         button: true,
                         label: 'View $otherName profile',
-                        child: GestureDetector(
-                          onTap: onNavigateToProfile,
-                          behavior: HitTestBehavior.opaque,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      otherName,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      state.otherUserOnline
-                                          ? 'Online now'
-                                          : 'Offline',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: state.otherUserOnline
-                                                ? DsColors.onlineIndicator
-                                                : DsColors.textMutedLight,
-                                            fontWeight: state.otherUserOnline
-                                                ? FontWeight.w500
-                                                : FontWeight.normal,
-                                          ),
-                                    ),
-                                  ],
+                        child: Semantics(
+                          button: true,
+                          child: GestureDetector(
+                            onTap: onNavigateToProfile,
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        otherName,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        state.otherUserOnline
+                                            ? 'Online now'
+                                            : 'Offline',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: state.otherUserOnline
+                                                  ? DsColors.onlineIndicator
+                                                  : DsColors.textMutedLight,
+                                              fontWeight: state.otherUserOnline
+                                                  ? FontWeight.w500
+                                                  : FontWeight.normal,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              // Mute indicators
-                              if (messagesMuted || callsMuted) ...[
-                                const SizedBox(width: DsSpacing.xs),
-                                if (messagesMuted)
-                                  Container(
-                                    padding: const EdgeInsets.all(DsSpacing.xs),
-                                    decoration: BoxDecoration(
-                                      color: DsColors.warning.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        DsRadius.xs,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.notifications_off,
-                                      size: 14,
-                                      color: DsColors.warning,
-                                    ),
-                                  ),
-                                if (messagesMuted && callsMuted)
+                                // Mute indicators
+                                if (messagesMuted || callsMuted) ...[
                                   const SizedBox(width: DsSpacing.xs),
-                                if (callsMuted)
-                                  Container(
-                                    padding: const EdgeInsets.all(DsSpacing.xs),
-                                    decoration: BoxDecoration(
-                                      color: DsColors.warning.withValues(
-                                        alpha: 0.15,
+                                  if (messagesMuted)
+                                    Container(
+                                      padding: const EdgeInsets.all(
+                                        DsSpacing.xs,
                                       ),
-                                      borderRadius: BorderRadius.circular(
-                                        DsRadius.xs,
+                                      decoration: BoxDecoration(
+                                        color: DsColors.warning.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          DsRadius.xs,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.notifications_off,
+                                        size: 14,
+                                        color: DsColors.warning,
                                       ),
                                     ),
-                                    child: const Icon(
-                                      Icons.call_end,
-                                      size: 14,
-                                      color: DsColors.warning,
+                                  if (messagesMuted && callsMuted)
+                                    const SizedBox(width: DsSpacing.xs),
+                                  if (callsMuted)
+                                    Container(
+                                      padding: const EdgeInsets.all(
+                                        DsSpacing.xs,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: DsColors.warning.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          DsRadius.xs,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.call_end,
+                                        size: 14,
+                                        color: DsColors.warning,
+                                      ),
                                     ),
-                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -329,30 +341,36 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
                     PopupMenuButton<ChatSafetyAction>(
                       onSelected: onSafetyAction,
                       itemBuilder: (context) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: ChatSafetyAction.viewProfile,
                           child: Row(
                             children: [
-                              Icon(Icons.person_outline, size: DsSizes.iconMd),
-                              SizedBox(width: DsSpacing.md),
-                              Text('View Profile'),
+                              const Icon(
+                                Icons.person_outline,
+                                size: DsSizes.iconMd,
+                              ),
+                              const SizedBox(width: DsSpacing.md),
+                              Text(AppLocalizations.of(context).viewProfile),
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: ChatSafetyAction.chatSettings,
                           child: Row(
                             children: [
-                              Icon(Icons.timer_outlined, size: DsSizes.iconMd),
-                              SizedBox(width: DsSpacing.md),
-                              Text('Chat Settings'),
+                              const Icon(
+                                Icons.timer_outlined,
+                                size: DsSizes.iconMd,
+                              ),
+                              const SizedBox(width: DsSpacing.md),
+                              Text(AppLocalizations.of(context).chatSettings),
                             ],
                           ),
                         ),
                         const PopupMenuDivider(),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: ChatSafetyAction.report,
-                          child: Text('Report user'),
+                          child: Text(AppLocalizations.of(context).reportUser),
                         ),
                         PopupMenuItem(
                           value: ChatSafetyAction.block,
@@ -360,9 +378,9 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
                             isBlocked ? 'Unblock user' : 'Block user',
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: ChatSafetyAction.unmatch,
-                          child: Text('Unmatch'),
+                          child: Text(AppLocalizations.of(context).unmatch),
                         ),
                         PopupMenuItem(
                           value: ChatSafetyAction.muteMessages,
@@ -376,9 +394,11 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
                             callsMuted ? 'Unmute calls' : 'Mute calls',
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: ChatSafetyAction.safetyCenter,
-                          child: Text('Open Safety Center'),
+                          child: Text(
+                            AppLocalizations.of(context).openSafetyCenter,
+                          ),
                         ),
                       ],
                     ),

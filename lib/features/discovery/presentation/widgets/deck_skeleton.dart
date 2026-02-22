@@ -14,9 +14,15 @@ class DeckSkeletonList extends StatelessWidget {
     return const Column(
       children: [
         SizedBox(height: DsSpacing.lg),
-        FractionallySizedBox(widthFactor: 0.6, child: GlassSkeleton(height: 18)),
+        FractionallySizedBox(
+          widthFactor: 0.6,
+          child: GlassSkeleton(height: 18),
+        ),
         SizedBox(height: DsSpacing.md),
-        FractionallySizedBox(widthFactor: 0.9, child: GlassSkeleton(height: 250)),
+        FractionallySizedBox(
+          widthFactor: 0.9,
+          child: GlassSkeleton(height: 250),
+        ),
         SizedBox(height: DsSpacing.md),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

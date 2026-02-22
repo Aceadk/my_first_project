@@ -23,6 +23,7 @@ import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/features/auth/presentation/screens/permission_rationale_screen.dart';
 import '../widgets/profile_media_picker.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -465,8 +466,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: isDark
                       ? [
                           DsColors.backgroundDark,
@@ -885,8 +886,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         DsColors.warning.withValues(alpha: 0.15),
                         DsColors.warning.withValues(alpha: 0.05),
                       ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
@@ -1100,48 +1101,53 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       runSpacing: 10,
       children: options.map((option) {
         final isSelected = _lookingFor == option.value;
-        return GestureDetector(
-          onTap: () => setState(() => _lookingFor = option.value),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? DsColors.primary.withValues(alpha: 0.15)
-                  : (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+        return Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: () => setState(() => _lookingFor = option.value),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? DsColors.primary
-                    : (isDark ? DsColors.borderDark : DsColors.borderLight),
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(option.emoji, style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 8),
-                Text(
-                  option.label,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isSelected
-                        ? DsColors.primary
-                        : (isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                    ? DsColors.primary.withValues(alpha: 0.15)
+                    : (isDark ? DsColors.surfaceDark : DsColors.surfaceLight),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? DsColors.primary
+                      : (isDark ? DsColors.borderDark : DsColors.borderLight),
+                  width: isSelected ? 2 : 1,
                 ),
-                if (isSelected) ...[
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(option.emoji, style: const TextStyle(fontSize: 20)),
                   const SizedBox(width: 8),
-                  const Icon(
-                    Icons.check_circle,
-                    color: DsColors.primary,
-                    size: 18,
+                  Text(
+                    option.label,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isSelected
+                          ? DsColors.primary
+                          : (isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight),
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                    ),
                   ),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.check_circle,
+                      color: DsColors.primary,
+                      size: 18,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         );
@@ -1221,12 +1227,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               GlassSmallButton(
                 onPressed: () => context.push(CrushRoutes.basicInfo),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.edit_rounded, size: 14),
-                    SizedBox(width: 4),
-                    Text('Edit'),
+                    const Icon(Icons.edit_rounded, size: 14),
+                    const SizedBox(width: 4),
+                    Text(AppLocalizations.of(context).edit),
                   ],
                 ),
               ),
@@ -1425,115 +1431,121 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         setState(() => _isEditingUsername = false);
                       }
                     : null,
-                child: const Text('Save'),
+                child: Text(AppLocalizations.of(context).save),
               ),
             ],
           ),
         ] else ...[
-          GestureDetector(
-            onTap: () {
-              if (canChangeUsername) {
-                setState(() => _isEditingUsername = true);
-              } else {
-                // Show message that username is locked
-                showErrorSnackBar(
-                  context,
-                  'You can change your username again in $daysUntilChange days',
-                );
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                    : DsColors.inputFillLight,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: canChangeUsername
-                      ? DsColors.primary
-                      : DsColors.warning,
-                  width: 2,
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                if (canChangeUsername) {
+                  setState(() => _isEditingUsername = true);
+                } else {
+                  // Show message that username is locked
+                  showErrorSnackBar(
+                    context,
+                    'You can change your username again in $daysUntilChange days',
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    canChangeUsername
-                        ? Icons.alternate_email_rounded
-                        : Icons.lock_rounded,
-                    size: 22,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                      : DsColors.inputFillLight,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
                     color: canChangeUsername
                         ? DsColors.primary
                         : DsColors.warning,
+                    width: 2,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Username',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: isDark
-                                    ? DsColors.textMutedDark
-                                    : DsColors.textMutedLight,
-                                fontSize: 11,
-                              ),
-                        ),
-                        Text(
-                          _usernameController.text.isNotEmpty
-                              ? '@${_usernameController.text}'
-                              : 'Not set',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: isDark
-                                    ? DsColors.textPrimaryDark
-                                    : DsColors.textPrimaryLight,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      canChangeUsername
+                          ? Icons.alternate_email_rounded
+                          : Icons.lock_rounded,
+                      size: 22,
+                      color: canChangeUsername
+                          ? DsColors.primary
+                          : DsColors.warning,
                     ),
-                  ),
-                  if (canChangeUsername)
-                    const Icon(
-                      Icons.edit_rounded,
-                      size: 20,
-                      color: DsColors.primary,
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: DsColors.warning.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.timer_outlined,
-                            size: 12,
-                            color: DsColors.warning,
-                          ),
-                          const SizedBox(width: 4),
                           Text(
-                            '$daysUntilChange days',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: DsColors.warning,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            'Username',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? DsColors.textMutedDark
+                                      : DsColors.textMutedLight,
+                                  fontSize: 11,
+                                ),
+                          ),
+                          Text(
+                            _usernameController.text.isNotEmpty
+                                ? '@${_usernameController.text}'
+                                : 'Not set',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: isDark
+                                      ? DsColors.textPrimaryDark
+                                      : DsColors.textPrimaryLight,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ],
                       ),
                     ),
-                ],
+                    if (canChangeUsername)
+                      const Icon(
+                        Icons.edit_rounded,
+                        size: 20,
+                        color: DsColors.primary,
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: DsColors.warning.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.timer_outlined,
+                              size: 12,
+                              color: DsColors.warning,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$daysUntilChange days',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: DsColors.warning,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1573,49 +1585,52 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         final isSelected = _selectedInterests.contains(interest);
         final canSelect = _selectedInterests.length < 5 || isSelected;
 
-        return GestureDetector(
-          onTap: canSelect
-              ? () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedInterests.remove(interest);
-                    } else {
-                      _selectedInterests.add(interest);
-                    }
-                  });
-                }
-              : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? DsColors.primary.withValues(alpha: 0.15)
-                  : (isDark
-                        ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                        : DsColors.inputFillLight),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
+        return Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: canSelect
+                ? () {
+                    setState(() {
+                      if (isSelected) {
+                        _selectedInterests.remove(interest);
+                      } else {
+                        _selectedInterests.add(interest);
+                      }
+                    });
+                  }
+                : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? DsColors.primary
-                    : (isDark ? DsColors.borderDark : DsColors.borderLight),
-                width: isSelected ? 2 : 1,
+                    ? DsColors.primary.withValues(alpha: 0.15)
+                    : (isDark
+                          ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                          : DsColors.inputFillLight),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? DsColors.primary
+                      : (isDark ? DsColors.borderDark : DsColors.borderLight),
+                  width: isSelected ? 2 : 1,
+                ),
               ),
-            ),
-            child: Text(
-              interest,
-              style: TextStyle(
-                color: isSelected
-                    ? DsColors.primary
-                    : (canSelect
-                          ? (isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight)
-                          : (isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight)),
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 13,
+              child: Text(
+                interest,
+                style: TextStyle(
+                  color: isSelected
+                      ? DsColors.primary
+                      : (canSelect
+                            ? (isDark
+                                  ? DsColors.textPrimaryDark
+                                  : DsColors.textPrimaryLight)
+                            : (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight)),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 13,
+                ),
               ),
             ),
           ),
@@ -1719,77 +1734,84 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     required List<String> options,
     required ValueChanged<String?> onSelected,
   }) {
-    return GestureDetector(
-      onTap: () => _showFavouriteBottomSheet(
-        context,
-        isDark,
-        label,
-        options,
-        value,
-        onSelected,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: value != null
-              ? DsColors.primary.withValues(alpha: 0.1)
-              : (isDark
-                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                    : DsColors.inputFillLight),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: value != null
-                ? DsColors.primary
-                : (isDark ? DsColors.borderDark : DsColors.borderLight),
-            width: value != null ? 2 : 1,
-          ),
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: () => _showFavouriteBottomSheet(
+          context,
+          isDark,
+          label,
+          options,
+          value,
+          onSelected,
         ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 22,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: value != null
+                ? DsColors.primary.withValues(alpha: 0.1)
+                : (isDark
+                      ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                      : DsColors.inputFillLight),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
               color: value != null
                   ? DsColors.primary
-                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
+              width: value != null ? 2 : 1,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: value != null
+                    ? DsColors.primary
+                    : (isDark
                           ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                      fontSize: 11,
-                    ),
-                  ),
-                  Text(
-                    value ?? 'Select...',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: value != null
-                          ? (isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight)
-                          : (isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight),
-                      fontWeight: value != null
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                    ),
-                  ),
-                ],
+                          : DsColors.textMutedLight),
               ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                        fontSize: 11,
+                      ),
+                    ),
+                    Text(
+                      value ?? 'Select...',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: value != null
+                            ? (isDark
+                                  ? DsColors.textPrimaryDark
+                                  : DsColors.textPrimaryLight)
+                            : (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight),
+                        fontWeight: value != null
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1844,16 +1866,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                   ),
                   if (currentValue != null)
-                    GestureDetector(
-                      onTap: () {
-                        onSelected(null);
-                        Navigator.pop(ctx);
-                      },
-                      child: Text(
-                        'Clear',
-                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                          color: DsColors.primary,
-                          fontWeight: FontWeight.w600,
+                    Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          onSelected(null);
+                          Navigator.pop(ctx);
+                        },
+                        child: Text(
+                          'Clear',
+                          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                            color: DsColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -1901,7 +1926,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         Navigator.pop(ctx);
                       }
                     },
-                    child: const Text('Add'),
+                    child: Text(AppLocalizations.of(context).add),
                   ),
                 ],
               ),

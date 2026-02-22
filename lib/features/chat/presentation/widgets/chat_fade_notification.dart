@@ -120,8 +120,8 @@ class _ChatFadeNotificationState extends State<ChatFadeNotification>
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                       colors: [
                         baseSurface.withValues(alpha: 0.9),
                         baseSurface.withValues(alpha: 0.8),

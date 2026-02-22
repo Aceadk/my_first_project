@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/models/privacy_settings.dart';
-import 'package:crushhour/core/utils/result.dart';
+
 import '../auth_repository.dart';
 
 /// Mock implementation of AuthRepository with local storage.
 /// This allows the app to function for development/demo without a backend.
 /// Replace with your actual backend implementation when ready.
-class StubAuthRepository implements AuthRepository {
+class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
   final _authStateController = StreamController<CrushUser?>.broadcast();
   final _secureStorage = const FlutterSecureStorage();
 
@@ -31,6 +33,9 @@ class StubAuthRepository implements AuthRepository {
 
   @override
   bool get supportsUsernameLogin => true;
+
+  @override
+  bool get supportsGoogleSignIn => true;
 
   @override
   bool get supportsAppleSignIn => true;
@@ -201,6 +206,27 @@ class StubAuthRepository implements AuthRepository {
     final uniqueId = DateTime.now().millisecondsSinceEpoch;
     final email = 'apple_user_$uniqueId@privaterelay.appleid.com';
     final username = 'apple$uniqueId';
+
+    final existing = await _getUserByEmail(email);
+    final user =
+        existing ??
+        await _createUser(
+          email: email,
+          username: username,
+          isEmailVerified: true,
+        );
+
+    await _setCurrentUser(user);
+    return user;
+  }
+
+  @override
+  Future<CrushUser> signInWithGoogle() async {
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    final uniqueId = DateTime.now().millisecondsSinceEpoch;
+    final email = 'google_user_$uniqueId@gmail.com';
+    final username = 'google$uniqueId';
 
     final existing = await _getUserByEmail(email);
     final user =
@@ -740,6 +766,15 @@ class StubAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> verifyPassword(String password) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+    // Simulated verification logic
+    if (password != 'password123') {
+      throw Exception('Incorrect password');
+    }
+  }
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -905,6 +940,14 @@ class StubAuthRepository implements AuthRepository {
       () => signInWithApple(),
       logLabel: 'StubAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
+  }
+
+  Future<Result<CrushUser>> signInWithGoogleResult() {
+    return Result.guard(
+      () => signInWithGoogle(),
+      logLabel: 'StubAuthRepository.signInWithGoogleResult',
+      fallbackError: 'Google Sign-In failed. Please try again.',
     );
   }
 

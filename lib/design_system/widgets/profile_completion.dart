@@ -351,77 +351,80 @@ class _CompletionItemTile extends StatelessWidget {
     return Semantics(
       label: '${item.label}, ${item.isComplete ? 'completed' : 'incomplete'}',
       button: !item.isComplete && onTap != null,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: DsSpacing.sm),
-          child: Row(
-            children: [
-              // Checkbox
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: item.isComplete
-                      ? const LinearGradient(
-                          colors: [DsColors.primary, DsColors.secondary],
-                        )
-                      : null,
-                  border: item.isComplete
-                      ? null
-                      : Border.all(
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                          width: 2,
-                        ),
-                ),
-                child: item.isComplete
-                    ? const Icon(Icons.check, size: 16, color: Colors.white)
-                    : null,
-              ),
-              const SizedBox(width: DsSpacing.md),
-              // Icon
-              Icon(
-                item.icon,
-                size: 20,
-                color: item.isComplete
-                    ? (isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight)
-                    : DsColors.primary,
-              ),
-              const SizedBox(width: DsSpacing.sm),
-              // Label
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: item.isComplete
-                        ? (isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight)
-                        : (isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight),
-                    decoration: item.isComplete
-                        ? TextDecoration.lineThrough
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: DsSpacing.sm),
+            child: Row(
+              children: [
+                // Checkbox
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: item.isComplete
+                        ? const LinearGradient(
+                            colors: [DsColors.primary, DsColors.secondary],
+                          )
                         : null,
+                    border: item.isComplete
+                        ? null
+                        : Border.all(
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                            width: 2,
+                          ),
+                  ),
+                  child: item.isComplete
+                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                      : null,
+                ),
+                const SizedBox(width: DsSpacing.md),
+                // Icon
+                Icon(
+                  item.icon,
+                  size: 20,
+                  color: item.isComplete
+                      ? (isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight)
+                      : DsColors.primary,
+                ),
+                const SizedBox(width: DsSpacing.sm),
+                // Label
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: item.isComplete
+                          ? (isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight)
+                          : (isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight),
+                      decoration: item.isComplete
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
                   ),
                 ),
-              ),
-              // Arrow for incomplete items
-              if (!item.isComplete)
-                Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
-                ),
-            ],
+                // Arrow for incomplete items
+                if (!item.isComplete)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -83,8 +83,8 @@ class _GlassSkeletonState extends State<GlassSkeleton>
                     ? null
                     : BorderRadius.circular(widget.borderRadius ?? DsRadius.md),
                 gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+                  begin: AlignmentDirectional.centerStart,
+                  end: AlignmentDirectional.centerEnd,
                   colors: [baseColor, highlightColor, baseColor],
                   stops: [
                     (_animation.value - 0.3).clamp(0.0, 1.0),
@@ -310,7 +310,9 @@ class GlassSkeletonMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: isFromMe ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isFromMe
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
       child: Padding(
         padding: EdgeInsetsDirectional.only(
           start: isFromMe ? 60 : DsSpacing.md,

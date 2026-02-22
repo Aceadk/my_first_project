@@ -5,6 +5,7 @@ import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProfileMediaArgs {
   final Profile profile;
@@ -88,7 +89,9 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                 child: TabBarView(
                   children: [
                     if (photos.isEmpty)
-                      const Center(child: Text('No photos yet'))
+                      Center(
+                        child: Text(AppLocalizations.of(context).noPhotosYet),
+                      )
                     else
                       Column(
                         children: [
@@ -101,8 +104,12 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                                   child: CachedNetworkImage(
                                     imageUrl: url,
                                     fit: BoxFit.contain,
-                                    errorWidget: const Center(
-                                      child: Text('Photo unavailable'),
+                                    errorWidget: Center(
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).photoUnavailable,
+                                      ),
                                     ),
                                   ),
                                 );
@@ -111,13 +118,17 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '${photos.length} photo${photos.length == 1 ? '' : 's'}',
+                            AppLocalizations.of(
+                              context,
+                            ).photoCount(photos.length),
                           ),
                           const SizedBox(height: 12),
                         ],
                       ),
                     if (videos.isEmpty)
-                      const Center(child: Text('No videos yet'))
+                      Center(
+                        child: Text(AppLocalizations.of(context).noVideosYet),
+                      )
                     else
                       ListView.separated(
                         padding: const EdgeInsets.all(16),
@@ -144,8 +155,12 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                                   color: DsColors.ink900.withValues(
                                     alpha: 0.12,
                                   ),
-                                  child: const Center(
-                                    child: Text('Could not load video'),
+                                  child: Center(
+                                    child: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      ).couldNotLoadVideo,
+                                    ),
                                   ),
                                 );
                               }

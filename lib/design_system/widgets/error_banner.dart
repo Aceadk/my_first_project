@@ -51,14 +51,17 @@ class ErrorBanner extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(
                       top: DsSpacing.xs,
                     ),
-                    child: GestureDetector(
-                      onTap: onAction,
-                      child: Text(
-                        actionLabel!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.error,
-                          fontWeight: FontWeight.w700,
-                          decoration: TextDecoration.underline,
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: onAction,
+                        child: Text(
+                          actionLabel!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ),

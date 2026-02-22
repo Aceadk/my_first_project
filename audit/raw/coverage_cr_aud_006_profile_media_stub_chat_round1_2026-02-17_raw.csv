@@ -1,3 +1,0 @@
-file,before_pct,after_pct,delta_pct,hit,found
-lib/features/profile/data/services/profile_media_service.dart,61.39,94.74,33.35,108,114
-lib/features/chat/data/repositories/impl/stub_chat_repository.dart,61.22,98.21,36.99,385,392

@@ -211,37 +211,40 @@ class _CachedNetworkImageState extends State<CachedNetworkImage> {
             ),
             if (widget.onRetry != null) ...[
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  widget.onRetry?.call();
-                  _loadImage();
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: DsColors.dividerLight,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.refresh,
-                        size: 14,
-                        color: DsColors.textMutedLight,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Retry',
-                        style: TextStyle(
-                          fontSize: 12,
+              Semantics(
+                button: true,
+                child: GestureDetector(
+                  onTap: () {
+                    widget.onRetry?.call();
+                    _loadImage();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: DsColors.dividerLight,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh,
+                          size: 14,
                           color: DsColors.textMutedLight,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 4),
+                        Text(
+                          'Retry',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: DsColors.textMutedLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

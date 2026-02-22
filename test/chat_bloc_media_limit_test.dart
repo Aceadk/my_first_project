@@ -399,6 +399,10 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
 
   @override
+@override
+  Future<void> verifyPassword(String password) async {}
+
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,

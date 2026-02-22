@@ -1,0 +1,1215 @@
+lib/features/calls/presentation/screens/call_history_screen.dart:145:          const SnackBar(content: Text('Unable to load more call history.')),
+lib/features/calls/presentation/screens/call_history_screen.dart:213:      appBar: AppBar(title: const Text('Call History')),
+lib/features/calls/presentation/screens/call_history_screen.dart:239:              Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:247:                child: const Text('Retry'),
+lib/features/calls/presentation/screens/call_history_screen.dart:265:              child: Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:272:              child: Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:304:              child: Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:363:      title: Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:370:      subtitle: Text(
+lib/features/calls/presentation/screens/call_history_screen.dart:375:      trailing: Text(
+lib/features/calls/presentation/screens/video_call_screen.dart:36:        title: Text('Video call with $otherName'),
+lib/features/calls/presentation/screens/video_call_screen.dart:58:                    const Text(
+lib/features/calls/presentation/screens/video_call_screen.dart:67:                    Text(
+lib/features/calls/presentation/screens/video_call_screen.dart:83:                    Text(
+lib/features/calls/presentation/screens/call_screen.dart:195:            content: Text(
+lib/features/calls/presentation/screens/call_screen.dart:207:            content: Text(
+lib/features/calls/presentation/screens/call_screen.dart:218:          const SnackBar(content: Text('Screen recording stopped.')),
+lib/features/calls/presentation/screens/call_screen.dart:282:            content: Text('Could not start call: $e'),
+lib/features/calls/presentation/screens/call_screen.dart:329:                content: Text(state.errorMessage ?? 'Call error'),
+lib/features/calls/presentation/screens/call_screen.dart:468:    final status = _getStatusText();
+lib/features/calls/presentation/screens/call_screen.dart:534:        Text(
+lib/features/calls/presentation/screens/call_screen.dart:558:            Text(
+lib/features/calls/presentation/screens/call_screen.dart:586:                Text(
+lib/features/calls/presentation/screens/call_screen.dart:633:        child: Text(
+lib/features/calls/presentation/screens/call_screen.dart:761:        Text(
+lib/features/calls/presentation/screens/call_screen.dart:802:                  Text(
+lib/features/calls/presentation/screens/call_screen.dart:847:              Text(
+lib/features/calls/presentation/screens/call_screen.dart:862:  String _getStatusText() {
+lib/features/calls/presentation/screens/call_screen.dart:951:          content: Text('Network is weak. Switched to audio-only mode.'),
+lib/features/calls/presentation/screens/call_screen.dart:981:          content: Text('Connection unstable. Recovered with reduced quality.'),
+lib/features/calls/presentation/screens/call_screen.dart:1060:                      const Text(
+lib/features/calls/presentation/screens/call_screen.dart:1069:                      Text(
+lib/features/calls/presentation/screens/call_screen.dart:1081:                          child: const Text('I felt safe'),
+lib/features/calls/presentation/screens/call_screen.dart:1093:                          label: const Text('Report user'),
+lib/features/calls/presentation/screens/call_screen.dart:1105:                          label: const Text('Block user'),
+lib/features/calls/presentation/screens/call_screen.dart:1124:          content: Text('Sign in again to manage safety actions.'),
+lib/features/calls/presentation/screens/call_screen.dart:1136:    ).showSnackBar(SnackBar(content: Text(error ?? 'User blocked.')));
+lib/features/calls/presentation/screens/call_screen.dart:1149:                title: Text(
+lib/features/calls/presentation/screens/call_screen.dart:1153:                subtitle: Text(
+lib/features/calls/presentation/screens/call_screen.dart:1159:                  title: Text(reason),
+lib/features/calls/presentation/screens/call_screen.dart:1176:                        content: Text(error ?? 'Report submitted: $reason'),
+lib/features/calls/presentation/screens/call_screen.dart:1187:                  label: const Text('View community guidelines'),
+lib/features/calls/presentation/screens/call_screen.dart:1206:          title: const Text('Report details'),
+lib/features/calls/presentation/screens/call_screen.dart:1218:              child: const Text('Cancel'),
+lib/features/calls/presentation/screens/call_screen.dart:1234:                    SnackBar(content: Text(error ?? 'Report submitted')),
+lib/features/calls/presentation/screens/call_screen.dart:1239:              child: const Text('Submit'),
+lib/features/calls/presentation/screens/call_screen.dart:1340:            Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:217:              Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:226:              Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:265:                            child: Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:278:              Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:289:              Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:367:                child: Text(
+lib/features/calls/presentation/screens/incoming_call_screen.dart:429:          label: Text(
+lib/features/calls/presentation/widgets/pip_video_overlay.dart:193:                        const Text(
+lib/features/calls/presentation/widgets/pip_video_overlay.dart:202:                        Text(
+lib/features/calls/presentation/widgets/call_safety_controls.dart:72:                      child: Text(
+lib/features/calls/presentation/widgets/call_safety_controls.dart:93:                Text(
+lib/features/calls/presentation/widgets/call_safety_controls.dart:106:                  label: const Text('View safety guidelines'),
+lib/features/calls/presentation/widgets/call_safety_controls.dart:200:                    Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:98:        content: Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:111:      appBar: AppBar(title: const Text('Appearance & Themes')),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:157:                      Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:203:                              child: Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:227:                                child: Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:254:                                    : const Text('Upgrade'),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:266:                            child: Text(hasChanges ? 'Apply theme' : 'Applied'),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:273:                            child: const Text('Reset preview'),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:406:                      Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:450:                                  Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:458:                                  Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:479:                              child: const Text('Continue'),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:485:                            child: const Text('Later'),
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:490:                      Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:575:                      Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:592:                  Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:649:      child: Text(
+lib/features/settings/presentation/screens/appearance_settings_screen.dart:671:      child: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:18:      appBar: AppBar(title: Text(context.l10n.settingsNotifications)),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:64:                                Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:70:                                Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:100:                              content: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:162:                      child: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:174:                      child: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:269:                      child: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:299:                        title: const Text('Start time'),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:300:                        subtitle: Text(_formatHour(notifState.quietHoursStart)),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:317:                        title: const Text('End time'),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:318:                        subtitle: Text(_formatHour(notifState.quietHoursEnd)),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:361:                              child: Text(
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:410:      title: Text(title),
+lib/features/settings/presentation/screens/notifications_settings_screen.dart:411:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:153:    ).showSnackBar(SnackBar(content: Text(message)));
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:184:      appBar: AppBar(title: const Text('Account Security')),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:227:                            Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:233:                            Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:287:                              Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:305:                                Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:362:                              Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:380:                                Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:481:                  child: Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:511:                                content: Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:544:                                content: Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:623:                            Text(
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:690:      title: Text(title),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:691:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:727:      title: Text(provider),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:728:      subtitle: Text(status),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:740:                : Text(actionLabel),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:745:              child: const Text('Unlink'),
+lib/features/settings/presentation/screens/account_security_settings_screen.dart:771:          child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:39:      appBar: AppBar(title: Text(context.l10n.settingsTitle)),
+lib/features/settings/presentation/screens/settings_screen.dart:309:                                      Text(
+lib/features/settings/presentation/screens/settings_screen.dart:336:                                    child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:347:                                    Text(
+lib/features/settings/presentation/screens/settings_screen.dart:365:                                  Text(
+lib/features/settings/presentation/screens/settings_screen.dart:402:                                            child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:444:                                          : Text(
+lib/features/settings/presentation/screens/settings_screen.dart:471:                                            : const Text('Restore'),
+lib/features/settings/presentation/screens/settings_screen.dart:473:                                      const Text(
+lib/features/settings/presentation/screens/settings_screen.dart:486:                                        label: const Text('Promo code'),
+lib/features/settings/presentation/screens/settings_screen.dart:525:                        child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:539:                        title: Text(context.l10n.authTermsOfService),
+lib/features/settings/presentation/screens/settings_screen.dart:545:                        title: Text(context.l10n.authPrivacyPolicy),
+lib/features/settings/presentation/screens/settings_screen.dart:551:                        title: const Text('Community Guidelines'),
+lib/features/settings/presentation/screens/settings_screen.dart:558:                        title: const Text('Safety'),
+lib/features/settings/presentation/screens/settings_screen.dart:564:                        title: Text(context.l10n.settingsVersion),
+lib/features/settings/presentation/screens/settings_screen.dart:565:                        trailing: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:579:                        child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:593:                        title: const Text('Features'),
+lib/features/settings/presentation/screens/settings_screen.dart:599:                        title: const Text('Pricing'),
+lib/features/settings/presentation/screens/settings_screen.dart:679:                            Text(
+lib/features/settings/presentation/screens/settings_screen.dart:685:                            Text(
+lib/features/settings/presentation/screens/settings_screen.dart:722:                                const Text(
+lib/features/settings/presentation/screens/settings_screen.dart:727:                                  Text(
+lib/features/settings/presentation/screens/settings_screen.dart:786:                        child: const Text('Turn off Incognito'),
+lib/features/settings/presentation/screens/settings_screen.dart:832:                            child: Text(
+lib/features/settings/presentation/screens/settings_screen.dart:856:                        child: const Text('Enable Incognito'),
+lib/features/settings/presentation/screens/settings_screen.dart:914:      title: Text(title),
+lib/features/settings/presentation/screens/settings_screen.dart:915:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/settings_screen.dart:938:      title: Text(title),
+lib/features/settings/presentation/screens/settings_screen.dart:939:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/settings_screen.dart:959:        Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:19:        title: Text(context.l10n.settingsPrivacy),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:47:                    Text('Make all public'),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:57:                    Text('Make all private'),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:67:                    Text('Reset to defaults'),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:120:                                Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:126:                                Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:443:                              child: Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:471:    ).showSnackBar(SnackBar(content: Text(message)));
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:509:                Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:515:                Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:558:          Text(title),
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:567:              child: const Text(
+lib/features/settings/presentation/screens/privacy_settings_screen.dart:579:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/support_screen.dart:39:        title: const Text('Help & Support'),
+lib/features/settings/presentation/screens/support_screen.dart:62:                Text(
+lib/features/settings/presentation/screens/support_screen.dart:73:                Text(
+lib/features/settings/presentation/screens/support_screen.dart:84:                Text(
+lib/features/settings/presentation/screens/support_screen.dart:96:                  child: Text(
+lib/features/settings/presentation/screens/support_screen.dart:180:          title: const Text('Email Support'),
+lib/features/settings/presentation/screens/support_screen.dart:181:          subtitle: const Text(SupportConfig.supportEmail),
+lib/features/settings/presentation/screens/support_screen.dart:194:          title: const Text('Help Center'),
+lib/features/settings/presentation/screens/support_screen.dart:195:          subtitle: const Text('Browse articles and guides'),
+lib/features/settings/presentation/screens/support_screen.dart:208:          title: const Text('Community Guidelines'),
+lib/features/settings/presentation/screens/support_screen.dart:209:          subtitle: const Text('Our rules and standards'),
+lib/features/settings/presentation/screens/support_screen.dart:264:              Text(
+lib/features/settings/presentation/screens/support_screen.dart:332:              Text(
+lib/features/settings/presentation/screens/support_screen.dart:341:              Text(
+lib/features/settings/presentation/screens/support_screen.dart:393:                      child: Text(
+lib/features/settings/presentation/screens/support_screen.dart:410:                  Text(
+lib/features/settings/presentation/screens/support_screen.dart:462:            Text(
+lib/features/settings/presentation/screens/support_screen.dart:478:                return DropdownMenuItem(value: cat.id, child: Text(cat.title));
+lib/features/settings/presentation/screens/support_screen.dart:506:                label: const Text('Open Email'),
+lib/features/settings/presentation/screens/support_screen.dart:515:            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:24:      appBar: AppBar(title: const Text('Discovery & Filters')),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:73:                              Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:79:                              Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:122:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:135:                              child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:163:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:172:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:203:                                  child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:229:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:244:                              child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:269:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:278:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:299:                    title: const Text('My interests'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:300:                    subtitle: Text(_formatInterests(discoveryState.interests)),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:311:                    title: const Text('Show my distance'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:312:                    subtitle: const Text('Display how far away you are'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:318:                    title: const Text('Show me in discovery'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:319:                    subtitle: const Text('Turn off to hide your profile'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:366:                            child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:405:          title: const Text('Edit interests'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:419:              child: const Text('Cancel'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:427:              child: const Text('Save'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:507:                          Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:512:                          Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:675:                              Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:698:                                  child: const Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:710:                          Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:752:                          label: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:793:                      label: const Text('Upgrade to Plus'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:800:                  Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:828:      child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:883:                  child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:930:              Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:950:                  child: const Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:964:                  label: Text('Clear (${state.activeAdvancedFilterCount})'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1025:                                Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1031:                                Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1083:                          label: const Text('Upgrade to Plus'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1135:            title: const Text('Verified profiles only'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1136:            subtitle: const Text('Only see verified profiles'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1144:            child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1214:            child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1392:                        Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1403:                          child: const Text('Clear'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1421:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1430:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1442:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1451:                            Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1502:                        child: const Text('Apply'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1579:                        Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1589:                          child: const Text('Clear'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1609:                          title: Text(option.label),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1637:                        child: Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1693:                    Text(
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1706:                        child: const Text('Clear'),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1732:                        title: Text(option.label),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1776:      title: Text(title),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1777:      subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart:1819:          Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:16:      appBar: AppBar(title: const Text('Chat Settings')),
+lib/features/settings/presentation/screens/chat_settings_screen.dart:31:                      content: Text(state.errorMessage!),
+lib/features/settings/presentation/screens/chat_settings_screen.dart:76:                                Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:82:                                Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:126:                                  Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:135:                                  Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:181:                                    Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:191:                                    Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:217:                            Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:241:                        title: const Text('Keep messages for 24 hours'),
+lib/features/settings/presentation/screens/chat_settings_screen.dart:242:                        subtitle: Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:289:                                    Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:299:                                    Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:336:                              Text(
+lib/features/settings/presentation/screens/chat_settings_screen.dart:415:          child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:45:      appBar: AppBar(title: const Text('Account Actions')),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:92:                                  Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:100:                                  Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:119:                        child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:177:                        child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:199:                        child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:221:                        child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:258:                                title: const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:262:                                subtitle: const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:349:          title: const Text('Request Data Export'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:354:              const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:375:              Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:380:              Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:391:              child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:395:              child: const Text('Request Export'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:464:              title: const Text('Preparing your export'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:471:                  Text(value.status),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:473:                  Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:537:          title: const Text('Export Ready'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:538:          content: const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:544:              child: const Text('Later'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:548:              child: const Text('Share Export'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:589:              title: const Text('Change Password'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:596:                      const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:690:                  child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:698:                  child: const Text('Change Password'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:789:          title: const Text('Deactivate Account'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:794:              const Text('When you deactivate your account:'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:831:                      child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:844:              child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:849:              child: const Text('Deactivate'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:908:          title: const Text('Delete Account'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:913:              const Text('You will lose:'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:938:                      child: Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:954:              child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:959:              child: const Text('Continue'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:974:          title: const Text('Download your data first?'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:975:          content: const Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:982:              child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:988:              child: const Text('Skip'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:994:              child: const Text('Request Export'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1050:              title: const Text('Final confirmation'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1055:                  Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1088:                  Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1099:                  child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1108:                  child: const Text('Delete Account'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1211:              title: Text(title),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1226:                              title: Text(reason),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1256:                  child: const Text('Cancel'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1261:                    child: const Text('Skip'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1272:                  child: const Text('Continue'),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1323:      title: Text(title),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1324:      subtitle: Text(subtitle),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1344:          Text(text),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1365:          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1405:                Text(
+lib/features/settings/presentation/screens/account_actions_settings_screen.dart:1413:                Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:18:      appBar: AppBar(title: Text(context.l10n.settingsLanguageRegion)),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:37:                      content: Text('Region updated from device location.'),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:80:                                Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:86:                                Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:104:                      title: const Text('Use device language'),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:105:                      subtitle: Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:123:                      title: Text(context.l10n.settingsLanguage),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:124:                      subtitle: Text(_languageLabel(localeState.languageCode)),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:138:                      title: Text(context.l10n.settingsRegion),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:139:                      subtitle: Text(localeState.region),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:151:                      title: Text(context.l10n.settingsDetectRegion),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:152:                      subtitle: const Text('Detect your region automatically'),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:192:                              child: Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:309:                        Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:315:                        Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:338:                          title: Text(
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:345:                          subtitle: Text(option['native']!),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:373:          title: const Text('Set region'),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:384:              child: Text(context.l10n.commonCancel),
+lib/features/settings/presentation/screens/language_region_settings_screen.dart:394:              child: Text(context.l10n.commonSave),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:23:      appBar: AppBar(title: const Text('Subscription')),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:67:                              Text(
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:75:                          Text(
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:86:                            Text(
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:116:                        label: const Text('Refresh subscription status'),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:122:                        label: const Text('Billing help'),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:140:                        label: const Text('Upgrade to Plus'),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:150:                        label: const Text('Restore purchases'),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:157:                      title: const Text('Plan details and pricing'),
+lib/features/settings/presentation/screens/subscription_settings_screen.dart:158:                      subtitle: const Text('Compare plan benefits'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:16:      appBar: AppBar(title: const Text('Data & Storage')),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:63:                                Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:69:                                Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:88:                      title: const Text('Auto-download media'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:89:                      subtitle: Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:103:                      title: const Text('Wi-Fi only'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:104:                      subtitle: const Text('Avoid using mobile data for media'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:122:                              Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:135:                                child: Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:158:                              Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:167:                              Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:191:                                content: Text('Cache cleared successfully.'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:197:                        label: const Text('Clear cache now'),
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:233:                                Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:241:                            Text(
+lib/features/settings/presentation/screens/data_storage_settings_screen.dart:275:      child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:283:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:292:                            child: const Text('Verify'),
+lib/features/chat/presentation/screens/chat_screen.dart:312:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:327:                      child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:344:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:355:                            label: const Text(
+lib/features/chat/presentation/screens/chat_screen.dart:376:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:398:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:406:                            child: const Text('Unblock'),
+lib/features/chat/presentation/screens/chat_screen.dart:427:                                const Text(
+lib/features/chat/presentation/screens/chat_screen.dart:439:                                Text(
+lib/features/chat/presentation/screens/chat_screen.dart:450:                            child: const Text('Finish'),
+lib/features/chat/presentation/screens/chat_screen.dart:465:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:489:                            child: const Text('Unmute'),
+lib/features/chat/presentation/screens/chat_screen.dart:507:                            child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:513:                            child: const Text('Enable'),
+lib/features/chat/presentation/screens/chat_screen.dart:589:        title: const Text('Start audio call'),
+lib/features/chat/presentation/screens/chat_screen.dart:590:        content: Text('Call ${widget.args.otherName}?'),
+lib/features/chat/presentation/screens/chat_screen.dart:594:            child: const Text('Cancel'),
+lib/features/chat/presentation/screens/chat_screen.dart:599:            label: const Text('Call'),
+lib/features/chat/presentation/screens/chat_screen.dart:794:            title: const Text('Unmatch?'),
+lib/features/chat/presentation/screens/chat_screen.dart:795:            content: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:801:                child: const Text('Cancel'),
+lib/features/chat/presentation/screens/chat_screen.dart:805:                child: const Text('Unmatch'),
+lib/features/chat/presentation/screens/chat_screen.dart:819:              content: Text('Unmatching from ${widget.args.otherName}...'),
+lib/features/chat/presentation/screens/chat_screen.dart:933:      messenger.showSnackBar(SnackBar(content: Text(error)));
+lib/features/chat/presentation/screens/chat_screen.dart:938:        content: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:993:                          content: Text(state.errorMessage!),
+lib/features/chat/presentation/screens/chat_screen.dart:1044:                                    Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1054:                                    Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1115:                              Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1175:                                          Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1185:                                          Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1223:                                      Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1266:                                        Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1285:                                        child: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1317:                                  Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1365:                title: const Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1369:                subtitle: Text(
+lib/features/chat/presentation/screens/chat_screen.dart:1376:                  title: Text(reason),
+lib/features/chat/presentation/screens/chat_screen.dart:1393:                          content: Text(error ?? 'Report submitted: $reason'),
+lib/features/chat/presentation/screens/chat_screen.dart:1405:                  label: const Text('View community guidelines'),
+lib/features/chat/presentation/screens/chat_screen.dart:1424:          title: const Text('Report details'),
+lib/features/chat/presentation/screens/chat_screen.dart:1436:              child: const Text('Cancel'),
+lib/features/chat/presentation/screens/chat_screen.dart:1453:                    SnackBar(content: Text(error ?? 'Report submitted')),
+lib/features/chat/presentation/screens/chat_screen.dart:1458:              child: const Text('Submit'),
+lib/features/chat/presentation/screens/message_requests_screen.dart:63:                      child: Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:130:            child: Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:139:          Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:163:        body: Center(child: Text('Sign in to view message requests.')),
+lib/features/chat/presentation/screens/message_requests_screen.dart:297:        title: const Text('Decline request?'),
+lib/features/chat/presentation/screens/message_requests_screen.dart:298:        content: const Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:305:            child: const Text('Cancel'),
+lib/features/chat/presentation/screens/message_requests_screen.dart:313:            child: const Text('Decline'),
+lib/features/chat/presentation/screens/message_requests_screen.dart:465:                                    child: Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:491:                                  Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:522:                      child: Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:576:                          Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:630:          Text(
+lib/features/chat/presentation/screens/message_requests_screen.dart:713:              Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:44:        body: Center(child: Text('Sign in to view your chats.')),
+lib/features/chat/presentation/screens/chat_list_screen.dart:140:              child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:149:            Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:201:                        child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:338:                              Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:411:                    child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:434:                      child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:732:                                  Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:748:                                    child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:769:                              Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:793:                              child: Text(
+lib/features/chat/presentation/screens/chat_list_screen.dart:834:                                child: Text(
+lib/features/chat/presentation/screens/matches_screen.dart:61:        body: Center(child: Text('Sign in to view your matches.')),
+lib/features/chat/presentation/screens/matches_screen.dart:208:                  Text(
+lib/features/chat/presentation/screens/matches_screen.dart:215:                  Text(
+lib/features/chat/presentation/screens/matches_screen.dart:239:                          Text('Upgrade to Plus'),
+lib/features/chat/presentation/screens/matches_screen.dart:247:                    child: const Text('Maybe Later'),
+lib/features/chat/presentation/screens/matches_screen.dart:306:                      Text(
+lib/features/chat/presentation/screens/matches_screen.dart:312:                      Text(
+lib/features/chat/presentation/screens/matches_screen.dart:325:                          label: const Text('Back to deck'),
+lib/features/chat/presentation/screens/matches_screen.dart:588:                        Text(
+lib/features/chat/presentation/screens/matches_screen.dart:594:                        Text(
+lib/features/chat/presentation/screens/matches_screen.dart:646:                Text(
+lib/features/chat/presentation/screens/matches_screen.dart:654:                  Text(
+lib/features/chat/presentation/screens/matches_screen.dart:713:                    child: const Text('Upgrade'),
+lib/features/chat/presentation/screens/matches_screen.dart:745:                      child: Text(
+lib/features/chat/presentation/screens/matches_screen.dart:750:                    TextButton(onPressed: onRetry, child: const Text('Retry')),
+lib/features/chat/presentation/screens/matches_screen.dart:780:                          child: Text(
+lib/features/chat/presentation/screens/matches_screen.dart:789:                    Text(
+lib/features/chat/presentation/screens/matches_screen.dart:825:                              Text(
+lib/features/chat/presentation/screens/matches_screen.dart:954:                    Text(
+lib/features/chat/presentation/screens/matches_screen.dart:965:                    Text(
+lib/features/chat/presentation/screens/matches_screen.dart:972:                    Text(
+lib/features/chat/presentation/screens/matches_screen.dart:1019:          Text(
+lib/features/chat/presentation/screens/matches_screen.dart:1026:          Text(
+lib/features/chat/presentation/screens/matches_screen.dart:1037:                label: const Text('Back to deck'),
+lib/features/chat/presentation/screens/matches_screen.dart:1081:              Text(
+lib/features/chat/presentation/screens/matches_screen.dart:1091:          Text(
+lib/features/chat/presentation/screens/matches_screen.dart:1112:                  : const Text('Try Plus intro offer'),
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:190:            Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:213:            Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:224:              const Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:264:            child: Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:297:                child: Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:320:          const Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:327:            child: const Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:340:            child: const Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:375:          Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:403:            child: Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:424:          return const Text('Image pending safety scan…');
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:488:        return Text(
+lib/features/chat/presentation/widgets/chat_message_bubble.dart:526:          Text(
+lib/features/chat/presentation/widgets/chat_date_separator.dart:72:                    child: Text(
+lib/features/chat/presentation/widgets/chat_header.dart:200:                                    Text(
+lib/features/chat/presentation/widgets/chat_header.dart:210:                                    Text(
+lib/features/chat/presentation/widgets/chat_header.dart:338:                              Text('View Profile'),
+lib/features/chat/presentation/widgets/chat_header.dart:348:                              Text('Chat Settings'),
+lib/features/chat/presentation/widgets/chat_header.dart:355:                          child: Text('Report user'),
+lib/features/chat/presentation/widgets/chat_header.dart:359:                          child: Text(
+lib/features/chat/presentation/widgets/chat_header.dart:365:                          child: Text('Unmatch'),
+lib/features/chat/presentation/widgets/chat_header.dart:369:                          child: Text(
+lib/features/chat/presentation/widgets/chat_header.dart:375:                          child: Text(
+lib/features/chat/presentation/widgets/chat_header.dart:381:                          child: Text('Open Safety Center'),
+lib/features/chat/presentation/widgets/chat_fade_notification.dart:159:                      Text(
+lib/features/chat/presentation/widgets/voice_note_player.dart:150:              Text(
+lib/features/chat/presentation/widgets/voice_note_player.dart:259:                      Text(
+lib/features/chat/presentation/widgets/voice_note_player.dart:267:                      Text(
+lib/features/chat/presentation/widgets/chat_empty_state.dart:89:            child: Text(
+lib/features/chat/presentation/widgets/chat_empty_state.dart:100:          Text(
+lib/features/chat/presentation/widgets/chat_empty_state.dart:123:                Text(
+lib/features/chat/presentation/widgets/chat_empty_state.dart:169:                  label: const Text('Show different suggestions'),
+lib/features/chat/presentation/widgets/chat_empty_state.dart:248:                        child: Text(
+lib/features/chat/presentation/widgets/chat_empty_state.dart:256:                      child: Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:145:            Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:177:              child: Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:198:            return const Text('Image pending safety scan…');
+lib/features/chat/presentation/widgets/chat_message_list.dart:258:          return Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:300:          title: const Text('Edit message'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:320:              child: const Text('Cancel'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:336:              child: const Text('Save'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:443:                          label: const Text('Remove my reaction'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:461:                            title: const Text('Edit (Plus)'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:475:                          title: const Text('Unsend (Plus)'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:481:                        title: const Text('Delete for me'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:497:                      title: const Text('Copy text'),
+lib/features/chat/presentation/widgets/chat_message_list.dart:504:                            content: Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:688:                                        Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:710:                                        Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:728:                                          const Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:770:                                        child: Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:810:                                            child: Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:839:                                      const Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:856:                                        child: const Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:876:                                        child: const Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:916:                                      Text(
+lib/features/chat/presentation/widgets/chat_message_list.dart:962:            Text(
+lib/features/chat/presentation/widgets/chat_input_bar.dart:95:  void insertText(String text) {
+lib/features/chat/presentation/widgets/chat_input_bar.dart:175:                title: Text('Photo', style: TextStyle(color: titleColor)),
+lib/features/chat/presentation/widgets/chat_input_bar.dart:183:                title: Text('Video', style: TextStyle(color: titleColor)),
+lib/features/chat/presentation/widgets/chat_attachment_tile.dart:47:              Text(
+lib/features/chat/presentation/widgets/chat_attachment_tile.dart:75:        const SnackBar(content: Text('Media saved locally on your device.')),
+lib/features/chat/presentation/widgets/chat_attachment_tile.dart:86:        const SnackBar(content: Text('Could not open attachment.')),
+lib/features/chat/presentation/widgets/chat_send_status_bar.dart:33:                  child: Text(
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:145:          content: Text('Recording too short (minimum 1 second)'),
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:320:                Text(
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:408:              Text(
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:502:                          Text(
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:514:                          Text(
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:587:          const Expanded(child: Text('Microphone permission required')),
+lib/features/chat/presentation/widgets/voice_note_recorder.dart:588:          TextButton(onPressed: _requestPermission, child: const Text('Grant')),
+lib/features/chat/presentation/widgets/chat_reaction_button.dart:76:                child: Text(
+lib/features/auth/presentation/screens/change_email_screen.dart:47:          Text(
+lib/features/auth/presentation/screens/change_email_screen.dart:53:            Text(
+lib/features/auth/presentation/screens/change_email_screen.dart:65:              errorText: _emailErrorText(),
+lib/features/auth/presentation/screens/change_email_screen.dart:78:                errorText: _otpErrorText(),
+lib/features/auth/presentation/screens/change_email_screen.dart:102:              child: const Text('Resend code'),
+lib/features/auth/presentation/screens/change_email_screen.dart:126:  String? _emailErrorText() {
+lib/features/auth/presentation/screens/change_email_screen.dart:138:  String? _otpErrorText() {
+lib/features/auth/presentation/screens/change_email_screen.dart:154:    final emailError = _emailErrorText();
+lib/features/auth/presentation/screens/change_email_screen.dart:196:    final otpError = _otpErrorText();
+lib/features/auth/presentation/screens/phone_auth_screen.dart:49:      appBar: AppBar(title: const Text('Sign up with phone')),
+lib/features/auth/presentation/screens/phone_auth_screen.dart:93:                              child: Text(
+lib/features/auth/presentation/screens/phone_auth_screen.dart:109:                                      child: Text(
+lib/features/auth/presentation/screens/phone_auth_screen.dart:121:                                      child: Text(
+lib/features/auth/presentation/screens/phone_auth_screen.dart:149:                                errorText: _dialErrorText(),
+lib/features/auth/presentation/screens/phone_auth_screen.dart:164:                                errorText: _phoneErrorText(),
+lib/features/auth/presentation/screens/phone_auth_screen.dart:188:                                      final dialError = _dialErrorText();
+lib/features/auth/presentation/screens/phone_auth_screen.dart:189:                                      final phoneError = _phoneErrorText();
+lib/features/auth/presentation/screens/phone_auth_screen.dart:213:                                child: const Text('Use email instead'),
+lib/features/auth/presentation/screens/phone_auth_screen.dart:261:  String? _dialErrorText() {
+lib/features/auth/presentation/screens/phone_auth_screen.dart:273:  String? _phoneErrorText() {
+lib/features/auth/presentation/screens/new_device_screen.dart:40:          Text(
+lib/features/auth/presentation/screens/new_device_screen.dart:51:              errorText: _identifierErrorText(),
+lib/features/auth/presentation/screens/new_device_screen.dart:64:                errorText: _otpErrorText(),
+lib/features/auth/presentation/screens/new_device_screen.dart:88:              child: const Text('Resend code'),
+lib/features/auth/presentation/screens/new_device_screen.dart:112:  String? _identifierErrorText() {
+lib/features/auth/presentation/screens/new_device_screen.dart:131:  String? _otpErrorText() {
+lib/features/auth/presentation/screens/new_device_screen.dart:147:    final identifierError = _identifierErrorText();
+lib/features/auth/presentation/screens/new_device_screen.dart:190:    final otpError = _otpErrorText();
+lib/features/auth/presentation/screens/logout_screen.dart:19:      appBar: AppBar(title: const Text('Log out')),
+lib/features/auth/presentation/screens/logout_screen.dart:67:                      Text(
+lib/features/auth/presentation/screens/logout_screen.dart:73:                      Text(
+lib/features/auth/presentation/screens/logout_screen.dart:97:                              child: Text(
+lib/features/auth/presentation/screens/logout_screen.dart:128:                              : const Text('Log out'),
+lib/features/auth/presentation/screens/logout_screen.dart:141:                          child: const Text('Cancel'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:706:            Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:714:            Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:768:          child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:777:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:785:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:792:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:811:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:822:          child: const Text('Continue'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:835:                child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:894:            Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:937:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:944:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:970:          child: const Text('Continue'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1013:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1020:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1046:                  child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1081:          child: const Text('Create Account'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1224:          child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1233:          child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1251:            child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1307:                      child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1337:                Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1351:          child: const Text('Open Email App'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1360:          child: const Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1375:              child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1386:          child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1423:            child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1435:          child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1475:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1524:          child: RichText(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1580:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1587:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1614:                  child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1626:                  child: Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1676:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1687:          child: const Text('Send Code'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1703:                  Text('Sign up with email instead'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1758:        Text(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1765:        RichText(
+lib/features/auth/presentation/screens/sign_up_screen.dart:1798:          child: const Text('Verify'),
+lib/features/auth/presentation/screens/sign_up_screen.dart:1809:              child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:144:                            child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:154:                    Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:194:                    child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:213:                    child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:241:                          Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:257:              Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:301:          child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:347:            Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:356:            Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:367:            Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:381:                    child: Text(
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:395:                    child: const Text('Yes, I am 18+'),
+lib/features/auth/presentation/screens/auth_gateway_screen.dart:402:            Text(
+lib/features/auth/presentation/screens/login_screen.dart:108:                      Text(
+lib/features/auth/presentation/screens/login_screen.dart:115:                      Text(
+lib/features/auth/presentation/screens/login_screen.dart:176:                            child: Text(context.l10n.authForgotPassword),
+lib/features/auth/presentation/screens/login_screen.dart:198:                                : Text(
+lib/features/auth/presentation/screens/login_screen.dart:215:                            child: Text(
+lib/features/auth/presentation/screens/login_screen.dart:251:                                  Text(
+lib/features/auth/presentation/screens/login_screen.dart:284:                                Text(
+lib/features/auth/presentation/screens/login_screen.dart:333:                                        Text(
+lib/features/auth/presentation/screens/login_screen.dart:343:                                        Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:55:        title: const Text('Sign in with email'),
+lib/features/auth/presentation/screens/email_auth_screen.dart:143:                                Text('Use phone number instead'),
+lib/features/auth/presentation/screens/email_auth_screen.dart:228:          Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:236:          Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:292:                    : Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:320:                    child: Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:395:          Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:403:          Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:488:                    : const Text(
+lib/features/auth/presentation/screens/email_auth_screen.dart:509:                child: const Text('Forgot password?'),
+lib/features/auth/presentation/screens/email_auth_screen.dart:533:                  child: Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:215:                    Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:223:                    Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:231:                    Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:239:                    Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:275:                              child: Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:306:                          Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:339:                              : Text(
+lib/features/auth/presentation/screens/email_verification_screen.dart:357:                          child: const Text('I\'ve Verified - Check Now'),
+lib/features/auth/presentation/screens/email_verification_screen.dart:370:                          child: const Text('Sign Out'),
+lib/features/auth/presentation/screens/email_verification_screen.dart:372:                        const Text(' • '),
+lib/features/auth/presentation/screens/email_verification_screen.dart:375:                          child: const Text('Use Different Email'),
+lib/features/auth/presentation/screens/forgot_password_screen.dart:86:        Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:95:        Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:109:          errorText: _emailErrorText(),
+lib/features/auth/presentation/screens/forgot_password_screen.dart:134:                  : const Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:156:                Text('Back to Sign In'),
+lib/features/auth/presentation/screens/forgot_password_screen.dart:196:        Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:213:          child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:245:                      child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:256:                    child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:279:                      child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:290:                    child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:313:                      child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:324:                    child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:350:              child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:375:                  Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:393:              child: const Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:405:            Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:418:                child: Text(
+lib/features/auth/presentation/screens/forgot_password_screen.dart:440:  String? _emailErrorText() {
+lib/features/auth/presentation/screens/forgot_password_screen.dart:456:    final emailError = _emailErrorText();
+lib/features/auth/presentation/screens/id_verification_screen.dart:121:                child: Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:143:                title: const Text('Take Photo'),
+lib/features/auth/presentation/screens/id_verification_screen.dart:144:                subtitle: const Text('Use camera to capture ID'),
+lib/features/auth/presentation/screens/id_verification_screen.dart:162:                title: const Text('Choose from Gallery'),
+lib/features/auth/presentation/screens/id_verification_screen.dart:163:                subtitle: const Text('Select existing photo'),
+lib/features/auth/presentation/screens/id_verification_screen.dart:301:              Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:326:                    Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:333:                    Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:371:                Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:381:                Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:435:                            Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:446:                            Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:506:                            Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:528:                  child: Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:568:          Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:578:          Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:626:          Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:641:                  Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:690:          child: Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:707:          child: Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:757:                    Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:766:                    Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:847:              Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:856:              Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:964:                      Text(
+lib/features/auth/presentation/screens/id_verification_screen.dart:983:                  Text(
+lib/features/auth/presentation/screens/pin_fallback_screen.dart:141:                Text(
+lib/features/auth/presentation/screens/pin_fallback_screen.dart:152:                Text(
+lib/features/auth/presentation/screens/pin_fallback_screen.dart:216:                  child: Text(
+lib/features/auth/presentation/screens/pin_fallback_screen.dart:228:                  Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:141:                            child: Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:157:                          Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:196:                                  child: Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:222:                                  Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:242:                              child: const Text(
+lib/features/auth/presentation/screens/permission_rationale_screen.dart:257:                            child: Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:78:                  Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:86:                  Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:111:                    child: Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:141:                      Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:151:                  Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:181:                          : const Text('Remove Phone Number'),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:198:          Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:222:                    child: Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:239:              errorText: _phoneErrorText(),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:260:                errorText: _otpErrorText(),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:285:              child: const Text('Resend code'),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:317:  String? _phoneErrorText() {
+lib/features/auth/presentation/screens/phone_protection_screen.dart:339:  String? _otpErrorText() {
+lib/features/auth/presentation/screens/phone_protection_screen.dart:355:    final phoneError = _phoneErrorText();
+lib/features/auth/presentation/screens/phone_protection_screen.dart:391:    final otpError = _otpErrorText();
+lib/features/auth/presentation/screens/phone_protection_screen.dart:437:        title: const Text('Remove Phone Number?'),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:442:            Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:457:                  Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:465:            Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:472:            Text(
+lib/features/auth/presentation/screens/phone_protection_screen.dart:483:            child: const Text('Cancel'),
+lib/features/auth/presentation/screens/phone_protection_screen.dart:491:            child: const Text('Remove'),
+lib/features/auth/presentation/screens/email_protection_screen.dart:80:                  Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:88:                  Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:113:                    child: Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:143:                      Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:153:                  Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:167:                    child: const Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:190:          Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:196:            Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:201:            Text(
+lib/features/auth/presentation/screens/email_protection_screen.dart:213:              errorText: _emailErrorText(),
+lib/features/auth/presentation/screens/email_protection_screen.dart:226:                errorText: _otpErrorText(),
+lib/features/auth/presentation/screens/email_protection_screen.dart:250:              child: const Text('Resend code'),
+lib/features/auth/presentation/screens/email_protection_screen.dart:274:  String? _emailErrorText() {
+lib/features/auth/presentation/screens/email_protection_screen.dart:286:  String? _otpErrorText() {
+lib/features/auth/presentation/screens/email_protection_screen.dart:302:    final emailError = _emailErrorText();
+lib/features/auth/presentation/screens/email_protection_screen.dart:360:    final otpError = _otpErrorText();
+lib/features/auth/presentation/screens/basic_info_screen.dart:190:                                      Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:220:                                          Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:230:                                          Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:283:                                          errorText: _usernameErrorText(),
+lib/features/auth/presentation/screens/basic_info_screen.dart:289:                                        if (_usernameErrorText() == null)
+lib/features/auth/presentation/screens/basic_info_screen.dart:296:                                            child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:421:                                                  child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:484:                                                Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:536:        Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:546:          Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:596:            Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:614:    final errorText = _birthdateErrorText();
+lib/features/auth/presentation/screens/basic_info_screen.dart:681:                  child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:708:            child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:792:              child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:846:                  Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:861:                      child: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:919:                    title: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:963:  String? _usernameErrorText() {
+lib/features/auth/presentation/screens/basic_info_screen.dart:984:  String? _birthdateErrorText() {
+lib/features/auth/presentation/screens/basic_info_screen.dart:1007:    final usernameError = _usernameErrorText();
+lib/features/auth/presentation/screens/basic_info_screen.dart:1012:    final birthdateError = _birthdateErrorText();
+lib/features/auth/presentation/screens/basic_info_screen.dart:1063:          title: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:1072:          content: Text(
+lib/features/auth/presentation/screens/basic_info_screen.dart:1089:              child: const Text('Go Back'),
+lib/features/auth/presentation/screens/basic_info_screen.dart:1094:              child: const Text('Continue Anyway'),
+lib/features/auth/presentation/screens/otp_screen.dart:53:      appBar: AppBar(title: const Text('Verify OTP')),
+lib/features/auth/presentation/screens/otp_screen.dart:80:                      Text(
+lib/features/auth/presentation/screens/otp_screen.dart:90:                          errorText: _otpErrorText(),
+lib/features/auth/presentation/screens/otp_screen.dart:131:                          child: const Text('Resend code'),
+lib/features/auth/presentation/screens/otp_screen.dart:153:  String? _otpErrorText() {
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:107:        title: const Text('Terms & Conditions'),
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:124:                      Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:133:                        Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:275:                                Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:355:                            child: Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:394:                            : const Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:407:                    Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:434:          Text(
+lib/features/auth/presentation/screens/terms_conditions_screen.dart:444:          Text(
+lib/features/auth/presentation/screens/splash_screen.dart:283:                        child: Text(
+lib/features/auth/presentation/screens/splash_screen.dart:297:                      child: Text(
+lib/features/auth/presentation/screens/splash_screen.dart:335:          ..addText('Crush');
+lib/features/auth/presentation/screens/splash_screen.dart:374:            ..addText('Crush');
+lib/features/auth/presentation/screens/splash_screen.dart:396:            ..addText('Crush');
+lib/features/auth/presentation/widgets/biometric_prompt.dart:91:                Text(
+lib/features/auth/presentation/widgets/biometric_prompt.dart:102:                Text(
+lib/features/auth/presentation/widgets/biometric_prompt.dart:113:                  Text(
+lib/features/auth/presentation/widgets/biometric_prompt.dart:135:                  child: Text('Unlock with $biometricTypeName'),
+lib/features/auth/presentation/widgets/biometric_prompt.dart:167:                Text(
+lib/features/auth/presentation/widgets/biometric_prompt.dart:178:                Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:286:        content: Text(message),
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:489:              Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:497:              Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:520:                Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:555:              Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:571:                label: const Text(
+lib/features/discovery/presentation/screens/story_viewer_screen.dart:623:            Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:269:            Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:278:            Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:291:                  Text('Try Again'),
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:312:          Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:317:          Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:342:                  child: Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:347:                Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:416:                  child: const Text('Pass'),
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:427:                        content: Text('Liked ${pick.reason.displayText}!'),
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:435:                  child: const Text('Like'),
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:478:                    Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:547:                              Text(
+lib/features/discovery/presentation/screens/weekly_picks_screen.dart:559:                          Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:614:                                      child: Text('View full profile'),
+lib/features/discovery/presentation/screens/deck_screen.dart:618:                                      child: Text('Report profile'),
+lib/features/discovery/presentation/screens/deck_screen.dart:622:                                      child: Text('Block & hide profile'),
+lib/features/discovery/presentation/screens/deck_screen.dart:690:                                          child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:719:                                          child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:779:                                              child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:807:                                              child: const Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:982:                                              child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1295:              const Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1300:              Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1309:                  child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1316:                label: const Text('Retry'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1326:                  label: Text('Auto-retrying in ~${retryInSeconds}s'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1337:                  label: const Text('Try Passport with Plus'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1419:                  Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1428:                  Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1461:                          Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1483:                                label: Text('$activeCount'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1490:                        label: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1499:                    label: const Text('Refresh deck'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1680:          title: const Text('Verify your account'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1681:          content: const Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1687:              child: const Text('Later'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1694:              child: const Text('Verify now'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1705:        title: const Text('Complete your profile'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1706:        content: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1714:            child: const Text('Later'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1721:            child: const Text('Complete profile'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1765:                        child: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1878:              content: Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1917:                        Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1929:                    Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:1967:                            : Text(isPlus ? 'Got it' : 'Upgrade to Plus'),
+lib/features/discovery/presentation/screens/deck_screen.dart:1973:                        child: const Text('Maybe later'),
+lib/features/discovery/presentation/screens/deck_screen.dart:2013:                title: Text('Report $reportedName'),
+lib/features/discovery/presentation/screens/deck_screen.dart:2014:                subtitle: const Text(
+lib/features/discovery/presentation/screens/deck_screen.dart:2020:                  title: Text(reason),
+lib/features/discovery/presentation/screens/deck_screen.dart:2040:            title: Text('Report $reportedName'),
+lib/features/discovery/presentation/screens/deck_screen.dart:2052:                child: const Text('Cancel'),
+lib/features/discovery/presentation/screens/deck_screen.dart:2057:                child: const Text('Submit'),
+lib/features/discovery/presentation/screens/deck_screen.dart:2084:        SnackBar(content: Text('Report submitted for $reportedName.')),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:84:        title: const Text('Likes You'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:132:            Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:140:              child: const Text('Try Again'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:208:            Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:215:            Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:273:                      Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:284:                Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:303:                        Text('Upgrade to Plus'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:354:            content: Text("It's a match with ${profile.publicDisplayName}!"),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:368:            content: Text('Could not like back. Please try again.'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:392:            content: Text('Could not pass. Please try again.'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:452:                  Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:459:                  Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:483:                          Text('Upgrade to Plus'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:491:                    child: const Text('Maybe Later'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:582:                    Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:593:                      Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:705:                            child: Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:729:                        Text(
+lib/features/discovery/presentation/screens/likes_you_screen.dart:742:                              label: Text(interest),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:770:                              Text('Pass'),
+lib/features/discovery/presentation/screens/likes_you_screen.dart:785:                              Text('Like Back'),
+lib/features/discovery/presentation/widgets/profile_video_player.dart:218:              Text(
+lib/features/discovery/presentation/widgets/profile_video_player.dart:406:              Text(
+lib/features/discovery/presentation/widgets/profile_video_player.dart:470:              Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:593:                        Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:628:                            child: Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:674:                                  Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:718:              child: const Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:880:              Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:949:        Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:955:          child: Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:1012:                child: Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:1189:          Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:1236:              Text(
+lib/features/discovery/presentation/widgets/swipe_card.dart:1299:          Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:202:                    child: Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:255:                        child: Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:279:                  Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:392:                          Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:399:                          Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:473:                      Text(
+lib/features/discovery/presentation/widgets/deck_ui_helpers.dart:480:                      Text(
+lib/features/discovery/presentation/widgets/boost_button.dart:141:                  Text(
+lib/features/discovery/presentation/widgets/boost_button.dart:220:                      Text(
+lib/features/discovery/presentation/widgets/boost_button.dart:227:                      Text(
+lib/features/discovery/presentation/widgets/boost_button.dart:274:                              Text('Boost Now'),
+lib/features/discovery/presentation/widgets/boost_button.dart:282:                        child: const Text('Maybe Later'),
+lib/features/discovery/presentation/widgets/boost_button.dart:310:          child: Text(
+lib/features/discovery/presentation/widgets/boost_button.dart:365:              Text(
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:287:          child: Text(
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:415:              child: Text(widget.emoji, style: const TextStyle(fontSize: 48)),
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:486:                Text(
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:504:                  child: Text(
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:543:                          child: Text(
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:586:                        child: const Text('Cancel'),
+lib/features/discovery/presentation/widgets/content_reaction_button.dart:605:                        child: const Text('Send'),
+lib/features/discovery/presentation/widgets/story_ring.dart:207:              Text(
+lib/features/discovery/presentation/widgets/empty_deck_animations.dart:411:                        Text(
+lib/features/discovery/presentation/widgets/explore_grid_view.dart:90:            Text(
+lib/features/discovery/presentation/widgets/explore_grid_view.dart:97:            Text(
+lib/features/discovery/presentation/widgets/explore_grid_view.dart:172:                      Text(
+lib/features/discovery/presentation/widgets/explore_grid_view.dart:182:                        Text(
+lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart:120:                              Text(
+lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart:178:                                child: const Text('Got it!'),
+lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart:215:          child: Text(
+lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart:224:          child: Text(
+lib/features/about/presentation/screens/product_features_screen.dart:17:      appBar: AppBar(title: const Text('Features')),
+lib/features/about/presentation/screens/product_features_screen.dart:27:                Text(
+lib/features/about/presentation/screens/product_features_screen.dart:34:                Text(
+lib/features/about/presentation/screens/product_features_screen.dart:272:        Text(
+lib/features/about/presentation/screens/product_features_screen.dart:280:          Text(
+lib/features/about/presentation/screens/product_features_screen.dart:336:                      child: Text(
+lib/features/about/presentation/screens/product_features_screen.dart:353:                        child: Text(
+lib/features/about/presentation/screens/product_features_screen.dart:365:                Text(
+lib/features/about/presentation/screens/pricing_screen.dart:26:      appBar: AppBar(title: const Text('Pricing')),
+lib/features/about/presentation/screens/pricing_screen.dart:36:                Text(
+lib/features/about/presentation/screens/pricing_screen.dart:43:                Text(
+lib/features/about/presentation/screens/pricing_screen.dart:79:                            child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:183:                            child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:201:                            child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:219:                            child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:349:              Text(
+lib/features/about/presentation/screens/pricing_screen.dart:366:                  child: const Text(
+lib/features/about/presentation/screens/pricing_screen.dart:382:              Text(
+lib/features/about/presentation/screens/pricing_screen.dart:392:                child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:408:                  child: Text(
+lib/features/about/presentation/screens/pricing_screen.dart:421:          Text(
+lib/features/about/presentation/screens/pricing_screen.dart:438:                    child: Text(feature, style: theme.textTheme.bodyMedium),
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:106:                      const Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:113:                      Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:186:                    child: const Text('Cancel'),
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:197:                    child: Text(_validatedCode != null ? 'Redeem' : 'Apply'),
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:223:                    child: Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:335:              const Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:349:                child: Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:362:            Text(
+lib/features/subscription/presentation/widgets/promo_code_sheet.dart:425:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:236:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:241:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:250:            child: const Text('Try Again'),
+lib/features/social/presentation/screens/date_ideas_screen.dart:299:          child: Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:323:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:328:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:355:                    Text(idea.emoji, style: const TextStyle(fontSize: 32)),
+lib/features/social/presentation/screens/date_ideas_screen.dart:361:                          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:378:                                Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:406:                Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:424:                    Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:439:                      Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:525:                            Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:534:                                  Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:561:                        Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:596:                          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:644:                                          content: Text('Saved to your ideas!'),
+lib/features/social/presentation/screens/date_ideas_screen.dart:655:                                        Text('Save'),
+lib/features/social/presentation/screens/date_ideas_screen.dart:675:                                            content: Text('Idea sent!'),
+lib/features/social/presentation/screens/date_ideas_screen.dart:686:                                          Text('Send'),
+lib/features/social/presentation/screens/date_ideas_screen.dart:721:          Text(
+lib/features/social/presentation/screens/date_ideas_screen.dart:726:          Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:134:          Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:139:          Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:152:            child: const Text('Try Again'),
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:170:          Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:200:                  Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:204:                  Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:239:                        Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:244:                      Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:303:                            child: Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:337:                        Text('Back'),
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:355:                      Text(isLastQuestion ? 'See Results' : 'Next'),
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:410:                const Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:415:                Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:434:              child: Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:451:                      Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:460:                            Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:468:                            Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:490:              child: Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:512:                            Text(entry.key, style: TextStyle(color: textColor)),
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:513:                            Text(
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:550:            child: const Text('Done'),
+lib/features/social/presentation/screens/compatibility_quiz_screen.dart:578:      child: Text(
+lib/features/profile/data/repositories/impl/stub_profile_repository.dart:63:    final sanitizedGender = InputSanitizer.sanitizeText(gender, maxLength: 50);
+lib/features/profile/data/repositories/impl/stub_profile_repository.dart:65:        ? InputSanitizer.sanitizeText(sexualOrientation, maxLength: 50)
+lib/features/profile/data/repositories/impl/stub_profile_repository.dart:211:        ? InputSanitizer.sanitizeText(
+lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:153:    final sanitizedGender = InputSanitizer.sanitizeText(gender, maxLength: 50);
+lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:155:        ? InputSanitizer.sanitizeText(sexualOrientation, maxLength: 50)
+lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:277:        ? InputSanitizer.sanitizeText(
+lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:284:        ? InputSanitizer.sanitizeText(city, maxLength: 100)
+lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:287:        ? InputSanitizer.sanitizeText(country, maxLength: 100)
+lib/features/profile/data/repositories/impl/http_profile_repository.dart:133:        ? InputSanitizer.sanitizeText(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:357:                Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:428:          title: const Text('Change Date of Birth'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:429:          content: const Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:436:              child: const Text('Cancel'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:440:              child: const Text('Continue'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:503:          title: const Text('Age Notice'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:504:          content: const Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:511:              child: const Text('Go Back'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:515:              child: const Text('Continue Anyway'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:535:        title: const Text('Confirm Date of Birth'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:536:        content: Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:544:            child: const Text('Go Back'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:548:            child: const Text('Confirm'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:798:                          child: Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:811:                          child: const Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:833:                              final sanitized = InputSanitizer.sanitizeText(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:859:                            final sanitized = InputSanitizer.sanitizeText(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:890:                        title: Text(songs[index]),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:988:            appBar: AppBar(title: const Text('Complete Your Profile')),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1050:            title: const Text('Complete Your Profile'),
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1705:                    Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1713:                    Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1732:                child: Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1772:                    child: Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1787:            Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1822:                          Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1871:              Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1878:              Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1928:                Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:1937:                Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:2058:              Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:2089:          child: Text(
+lib/features/profile/presentation/screens/profile_edit_screen.dart:2146:                    Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:196:  String? _usernameErrorText() {
+lib/features/profile/presentation/screens/profile_setup_screen.dart:606:                                                child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:799:                                      Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:840:          Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:924:                          Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:937:                            Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:969:                          child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:991:              Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1000:              Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1050:              Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1059:              Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1123:                Text(option.emoji, style: const TextStyle(fontSize: 20)),
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1125:                Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1202:                    Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1211:                    Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1229:                    Text('Edit'),
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1312:            Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1321:            Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1376:            errorText: _usernameErrorText(),
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1382:          if (_usernameErrorText() == null)
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1385:              child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1412:                child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1423:                onPressed: _usernameErrorText() == null
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1428:                child: const Text('Save'),
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1475:                        Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1485:                        Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1525:                          Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1552:                    child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1605:            child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1761:                  Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1770:                  Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1837:                  Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1852:                      child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1904:                    child: const Text('Add'),
+lib/features/profile/presentation/screens/profile_setup_screen.dart:1955:                    title: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:2032:              child: Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:2066:                        Text(
+lib/features/profile/presentation/screens/profile_setup_screen.dart:2094:                      Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:111:                                Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:141:                                  Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:167:                                    child: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:202:                      child: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:510:                    label: const Text('Send Message'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:526:                        label: const Text('Pass'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:551:                            label: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:570:                        label: const Text('Like'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:683:            content: Text("It's a match with ${profile.publicDisplayName}!"),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:690:        ).showSnackBar(const SnackBar(content: Text('Liked!')));
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:779:                    Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:849:                                        content: Text('Message request sent.'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:876:                        label: Text(isSending ? 'Sending...' : 'Send Request'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:883:                    Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:940:              title: const Text('Report'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:948:              title: Text(isBlocked ? 'Unblock' : 'Block'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:966:                      content: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:984:              title: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:999:                      content: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1013:              title: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1025:                      content: Text(isMuted ? 'Calls unmuted' : 'Calls muted'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1033:              title: const Text('Share Profile'),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1037:                  const SnackBar(content: Text('Share feature coming soon')),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1070:              child: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1077:                title: Text(reason),
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1089:                        content: Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1233:              Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1271:          Text(
+lib/features/profile/presentation/screens/other_user_profile_screen.dart:1278:            child: Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:72:                    Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:78:                    Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:93:                      label: Text(isEmpty ? 'Create Profile' : 'Retry'),
+lib/features/profile/presentation/screens/profile_view_screen.dart:163:                                        Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:187:                                              Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:209:                                              Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:232:                                                child: Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:265:                                    label: const Text('Edit'),
+lib/features/profile/presentation/screens/profile_view_screen.dart:291:                                  child: Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:622:                  Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:694:                    Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:703:                    Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:724:                child: Text(isNewProfile ? 'Get Started' : 'Complete'),
+lib/features/profile/presentation/screens/profile_view_screen.dart:742:            Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:789:              Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:827:          Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:834:            child: Text(
+lib/features/profile/presentation/screens/profile_view_screen.dart:899:                      Text(
+lib/features/profile/presentation/screens/profile_media_screen.dart:66:              Text("$displayName's media"),
+lib/features/profile/presentation/screens/profile_media_screen.dart:91:                      const Center(child: Text('No photos yet'))
+lib/features/profile/presentation/screens/profile_media_screen.dart:105:                                      child: Text('Photo unavailable'),
+lib/features/profile/presentation/screens/profile_media_screen.dart:113:                          Text(
+lib/features/profile/presentation/screens/profile_media_screen.dart:120:                      const Center(child: Text('No videos yet'))
+lib/features/profile/presentation/screens/profile_media_screen.dart:148:                                    child: Text('Could not load video'),
+lib/features/profile/presentation/widgets/prompt_editor.dart:33:            Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:40:            Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:51:        Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:166:                  Text(prompt.emoji, style: const TextStyle(fontSize: 20)),
+lib/features/profile/presentation/widgets/prompt_editor.dart:169:                    child: Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:198:              Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:246:            Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:316:                  child: Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:438:                        Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:444:                        Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:495:                Text(question.emoji, style: const TextStyle(fontSize: 24)),
+lib/features/profile/presentation/widgets/prompt_editor.dart:498:                  child: Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:575:                Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:581:                  child: Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:623:                child: const Text('Save'),
+lib/features/profile/presentation/widgets/prompt_editor.dart:662:                Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:686:                      Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:692:                        child: Text(
+lib/features/profile/presentation/widgets/prompt_editor.dart:738:                child: const Text('Save'),
+lib/features/profile/presentation/widgets/prompt_card.dart:64:                      Text(
+lib/features/profile/presentation/widgets/prompt_card.dart:71:                      child: Text(
+lib/features/profile/presentation/widgets/prompt_card.dart:85:                Text(
+lib/features/profile/presentation/widgets/prompt_card.dart:224:                Text(
+lib/features/profile/presentation/widgets/prompt_card.dart:231:                Text(
+lib/features/profile/presentation/widgets/prompt_card.dart:250:                    Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:146:                  child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:158:                    child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:168:                  child: const Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:206:            child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:244:            child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:280:                  child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:313:                  child: Text(
+lib/features/profile/presentation/widgets/profile_height_picker.dart:366:        child: Text(
+lib/features/profile/presentation/widgets/profile_single_select_sheet.dart:94:                  child: Text(
+lib/features/profile/presentation/widgets/profile_single_select_sheet.dart:106:                    child: const Text(
+lib/features/profile/presentation/widgets/profile_single_select_sheet.dart:147:                          Text(emoji, style: const TextStyle(fontSize: 24)),
+lib/features/profile/presentation/widgets/profile_single_select_sheet.dart:154:                              Text(
+lib/features/profile/presentation/widgets/profile_single_select_sheet.dart:166:                                Text(
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:32:                const Text(
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:37:                Text('$percent%'),
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:49:              const Text(
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:54:              Text(
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:69:                        label: Text(m),
+lib/features/profile/presentation/widgets/profile_completeness_meter.dart:84:                  label: Text(
+lib/features/profile/presentation/widgets/profile_media_picker.dart:106:      ).showSnackBar(SnackBar(content: Text(message)));
+lib/features/profile/presentation/widgets/profile_media_picker.dart:290:        Text(
+lib/features/profile/presentation/widgets/profile_media_picker.dart:298:            child: Text(
+lib/features/profile/presentation/widgets/profile_media_picker.dart:375:                    Text(
+lib/features/profile/presentation/widgets/profile_media_picker.dart:402:                    child: const Text(
+lib/features/profile/presentation/widgets/profile_field_tile.dart:54:                  child: Text(
+lib/features/profile/presentation/widgets/profile_field_tile.dart:64:                  child: Text(
+lib/features/profile/presentation/widgets/profile_field_tile.dart:131:          Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:75:              content: Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:131:                      Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:140:                        Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:153:                        child: Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:163:                      child: const Text(
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:198:                          Text(emoji, style: const TextStyle(fontSize: 16)),
+lib/features/profile/presentation/widgets/profile_multi_select_sheet.dart:201:                        Text(label),
+lib/features/profile/presentation/widgets/profile_chip_display.dart:35:          child: Text(
+lib/features/profile/presentation/widgets/profile_chip_display.dart:68:                child: Text(
+lib/features/profile/presentation/widgets/profile_chip_display.dart:84:                child: Text(
+lib/features/profile/presentation/widgets/profile_chip_display.dart:145:                Text(
+lib/features/profile/presentation/widgets/profile_chip_display.dart:154:                Text(
+lib/features/notifications/presentation/screens/notification_center_screen.dart:52:        title: const Text('Notifications'),
+lib/features/notifications/presentation/screens/notification_center_screen.dart:65:                child: const Text('Mark all read'),
+lib/features/notifications/presentation/screens/notification_center_screen.dart:97:                            Text(
+lib/features/notifications/presentation/screens/notification_center_screen.dart:156:      child: Text(
+lib/features/notifications/presentation/screens/notification_center_screen.dart:265:      title: Text(
+lib/features/notifications/presentation/screens/notification_center_screen.dart:271:      subtitle: Text(
+lib/features/notifications/presentation/screens/notification_center_screen.dart:279:          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:207:            Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:216:            Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:231:                  Text('Try Again'),
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:252:          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:257:          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:301:        Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:363:          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:408:          child: Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:413:        Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:443:                const Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:452:                Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:477:        Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:502:                        child: Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:516:                          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:523:                          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:542:                      child: Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:568:        Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:604:                    Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:662:          Text(
+lib/features/analytics/presentation/screens/profile_insights_screen.dart:667:          Text(

@@ -4,15 +4,18 @@ import 'dart:io';
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
+import 'package:crushhour/core/network/circuit_breaker.dart';
 import 'package:crushhour/core/network/dto/chat_dto.dart' as dto;
 import 'package:crushhour/core/network/dto/discovery_dto.dart';
+import 'package:crushhour/core/network/dto/upload_response_dto.dart';
 import 'package:crushhour/core/network/mappers/chat_mapper.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
 import 'package:crushhour/core/network/realtime/realtime_connection.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
-import 'package:crushhour/data/models/match.dart';
+
 import '../chat_repository.dart';
 
 /// HTTP-based implementation of ChatRepository.
@@ -24,10 +27,12 @@ class HttpChatRepository implements ChatRepository {
     required ApiClient apiClient,
     WebSocketConnection? webSocket,
   }) : _apiClient = apiClient,
-       _webSocket = webSocket;
+       _webSocket = webSocket,
+       _circuitBreaker = CircuitBreakerRegistry.instance.get('chat');
 
   final ApiClient _apiClient;
   final WebSocketConnection? _webSocket;
+  final CircuitBreaker _circuitBreaker;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // POLLING CONFIGURATION
@@ -68,6 +73,13 @@ class HttpChatRepository implements ChatRepository {
     int limit = 30,
     DateTime? beforeTimestamp,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      AppLogger.warning(
+        'HttpChatRepository: fetchMessagesPaginated blocked by circuit breaker',
+      );
+      return const PaginatedResult(items: [], total: -1, hasMore: false);
+    }
+
     final queryParams = <String, String>{'limit': limit.toString()};
     if (beforeTimestamp != null) {
       queryParams['before'] = beforeTimestamp.toIso8601String();
@@ -80,8 +92,11 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       return const PaginatedResult(items: [], total: -1, hasMore: false);
     }
+
+    _circuitBreaker.recordSuccess();
 
     final response = dto.MessagesResponseDto.fromJson(result.data!);
     final messages = response.messages
@@ -128,10 +143,24 @@ class HttpChatRepository implements ChatRepository {
   }
 
   Future<void> _fetchMessages(String matchId) async {
+    if (!_circuitBreaker.allowRequest()) {
+      AppLogger.warning(
+        'HttpChatRepository: _fetchMessages blocked by circuit breaker',
+      );
+      return;
+    }
+
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.chatMessages(matchId),
       parser: (data) => data as Map<String, dynamic>,
     );
+
+    if (result.isFailure) {
+      _circuitBreaker.recordFailure();
+      return;
+    }
+
+    _circuitBreaker.recordSuccess();
 
     if (result.isSuccess && result.data != null) {
       final response = dto.MessagesResponseDto.fromJson(result.data!);
@@ -150,6 +179,10 @@ class HttpChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final request = dto.SendMessageRequestDto(
       type: _mapMessageType(type),
       content: type == MessageType.text ? content : null,
@@ -162,8 +195,11 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to send message');
     }
+
+    _circuitBreaker.recordSuccess();
 
     // Refresh messages
     await _fetchMessages(matchId);
@@ -175,6 +211,10 @@ class HttpChatRepository implements ChatRepository {
     required String filePath,
     required MessageType type,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final file = File(filePath);
 
     if (!await file.exists()) {
@@ -190,20 +230,24 @@ class HttpChatRepository implements ChatRepository {
       MessageType.text => 'file',
     };
 
-    final result = await _apiClient.uploadFile<Map<String, dynamic>>(
+    final result = await _apiClient.uploadFile<UploadResponseDto>(
       endpoint: endpoint,
       file: file,
       fieldName: 'media',
       fields: {'type': mediaType},
-      parser: (data) => data as Map<String, dynamic>,
+      parser: (data) =>
+          UploadResponseDto.fromJson(data as Map<String, dynamic>),
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to upload media');
     }
 
+    _circuitBreaker.recordSuccess();
+
     // Extract the URL from the response
-    final mediaUrl = result.data?['url'] as String?;
+    final mediaUrl = result.data?.url;
     if (mediaUrl == null) {
       throw Exception('No media URL returned from server');
     }
@@ -227,13 +271,20 @@ class HttpChatRepository implements ChatRepository {
     required String matchId,
     required String messageId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.delete<void>(
       '/chat/$matchId/messages/$messageId',
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to unsend message');
     }
+
+    _circuitBreaker.recordSuccess();
 
     await _fetchMessages(matchId);
   }
@@ -244,14 +295,21 @@ class HttpChatRepository implements ChatRepository {
     required String messageId,
     required String newContent,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.patch<void>(
       '/chat/$matchId/messages/$messageId',
       body: {'content': newContent},
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to edit message');
     }
+
+    _circuitBreaker.recordSuccess();
 
     await _fetchMessages(matchId);
   }
@@ -262,13 +320,20 @@ class HttpChatRepository implements ChatRepository {
     required String messageId,
     required String userId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       '/chat/$matchId/messages/$messageId/hide',
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to delete message');
     }
+
+    _circuitBreaker.recordSuccess();
 
     await _fetchMessages(matchId);
   }
@@ -283,6 +348,10 @@ class HttpChatRepository implements ChatRepository {
     String? source,
     String? description,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       ApiEndpoints.reportUser,
       body: {
@@ -297,8 +366,11 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to report user');
     }
+
+    _circuitBreaker.recordSuccess();
   }
 
   @override
@@ -308,14 +380,21 @@ class HttpChatRepository implements ChatRepository {
     required String userId,
     required String emoji,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       '/chat/$matchId/messages/$messageId/reactions',
       body: {'emoji': emoji},
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to add reaction');
     }
+
+    _circuitBreaker.recordSuccess();
 
     await _fetchMessages(matchId);
   }
@@ -326,13 +405,20 @@ class HttpChatRepository implements ChatRepository {
     required String messageId,
     required String userId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.delete<void>(
       '/chat/$matchId/messages/$messageId/reactions',
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to remove reaction');
     }
+
+    _circuitBreaker.recordSuccess();
 
     await _fetchMessages(matchId);
   }
@@ -344,6 +430,10 @@ class HttpChatRepository implements ChatRepository {
     String? targetType,
     String? targetId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       '/safety/appeal',
       body: {
@@ -355,8 +445,11 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to submit appeal');
     }
+
+    _circuitBreaker.recordSuccess();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -392,10 +485,20 @@ class HttpChatRepository implements ChatRepository {
     }
 
     // Fallback to HTTP
-    await _apiClient.post<void>(
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
+    final result = await _apiClient.post<void>(
       '/chat/$matchId/typing',
       body: {'is_typing': isTyping},
     );
+
+    if (result.isFailure) {
+      _circuitBreaker.recordFailure();
+    } else {
+      _circuitBreaker.recordSuccess();
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -431,10 +534,21 @@ class HttpChatRepository implements ChatRepository {
   }
 
   Future<void> _fetchPresence(String userId) async {
+    if (!_circuitBreaker.allowRequest()) {
+      return;
+    }
+
     final result = await _apiClient.get<Map<String, dynamic>>(
       '/users/$userId/presence',
       parser: (data) => data as Map<String, dynamic>,
     );
+
+    if (result.isFailure) {
+      _circuitBreaker.recordFailure();
+      return;
+    }
+
+    _circuitBreaker.recordSuccess();
 
     if (result.isSuccess && result.data != null) {
       final isOnline = result.data!['is_online'] as bool? ?? false;
@@ -454,10 +568,20 @@ class HttpChatRepository implements ChatRepository {
     }
 
     // Fallback to HTTP
-    await _apiClient.post<void>(
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
+    final result = await _apiClient.post<void>(
       '/users/$userId/presence',
       body: {'is_online': isOnline},
     );
+
+    if (result.isFailure) {
+      _circuitBreaker.recordFailure();
+    } else {
+      _circuitBreaker.recordSuccess();
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -479,16 +603,23 @@ class HttpChatRepository implements ChatRepository {
     required bool enabled,
     required String requesterId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       '/chat/$matchId/media-settings',
       body: {'enabled': enabled},
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(
         result.error?.message ?? 'Failed to update media settings',
       );
     }
+
+    _circuitBreaker.recordSuccess();
 
     _mediaSendingControllers[matchId]?.add(enabled);
   }
@@ -502,14 +633,21 @@ class HttpChatRepository implements ChatRepository {
     required String blockerId,
     required String blockedId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       ApiEndpoints.blockUser,
       body: {'blocked_id': blockedId},
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to block user');
     }
+
+    _circuitBreaker.recordSuccess();
   }
 
   @override
@@ -551,6 +689,13 @@ class HttpChatRepository implements ChatRepository {
     int offset = 0,
     int limit = 20,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      AppLogger.warning(
+        'HttpChatRepository: fetchUserMatchesPaginated blocked by circuit breaker',
+      );
+      return const PaginatedResult(items: [], total: 0, hasMore: false);
+    }
+
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.matches,
       queryParams: {'offset': offset.toString(), 'limit': limit.toString()},
@@ -558,11 +703,14 @@ class HttpChatRepository implements ChatRepository {
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       AppLogger.error(
         'HttpChatRepository: Failed to fetch matches - ${result.error}',
       );
       return const PaginatedResult(items: [], total: 0, hasMore: false);
     }
+
+    _circuitBreaker.recordSuccess();
 
     final response = MatchesResponseDto.fromJson(result.data!);
     final matches = response.matches

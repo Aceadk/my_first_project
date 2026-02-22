@@ -1,26 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/utils/constants.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+
 import '../../core/security/secure_logger.dart';
-import '../models/user.dart';
-import '../models/profile.dart';
-import '../models/preferences.dart';
-import '../models/privacy_settings.dart';
+import '../models/favourites.dart';
 import '../models/match.dart';
 import '../models/message.dart';
 import '../models/message_request.dart';
-import '../models/subscription.dart';
+import '../models/preferences.dart';
+import '../models/privacy_settings.dart';
+import '../models/profile.dart';
 import '../models/promo_code.dart';
-import '../models/favourites.dart';
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
-import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
-import 'package:crushhour/core/utils/constants.dart';
+import '../models/subscription.dart';
+import '../models/user.dart';
 
 const _uuid = Uuid();
 const _backendBaseUrl = String.fromEnvironment(
@@ -28,7 +31,7 @@ const _backendBaseUrl = String.fromEnvironment(
   defaultValue: 'https://api.crushhour.dev',
 );
 
-class FakeAuthRepository implements AuthRepository {
+class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
   final _controller = StreamController<CrushUser?>.broadcast();
   CrushUser? _current;
   final _otpStore = <String, _OtpEntry>{};
@@ -46,6 +49,9 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   bool get supportsUsernameLogin => true;
+
+  @override
+  bool get supportsGoogleSignIn => true;
 
   @override
   bool get supportsAppleSignIn => true;
@@ -159,6 +165,39 @@ class FakeAuthRepository implements AuthRepository {
     final uniqueId = _uuid.v4().substring(0, 8);
     final email = 'apple_$uniqueId@privaterelay.appleid.com';
     final username = 'apple_$uniqueId';
+
+    final existing = _usersByEmail[email];
+    if (existing != null) {
+      _current = existing;
+      _controller.add(_current);
+      return existing;
+    }
+
+    final user = CrushUser(
+      id: _uuid.v4(),
+      phoneNumber: '',
+      email: email,
+      username: username,
+      isEmailVerified: true,
+      profile: null,
+      isPhoneVerified: false,
+      isIdVerified: false,
+      plan: SubscriptionPlan.free,
+    );
+    _usersByEmail[email] = user;
+    _usersByUsername[username] = user;
+    _passwordsByUserId[user.id] = _uuid.v4();
+    _passwordsByEmail[email] = _uuid.v4();
+    _current = user;
+    _controller.add(_current);
+    return user;
+  }
+
+  @override
+  Future<CrushUser> signInWithGoogle() async {
+    final uniqueId = _uuid.v4().substring(0, 8);
+    final email = 'google_$uniqueId@gmail.com';
+    final username = 'google_$uniqueId';
 
     final existing = _usersByEmail[email];
     if (existing != null) {
@@ -486,6 +525,17 @@ class FakeAuthRepository implements AuthRepository {
     _passwordsByUserId[_current!.id] = newPassword;
     if (_current!.email != null) {
       _passwordsByEmail[_current!.email!.toLowerCase()] = newPassword;
+    }
+  }
+
+  @override
+  Future<void> verifyPassword(String password) async {
+    if (_current == null) {
+      throw Exception('No user logged in');
+    }
+    final stored = _passwordsByUserId[_current!.id];
+    if (stored != password) {
+      throw Exception('Incorrect password');
     }
   }
 
@@ -938,6 +988,110 @@ class FakeProfileRepository implements ProfileRepository {
   Future<CrushUser> skipProfileSetup() async {
     _user = _user!.copyWith(hasSkippedProfileSetup: true);
     return _user!;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async {
+    return Result.guard(
+      () => saveBasicInfo(
+        username: username,
+        name: name,
+        lastName: lastName,
+        age: age,
+        gender: gender,
+        sexualOrientation: sexualOrientation,
+        dateOfBirth: dateOfBirth,
+        showFirstName: showFirstName,
+        showLastName: showLastName,
+      ),
+      logLabel: 'FakeProfileRepository.saveBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async {
+    return Result.guard(
+      () => saveProfileDetails(
+        bio: bio,
+        photoUrls: photoUrls,
+        videoUrls: videoUrls,
+        jobTitle: jobTitle,
+        company: company,
+        school: school,
+        interests: interests,
+        prompts: prompts,
+        city: city,
+        country: country,
+        favourites: favourites,
+        showMeGenders: showMeGenders,
+        latitude: latitude,
+        longitude: longitude,
+      ),
+      logLabel: 'FakeProfileRepository.saveProfileDetailsResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async {
+    return Result.guard(
+      () => markIdVerified(),
+      logLabel: 'FakeProfileRepository.markIdVerifiedResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async {
+    return Result.guard(
+      () => updateProfile(profile),
+      logLabel: 'FakeProfileRepository.updateProfileResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async {
+    return Result.guard(
+      () => skipBasicInfo(username: username),
+      logLabel: 'FakeProfileRepository.skipBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async {
+    return Result.guard(
+      () => skipProfileSetup(),
+      logLabel: 'FakeProfileRepository.skipProfileSetupResult',
+    );
   }
 }
 

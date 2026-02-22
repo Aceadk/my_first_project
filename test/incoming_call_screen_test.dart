@@ -1,7 +1,9 @@
 import 'package:crushhour/features/calls/domain/models/call.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
 import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -45,13 +47,16 @@ void main() {
     Future<void> Function(Call call)? onTimedOut,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: IncomingCallScreen(
-          incomingCall: call,
-          ringTimeout: ringTimeout ?? const Duration(minutes: 5),
-          onAccepted: onAccepted,
-          onDeclined: onDeclined,
-          onTimedOut: onTimedOut,
+      RepositoryProvider<CallManagerRepository>.value(
+        value: service,
+        child: MaterialApp(
+          home: IncomingCallScreen(
+            incomingCall: call,
+            ringTimeout: ringTimeout ?? const Duration(minutes: 5),
+            onAccepted: onAccepted,
+            onDeclined: onDeclined,
+            onTimedOut: onTimedOut,
+          ),
         ),
       ),
     );

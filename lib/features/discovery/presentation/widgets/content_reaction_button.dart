@@ -7,6 +7,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A floating reaction button that appears on photos/prompts.
 class ContentReactionButton extends StatefulWidget {
@@ -149,8 +150,8 @@ class _GlassIconButton extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: isActive
                 ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                     colors: [DsColors.primary, DsColors.secondary],
                   )
                 : null,
@@ -198,8 +199,8 @@ class _ReactionPicker extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 DsColors.surfaceLight.withValues(alpha: 0.2),
                 DsColors.surfaceLight.withValues(alpha: 0.1),
@@ -270,23 +271,25 @@ class _ReactionItemState extends State<_ReactionItem>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedScale(
-        scale: _isPressed ? 1.3 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          alignment: Alignment.center,
-          child: Text(
-            widget.reaction.emoji,
-            style: TextStyle(fontSize: widget.size * 0.5),
+    return Semantics(
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: _isPressed ? 1.3 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            alignment: Alignment.center,
+            child: Text(
+              widget.reaction.emoji,
+              style: TextStyle(fontSize: widget.size * 0.5),
+            ),
           ),
         ),
       ),
@@ -303,19 +306,22 @@ class _CommentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: DsColors.surfaceLight.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(size / 2.0),
-        ),
-        child: Icon(
-          Icons.chat_bubble_outline,
-          color: DsColors.surfaceLight,
-          size: size * 0.45,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: DsColors.surfaceLight.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(size / 2.0),
+          ),
+          child: Icon(
+            Icons.chat_bubble_outline,
+            color: DsColors.surfaceLight,
+            size: size * 0.45,
+          ),
         ),
       ),
     );
@@ -517,32 +523,35 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: reactions.map((reaction) {
                     final isSelected = _selectedReaction == reaction.type;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedReaction = reaction.type);
-                        HapticFeedback.lightImpact();
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 56,
-                        height: 56,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? DsColors.primary.withValues(alpha: 0.2)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(DsRadius.md),
-                          border: Border.all(
+                    return Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedReaction = reaction.type);
+                          HapticFeedback.lightImpact();
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 56,
+                          height: 56,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? DsColors.primary
+                                ? DsColors.primary.withValues(alpha: 0.2)
                                 : Colors.transparent,
-                            width: 2,
+                            borderRadius: BorderRadius.circular(DsRadius.md),
+                            border: Border.all(
+                              color: isSelected
+                                  ? DsColors.primary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
                           ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            reaction.emoji,
-                            style: const TextStyle(fontSize: 28),
+                          child: Center(
+                            child: Text(
+                              reaction.emoji,
+                              style: const TextStyle(fontSize: 28),
+                            ),
                           ),
                         ),
                       ),
@@ -583,7 +592,7 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(AppLocalizations.of(context).cancel),
                       ),
                     ),
                     const SizedBox(width: DsSpacing.md),
@@ -602,7 +611,7 @@ class _ReactionCommentDialogState extends State<ReactionCommentDialog> {
                             borderRadius: BorderRadius.circular(DsRadius.md),
                           ),
                         ),
-                        child: const Text('Send'),
+                        child: Text(AppLocalizations.of(context).send),
                       ),
                     ),
                   ],

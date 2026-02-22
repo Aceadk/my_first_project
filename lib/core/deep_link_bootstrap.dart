@@ -12,18 +12,52 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 
 class DeepLinkBootstrap extends StatefulWidget {
-  const DeepLinkBootstrap({super.key, required this.child});
+  const DeepLinkBootstrap({
+    super.key,
+    required this.child,
+    this.appLinks,
+    this.firebaseAuth,
+    this.secureStorage,
+    this.getInitialLink,
+    this.uriLinkStream,
+    this.isEmailSignInLink,
+    this.secureStorageRead,
+    this.onAuthEvent,
+    this.onSubscriptionEvent,
+    this.isWebOverride,
+  });
 
   final Widget child;
+  final AppLinks? appLinks;
+  final FirebaseAuth? firebaseAuth;
+  final FlutterSecureStorage? secureStorage;
+  final Future<Uri?> Function()? getInitialLink;
+  final Stream<Uri?>? uriLinkStream;
+  final bool Function(String link)? isEmailSignInLink;
+  final Future<String?> Function(String key)? secureStorageRead;
+  final void Function(AuthEvent event)? onAuthEvent;
+  final void Function(SubscriptionEvent event)? onSubscriptionEvent;
+  final bool? isWebOverride;
 
   @override
   State<DeepLinkBootstrap> createState() => _DeepLinkBootstrapState();
 }
 
 class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
-  final _appLinks = AppLinks();
-  final _firebaseAuth = FirebaseAuth.instance;
-  final _secureStorage = const FlutterSecureStorage();
+  late final AppLinks _appLinks = widget.appLinks ?? AppLinks();
+  late final FirebaseAuth _firebaseAuth =
+      widget.firebaseAuth ?? FirebaseAuth.instance;
+  late final FlutterSecureStorage _secureStorage =
+      widget.secureStorage ?? const FlutterSecureStorage();
+  late final Future<Uri?> Function() _getInitialLink =
+      widget.getInitialLink ?? _appLinks.getInitialLink;
+  late final Stream<Uri?> _uriLinkStream =
+      widget.uriLinkStream ?? _appLinks.uriLinkStream.map((uri) => uri);
+  late final bool Function(String) _isEmailSignInLinkFn =
+      widget.isEmailSignInLink ?? _firebaseAuth.isSignInWithEmailLink;
+  late final Future<String?> Function(String key) _secureStorageRead =
+      widget.secureStorageRead ?? ((key) => _secureStorage.read(key: key));
+  late final bool _isWeb = widget.isWebOverride ?? kIsWeb;
   static const _pendingEmailKey = 'pending_email_link_email';
   StreamSubscription<Uri?>? _sub;
 
@@ -31,14 +65,14 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
   void initState() {
     super.initState();
     _listenInitial();
-    if (!kIsWeb) {
-      _sub = _appLinks.uriLinkStream.listen(_handleUri, onError: (_) {});
+    if (!_isWeb) {
+      _sub = _uriLinkStream.listen(_handleUri, onError: (_) {});
     }
   }
 
   Future<void> _listenInitial() async {
     try {
-      final initial = await _appLinks.getInitialLink();
+      final initial = await _getInitialLink();
       if (!mounted) return;
       _handleUri(initial);
     } catch (e) {
@@ -55,14 +89,12 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
       final email = uri.queryParameters['email'];
       if (email != null && mounted) {
         // Use the email link authentication
-        context.read<AuthBloc>().add(AuthEmailLinkSubmitted(email, link));
+        _dispatchAuthEvent(AuthEmailLinkSubmitted(email, link));
       } else {
         // Try to get pending email from secure storage
-        final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
+        final pendingEmail = await _secureStorageRead(_pendingEmailKey);
         if (pendingEmail != null && mounted) {
-          context.read<AuthBloc>().add(
-            AuthEmailLinkSubmitted(pendingEmail, link),
-          );
+          _dispatchAuthEvent(AuthEmailLinkSubmitted(pendingEmail, link));
         }
       }
       return;
@@ -71,11 +103,9 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     // Check if this is a Firebase email sign-in link
     if (_isEmailSignInLink(link)) {
       // Get the pending email from secure storage
-      final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
+      final pendingEmail = await _secureStorageRead(_pendingEmailKey);
       if (pendingEmail != null && mounted) {
-        context.read<AuthBloc>().add(
-          AuthEmailLinkSubmitted(pendingEmail, link),
-        );
+        _dispatchAuthEvent(AuthEmailLinkSubmitted(pendingEmail, link));
       }
       return;
     }
@@ -89,7 +119,7 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
         uri.queryParameters['checkout_status'] ??
         uri.queryParameters['success'];
     if (isBillingCallback || status != null) {
-      context.read<SubscriptionBloc>().add(SubscriptionRestoreRequested());
+      _dispatchSubscriptionEvent(SubscriptionRestoreRequested());
     }
   }
 
@@ -101,7 +131,25 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
 
   /// Check if the link is a Firebase email sign-in link.
   bool _isEmailSignInLink(String link) {
-    return _firebaseAuth.isSignInWithEmailLink(link);
+    return _isEmailSignInLinkFn(link);
+  }
+
+  void _dispatchAuthEvent(AuthEvent event) {
+    final callback = widget.onAuthEvent;
+    if (callback != null) {
+      callback(event);
+      return;
+    }
+    context.read<AuthBloc>().add(event);
+  }
+
+  void _dispatchSubscriptionEvent(SubscriptionEvent event) {
+    final callback = widget.onSubscriptionEvent;
+    if (callback != null) {
+      callback(event);
+      return;
+    }
+    context.read<SubscriptionBloc>().add(event);
   }
 
   @override

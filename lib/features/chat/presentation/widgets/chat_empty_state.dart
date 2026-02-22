@@ -7,6 +7,7 @@ import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Empty chat state with match celebration and ice breaker suggestions.
 class ChatEmptyState extends StatelessWidget {
@@ -49,8 +50,8 @@ class ChatEmptyState extends StatelessWidget {
                   height: 100,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                       colors: [
                         DsColors.primary.withValues(alpha: 0.25),
                         DsColors.secondary.withValues(alpha: 0.15),
@@ -71,7 +72,10 @@ class ChatEmptyState extends StatelessWidget {
                   ),
                   child: ShaderMask(
                     shaderCallback: (bounds) =>
-                        DsGradients.primaryHorizontal.createShader(bounds),
+                        DsGradients.primaryHorizontal.createShader(
+                          bounds,
+                          textDirection: Directionality.of(context),
+                        ),
                     child: const Icon(
                       Icons.favorite_rounded,
                       size: 48,
@@ -85,7 +89,10 @@ class ChatEmptyState extends StatelessWidget {
           DsGap.lg,
           ShaderMask(
             shaderCallback: (bounds) =>
-                DsGradients.primaryHorizontal.createShader(bounds),
+                DsGradients.primaryHorizontal.createShader(
+                  bounds,
+                  textDirection: Directionality.of(context),
+                ),
             child: Text(
               'You matched with $otherName!',
               style: const TextStyle(
@@ -112,7 +119,10 @@ class ChatEmptyState extends StatelessWidget {
               children: [
                 ShaderMask(
                   shaderCallback: (bounds) =>
-                      DsGradients.primaryHorizontal.createShader(bounds),
+                      DsGradients.primaryHorizontal.createShader(
+                        bounds,
+                        textDirection: Directionality.of(context),
+                      ),
                   child: const Icon(
                     Icons.lightbulb_outline,
                     size: 20,
@@ -166,7 +176,9 @@ class ChatEmptyState extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onRefresh,
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Show different suggestions'),
+                  label: Text(
+                    AppLocalizations.of(context).showDifferentSuggestions,
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: DsColors.primary,
                   ),
@@ -212,8 +224,8 @@ class _IceBreakerTile extends StatelessWidget {
                 padding: const EdgeInsets.all(DsSpacing.md),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                     colors: isDark
                         ? [
                             baseSurface.withValues(alpha: 0.6),

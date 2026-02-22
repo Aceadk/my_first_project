@@ -111,8 +111,8 @@ class PermissionRationaleScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                                  begin: AlignmentDirectional.topStart,
+                                  end: AlignmentDirectional.bottomEnd,
                                   colors: [
                                     DsColors.primary.withValues(alpha: 0.2),
                                     DsColors.secondary.withValues(alpha: 0.15),

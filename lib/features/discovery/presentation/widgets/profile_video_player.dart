@@ -141,44 +141,47 @@ class _ProfileVideoPlayerState extends State<ProfileVideoPlayer> {
             ? _controller.value.aspectRatio
             : 9 / 16);
 
-    return GestureDetector(
-      onTap: widget.onTap ?? _togglePlayPause,
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: AspectRatio(
-          aspectRatio: aspectRatio,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Video
-              VideoPlayer(_controller),
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: widget.onTap ?? _togglePlayPause,
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: AspectRatio(
+            aspectRatio: aspectRatio,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Video
+                VideoPlayer(_controller),
 
-              // Progress indicator at bottom
-              if (widget.showControls)
-                PositionedDirectional(
-                  start: 0,
-                  end: 0,
-                  bottom: 0,
-                  child: _VideoProgressBar(controller: _controller),
-                ),
-
-              // Play/pause button overlay
-              if (widget.showControls && _showPlayButton)
-                Center(
-                  child: _GlassPlayButton(
-                    isPlaying: _isPlaying,
-                    onTap: _togglePlayPause,
+                // Progress indicator at bottom
+                if (widget.showControls)
+                  PositionedDirectional(
+                    start: 0,
+                    end: 0,
+                    bottom: 0,
+                    child: _VideoProgressBar(controller: _controller),
                   ),
-                ),
 
-              // Video duration badge (top right)
-              if (widget.showControls && _isInitialized)
-                PositionedDirectional(
-                  top: 8,
-                  end: 8,
-                  child: _VideoDurationBadge(controller: _controller),
-                ),
-            ],
+                // Play/pause button overlay
+                if (widget.showControls && _showPlayButton)
+                  Center(
+                    child: _GlassPlayButton(
+                      isPlaying: _isPlaying,
+                      onTap: _togglePlayPause,
+                    ),
+                  ),
+
+                // Video duration badge (top right)
+                if (widget.showControls && _isInitialized)
+                  PositionedDirectional(
+                    top: 8,
+                    end: 8,
+                    child: _VideoDurationBadge(controller: _controller),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -239,44 +242,50 @@ class _GlassPlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(40),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.light, sigmaY: DsBlur.light),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  DsGlassColors.surfaceFor(
-                    context,
-                    strength: DsGlassSurfaceStrength.medium,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: DsBlur.light,
+              sigmaY: DsBlur.light,
+            ),
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
+                  colors: [
+                    DsGlassColors.surfaceFor(
+                      context,
+                      strength: DsGlassSurfaceStrength.medium,
+                    ),
+                    DsGlassColors.surfaceFor(context),
+                  ],
+                ),
+                border: Border.all(
+                  color: DsColors.surfaceLight.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: DsColors.ink900.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    spreadRadius: 2,
                   ),
-                  DsGlassColors.surfaceFor(context),
                 ],
               ),
-              border: Border.all(
-                color: DsColors.surfaceLight.withValues(alpha: 0.3),
-                width: 1.5,
+              child: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: DsColors.surfaceLight,
+                size: 48,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: DsColors.ink900.withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Icon(
-              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: DsColors.surfaceLight,
-              size: 48,
             ),
           ),
         ),
@@ -327,7 +336,7 @@ class _VideoProgressBarState extends State<_VideoProgressBar> {
         color: DsColors.surfaceLight.withValues(alpha: 0.3),
       ),
       child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         widthFactor: progress,
         child: Container(
           decoration: BoxDecoration(
@@ -445,8 +454,8 @@ class VideoIndicatorBadge extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: [
                 DsColors.secondary.withValues(alpha: 0.6),
                 DsColors.primary.withValues(alpha: 0.4),

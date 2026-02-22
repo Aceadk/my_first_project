@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
 import 'package:crushhour/features/social/domain/models/date_idea.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen displaying date ideas for matches.
 class DateIdeasScreen extends StatefulWidget {
@@ -247,7 +248,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
             onPressed: () {
               context.read<DateIdeasCubit>().loadIdeas();
             },
-            child: const Text('Try Again'),
+            child: Text(AppLocalizations.of(context).tryAgain),
           ),
         ],
       ),
@@ -262,11 +263,14 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
   }) {
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: DsSpacing.sm),
-      child: GestureDetector(
-        onTap: onTap,
-        child: isSelected
-            ? GlassChip.selected(label: icon != null ? '$icon $label' : label)
-            : GlassChip(label: icon != null ? '$icon $label' : label),
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: isSelected
+              ? GlassChip.selected(label: icon != null ? '$icon $label' : label)
+              : GlassChip(label: icon != null ? '$icon $label' : label),
+        ),
       ),
     );
   }
@@ -280,28 +284,31 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
 
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: DsSpacing.sm),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DsSpacing.md,
-            vertical: DsSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? DsColors.primary.withValues(alpha: 0.2)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(DsRadius.round),
-            border: Border.all(
-              color: isSelected ? DsColors.primary : DsColors.textMutedLight,
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DsSpacing.md,
+              vertical: DsSpacing.xs,
             ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? DsColors.primary : null,
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? DsColors.primary.withValues(alpha: 0.2)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(DsRadius.round),
+              border: Border.all(
+                color: isSelected ? DsColors.primary : DsColors.textMutedLight,
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? DsColors.primary : null,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
           ),
         ),
@@ -640,19 +647,23 @@ class _IdeaDetailsSheet extends StatelessWidget {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Saved to your ideas!'),
+                                        SnackBar(
+                                          content: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            ).savedToYourIdeas,
+                                          ),
                                           backgroundColor: DsColors.primary,
                                         ),
                                       );
                                     },
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.bookmark, size: 18),
-                                        SizedBox(width: DsSpacing.sm),
-                                        Text('Save'),
+                                        const Icon(Icons.bookmark, size: 18),
+                                        const SizedBox(width: DsSpacing.sm),
+                                        Text(AppLocalizations.of(context).save),
                                       ],
                                     ),
                                   ),
@@ -671,19 +682,25 @@ class _IdeaDetailsSheet extends StatelessWidget {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Idea sent!'),
+                                          SnackBar(
+                                            content: Text(
+                                              AppLocalizations.of(
+                                                context,
+                                              ).ideaSent,
+                                            ),
                                             backgroundColor: DsColors.primary,
                                           ),
                                         );
                                       },
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.send, size: 18),
-                                          SizedBox(width: DsSpacing.sm),
-                                          Text('Send'),
+                                          const Icon(Icons.send, size: 18),
+                                          const SizedBox(width: DsSpacing.sm),
+                                          Text(
+                                            AppLocalizations.of(context).send,
+                                          ),
                                         ],
                                       ),
                                     ),

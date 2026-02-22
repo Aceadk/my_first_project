@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen for taking compatibility quizzes with matches.
 class CompatibilityQuizScreen extends StatefulWidget {
@@ -149,7 +150,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 matchId: widget.matchId,
               );
             },
-            child: const Text('Try Again'),
+            child: Text(AppLocalizations.of(context).tryAgain),
           ),
         ],
       ),
@@ -329,12 +330,12 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
                 Expanded(
                   child: GlassOutlinedButton(
                     onPressed: cubit.previousQuestion,
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.arrow_back, size: 18),
-                        SizedBox(width: DsSpacing.sm),
-                        Text('Back'),
+                        const Icon(Icons.arrow_back, size: 18),
+                        const SizedBox(width: DsSpacing.sm),
+                        Text(AppLocalizations.of(context).back),
                       ],
                     ),
                   ),
@@ -430,7 +431,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
           // Insights
           if (result.insights.isNotEmpty) ...[
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(
                 'Insights',
                 style: TextStyle(
@@ -486,7 +487,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
           // Category scores
           if (result.categoryScores.isNotEmpty) ...[
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(
                 'Category Breakdown',
                 style: TextStyle(
@@ -547,7 +548,7 @@ class _CompatibilityQuizScreenState extends State<CompatibilityQuizScreen> {
               context.read<CompatibilityQuizCubit>().reset();
               Navigator.pop(context);
             },
-            child: const Text('Done'),
+            child: Text(AppLocalizations.of(context).done),
           ),
         ],
       ),

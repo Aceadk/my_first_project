@@ -1,10 +1,22 @@
 import 'package:crushhour/features/calls/presentation/widgets/call_safety_controls.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 void main() {
   Widget buildTestable(Widget child) {
-    return MaterialApp(home: Scaffold(body: child));
+    return MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    );
   }
 
   testWidgets('renders safety tip and action buttons', (tester) async {

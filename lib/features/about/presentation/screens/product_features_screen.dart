@@ -3,6 +3,7 @@ import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProductFeaturesScreen extends StatelessWidget {
   const ProductFeaturesScreen({super.key});
@@ -14,7 +15,7 @@ class ProductFeaturesScreen extends StatelessWidget {
     final muted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Features')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).features)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(

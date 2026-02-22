@@ -1,7 +1,0 @@
-integration_test/app_test.dart
-integration_test/auth_flow_test.dart
-integration_test/chat_flow_test.dart
-integration_test/discovery_flow_test.dart
-integration_test/e2e_onboarding_to_chat_test.dart
-integration_test/test_app.dart
-integration_test/test_credentials.dart

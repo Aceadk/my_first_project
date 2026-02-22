@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A tile for displaying chat attachments (video, audio, etc.).
 class ChatAttachmentTile extends StatelessWidget {
@@ -68,11 +69,12 @@ class ChatAttachmentTile extends StatelessWidget {
 
   void _launch(BuildContext context, String url) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
 
     // For local files, show a message that it's stored locally
     if (isLocal) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Media saved locally on your device.')),
+        SnackBar(content: Text(l10n.mediaSavedLocallyOnYour)),
       );
       return;
     }
@@ -83,7 +85,7 @@ class ChatAttachmentTile extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Could not open attachment.')),
+        SnackBar(content: Text(l10n.couldNotOpenAttachment)),
       );
     }
   }

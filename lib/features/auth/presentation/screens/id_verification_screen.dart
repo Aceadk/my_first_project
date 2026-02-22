@@ -12,6 +12,7 @@ import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart'
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class IdVerificationScreen extends StatefulWidget {
   const IdVerificationScreen({super.key, this.fromSettings = false});
@@ -140,8 +141,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     color: DsColors.primary,
                   ),
                 ),
-                title: const Text('Take Photo'),
-                subtitle: const Text('Use camera to capture ID'),
+                title: Text(AppLocalizations.of(context).takePhoto),
+                subtitle: Text(
+                  AppLocalizations.of(context).useCameraToCaptureId,
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _takePhoto(isFront);
@@ -159,8 +162,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     color: DsColors.secondary,
                   ),
                 ),
-                title: const Text('Choose from Gallery'),
-                subtitle: const Text('Select existing photo'),
+                title: Text(AppLocalizations.of(context).chooseFromGallery),
+                subtitle: Text(
+                  AppLocalizations.of(context).selectExistingPhoto,
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(isFront);
@@ -244,8 +249,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: isDark
                       ? [
                           DsColors.backgroundDark,
@@ -722,8 +727,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
       padding: DsEdgeInsets.allLg,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [
             DsColors.primary.withValues(alpha: 0.1),
             DsColors.secondary.withValues(alpha: 0.1),
@@ -877,139 +882,145 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
     required VoidCallback onTap,
     required VoidCallback onRemove,
   }) {
-    return GestureDetector(
-      onTap: image == null ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: DsEdgeInsets.allMd,
-        decoration: BoxDecoration(
-          color: image != null
-              ? DsColors.success.withValues(alpha: 0.1)
-              : (isDark
-                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                    : DsColors.inputFillLight),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: image == null ? onTap : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: DsEdgeInsets.allMd,
+          decoration: BoxDecoration(
             color: image != null
-                ? DsColors.success
-                : (isDark ? DsColors.borderDark : DsColors.borderLight),
-            width: image != null ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            if (image != null)
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      image,
-                      width: 60,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  PositionedDirectional(
-                    top: -8,
-                    end: -8,
-                    child: GestureDetector(
-                      onTap: onRemove,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: DsColors.error,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 12,
-                          color: DsColors.surfaceLight,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else
-              Container(
-                width: 60,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? DsColors.borderDark.withValues(alpha: 0.5)
-                      : DsColors.borderLight,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isDark ? DsColors.borderDark : DsColors.borderLight,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Icon(
-                  Icons.add_photo_alternate_outlined,
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
-                  size: 24,
-                ),
-              ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight,
-                        ),
-                      ),
-                      if (image != null) ...[
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          size: 18,
-                          color: DsColors.success,
-                        ),
-                      ],
-                    ],
-                  ),
-                  Text(
-                    image != null ? 'Tap to change' : subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
-                  ),
-                ],
-              ),
+                ? DsColors.success.withValues(alpha: 0.1)
+                : (isDark
+                      ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                      : DsColors.inputFillLight),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: image != null
+                  ? DsColors.success
+                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
+              width: image != null ? 2 : 1,
             ),
-            if (image == null)
-              const Icon(Icons.upload_rounded, color: DsColors.primary)
-            else
-              GestureDetector(
-                onTap: onTap,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
+          ),
+          child: Row(
+            children: [
+              if (image != null)
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        image,
+                        width: 60,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    PositionedDirectional(
+                      top: -8,
+                      end: -8,
+                      child: GestureDetector(
+                        onTap: onRemove,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: DsColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 12,
+                            color: DsColors.surfaceLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Container(
+                  width: 60,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: DsColors.primary.withValues(alpha: 0.1),
+                    color: isDark
+                        ? DsColors.borderDark.withValues(alpha: 0.5)
+                        : DsColors.borderLight,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark
+                          ? DsColors.borderDark
+                          : DsColors.borderLight,
+                      style: BorderStyle.solid,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.edit_rounded,
-                    size: 18,
-                    color: DsColors.primary,
+                  child: Icon(
+                    Icons.add_photo_alternate_outlined,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                    size: 24,
                   ),
                 ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? DsColors.textPrimaryDark
+                                    : DsColors.textPrimaryLight,
+                              ),
+                        ),
+                        if (image != null) ...[
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 18,
+                            color: DsColors.success,
+                          ),
+                        ],
+                      ],
+                    ),
+                    Text(
+                      image != null ? 'Tap to change' : subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
+              if (image == null)
+                const Icon(Icons.upload_rounded, color: DsColors.primary)
+              else
+                GestureDetector(
+                  onTap: onTap,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: DsColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.edit_rounded,
+                      size: 18,
+                      color: DsColors.primary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

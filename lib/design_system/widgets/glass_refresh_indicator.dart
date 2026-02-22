@@ -195,15 +195,17 @@ class _GlassRefreshIndicatorState extends State<GlassRefreshIndicator>
           ),
         ),
         // Content with drag handling
-        GestureDetector(
-          onVerticalDragUpdate: _handleDragUpdate,
-          onVerticalDragEnd: _handleDragEnd,
-          child: AnimatedContainer(
-            duration: _isRefreshing
-                ? Duration.zero
-                : Duration(milliseconds: (200 * motionScale).round()),
-            transform: Matrix4.translationValues(0, _dragOffset, 0),
-            child: widget.child,
+        Semantics(
+          child: GestureDetector(
+            onVerticalDragUpdate: _handleDragUpdate,
+            onVerticalDragEnd: _handleDragEnd,
+            child: AnimatedContainer(
+              duration: _isRefreshing
+                  ? Duration.zero
+                  : Duration(milliseconds: (200 * motionScale).round()),
+              transform: Matrix4.translationValues(0, _dragOffset, 0),
+              child: widget.child,
+            ),
           ),
         ),
       ],

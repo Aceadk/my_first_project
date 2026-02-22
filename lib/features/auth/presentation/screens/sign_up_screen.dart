@@ -13,6 +13,7 @@ import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Stores the onboarding start time so total duration can be calculated
 /// when onboarding completes in profile_setup_screen.dart.
@@ -26,6 +27,9 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  static const int _emailResendCooldownDurationSeconds = 30;
+  static const int _phoneOtpResendCooldownDurationSeconds = 30;
+
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -42,9 +46,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   int _currentStep = 0;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   String? _registeredEmail;
   String? _phoneInProgress;
+  Timer? _emailResendCooldownTimer;
+  Timer? _phoneOtpResendCooldownTimer;
+  int _emailResendCooldownSeconds = 0;
+  int _phoneOtpResendCooldownSeconds = 0;
 
   // Field errors
   String? _usernameError;
@@ -71,6 +80,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
+    _emailResendCooldownTimer?.cancel();
+    _phoneOtpResendCooldownTimer?.cancel();
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -83,9 +94,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bypassVerification = context
-        .read<AuthRepository>()
-        .isVerificationBypassEnabled;
+    final authRepo = context.read<AuthRepository>();
+    final bypassVerification = authRepo.isVerificationBypassEnabled;
+    final supportsGoogleSignIn = authRepo.supportsGoogleSignIn;
 
     // Calculate total steps based on auth method
     final totalSteps = _authMethod == 'phone'
@@ -106,6 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _currentStep = 1; // Move to OTP step
               _isLoading = false;
             });
+            _startPhoneOtpResendCooldown();
             showSuccessSnackBar(context, 'Code sent. Check your messages.');
           } else if (state.status == AuthStatus.authenticated) {
             setState(() => _isLoading = false);
@@ -151,6 +163,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           totalSteps: totalSteps,
                         ),
                         DsGap.xxl,
+                        if (_authMethod == 'email' &&
+                            _currentStep == 0 &&
+                            supportsGoogleSignIn) ...[
+                          Semantics(
+                            button: true,
+                            label: 'Continue with Google',
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: GlassOutlinedButton(
+                                onPressed: _isLoading || _isGoogleLoading
+                                    ? null
+                                    : _continueWithGoogle,
+                                backgroundColor: Colors.white,
+                                borderColor: const Color(0xFFDADCE0),
+                                isExpanded: true,
+                                isLoading: _isGoogleLoading,
+                                child: const Text(
+                                  'Continue with Google',
+                                  style: TextStyle(
+                                    color: Color(0xFF1F1F1F),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          DsGap.lg,
+                          Row(
+                            children: [
+                              const Expanded(child: Divider()),
+                              Padding(
+                                padding: DsEdgeInsets.horizontalLg,
+                                child: Text(
+                                  'or sign up with email',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                      ),
+                                ),
+                              ),
+                              const Expanded(child: Divider()),
+                            ],
+                          ),
+                          DsGap.xl,
+                        ],
                         // Step content
                         Expanded(
                           child: SingleChildScrollView(
@@ -227,6 +287,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             phoneNumber: _phoneInProgress ?? _getFullPhoneNumber(),
             onVerify: _verifyPhoneOtp,
             onResend: _resendPhoneOtp,
+            resendCooldownSeconds: _phoneOtpResendCooldownSeconds,
             onChanged: () => setState(() => _otpError = null),
           );
         default:
@@ -284,7 +345,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           isLoading: _isLoading,
           isDark: isDark,
           email: _registeredEmail ?? _emailController.text,
-          onResend: _sendEmailVerification,
+          onResend: _resendEmailVerification,
+          resendCooldownSeconds: _emailResendCooldownSeconds,
           onOpenEmail: _openEmailApp,
           onCheckVerification: () => _checkEmailVerification(silent: true),
           onManualCheck: () => _checkEmailVerification(silent: false),
@@ -344,9 +406,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _resendPhoneOtp() {
+    if (_phoneOtpResendCooldownSeconds > 0) {
+      showErrorSnackBar(
+        context,
+        'Please wait ${_phoneOtpResendCooldownSeconds}s before requesting another code.',
+      );
+      return;
+    }
     final phoneNumber = _phoneInProgress ?? _getFullPhoneNumber();
+    if (phoneNumber.trim().isEmpty || phoneNumber.trim() == '+') {
+      showErrorSnackBar(context, 'Enter a valid phone number.');
+      return;
+    }
     setState(() => _isLoading = true);
     context.read<AuthBloc>().add(AuthOtpResendRequested(phoneNumber));
+  }
+
+  Future<void> _resendEmailVerification() async {
+    if (_emailResendCooldownSeconds > 0) {
+      showErrorSnackBar(
+        context,
+        'Please wait ${_emailResendCooldownSeconds}s before resending the verification email.',
+      );
+      return;
+    }
+    await _sendEmailVerification(isResend: true);
   }
 
   /// Validates username - required for account creation.
@@ -390,6 +474,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _emailError = null;
       _currentStep = 2;
     });
+  }
+
+  Future<void> _continueWithGoogle() async {
+    if (_isGoogleLoading) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _isGoogleLoading = true);
+
+    final result = await Result.guard(
+      () => context.read<AuthRepository>().signInWithGoogle(),
+      logLabel: 'AuthRepository.signInWithGoogle',
+      fallbackError: 'Google Sign-In failed. Please try again.',
+    );
+
+    if (!mounted) return;
+    setState(() => _isGoogleLoading = false);
+
+    if (!result.isSuccess) {
+      showErrorSnackBar(
+        context,
+        result.errorMessage ?? 'Google Sign-In failed. Please try again.',
+      );
+      return;
+    }
+
+    final user = result.data;
+    if (user?.email != null &&
+        user!.email!.isNotEmpty &&
+        !user.isEmailVerified) {
+      context.go('${CrushRoutes.emailProtection}?redirect=1');
+      return;
+    }
+    context.go(CrushRoutes.home);
   }
 
   Future<void> _createAccount() async {
@@ -502,7 +619,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _sendEmailVerification() async {
+  Future<void> _sendEmailVerification({bool isResend = false}) async {
+    if (isResend && _emailResendCooldownSeconds > 0) {
+      showErrorSnackBar(
+        context,
+        'Please wait ${_emailResendCooldownSeconds}s before resending the verification email.',
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final result = await Result.guard(
@@ -516,14 +641,70 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isLoading = false);
 
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+      final error = (result.errorMessage ?? 'Request failed.').toLowerCase();
+      if (error.contains('too-many-requests') ||
+          error.contains('too many requests')) {
+        showErrorSnackBar(
+          context,
+          'Too many attempts. Please wait about a minute and try again.',
+        );
+      } else {
+        showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+      }
       return;
     }
 
+    _startEmailResendCooldown();
+
     showSuccessSnackBar(
       context,
-      'A verification email has been sent to your inbox.',
+      isResend
+          ? 'Verification email resent successfully.'
+          : 'A verification email has been sent to your inbox.',
     );
+  }
+
+  void _startEmailResendCooldown() {
+    _emailResendCooldownTimer?.cancel();
+    if (!mounted) return;
+    setState(
+      () => _emailResendCooldownSeconds = _emailResendCooldownDurationSeconds,
+    );
+    _emailResendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (
+      timer,
+    ) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_emailResendCooldownSeconds <= 0) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _emailResendCooldownSeconds--);
+    });
+  }
+
+  void _startPhoneOtpResendCooldown() {
+    _phoneOtpResendCooldownTimer?.cancel();
+    if (!mounted) return;
+    setState(
+      () => _phoneOtpResendCooldownSeconds =
+          _phoneOtpResendCooldownDurationSeconds,
+    );
+    _phoneOtpResendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (
+      timer,
+    ) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_phoneOtpResendCooldownSeconds <= 0) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _phoneOtpResendCooldownSeconds--);
+    });
   }
 
   Future<void> _openEmailApp() async {
@@ -721,7 +902,7 @@ class _UsernameStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: const Text('Continue'),
+          child: Text(AppLocalizations.of(context).continueLabel),
         ),
         DsGap.lg,
         _LoginLink(),
@@ -869,7 +1050,7 @@ class _EmailStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: const Text('Continue'),
+          child: Text(AppLocalizations.of(context).continueLabel),
         ),
       ],
     );
@@ -980,7 +1161,7 @@ class _PasswordStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: const Text('Create Account'),
+          child: Text(AppLocalizations.of(context).createAccount),
         ),
       ],
     );
@@ -995,6 +1176,7 @@ class _EmailLinkStep extends StatefulWidget {
     required this.isDark,
     required this.email,
     required this.onResend,
+    required this.resendCooldownSeconds,
     required this.onOpenEmail,
     required this.onCheckVerification,
     required this.onManualCheck,
@@ -1004,6 +1186,7 @@ class _EmailLinkStep extends StatefulWidget {
   final bool isDark;
   final String email;
   final VoidCallback onResend;
+  final int resendCooldownSeconds;
   final VoidCallback onOpenEmail;
   final Future<bool> Function() onCheckVerification;
   final Future<bool> Function() onManualCheck;
@@ -1248,7 +1431,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
           onPressed: widget.isLoading ? null : widget.onOpenEmail,
           isLoading: widget.isLoading,
           isExpanded: true,
-          child: const Text('Open Email App'),
+          child: Text(AppLocalizations.of(context).openEmailApp),
         ),
         DsGap.md,
         // Check verification button
@@ -1269,8 +1452,14 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
             button: true,
             label: 'Resend verification email',
             child: GlassSmallButton(
-              onPressed: widget.isLoading ? null : widget.onResend,
-              child: const Text('Didn\'t receive email? Resend'),
+              onPressed: widget.isLoading || widget.resendCooldownSeconds > 0
+                  ? null
+                  : widget.onResend,
+              child: Text(
+                widget.resendCooldownSeconds > 0
+                    ? 'Resend in ${widget.resendCooldownSeconds}s'
+                    : 'Didn\'t receive email? Resend',
+              ),
             ),
           ),
         ),
@@ -1516,7 +1705,7 @@ class _PhoneStep extends StatelessWidget {
           selectedItemBuilder: (context) => _countries
               .map(
                 (c) => Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     '${c.flag} ${c.name} (${c.dialCode})',
                     maxLines: 1,
@@ -1578,7 +1767,7 @@ class _PhoneStep extends StatelessWidget {
           onPressed: isLoading ? null : onNext,
           isLoading: isLoading,
           isExpanded: true,
-          child: const Text('Send Code'),
+          child: Text(AppLocalizations.of(context).sendCode),
         ),
         DsGap.lg,
         _LoginLink(),
@@ -1589,12 +1778,12 @@ class _PhoneStep extends StatelessWidget {
             label: 'Sign up with email instead',
             child: GlassSmallButton(
               onPressed: isLoading ? null : onSwitchToEmail,
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.email_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Sign up with email instead'),
+                  const Icon(Icons.email_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).signUpWithEmailInstead),
                 ],
               ),
             ),
@@ -1616,6 +1805,7 @@ class _PhoneOtpStep extends StatelessWidget {
     required this.phoneNumber,
     required this.onVerify,
     required this.onResend,
+    required this.resendCooldownSeconds,
     required this.onChanged,
   });
 
@@ -1626,6 +1816,7 @@ class _PhoneOtpStep extends StatelessWidget {
   final String phoneNumber;
   final VoidCallback onVerify;
   final VoidCallback onResend;
+  final int resendCooldownSeconds;
   final VoidCallback onChanged;
 
   @override
@@ -1687,7 +1878,7 @@ class _PhoneOtpStep extends StatelessWidget {
           onPressed: isLoading ? null : onVerify,
           isLoading: isLoading,
           isExpanded: true,
-          child: const Text('Verify'),
+          child: Text(AppLocalizations.of(context).verify),
         ),
         DsGap.md,
         Center(
@@ -1695,8 +1886,14 @@ class _PhoneOtpStep extends StatelessWidget {
             button: true,
             label: 'Resend code',
             child: GlassSmallButton(
-              onPressed: isLoading ? null : onResend,
-              child: const Text('Didn\'t receive code? Resend'),
+              onPressed: isLoading || resendCooldownSeconds > 0
+                  ? null
+                  : onResend,
+              child: Text(
+                resendCooldownSeconds > 0
+                    ? 'Resend in ${resendCooldownSeconds}s'
+                    : 'Didn\'t receive code? Resend',
+              ),
             ),
           ),
         ),

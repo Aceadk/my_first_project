@@ -9,6 +9,7 @@ import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/chat/domain/repositories/voice_recorder_repository.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A widget for recording voice notes in chat with preview functionality.
 class VoiceNoteRecorder extends StatefulWidget {
@@ -141,9 +142,9 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
     } else if (mounted) {
       // Recording was too short
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Recording too short (minimum 1 second)'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).recordingTooShortMinimum1),
+          duration: const Duration(seconds: 2),
         ),
       );
       widget.onCancel();
@@ -584,8 +585,15 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder>
         children: [
           const Icon(Icons.mic_off, color: DsColors.warning),
           const SizedBox(width: DsSpacing.sm),
-          const Expanded(child: Text('Microphone permission required')),
-          TextButton(onPressed: _requestPermission, child: const Text('Grant')),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).microphonePermissionRequired,
+            ),
+          ),
+          TextButton(
+            onPressed: _requestPermission,
+            child: Text(AppLocalizations.of(context).grant),
+          ),
           IconButton(onPressed: widget.onCancel, icon: const Icon(Icons.close)),
         ],
       ),

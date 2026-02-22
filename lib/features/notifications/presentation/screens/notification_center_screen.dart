@@ -9,6 +9,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/notifications/domain/entities/app_notification.dart';
 import 'package:crushhour/features/notifications/presentation/bloc/notification_center_cubit.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -49,7 +50,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(AppLocalizations.of(context).notifications),
         actions: [
           BlocBuilder<NotificationCenterCubit, NotificationCenterState>(
             buildWhen: (prev, curr) =>
@@ -62,7 +63,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 onPressed: () {
                   context.read<NotificationCenterCubit>().markAllAsRead();
                 },
-                child: const Text('Mark all read'),
+                child: Text(AppLocalizations.of(context).markAllRead),
               );
             },
           ),

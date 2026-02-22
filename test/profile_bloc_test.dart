@@ -1,18 +1,20 @@
 import 'dart:async';
 
-import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/errors.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
-import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import 'mock/firebase_mock.dart';
 import 'mock/stub_analytics_service.dart';
 
@@ -780,6 +782,106 @@ class _StubProfileRepository implements ProfileRepository {
     }
     return userToReturn ?? _testUser;
   }
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async {
+    return Result.guard(
+      () => saveBasicInfo(
+        username: username,
+        name: name,
+        lastName: lastName,
+        age: age,
+        gender: gender,
+        sexualOrientation: sexualOrientation,
+        dateOfBirth: dateOfBirth,
+        showFirstName: showFirstName,
+        showLastName: showLastName,
+      ),
+      logLabel: 'saveBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async {
+    return Result.guard(
+      () => saveProfileDetails(
+        bio: bio,
+        photoUrls: photoUrls,
+        videoUrls: videoUrls,
+        jobTitle: jobTitle,
+        company: company,
+        school: school,
+        interests: interests,
+        prompts: prompts,
+        city: city,
+        country: country,
+        favourites: favourites,
+        showMeGenders: showMeGenders,
+        latitude: latitude,
+        longitude: longitude,
+      ),
+      logLabel: 'saveProfileDetailsResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async {
+    return Result.guard(
+      () => markIdVerified(),
+      logLabel: 'markIdVerifiedResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async {
+    return Result.guard(
+      () => updateProfile(profile),
+      logLabel: 'updateProfileResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async {
+    return Result.guard(
+      () => skipBasicInfo(username: username),
+      logLabel: 'skipBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async {
+    return Result.guard(
+      () => skipProfileSetup(),
+      logLabel: 'skipProfileSetupResult',
+    );
+  }
 }
 
 class _StubAuthRepository implements AuthRepository {
@@ -897,6 +999,10 @@ class _StubAuthRepository implements AuthRepository {
 
   @override
   Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
+
+  @override
+  @override
+  Future<void> verifyPassword(String password) async {}
 
   @override
   Future<void> changePassword({

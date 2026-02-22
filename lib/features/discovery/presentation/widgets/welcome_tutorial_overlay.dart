@@ -9,6 +9,7 @@ import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A full-screen semi-transparent overlay shown on top of the deck screen
 /// after onboarding. Explains swipe gestures, like/pass buttons, and
@@ -175,7 +176,7 @@ class _WelcomeTutorialOverlayState extends State<WelcomeTutorialOverlay>
                                 onPressed: widget.onDismiss,
                                 isExpanded: true,
                                 semanticLabel: 'Got it! Dismiss tutorial',
-                                child: const Text('Got it!'),
+                                child: Text(AppLocalizations.of(context).gotIt),
                               ),
                             ],
                           ),

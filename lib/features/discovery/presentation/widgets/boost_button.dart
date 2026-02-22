@@ -7,6 +7,7 @@ import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A button that shows boost status and allows activating a boost.
 class BoostButton extends StatelessWidget {
@@ -266,12 +267,12 @@ class BoostButton extends StatelessWidget {
                             backgroundColor: _boostColor,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.flash_on, size: 20),
-                              SizedBox(width: 8),
-                              Text('Boost Now'),
+                              const Icon(Icons.flash_on, size: 20),
+                              const SizedBox(width: 8),
+                              Text(AppLocalizations.of(context).boostNow),
                             ],
                           ),
                         ),
@@ -279,7 +280,7 @@ class BoostButton extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextButton(
                         onPressed: () => Navigator.pop(sheetContext),
-                        child: const Text('Maybe Later'),
+                        child: Text(AppLocalizations.of(context).maybeLater),
                       ),
                     ],
                   ),

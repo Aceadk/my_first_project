@@ -349,26 +349,29 @@ class _UnitToggleButton extends StatelessWidget {
     final borderColor = isDark ? DsColors.borderDark : DsColors.borderLight;
     final textMuted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DsSpacing.xl,
-          vertical: DsSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? DsColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? DsColors.primary : borderColor,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.xl,
+            vertical: DsSpacing.sm,
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? DsColors.surfaceLight : textMuted,
+          decoration: BoxDecoration(
+            color: isSelected ? DsColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? DsColors.primary : borderColor,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? DsColors.surfaceLight : textMuted,
+            ),
           ),
         ),
       ),

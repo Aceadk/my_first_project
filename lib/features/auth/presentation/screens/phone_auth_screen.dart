@@ -9,6 +9,7 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/presentation/widgets/onboarding_progress.dart';
 import 'package:crushhour/presentation/widgets/onboarding_nav_buttons.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});
@@ -46,7 +47,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign up with phone')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).signUpWithPhone)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -89,7 +90,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                             ),
                             const SizedBox(height: 20),
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'Your country',
                                 style: Theme.of(context).textTheme.labelMedium,
@@ -117,7 +118,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               selectedItemBuilder: (context) => _countries
                                   .map(
                                     (c) => Align(
-                                      alignment: Alignment.centerLeft,
+                                      alignment:
+                                          AlignmentDirectional.centerStart,
                                       child: Text(
                                         '${c.flag} ${c.name} (${c.dialCode})',
                                         maxLines: 1,
@@ -210,7 +212,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                 onPressed: isLoading
                                     ? null
                                     : () => context.go(CrushRoutes.emailAuth),
-                                child: const Text('Use email instead'),
+                                child: Text(
+                                  AppLocalizations.of(context).useEmailInstead,
+                                ),
                               ),
                             ),
                           ],

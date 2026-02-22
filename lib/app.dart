@@ -1,41 +1,44 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
+
+import 'package:crushhour/core/security/device_integrity.dart';
+import 'package:crushhour/core/services/push_notification_service.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
+import 'package:crushhour/core/widgets/error_boundary.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
+import 'package:crushhour/features/calls/domain/models/call.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
+import 'package:crushhour/features/calls/domain/repositories/callkit_repository.dart';
+import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
+import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
+import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
-import 'core/theme.dart';
-import 'design_system/tokens/typography.dart';
-import 'core/router.dart';
-import 'core/di.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'core/constants/network_constants.dart';
 import 'core/deep_link_bootstrap.dart';
+import 'core/di.dart';
+import 'core/router.dart';
 import 'core/services/app_state_preserver.dart';
 import 'core/services/location_service.dart';
-import 'package:crushhour/core/theme/app_theme_mode.dart';
-import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
-import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import 'package:crushhour/core/security/device_integrity.dart';
-import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
-import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
-import 'package:crushhour/features/discovery/domain/repositories/realtime_match_repository.dart';
-import 'package:crushhour/features/calls/domain/models/call.dart';
-import 'package:crushhour/features/calls/domain/repositories/callkit_repository.dart';
-import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
-import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
-import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
-import 'package:crushhour/core/widgets/error_boundary.dart';
-import 'package:crushhour/core/services/push_notification_service.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'core/theme.dart';
+import 'design_system/tokens/typography.dart';
 
 class CrushApp extends StatefulWidget {
   const CrushApp({super.key, required this.preferences});
@@ -50,8 +53,8 @@ class _CrushAppState extends State<CrushApp> {
   @override
   void initState() {
     super.initState();
-    // Initialize AppStatePreserver with SharedPreferences
-    AppStatePreserver.instance.initialize(widget.preferences);
+    // Initialize AppStatePreserver with FlutterSecureStorage
+    AppStatePreserver.instance.initialize(const FlutterSecureStorage());
   }
 
   @override
@@ -96,16 +99,16 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
 
     final authBloc = context.read<AuthBloc>();
 
-    // Check if we have a preserved route and user is authenticated
-    final preservedRoute = AppStatePreserver.instance.getPreservedRoute();
+    // Initial route is null natively, we handle preserved route async
     final isAuthenticated = authBloc.state.status == AuthStatus.authenticated;
 
-    _router = createRouter(
-      authBloc,
-      initialRoute: isAuthenticated && preservedRoute != null
-          ? preservedRoute
-          : null,
-    );
+    _router = createRouter(authBloc, initialRoute: null);
+
+    AppStatePreserver.instance.getPreservedRoute().then((preservedRoute) {
+      if (isAuthenticated && preservedRoute != null && mounted) {
+        _router.go(preservedRoute);
+      }
+    });
 
     // Listen for real-time match notifications
     _matchNotificationSub = context

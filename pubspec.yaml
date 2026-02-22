@@ -31,6 +31,7 @@ dependencies:
   go_router: ^17.0.1
   google_fonts: ^8.0.0
   cached_network_image: ^3.3.1
+  google_sign_in: ^7.2.0
   sign_in_with_apple: ^6.1.0
   # Firebase
   firebase_core: ^4.3.0
@@ -67,6 +68,7 @@ dependencies:
   in_app_review: ^2.0.9
   app_tracking_transparency: ^2.0.6+1
   local_auth: ^3.0.0
+  json_annotation: ^4.11.0
 
 flutter:
   uses-material-design: true

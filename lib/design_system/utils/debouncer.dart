@@ -32,38 +32,57 @@ class Debouncer {
 /// Ensures a function is called at most once per duration.
 class Throttler {
   final Duration duration;
-  DateTime? _lastCall;
   Timer? _timer;
+  void Function()? _pendingCallback;
+  bool _isWindowOpen = true;
 
   Throttler({this.duration = const Duration(milliseconds: 300)});
 
   /// Run a callback if enough time has passed since the last call.
   void run(void Function() callback) {
-    final now = DateTime.now();
-
-    if (_lastCall == null || now.difference(_lastCall!) >= duration) {
-      _lastCall = now;
-      callback();
-    } else {
-      // Schedule for the remaining time
-      _timer?.cancel();
-      final remaining = duration - now.difference(_lastCall!);
-      _timer = Timer(remaining, () {
-        _lastCall = DateTime.now();
-        callback();
-      });
+    if (_isWindowOpen) {
+      _execute(callback);
+      return;
     }
+
+    // Keep only the latest callback scheduled within the current window.
+    _pendingCallback = callback;
+    _timer ??= Timer(duration, _onWindowElapsed);
+  }
+
+  void _execute(void Function() callback) {
+    _isWindowOpen = false;
+    _timer?.cancel();
+    _timer = Timer(duration, _onWindowElapsed);
+    callback();
+  }
+
+  void _onWindowElapsed() {
+    final pending = _pendingCallback;
+    _pendingCallback = null;
+
+    if (pending == null) {
+      _isWindowOpen = true;
+      _timer = null;
+      return;
+    }
+
+    _execute(pending);
   }
 
   /// Cancel any pending callback.
   void cancel() {
     _timer?.cancel();
+    _timer = null;
+    _pendingCallback = null;
   }
 
   /// Dispose the throttler.
   void dispose() {
     _timer?.cancel();
     _timer = null;
+    _pendingCallback = null;
+    _isWindowOpen = true;
   }
 }
 

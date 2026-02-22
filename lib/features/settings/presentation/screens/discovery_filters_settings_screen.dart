@@ -12,6 +12,7 @@ import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class DiscoveryFiltersSettingsScreen extends StatelessWidget {
   const DiscoveryFiltersSettingsScreen({super.key});
@@ -21,7 +22,9 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Discovery & Filters')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).discoveryFilters),
+      ),
       body: BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
         builder: (context, discoveryState) {
           final cubit = context.read<DiscoverySettingsCubit>();
@@ -46,8 +49,8 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                           DsColors.primary.withValues(alpha: 0.1),
                           DsColors.warning.withValues(alpha: 0.1),
                         ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        begin: AlignmentDirectional.topStart,
+                        end: AlignmentDirectional.bottomEnd,
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -296,7 +299,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                   const _SectionHeader(title: 'Interests'),
                   ListTile(
                     leading: const Icon(Icons.interests_outlined),
-                    title: const Text('My interests'),
+                    title: Text(AppLocalizations.of(context).myInterests),
                     subtitle: Text(_formatInterests(discoveryState.interests)),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showInterestsDialog(context, discoveryState),
@@ -308,15 +311,19 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                   const _SectionHeader(title: 'Visibility'),
                   SwitchListTile(
                     secondary: const Icon(Icons.social_distance_outlined),
-                    title: const Text('Show my distance'),
-                    subtitle: const Text('Display how far away you are'),
+                    title: Text(AppLocalizations.of(context).showMyDistance),
+                    subtitle: Text(
+                      AppLocalizations.of(context).displayHowFarAwayYou,
+                    ),
                     value: discoveryState.showDistance,
                     onChanged: (value) => cubit.setShowDistance(value),
                   ),
                   SwitchListTile(
                     secondary: const Icon(Icons.visibility_outlined),
-                    title: const Text('Show me in discovery'),
-                    subtitle: const Text('Turn off to hide your profile'),
+                    title: Text(AppLocalizations.of(context).showMeInDiscovery),
+                    subtitle: Text(
+                      AppLocalizations.of(context).turnOffToHideYour,
+                    ),
                     value: discoveryState.visible,
                     onChanged: (value) => cubit.setVisible(value),
                   ),
@@ -402,7 +409,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
       builder: (dialogContext) {
         final cubit = dialogContext.read<DiscoverySettingsCubit>();
         return AlertDialog(
-          title: const Text('Edit interests'),
+          title: Text(AppLocalizations.of(context).editInterests),
           content: TextField(
             controller: controller,
             autofocus: true,
@@ -416,7 +423,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () {
@@ -424,7 +431,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                 cubit.setInterests(parts);
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text('Save'),
+              child: Text(AppLocalizations.of(context).save),
             ),
           ],
         );
@@ -596,8 +603,8 @@ class _PassportModeSection extends StatelessWidget {
             padding: DsEdgeInsets.allLg,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: passportEnabled
                     ? [
                         DsColors.info.withValues(alpha: 0.2),
@@ -790,7 +797,7 @@ class _PassportModeSection extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: onUpgrade,
                       icon: const Icon(Icons.star, size: 18),
-                      label: const Text('Upgrade to Plus'),
+                      label: Text(AppLocalizations.of(context).upgradeToPlus),
                       style: FilledButton.styleFrom(
                         backgroundColor: DsColors.primary,
                       ),
@@ -986,8 +993,8 @@ class _AdvancedFiltersSection extends StatelessWidget {
                   padding: DsEdgeInsets.allLg,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                       colors: [
                         DsColors.secondary.withValues(alpha: 0.15),
                         DsColors.primary.withValues(alpha: 0.1),
@@ -1080,7 +1087,9 @@ class _AdvancedFiltersSection extends StatelessWidget {
                         child: FilledButton.icon(
                           onPressed: onUpgrade,
                           icon: const Icon(Icons.star, size: 18),
-                          label: const Text('Upgrade to Plus'),
+                          label: Text(
+                            AppLocalizations.of(context).upgradeToPlus,
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: DsColors.secondary,
                           ),
@@ -1132,8 +1141,10 @@ class _AdvancedFiltersSection extends StatelessWidget {
                 size: 20,
               ),
             ),
-            title: const Text('Verified profiles only'),
-            subtitle: const Text('Only see verified profiles'),
+            title: Text(AppLocalizations.of(context).verifiedProfilesOnly),
+            subtitle: Text(
+              AppLocalizations.of(context).onlySeeVerifiedProfiles,
+            ),
             value: state.verifiedOnly,
             onChanged: (value) => cubit.setVerifiedOnly(value),
           ),
@@ -1400,7 +1411,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                             cubit.clearHeightFilter();
                             Navigator.pop(context);
                           },
-                          child: const Text('Clear'),
+                          child: Text(AppLocalizations.of(context).clear),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -1499,7 +1510,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           );
                           Navigator.pop(context);
                         },
-                        child: const Text('Apply'),
+                        child: Text(AppLocalizations.of(context).apply),
                       ),
                     ),
                   ),
@@ -1586,7 +1597,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           onPressed: () {
                             setState(() => selected.clear());
                           },
-                          child: const Text('Clear'),
+                          child: Text(AppLocalizations.of(context).clear),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -1703,7 +1714,7 @@ class _AdvancedFiltersSection extends StatelessWidget {
                           onSelected(null);
                           Navigator.pop(context);
                         },
-                        child: const Text('Clear'),
+                        child: Text(AppLocalizations.of(context).clear),
                       ),
                     IconButton(
                       icon: const Icon(Icons.close),

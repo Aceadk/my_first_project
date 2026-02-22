@@ -23,6 +23,7 @@ import 'package:crushhour/core/security/clipboard_manager.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/features/chat/domain/services/ice_breaker_service.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ChatMessageList extends StatelessWidget {
   final ChatState state;
@@ -195,37 +196,40 @@ class ChatMessageList extends StatelessWidget {
       switch (msg.type) {
         case MessageType.image:
           if (pendingScan) {
-            return const Text('Image pending safety scan…');
+            return Text(AppLocalizations.of(context).imagePendingSafetyScan);
           }
           // Check if it's a local file path or a network URL
           final isLocalFile =
               msg.content.startsWith('/') || msg.content.startsWith('file://');
-          return GestureDetector(
-            onTap: () => isLocalFile ? null : openUrl(msg.content),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(DsRadius.media),
-              child: isLocalFile
-                  ? Image.file(
-                      File(msg.content.replaceFirst('file://', '')),
-                      width: mediaWidth,
-                      height: mediaHeight,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => buildMediaErrorPlaceholder(
-                        Icons.broken_image_outlined,
-                        'Image unavailable',
+          return Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () => isLocalFile ? null : openUrl(msg.content),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(DsRadius.media),
+                child: isLocalFile
+                    ? Image.file(
+                        File(msg.content.replaceFirst('file://', '')),
+                        width: mediaWidth,
+                        height: mediaHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => buildMediaErrorPlaceholder(
+                          Icons.broken_image_outlined,
+                          'Image unavailable',
+                        ),
+                      )
+                    : CachedImage(
+                        imageUrl: msg.content,
+                        width: mediaWidth,
+                        height: mediaHeight,
+                        fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(DsRadius.media),
+                        errorWidget: buildMediaErrorPlaceholder(
+                          Icons.broken_image_outlined,
+                          'Image unavailable',
+                        ),
                       ),
-                    )
-                  : CachedImage(
-                      imageUrl: msg.content,
-                      width: mediaWidth,
-                      height: mediaHeight,
-                      fit: BoxFit.cover,
-                      borderRadius: BorderRadius.circular(DsRadius.media),
-                      errorWidget: buildMediaErrorPlaceholder(
-                        Icons.broken_image_outlined,
-                        'Image unavailable',
-                      ),
-                    ),
+              ),
             ),
           );
         case MessageType.video:
@@ -297,7 +301,7 @@ class ChatMessageList extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DsRadius.lg),
           ),
-          title: const Text('Edit message'),
+          title: Text(AppLocalizations.of(context).editMessage),
           content: TextField(
             controller: controller,
             autofocus: true,
@@ -317,7 +321,7 @@ class ChatMessageList extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () {
@@ -333,7 +337,7 @@ class ChatMessageList extends StatelessWidget {
                 }
                 Navigator.pop(dialogContext);
               },
-              child: const Text('Save'),
+              child: Text(AppLocalizations.of(context).save),
             ),
           ],
         ),
@@ -440,7 +444,9 @@ class ChatMessageList extends StatelessWidget {
                             Icons.remove_circle_outline,
                             size: 18,
                           ),
-                          label: const Text('Remove my reaction'),
+                          label: Text(
+                            AppLocalizations.of(context).removeMyReaction,
+                          ),
                           style: TextButton.styleFrom(
                             foregroundColor: DsColors.textMutedLight,
                           ),
@@ -458,7 +464,7 @@ class ChatMessageList extends StatelessWidget {
                           },
                           child: ListTile(
                             leading: const Icon(Icons.edit),
-                            title: const Text('Edit (Plus)'),
+                            title: Text(AppLocalizations.of(context).editPlus),
                             enabled: !state.isEditInProgress,
                           ),
                         ),
@@ -472,13 +478,13 @@ class ChatMessageList extends StatelessWidget {
                         },
                         child: ListTile(
                           leading: const Icon(Icons.undo),
-                          title: const Text('Unsend (Plus)'),
+                          title: Text(AppLocalizations.of(context).unsendPlus),
                           enabled: !state.isUnsendInProgress,
                         ),
                       ),
                       ListTile(
                         leading: const Icon(Icons.delete_outline),
-                        title: const Text('Delete for me'),
+                        title: Text(AppLocalizations.of(context).deleteForMe),
                         onTap: () {
                           HapticFeedback.lightImpact();
                           Navigator.pop(context);
@@ -494,15 +500,17 @@ class ChatMessageList extends StatelessWidget {
                     ],
                     ListTile(
                       leading: const Icon(Icons.copy),
-                      title: const Text('Copy text'),
+                      title: Text(AppLocalizations.of(context).copyText),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                         SecureClipboard.copy(message.content);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                              'Message copied — will clear in 60 seconds',
+                              AppLocalizations.of(
+                                context,
+                              ).messageCopiedWillClearIn,
                             ),
                           ),
                         );
@@ -552,8 +560,8 @@ class ChatMessageList extends StatelessWidget {
                   : msg.content;
               final reactionCounts = getReactionCounts(msg);
               final alignment = isMe
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft;
+                  ? AlignmentDirectional.centerEnd
+                  : AlignmentDirectional.centerStart;
 
               // Check if we need a date separator
               final showDateSeparator = shouldShowDateSeparator(
@@ -578,352 +586,360 @@ class ChatMessageList extends StatelessWidget {
                             desktop: 480,
                           ),
                         ),
-                        child: GestureDetector(
-                          onLongPress: () => showMessageActions(
-                            context: context,
-                            state: state,
-                            message: msg,
-                            isMe: isMe,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: isMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(18),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: DsBlur.subtle,
-                                    sigmaY: DsBlur.subtle,
-                                  ),
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: DsSpacing.xs,
-                                      horizontal: DsSpacing.sm,
+                        child: Semantics(
+                          button: true,
+                          child: GestureDetector(
+                            onLongPress: () => showMessageActions(
+                              context: context,
+                              state: state,
+                              message: msg,
+                              isMe: isMe,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: DsBlur.subtle,
+                                      sigmaY: DsBlur.subtle,
                                     ),
-                                    padding: const EdgeInsets.all(
-                                      DsSpacing.sm + DsSpacing.xxs,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: isMe
-                                            ? [
-                                                DsColors.primary.withValues(
-                                                  alpha: 0.85,
-                                                ),
-                                                DsColors.secondary.withValues(
-                                                  alpha: 0.7,
-                                                ),
-                                              ]
-                                            : [
-                                                DsGlassColors.surfaceFor(
-                                                  context,
-                                                ).withValues(alpha: 0.6),
-                                                DsGlassColors.surfaceFor(
-                                                  context,
-                                                ).withValues(alpha: 0.4),
-                                              ],
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: DsSpacing.xs,
+                                        horizontal: DsSpacing.sm,
                                       ),
-                                      borderRadius: BorderRadius.circular(
-                                        DsRadius.bubble,
+                                      padding: const EdgeInsets.all(
+                                        DsSpacing.sm + DsSpacing.xxs,
                                       ),
-                                      border: Border.all(
-                                        color: isMe
-                                            ? DsColors.primary.withValues(
-                                                alpha: 0.3,
-                                              )
-                                            : DsGlassColors.borderFor(context),
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              (isMe
-                                                      ? DsColors.primary
-                                                      : DsColors.ink900)
-                                                  .withValues(alpha: 0.15),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: AlignmentDirectional.topStart,
+                                          end: AlignmentDirectional.bottomEnd,
+                                          colors: isMe
+                                              ? [
+                                                  DsColors.primary.withValues(
+                                                    alpha: 0.85,
+                                                  ),
+                                                  DsColors.secondary.withValues(
+                                                    alpha: 0.7,
+                                                  ),
+                                                ]
+                                              : [
+                                                  DsGlassColors.surfaceFor(
+                                                    context,
+                                                  ).withValues(alpha: 0.6),
+                                                  DsGlassColors.surfaceFor(
+                                                    context,
+                                                  ).withValues(alpha: 0.4),
+                                                ],
                                         ),
-                                      ],
-                                    ),
-                                    child: buildMessageContent(
-                                      msg,
-                                      text,
-                                      isHeld: isHeld,
-                                      pendingScan: pendingScan,
-                                      isMe: isMe,
+                                        borderRadius: BorderRadius.circular(
+                                          DsRadius.bubble,
+                                        ),
+                                        border: Border.all(
+                                          color: isMe
+                                              ? DsColors.primary.withValues(
+                                                  alpha: 0.3,
+                                                )
+                                              : DsGlassColors.borderFor(
+                                                  context,
+                                                ),
+                                          width: 1,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                (isMe
+                                                        ? DsColors.primary
+                                                        : DsColors.ink900)
+                                                    .withValues(alpha: 0.15),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: buildMessageContent(
+                                        msg,
+                                        text,
+                                        isHeld: isHeld,
+                                        pendingScan: pendingScan,
+                                        isMe: isMe,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              // Message status indicators
-                              if (isMe) ...[
-                                if (msg.sendStatus == MessageSendStatus.sending)
+                                // Message status indicators
+                                if (isMe) ...[
+                                  if (msg.sendStatus ==
+                                      MessageSendStatus.sending)
+                                    Padding(
+                                      padding: const EdgeInsetsDirectional.only(
+                                        end: DsSpacing.md,
+                                        bottom: DsSpacing.xxs,
+                                        top: DsSpacing.xxs,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            width: 10,
+                                            height: 10,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 1.5,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation(
+                                                    DsColors.surfaceLight
+                                                        .withValues(alpha: 0.5),
+                                                  ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: DsSpacing.xs),
+                                          Text(
+                                            'Sending...',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: DsColors.surfaceLight
+                                                  .withValues(alpha: 0.5),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else if (msg.sendStatus ==
+                                      MessageSendStatus.sent)
+                                    Padding(
+                                      padding: const EdgeInsetsDirectional.only(
+                                        end: DsSpacing.md,
+                                        bottom: DsSpacing.xxs,
+                                        top: DsSpacing.xxs,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            formatTime(msg.sentAt),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: DsColors.surfaceLight
+                                                  .withValues(alpha: 0.5),
+                                            ),
+                                          ),
+                                          const SizedBox(width: DsSpacing.xs),
+                                          // Read status - only show "Seen" for Plus users
+                                          if (state.canSeeReadReceipts &&
+                                              msg.isRead) ...[
+                                            const Icon(
+                                              Icons.done_all,
+                                              size: 14,
+                                              color: DsColors.info,
+                                            ),
+                                            const SizedBox(
+                                              width: DsSpacing.xxs,
+                                            ),
+                                            const Text(
+                                              'Seen',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: DsColors.info,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            // Non-Plus users just see single checkmark
+                                            Icon(
+                                              Icons.done,
+                                              size: 14,
+                                              color: DsColors.surfaceLight
+                                                  .withValues(alpha: 0.5),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                                if (isFlagged || pendingScan)
                                   Padding(
                                     padding: const EdgeInsetsDirectional.only(
-                                      end: DsSpacing.md,
-                                      bottom: DsSpacing.xxs,
-                                      top: DsSpacing.xxs,
+                                      start: 12,
+                                      end: 12,
+                                      bottom: 2,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isHeld
+                                              ? Icons.shield
+                                              : Icons.shield_outlined,
+                                          size: 14,
+                                          color: isHeld
+                                              ? DsColors.error
+                                              : DsColors.warning,
+                                        ),
+                                        DsGap.xsH,
+                                        Flexible(
+                                          child: Text(
+                                            moderationLabel(
+                                              msg,
+                                              isHeld: isHeld,
+                                              pendingScan: pendingScan,
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isHeld
+                                                  ? DsColors.error
+                                                  : DsColors.warning,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                if (reactionCounts.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      start: 12,
+                                      end: 12,
+                                      bottom: 2,
+                                    ),
+                                    child: Wrap(
+                                      spacing: 6,
+                                      children: reactionCounts.entries
+                                          .map(
+                                            (entry) => Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: DsColors.ink900
+                                                    .withValues(alpha: 0.54),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                entry.value > 1
+                                                    ? '${entry.key} ${entry.value}'
+                                                    : entry.key,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                // Retry / Delete for failed messages
+                                if (isMe &&
+                                    msg.sendStatus == MessageSendStatus.failed)
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      start: 12,
+                                      end: 12,
+                                      bottom: 4,
+                                      top: 2,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.error_outline,
+                                          size: 14,
+                                          color: DsColors.error,
+                                        ),
+                                        DsGap.xsH,
+                                        const Text(
+                                          'Failed to send',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: DsColors.error,
+                                          ),
+                                        ),
+                                        DsGap.smH,
+                                        GestureDetector(
+                                          onTap: () {
+                                            context.read<ChatBloc>().add(
+                                              ChatMessageRetryRequested(
+                                                matchId: matchId,
+                                                messageId: msg.id,
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Retry',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: DsColors.info,
+                                              fontWeight: FontWeight.w600,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                        DsGap.smH,
+                                        GestureDetector(
+                                          onTap: () {
+                                            context.read<ChatBloc>().add(
+                                              ChatMessageDiscardRequested(
+                                                messageId: msg.id,
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: DsColors.error,
+                                              fontWeight: FontWeight.w600,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                // Sending indicator
+                                if (isMe &&
+                                    msg.sendStatus == MessageSendStatus.sending)
+                                  const Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      start: 12,
+                                      end: 12,
+                                      bottom: 4,
+                                      top: 2,
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         SizedBox(
-                                          width: 10,
-                                          height: 10,
+                                          width: DsSizes.iconXs,
+                                          height: DsSizes.iconXs,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 1.5,
                                             valueColor: AlwaysStoppedAnimation(
-                                              DsColors.surfaceLight.withValues(
-                                                alpha: 0.5,
-                                              ),
+                                              DsColors.ink300,
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: DsSpacing.xs),
+                                        SizedBox(
+                                          width: DsSpacing.xs + DsSpacing.xxs,
+                                        ),
                                         Text(
                                           'Sending...',
                                           style: TextStyle(
-                                            fontSize: 10,
-                                            color: DsColors.surfaceLight
-                                                .withValues(alpha: 0.5),
+                                            fontSize: 11,
+                                            color: DsColors.ink300,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  )
-                                else if (msg.sendStatus ==
-                                    MessageSendStatus.sent)
-                                  Padding(
-                                    padding: const EdgeInsetsDirectional.only(
-                                      end: DsSpacing.md,
-                                      bottom: DsSpacing.xxs,
-                                      top: DsSpacing.xxs,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          formatTime(msg.sentAt),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: DsColors.surfaceLight
-                                                .withValues(alpha: 0.5),
-                                          ),
-                                        ),
-                                        const SizedBox(width: DsSpacing.xs),
-                                        // Read status - only show "Seen" for Plus users
-                                        if (state.canSeeReadReceipts &&
-                                            msg.isRead) ...[
-                                          const Icon(
-                                            Icons.done_all,
-                                            size: 14,
-                                            color: DsColors.info,
-                                          ),
-                                          const SizedBox(width: DsSpacing.xxs),
-                                          const Text(
-                                            'Seen',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: DsColors.info,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ] else ...[
-                                          // Non-Plus users just see single checkmark
-                                          Icon(
-                                            Icons.done,
-                                            size: 14,
-                                            color: DsColors.surfaceLight
-                                                .withValues(alpha: 0.5),
-                                          ),
-                                        ],
                                       ],
                                     ),
                                   ),
                               ],
-                              if (isFlagged || pendingScan)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    start: 12,
-                                    end: 12,
-                                    bottom: 2,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isHeld
-                                            ? Icons.shield
-                                            : Icons.shield_outlined,
-                                        size: 14,
-                                        color: isHeld
-                                            ? DsColors.error
-                                            : DsColors.warning,
-                                      ),
-                                      DsGap.xsH,
-                                      Flexible(
-                                        child: Text(
-                                          moderationLabel(
-                                            msg,
-                                            isHeld: isHeld,
-                                            pendingScan: pendingScan,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isHeld
-                                                ? DsColors.error
-                                                : DsColors.warning,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              if (reactionCounts.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    start: 12,
-                                    end: 12,
-                                    bottom: 2,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 6,
-                                    children: reactionCounts.entries
-                                        .map(
-                                          (entry) => Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: DsColors.ink900.withValues(
-                                                alpha: 0.54,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              entry.value > 1
-                                                  ? '${entry.key} ${entry.value}'
-                                                  : entry.key,
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                                  ),
-                                ),
-                              // Retry / Delete for failed messages
-                              if (isMe &&
-                                  msg.sendStatus == MessageSendStatus.failed)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    start: 12,
-                                    end: 12,
-                                    bottom: 4,
-                                    top: 2,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.error_outline,
-                                        size: 14,
-                                        color: DsColors.error,
-                                      ),
-                                      DsGap.xsH,
-                                      const Text(
-                                        'Failed to send',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: DsColors.error,
-                                        ),
-                                      ),
-                                      DsGap.smH,
-                                      GestureDetector(
-                                        onTap: () {
-                                          context.read<ChatBloc>().add(
-                                            ChatMessageRetryRequested(
-                                              matchId: matchId,
-                                              messageId: msg.id,
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Retry',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: DsColors.info,
-                                            fontWeight: FontWeight.w600,
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
-                                        ),
-                                      ),
-                                      DsGap.smH,
-                                      GestureDetector(
-                                        onTap: () {
-                                          context.read<ChatBloc>().add(
-                                            ChatMessageDiscardRequested(
-                                              messageId: msg.id,
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: DsColors.error,
-                                            fontWeight: FontWeight.w600,
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              // Sending indicator
-                              if (isMe &&
-                                  msg.sendStatus == MessageSendStatus.sending)
-                                const Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                    start: 12,
-                                    end: 12,
-                                    bottom: 4,
-                                    top: 2,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(
-                                        width: DsSizes.iconXs,
-                                        height: DsSizes.iconXs,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 1.5,
-                                          valueColor: AlwaysStoppedAnimation(
-                                            DsColors.ink300,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: DsSpacing.xs + DsSpacing.xxs,
-                                      ),
-                                      Text(
-                                        'Sending...',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: DsColors.ink300,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

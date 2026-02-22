@@ -11,6 +11,7 @@ import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class AuthGatewayScreen extends StatefulWidget {
   const AuthGatewayScreen({super.key});
@@ -23,6 +24,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
 
   @override
@@ -95,6 +97,38 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     context.go(CrushRoutes.home);
   }
 
+  Future<void> _signInWithGoogle() async {
+    if (_isGoogleLoading) return;
+
+    setState(() => _isGoogleLoading = true);
+    final authRepo = context.read<AuthRepository>();
+    final result = await Result.guard(
+      () => authRepo.signInWithGoogle(),
+      logLabel: 'AuthRepository.signInWithGoogle',
+      fallbackError: 'Google Sign-In failed. Please try again.',
+    );
+
+    if (!mounted) return;
+    setState(() => _isGoogleLoading = false);
+
+    if (!result.isSuccess) {
+      showErrorSnackBar(
+        context,
+        result.errorMessage ?? 'Google Sign-In failed. Please try again.',
+      );
+      return;
+    }
+
+    final user = result.data;
+    if (user?.email != null &&
+        user!.email!.isNotEmpty &&
+        !user.isEmailVerified) {
+      context.go('${CrushRoutes.emailProtection}?redirect=1');
+      return;
+    }
+    context.go(CrushRoutes.home);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -102,6 +136,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
         Theme.of(context).extension<CrushThemeEffects>()?.primaryGradient ??
         DsGradients.primaryHorizontal;
     final authRepo = context.read<AuthRepository>();
+    final showGoogleButton = authRepo.supportsGoogleSignIn;
     final showAppleButton =
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
@@ -140,7 +175,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                           width: maxWidth,
                           child: ShaderMask(
                             shaderCallback: (bounds) =>
-                                brandGradient.createShader(bounds),
+                                brandGradient.createShader(
+                                  bounds,
+                                  textDirection: Directionality.of(context),
+                                ),
                             child: Text(
                               'Crush',
                               textAlign: TextAlign.center,
@@ -220,6 +258,31 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                   ),
                 ),
               ),
+              if (showGoogleButton) ...[
+                DsGap.md,
+                Semantics(
+                  button: true,
+                  label: 'Continue with Google',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: GlassOutlinedButton(
+                      onPressed: _isGoogleLoading ? null : _signInWithGoogle,
+                      backgroundColor: Colors.white,
+                      borderColor: const Color(0xFFDADCE0),
+                      isExpanded: true,
+                      isLoading: _isGoogleLoading,
+                      child: const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          color: Color(0xFF1F1F1F),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               if (showAppleButton) ...[
                 DsGap.md,
                 Semantics(
@@ -392,7 +455,7 @@ class _AgeGateDialog extends StatelessWidget {
                 Expanded(
                   child: GlassPrimaryButton(
                     onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Yes, I am 18+'),
+                    child: Text(AppLocalizations.of(context).yesIAm18),
                   ),
                 ),
               ],

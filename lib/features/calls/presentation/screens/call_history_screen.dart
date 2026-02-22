@@ -5,6 +5,7 @@ import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 typedef CallHistoryLoader =
     Future<List<Call>> Function(String userId, {int limit, DateTime? before});
@@ -142,7 +143,9 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       // Keep existing data; surface one-line non-blocking feedback.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to load more call history.')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).unableToLoadMoreCall),
+          ),
         );
       }
     } finally {
@@ -210,7 +213,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Call History')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).callHistory)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -244,7 +247,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _loadInitial,
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context).retry),
               ),
             ],
           ),

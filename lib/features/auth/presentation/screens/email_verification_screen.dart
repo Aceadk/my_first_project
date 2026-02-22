@@ -8,6 +8,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen shown when user is authenticated but email is not verified.
 /// User must verify their email before accessing the app.
@@ -21,6 +22,8 @@ class EmailVerificationScreen extends StatefulWidget {
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     with WidgetsBindingObserver {
+  static const int _resendCooldownSeconds = 30;
+
   Timer? _checkTimer;
   bool _isSending = false;
   bool _isChecking = false;
@@ -124,7 +127,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       if (mounted) {
         setState(() {
           _message = 'Verification email sent! Check your inbox.';
-          _resendCooldown = 60; // 60 second cooldown
+          _resendCooldown = _resendCooldownSeconds;
         });
         _startCooldownTimer();
       }
@@ -133,9 +136,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         '[EmailVerificationScreen] Error sending verification',
         error: e,
       );
+      final message = e.toString().toLowerCase();
+      final errorMessage =
+          message.contains('too-many-requests') ||
+              message.contains('too many requests')
+          ? 'Too many attempts. Please wait about a minute and try again.'
+          : 'Failed to send email. Please try again.';
       if (mounted) {
         setState(() {
-          _message = 'Failed to send email. Please try again.';
+          _message = errorMessage;
         });
       }
     } finally {
@@ -359,12 +368,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                       children: [
                         GlassSmallButton(
                           onPressed: _signOut,
-                          child: const Text('Sign Out'),
+                          child: Text(AppLocalizations.of(context).signOut),
                         ),
-                        const Text(' • '),
+                        Text(AppLocalizations.of(context).emptyString),
                         GlassSmallButton(
                           onPressed: _signOut,
-                          child: const Text('Use Different Email'),
+                          child: Text(
+                            AppLocalizations.of(context).useDifferentEmail,
+                          ),
                         ),
                       ],
                     ),

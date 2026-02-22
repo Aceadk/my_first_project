@@ -1,15 +1,18 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/models/privacy_settings.dart';
-import 'package:crushhour/data/models/profile_prompt.dart';
-import 'package:crushhour/data/models/favourites.dart';
-import '../profile_repository.dart';
+
 import 'package:crushhour/core/security/input_sanitizer.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../profile_repository.dart';
 
 /// Mock implementation of ProfileRepository with local storage.
 /// This allows the app to function for development/demo without a backend.
@@ -350,6 +353,110 @@ class StubProfileRepository implements ProfileRepository {
 
     await _saveUser(updatedUser);
     return updatedUser;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  }) async {
+    return Result.guard(
+      () => saveBasicInfo(
+        username: username,
+        name: name,
+        lastName: lastName,
+        age: age,
+        gender: gender,
+        sexualOrientation: sexualOrientation,
+        dateOfBirth: dateOfBirth,
+        showFirstName: showFirstName,
+        showLastName: showLastName,
+      ),
+      logLabel: 'StubProfileRepository.saveBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  }) async {
+    return Result.guard(
+      () => saveProfileDetails(
+        bio: bio,
+        photoUrls: photoUrls,
+        videoUrls: videoUrls,
+        jobTitle: jobTitle,
+        company: company,
+        school: school,
+        interests: interests,
+        prompts: prompts,
+        city: city,
+        country: country,
+        favourites: favourites,
+        showMeGenders: showMeGenders,
+        latitude: latitude,
+        longitude: longitude,
+      ),
+      logLabel: 'StubProfileRepository.saveProfileDetailsResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> markIdVerifiedResult() async {
+    return Result.guard(
+      () => markIdVerified(),
+      logLabel: 'StubProfileRepository.markIdVerifiedResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> updateProfileResult(Profile profile) async {
+    return Result.guard(
+      () => updateProfile(profile),
+      logLabel: 'StubProfileRepository.updateProfileResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipBasicInfoResult({
+    required String username,
+  }) async {
+    return Result.guard(
+      () => skipBasicInfo(username: username),
+      logLabel: 'StubProfileRepository.skipBasicInfoResult',
+    );
+  }
+
+  @override
+  Future<Result<CrushUser>> skipProfileSetupResult() async {
+    return Result.guard(
+      () => skipProfileSetup(),
+      logLabel: 'StubProfileRepository.skipProfileSetupResult',
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

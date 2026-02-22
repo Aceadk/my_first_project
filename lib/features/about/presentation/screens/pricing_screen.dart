@@ -3,6 +3,7 @@ import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class PricingScreen extends StatefulWidget {
   const PricingScreen({super.key});
@@ -23,7 +24,7 @@ class _PricingScreenState extends State<PricingScreen> {
     final muted = isDark ? DsColors.textMutedDark : DsColors.textMutedLight;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pricing')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).pricing)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -64,26 +65,30 @@ class _PricingScreenState extends State<PricingScreen> {
                     children: List.generate(_periods.length, (index) {
                       final isSelected = _selectedPeriod == index;
                       return Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedPeriod = index),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? DsColors.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              _periods[index],
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
-                                color: isSelected ? Colors.white : muted,
+                        child: Semantics(
+                          button: true,
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedPeriod = index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? DsColors.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                _periods[index],
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected ? Colors.white : muted,
+                                ),
                               ),
                             ),
                           ),

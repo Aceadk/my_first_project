@@ -7900,6 +7900,1272 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Less than 1 km away} =1{1 km away} other{{count} km away}}'**
   String distanceKm(int count);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @callHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Call History'**
+  String get callHistory;
+
+  /// No description provided for @unableToLoadMoreCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load more call history.'**
+  String get unableToLoadMoreCall;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @reportDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Report details'**
+  String get reportDetails;
+
+  /// No description provided for @viewCommunityGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'View community guidelines'**
+  String get viewCommunityGuidelines;
+
+  /// No description provided for @reportsAreAnonymousAndReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports are anonymous and reviewed by our team.'**
+  String get reportsAreAnonymousAndReviewed;
+
+  /// No description provided for @signInAgainToManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again to manage safety actions.'**
+  String get signInAgainToManage;
+
+  /// No description provided for @blockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Block user'**
+  String get blockUser;
+
+  /// No description provided for @reportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Report user'**
+  String get reportUser;
+
+  /// No description provided for @iFeltSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'I felt safe'**
+  String get iFeltSafe;
+
+  /// No description provided for @connectionUnstableRecoveredWithReduced.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection unstable. Recovered with reduced quality.'**
+  String get connectionUnstableRecoveredWithReduced;
+
+  /// No description provided for @networkIsWeakSwitchedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Network is weak. Switched to audio-only mode.'**
+  String get networkIsWeakSwitchedTo;
+
+  /// No description provided for @screenRecordingStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen recording stopped.'**
+  String get screenRecordingStopped;
+
+  /// No description provided for @screenRecordingDetectedTheOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen recording detected. The other person was notified.'**
+  String get screenRecordingDetectedTheOther;
+
+  /// No description provided for @screenshotDetectedTheOtherPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot detected. The other person was notified.'**
+  String get screenshotDetectedTheOtherPerson;
+
+  /// No description provided for @viewSafetyGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'View safety guidelines'**
+  String get viewSafetyGuidelines;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @resetPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset preview'**
+  String get resetPreview;
+
+  /// No description provided for @upgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade'**
+  String get upgrade;
+
+  /// No description provided for @appearanceThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance & Themes'**
+  String get appearanceThemes;
+
+  /// No description provided for @darkLuxuryThemesAreA.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Luxury themes are a Plus feature. Upgrade to unlock them.'**
+  String get darkLuxuryThemesAreA;
+
+  /// No description provided for @endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get endTime;
+
+  /// No description provided for @startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get startTime;
+
+  /// No description provided for @unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get unlink;
+
+  /// No description provided for @cannotUnlinkTheLastRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot unlink the last recovery method. Add another provider first.'**
+  String get cannotUnlinkTheLastRecovery;
+
+  /// No description provided for @accountSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Security'**
+  String get accountSecurity;
+
+  /// No description provided for @enableIncognito.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Incognito'**
+  String get enableIncognito;
+
+  /// No description provided for @turnOffIncognito.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off Incognito'**
+  String get turnOffIncognito;
+
+  /// No description provided for @pricing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing'**
+  String get pricing;
+
+  /// No description provided for @features.
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get features;
+
+  /// No description provided for @safety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get safety;
+
+  /// No description provided for @communityGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Guidelines'**
+  String get communityGuidelines;
+
+  /// No description provided for @promoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code'**
+  String get promoCode;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @resetToDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get resetToDefaults;
+
+  /// No description provided for @makeAllPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all private'**
+  String get makeAllPrivate;
+
+  /// No description provided for @makeAllPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Make all public'**
+  String get makeAllPublic;
+
+  /// No description provided for @openEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Email'**
+  String get openEmail;
+
+  /// No description provided for @ourRulesAndStandards.
+  ///
+  /// In en, this message translates to:
+  /// **'Our rules and standards'**
+  String get ourRulesAndStandards;
+
+  /// No description provided for @browseArticlesAndGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse articles and guides'**
+  String get browseArticlesAndGuides;
+
+  /// No description provided for @helpCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Help Center'**
+  String get helpCenter;
+
+  /// No description provided for @emailSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Support'**
+  String get emailSupport;
+
+  /// No description provided for @helpSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get helpSupport;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @onlySeeVerifiedProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Only see verified profiles'**
+  String get onlySeeVerifiedProfiles;
+
+  /// No description provided for @verifiedProfilesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified profiles only'**
+  String get verifiedProfilesOnly;
+
+  /// No description provided for @upgradeToPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Plus'**
+  String get upgradeToPlus;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @editInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit interests'**
+  String get editInterests;
+
+  /// No description provided for @turnOffToHideYour.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to hide your profile'**
+  String get turnOffToHideYour;
+
+  /// No description provided for @showMeInDiscovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me in discovery'**
+  String get showMeInDiscovery;
+
+  /// No description provided for @displayHowFarAwayYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Display how far away you are'**
+  String get displayHowFarAwayYou;
+
+  /// No description provided for @showMyDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my distance'**
+  String get showMyDistance;
+
+  /// No description provided for @myInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'My interests'**
+  String get myInterests;
+
+  /// No description provided for @discoveryFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery & Filters'**
+  String get discoveryFilters;
+
+  /// No description provided for @keepMessagesFor24Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep messages for 24 hours'**
+  String get keepMessagesFor24Hours;
+
+  /// No description provided for @chatSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Settings'**
+  String get chatSettings;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @finalConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Final confirmation'**
+  String get finalConfirmation;
+
+  /// No description provided for @requestExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Export'**
+  String get requestExport;
+
+  /// No description provided for @beforeDeletionYouCanRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Before deletion, you can request a full data export for your records.'**
+  String get beforeDeletionYouCanRequest;
+
+  /// No description provided for @downloadYourDataFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Download your data first?'**
+  String get downloadYourDataFirst;
+
+  /// No description provided for @youWillLose.
+  ///
+  /// In en, this message translates to:
+  /// **'You will lose:'**
+  String get youWillLose;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// No description provided for @whenYouDeactivateYourAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'When you deactivate your account:'**
+  String get whenYouDeactivateYourAccount;
+
+  /// No description provided for @deactivateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate Account'**
+  String get deactivateAccount;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePassword;
+
+  /// No description provided for @shareExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Export'**
+  String get shareExport;
+
+  /// No description provided for @yourDataExportHasBeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data export has been generated successfully. Would you like to share/download it now?'**
+  String get yourDataExportHasBeen;
+
+  /// No description provided for @exportReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Ready'**
+  String get exportReady;
+
+  /// No description provided for @preparingYourExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing your export'**
+  String get preparingYourExport;
+
+  /// No description provided for @yourExportIncludesProfilePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Your export includes profile, photos, likes, matches, messages, and preferences.'**
+  String get yourExportIncludesProfilePhotos;
+
+  /// No description provided for @requestDataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Data Export'**
+  String get requestDataExport;
+
+  /// No description provided for @permanentlyRemoveYourAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently remove your account'**
+  String get permanentlyRemoveYourAccount;
+
+  /// No description provided for @accountActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Actions'**
+  String get accountActions;
+
+  /// No description provided for @setRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Set region'**
+  String get setRegion;
+
+  /// No description provided for @detectYourRegionAutomatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect your region automatically'**
+  String get detectYourRegionAutomatically;
+
+  /// No description provided for @useDeviceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get useDeviceLanguage;
+
+  /// No description provided for @regionUpdatedFromDeviceLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Region updated from device location.'**
+  String get regionUpdatedFromDeviceLocation;
+
+  /// No description provided for @comparePlanBenefits.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare plan benefits'**
+  String get comparePlanBenefits;
+
+  /// No description provided for @planDetailsAndPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan details and pricing'**
+  String get planDetailsAndPricing;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @billingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing help'**
+  String get billingHelp;
+
+  /// No description provided for @refreshSubscriptionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh subscription status'**
+  String get refreshSubscriptionStatus;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @clearCacheNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache now'**
+  String get clearCacheNow;
+
+  /// No description provided for @cacheClearedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared successfully.'**
+  String get cacheClearedSuccessfully;
+
+  /// No description provided for @avoidUsingMobileDataFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid using mobile data for media'**
+  String get avoidUsingMobileDataFor;
+
+  /// No description provided for @wifiOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi only'**
+  String get wifiOnly;
+
+  /// No description provided for @autodownloadMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-download media'**
+  String get autodownloadMedia;
+
+  /// No description provided for @dataStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Storage'**
+  String get dataStorage;
+
+  /// No description provided for @unmatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmatch'**
+  String get unmatch;
+
+  /// No description provided for @unmatch1.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmatch?'**
+  String get unmatch1;
+
+  /// No description provided for @call.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get call;
+
+  /// No description provided for @startAudioCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Start audio call'**
+  String get startAudioCall;
+
+  /// No description provided for @enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get enable;
+
+  /// No description provided for @mediaSendingIsDisabledFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Media sending is disabled for this match. Enable it from the toolbar to share photos, videos, or audio.'**
+  String get mediaSendingIsDisabledFor;
+
+  /// No description provided for @unmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get unmute;
+
+  /// No description provided for @finish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get finish;
+
+  /// No description provided for @unblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @verifyYourIdToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your ID to add a trust badge to your messages and matches.'**
+  String get verifyYourIdToAdd;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
+
+  /// No description provided for @declineRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline request?'**
+  String get declineRequest;
+
+  /// No description provided for @signInToViewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to view message requests.'**
+  String get signInToViewMessage;
+
+  /// No description provided for @signInToViewYour.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to view your chats.'**
+  String get signInToViewYour;
+
+  /// No description provided for @tryPlusIntroOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Plus intro offer'**
+  String get tryPlusIntroOffer;
+
+  /// No description provided for @backToDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to deck'**
+  String get backToDeck;
+
+  /// No description provided for @maybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe Later'**
+  String get maybeLater;
+
+  /// No description provided for @signInToViewYour1.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to view your matches.'**
+  String get signInToViewYour1;
+
+  /// No description provided for @imagePendingSafetyScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Image pending safety scan…'**
+  String get imagePendingSafetyScan;
+
+  /// No description provided for @openSafetyCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Safety Center'**
+  String get openSafetyCenter;
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get viewProfile;
+
+  /// No description provided for @showDifferentSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show different suggestions'**
+  String get showDifferentSuggestions;
+
+  /// No description provided for @messageCopiedWillClearIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied — will clear in 60 seconds'**
+  String get messageCopiedWillClearIn;
+
+  /// No description provided for @copyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get copyText;
+
+  /// No description provided for @deleteForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete for me'**
+  String get deleteForMe;
+
+  /// No description provided for @unsendPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsend (Plus)'**
+  String get unsendPlus;
+
+  /// No description provided for @editPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit (Plus)'**
+  String get editPlus;
+
+  /// No description provided for @removeMyReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove my reaction'**
+  String get removeMyReaction;
+
+  /// No description provided for @editMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message'**
+  String get editMessage;
+
+  /// No description provided for @couldNotOpenAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open attachment.'**
+  String get couldNotOpenAttachment;
+
+  /// No description provided for @mediaSavedLocallyOnYour.
+  ///
+  /// In en, this message translates to:
+  /// **'Media saved locally on your device.'**
+  String get mediaSavedLocallyOnYour;
+
+  /// No description provided for @grant.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant'**
+  String get grant;
+
+  /// No description provided for @microphonePermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission required'**
+  String get microphonePermissionRequired;
+
+  /// No description provided for @recordingTooShortMinimum1.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording too short (minimum 1 second)'**
+  String get recordingTooShortMinimum1;
+
+  /// No description provided for @resendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCode;
+
+  /// No description provided for @useEmailInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use email instead'**
+  String get useEmailInstead;
+
+  /// No description provided for @signUpWithPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up with phone'**
+  String get signUpWithPhone;
+
+  /// No description provided for @logOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get logOut;
+
+  /// No description provided for @signUpWithEmailInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up with email instead'**
+  String get signUpWithEmailInstead;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Code'**
+  String get sendCode;
+
+  /// No description provided for @openEmailApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Email App'**
+  String get openEmailApp;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @yesIAm18.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I am 18+'**
+  String get yesIAm18;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @usePhoneNumberInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use phone number instead'**
+  String get usePhoneNumberInstead;
+
+  /// No description provided for @signInWithEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with email'**
+  String get signInWithEmail;
+
+  /// No description provided for @useDifferentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Different Email'**
+  String get useDifferentEmail;
+
+  /// No description provided for @emptyString.
+  ///
+  /// In en, this message translates to:
+  /// **' • '**
+  String get emptyString;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// No description provided for @backToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get backToSignIn;
+
+  /// No description provided for @selectExistingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Select existing photo'**
+  String get selectExistingPhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @useCameraToCaptureId.
+  ///
+  /// In en, this message translates to:
+  /// **'Use camera to capture ID'**
+  String get useCameraToCaptureId;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @removePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Phone Number?'**
+  String get removePhoneNumber;
+
+  /// No description provided for @removePhoneNumber1.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Phone Number'**
+  String get removePhoneNumber1;
+
+  /// No description provided for @continueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Anyway'**
+  String get continueAnyway;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @verifyOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify OTP'**
+  String get verifyOtp;
+
+  /// No description provided for @termsConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsConditions;
+
+  /// No description provided for @crush.
+  ///
+  /// In en, this message translates to:
+  /// **'Crush'**
+  String get crush;
+
+  /// No description provided for @like.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get like;
+
+  /// No description provided for @pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get pass;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
+  /// No description provided for @weWillReviewAndMay.
+  ///
+  /// In en, this message translates to:
+  /// **'We will review and may limit accounts that violate guidelines.'**
+  String get weWillReviewAndMay;
+
+  /// No description provided for @maybeLater1.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get maybeLater1;
+
+  /// No description provided for @completeProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete profile'**
+  String get completeProfile;
+
+  /// No description provided for @completeYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get completeYourProfile;
+
+  /// No description provided for @verifyNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify now'**
+  String get verifyNow;
+
+  /// No description provided for @pleaseVerifyYourEmailOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify your email or phone number to start swiping and matching with others.'**
+  String get pleaseVerifyYourEmailOr;
+
+  /// No description provided for @verifyYourAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your account'**
+  String get verifyYourAccount;
+
+  /// No description provided for @refreshDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh deck'**
+  String get refreshDeck;
+
+  /// No description provided for @tryPassportWithPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Passport with Plus'**
+  String get tryPassportWithPlus;
+
+  /// No description provided for @blockHideProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Block & hide profile'**
+  String get blockHideProfile;
+
+  /// No description provided for @reportProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Report profile'**
+  String get reportProfile;
+
+  /// No description provided for @viewFullProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View full profile'**
+  String get viewFullProfile;
+
+  /// No description provided for @likeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Like Back'**
+  String get likeBack;
+
+  /// No description provided for @couldNotPassPleaseTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not pass. Please try again.'**
+  String get couldNotPassPleaseTry;
+
+  /// No description provided for @couldNotLikeBackPlease.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not like back. Please try again.'**
+  String get couldNotLikeBackPlease;
+
+  /// No description provided for @likesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes You'**
+  String get likesYou;
+
+  /// No description provided for @boostNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Boost Now'**
+  String get boostNow;
+
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get send;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it!'**
+  String get gotIt;
+
+  /// No description provided for @ideaSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Idea sent!'**
+  String get ideaSent;
+
+  /// No description provided for @savedToYourIdeas.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your ideas!'**
+  String get savedToYourIdeas;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @completeYourProfile1.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Your Profile'**
+  String get completeYourProfile1;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @confirmDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Date of Birth'**
+  String get confirmDateOfBirth;
+
+  /// No description provided for @ageNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Age Notice'**
+  String get ageNotice;
+
+  /// No description provided for @changeDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Date of Birth'**
+  String get changeDateOfBirth;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @reportSubmittedThanksForKeeping.
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted. Thanks for keeping Crush safe!'**
+  String get reportSubmittedThanksForKeeping;
+
+  /// No description provided for @shareFeatureComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Share feature coming soon'**
+  String get shareFeatureComingSoon;
+
+  /// No description provided for @shareProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Profile'**
+  String get shareProfile;
+
+  /// No description provided for @report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get report;
+
+  /// No description provided for @messageRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Message request sent.'**
+  String get messageRequestSent;
+
+  /// No description provided for @liked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked!'**
+  String get liked;
+
+  /// No description provided for @sendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Message'**
+  String get sendMessage;
+
+  /// No description provided for @couldNotLoadVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load video'**
+  String get couldNotLoadVideo;
+
+  /// No description provided for @noVideosYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No videos yet'**
+  String get noVideosYet;
+
+  /// No description provided for @photoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo unavailable'**
+  String get photoUnavailable;
+
+  /// No description provided for @noPhotosYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet'**
+  String get noPhotosYet;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @photosRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo rejected: {reason}} other{{count} photos rejected: {reason}}}'**
+  String photosRejected(int count, String reason);
+
+  /// No description provided for @photoSlotsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Only 1 more photo slot available.} other{Only {count} more photo slots available.}}'**
+  String photoSlotsAvailable(int count);
+
+  /// No description provided for @photoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String photoCount(int count);
+
+  /// No description provided for @storyCountStr.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Story} other{{count}}}'**
+  String storyCountStr(int count);
+
+  /// No description provided for @personLikesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person likes you} other{{count} people like you}}'**
+  String personLikesYou(int count);
+
+  /// No description provided for @blockedUserCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 blocked user} other{{count} blocked users}}'**
+  String blockedUserCount(int count);
 }
 
 class _AppLocalizationsDelegate

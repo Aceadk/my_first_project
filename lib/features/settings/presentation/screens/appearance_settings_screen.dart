@@ -14,6 +14,7 @@ import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -94,10 +95,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
 
   void _showLockedSnack() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Dark Luxury themes are a Plus feature. Upgrade to unlock them.',
-        ),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).darkLuxuryThemesAreA),
       ),
     );
   }
@@ -108,7 +107,9 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         Theme.of(context).extension<CrushThemeEffects>()?.motionScale ?? 1.0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance & Themes')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).appearanceThemes),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -251,7 +252,9 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : const Text('Upgrade'),
+                                    : Text(
+                                        AppLocalizations.of(context).upgrade,
+                                      ),
                               ),
                             ],
                           ),
@@ -270,7 +273,9 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                           const SizedBox(height: DsSpacing.sm),
                           TextButton(
                             onPressed: () => _resetPreview(currentMode),
-                            child: const Text('Reset preview'),
+                            child: Text(
+                              AppLocalizations.of(context).resetPreview,
+                            ),
                           ),
                         ],
                       ],
@@ -287,33 +292,33 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   }
 
   List<_ThemeOption> _themeOptions() {
-    return const [
-      _ThemeOption(
+    return [
+      const _ThemeOption(
         mode: AppThemeMode.system,
         title: 'System default',
         subtitle: 'Match your device appearance',
         icon: Icons.settings_suggest_outlined,
       ),
-      _ThemeOption(
+      const _ThemeOption(
         mode: AppThemeMode.light,
         title: 'Light',
         subtitle: 'Bright backgrounds with warm surfaces',
         icon: Icons.light_mode_outlined,
       ),
-      _ThemeOption(
+      const _ThemeOption(
         mode: AppThemeMode.dark,
         title: 'Dark',
         subtitle: 'Low-light friendly with soft contrast',
         icon: Icons.dark_mode_outlined,
       ),
-      _ThemeOption(
+      const _ThemeOption(
         mode: AppThemeMode.darkLuxury,
         title: 'Dark Luxury (Royal)',
         subtitle: 'Warm gold, romantic glow, classic elegance',
         icon: Icons.auto_awesome,
         isPremium: true,
       ),
-      _ThemeOption(
+      const _ThemeOption(
         mode: AppThemeMode.darkLuxuryModern,
         title: 'Dark Luxury (Modern)',
         subtitle: 'Cool gold, sleek contrast, VIP lounge',
@@ -476,13 +481,15 @@ class _ThemePreviewCard extends StatelessWidget {
                           Expanded(
                             child: FilledButton(
                               onPressed: () {},
-                              child: const Text('Continue'),
+                              child: Text(
+                                AppLocalizations.of(context).continueLabel,
+                              ),
                             ),
                           ),
                           const SizedBox(width: DsSpacing.sm),
                           OutlinedButton(
                             onPressed: () {},
-                            child: const Text('Later'),
+                            child: Text(AppLocalizations.of(context).later),
                           ),
                         ],
                       ),

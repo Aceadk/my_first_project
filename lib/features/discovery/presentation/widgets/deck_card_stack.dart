@@ -258,8 +258,8 @@ class _PreviewCardShimmerState extends State<_PreviewCardShimmer>
         return Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+              begin: AlignmentDirectional.centerStart,
+              end: AlignmentDirectional.centerEnd,
               colors: [baseColor, highlightColor, baseColor],
               stops: [
                 (_animation.value - 0.3).clamp(0.0, 1.0),

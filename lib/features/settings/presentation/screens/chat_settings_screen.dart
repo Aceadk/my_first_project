@@ -4,6 +4,7 @@ import 'package:crushhour/features/settings/presentation/bloc/chat_settings_cubi
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ChatSettingsScreen extends StatelessWidget {
   const ChatSettingsScreen({super.key});
@@ -13,7 +14,7 @@ class ChatSettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat Settings')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).chatSettings)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -49,8 +50,8 @@ class ChatSettingsScreen extends StatelessWidget {
                             DsColors.primary.withValues(alpha: 0.1),
                             DsColors.secondary.withValues(alpha: 0.1),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -238,7 +239,9 @@ class ChatSettingsScreen extends StatelessWidget {
                                 : DsColors.ink300,
                           ),
                         ),
-                        title: const Text('Keep messages for 24 hours'),
+                        title: Text(
+                          AppLocalizations.of(context).keepMessagesFor24Hours,
+                        ),
                         subtitle: Text(
                           state.settings.extendedRetention
                               ? 'Messages are deleted 24 hours after being read'

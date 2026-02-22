@@ -11,6 +11,7 @@ import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart'
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class BasicInfoScreen extends StatefulWidget {
   const BasicInfoScreen({super.key});
@@ -90,8 +91,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
             colors: isDark
                 ? [
                     DsColors.backgroundDark,
@@ -563,48 +564,53 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   ) {
     final isSelected = _gender == value;
 
-    return GestureDetector(
-      onTap: () => setState(() => _gender = value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? DsColors.primary.withValues(alpha: 0.15)
-              : (isDark
-                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                    : DsColors.inputFillLight),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: () => setState(() => _gender = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
             color: isSelected
-                ? DsColors.primary
-                : (isDark ? DsColors.borderDark : DsColors.borderLight),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 28,
+                ? DsColors.primary.withValues(alpha: 0.15)
+                : (isDark
+                      ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                      : DsColors.inputFillLight),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
               color: isSelected
                   ? DsColors.primary
-                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
+              width: isSelected ? 2 : 1,
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 28,
                 color: isSelected
                     ? DsColors.primary
                     : (isDark
-                          ? DsColors.textPrimaryDark
-                          : DsColors.textPrimaryLight),
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? DsColors.primary
+                      : (isDark
+                            ? DsColors.textPrimaryDark
+                            : DsColors.textPrimaryLight),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -643,62 +649,65 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () => _showBirthdatePicker(context, isDark),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                  : DsColors.inputFillLight,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: hasError
-                    ? DsColors.error
-                    : (_dateOfBirth != null
-                          ? DsColors.primary
-                          : (isDark
-                                ? DsColors.borderDark
-                                : DsColors.borderLight)),
-                width: (_dateOfBirth != null || hasError) ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.cake_outlined,
-                  size: 22,
+        Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: () => _showBirthdatePicker(context, isDark),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                    : DsColors.inputFillLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
                   color: hasError
                       ? DsColors.error
                       : (_dateOfBirth != null
                             ? DsColors.primary
                             : (isDark
-                                  ? DsColors.textMutedDark
-                                  : DsColors.textMutedLight)),
+                                  ? DsColors.borderDark
+                                  : DsColors.borderLight)),
+                  width: (_dateOfBirth != null || hasError) ? 2 : 1,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    displayText,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _dateOfBirth != null
-                          ? (isDark
-                                ? DsColors.textPrimaryDark
-                                : DsColors.textPrimaryLight)
-                          : (isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cake_outlined,
+                    size: 22,
+                    color: hasError
+                        ? DsColors.error
+                        : (_dateOfBirth != null
+                              ? DsColors.primary
+                              : (isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      displayText,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _dateOfBirth != null
+                            ? (isDark
+                                  ? DsColors.textPrimaryDark
+                                  : DsColors.textPrimaryLight)
+                            : (isDark
+                                  ? DsColors.textMutedDark
+                                  : DsColors.textMutedLight),
+                      ),
                     ),
                   ),
-                ),
-                Icon(
-                  Icons.calendar_today_rounded,
-                  size: 20,
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
-                ),
-              ],
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -762,51 +771,58 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   Widget _buildOrientationSelector(BuildContext context, bool isDark) {
-    return GestureDetector(
-      onTap: () => _showOrientationBottomSheet(context, isDark),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          color: isDark
-              ? DsColors.surfaceDark.withValues(alpha: 0.5)
-              : DsColors.inputFillLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: _orientation != null
-                ? DsColors.primary
-                : (isDark ? DsColors.borderDark : DsColors.borderLight),
-            width: _orientation != null ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.favorite_border_rounded,
-              size: 22,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: () => _showOrientationBottomSheet(context, isDark),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: isDark
+                ? DsColors.surfaceDark.withValues(alpha: 0.5)
+                : DsColors.inputFillLight,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
               color: _orientation != null
                   ? DsColors.primary
-                  : (isDark ? DsColors.textMutedDark : DsColors.textMutedLight),
+                  : (isDark ? DsColors.borderDark : DsColors.borderLight),
+              width: _orientation != null ? 2 : 1,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _orientation ?? 'Select orientation (optional)',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: _orientation != null
-                      ? (isDark
-                            ? DsColors.textPrimaryDark
-                            : DsColors.textPrimaryLight)
-                      : (isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.favorite_border_rounded,
+                size: 22,
+                color: _orientation != null
+                    ? DsColors.primary
+                    : (isDark
+                          ? DsColors.textMutedDark
+                          : DsColors.textMutedLight),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _orientation ?? 'Select orientation (optional)',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: _orientation != null
+                        ? (isDark
+                              ? DsColors.textPrimaryDark
+                              : DsColors.textPrimaryLight)
+                        : (isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight),
+                  ),
                 ),
               ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
-            ),
-          ],
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -853,16 +869,20 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                     ),
                   ),
                   if (_orientation != null)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _orientation = null);
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Clear',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: DsColors.primary,
-                          fontWeight: FontWeight.w600,
+                    Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _orientation = null);
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Clear',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: DsColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                     ),
@@ -1086,12 +1106,12 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                     ? DsColors.textMutedDark
                     : DsColors.textMutedLight,
               ),
-              child: const Text('Go Back'),
+              child: Text(AppLocalizations.of(context).goBack),
             ),
             const SizedBox(width: 8),
             GlassPrimaryButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Continue Anyway'),
+              child: Text(AppLocalizations.of(context).continueAnyway),
             ),
           ],
         ),

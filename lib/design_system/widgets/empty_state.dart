@@ -213,8 +213,8 @@ class DsEmptyState extends StatelessWidget {
                 effectiveIconColor.withValues(alpha: 0.2),
                 effectiveIconColor.withValues(alpha: 0.1),
               ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
             ),
         boxShadow: [
           BoxShadow(

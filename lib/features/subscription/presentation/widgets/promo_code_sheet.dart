@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Bottom sheet for entering and redeeming promo codes.
 class PromoCodeSheet extends StatefulWidget {
@@ -128,7 +129,7 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
 
             // Code input
             Stack(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               children: [
                 GlassTextField(
                   controller: _codeController,
@@ -183,7 +184,7 @@ class _PromoCodeSheetState extends State<PromoCodeSheet> {
                 Expanded(
                   child: GlassOutlinedButton(
                     onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(AppLocalizations.of(context).cancel),
                   ),
                 ),
                 DsGap.mdH,

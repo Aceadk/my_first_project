@@ -1,13 +1,14 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:crushhour/core/services/haptic_service.dart';
+import 'package:crushhour/core/services/in_app_review_service.dart';
 import 'package:flutter/material.dart';
+
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
-import 'package:crushhour/core/services/haptic_service.dart';
-import 'package:crushhour/core/services/in_app_review_service.dart';
 
 /// A celebratory match animation with confetti and glass overlay.
 class MatchCelebration extends StatefulWidget {
@@ -151,9 +152,6 @@ class _MatchCelebrationState extends State<MatchCelebration>
 
     // Generate confetti particles
     _generateConfetti();
-
-    // Start animations
-    _startAnimations();
   }
 
   void _generateConfetti() {
@@ -183,16 +181,34 @@ class _MatchCelebrationState extends State<MatchCelebration>
     }
   }
 
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _startAnimations();
+    }
+  }
+
   void _startAnimations() async {
     HapticService.matchCelebration();
 
     // Record match for in-app review prompting
     InAppReviewService.instance.recordMatch();
 
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _fadeController.value = 1.0;
+      _scaleController.value = 1.0;
+      _confettiController.value = 1.0;
+      return;
+    }
+
     _fadeController.forward();
     await Future.delayed(const Duration(milliseconds: 200));
-    _scaleController.forward();
-    _confettiController.forward();
+    if (mounted) _scaleController.forward();
+    if (mounted) _confettiController.forward();
   }
 
   @override
@@ -214,16 +230,19 @@ class _MatchCelebrationState extends State<MatchCelebration>
           fit: StackFit.expand,
           children: [
             // Blurred background
-            GestureDetector(
-              onTap: widget.onDismiss,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: DsBlur.heavy * _fadeAnimation.value,
-                  sigmaY: DsBlur.heavy * _fadeAnimation.value,
-                ),
-                child: Container(
-                  color: Colors.black.withValues(
-                    alpha: 0.6 * _fadeAnimation.value,
+            Semantics(
+              button: true,
+              child: GestureDetector(
+                onTap: widget.onDismiss,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: DsBlur.heavy * _fadeAnimation.value,
+                    sigmaY: DsBlur.heavy * _fadeAnimation.value,
+                  ),
+                  child: Container(
+                    color: Colors.black.withValues(
+                      alpha: 0.6 * _fadeAnimation.value,
+                    ),
                   ),
                 ),
               ),
@@ -495,30 +514,33 @@ class _GlassActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticService.mediumTap();
-        onPressed?.call();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DsSpacing.xl,
-          vertical: DsSpacing.md,
-        ),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(DsRadius.round),
-          boxShadow: [
-            BoxShadow(
-              color: (gradient?.colors.first ?? DsColors.primary).withValues(
-                alpha: 0.4,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: () {
+          HapticService.mediumTap();
+          onPressed?.call();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.xl,
+            vertical: DsSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            boxShadow: [
+              BoxShadow(
+                color: (gradient?.colors.first ?? DsColors.primary).withValues(
+                  alpha: 0.4,
+                ),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
               ),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
+            ],
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }

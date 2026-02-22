@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// In-call safety controls and first-call safety guidance.
 class CallSafetyControls extends StatelessWidget {
@@ -103,7 +104,9 @@ class CallSafetyControls extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onOpenGuidelines,
                   icon: const Icon(Icons.menu_book_outlined, size: 16),
-                  label: const Text('View safety guidelines'),
+                  label: Text(
+                    AppLocalizations.of(context).viewSafetyGuidelines,
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: DsColors.surfaceLight,
                     padding: const EdgeInsets.symmetric(

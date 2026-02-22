@@ -20,22 +20,22 @@ class DsGradients {
 
   /// Primary brand gradient - horizontal (left to right)
   static const LinearGradient primaryHorizontal = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
+    begin: AlignmentDirectional.centerStart,
+    end: AlignmentDirectional.centerEnd,
     colors: [DsColors.primary, DsColors.secondary],
   );
 
   /// Primary brand gradient - diagonal (top-left to bottom-right)
   static const LinearGradient primaryDiagonal = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [DsColors.primary, DsColors.secondary],
   );
 
   /// Soft rose gradient (used for subtle accents)
   static const LinearGradient roseSoft = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [Color(0xFFFF6F86), Color(0xFFFFA3B1)],
   );
 
@@ -69,8 +69,8 @@ class DsGradients {
 
   /// Glass shimmer overlay for light theme
   static LinearGradient glassOverlayLight = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Colors.white.withValues(alpha: 0.18),
       Colors.white.withValues(alpha: 0.04),
@@ -79,8 +79,8 @@ class DsGradients {
 
   /// Glass shimmer overlay for dark theme
   static LinearGradient glassOverlayDark = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Colors.white.withValues(alpha: 0.12),
       Colors.white.withValues(alpha: 0.02),
@@ -93,8 +93,8 @@ class DsGradients {
 
   /// Subtle mesh background gradient
   static const LinearGradient meshBackground = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Color(0x12FF4D6D), // 7% rose
       Color(0x127B6CFF), // 7% plum
@@ -105,7 +105,7 @@ class DsGradients {
 
   /// Radial mesh background for screens
   static const RadialGradient meshRadial = RadialGradient(
-    center: Alignment.topRight,
+    center: AlignmentDirectional.topEnd,
     radius: 1.5,
     colors: [
       Color(0x16FF4D6D), // 9% rose
@@ -117,7 +117,7 @@ class DsGradients {
 
   /// Secondary radial gradient for layered effect
   static const RadialGradient meshRadialSecondary = RadialGradient(
-    center: Alignment.bottomLeft,
+    center: AlignmentDirectional.bottomStart,
     radius: 1.2,
     colors: [
       Color(0x127B6CFF), // 7% plum
@@ -133,8 +133,8 @@ class DsGradients {
 
   /// Gradient border for glass cards (light theme)
   static const LinearGradient glassBorderLight = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Color(0x60FFFFFF), // 38% white
       Color(0x26FFFFFF), // 15% white
@@ -143,8 +143,8 @@ class DsGradients {
 
   /// Gradient border for glass cards (dark theme)
   static const LinearGradient glassBorderDark = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Color(0x33FFFFFF), // 20% white
       Color(0x12FFFFFF), // 7% white
@@ -153,8 +153,8 @@ class DsGradients {
 
   /// Accent gradient border with brand colors
   static const LinearGradient glassBorderAccent = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
       Color(0x60FF4D6D), // 38% rose
       Color(0x607B6CFF), // 38% plum

@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/utils/constants.dart';
+import 'package:crushhour/design_system/theme/theme_extensions.dart';
+import 'package:crushhour/design_system/tokens/gradients.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import 'package:crushhour/core/utils/constants.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/design_system/tokens/gradients.dart';
-import 'package:crushhour/design_system/theme/theme_extensions.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -90,8 +92,6 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.7, 0.95, curve: Curves.easeOut),
     );
 
-    _timelineController.forward();
-
     // Fallback: ensure static logo shows after 3 seconds
     _animationFallbackTimer = Timer(_minimumSplashDuration, () {
       if (mounted && !_timelineController.isCompleted) {
@@ -119,6 +119,21 @@ class _SplashScreenState extends State<SplashScreen>
       _pendingRoute = CrushRoutes.authGateway;
       _tryNavigate();
     });
+  }
+
+  bool _animationsStarted = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_animationsStarted) {
+      _animationsStarted = true;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _timelineController.value = 1.0;
+      } else {
+        _timelineController.forward();
+      }
+    }
   }
 
   @override
@@ -254,7 +269,10 @@ class _SplashScreenState extends State<SplashScreen>
                           height: wordmarkHeight,
                           child: ShaderMask(
                             shaderCallback: (bounds) =>
-                                brandGradient.createShader(bounds),
+                                brandGradient.createShader(
+                                  bounds,
+                                  textDirection: Directionality.of(context),
+                                ),
                             child: AnimatedBuilder(
                               animation: Listenable.merge([
                                 _strokeAnimation,
@@ -266,6 +284,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     progress: _strokeAnimation.value,
                                     fillOpacity: _fillFadeAnimation.value,
                                     textStyle: wordmarkStyle,
+                                    context: context,
                                   ),
                                 );
                               },
@@ -320,11 +339,13 @@ class _CrushTextStrokePainter extends CustomPainter {
   final double progress;
   final double fillOpacity;
   final TextStyle textStyle;
+  final BuildContext context;
 
   _CrushTextStrokePainter({
     required this.progress,
     required this.fillOpacity,
     required this.textStyle,
+    required this.context,
   });
 
   @override
@@ -332,7 +353,7 @@ class _CrushTextStrokePainter extends CustomPainter {
     final paragraphBuilder =
         ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
           ..pushStyle(textStyle.getTextStyle())
-          ..addText('Crush');
+          ..addText(AppLocalizations.of(context).crush);
 
     final paragraph = paragraphBuilder.build();
     paragraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -371,7 +392,7 @@ class _CrushTextStrokePainter extends CustomPainter {
       final strokeBuilder =
           ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
             ..pushStyle(strokeStyle)
-            ..addText('Crush');
+            ..addText(AppLocalizations.of(context).crush);
 
       final strokeParagraph = strokeBuilder.build();
       strokeParagraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -393,7 +414,7 @@ class _CrushTextStrokePainter extends CustomPainter {
       final fillBuilder =
           ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
             ..pushStyle(fillStyle)
-            ..addText('Crush');
+            ..addText(AppLocalizations.of(context).crush);
 
       final fillParagraph = fillBuilder.build();
       fillParagraph.layout(ui.ParagraphConstraints(width: size.width));

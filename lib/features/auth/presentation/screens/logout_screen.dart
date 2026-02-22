@@ -9,6 +9,7 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class LogoutScreen extends StatelessWidget {
   const LogoutScreen({super.key});
@@ -16,7 +17,7 @@ class LogoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Log out')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).logOut)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -125,7 +126,7 @@ class LogoutScreen extends StatelessWidget {
                                     color: DsColors.surfaceLight,
                                   ),
                                 )
-                              : const Text('Log out'),
+                              : Text(AppLocalizations.of(context).logOut),
                         ),
                       ),
                       DsGap.md,
@@ -138,7 +139,7 @@ class LogoutScreen extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             padding: DsEdgeInsets.buttonPadding,
                           ),
-                          child: const Text('Cancel'),
+                          child: Text(AppLocalizations.of(context).cancel),
                         ),
                       ),
                       DsGap.lg,

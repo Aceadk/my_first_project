@@ -8,6 +8,7 @@ import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -148,12 +149,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           label: 'Back to Sign In',
           child: GlassSmallButton(
             onPressed: () => Navigator.pop(context),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.arrow_back, size: 18),
-                SizedBox(width: 8),
-                Text('Back to Sign In'),
+                const Icon(Icons.arrow_back, size: 18),
+                const SizedBox(width: 8),
+                Text(AppLocalizations.of(context).backToSignIn),
               ],
             ),
           ),
@@ -173,8 +174,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [DsColors.success, DsColors.success],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [

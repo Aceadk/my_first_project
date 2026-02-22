@@ -178,82 +178,85 @@ class _GlassNavItemWidget extends StatelessWidget {
       button: true,
       selected: isSelected,
       hint: 'Double tap to navigate to ${item.label}',
-      child: GestureDetector(
-        onTap: () {
-          HapticService.navTap();
-          onTap();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: (200 * motionScale).round()),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.symmetric(
-            horizontal: isSelected ? DsSpacing.md : DsSpacing.sm,
-            vertical: DsSpacing.xs + 2,
-          ),
-          decoration: BoxDecoration(
-            gradient: isSelected ? item.gradient : null,
-            borderRadius: BorderRadius.circular(DsRadius.round),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: glowColor.withValues(alpha: shadowOpacity),
-                      blurRadius: 14,
-                      offset: const Offset(0, 3),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon with badge
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedSwitcher(
-                    duration: Duration(
-                      milliseconds: (150 * motionScale).round(),
-                    ),
-                    child: Icon(
-                      isSelected ? item.activeIcon : item.icon,
-                      key: ValueKey(isSelected),
-                      size: 22,
-                      color: isSelected ? Colors.white : inactiveColor,
-                    ),
-                  ),
-                  // Badge (dot or count)
-                  if (item.badgeCount > 0)
-                    PositionedDirectional(
-                      end: item.showDotOnly ? -2 : -6,
-                      top: item.showDotOnly ? -2 : -4,
-                      child: _NavBadge(
-                        count: item.badgeCount,
-                        dotOnly: item.showDotOnly,
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: () {
+            HapticService.navTap();
+            onTap();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: (200 * motionScale).round()),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.symmetric(
+              horizontal: isSelected ? DsSpacing.md : DsSpacing.sm,
+              vertical: DsSpacing.xs + 2,
+            ),
+            decoration: BoxDecoration(
+              gradient: isSelected ? item.gradient : null,
+              borderRadius: BorderRadius.circular(DsRadius.round),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: glowColor.withValues(alpha: shadowOpacity),
+                        blurRadius: 14,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon with badge
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: Duration(
+                        milliseconds: (150 * motionScale).round(),
+                      ),
+                      child: Icon(
+                        isSelected ? item.activeIcon : item.icon,
+                        key: ValueKey(isSelected),
+                        size: 22,
+                        color: isSelected ? Colors.white : inactiveColor,
                       ),
                     ),
-                ],
-              ),
-              AnimatedSize(
-                duration: Duration(milliseconds: (200 * motionScale).round()),
-                curve: Curves.easeOutCubic,
-                child: isSelected
-                    ? Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          start: DsSpacing.xs + 2,
+                    // Badge (dot or count)
+                    if (item.badgeCount > 0)
+                      PositionedDirectional(
+                        end: item.showDotOnly ? -2 : -6,
+                        top: item.showDotOnly ? -2 : -4,
+                        child: _NavBadge(
+                          count: item.badgeCount,
+                          dotOnly: item.showDotOnly,
                         ),
-                        child: Text(
-                          item.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                      ),
+                  ],
+                ),
+                AnimatedSize(
+                  duration: Duration(milliseconds: (200 * motionScale).round()),
+                  curve: Curves.easeOutCubic,
+                  child: isSelected
+                      ? Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            start: DsSpacing.xs + 2,
                           ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+                          child: Text(
+                            item.label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

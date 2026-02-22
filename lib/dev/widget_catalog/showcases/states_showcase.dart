@@ -21,9 +21,7 @@ class _StatesShowcaseState extends State<StatesShowcase> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ShowcaseSection(
-          title: 'DsEmptyState',
-        ),
+        const ShowcaseSection(title: 'DsEmptyState'),
         WidgetShowcase(
           title: 'No Matches',
           description: 'Shown when user has no matches yet',
@@ -53,13 +51,7 @@ EmptyStateNoMessages(otherName: 'Someone')''',
 EmptyStateError(
   onRetry: () => reload(),
 )''',
-          child: SizedBox(
-            height: 250,
-            child: EmptyStateError(
-              onRetry: () {},
-              
-            ),
-          ),
+          child: SizedBox(height: 250, child: EmptyStateError(onRetry: () {})),
         ),
         WidgetShowcase(
           title: 'Custom Empty State',
@@ -76,15 +68,13 @@ DsEmptyState(
             child: DsEmptyState(
               icon: Icons.star_border,
               title: 'Custom Title',
-              
+
               actionLabel: 'Primary Action',
               onAction: () {},
             ),
           ),
         ),
-        const ShowcaseSection(
-          title: 'LoadingOverlay',
-        ),
+        const ShowcaseSection(title: 'LoadingOverlay'),
         WidgetShowcase(
           title: 'Loading Overlay',
           description: 'Tap to toggle loading state',
@@ -93,21 +83,24 @@ LoadingOverlay(
   isLoading: state.isLoading,
   child: YourContent(),
 )''',
-          child: GestureDetector(
-            onTap: () {
-              setState(() => _isLoading = !_isLoading);
-            },
-            child: SizedBox(
-              height: 200,
-              child: LoadingOverlay(
-                isLoading: _isLoading,
-                child: Card(
-                  child: Center(
-                    child: Text(
-                      _isLoading
-                          ? 'Tap to hide loading'
-                          : 'Tap to show loading',
-                      style: Theme.of(context).textTheme.bodyLarge,
+          child: Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                setState(() => _isLoading = !_isLoading);
+              },
+              child: SizedBox(
+                height: 200,
+                child: LoadingOverlay(
+                  isLoading: _isLoading,
+                  child: Card(
+                    child: Center(
+                      child: Text(
+                        _isLoading
+                            ? 'Tap to hide loading'
+                            : 'Tap to show loading',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                   ),
                 ),
@@ -115,9 +108,7 @@ LoadingOverlay(
             ),
           ),
         ),
-        const ShowcaseSection(
-          title: 'ErrorBanner',
-        ),
+        const ShowcaseSection(title: 'ErrorBanner'),
         WidgetShowcase(
           title: 'Error Banner',
           description: 'Shows error message with optional dismiss',
@@ -138,13 +129,9 @@ ErrorBanner(
 ErrorBanner(
   message: 'Unable to load data right now.',
 )''',
-          child: ErrorBanner(
-            message: 'Unable to load data right now.',
-          ),
+          child: ErrorBanner(message: 'Unable to load data right now.'),
         ),
-        const ShowcaseSection(
-          title: 'Progress Indicators',
-        ),
+        const ShowcaseSection(title: 'Progress Indicators'),
         const WidgetVariants(
           title: 'Loading Indicators',
           description: 'Different loading indicator styles',

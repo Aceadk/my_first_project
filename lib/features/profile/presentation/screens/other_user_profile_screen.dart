@@ -18,6 +18,7 @@ import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Arguments for viewing another user's profile
 class OtherUserProfileArgs {
@@ -507,7 +508,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.chat_bubble_outline),
-                    label: const Text('Send Message'),
+                    label: Text(AppLocalizations.of(context).sendMessage),
                     style: FilledButton.styleFrom(
                       backgroundColor: DsColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -523,7 +524,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                           await _handlePass(context, profile);
                         },
                         icon: const Icon(Icons.close),
-                        label: const Text('Pass'),
+                        label: Text(AppLocalizations.of(context).pass),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: const BorderSide(color: DsColors.ink300),
@@ -567,7 +568,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                           await _handleLike(context, profile);
                         },
                         icon: const Icon(Icons.favorite),
-                        label: const Text('Like'),
+                        label: Text(AppLocalizations.of(context).like),
                         style: FilledButton.styleFrom(
                           backgroundColor: DsColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -685,9 +686,9 @@ class OtherUserProfileScreen extends StatelessWidget {
           ),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Liked!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).liked)),
+        );
       }
 
       discoveryBloc.add(DiscoveryDeckRequested(userId));
@@ -845,8 +846,12 @@ class OtherUserProfileScreen extends StatelessWidget {
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Message request sent.'),
+                                      SnackBar(
+                                        content: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          ).messageRequestSent,
+                                        ),
                                       ),
                                     );
                                     Navigator.pop(context);
@@ -937,7 +942,7 @@ class OtherUserProfileScreen extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.flag_outlined),
-              title: const Text('Report'),
+              title: Text(AppLocalizations.of(context).report),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _showReportDialog(context, profile, safetyCubit, currentUserId);
@@ -1030,11 +1035,15 @@ class OtherUserProfileScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.share_outlined),
-              title: const Text('Share Profile'),
+              title: Text(AppLocalizations.of(context).shareProfile),
               onTap: () {
                 Navigator.pop(sheetContext);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Share feature coming soon')),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).shareFeatureComingSoon,
+                    ),
+                  ),
                 );
               },
             ),
@@ -1085,9 +1094,11 @@ class OtherUserProfileScreen extends StatelessWidget {
                   );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text(
-                          'Report submitted. Thanks for keeping Crush safe!',
+                          AppLocalizations.of(
+                            context,
+                          ).reportSubmittedThanksForKeeping,
                         ),
                       ),
                     );
@@ -1119,72 +1130,74 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
     final hasPhotos = widget.profile.photoUrls.isNotEmpty;
     final photoCount = widget.profile.photoUrls.length;
 
-    return GestureDetector(
-      onTapUp: (details) {
-        if (!hasPhotos || photoCount <= 1) return;
-        final screenWidth = MediaQuery.of(context).size.width;
-        final tapX = details.globalPosition.dx;
+    return Semantics(
+      child: GestureDetector(
+        onTapUp: (details) {
+          if (!hasPhotos || photoCount <= 1) return;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final tapX = details.globalPosition.dx;
 
-        setState(() {
-          if (tapX < screenWidth / 2) {
-            // Tap left - previous photo
-            _currentPhotoIndex =
-                (_currentPhotoIndex - 1 + photoCount) % photoCount;
-          } else {
-            // Tap right - next photo
-            _currentPhotoIndex = (_currentPhotoIndex + 1) % photoCount;
-          }
-        });
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (hasPhotos)
-            CachedNetworkImage(
-              imageUrl: widget.profile.photoUrls[_currentPhotoIndex],
-              fit: BoxFit.cover,
-              errorWidget: _buildPlaceholder(),
-            )
-          else
-            _buildPlaceholder(),
-          // Gradient overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  DsColors.ink900.withValues(alpha: 0.7),
-                ],
-                stops: const [0.5, 1.0],
+          setState(() {
+            if (tapX < screenWidth / 2) {
+              // Tap left - previous photo
+              _currentPhotoIndex =
+                  (_currentPhotoIndex - 1 + photoCount) % photoCount;
+            } else {
+              // Tap right - next photo
+              _currentPhotoIndex = (_currentPhotoIndex + 1) % photoCount;
+            }
+          });
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (hasPhotos)
+              CachedNetworkImage(
+                imageUrl: widget.profile.photoUrls[_currentPhotoIndex],
+                fit: BoxFit.cover,
+                errorWidget: _buildPlaceholder(),
+              )
+            else
+              _buildPlaceholder(),
+            // Gradient overlay
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    DsColors.ink900.withValues(alpha: 0.7),
+                  ],
+                  stops: const [0.5, 1.0],
+                ),
               ),
             ),
-          ),
-          // Photo indicators
-          if (photoCount > 1)
-            PositionedDirectional(
-              top: MediaQuery.of(context).padding.top + 60,
-              start: 16,
-              end: 16,
-              child: Row(
-                children: List.generate(photoCount, (index) {
-                  return Expanded(
-                    child: Container(
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        color: index == _currentPhotoIndex
-                            ? DsColors.surfaceLight
-                            : DsColors.surfaceLight.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(2),
+            // Photo indicators
+            if (photoCount > 1)
+              PositionedDirectional(
+                top: MediaQuery.of(context).padding.top + 60,
+                start: 16,
+                end: 16,
+                child: Row(
+                  children: List.generate(photoCount, (index) {
+                    return Expanded(
+                      child: Container(
+                        height: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: index == _currentPhotoIndex
+                              ? DsColors.surfaceLight
+                              : DsColors.surfaceLight.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

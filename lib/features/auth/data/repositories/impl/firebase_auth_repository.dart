@@ -1,31 +1,39 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:crypto/crypto.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/secure_logger.dart';
+import 'package:crushhour/core/utils/result.dart' as app_result;
+import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
-import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
 import '../auth_repository.dart';
-import 'package:crushhour/core/app_logger.dart';
-import 'package:crushhour/core/utils/result.dart' as app_result;
-import 'package:crushhour/core/security/secure_logger.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
 class FirebaseAuthRepository
-    implements AuthRepository, LinkedAccountsRepository {
+    implements
+        AuthRepository,
+        GoogleSignInAuthRepository,
+        LinkedAccountsRepository {
   final fb.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _authStateController = StreamController<CrushUser?>.broadcast();
   final _secureStorage = const FlutterSecureStorage();
+  bool _isGoogleSignInInitialized = false;
 
   static const _pendingEmailKey = 'pending_email_link_email';
   static const _emailOtpIdentifierKey = 'email_otp_identifier';
@@ -325,6 +333,18 @@ class FirebaseAuthRepository
   bool get supportsUsernameLogin => false;
 
   @override
+  bool get supportsGoogleSignIn {
+    if (kIsWeb) return true;
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android ||
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS ||
+      TargetPlatform.windows => true,
+      _ => false,
+    };
+  }
+
+  @override
   bool get supportsAppleSignIn => true;
 
   @override
@@ -604,6 +624,61 @@ class FirebaseAuthRepository
     // Firebase only supports email-based password auth
     // Assume identifier is email
     return signInWithEmailPassword(email: identifier, password: password);
+  }
+
+  @override
+  Future<CrushUser> signInWithGoogle() async {
+    if (!supportsGoogleSignIn) {
+      throw Exception('Google Sign-In is not supported on this platform.');
+    }
+
+    try {
+      final fb.UserCredential authResult;
+      if (kIsWeb) {
+        final provider = fb.GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        authResult = await _firebaseAuth.signInWithPopup(provider);
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        final provider = fb.GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        authResult = await _firebaseAuth.signInWithProvider(provider);
+      } else {
+        final credential = await _buildGoogleCredential();
+        authResult = await _firebaseAuth.signInWithCredential(credential);
+      }
+
+      final firebaseUser = authResult.user;
+      if (firebaseUser == null) {
+        throw Exception('Google Sign-In failed.');
+      }
+
+      await _ensureUserDocumentExists(firebaseUser);
+      return _mapFirebaseUser(firebaseUser);
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw Exception(
+          'An account already exists with the same email but different sign-in method.',
+        );
+      }
+      if (e.code == 'operation-not-allowed') {
+        throw Exception('Google Sign-In is not enabled for this project yet.');
+      }
+      if (e.code == 'invalid-credential') {
+        throw Exception('Google Sign-In credentials are invalid or expired.');
+      }
+      rethrow;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('Google Sign-In was cancelled.');
+      }
+      AppLogger.error('[FirebaseAuthRepo] Google sign-in failed', error: e);
+      throw Exception(e.description ?? 'Google Sign-In failed.');
+    } catch (e) {
+      AppLogger.error('[FirebaseAuthRepo] Google sign-in failed', error: e);
+      rethrow;
+    }
   }
 
   @override
@@ -1028,6 +1103,35 @@ class FirebaseAuthRepository
   // ═══════════════════════════════════════════════════════════════════════════
   // PASSWORD MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Future<void> verifyPassword(String password) async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      throw Exception('No user logged in');
+    }
+
+    final email = firebaseUser.email;
+    if (email == null) {
+      throw Exception('No email associated with account');
+    }
+
+    // Re-authenticate with current password
+    final credential = fb.EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
+    try {
+      await firebaseUser.reauthenticateWithCredential(credential);
+    } catch (e) {
+      AppLogger.error(
+        '[FirebaseAuthRepo] Password verification failed',
+        error: e,
+      );
+      throw Exception('Incorrect password');
+    }
+  }
 
   @override
   Future<void> changePassword({
@@ -1565,7 +1669,18 @@ class FirebaseAuthRepository
     try {
       switch (provider) {
         case LinkedAuthProvider.google:
-          await user.linkWithProvider(fb.GoogleAuthProvider());
+          if (kIsWeb) {
+            await user.linkWithProvider(fb.GoogleAuthProvider());
+            break;
+          }
+
+          if (defaultTargetPlatform == TargetPlatform.windows) {
+            await user.linkWithProvider(fb.GoogleAuthProvider());
+            break;
+          }
+
+          final credential = await _buildGoogleCredential();
+          await user.linkWithCredential(credential);
           break;
         case LinkedAuthProvider.apple:
           final isAvailable = await SignInWithApple.isAvailable();
@@ -1613,6 +1728,11 @@ class FirebaseAuthRepository
         );
       }
       rethrow;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('Google Sign-In was cancelled.');
+      }
+      throw Exception(e.description ?? 'Google Sign-In failed.');
     }
   }
 
@@ -1639,6 +1759,44 @@ class FirebaseAuthRepository
 
     await user.unlink(providerId);
     await refreshCurrentUser();
+  }
+
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (_isGoogleSignInInitialized) return;
+    await GoogleSignIn.instance.initialize();
+    _isGoogleSignInInitialized = true;
+  }
+
+  Future<fb.AuthCredential> _buildGoogleCredential() async {
+    await _ensureGoogleSignInInitialized();
+
+    final googleUser = await GoogleSignIn.instance.authenticate(
+      scopeHint: const <String>['email', 'profile'],
+    );
+
+    final idToken = googleUser.authentication.idToken;
+    String? accessToken;
+    if (idToken == null || idToken.isEmpty) {
+      final existingAuthorization = await googleUser.authorizationClient
+          .authorizationForScopes(const <String>['email', 'profile']);
+      accessToken = existingAuthorization?.accessToken;
+
+      if (accessToken == null || accessToken.isEmpty) {
+        final promptedAuthorization = await googleUser.authorizationClient
+            .authorizeScopes(const <String>['email', 'profile']);
+        accessToken = promptedAuthorization.accessToken;
+      }
+    }
+
+    if ((idToken == null || idToken.isEmpty) &&
+        (accessToken == null || accessToken.isEmpty)) {
+      throw Exception('Google Sign-In failed. Missing auth tokens.');
+    }
+
+    return fb.GoogleAuthProvider.credential(
+      idToken: idToken,
+      accessToken: accessToken,
+    );
   }
 
   static String _generateNonce([int length = 32]) {
@@ -1716,6 +1874,14 @@ class FirebaseAuthRepository
       () => signInWithApple(),
       logLabel: 'FirebaseAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
+  }
+
+  Future<app_result.Result<CrushUser>> signInWithGoogleResult() {
+    return app_result.Result.guard(
+      () => signInWithGoogle(),
+      logLabel: 'FirebaseAuthRepository.signInWithGoogleResult',
+      fallbackError: 'Google Sign-In failed. Please try again.',
     );
   }
 

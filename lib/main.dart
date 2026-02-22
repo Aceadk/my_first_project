@@ -17,6 +17,7 @@ import 'core/services/tracking_consent_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/performance/performance_monitor.dart';
 import 'core/widgets/error_boundary.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   // Record app start time immediately for cold start tracking
@@ -222,7 +223,7 @@ class _StartupFailureContent extends StatelessWidget {
 Future<String?> _initializeCoreServices(SharedPreferences preferences) async {
   final firebaseReady = await _runStartupTask(
     name: 'Firebase.initializeApp',
-    action: () => Firebase.initializeApp(),
+    action: _initializeFirebase,
     timeout: const Duration(seconds: 15),
     critical: true,
   );
@@ -276,6 +277,11 @@ Future<String?> _initializeCoreServices(SharedPreferences preferences) async {
   ]);
 
   return null;
+}
+
+Future<void> _initializeFirebase() async {
+  if (Firebase.apps.isNotEmpty) return;
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
 Future<bool> _runStartupTask({

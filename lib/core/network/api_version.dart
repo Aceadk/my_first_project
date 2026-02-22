@@ -361,11 +361,14 @@ class ApiHeaders {
     required String platform,
     String? requestId,
   }) {
-    return {
+    final headers = <String, String>{
       clientVersion: ApiVersion.current.toString(),
       ApiHeaders.appVersion: appVersion,
       ApiHeaders.platform: platform,
-      ApiHeaders.requestId: ?requestId,
     };
+    if (requestId != null && requestId.isNotEmpty) {
+      headers[ApiHeaders.requestId] = requestId;
+    }
+    return headers;
   }
 }

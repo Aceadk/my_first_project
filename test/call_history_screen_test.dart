@@ -1,7 +1,9 @@
 import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_history_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,17 @@ void main() {
   Widget wrap(Widget child, {Size size = const Size(390, 640)}) {
     return MediaQuery(
       data: MediaQueryData(size: size),
-      child: MaterialApp(home: child),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: child,
+      ),
     );
   }
 
@@ -39,26 +51,33 @@ void main() {
     tester,
   ) async {
     final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final todayCall = now.subtract(const Duration(hours: 1));
+    final yesterdayCall = startOfToday.subtract(const Duration(hours: 12));
+    final thisWeekCall = startOfToday.subtract(const Duration(days: 3, hours: 12));
+    final earlierCall = startOfToday.subtract(
+      const Duration(days: 14, hours: 12),
+    );
     final calls = <Call>[
       buildCall(
         id: 'today',
-        createdAt: now.subtract(const Duration(hours: 1)),
+        createdAt: todayCall,
         type: CallType.video,
         duration: 120,
       ),
       buildCall(
         id: 'yesterday',
-        createdAt: now.subtract(const Duration(hours: 26)),
+        createdAt: yesterdayCall,
       ),
       buildCall(
         id: 'week',
-        createdAt: now.subtract(const Duration(days: 3)),
+        createdAt: thisWeekCall,
         status: CallStatus.missed,
         endReason: CallEndReason.missed,
       ),
       buildCall(
         id: 'earlier',
-        createdAt: now.subtract(const Duration(days: 14)),
+        createdAt: earlierCall,
       ),
     ];
 

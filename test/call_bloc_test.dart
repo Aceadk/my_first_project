@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/features/calls/data/repositories/call_repository.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_event.dart';
@@ -197,7 +198,7 @@ void main() {
       expect(states[0].status, CallStatus.connecting);
       // Second: error
       expect(states[1].status, CallStatus.error);
-      expect(states[1].errorMessage, contains('Call failed'));
+      expect(states[1].errorMessage, ErrorMessages.generic);
 
       await sub.cancel();
       await testBloc.close();

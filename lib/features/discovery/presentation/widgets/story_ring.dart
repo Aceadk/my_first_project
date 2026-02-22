@@ -1,3 +1,4 @@
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -53,26 +54,29 @@ class StoryRing extends StatelessWidget {
       return SizedBox(width: size, height: size, child: child);
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Story ring
-            CustomPaint(
-              size: Size(size, size),
-              painter: _StoryRingPainter(
-                storyCount: activeStories.length,
-                hasUnseenStories: hasUnseenStories,
-                strokeWidth: strokeWidth,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Story ring
+              CustomPaint(
+                size: Size(size, size),
+                painter: _StoryRingPainter(
+                  storyCount: activeStories.length,
+                  hasUnseenStories: hasUnseenStories,
+                  strokeWidth: strokeWidth,
+                ),
               ),
-            ),
-            // Avatar with gap
-            Padding(padding: EdgeInsets.all(strokeWidth + gap), child: child),
-          ],
+              // Avatar with gap
+              Padding(padding: EdgeInsets.all(strokeWidth + gap), child: child),
+            ],
+          ),
         ),
       ),
     );
@@ -177,8 +181,8 @@ class StoryBadge extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: hasUnseen
                   ? [
                       DsColors.primary.withValues(alpha: 0.7),
@@ -205,7 +209,7 @@ class StoryBadge extends StatelessWidget {
               ),
               const SizedBox(width: 3),
               Text(
-                storyCount == 1 ? 'Story' : '$storyCount',
+                AppLocalizations.of(context).storyCountStr(storyCount),
                 style: TextStyle(
                   color: DsColors.surfaceLight,
                   fontSize: compact ? 9 : 11,
@@ -294,35 +298,38 @@ class _AnimatedStoryRingState extends State<AnimatedStoryRing>
       );
     }
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Animated story ring
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size(widget.size, widget.size),
-                  painter: _AnimatedStoryRingPainter(
-                    storyCount: activeStories.length,
-                    hasUnseenStories: widget.hasUnseenStories,
-                    strokeWidth: widget.strokeWidth,
-                    animationValue: _controller.value,
-                  ),
-                );
-              },
-            ),
-            // Avatar with gap
-            Padding(
-              padding: EdgeInsets.all(widget.strokeWidth + widget.gap),
-              child: widget.child,
-            ),
-          ],
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Animated story ring
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return CustomPaint(
+                    size: Size(widget.size, widget.size),
+                    painter: _AnimatedStoryRingPainter(
+                      storyCount: activeStories.length,
+                      hasUnseenStories: widget.hasUnseenStories,
+                      strokeWidth: widget.strokeWidth,
+                      animationValue: _controller.value,
+                    ),
+                  );
+                },
+              ),
+              // Avatar with gap
+              Padding(
+                padding: EdgeInsets.all(widget.strokeWidth + widget.gap),
+                child: widget.child,
+              ),
+            ],
+          ),
         ),
       ),
     );

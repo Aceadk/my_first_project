@@ -25,6 +25,7 @@ import 'package:crushhour/design_system/widgets/adaptive_dialog.dart';
 import 'package:crushhour/features/discovery/domain/repositories/incognito_repository.dart';
 import 'package:crushhour/features/discovery/domain/models/incognito_settings.dart';
 import 'package:crushhour/features/subscription/presentation/widgets/promo_code_sheet.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -468,7 +469,11 @@ class SettingsScreen extends StatelessWidget {
                                                       strokeWidth: 2,
                                                     ),
                                               )
-                                            : const Text('Restore'),
+                                            : Text(
+                                                AppLocalizations.of(
+                                                  context,
+                                                ).restore,
+                                              ),
                                       ),
                                       const Text(
                                         '•',
@@ -483,7 +488,11 @@ class SettingsScreen extends StatelessWidget {
                                           Icons.card_giftcard,
                                           size: 16,
                                         ),
-                                        label: const Text('Promo code'),
+                                        label: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          ).promoCode,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -548,14 +557,16 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       ListTile(
                         leading: const Icon(Icons.people_outlined),
-                        title: const Text('Community Guidelines'),
+                        title: Text(
+                          AppLocalizations.of(context).communityGuidelines,
+                        ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () =>
                             context.push(CrushRoutes.communityGuidelines),
                       ),
                       ListTile(
                         leading: const Icon(Icons.health_and_safety_outlined),
-                        title: const Text('Safety'),
+                        title: Text(AppLocalizations.of(context).safety),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push(CrushRoutes.safetyGuidelines),
                       ),
@@ -590,13 +601,13 @@ class SettingsScreen extends StatelessWidget {
                       DsGap.sm,
                       ListTile(
                         leading: const Icon(Icons.auto_awesome_outlined),
-                        title: const Text('Features'),
+                        title: Text(AppLocalizations.of(context).features),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push(CrushRoutes.productFeatures),
                       ),
                       ListTile(
                         leading: const Icon(Icons.sell_outlined),
-                        title: const Text('Pricing'),
+                        title: Text(AppLocalizations.of(context).pricing),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push(CrushRoutes.pricing),
                       ),
@@ -618,7 +629,7 @@ class SettingsScreen extends StatelessWidget {
     );
     return blockedCount == 0
         ? 'Manage blocked users'
-        : '$blockedCount blocked user${blockedCount == 1 ? '' : 's'}';
+        : AppLocalizations.of(context).blockedUserCount(blockedCount);
   }
 
   String _themeLabel(BuildContext context, AppThemeMode mode) {
@@ -783,7 +794,9 @@ class SettingsScreen extends StatelessWidget {
                               .disableIncognito();
                           Navigator.of(sheetContext).pop();
                         },
-                        child: const Text('Turn off Incognito'),
+                        child: Text(
+                          AppLocalizations.of(context).turnOffIncognito,
+                        ),
                       ),
                     ),
                   ),
@@ -853,7 +866,9 @@ class SettingsScreen extends StatelessWidget {
                           context.read<IncognitoRepository>().enableIncognito();
                           Navigator.of(sheetContext).pop();
                         },
-                        child: const Text('Enable Incognito'),
+                        child: Text(
+                          AppLocalizations.of(context).enableIncognito,
+                        ),
                       ),
                     ),
                   ),

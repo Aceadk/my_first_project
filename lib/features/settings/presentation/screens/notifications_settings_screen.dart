@@ -6,6 +6,7 @@ import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/core/services/push_notification_service.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class NotificationsSettingsScreen extends StatelessWidget {
   const NotificationsSettingsScreen({super.key});
@@ -37,8 +38,8 @@ class NotificationsSettingsScreen extends StatelessWidget {
                             DsColors.primary.withValues(alpha: 0.1),
                             DsColors.secondary.withValues(alpha: 0.1),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          begin: AlignmentDirectional.topStart,
+                          end: AlignmentDirectional.bottomEnd,
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -296,7 +297,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       const Divider(indent: 72),
                       ListTile(
                         leading: const Icon(Icons.access_time),
-                        title: const Text('Start time'),
+                        title: Text(AppLocalizations.of(context).startTime),
                         subtitle: Text(_formatHour(notifState.quietHoursStart)),
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -314,7 +315,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       const Divider(indent: 72),
                       ListTile(
                         leading: const Icon(Icons.access_time),
-                        title: const Text('End time'),
+                        title: Text(AppLocalizations.of(context).endTime),
                         subtitle: Text(_formatHour(notifState.quietHoursEnd)),
                         onTap: () async {
                           final picked = await showTimePicker(

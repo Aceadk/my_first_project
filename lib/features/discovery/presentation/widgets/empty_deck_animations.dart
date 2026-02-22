@@ -146,8 +146,8 @@ class _PulsingIconContainerState extends State<PulsingIconContainer>
           shape: BoxShape.circle,
           gradient: widget.iconColor != null
               ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: [
                     widget.iconColor!.withValues(alpha: 0.25),
                     widget.iconColor!.withValues(alpha: 0.1),
@@ -190,6 +190,7 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
   late Animation<double> _planeRotation;
   late Animation<double> _textOpacity;
   late Animation<double> _planeOpacity;
+  Timer? _initialDelayTimer;
   Timer? _loopTimer;
 
   // Button content width for calculations
@@ -353,7 +354,7 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
 
   void _startAnimationLoop() {
     // Play after a short delay on first load
-    Future.delayed(const Duration(milliseconds: 800), () {
+    _initialDelayTimer = Timer(const Duration(milliseconds: 800), () {
       if (mounted) {
         _controller.forward(from: 0);
       }
@@ -369,6 +370,7 @@ class _AnimatedPassportButtonState extends State<AnimatedPassportButton>
 
   @override
   void dispose() {
+    _initialDelayTimer?.cancel();
     _loopTimer?.cancel();
     _controller.dispose();
     super.dispose();
@@ -450,7 +452,7 @@ class _AnimatedPlane extends StatelessWidget {
       width: 40,
       height: 20,
       child: Stack(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         children: [
           // Contrail / trail effect
           PositionedDirectional(

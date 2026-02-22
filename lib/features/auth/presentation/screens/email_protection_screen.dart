@@ -11,6 +11,7 @@ import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/design_system/widgets/primary_button.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class EmailProtectionScreen extends StatefulWidget {
   final bool redirectOnSuccess;
@@ -247,7 +248,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: _isLoading ? null : _requestOtp,
-              child: const Text('Resend code'),
+              child: Text(AppLocalizations.of(context).resendCode),
             ),
           ],
         ],

@@ -8,6 +8,7 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class EmailAuthScreen extends StatefulWidget {
   const EmailAuthScreen({super.key});
@@ -52,7 +53,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign in with email'),
+        title: Text(AppLocalizations.of(context).signInWithEmail),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
@@ -135,12 +136,16 @@ class _EmailAuthScreenState extends State<EmailAuthScreen>
                             onPressed: state.isLoading
                                 ? null
                                 : () => context.go(CrushRoutes.phoneAuth),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.phone_outlined, size: 18),
-                                SizedBox(width: 8),
-                                Text('Use phone number instead'),
+                                const Icon(Icons.phone_outlined, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).usePhoneNumberInstead,
+                                ),
                               ],
                             ),
                           ),
@@ -448,10 +453,13 @@ class _EmailPasswordTab extends StatelessWidget {
               suffixIcon: Semantics(
                 button: true,
                 label: obscurePassword ? 'Show password' : 'Hide password',
-                child: GestureDetector(
-                  onTap: onToggleObscure,
-                  child: Icon(
-                    obscurePassword ? Icons.visibility : Icons.visibility_off,
+                child: Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    onTap: onToggleObscure,
+                    child: Icon(
+                      obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
                   ),
                 ),
               ),
@@ -506,7 +514,7 @@ class _EmailPasswordTab extends StatelessWidget {
                 onPressed: isLoading
                     ? null
                     : () => context.push(CrushRoutes.forgotPassword),
-                child: const Text('Forgot password?'),
+                child: Text(AppLocalizations.of(context).forgotPassword),
               ),
             ),
           ),

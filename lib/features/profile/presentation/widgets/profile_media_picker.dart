@@ -1,3 +1,4 @@
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -143,6 +144,7 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
 
   Future<void> _addPhotos() async {
     if (!widget.enabled || _isPickingMedia) return;
+    final l10n = AppLocalizations.of(context);
     final remaining = ProfileMediaLimits.maxPhotos - _photos.length;
     if (remaining <= 0) {
       _showError('You can add up to ${ProfileMediaLimits.maxPhotos} photos.');
@@ -183,12 +185,10 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
         _showError(
           errors.length == 1
               ? errors.first
-              : '${errors.length} photo${errors.length == 1 ? '' : 's'} rejected: ${errors.first}',
+              : l10n.photosRejected(errors.length, errors.first),
         );
       } else if (files.length > selected.length) {
-        _showError(
-          'Only $remaining more photo slot${remaining == 1 ? '' : 's'} available.',
-        );
+        _showError(l10n.photoSlotsAvailable(remaining));
       }
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
@@ -330,102 +330,108 @@ class _MediaTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 96,
-              height: 128,
-              decoration: BoxDecoration(
-                color: DsColors.skeletonLight,
-                border: isPrimary
-                    ? Border.all(color: DsColors.primary, width: 3)
-                    : null,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(isPrimary ? 9 : 12),
-                child: isVideo
-                    ? const Center(child: Icon(Icons.videocam, size: 32))
-                    : _isRemote
-                    ? CachedNetworkImage(imageUrl: path, fit: BoxFit.cover)
-                    : Image.file(File(path), fit: BoxFit.cover),
-              ),
-            ),
-          ),
-          // Primary photo badge
-          if (isPrimary && !isVideo)
-            PositionedDirectional(
-              start: 4,
-              bottom: 4,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                width: 96,
+                height: 128,
                 decoration: BoxDecoration(
-                  color: DsColors.primary,
-                  borderRadius: BorderRadius.circular(8),
+                  color: DsColors.skeletonLight,
+                  border: isPrimary
+                      ? Border.all(color: DsColors.primary, width: 3)
+                      : null,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.star, color: DsColors.surfaceLight, size: 12),
-                    SizedBox(width: 2),
-                    Text(
-                      'Display',
-                      style: TextStyle(
-                        color: DsColors.surfaceLight,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(isPrimary ? 9 : 12),
+                  child: isVideo
+                      ? const Center(child: Icon(Icons.videocam, size: 32))
+                      : _isRemote
+                      ? CachedNetworkImage(imageUrl: path, fit: BoxFit.cover)
+                      : Image.file(File(path), fit: BoxFit.cover),
                 ),
               ),
             ),
-          PositionedDirectional(
-            end: 4,
-            top: 4,
-            child: Row(
-              children: [
-                if (isVideo)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: DsColors.ink900.withValues(alpha: 0.54),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Video',
-                      style: TextStyle(
-                        color: DsColors.surfaceLight,
-                        fontSize: 10,
+            // Primary photo badge
+            if (isPrimary && !isVideo)
+              PositionedDirectional(
+                start: 4,
+                bottom: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: DsColors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, color: DsColors.surfaceLight, size: 12),
+                      SizedBox(width: 2),
+                      Text(
+                        'Display',
+                        style: TextStyle(
+                          color: DsColors.surfaceLight,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            PositionedDirectional(
+              end: 4,
+              top: 4,
+              child: Row(
+                children: [
+                  if (isVideo)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: DsColors.ink900.withValues(alpha: 0.54),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Video',
+                        style: TextStyle(
+                          color: DsColors.surfaceLight,
+                          fontSize: 10,
+                        ),
                       ),
                     ),
-                  ),
-                if (onRemove != null)
-                  IconButton(
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    color: DsColors.ink900.withValues(alpha: 0.87),
-                    style: IconButton.styleFrom(
-                      backgroundColor: DsColors.surfaceLight.withValues(
-                        alpha: 0.7,
+                  if (onRemove != null)
+                    IconButton(
+                      iconSize: 20,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      color: DsColors.ink900.withValues(alpha: 0.87),
+                      style: IconButton.styleFrom(
+                        backgroundColor: DsColors.surfaceLight.withValues(
+                          alpha: 0.7,
+                        ),
+                        shape: const CircleBorder(),
                       ),
-                      shape: const CircleBorder(),
+                      onPressed: onRemove,
+                      icon: const Icon(Icons.close),
                     ),
-                    onPressed: onRemove,
-                    icon: const Icon(Icons.close),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -444,18 +450,23 @@ class _AddTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        width: 96,
-        height: 128,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: DsColors.borderLight, width: 2),
-        ),
-        child: Icon(
-          icon,
-          color: enabled ? DsColors.textPrimaryLight : DsColors.textMutedLight,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          width: 96,
+          height: 128,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: DsColors.borderLight, width: 2),
+          ),
+          child: Icon(
+            icon,
+            color: enabled
+                ? DsColors.textPrimaryLight
+                : DsColors.textMutedLight,
+          ),
         ),
       ),
     );

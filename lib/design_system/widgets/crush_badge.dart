@@ -19,7 +19,7 @@ class CrushBadge extends StatelessWidget {
     this.textColor,
     this.size = 18,
     required this.child,
-    this.alignment = Alignment.topRight,
+    this.alignment = AlignmentDirectional.topEnd,
   });
 
   /// Creates a badge that only shows when count > 0.
@@ -30,7 +30,7 @@ class CrushBadge extends StatelessWidget {
     this.textColor,
     this.size = 18,
     required this.child,
-    this.alignment = Alignment.topRight,
+    this.alignment = AlignmentDirectional.topEnd,
   }) : showDot = false;
 
   /// Creates a simple dot indicator badge.
@@ -39,7 +39,7 @@ class CrushBadge extends StatelessWidget {
     this.color,
     this.size = 10,
     required this.child,
-    this.alignment = Alignment.topRight,
+    this.alignment = AlignmentDirectional.topEnd,
   }) : count = null,
        showDot = true,
        textColor = null;
@@ -55,8 +55,10 @@ class CrushBadge extends StatelessWidget {
         if (shouldShow)
           PositionedDirectional(
             top: -size * 0.3,
-            end: alignment == Alignment.topRight ? -size * 0.3 : null,
-            start: alignment == Alignment.topLeft ? -size * 0.3 : null,
+            end: alignment == AlignmentDirectional.topEnd ? -size * 0.3 : null,
+            start: alignment == AlignmentDirectional.topStart
+                ? -size * 0.3
+                : null,
             child: _BadgeContent(
               count: count,
               showDot: showDot,

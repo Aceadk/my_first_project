@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/auth_dto.dart';
 import 'package:crushhour/core/network/mappers/auth_mapper.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../auth_repository.dart';
 
 /// HTTP-based implementation of AuthRepository.
@@ -233,6 +233,12 @@ class HttpAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithApple() async {
     throw UnimplementedError(
       'Apple Sign-In is not supported for the HTTP backend yet.',
+    );
+  }
+
+  Future<CrushUser> signInWithGoogle() async {
+    throw UnimplementedError(
+      'Google Sign-In is not supported for the HTTP backend yet.',
     );
   }
 
@@ -538,6 +544,18 @@ class HttpAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> verifyPassword(String password) async {
+    final result = await _apiClient.post<void>(
+      '/auth/password/verify',
+      body: {'password': password},
+    );
+
+    if (result.isFailure) {
+      throw Exception(result.error?.message ?? 'Incorrect password');
+    }
+  }
+
+  @override
   Future<void> deactivateAccount({required String reason}) async {
     final result = await _apiClient.post<void>(
       '/auth/account/deactivate',
@@ -673,6 +691,14 @@ class HttpAuthRepository implements AuthRepository {
       () => signInWithApple(),
       logLabel: 'HttpAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+    );
+  }
+
+  Future<Result<CrushUser>> signInWithGoogleResult() {
+    return Result.guard(
+      () => signInWithGoogle(),
+      logLabel: 'HttpAuthRepository.signInWithGoogleResult',
+      fallbackError: 'Google Sign-In failed. Please try again.',
     );
   }
 

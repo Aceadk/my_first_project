@@ -1,24 +1,28 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/services/data_export_request_service.dart';
+import 'package:crushhour/core/services/data_export_service.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/services/data_export_service.dart';
-import 'package:crushhour/core/services/data_export_request_service.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
+import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/widgets/adaptive_dialog.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
-import 'package:crushhour/design_system/tokens/breakpoints.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/design_system/widgets/adaptive_dialog.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountActionsSettingsScreen extends StatefulWidget {
   const AccountActionsSettingsScreen({super.key});
@@ -40,9 +44,12 @@ class _AccountActionsSettingsScreenState
     final user = context.select<AuthBloc, dynamic>((bloc) => bloc.state.user);
     final phoneVerified = user?.isPhoneVerified ?? false;
     final hasPhone = user?.phoneNumber != null && user.phoneNumber.isNotEmpty;
+    final isSnoozed = context.select<DiscoverySettingsCubit, bool>(
+      (cubit) => !cubit.state.visible,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Account Actions')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).accountActions)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -63,8 +70,8 @@ class _AccountActionsSettingsScreenState
                               DsColors.secondary.withValues(alpha: 0.1),
                               DsColors.secondary.withValues(alpha: 0.1),
                             ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -182,6 +189,47 @@ class _AccountActionsSettingsScreenState
                       ),
                       DsGap.md,
 
+                      // Snooze profile (Pause from discovery)
+                      SwitchListTile(
+                        secondary: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: DsColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.bedtime_outlined,
+                            color: DsColors.primary,
+                            size: 22,
+                          ),
+                        ),
+                        title: const Text('Snooze profile'),
+                        subtitle: const Text(
+                          'Hide profile but keep messaging active matches',
+                        ),
+                        value: isSnoozed,
+                        onChanged: (value) async {
+                          final cubit = context.read<DiscoverySettingsCubit>();
+                          await cubit.setVisible(!value);
+
+                          if (!context.mounted) return;
+
+                          // Update profile backend to sync hideFromDiscovery
+                          final authUser = context.read<AuthBloc>().state.user;
+                          if (authUser != null && authUser.profile != null) {
+                            final prefs = authUser.profile!.preferences
+                                .copyWith(hideFromDiscovery: value);
+                            final updatedProfile = authUser.profile!.copyWith(
+                              preferences: prefs,
+                            );
+                            context.read<ProfileBloc>().add(
+                              ProfileSaveRequested(profile: updatedProfile),
+                            );
+                          }
+                        },
+                      ),
+                      const Divider(indent: 72),
+
                       // Deactivate account
                       _ActionTile(
                         icon: Icons.pause_circle_outline,
@@ -259,8 +307,10 @@ class _AccountActionsSettingsScreenState
                                   'Delete account',
                                   style: TextStyle(color: DsColors.error),
                                 ),
-                                subtitle: const Text(
-                                  'Permanently remove your account',
+                                subtitle: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).permanentlyRemoveYourAccount,
                                 ),
                                 trailing: const Icon(
                                   Icons.chevron_right,
@@ -346,13 +396,13 @@ class _AccountActionsSettingsScreenState
             color: DsColors.info,
             size: 48,
           ),
-          title: const Text('Request Data Export'),
+          title: Text(AppLocalizations.of(context).requestDataExport),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Your export includes profile, photos, likes, matches, messages, and preferences.',
+              Text(
+                AppLocalizations.of(context).yourExportIncludesProfilePhotos,
               ),
               DsGap.md,
               const _BulletPoint(
@@ -388,11 +438,11 @@ class _AccountActionsSettingsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Request Export'),
+              child: Text(AppLocalizations.of(context).requestExport),
             ),
           ],
         );
@@ -461,7 +511,7 @@ class _AccountActionsSettingsScreenState
           builder: (context, value, _) {
             final pct = (value.progress * 100).clamp(0, 100).round();
             return AlertDialog(
-              title: const Text('Preparing your export'),
+              title: Text(AppLocalizations.of(context).preparingYourExport),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,18 +584,16 @@ class _AccountActionsSettingsScreenState
       builder: (dialogContext) {
         return AlertDialog(
           icon: const Icon(Icons.check_circle_outline, color: DsColors.success),
-          title: const Text('Export Ready'),
-          content: const Text(
-            'Your data export has been generated successfully. Would you like to share/download it now?',
-          ),
+          title: Text(AppLocalizations.of(context).exportReady),
+          content: Text(AppLocalizations.of(context).yourDataExportHasBeen),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Later'),
+              child: Text(AppLocalizations.of(context).later),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Share Export'),
+              child: Text(AppLocalizations.of(context).shareExport),
             ),
           ],
         );
@@ -586,7 +634,7 @@ class _AccountActionsSettingsScreenState
                 color: DsColors.secondary,
                 size: 48,
               ),
-              title: const Text('Change Password'),
+              title: Text(AppLocalizations.of(context).changePassword),
               content: Form(
                 key: formKey,
                 child: SingleChildScrollView(
@@ -687,7 +735,7 @@ class _AccountActionsSettingsScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context).cancel),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -695,7 +743,7 @@ class _AccountActionsSettingsScreenState
                       Navigator.of(dialogContext).pop(true);
                     }
                   },
-                  child: const Text('Change Password'),
+                  child: Text(AppLocalizations.of(context).changePassword),
                 ),
               ],
             );
@@ -764,7 +812,7 @@ class _AccountActionsSettingsScreenState
       title: 'Why are you leaving?',
       icon: Icons.pause_circle_outline,
       iconColor: DsColors.warning,
-      reasons: const [
+      reasons: [
         'Taking a break from dating',
         'Found someone special',
         'Too many notifications',
@@ -786,12 +834,12 @@ class _AccountActionsSettingsScreenState
             color: DsColors.warning,
             size: 48,
           ),
-          title: const Text('Deactivate Account'),
+          title: Text(AppLocalizations.of(context).deactivateAccount),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('When you deactivate your account:'),
+              Text(AppLocalizations.of(context).whenYouDeactivateYourAccount),
               DsGap.md,
               const _BulletPoint(
                 text: 'Your profile will be hidden from discovery',
@@ -841,12 +889,12 @@ class _AccountActionsSettingsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: DsColors.warning),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Deactivate'),
+              child: Text(AppLocalizations.of(context).deactivate),
             ),
           ],
         );
@@ -905,12 +953,12 @@ class _AccountActionsSettingsScreenState
             color: DsColors.error,
             size: 48,
           ),
-          title: const Text('Delete Account'),
+          title: Text(AppLocalizations.of(context).deleteAccount),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('You will lose:'),
+              Text(AppLocalizations.of(context).youWillLose),
               DsGap.md,
               const _DeleteWarningItem(text: 'All your matches'),
               const _DeleteWarningItem(text: 'All your messages'),
@@ -951,12 +999,12 @@ class _AccountActionsSettingsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: DsColors.error),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Continue'),
+              child: Text(AppLocalizations.of(context).continueLabel),
             ),
           ],
         );
@@ -971,27 +1019,27 @@ class _AccountActionsSettingsScreenState
       builder: (dialogContext) {
         return AlertDialog(
           icon: const Icon(Icons.download_outlined, color: DsColors.info),
-          title: const Text('Download your data first?'),
-          content: const Text(
-            'Before deletion, you can request a full data export for your records.',
+          title: Text(AppLocalizations.of(context).downloadYourDataFirst),
+          content: Text(
+            AppLocalizations.of(context).beforeDeletionYouCanRequest,
           ),
           actions: [
             TextButton(
               onPressed: () =>
                   Navigator.of(dialogContext).pop(_DeleteDownloadChoice.cancel),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(
                 dialogContext,
               ).pop(_DeleteDownloadChoice.continueDelete),
-              child: const Text('Skip'),
+              child: Text(AppLocalizations.of(context).skip),
             ),
             FilledButton(
               onPressed: () => Navigator.of(
                 dialogContext,
               ).pop(_DeleteDownloadChoice.requestExport),
-              child: const Text('Request Export'),
+              child: Text(AppLocalizations.of(context).requestExport),
             ),
           ],
         );
@@ -1013,7 +1061,7 @@ class _AccountActionsSettingsScreenState
       title: 'Optional: Why are you deleting your account?',
       icon: Icons.insights_outlined,
       iconColor: DsColors.warning,
-      reasons: const [
+      reasons: [
         'Found a relationship',
         'Not happy with the app',
         'Privacy concerns',
@@ -1047,7 +1095,7 @@ class _AccountActionsSettingsScreenState
                 color: DsColors.error,
                 size: 42,
               ),
-              title: const Text('Final confirmation'),
+              title: Text(AppLocalizations.of(context).finalConfirmation),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1096,7 +1144,7 @@ class _AccountActionsSettingsScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context).cancel),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -1105,7 +1153,7 @@ class _AccountActionsSettingsScreenState
                   onPressed: typedCorrectly && hasPassword
                       ? () => Navigator.of(dialogContext).pop(true)
                       : null,
-                  child: const Text('Delete Account'),
+                  child: Text(AppLocalizations.of(context).deleteAccount),
                 ),
               ],
             );
@@ -1253,12 +1301,12 @@ class _AccountActionsSettingsScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(null),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context).cancel),
                 ),
                 if (!requiredSelection)
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(''),
-                    child: const Text('Skip'),
+                    child: Text(AppLocalizations.of(context).skip),
                   ),
                 FilledButton(
                   onPressed: selectedReason == null
@@ -1269,7 +1317,7 @@ class _AccountActionsSettingsScreenState
                               : selectedReason;
                           Navigator.of(dialogContext).pop(finalReason);
                         },
-                  child: const Text('Continue'),
+                  child: Text(AppLocalizations.of(context).continueLabel),
                 ),
               ],
             );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen displaying profile analytics and insights.
 class ProfileInsightsScreen extends StatefulWidget {
@@ -223,12 +224,12 @@ class _ProfileInsightsScreenState extends State<ProfileInsightsScreen> {
               onPressed: () => context
                   .read<ProfileInsightsCubit>()
                   .loadInsights(widget.userId),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.refresh, size: 18),
-                  SizedBox(width: 8),
-                  Text('Try Again'),
+                  const Icon(Icons.refresh, size: 18),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).tryAgain),
                 ],
               ),
             ),

@@ -1,6 +1,7 @@
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/data/models/profile.dart';
+import 'package:crushhour/data/models/user.dart';
 
 abstract class ProfileRepository {
   Future<CrushUser?> getCurrentUser();
@@ -48,4 +49,45 @@ abstract class ProfileRepository {
 
   /// Skip profile setup entirely - marks hasCompletedProfileSetup as true.
   Future<CrushUser> skipProfileSetup();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESULT-RETURNING METHODS (CR-AUD-035)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<Result<CrushUser>> saveBasicInfoResult({
+    String? username,
+    required String name,
+    String? lastName,
+    required int age,
+    required String gender,
+    String? sexualOrientation,
+    DateTime? dateOfBirth,
+    bool? showFirstName,
+    bool? showLastName,
+  });
+
+  Future<Result<CrushUser>> saveProfileDetailsResult({
+    required String bio,
+    required List<String> photoUrls,
+    required List<String> videoUrls,
+    String? jobTitle,
+    String? company,
+    String? school,
+    required List<String> interests,
+    List<String>? prompts,
+    String? city,
+    String? country,
+    ProfileFavourites? favourites,
+    List<String>? showMeGenders,
+    double? latitude,
+    double? longitude,
+  });
+
+  Future<Result<CrushUser>> markIdVerifiedResult();
+
+  Future<Result<CrushUser>> updateProfileResult(Profile profile);
+
+  Future<Result<CrushUser>> skipBasicInfoResult({required String username});
+
+  Future<Result<CrushUser>> skipProfileSetupResult();
 }

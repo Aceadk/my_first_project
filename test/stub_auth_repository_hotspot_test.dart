@@ -126,6 +126,13 @@ void main() {
       expect(user.username, startsWith('apple'));
     });
 
+    test('signInWithGoogle returns verified gmail account', () async {
+      final user = await repo.signInWithGoogle();
+      expect(user.isEmailVerified, isTrue);
+      expect(user.email, contains('@gmail.com'));
+      expect(user.username, startsWith('google'));
+    });
+
     test(
       'verifyEmailOtp covers login, addEmail, newDevice and resetPassword',
       () async {

@@ -118,23 +118,26 @@ class _MessageSearchBarState extends State<MessageSearchBar> {
                 ),
               ),
               if (_hasText)
-                GestureDetector(
-                  onTap: _clear,
-                  child: Padding(
-                    padding: const EdgeInsets.all(DsSpacing.sm),
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        size: 14,
-                        color: Colors.white,
+                Semantics(
+                  button: true,
+                  child: GestureDetector(
+                    onTap: _clear,
+                    child: Padding(
+                      padding: const EdgeInsets.all(DsSpacing.sm),
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -172,93 +175,98 @@ class MessageSearchResult extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(DsSpacing.md),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: DsGlassColors.borderFor(context),
-              width: 0.5,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(DsSpacing.md),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: DsGlassColors.borderFor(context),
+                width: 0.5,
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: DsGlassColors.surfaceFor(
-                context,
-                strength: DsGlassSurfaceStrength.medium,
+          child: Row(
+            children: [
+              // Avatar
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: DsGlassColors.surfaceFor(
+                  context,
+                  strength: DsGlassSurfaceStrength.medium,
+                ),
+                backgroundImage: avatarUrl != null
+                    ? NetworkImage(avatarUrl!)
+                    : null,
+                child: avatarUrl == null
+                    ? Icon(
+                        Icons.person,
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      )
+                    : null,
               ),
-              backgroundImage: avatarUrl != null
-                  ? NetworkImage(avatarUrl!)
-                  : null,
-              child: avatarUrl == null
-                  ? Icon(
-                      Icons.person,
-                      color: isDark ? Colors.white54 : Colors.grey,
-                    )
-                  : null,
-            ),
-            const SizedBox(width: DsSpacing.md),
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Sender name and time
-                  Row(
-                    children: [
-                      Text(
-                        senderName,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? DsColors.textPrimaryDark
-                              : DsColors.textPrimaryLight,
+              const SizedBox(width: DsSpacing.md),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sender name and time
+                    Row(
+                      children: [
+                        Text(
+                          senderName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          DateTimeFormatter.formatSearchResultTime(
+                            timestamp,
+                            l10n: context.l10n,
+                            locale: Localizations.localeOf(context).toString(),
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Highlighted message
+                    _HighlightedText(
+                      text: message,
+                      query: query,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark
+                            ? DsColors.textMutedDark
+                            : DsColors.textMutedLight,
+                      ),
+                      highlightStyle: TextStyle(
+                        fontSize: 14,
+                        color: DsColors.primary,
+                        fontWeight: FontWeight.w600,
+                        backgroundColor: DsColors.primary.withValues(
+                          alpha: 0.15,
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        DateTimeFormatter.formatSearchResultTime(
-                          timestamp,
-                          l10n: context.l10n,
-                          locale: Localizations.localeOf(context).toString(),
-                        ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? DsColors.textMutedDark
-                              : DsColors.textMutedLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  // Highlighted message
-                  _HighlightedText(
-                    text: message,
-                    query: query,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
                     ),
-                    highlightStyle: TextStyle(
-                      fontSize: 14,
-                      color: DsColors.primary,
-                      fontWeight: FontWeight.w600,
-                      backgroundColor: DsColors.primary.withValues(alpha: 0.15),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

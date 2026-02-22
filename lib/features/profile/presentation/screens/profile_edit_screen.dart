@@ -22,6 +22,7 @@ import 'package:crushhour/data/models/profile_prompt.dart';
 import '../widgets/profile_media_picker.dart';
 import '../widgets/prompt_editor.dart';
 import 'package:crushhour/features/profile/presentation/widgets/profile_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -104,16 +105,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           : state.user?.profile?.school,
       interests: _interests.isNotEmpty
           ? _interests
-          : (state.user?.profile?.interests ?? const []),
+          : (state.user?.profile?.interests ?? []),
       profilePrompts: _profilePrompts.isNotEmpty
           ? _profilePrompts
-          : (state.user?.profile?.profilePrompts ?? const []),
+          : (state.user?.profile?.profilePrompts ?? []),
       heightCm: _heightCm ?? state.user?.profile?.heightCm,
       relationshipGoals:
           _relationshipGoals ?? state.user?.profile?.relationshipGoals,
       languages: _languages.isNotEmpty
           ? _languages
-          : (state.user?.profile?.languages ?? const []),
+          : (state.user?.profile?.languages ?? []),
       zodiacSign: _zodiacSign ?? state.user?.profile?.zodiacSign,
       educationLevel: _educationLevel ?? state.user?.profile?.educationLevel,
       familyPlans: _familyPlans ?? state.user?.profile?.familyPlans,
@@ -130,7 +131,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           : state.user?.profile?.livingIn,
       favoriteSongs: _favoriteSongs.isNotEmpty
           ? _favoriteSongs
-          : (state.user?.profile?.favoriteSongs ?? const []),
+          : (state.user?.profile?.favoriteSongs ?? []),
       favoriteSinger: _favoriteSingerController.text.isNotEmpty
           ? _favoriteSingerController.text
           : state.user?.profile?.favoriteSinger,
@@ -425,7 +426,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Change Date of Birth'),
+          title: Text(AppLocalizations.of(context).changeDateOfBirth),
           content: const Text(
             'Please make sure you enter your real date of birth.\n\n'
             'After saving, you will need to wait 1 month before you can change it again.',
@@ -433,11 +434,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Continue'),
+              child: Text(AppLocalizations.of(context).continueLabel),
             ),
           ],
         ),
@@ -500,7 +501,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         context: context,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.elderly, color: DsColors.warning, size: 48),
-          title: const Text('Age Notice'),
+          title: Text(AppLocalizations.of(context).ageNotice),
           content: const Text(
             'You\'re a bit too old to be using a dating app, don\'t you think?\n\n'
             'Just kidding! Love has no age limit. Are you sure you want to continue?',
@@ -508,11 +509,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Go Back'),
+              child: Text(AppLocalizations.of(context).goBack),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Continue Anyway'),
+              child: Text(AppLocalizations.of(context).continueAnyway),
             ),
           ],
         ),
@@ -532,7 +533,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           color: DsColors.warning,
           size: 48,
         ),
-        title: const Text('Confirm Date of Birth'),
+        title: Text(AppLocalizations.of(context).confirmDateOfBirth),
         content: Text(
           'You selected: ${result.day}/${result.month}/${result.year}\n\n'
           'Please verify this is your correct date of birth. '
@@ -541,11 +542,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Go Back'),
+            child: Text(AppLocalizations.of(context).goBack),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirm'),
+            child: Text(AppLocalizations.of(context).confirm),
           ),
         ],
       ),
@@ -985,7 +986,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       builder: (context, state) {
         if (state.isLoading && state.profile == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Complete Your Profile')),
+            appBar: AppBar(
+              title: Text(AppLocalizations.of(context).completeYourProfile1),
+            ),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
@@ -1047,7 +1050,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Complete Your Profile'),
+            title: Text(AppLocalizations.of(context).completeYourProfile1),
             centerTitle: true,
           ),
           body: LayoutBuilder(
@@ -1678,8 +1681,8 @@ class _ProgressCard extends StatelessWidget {
                   DsColors.primary.withAlpha(30),
                   DsColors.primary.withAlpha(10),
                 ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: progressColor.withAlpha(50), width: 1),

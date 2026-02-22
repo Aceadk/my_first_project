@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/social/domain/models/date_idea.dart';
-import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
-import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
-import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
+import 'package:crushhour/features/social/data/services/date_idea_service.dart';
+import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
+import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
 
@@ -37,55 +37,62 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<void> sendOtp(String phoneNumber) async {}
   @override
-  Future<CrushUser> verifyOtp(
-          {required String phoneNumber, required String otp}) =>
-      throw UnimplementedError();
+  Future<CrushUser> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) => throw UnimplementedError();
   @override
   Future<void> sendEmailSignInLink(String email) async {}
   @override
-  Future<CrushUser> signInWithEmailLink(
-          {required String email, required String emailLink}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) => throw UnimplementedError();
   @override
-  Future<CrushUser> signInWithEmailPassword(
-          {required String email, required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) => throw UnimplementedError();
   @override
-  Future<CrushUser> loginWithPassword(
-          {required String identifier, required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> loginWithPassword({
+    required String identifier,
+    required String password,
+  }) => throw UnimplementedError();
   @override
   Future<CrushUser> signInWithApple() => throw UnimplementedError();
   @override
-  Future<CrushUser> signUpWithPassword(
-          {required String username,
-          required String email,
-          required String password}) =>
-      throw UnimplementedError();
+  Future<CrushUser> signUpWithPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) => throw UnimplementedError();
   @override
-  Future<void> requestEmailOtp(
-          {required String identifier,
-          required EmailOtpPurpose purpose,
-          String? email}) async {}
+  Future<void> requestEmailOtp({
+    required String identifier,
+    required EmailOtpPurpose purpose,
+    String? email,
+  }) async {}
   @override
-  Future<CrushUser?> verifyEmailOtp(
-          {required String identifier,
-          required String otp,
-          required EmailOtpPurpose purpose,
-          String? newEmail,
-          String? newPassword}) async =>
-      null;
+  Future<CrushUser?> verifyEmailOtp({
+    required String identifier,
+    required String otp,
+    required EmailOtpPurpose purpose,
+    String? newEmail,
+    String? newPassword,
+  }) async => null;
   @override
   Future<void> requestPasswordReset({required String email}) async {}
   @override
-  Future<String> verifyPasswordResetOtp(
-          {required String email, required String otp}) =>
-      throw UnimplementedError();
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) => throw UnimplementedError();
   @override
-  Future<void> resetPasswordWithToken(
-          {required String email,
-          required String resetToken,
-          required String newPassword}) async {}
+  Future<void> resetPasswordWithToken({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {}
   @override
   Future<void> signOut() async {}
   @override
@@ -95,14 +102,21 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<void> schedulePhoneDeletion() async {}
   @override
-  Future<void> changePassword(
-          {required String currentPassword,
-          required String newPassword}) async {}
+  Future<void> verifyPassword(String password) async {}
+
+  @override
+@override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
   @override
   Future<void> deactivateAccount({required String reason}) async {}
   @override
-  Future<void> deleteAccount(
-          {required String password, required String reason}) async {}
+  Future<void> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {}
   @override
   Future<bool> isEmailRegistered(String email) async => false;
   @override
@@ -149,8 +163,13 @@ void main() {
     });
 
     test('durationDisplay formats correctly', () {
-      const noD =
-          DateIdea(id: 'a', title: '', description: '', category: DateCategory.casual, emoji: '');
+      const noD = DateIdea(
+        id: 'a',
+        title: '',
+        description: '',
+        category: DateCategory.casual,
+        emoji: '',
+      );
       expect(noD.durationDisplay, 'Varies');
 
       const h2 = DateIdea(
@@ -233,7 +252,10 @@ void main() {
       final cheap = DateIdeas.byCost(DateCostLevel.budget);
       for (final idea in cheap) {
         expect(idea.estimatedCost, isNotNull);
-        expect(idea.estimatedCost!.index, lessThanOrEqualTo(DateCostLevel.budget.index));
+        expect(
+          idea.estimatedCost!.index,
+          lessThanOrEqualTo(DateCostLevel.budget.index),
+        );
       }
     });
 
@@ -294,19 +316,22 @@ void main() {
       expect(service.savedIdeas, isEmpty);
     });
 
-    test('getRandomSuggestions returns expected count and emits on stream', () async {
-      final streamValues = <List<DateIdea>>[];
-      final sub = service.ideasStream.listen(streamValues.add);
+    test(
+      'getRandomSuggestions returns expected count and emits on stream',
+      () async {
+        final streamValues = <List<DateIdea>>[];
+        final sub = service.ideasStream.listen(streamValues.add);
 
-      final suggestions = service.getRandomSuggestions(3);
-      await Future<void>.delayed(Duration.zero);
+        final suggestions = service.getRandomSuggestions(3);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(suggestions, hasLength(3));
-      expect(streamValues, hasLength(1));
-      expect(streamValues.first, hasLength(3));
+        expect(suggestions, hasLength(3));
+        expect(streamValues, hasLength(1));
+        expect(streamValues.first, hasLength(3));
 
-      await sub.cancel();
-    });
+        await sub.cancel();
+      },
+    );
 
     test('getPersonalizedSuggestions filters by dateType', () async {
       final results = await service.getPersonalizedSuggestions(
@@ -327,7 +352,10 @@ void main() {
 
       for (final idea in results) {
         expect(idea.estimatedCost, isNotNull);
-        expect(idea.estimatedCost!.index, lessThanOrEqualTo(DateCostLevel.free.index));
+        expect(
+          idea.estimatedCost!.index,
+          lessThanOrEqualTo(DateCostLevel.free.index),
+        );
       }
     });
 
@@ -376,7 +404,10 @@ void main() {
 
     setUp(() {
       authRepo = MockAuthRepository();
-      cubit = DateIdeasCubit(authRepository: authRepo, dateIdeaRepository: DateIdeaService.instance);
+      cubit = DateIdeasCubit(
+        authRepository: authRepo,
+        dateIdeaRepository: DateIdeaService.instance,
+      );
       // Clear singleton state between tests
       DateIdeaService.instance.clearUserData();
     });
@@ -437,8 +468,10 @@ void main() {
 
       for (final idea in cubit.state.filteredIdeas) {
         expect(idea.estimatedCost, isNotNull);
-        expect(idea.estimatedCost!.index,
-            lessThanOrEqualTo(DateCostLevel.free.index));
+        expect(
+          idea.estimatedCost!.index,
+          lessThanOrEqualTo(DateCostLevel.free.index),
+        );
       }
     });
 
@@ -555,14 +588,14 @@ void main() {
 
     test('QuizResult.rating returns correct rating tiers', () {
       QuizResult makeResult(int? score) => QuizResult(
-            quizId: 'q',
-            user1Id: 'u1',
-            user2Id: 'u2',
-            user1Answers: const {},
-            user2Answers: const {},
-            completedAt: DateTime.now(),
-            overallScore: score,
-          );
+        quizId: 'q',
+        user1Id: 'u1',
+        user2Id: 'u2',
+        user1Answers: const {},
+        user2Answers: const {},
+        completedAt: DateTime.now(),
+        overallScore: score,
+      );
 
       expect(makeResult(95).rating, ScoreRating.excellent);
       expect(makeResult(80).rating, ScoreRating.great);
@@ -636,7 +669,10 @@ void main() {
     });
 
     test('submitAnswer stores answer for match', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-1');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-1',
+      );
 
       await service.submitAnswer(
         matchId: 'match-1',
@@ -648,7 +684,10 @@ void main() {
     });
 
     test('completeQuiz calculates score and returns result', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-1');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-1',
+      );
 
       // Same answers for both users => 100% match
       final answers = {'q1': 'a', 'q2': 'b', 'q3': 'a', 'q4': 'd', 'q5': 'c'};
@@ -669,7 +708,10 @@ void main() {
     });
 
     test('completeQuiz with different answers scores less than 100', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-2');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-2',
+      );
 
       final result = await service.completeQuiz(
         quizId: 'basic_compatibility',
@@ -684,7 +726,10 @@ void main() {
     });
 
     test('getResult retrieves stored result', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-3');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-3',
+      );
 
       final answers = {'q1': 'a', 'q2': 'b', 'q3': 'c', 'q4': 'd', 'q5': 'a'};
       await service.completeQuiz(
@@ -702,7 +747,10 @@ void main() {
     });
 
     test('getAllResultsForMatch returns all results for a match', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-4');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-4',
+      );
       final answers = {'q1': 'a'};
       await service.completeQuiz(
         quizId: 'basic_compatibility',
@@ -718,7 +766,10 @@ void main() {
     });
 
     test('clearUserData clears results and pending answers', () async {
-      await service.startQuiz(quizId: 'basic_compatibility', matchId: 'match-5');
+      await service.startQuiz(
+        quizId: 'basic_compatibility',
+        matchId: 'match-5',
+      );
       service.clearUserData();
 
       final result = service.getResult('match-5', 'basic_compatibility');
@@ -735,7 +786,10 @@ void main() {
 
     setUp(() {
       authRepo = MockAuthRepository();
-      cubit = CompatibilityQuizCubit(authRepository: authRepo, quizRepository: CompatibilityQuizService.instance);
+      cubit = CompatibilityQuizCubit(
+        authRepository: authRepo,
+        quizRepository: CompatibilityQuizService.instance,
+      );
       CompatibilityQuizService.instance.clearUserData();
     });
 
@@ -892,11 +946,7 @@ void main() {
 
     test('completeQuiz does nothing if no quiz started', () async {
       // No quiz started — should silently return
-      await cubit.completeQuiz(
-        user1Id: 'u1',
-        user2Id: 'u2',
-        user2Answers: {},
-      );
+      await cubit.completeQuiz(user1Id: 'u1', user2Id: 'u2', user2Answers: {});
 
       expect(cubit.state.result, isNull);
       expect(cubit.state.isSubmitting, isFalse);

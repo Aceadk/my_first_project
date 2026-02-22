@@ -8,6 +8,7 @@ import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class TermsConditionsScreen extends StatefulWidget {
   const TermsConditionsScreen({super.key});
@@ -104,7 +105,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Terms & Conditions'),
+        title: Text(AppLocalizations.of(context).termsConditions),
         centerTitle: true,
         backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
         elevation: 0,
@@ -297,76 +298,81 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
               child: Column(
                 children: [
                   // Checkbox
-                  GestureDetector(
-                    onTap: _hasScrolledToEnd
-                        ? () => setState(() => _isAgreed = !_isAgreed)
-                        : null,
-                    child: Container(
-                      padding: DsEdgeInsets.allMd,
-                      decoration: BoxDecoration(
-                        color: _hasScrolledToEnd
-                            ? (isDark
-                                  ? DsColors.surfaceDark.withValues(alpha: 0.5)
-                                  : DsColors.inputFillLight)
-                            : DsColors.textMutedLight.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _isAgreed
-                              ? DsColors.primary
-                              : (isDark
-                                    ? DsColors.borderDark
-                                    : DsColors.borderLight),
-                          width: _isAgreed ? 2 : 1,
+                  Semantics(
+                    button: true,
+                    child: GestureDetector(
+                      onTap: _hasScrolledToEnd
+                          ? () => setState(() => _isAgreed = !_isAgreed)
+                          : null,
+                      child: Container(
+                        padding: DsEdgeInsets.allMd,
+                        decoration: BoxDecoration(
+                          color: _hasScrolledToEnd
+                              ? (isDark
+                                    ? DsColors.surfaceDark.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : DsColors.inputFillLight)
+                              : DsColors.textMutedLight.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _isAgreed
+                                ? DsColors.primary
+                                : (isDark
+                                      ? DsColors.borderDark
+                                      : DsColors.borderLight),
+                            width: _isAgreed ? 2 : 1,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: _isAgreed
-                                  ? DsColors.primary
-                                  : DsColors.backgroundLight.withValues(
-                                      alpha: 0,
-                                    ),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
                                 color: _isAgreed
                                     ? DsColors.primary
-                                    : (_hasScrolledToEnd
-                                          ? DsColors.primary
+                                    : DsColors.backgroundLight.withValues(
+                                        alpha: 0,
+                                      ),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: _isAgreed
+                                      ? DsColors.primary
+                                      : (_hasScrolledToEnd
+                                            ? DsColors.primary
+                                            : (isDark
+                                                  ? DsColors.borderDark
+                                                  : DsColors.borderLight)),
+                                  width: 2,
+                                ),
+                              ),
+                              child: _isAgreed
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: DsColors.backgroundLight,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'I have read and agree to the Terms and Conditions and Privacy Policy',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: _hasScrolledToEnd
+                                          ? (isDark
+                                                ? DsColors.textPrimaryDark
+                                                : DsColors.textPrimaryLight)
                                           : (isDark
-                                                ? DsColors.borderDark
-                                                : DsColors.borderLight)),
-                                width: 2,
+                                                ? DsColors.textMutedDark
+                                                : DsColors.textMutedLight),
+                                    ),
                               ),
                             ),
-                            child: _isAgreed
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: DsColors.backgroundLight,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'I have read and agree to the Terms and Conditions and Privacy Policy',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: _hasScrolledToEnd
-                                        ? (isDark
-                                              ? DsColors.textPrimaryDark
-                                              : DsColors.textPrimaryLight)
-                                        : (isDark
-                                              ? DsColors.textMutedDark
-                                              : DsColors.textMutedLight),
-                                  ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

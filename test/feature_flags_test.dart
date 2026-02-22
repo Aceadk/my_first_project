@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/features/feature_flags/domain/models/feature_flags.dart';
 import 'package:crushhour/features/feature_flags/data/repositories/feature_flag_repository.dart';
@@ -483,7 +484,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(states.last.status, FeatureFlagStatus.error);
-      expect(states.last.errorMessage, 'Failed to refresh flags');
+      expect(states.last.errorMessage, ErrorMessages.generic);
 
       await sub.cancel();
       await failCubit.close();
