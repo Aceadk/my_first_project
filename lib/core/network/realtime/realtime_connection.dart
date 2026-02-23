@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:crushhour/core/app_logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -51,6 +52,7 @@ class WebSocketConnection {
   Timer? _reconnectTimer;
   int _reconnectCount = 0;
   bool _intentionalDisconnect = false;
+  DateTime? _lastPongReceived; // RT-002: Track pong responses
 
   final _stateController = StreamController<ConnectionState>.broadcast();
   final _messageController = StreamController<Map<String, dynamic>>.broadcast();
@@ -84,11 +86,12 @@ class WebSocketConnection {
     _setState(ConnectionState.connecting);
 
     try {
-      final uri = Uri.parse(url);
-      final headers = <String, String>{};
-
+      // RT-001: Pass auth token as query parameter for WebSocket authentication
+      var uri = Uri.parse(url);
       if (authToken != null) {
-        headers['Authorization'] = 'Bearer $authToken';
+        uri = uri.replace(
+          queryParameters: {...uri.queryParameters, 'token': authToken!},
+        );
       }
 
       _channel = WebSocketChannel.connect(uri, protocols: ['json']);
@@ -104,6 +107,7 @@ class WebSocketConnection {
 
       _setState(ConnectionState.connected);
       _reconnectCount = 0;
+      _lastPongReceived = DateTime.now(); // RT-002: Initialize pong timestamp
       _startHeartbeat();
 
       AppLogger.debug('WebSocketConnection: Connected to $url');
@@ -166,6 +170,7 @@ class WebSocketConnection {
 
       // Handle pong messages internally
       if (message['type'] == 'pong') {
+        _lastPongReceived = DateTime.now(); // RT-002: Track pong
         return;
       }
 
@@ -204,6 +209,18 @@ class WebSocketConnection {
     _stopHeartbeat();
     _heartbeatTimer = Timer.periodic(heartbeatInterval, (_) {
       if (isConnected) {
+        // RT-002: Check for pong timeout (2× heartbeat interval)
+        if (_lastPongReceived != null) {
+          final elapsed = DateTime.now().difference(_lastPongReceived!);
+          if (elapsed > heartbeatInterval * 2) {
+            AppLogger.warning(
+              'WebSocketConnection: Pong timeout (${elapsed.inSeconds}s) — triggering reconnect',
+            );
+            _onDone(); // Triggers reconnect logic
+            return;
+          }
+        }
+
         send({
           'type': 'ping',
           'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -243,9 +260,9 @@ class WebSocketConnection {
         initialReconnectDelay.inMilliseconds * (1 << _reconnectCount);
     final cappedDelay = baseDelay.clamp(0, maxReconnectDelay.inMilliseconds);
 
-    // Add jitter (±20%)
-    final jitter =
-        (cappedDelay * 0.2 * (DateTime.now().millisecond / 1000 - 0.5)).round();
+    // RT-006: Proper cryptographic jitter (±20%)
+    final jitter = (cappedDelay * 0.4 * (Random.secure().nextDouble() - 0.5))
+        .round();
     return Duration(milliseconds: cappedDelay + jitter);
   }
 
@@ -255,8 +272,9 @@ class WebSocketConnection {
   }
 
   /// Dispose resources.
-  void dispose() {
-    disconnect();
+  Future<void> dispose() async {
+    // RT-003: Properly await disconnect before closing controllers
+    await disconnect();
     _stateController.close();
     _messageController.close();
     _errorController.close();

@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
-import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
+import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
+import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// State for profile insights.
 class ProfileInsightsState extends Equatable {
@@ -106,7 +107,13 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
           isLoading: false,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      AppLogger.blocError(
+        bloc: 'ProfileInsightsCubit',
+        action: 'loadInsights',
+        error: e,
+        stackTrace: s,
+      );
       emit(
         state.copyWith(
           isLoading: false,
@@ -131,7 +138,13 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
           isRefreshing: false,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      AppLogger.blocError(
+        bloc: 'ProfileInsightsCubit',
+        action: 'refreshInsights',
+        error: e,
+        stackTrace: s,
+      );
       emit(
         state.copyWith(
           isRefreshing: false,
@@ -157,7 +170,13 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
       );
 
       emit(state.copyWith(insights: insights, isLoading: false));
-    } catch (e) {
+    } catch (e, s) {
+      AppLogger.blocError(
+        bloc: 'ProfileInsightsCubit',
+        action: 'getInsightsForRange',
+        error: e,
+        stackTrace: s,
+      );
       emit(
         state.copyWith(
           isLoading: false,

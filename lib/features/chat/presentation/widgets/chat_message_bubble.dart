@@ -11,10 +11,10 @@ import 'package:crushhour/design_system/tokens/sizes.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// A single chat message bubble with glass morphism styling.
 ///
@@ -419,13 +419,16 @@ class ChatMessageBubble extends StatelessWidget {
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    // CHAT-UI-003: Cap media at 400px width and 40% of screen height
     final mediaWidth = DsBreakpoints.responsiveValue<double>(
       screenWidth,
       mobile: (screenWidth * 0.7).clamp(160.0, 260.0),
       tablet: 400,
-      desktop: 500,
+      desktop: 400,
     );
-    final mediaHeight = (mediaWidth * 1.18).clamp(180.0, 500.0);
+    final maxMediaHeight = screenHeight * 0.4; // 40% of screen height
+    final mediaHeight = (mediaWidth * 1.18).clamp(180.0, maxMediaHeight);
 
     switch (message.type) {
       case MessageType.image:

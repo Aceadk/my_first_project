@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
+
 import 'chat_settings.dart';
+import 'favourites.dart';
 import 'preferences.dart';
 import 'privacy_settings.dart';
 import 'profile_prompt.dart';
-import 'favourites.dart';
 
 class Profile extends Equatable {
   // ═══════════════════════════════════════════════════════════════════════════
@@ -140,7 +141,8 @@ class Profile extends Equatable {
   final String? smoking;
   final String? drinking;
   final String? diet;
-  final String? exercise; // Legacy field, kept for compatibility
+  @Deprecated('Use workout instead — exercise is a legacy duplicate field')
+  final String? exercise;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PETS

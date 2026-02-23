@@ -1,5 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to clear all user-specific data on logout.
 ///
@@ -49,6 +49,12 @@ class UserDataClearanceService {
     // Locale settings (user-specific location)
     'locale_latitude',
     'locale_longitude',
+
+    // DB-002: Offline queue and cache storage (critical for data isolation)
+    'offline_action_queue',
+    'offline_profile_cache',
+    'offline_deck_cache',
+    'offline_deck_cached_at',
   ];
 
   /// Clear all user-specific data from the device.

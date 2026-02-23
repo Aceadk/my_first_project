@@ -11,6 +11,7 @@ import 'package:crushhour/core/network/dto/upload_response_dto.dart';
 import 'package:crushhour/core/network/mappers/chat_mapper.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
 import 'package:crushhour/core/network/realtime/realtime_connection.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
@@ -25,14 +26,29 @@ import '../chat_repository.dart';
 class HttpChatRepository implements ChatRepository {
   HttpChatRepository({
     required ApiClient apiClient,
+    String currentUserId = '',
     WebSocketConnection? webSocket,
   }) : _apiClient = apiClient,
+       _currentUserId = currentUserId,
        _webSocket = webSocket,
-       _circuitBreaker = CircuitBreakerRegistry.instance.get('chat');
+       _circuitBreaker = CircuitBreakerRegistry.instance.get('chat') {
+    // CHAT-005: Wire WebSocket listener for real-time message delivery
+    _webSocketSubscription = _webSocket?.messageStream.listen(
+      _onWebSocketMessage,
+    );
+  }
 
   final ApiClient _apiClient;
+  String _currentUserId;
   final WebSocketConnection? _webSocket;
   final CircuitBreaker _circuitBreaker;
+  StreamSubscription<Map<String, dynamic>>? _webSocketSubscription;
+  Timer? _typingCancelTimer;
+
+  /// Update the current user ID after authentication.
+  void updateCurrentUserId(String userId) {
+    _currentUserId = userId;
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // POLLING CONFIGURATION
@@ -100,7 +116,7 @@ class HttpChatRepository implements ChatRepository {
 
     final response = dto.MessagesResponseDto.fromJson(result.data!);
     final messages = response.messages
-        .map((m) => ChatMapper.messageFromDto(m, toUserId: ''))
+        .map((m) => ChatMapper.messageFromDto(m, toUserId: _currentUserId))
         .toList();
 
     return PaginatedResult(
@@ -221,6 +237,15 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('File not found: $filePath');
     }
 
+    // CHAT-003: Validate file size before uploading
+    final fileSize = await file.length();
+    const maxImageSize = 25 * 1024 * 1024; // 25 MB
+    const maxVideoSize = 100 * 1024 * 1024; // 100 MB
+    final maxSize = type == MessageType.video ? maxVideoSize : maxImageSize;
+    if (fileSize > maxSize) {
+      throw Exception('File too large (max ${maxSize ~/ (1024 * 1024)} MB)');
+    }
+
     // Determine the upload endpoint and field name based on type
     final endpoint = '/chat/$matchId/media';
     final mediaType = switch (type) {
@@ -299,9 +324,12 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
+    // CHAT-008: Sanitize edited content
+    final sanitizedContent = InputSanitizer.sanitizeMessage(newContent);
+
     final result = await _apiClient.patch<void>(
       '/chat/$matchId/messages/$messageId',
-      body: {'content': newContent},
+      body: {'content': sanitizedContent},
     );
 
     if (result.isFailure) {
@@ -472,6 +500,14 @@ class HttpChatRepository implements ChatRepository {
     required String userId,
     required bool isTyping,
   }) async {
+    // CHAT-007: Auto-cancel typing indicator after 10 seconds
+    _typingCancelTimer?.cancel();
+    if (isTyping) {
+      _typingCancelTimer = Timer(const Duration(seconds: 10), () {
+        setTyping(matchId: matchId, userId: userId, isTyping: false);
+      });
+    }
+
     // Send via WebSocket if available
     if (_webSocket?.isConnected == true) {
       _webSocket!.sendEvent(
@@ -650,31 +686,47 @@ class HttpChatRepository implements ChatRepository {
     _circuitBreaker.recordSuccess();
   }
 
+  // CHAT-001: Added circuit breaker to unblockUser
   @override
   Future<void> unblockUser({
     required String blockerId,
     required String blockedId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(
       ApiEndpoints.unblockUser,
       body: {'blocked_id': blockedId},
     );
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to unblock user');
     }
+
+    _circuitBreaker.recordSuccess();
   }
 
+  // CHAT-001: Added circuit breaker to unmatch
   @override
   Future<void> unmatch({
     required String matchId,
     required String userId,
   }) async {
+    if (!_circuitBreaker.allowRequest()) {
+      throw Exception('Service unavailable (Circuit open)');
+    }
+
     final result = await _apiClient.post<void>(ApiEndpoints.unmatch(matchId));
 
     if (result.isFailure) {
+      _circuitBreaker.recordFailure();
       throw Exception(result.error?.message ?? 'Failed to unmatch');
     }
+
+    _circuitBreaker.recordSuccess();
   }
 
   @override
@@ -735,9 +787,8 @@ class HttpChatRepository implements ChatRepository {
     String? toUserName,
     String? toUserPhotoUrl,
   }) async {
-    throw UnsupportedError(
-      'Message requests are not supported in HTTP backend.',
-    );
+    // CHAT-004: Throw user-friendly exception instead of UnsupportedError
+    throw Exception('Message requests are not yet available.');
   }
 
   @override
@@ -794,8 +845,45 @@ class HttpChatRepository implements ChatRepository {
     _presenceControllers.remove(userId);
   }
 
+  // CHAT-005: Handle incoming WebSocket messages
+  void _onWebSocketMessage(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    if (type == 'message_received') {
+      final event = MessageReceivedEvent.fromJson(data);
+      final matchId = event.conversationId;
+      // Refresh messages for this conversation
+      _fetchMessages(matchId);
+    } else if (type == 'typing') {
+      final matchId = data['conversation_id'] as String?;
+      final userId = data['user_id'] as String?;
+      final isTyping = data['is_typing'] as bool? ?? false;
+      if (matchId != null && userId != null) {
+        final current = <String>{};
+        if (isTyping) {
+          current.add(userId);
+        }
+        _typingControllers[matchId]?.add(current);
+      }
+    } else if (type == 'presence') {
+      final userId = data['user_id'] as String?;
+      final isOnline = data['is_online'] as bool? ?? false;
+      if (userId != null) {
+        _presenceControllers[userId]?.add(isOnline);
+      }
+    } else if (type == 'read_receipt') {
+      // RT-005: Handle read receipt events
+      final matchId = data['conversation_id'] as String?;
+      if (matchId != null) {
+        _fetchMessages(matchId);
+      }
+    }
+  }
+
   /// Dispose all resources.
   void dispose() {
+    _webSocketSubscription?.cancel();
+    _typingCancelTimer?.cancel();
+
     for (final timer in _pollingTimers.values) {
       timer.cancel();
     }
@@ -827,8 +915,18 @@ class HttpChatRepository implements ChatRepository {
   @override
   bool get isE2eeEnabled => false;
 
+  // CHAT-006: Log warning when E2EE is toggled but unsupported
   @override
-  void setE2eeEnabled(bool enabled) {}
+  void setE2eeEnabled(bool enabled) {
+    if (enabled) {
+      AppLogger.warning(
+        'HttpChatRepository: E2EE is not supported in HTTP backend',
+      );
+      throw Exception(
+        'End-to-end encryption is not available with the current backend.',
+      );
+    }
+  }
 
   @override
   bool isEncryptedContent(String content) => false;

@@ -38,10 +38,11 @@ class FirebaseNotificationRepository implements NotificationRepository {
       return snapshot.docs
           .map((doc) => _fromFirestore(doc.id, doc.data()))
           .toList();
-    } catch (e) {
+    } catch (e, s) {
       AppLogger.error(
         'FirebaseNotificationRepository: fetchNotifications failed',
         error: e,
+        stackTrace: s,
       );
       return const [];
     }
@@ -66,10 +67,11 @@ class FirebaseNotificationRepository implements NotificationRepository {
   Future<void> markAsRead(String userId, String notificationId) async {
     try {
       await _collection(userId).doc(notificationId).update({'isRead': true});
-    } catch (e) {
+    } catch (e, s) {
       AppLogger.error(
         'FirebaseNotificationRepository: markAsRead failed',
         error: e,
+        stackTrace: s,
       );
     }
   }
@@ -88,10 +90,11 @@ class FirebaseNotificationRepository implements NotificationRepository {
         batch.update(doc.reference, {'isRead': true});
       }
       await batch.commit();
-    } catch (e) {
+    } catch (e, s) {
       AppLogger.error(
         'FirebaseNotificationRepository: markAllAsRead failed',
         error: e,
+        stackTrace: s,
       );
     }
   }

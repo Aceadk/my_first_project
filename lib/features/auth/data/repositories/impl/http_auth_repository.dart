@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
@@ -7,15 +9,18 @@ import 'package:crushhour/core/network/dto/auth_dto.dart';
 import 'package:crushhour/core/network/mappers/auth_mapper.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../auth_repository.dart';
 
 /// HTTP-based implementation of AuthRepository.
 ///
 /// Uses REST API for authentication operations with secure token storage.
-class HttpAuthRepository implements AuthRepository {
+class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
   HttpAuthRepository({
     ApiClient? apiClient,
     FlutterSecureStorage? secureStorage,
@@ -47,7 +52,14 @@ class HttpAuthRepository implements AuthRepository {
   bool get supportsUsernameLogin => true;
 
   @override
-  bool get supportsAppleSignIn => false;
+  bool get supportsAppleSignIn =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
+
+  @override
+  bool get supportsGoogleSignIn => true;
+
+  bool _isGoogleSignInInitialized = false;
 
   @override
   Stream<CrushUser?> authStateChanges() => _authStateController.stream;
@@ -231,15 +243,150 @@ class HttpAuthRepository implements AuthRepository {
 
   @override
   Future<CrushUser> signInWithApple() async {
-    throw UnimplementedError(
-      'Apple Sign-In is not supported for the HTTP backend yet.',
-    );
+    try {
+      final isAvailable = await SignInWithApple.isAvailable();
+      if (!isAvailable) {
+        throw Exception('Apple Sign-In is not available on this device.');
+      }
+
+      // PKCE: Generate code_verifier and code_challenge
+      final codeVerifier = _generateCodeVerifier();
+      final codeChallenge = _sha256Base64Url(codeVerifier);
+
+      // Generate nonce for replay-attack protection
+      final rawNonce = _generateNonce();
+      final hashedNonce = _sha256ofString(rawNonce);
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
+      );
+
+      final idToken = appleCredential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Apple Sign-In failed. Missing identity token.');
+      }
+
+      // Send to backend with PKCE parameters
+      final result = await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.authOAuthApple,
+        body: {
+          'id_token': idToken,
+          'authorization_code': appleCredential.authorizationCode,
+          'nonce': rawNonce,
+          'code_verifier': codeVerifier,
+          'code_challenge': codeChallenge,
+          'code_challenge_method': 'S256',
+          if (appleCredential.givenName != null)
+            'given_name': appleCredential.givenName,
+          if (appleCredential.familyName != null)
+            'family_name': appleCredential.familyName,
+          if (appleCredential.email != null) 'email': appleCredential.email,
+        },
+        requiresAuth: false,
+        parser: (data) => data as Map<String, dynamic>,
+      );
+
+      if (result.isFailure) {
+        throw Exception(
+          result.error?.message ?? 'Apple Sign-In failed on server.',
+        );
+      }
+
+      final response = VerifyOtpResponseDto.fromJson(result.data!);
+      if (!response.success ||
+          response.user == null ||
+          response.tokens == null) {
+        throw Exception(response.message ?? 'Apple Sign-In failed.');
+      }
+
+      await _storeTokens(response.tokens!);
+      _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+      _emitAuthState(_currentUser);
+      return _currentUser!;
+    } catch (e) {
+      AppLogger.error('[HttpAuthRepo] Apple sign-in failed', error: e);
+      rethrow;
+    }
   }
 
+  @override
   Future<CrushUser> signInWithGoogle() async {
-    throw UnimplementedError(
-      'Google Sign-In is not supported for the HTTP backend yet.',
-    );
+    try {
+      await _ensureGoogleSignInInitialized();
+
+      // PKCE: Generate code_verifier and code_challenge
+      final codeVerifier = _generateCodeVerifier();
+      final codeChallenge = _sha256Base64Url(codeVerifier);
+
+      final googleUser = await GoogleSignIn.instance.authenticate(
+        scopeHint: const <String>['email', 'profile'],
+      );
+
+      final idToken = googleUser.authentication.idToken;
+      String? accessToken;
+      if (idToken == null || idToken.isEmpty) {
+        final existingAuth = await googleUser.authorizationClient
+            .authorizationForScopes(const <String>['email', 'profile']);
+        accessToken = existingAuth?.accessToken;
+
+        if (accessToken == null || accessToken.isEmpty) {
+          final promptedAuth = await googleUser.authorizationClient
+              .authorizeScopes(const <String>['email', 'profile']);
+          accessToken = promptedAuth.accessToken;
+        }
+      }
+
+      if ((idToken == null || idToken.isEmpty) &&
+          (accessToken == null || accessToken.isEmpty)) {
+        throw Exception('Google Sign-In failed. Missing auth tokens.');
+      }
+
+      // Send to backend with PKCE parameters
+      final result = await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.authOAuthGoogle,
+        body: {
+          if (idToken != null && idToken.isNotEmpty) 'id_token': idToken,
+          if (accessToken != null && accessToken.isNotEmpty)
+            'access_token': accessToken,
+          'code_verifier': codeVerifier,
+          'code_challenge': codeChallenge,
+          'code_challenge_method': 'S256',
+        },
+        requiresAuth: false,
+        parser: (data) => data as Map<String, dynamic>,
+      );
+
+      if (result.isFailure) {
+        throw Exception(
+          result.error?.message ?? 'Google Sign-In failed on server.',
+        );
+      }
+
+      final response = VerifyOtpResponseDto.fromJson(result.data!);
+      if (!response.success ||
+          response.user == null ||
+          response.tokens == null) {
+        throw Exception(response.message ?? 'Google Sign-In failed.');
+      }
+
+      await _storeTokens(response.tokens!);
+      _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
+      _emitAuthState(_currentUser);
+      return _currentUser!;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('Google Sign-In was cancelled.');
+      }
+      AppLogger.error('[HttpAuthRepo] Google sign-in failed', error: e);
+      throw Exception(e.description ?? 'Google Sign-In failed.');
+    } catch (e) {
+      AppLogger.error('[HttpAuthRepo] Google sign-in failed', error: e);
+      rethrow;
+    }
   }
 
   @override
@@ -700,6 +847,52 @@ class HttpAuthRepository implements AuthRepository {
       logLabel: 'HttpAuthRepository.signInWithGoogleResult',
       fallbackError: 'Google Sign-In failed. Please try again.',
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PKCE & OAUTH HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (_isGoogleSignInInitialized) return;
+    await GoogleSignIn.instance.initialize();
+    _isGoogleSignInInitialized = true;
+  }
+
+  /// Generate a cryptographically random PKCE code_verifier (43–128 chars).
+  static String _generateCodeVerifier([int length = 64]) {
+    const charset =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  /// S256 code_challenge = BASE64URL(SHA256(code_verifier)).
+  static String _sha256Base64Url(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return base64Url.encode(digest.bytes).replaceAll('=', '');
+  }
+
+  /// Generate a random nonce for replay-attack protection.
+  static String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  /// SHA-256 hash of a string, returned as hex.
+  static String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   /// Dispose resources.

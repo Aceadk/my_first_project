@@ -1,9 +1,9 @@
+import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/core/app_logger.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/services/analytics_service.dart';
-import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 
 /// State for chat session lifecycle: unmatch status, E2EE toggle, other user photo.
 class ChatSessionState extends Equatable {
@@ -65,7 +65,15 @@ class ChatSessionCubit extends Cubit<ChatSessionState> {
 
   ChatSessionCubit({required this.chatRepository})
     : super(const ChatSessionState()) {
-    chatRepository.setE2eeEnabled(_e2eeEnabled);
+    // RT-004: Wrap in try-catch — HTTP backend throws when E2EE is unsupported
+    try {
+      chatRepository.setE2eeEnabled(_e2eeEnabled);
+    } catch (e) {
+      _e2eeEnabled = false;
+      AppLogger.debug(
+        'ChatSessionCubit: E2EE not supported by backend, disabling',
+      );
+    }
   }
 
   /// Initialize session state when chat opens.

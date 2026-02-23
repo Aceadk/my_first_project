@@ -2,9 +2,10 @@ import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/domain/use_cases/use_case.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
-import 'package:crushhour/domain/use_cases/use_case.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Parameters for right swipe (like).
 class SwipeRightParams {
@@ -48,14 +49,40 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
   final SubscriptionRepository _subscriptionRepository;
 
   /// Tracks remaining free swipes for the session.
-  /// Reset when the day changes or user upgrades.
+  /// DISC-003: Persisted to SharedPreferences to survive app restarts.
   int? _remainingFreeSwipesToday;
+  static const _swipeCountKey = 'discovery_free_swipes_remaining';
+  static const _swipeDateKey = 'discovery_free_swipes_date';
 
   SwipeRightUseCase(this._discoveryRepository, this._subscriptionRepository);
 
   /// Reset the daily swipe counter (call at day change or plan upgrade).
   void resetDailyCounter() {
     _remainingFreeSwipesToday = null;
+  }
+
+  /// DISC-003: Load persisted counter, resetting if date has changed.
+  Future<int> _loadOrInitCounter() async {
+    if (_remainingFreeSwipesToday != null) return _remainingFreeSwipesToday!;
+    final prefs = await SharedPreferences.getInstance();
+    final savedDate = prefs.getString(_swipeDateKey);
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (savedDate == today) {
+      _remainingFreeSwipesToday =
+          prefs.getInt(_swipeCountKey) ?? CrushConstants.freeDailySwipeLimit;
+    } else {
+      _remainingFreeSwipesToday = CrushConstants.freeDailySwipeLimit;
+      await prefs.setString(_swipeDateKey, today);
+      await prefs.setInt(_swipeCountKey, _remainingFreeSwipesToday!);
+    }
+    return _remainingFreeSwipesToday!;
+  }
+
+  /// DISC-003: Persist the counter after each swipe.
+  Future<void> _persistCounter() async {
+    if (_remainingFreeSwipesToday == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_swipeCountKey, _remainingFreeSwipesToday!);
   }
 
   @override
@@ -76,9 +103,10 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
 
     // Check swipe limits for free users
     if (plan.isFree) {
-      _remainingFreeSwipesToday ??= CrushConstants.freeDailySwipeLimit;
+      // DISC-003: Load persisted counter
+      final remaining = await _loadOrInitCounter();
 
-      if (_remainingFreeSwipesToday! <= 0) {
+      if (remaining <= 0) {
         return const Result.success(
           SwipeRightResult(success: false, remainingSwipes: 0),
         );
@@ -105,6 +133,8 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
     if (plan.isFree && _remainingFreeSwipesToday != null) {
       _remainingFreeSwipesToday = _remainingFreeSwipesToday! - 1;
       remaining = _remainingFreeSwipesToday;
+      // DISC-003: Persist after decrement
+      await _persistCounter();
     }
 
     return Result.success(

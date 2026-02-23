@@ -3,8 +3,8 @@ import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/discovery_dto.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
-import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/match.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 
 /// HTTP-based implementation of DiscoveryRepository.
@@ -114,7 +114,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
   @override
   Future<List<Profile>> fetchTopPicks(String userId) async {
     final result = await _apiClient.get<Map<String, dynamic>>(
-      '/discovery/top-picks',
+      ApiEndpoints.discoveryTopPicks,
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -142,7 +142,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
   @override
   Future<List<Profile>> fetchLikesYou(String userId) async {
     final result = await _apiClient.get<Map<String, dynamic>>(
-      '/discovery/likes-you',
+      ApiEndpoints.discoveryLikesYou,
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -189,8 +189,9 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<Profile?> fetchProfileById(String profileId) async {
+    // DISC-002: Use ApiEndpoints.profiles() which sanitizes the ID
     final result = await _apiClient.get<Map<String, dynamic>>(
-      '/profiles/$profileId',
+      ApiEndpoints.profiles(profileId),
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -219,7 +220,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     final result = await _apiClient.post<Map<String, dynamic>>(
-      '/discovery/super-like',
+      ApiEndpoints.discoverySuperLike,
       body: request.toJson(),
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -245,7 +246,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
   @override
   Future<Profile?> rewindLastSwipe(String userId) async {
     final result = await _apiClient.post<Map<String, dynamic>>(
-      '/discovery/rewind',
+      ApiEndpoints.discoveryRewind,
       parser: (data) => data as Map<String, dynamic>,
     );
 

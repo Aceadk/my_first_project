@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:crushhour/core/app_logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/constants/cache_constants.dart';
-import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
+import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for caching profiles and data for offline access.
 class OfflineCacheService {
@@ -260,6 +261,8 @@ class OfflineCacheService {
         ),
       );
     } catch (e) {
+      // DB-004: Log cache corruption for debugging
+      AppLogger.error('OfflineCacheService: Corrupted profile cache data: $e');
       return {};
     }
   }

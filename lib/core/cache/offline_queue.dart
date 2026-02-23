@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+
 import 'package:crushhour/core/app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,6 +74,8 @@ typedef ActionHandler = Future<ActionResult> Function(PendingAction action);
 /// in order when connectivity is restored.
 class OfflineActionQueue {
   static const _storageKey = 'offline_action_queue';
+  // DB-001: Limit queue size to prevent unbounded growth
+  static const _maxQueueSize = 500;
 
   final Queue<PendingAction> _queue = Queue();
   final Map<String, ActionHandler> _handlers = {};
@@ -96,6 +99,10 @@ class OfflineActionQueue {
 
   /// Add an action to the queue.
   Future<void> enqueue(PendingAction action) async {
+    // DB-001: Evict oldest entries if at capacity
+    while (_queue.length >= _maxQueueSize) {
+      _queue.removeFirst();
+    }
     _queue.add(action);
     await _persist();
     _emitStatus();
@@ -128,52 +135,55 @@ class OfflineActionQueue {
     _isProcessing = true;
     _emitStatus();
 
-    while (_queue.isNotEmpty) {
-      final action = _queue.first;
-      final handler = _handlers[action.type];
+    // DB-003: try-finally ensures _isProcessing is always reset
+    try {
+      while (_queue.isNotEmpty) {
+        final action = _queue.first;
+        final handler = _handlers[action.type];
 
-      if (handler == null) {
-        // No handler registered, skip
-        _queue.removeFirst();
-        continue;
-      }
-
-      try {
-        final result = await handler(action);
-
-        switch (result) {
-          case ActionResult.success:
-            _queue.removeFirst();
-            break;
-
-          case ActionResult.retryable:
-            if (action.canRetry) {
-              _queue.removeFirst();
-              _queue.add(action.incrementRetry());
-            } else {
-              _queue.removeFirst();
-            }
-            break;
-
-          case ActionResult.failed:
-            _queue.removeFirst();
-            break;
+        if (handler == null) {
+          // No handler registered, skip
+          _queue.removeFirst();
+          continue;
         }
-      } catch (e) {
-        // Network error, stop processing and schedule retry
-        AppLogger.error(
-          'OfflineQueue: Network error processing action, scheduling retry: $e',
-        );
-        _scheduleRetry();
-        break;
-      }
 
-      await _persist();
+        try {
+          final result = await handler(action);
+
+          switch (result) {
+            case ActionResult.success:
+              _queue.removeFirst();
+              break;
+
+            case ActionResult.retryable:
+              if (action.canRetry) {
+                _queue.removeFirst();
+                _queue.add(action.incrementRetry());
+              } else {
+                _queue.removeFirst();
+              }
+              break;
+
+            case ActionResult.failed:
+              _queue.removeFirst();
+              break;
+          }
+        } catch (e) {
+          // Network error, stop processing and schedule retry
+          AppLogger.error(
+            'OfflineQueue: Network error processing action, scheduling retry: $e',
+          );
+          _scheduleRetry();
+          break;
+        }
+
+        await _persist();
+        _emitStatus();
+      }
+    } finally {
+      _isProcessing = false;
       _emitStatus();
     }
-
-    _isProcessing = false;
-    _emitStatus();
   }
 
   void _scheduleRetry() {

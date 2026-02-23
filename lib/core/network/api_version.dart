@@ -158,6 +158,8 @@ class ApiEndpoints {
   static const String authVerifyOtp = '/auth/otp/verify';
   static const String authRefreshToken = '/auth/token/refresh';
   static const String authLogout = '/auth/logout';
+  static const String authOAuthApple = '/auth/oauth/apple';
+  static const String authOAuthGoogle = '/auth/oauth/google';
 
   // ─────────────────────────────────────────────────────────────────────────
   // PROFILE
@@ -179,6 +181,13 @@ class ApiEndpoints {
   static const String discoverySwipe = '/discovery/swipe';
   static const String discoverySettings = '/discovery/settings';
   static const String discoveryBoost = '/discovery/boost';
+  // DISC-001: Previously hardcoded in HttpDiscoveryRepository
+  static const String discoveryTopPicks = '/discovery/top-picks';
+  static const String discoveryLikesYou = '/discovery/likes-you';
+  static const String discoverySuperLike = '/discovery/super-like';
+  static const String discoveryRewind = '/discovery/rewind';
+  static String profiles(String profileId) =>
+      '/profiles/${Uri.encodeComponent(profileId)}';
 
   // ─────────────────────────────────────────────────────────────────────────
   // CHAT
