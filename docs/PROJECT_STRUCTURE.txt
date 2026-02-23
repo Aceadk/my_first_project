@@ -85,7 +85,7 @@ ios/Flutter/Release.xcconfig
 ios/Flutter/Debug.xcconfig
 firestore.indexes.json
 tool/generate_app_icons.dart
-CLAUDE.md
+AGENTS.md
 lib/presentation/widgets/plus_feature_gate.dart
 lib/presentation/widgets/onboarding_progress.dart
 lib/presentation/widgets/upsell_widgets.dart

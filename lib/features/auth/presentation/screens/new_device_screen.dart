@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
-import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/design_system/widgets/primary_button.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NewDeviceScreen extends StatefulWidget {
   const NewDeviceScreen({super.key});
@@ -35,61 +35,67 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       title: 'New device check',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Verify a new device before continuing.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _identifierController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Username or email',
-              helperText: 'We will send a 6-digit code to the email on file.',
-              errorText: _identifierErrorText(),
-            ),
-            onTap: () => _markIdentifierTouched(),
-            onChanged: (_) => _markIdentifierTouched(),
-          ),
-          if (_otpSent) ...[
-            const SizedBox(height: 16),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Verification code',
-                helperText: 'Enter the 6-digit code from your email.',
-                errorText: _otpErrorText(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Verify a new device before continuing.',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-              onTap: () => _markOtpTouched(),
-              onChanged: (_) => _markOtpTouched(),
-            ),
-          ],
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: _otpSent ? 'Verify device' : 'Send code',
-            loading: _isLoading,
-            onPressed: _isLoading
-                ? null
-                : () {
-                    if (_otpSent) {
-                      _verifyOtp();
-                    } else {
-                      _requestOtp();
-                    }
-                  },
+              const SizedBox(height: 16),
+              TextField(
+                controller: _identifierController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Username or email',
+                  helperText:
+                      'We will send a 6-digit code to the email on file.',
+                  errorText: _identifierErrorText(),
+                ),
+                onTap: () => _markIdentifierTouched(),
+                onChanged: (_) => _markIdentifierTouched(),
+              ),
+              if (_otpSent) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Verification code',
+                    helperText: 'Enter the 6-digit code from your email.',
+                    errorText: _otpErrorText(),
+                  ),
+                  onTap: () => _markOtpTouched(),
+                  onChanged: (_) => _markOtpTouched(),
+                ),
+              ],
+              const SizedBox(height: 16),
+              PrimaryButton(
+                label: _otpSent ? 'Verify device' : 'Send code',
+                loading: _isLoading,
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        if (_otpSent) {
+                          _verifyOtp();
+                        } else {
+                          _requestOtp();
+                        }
+                      },
+              ),
+              if (_otpSent) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _isLoading ? null : _requestOtp,
+                  child: Text(AppLocalizations.of(context).resendCode),
+                ),
+              ],
+            ],
           ),
-          if (_otpSent) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _isLoading ? null : _requestOtp,
-              child: Text(AppLocalizations.of(context).resendCode),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

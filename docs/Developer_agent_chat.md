@@ -43,8 +43,6 @@ When the developer gives you a task:
 
 **Refined Prompt (Very Specific & Detailed):**
 
-### Objective
-[Clear sentences describing what needs to be accomplished]
 
 ### Technical Requirements
 1. [Specific requirement #1 with exact details]
@@ -68,14 +66,6 @@ When the developer gives you a task:
 ### Edge Cases & Error Handling
 - [Edge case #1] → [How to handle]
 - [Edge case #2] → [How to handle]
-
-### Verification Commands
-```
-[command 1]
-[command 2]
-```
-
-**Related Task ID:** T-XXX (if applicable)
 
 **Outcome:**
 - Files changed: [list with brief description of changes]
@@ -689,7 +679,7 @@ Move abstract repository classes (ProfileRepository, DiscoveryRepository, BoostR
 Create/update 7 audit deliverable documents covering findings (P0-P3), executive summary, remediation backlog, quality baseline, architecture packet, security report, and store compliance checklist.
 
 ### Technical Requirements
-1. Read all AI collaboration docs before starting (CLAUDE.md mandatory)
+1. Read all AI collaboration docs before starting (AGENTS.md mandatory)
 2. Read all existing audit files before updating
 3. Organize findings by severity with domain scores: Security 7.5/10, Architecture 7.2/10, Web 7.8/10, Testing 5.0/10
 4. Include all specific findings from audit summary (Firebase Storage, Play Integrity, CSP, rate limiting, 73 violations, ChatBloc, etc.)
@@ -1149,7 +1139,7 @@ Create a task logging system for developer-to-agent communications:
   - Log original request from developer
   - Create refined/improved prompt version
   - Track status and outcomes
-  - Update CLAUDE.md to reference this document
+  - Update AGENTS.md to reference this document
   - Update ai_tasks_board.md and ai_change_log.md
 - **Constraints:** Must integrate with existing AI collaboration workflow
 - **Expected outcome:** All future developer tasks are logged with refined prompts
@@ -1159,7 +1149,7 @@ Create a task logging system for developer-to-agent communications:
 **Outcome:**
 - Files changed:
   - `docs/Developer_agent_chat.md` (new file)
-  - `CLAUDE.md` (updated workflow)
+  - `AGENTS.md` (updated workflow)
   - `docs/ai_tasks_board.md` (new task entry)
   - `docs/ai_change_log.md` (logged changes)
 - Result: Task logging system in place
@@ -2811,7 +2801,7 @@ flutter analyze
 - **Primary goal:** Do both items previously offered: (1) clean up the new info-level lints from flutter_lints 6, and (2) update dev/CI toolchain configs to match Flutter 3.35 / Dart 3.9 minimums.
 - **Secondary goals:** Keep changes minimal and safe; avoid altering behavior while resolving lints.
 - **Implicit requirements:** Update any version pins (FVM, tool-versions, CI workflow) and verify analysis passes without the new lint warnings.
-- **Quality expectations:** No behavioral regressions; clean code; documentation/logs updated per CLAUDE.md.
+- **Quality expectations:** No behavioral regressions; clean code; documentation/logs updated per AGENTS.md.
 
 **Refined Prompt (Very Specific & Detailed):**
 
@@ -3206,7 +3196,7 @@ Developer provided the full 29-page "COMPREHENSIVE PROJECT AUDIT & REMEDIATION D
 **Refined Prompt:**
 - **Goal:** Execute a complete re-audit of the CRUSH app following the 29-page directive, building on previous audit work (Phases 0-6 completed on 2026-02-12). Identify remaining gaps, fix P0/P1 issues, expand test coverage, and generate all required deliverables.
 - **Scope:** Full stack — 472 Dart files, 166 web TS/TSX files, 45 Cloud Functions, 56 mobile routes, 43 web routes, Firestore/Storage rules, CI/CD pipeline.
-- **Constraints:** Follow CLAUDE.md protocol, update all AI collaboration docs, no breaking changes to existing working code.
+- **Constraints:** Follow AGENTS.md protocol, update all AI collaboration docs, no breaking changes to existing working code.
 - **Expected Outcome:** Updated audit deliverables in /audit, P0 issues documented for manual action, P1 code fixes applied, test coverage expanded significantly, all docs updated.
 
 **Key Findings So Far:**
@@ -4320,3 +4310,825 @@ CLEAN-005: Replace all hardcoded inline styles in `chat_screen.dart` (~103 insta
 CLEAN-005 complete: 0 remaining hardcoded EdgeInsets, BorderRadius, or Color hex in chat_screen.dart. CLEAN-006 Phase 1 complete: 3 duplicates eliminated, 5 documented for future. `flutter analyze`: 0 errors. `flutter test`: +1502 ~6 -4 (baseline preserved). TODO_CLEANUP_DEAD_CODE.md now 7/8 complete.
 
 **Related Task ID:** T-2026-02-20-CLEAN
+
+---
+
+### Task #063 — Merge AI Tracking Docs into One Unified Workboard
+**Date:** 2026-02-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+Merge `ai_change_log`, `ai_collab_chat`, and `ai_tasks_board` into one simpler document with less duplicated work/data/process, keep only important planning information, update `AGENTS.md` accordingly, and add a preference for extended code coverage instead of overly simplified limited code.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace the 3-doc AI tracking workflow with a single concise, planning-friendly source of truth.
+- **Scope:** Documentation/process files only (`docs/*.md`, `AGENTS.md`), no runtime feature code.
+- **Constraints:** Preserve essential planning context (active tasks, critical decisions, verification context), remove duplication, keep legacy compatibility paths, and fully log the task lifecycle.
+- **Expected Outcome:** New unified tracker document, old docs converted to archive pointers, AGENTS workflow updated to one-doc process, risk/process references aligned.
+
+**Status Updates:**
+- **Received:** Identified target docs and gathered their structure + latest relevant sections.
+- **In Progress:** Designed a unified schema (task status + change summary + decision notes in one entry) and migrated process references.
+- **Completed:** Unified tracker created, legacy docs archived as pointers, AGENTS/risk/task-log documentation updated.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md` (new canonical unified tracker)
+  - `docs/ai_change_log.md` (archive pointer)
+  - `docs/ai_tasks_board.md` (archive pointer)
+  - `docs/ai_collab_chat.md` (archive pointer)
+  - `AGENTS.md` (workflow updated to unified tracker + extended implementation preference)
+  - `docs/risk_notes.md` (R-035 updated to new process)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. AI workflow now tracks planning + changes + collaboration in one document.
+- **Verification:**
+  - `rg -n "ai_change_log\.md|ai_tasks_board\.md|ai_collab_chat\.md|ai_workboard\.md" AGENTS.md docs/risk_notes.md docs/Developer_agent_chat.md`
+  - `git diff -- docs/ai_workboard.md docs/ai_change_log.md docs/ai_tasks_board.md docs/ai_collab_chat.md AGENTS.md docs/risk_notes.md docs/Developer_agent_chat.md`
+- **Next step:** Use only `docs/ai_workboard.md` for all future AI task/change/decision updates.
+
+---
+
+### Task #064 — Close Risk R-035 with Automated Docs Sync Enforcement
+**Date:** 2026-02-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+solve the risk R-035 with the best changes as possible
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Resolve R-035 (collaboration-doc drift) using enforceable automation, not policy-only documentation.
+- **Scope:** Process/workflow files only (`scripts/`, `.github/workflows/`, `docs/`, `AGENTS.md`).
+- **Constraints:** Keep the unified tracker workflow, block legacy archive-doc modifications, and require mandatory task logs in canonical docs.
+- **Expected Outcome:** CI-enforced guard ensures every task change set includes `docs/ai_workboard.md` and `docs/Developer_agent_chat.md`, and R-035 can be moved to Closed.
+
+**Status Updates:**
+- **Received:** Reviewed R-035, AGENTS rules, and current CI workflow.
+- **In Progress:** Implemented docs-sync guard script and wired it into CI with push/PR coverage.
+- **Completed:** Updated policy docs and risk register; verified guard behavior on this task change set.
+
+**Outcome:**
+- **Files changed:**
+  - `scripts/check_ai_docs_sync.sh` (new automated enforcement script)
+  - `.github/workflows/ci.yml` (new `docs_sync` CI job)
+  - `AGENTS.md` (guard marked mandatory)
+  - `docs/ai_workboard.md` (task log + durable decision update)
+  - `docs/risk_notes.md` (R-035 set to Closed with concrete mitigation)
+  - `docs/Developer_agent_chat.md` (this task log)
+- **Result:** R-035 resolved with hard guardrails: missing required docs now fails checks, and legacy archive docs are restricted to pointer-only format.
+- **Verification:**
+  - `scripts/check_ai_docs_sync.sh --files scripts/check_ai_docs_sync.sh .github/workflows/ci.yml AGENTS.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+  - `bash -n scripts/check_ai_docs_sync.sh`
+- **Next step:** Keep this guard as a permanent CI quality gate for all future agent tasks.
+
+---
+
+### Task #065 — Remove Deprecated AI Tracking Docs and Keep Workboard Only
+**Date:** 2026-02-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+remove ai_change_log, ai_vollab_chat, ai_tasks_board and update ai_workboard as needed
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Remove deprecated AI tracking files and keep `docs/ai_workboard.md` as the single source of truth.
+- **Scope:** Docs/process files only (`docs/`, `AGENTS.md`, `scripts/check_ai_docs_sync.sh`).
+- **Constraints:** Preserve the unified workflow, ensure CI/doc guard still works, and prevent old docs from being reintroduced.
+- **Expected Outcome:** Files deleted, references updated, guard/policy aligned, and task fully logged.
+
+**Status Updates:**
+- **Received:** Confirmed target files and current references across docs/workflow scripts.
+- **In Progress:** Removed files and updated rules/checks to enforce the new state.
+- **Completed:** Unified workflow now points only to `docs/ai_workboard.md`; deprecated docs are removed and blocked from reintroduction.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_change_log.md` (deleted)
+  - `docs/ai_tasks_board.md` (deleted)
+  - `docs/ai_collab_chat.md` (deleted)
+  - `docs/ai_workboard.md` (updated migration notes + new task log)
+  - `AGENTS.md` (deprecated-doc rule updated)
+  - `scripts/check_ai_docs_sync.sh` (deprecated-doc enforcement updated)
+  - `docs/risk_notes.md` (R-035 wording aligned to removal)
+  - `docs/TODO_WEBAPP.md` (quick links updated)
+  - `docs/Developer_agent_chat.md` (this task log)
+- **Result:** Success. The 3 files are removed; workflow and CI guard now enforce the removed state.
+- **Verification:**
+  - `ls docs/ai_change_log.md docs/ai_tasks_board.md docs/ai_collab_chat.md` (expected: not found)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_change_log.md docs/ai_tasks_board.md docs/ai_collab_chat.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+  - `scripts/check_ai_docs_sync.sh --range HEAD`
+- **Next step:** Continue all AI task/change/collaboration tracking in `docs/ai_workboard.md` only.
+
+---
+
+### Task #066 — TODO_WEBAPP Start: Add GitHub Actions CI (Lint + Test)
+**Date:** 2026-02-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start working on TODO_WEBAPP.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Begin active execution of `docs/TODO_WEBAPP.md` by completing the first concrete CI item.
+- **Scope:** Web repository CI setup at `/Users/ace/crush-web` plus TODO document updates in this repo.
+- **Constraints:** Keep implementation incremental, verify with real commands, and log all outcomes in required collaboration docs.
+- **Expected Outcome:** GitHub Actions workflow exists for web lint/test, TODO checkboxes are updated, and verification evidence is captured.
+
+**Status Updates:**
+- **Received:** Reviewed TODO_WEBAPP and identified the first open foundational item: GitHub Actions CI (test + lint).
+- **In Progress:** Added workflow in web repo and updated TODO status entries.
+- **Completed:** Verified lint/test execution and logged completion.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/.github/workflows/ci.yml` (new web CI workflow)
+  - `docs/TODO_WEBAPP.md` (CI items marked complete + change log row)
+  - `docs/ai_workboard.md` (task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. TODO_WEBAPP execution has started with CI coverage added for web lint and unit tests.
+- **Verification:**
+  - `pnpm lint` in `/Users/ace/crush-web` -> pass with warnings only (0 errors)
+  - `pnpm test` in `/Users/ace/crush-web` -> pass (4 files, 40 tests)
+- **Next step:** Continue TODO_WEBAPP with next high-priority open item (Google sign-in integration or Lighthouse audit).
+
+---
+
+### Task #067 — TODO_WEBAPP Continue: Auth Session Hardening + Messaging Parity
+**Date:** 2026-02-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+proceed / do everything (continue TODO_WEBAPP execution after CI setup)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue actionable implementation from `docs/TODO_WEBAPP.md` with real feature delivery (not checklist-only updates), prioritizing auth/session reliability and messaging parity.
+- **Scope:** Web app code in `/Users/ace/crush-web` and TODO/status documentation updates in this repository.
+- **Constraints:**
+  - Keep changes incremental and production-safe.
+  - Reuse existing architecture and avoid broad rewrites.
+  - Include verification via targeted lint/tests.
+  - Keep required AI workflow docs synced.
+- **Expected Outcome:** Remember-me + inactivity timeout are implemented end-to-end, email-link sign-in request flow is available, pinned conversations and ice-breakers are integrated in chat UX, and TODO_WEBAPP reflects actual shipped state.
+
+**Status Updates:**
+- **Received:** Audited TODO_WEBAPP and existing web code to separate already-shipped features from true gaps.
+- **In Progress:** Implemented auth/session API + middleware + client wiring, then messaging parity integrations.
+- **Completed:** Ran lint/tests in web repo and updated TODO/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/app/api/auth/session/route.ts` (remember-me cookie behavior + session metadata cookies)
+  - `/Users/ace/crush-web/apps/web/src/app/api/auth/activity/route.ts` (new endpoint for idle activity timestamp sync)
+  - `/Users/ace/crush-web/apps/web/src/middleware.ts` (inactivity timeout enforcement + timeout redirect reason)
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/auth-initializer.tsx` (activity tracking, idle warning, timed logout)
+  - `/Users/ace/crush-web/packages/core/src/services/auth.ts` (email-link sign-in helpers)
+  - `/Users/ace/crush-web/packages/core/src/stores/auth.ts` (remember-me state/action + email-link action + remember-aware cookie sync)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/login/login-form.tsx` (remember me checkbox, timeout message, send sign-in link action)
+  - `/Users/ace/crush-web/apps/web/src/app/finishSignIn/page.tsx` (redirect-aware email-link completion)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/page.tsx` (pinned conversations integration + pin toggles)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` (pin button + ice-breakers integration)
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/app-providers.tsx` (analytics provider enabled)
+  - `docs/TODO_WEBAPP.md` (updated completion status + new changelog line)
+  - `docs/ai_workboard.md` (task record)
+  - `docs/Developer_agent_chat.md` (this task log)
+- **Result:** Success. TODO_WEBAPP moved forward with end-to-end auth/session reliability and messaging UX parity improvements.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+- **Next step:** Implement remaining open auth hardening item (`new device verification`) and finish production-grade error/uptime monitoring.
+
+---
+
+### Task #068 — TODO_WEBAPP Continue: New Device Verification (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP execution by completing the remaining Authentication item: `New device verification`, with production-usable flow and account management support.
+- **Scope:** Web app code in `/Users/ace/crush-web` and required documentation updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep existing auth/session architecture and middleware model.
+  - Implement end-to-end flow, not a UI-only placeholder.
+  - Verify changes with project lint/test commands.
+  - Update required workflow docs (`ai_workboard`, `Developer_agent_chat`, TODO status).
+- **Expected Outcome:** Trusted-device service + auth-store integration + route gating + verification pages + settings management UI, with TODO marked complete.
+
+**Status Updates:**
+- **Received:** Audited auth/session/store/settings files and identified missing trusted-device model + flow.
+- **In Progress:** Implemented device security service, auth store trust actions/state, app-route gating, new verification pages, and trusted-device management UI.
+- **Completed:** Verified lint/tests, updated TODO_WEBAPP, and synced workflow documentation.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/services/device-security.ts` (new trusted-device service)
+  - `/Users/ace/crush-web/packages/core/src/index.ts` (exports)
+  - `/Users/ace/crush-web/packages/core/src/stores/auth.ts` (device trust state/actions + trust checks)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/layout.tsx` (device trust gating for app routes)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/device-verify/page.tsx` (new device verification request screen)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/device-verify/complete/page.tsx` (new trust completion flow)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/login/login-form.tsx` (device-related auth reason message)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/settings/account/page.tsx` (trusted-device management UI)
+  - `docs/TODO_WEBAPP.md` (New device verification marked complete + changelog row)
+  - `docs/ai_workboard.md` (task entry)
+  - `docs/Developer_agent_chat.md` (this task log)
+- **Result:** Success. New-device verification is now implemented as a complete flow with persistent trusted-device records and user management controls.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+- **Next step:** Continue TODO_WEBAPP on monitoring hardening (real Sentry + uptime) and realtime reconnection/offline indicators.
+
+---
+
+### Task #070 — TODO_WEBAPP Continue: Monitoring Hardening (Sentry + Uptime)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP execution by completing production monitoring hardening: real error tracking and uptime monitoring.
+- **Scope:** Web implementation in `/Users/ace/crush-web` plus required workflow/todo updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep changes incremental and compatible with existing auth/session and provider architecture.
+  - Replace mock monitoring behavior with real instrumentation.
+  - Add actionable uptime checks (scheduled workflow + health endpoint).
+  - Verify with lint/tests and docs guard.
+- **Expected Outcome:** Sentry-backed monitoring wrapper, auth user context wiring, health endpoint for synthetic checks, scheduled GitHub uptime workflow, env docs updated, and TODO status synced.
+
+**Status Updates:**
+- **Received:** Reviewed remaining TODO monitoring items and current mock monitoring implementation.
+- **In Progress:** Implemented Sentry wrapper + auth integration, then added `/api/health` and scheduled uptime workflow.
+- **Completed:** Updated env examples and docs; verified with lint/tests and docs-sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/lib/sentry.ts` (real Sentry implementation replacing mock monitor)
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/auth-initializer.tsx` (monitor init + user context sync)
+  - `/Users/ace/crush-web/apps/web/src/app/api/health/route.ts` (health endpoint with checks + rate limit)
+  - `/Users/ace/crush-web/.github/workflows/uptime-monitor.yml` (scheduled/dispatch uptime check workflow)
+  - `/Users/ace/crush-web/.env.example` (Sentry vars + uptime monitor secret note)
+  - `/Users/ace/crush-web/apps/web/.env.example` (Sentry vars)
+  - `docs/TODO_WEBAPP.md` (monitoring items marked complete + changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Monitoring is now production-usable with real error capture, user-context tagging, and automated uptime checks.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint`
+  - `pnpm -C /Users/ace/crush-web test`
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP with realtime reconnection/offline indicators and analytics funnel events.
+
+---
+
+### Task #071 — TODO_WEBAPP Continue: Realtime Resiliency + Analytics Funnel Tracking
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+Continue with TODO_WEBAPP.md realtime resiliency: reconnection/offline indicator.
+Then implement analytics funnel/event tracking.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete two open TODO_WEBAPP work items in sequence: (1) realtime chat resiliency with reconnect/offline indicators, then (2) analytics event + funnel tracking across high-value conversion paths.
+- **Scope:** Web app code in `/Users/ace/crush-web` plus required TODO/workflow docs in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep changes incremental and architecture-consistent.
+  - Use robust behavior over placeholder UI (actual reconnect refresh flow, not static badges).
+  - Add typed analytics instrumentation (not ad-hoc console-only logging).
+  - Verify with lint/tests and docs-sync guard.
+- **Expected Outcome:** Messaging surfaces clear offline/reconnect state with recovery behavior, and analytics tracks auth/onboarding/discovery/messaging/premium funnel actions.
+
+**Status Updates:**
+- **Received:** Audited TODO_WEBAPP and current code paths for messaging/analytics gaps.
+- **In Progress:** Added shared network-status hook, wired reconnect/offline handling in messages/chat, then instrumented conversion events/funnel steps across core screens.
+- **Completed:** Ran lint/tests, updated TODO statuses, and synced required AI workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/shared/hooks/use-network-status.ts` (new network connectivity hook)
+  - `/Users/ace/crush-web/apps/web/src/shared/hooks/index.ts` (hook export)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/page.tsx` (offline banner + reconnect refresh + conversation analytics)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` (offline/reconnect UX + reconnect recovery + offline-safe compose + message/ice-breaker analytics)
+  - `/Users/ace/crush-web/apps/web/src/lib/analytics.ts` (typed funnel events + provider dispatch + funnel helper)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/index.ts` (new funnel type exports)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/login/login-form.tsx` (auth funnel + login events)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/signup/page.tsx` (signup funnel + sign-up events)
+  - `/Users/ace/crush-web/apps/web/src/app/onboarding/onboarding-flow.tsx` (onboarding step/completion funnel tracking)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` (profile view/swipe/match analytics)
+  - `/Users/ace/crush-web/apps/web/src/components/messages/pinned-conversations.tsx` (pin/unpin analytics)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/premium/premium-view.tsx` (subscription funnel tracking)
+  - `docs/TODO_WEBAPP.md` (realtime + analytics items marked complete + changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Realtime messaging now has explicit offline/reconnect resiliency behavior, and analytics funnel/event tracking is implemented across the requested core flow.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP on remaining reliability and quality tasks (retry logic for failed requests, Lighthouse/Core Web Vitals, accessibility audits).
+
+---
+
+### Task #072 — TODO_WEBAPP Continue: Retry Logic for Failed Requests
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP execution by completing the open error-handling item: `Retry logic for failed requests`.
+- **Scope:** Messaging request path in `/Users/ace/crush-web` plus required status/log updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Implement real retry behavior (not placeholder status text).
+  - Use bounded retries with safe failure semantics.
+  - Keep UX deterministic by surfacing manual retry for failed outbound messages.
+  - Verify with lint/tests and docs-sync guard.
+- **Expected Outcome:** Automatic transient retry on core messaging requests and user-triggered resend for failed outbound messages, with TODO updated to complete.
+
+**Status Updates:**
+- **Received:** Reviewed remaining TODO items and selected retry logic as the next concrete deliverable.
+- **In Progress:** Added bounded retry/backoff utilities in message store, wired retry handling into load/send actions, and exposed manual resend in chat UI.
+- **Completed:** Verified lint/tests, updated TODO, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/stores/message.ts` (transient retry helper + retries for load/send + `retryFailedMessage` action)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/[matchId]/chat-room.tsx` (resend control for failed messages + retry analytics events)
+  - `docs/TODO_WEBAPP.md` (Retry logic item marked complete + changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Failed messaging requests now use bounded retry logic and users can manually resend failed outbound messages from the chat UI.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP on remaining quality backlog (Lighthouse/Core Web Vitals and accessibility audit items).
+
+---
+
+### Task #073 — TODO_WEBAPP Continue: Reusable Plus Feature Gate + Upsell Modal
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing the remaining Subscription feature-gating items (`Plus feature wrapper component` and `Upsell modal`) with reusable implementation, not page-by-page duplication.
+- **Scope:** Web app UI/component code in `/Users/ace/crush-web` and required status/workflow docs in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep architecture incremental and reusable.
+  - Replace duplicated premium-gate UI blocks in high-impact screens.
+  - Include analytics tracking for upsell interactions.
+  - Verify with lint/tests and docs-sync guard.
+- **Expected Outcome:** Shared `PlusFeatureGate` and `UpsellModal` components are shipped, existing ad-hoc premium gates are refactored to use them, TODO_WEBAPP gating items are checked off, and workflow docs are synced.
+
+**Status Updates:**
+- **Received:** Reviewed TODO_WEBAPP and identified the two remaining unchecked feature-gating items.
+- **In Progress:** Implemented reusable gating components and migrated premium gate usage across likes, insights, message requests, and incognito settings.
+- **Completed:** Updated TODO + workflow docs and verified with lint/tests/docs-sync guard; also applied two baseline build-stability fixes, but full build still reports a separate pre-existing `useSearchParams`/Suspense blocker on auth routes.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/features/premium/components/upsell-modal.tsx` (new reusable upsell modal with analytics + subscription funnel hooks)
+  - `/Users/ace/crush-web/apps/web/src/features/premium/components/plus-feature-gate.tsx` (new reusable premium gate wrapper component)
+  - `/Users/ace/crush-web/apps/web/src/features/premium/components/index.ts` (exports for new components)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/likes/page.tsx` (migrated to shared gate)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/insights/page.tsx` (migrated to shared gate)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/messages/requests/page.tsx` (migrated to shared gate)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/settings/incognito/page.tsx` (migrated to shared gate with locked premium-only sections)
+  - `/Users/ace/crush-web/apps/web/src/lib/sentry.ts` (fixed strict span-status type cast surfaced by build)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/analytics-provider.tsx` (removed global `useSearchParams` dependency)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/layout.tsx` (removed `useSearchParams` dependency in app-route redirect logic)
+  - `docs/TODO_WEBAPP.md` (feature-gating checkboxes completed + changelog line)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success for requested scope. Premium feature gating is now centralized and reusable, reducing duplicated UI/process code while preserving current gated behavior and adding measurable upsell funnel events. Additional build validation surfaced an existing repo-wide Next.js 16 `useSearchParams`/Suspense migration gap that is not yet fully closed.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (fails at `/auth/device-verify`: `useSearchParams() should be wrapped in a suspense boundary`)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP on remaining quality backlog and close the Next.js `useSearchParams`/Suspense migration blocker across auth routes.
+
+---
+
+### Task #074 — TODO_WEBAPP Continue: Next.js Suspense Migration for `useSearchParams` Build Blocker
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by resolving the active production build blocker caused by Next.js 16 `useSearchParams` suspense requirements.
+- **Scope:** Web app auth routes and shared providers/layout in `/Users/ace/crush-web`, plus required status/workflow docs in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep behavior-preserving changes with minimal churn.
+  - Use Next.js-compliant Suspense pattern for client pages using `useSearchParams`.
+  - Re-verify full build/lint/tests after migration.
+  - Keep docs sync requirements satisfied.
+- **Expected Outcome:** `pnpm build` succeeds end-to-end, with auth/query-driven pages migrated safely and docs updated.
+
+**Status Updates:**
+- **Received:** Enumerated all `useSearchParams` usage and confirmed build was failing on `/auth/device-verify`.
+- **In Progress:** Migrated auth pages to outer Suspense wrappers and removed `useSearchParams` usage from global providers/layout where unnecessary.
+- **Completed:** Re-ran build/lint/tests successfully and synced TODO/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/app/auth/device-verify/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/device-verify/complete/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/forgot-password/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/signup/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/phone/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/verify-email/page.tsx` (Suspense-safe wrapper + content split)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/analytics-provider.tsx` (removed global `useSearchParams` dependency)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/layout.tsx` (removed `useSearchParams` dependency from redirect logic)
+  - `/Users/ace/crush-web/apps/web/src/lib/sentry.ts` (retained strict cast fix from prior build validation path)
+  - `docs/TODO_WEBAPP.md` (changelog line for build blocker closure)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Production build now succeeds while preserving auth/query-flow behavior.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP on remaining quality backlog (Lighthouse/Core Web Vitals and accessibility audits).
+
+---
+
+### Task #075 — TODO_WEBAPP Continue: Discovery Interest Filtering (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP implementation by completing the open Discovery Filters item: `Interest filtering`.
+- **Scope:** Discovery filter model/service logic in `/Users/ace/crush-web/packages/core` and discover filter dialog UI in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Ship true filtering behavior (not UI-only tags).
+  - Keep matching logic robust against case/whitespace inconsistencies.
+  - Preserve existing discover filter behavior (age, distance, gender, has photos, verified).
+  - Verify with build/lint/tests and docs-sync guard.
+- **Expected Outcome:** Users can select interest chips in discovery filters and receive candidate profiles that share at least one selected interest; TODO item is marked complete with synced workflow logs.
+
+**Status Updates:**
+- **Received:** Scanned TODO and codebase to identify the most concrete unshipped item.
+- **In Progress:** Added interest filter type and service logic, then wired discover filter dialog chip UI and selection handling.
+- **Completed:** Verified build/lint/tests, updated TODO, and synced required workflow documents.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/types/match.ts` (added `interests?: string[]` to `DiscoveryFilters`)
+  - `/Users/ace/crush-web/packages/core/src/services/match.ts` (added case-insensitive shared-interest overlap filtering in discovery query results)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/filter-dialog.tsx` (added shared-interest chip selector + clear action; aligned gender option values)
+  - `docs/TODO_WEBAPP.md` (marked Interest filtering complete + changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery interest filtering now works end-to-end and is no longer an unchecked TODO item.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP quality backlog (Lighthouse/Core Web Vitals and accessibility audits) or deliver next discovery gap (`Daily limits`).
+
+---
+
+### Task #076 — TODO_WEBAPP Continue: Discovery Daily Limits (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing the unchecked Discovery swipe action item: `Daily limits`.
+- **Scope:** Core swipe enforcement and discovery UI behavior in `/Users/ace/crush-web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Enforce limits centrally to avoid bypass across different swipe surfaces.
+  - Keep UI behavior explicit (indicator + disabled actions + meaningful feedback), not silent failures.
+  - Reuse existing streak/like-limit subsystem instead of creating duplicate limit logic.
+  - Verify with lint/tests/build and docs-sync guard.
+- **Expected Outcome:** Positive swipes respect daily like limits across surfaces, users see clear feedback when depleted, and TODO/status docs are updated.
+
+**Status Updates:**
+- **Received:** Identified `Daily limits` as the next unchecked TODO_WEBAPP implementation item.
+- **In Progress:** Wired central like-limit enforcement into `matchService.swipe`, then connected discovery UX states and limit-reached feedback.
+- **Completed:** Verified lint/tests/build, marked TODO item complete, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/services/match.ts` (central daily-like limit enforcement in `swipe` for first-time positive swipes)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/action-buttons.tsx` (added `disableLikeActions` to independently disable like/super-like)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` (limit indicator, disable state, limit toasts, analytics event, and limit refresh after positive swipes)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/weekly-picks/page.tsx` (user-facing handling for limit-reached errors on like/super-like actions)
+  - `docs/TODO_WEBAPP.md` (marked `Daily limits` complete, updated Phase 3 progress, and added changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Daily limits now work end-to-end with centralized enforcement and clear user feedback on discovery surfaces.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP with remaining discovery/profile polish items or Phase 9 quality tasks (Lighthouse/Core Web Vitals/accessibility audits).
+
+---
+
+### Task #077 — TODO_WEBAPP Continue: Hide Blocked Users from Discovery (Backend Rule)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing the unchecked Safety & Social item: `Hide blocked users from discovery (backend rule)`.
+- **Scope:** Core discovery candidate generation in `/Users/ace/crush-web/packages/core` plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Enforce filtering at service/data layer, not only in UI.
+  - Support current canonical block model and legacy web block data.
+  - Keep discovery surfaces behaviorally consistent (`Discover` + `Weekly Picks`).
+  - Verify with lint/tests/build and docs-sync guard.
+- **Expected Outcome:** Blocked users no longer appear in discovery candidate sets, regardless of whether block relationship is stored in canonical `/blocks` or legacy per-user blocked docs.
+
+**Status Updates:**
+- **Received:** Reviewed TODO and current block/discovery implementations to identify the real enforcement gap.
+- **In Progress:** Added blocked-user resolution in `matchService`, then applied filtering to both discovery candidate generation paths.
+- **Completed:** Verified lint/tests/build, marked TODO item complete, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/services/match.ts` (added blocked-user ID resolution helper; applied exclusions in `getDiscoveryProfiles` and `getWeeklyPicks`)
+  - `docs/TODO_WEBAPP.md` (marked Safety item complete + changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery now excludes blocked profiles via backend/service filtering rather than relying on UI-only checks.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP with remaining discovery backlog (`Profile stories`, `Boost`, `Passport mode`) or profile/settings polish items.
+
+---
+
+### Task #078 — TODO_WEBAPP Continue: Photo Carousel on Discover Profile Cards
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing `Photo carousel on profile cards` in Discovery with practical UX and accessibility improvements.
+- **Scope:** Discovery swipe-card component in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Keep existing swipe deck behavior intact.
+  - Improve multi-photo browsing with explicit controls (not hidden-only interactions).
+  - Add accessible navigation affordances without broad architecture churn.
+  - Verify with lint/tests/build and docs-sync guard.
+- **Expected Outcome:** Discovery cards provide clear previous/next photo controls, keyboard support, and current-photo position feedback, and TODO/docs are updated.
+
+**Status Updates:**
+- **Received:** Reviewed remaining TODO items and selected a concrete discovery UX gap with low architectural risk.
+- **In Progress:** Enhanced swipe-card multi-photo navigation while preserving deck swipe interactions.
+- **Completed:** Verified lint/tests/build, marked TODO item complete, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/swipe-card.tsx` (visible carousel controls, keyboard arrow navigation, photo position indicator, bounded index updates)
+  - `docs/TODO_WEBAPP.md` (marked `Photo carousel on profile cards` complete, updated Phase 3 progress, added changelog row)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery profile cards now expose an explicit, more accessible photo carousel UX while maintaining swipe-card behavior.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP discovery backlog with `Profile stories`, `Boost feature`, or `Passport mode`.
+
+---
+
+### Task #079 — TODO_WEBAPP Continue: Discovery Boost Feature (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing the unchecked Discovery item `Boost feature` with production-usable behavior (not UI-only).
+- **Scope:** Web core boost/discovery logic in `/Users/ace/crush-web/packages/core`, discover UI integration in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Implement real persisted boost status and activation flow with clear cooldown/active state.
+  - Ensure discovery behavior actually changes for boosted profiles (ranking/visibility impact).
+  - Keep premium gating/upsell experience explicit and measurable.
+  - Verify with lint/tests/build and docs-sync guard.
+- **Expected Outcome:** Users can see boost status, activate boosts when eligible, non-premium users are routed to upsell, boosted profiles are prioritized in discovery results, and TODO/docs are synced.
+
+**Status Updates:**
+- **Received:** Reviewed remaining TODO_WEBAPP backlog and selected `Boost feature` as the next concrete, high-impact discovery item.
+- **In Progress:** Added boost types/service/store in core, integrated discover boost UI control with confirm + upsell paths, and applied boosted-profile ranking logic.
+- **Completed:** Verified lint/tests/build, marked TODO boost item complete, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/types/boost.ts` (new boost status model + countdown helpers)
+  - `/Users/ace/crush-web/packages/core/src/services/boost.ts` (new boost status/activation service with persisted cooldown + active-window logic)
+  - `/Users/ace/crush-web/packages/core/src/stores/boost.ts` (new Zustand boost store for load/activate state management)
+  - `/Users/ace/crush-web/packages/core/src/index.ts` (exports for new boost types/service/store)
+  - `/Users/ace/crush-web/packages/core/src/types/user.ts` (added optional boost metadata to profile type)
+  - `/Users/ace/crush-web/packages/core/src/services/user.ts` (mapped boost metadata from Firestore)
+  - `/Users/ace/crush-web/packages/core/src/types/match.ts` (added optional boost metadata on discovery profiles)
+  - `/Users/ace/crush-web/packages/core/src/services/match.ts` (boost metadata mapping + boosted candidate prioritization in discovery ranking)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/boost-control.tsx` (new discover boost button/control with active/cooldown countdown, confirm modal, premium upsell flow, analytics)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/index.ts` (exported boost control)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` (integrated boost control into discover header)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/swipe-card.tsx` (added boosted-profile visual badge)
+  - `docs/TODO_WEBAPP.md` (marked `Boost feature` complete + changelog row + progress updates)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery boost is now implemented end-to-end with persisted activation status, premium-aware gating, countdown UX, analytics tracking, and actual prioritization impact in discovery profile ranking.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP discovery backlog with `Passport mode` or `Profile stories`.
+
+---
+
+### Task #080 — TODO_WEBAPP Continue: Discovery Passport Mode (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing the unchecked Discovery item `Passport mode` with real behavior impact, not a static UI toggle.
+- **Scope:** Core user/discovery logic in `/Users/ace/crush-web/packages/core`, Discovery settings/discover UI in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Make discovery location selection passport-aware in core logic.
+  - Keep settings backward-compatible for users with older settings docs.
+  - Apply premium gating in UI while preserving clean save/error UX.
+  - Verify with lint/tests/build and docs-sync guard.
+- **Expected Outcome:** Premium users can enable passport mode and set a destination; discovery distance logic uses destination location when enabled; active-passport state is visible in Discover UI; TODO/docs are synced.
+
+**Status Updates:**
+- **Received:** Confirmed `Passport mode` remained unchecked in TODO discovery backlog.
+- **In Progress:** Added passport settings model/mapping and passport-aware discovery distance calculation, then wired premium-gated settings UI and discover indicator.
+- **Completed:** Verified lint/tests/build, marked TODO item complete, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/types/user.ts` (added `passportMode` + `passportLocation` settings, defaulted passport mode to `false`)
+  - `/Users/ace/crush-web/packages/core/src/services/user.ts` (merged `DEFAULT_USER_SETTINGS` into mapped profile settings for backward-safe defaults)
+  - `/Users/ace/crush-web/packages/core/src/services/match.ts` (added passport-aware reference location and coordinate distance calculation for discovery filtering)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/settings/discovery/page.tsx` (premium-gated passport controls, destination save flow, current-location helper, analytics + error handling)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` (added active-passport destination indicator)
+  - `docs/TODO_WEBAPP.md` (marked passport complete, updated parity/progress/changelog)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Passport mode now works end-to-end with persisted destination settings and real discovery-distance behavior changes in core matching logic.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next step:** Continue TODO_WEBAPP discovery backlog with `Profile stories`.
+
+---
+
+### Task #081 — TODO_WEBAPP Continue: Discovery Profile Stories (End-to-End)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue TODO_WEBAPP by completing `Profile stories` with an end-to-end implementation that includes data model, persistence, and discovery UI behavior.
+- **Scope:** Story domain/state in `/Users/ace/crush-web/packages/core`, discovery UI in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Implement real story persistence and loading (not static mock UI).
+  - Include both story consumption and creation flow so feature is operational.
+  - Keep architecture clean (core service/store + UI integration) and avoid one-off logic in page components.
+  - Verify with targeted lint + workspace lint/tests/build + docs sync guard.
+- **Expected Outcome:** Users can upload stories, see story indicators in discovery, open a full-screen story viewer, and view-tracking is persisted; TODO/docs are synced.
+
+**Status Updates:**
+- **Received:** Identified `Profile stories` as the next unchecked discovery TODO item.
+- **In Progress:** Added story model/service/store in core, then integrated story tray/upload/viewer/card badge flows in discovery UI.
+- **Completed:** Verified lint/tests/build, marked TODO item complete, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/packages/core/src/types/story.ts` (new story types/constants/utilities)
+  - `/Users/ace/crush-web/packages/core/src/services/story.ts` (new Firestore-backed story service with load/create/remove/view flows)
+  - `/Users/ace/crush-web/packages/core/src/stores/story.ts` (new story Zustand store with upload progress + viewed-story state)
+  - `/Users/ace/crush-web/packages/core/src/services/storage.ts` (added validated story media upload support)
+  - `/Users/ace/crush-web/packages/core/src/index.ts` (exported story types/service/store)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/story-tray.tsx` (new story tray with upload and story chips)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/story-viewer.tsx` (new full-screen story viewer with progress + navigation + view callbacks)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/components/swipe-card.tsx` (story badge + open-story action on profile cards)
+  - `/Users/ace/crush-web/apps/web/src/features/discover/index.ts` (exports for story tray/viewer)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/discover/page.tsx` (wired story loading, upload flow, tray integration, viewer integration, and view tracking)
+  - `docs/TODO_WEBAPP.md` (marked `Profile stories` complete, updated phase progress/parity/changelog)
+  - `docs/project_flowchart.md` (added discovery profile-story flow note)
+  - `docs/project_dfd.md` (added story data-flow revision notes)
+  - `docs/project_er_diagram.md` (added story entity/view-tracking note)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile stories are now functional in discovery with upload, story indicators, full-screen viewing, and persisted view tracking.
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web/packages/core exec eslint src/types/story.ts src/services/story.ts src/stores/story.ts src/services/storage.ts src/index.ts` (pass)
+  - `pnpm -C /Users/ace/crush-web/apps/web exec eslint "src/app/(app)/discover/page.tsx" src/features/discover/components/swipe-card.tsx src/features/discover/components/story-tray.tsx src/features/discover/components/story-viewer.tsx src/features/discover/index.ts` (pass)
+  - `pnpm -C /Users/ace/crush-web lint` (pass; warnings only baseline)
+  - `pnpm -C /Users/ace/crush-web test` (pass; 4 files / 40 tests)
+  - `pnpm -C /Users/ace/crush-web build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_WEBAPP.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue TODO_WEBAPP with `Audio/Video calls`, `Push notifications`, or Phase 9 quality audits.
+
+---
+
+### Task #082 — TODO_WEBAPP Continue: Phase 9 Quality Audits (Lighthouse/CWV/Accessibility)
+**Date:** 2026-02-23
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+Continue with Phase 9 quality items (Lighthouse/Core Web Vitals/accessibility audits).
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute Phase 9 quality work by running Lighthouse audits, resolving concrete accessibility failures, and shipping practical Core Web Vitals improvements.
+- **Scope:** Web marketing homepage + provider/runtime layering in `/Users/ace/crush-web/apps/web`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- **Constraints:**
+  - Fix real audit findings rather than adding checklist-only documentation.
+  - Preserve existing auth/session behavior while optimizing marketing-page loading.
+  - Keep analytics/funnel tracking operational after provider changes.
+  - Verify with targeted lint/tests/build plus fresh Lighthouse reports.
+- **Expected Outcome:** Accessibility audit failures are resolved, Lighthouse quality metrics improve, and TODO/workboard/task logs are synced with evidence.
+
+**Status Updates:**
+- **Received:** Read latest collaboration docs and TODO backlog, then reproduced baseline Lighthouse metrics for `/`.
+- **In Progress:** Fixed heading-order/contrast findings and refactored provider layering to stop loading app-auth/query runtime stack on marketing routes.
+- **Completed:** Re-ran audits and validation checks, updated TODO + workboard + task log entries.
+
+**Outcome:**
+- **Files changed:**
+  - `/Users/ace/crush-web/apps/web/src/app/(marketing)/page.tsx` (removed unnecessary client boundary, fixed footer heading levels)
+  - `/Users/ace/crush-web/apps/web/src/styles/globals.css` (updated primary/ring tokens for contrast-safe primary surfaces)
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/app-providers.tsx` (kept root providers lightweight)
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/runtime-providers.tsx` (new runtime provider stack for auth/query/user-analytics/toasts)
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/layout.tsx` (wrapped app routes with runtime providers)
+  - `/Users/ace/crush-web/apps/web/src/app/auth/layout.tsx` (wrapped auth routes with runtime providers)
+  - `/Users/ace/crush-web/apps/web/src/app/onboarding/layout.tsx` (wrapped onboarding routes with runtime providers)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/page-analytics-provider.tsx` (new page-view analytics provider)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/user-analytics-provider.tsx` (new user-identify analytics provider)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/analytics-provider.tsx` (composed split analytics providers)
+  - `/Users/ace/crush-web/apps/web/src/components/analytics/index.ts` (export updates)
+  - `/Users/ace/my_first_project/docs/TODO_WEBAPP.md` (marked Lighthouse/CWV items done, updated progress/changelog)
+  - `/Users/ace/my_first_project/docs/ai_workboard.md` (this task entry)
+  - `/Users/ace/my_first_project/docs/Developer_agent_chat.md` (this task entry)
+- **Artifacts generated:**
+  - `/Users/ace/my_first_project/docs/reports/lighthouse/2026-02-23-phase9/home-mobile-final.json`
+  - `/Users/ace/my_first_project/docs/reports/lighthouse/2026-02-23-phase9/home-desktop-final.json`
+- **Result:** Success. Homepage Lighthouse accessibility issues (`heading-order`, `color-contrast`) are fully resolved and final Lighthouse scores improved to:
+  - Mobile: Performance `0.78`, Accessibility `1.00`, Best Practices `0.92`, SEO `0.92`
+  - Desktop: Performance `0.94`, Accessibility `1.00`, Best Practices `0.92`, SEO `0.92`
+- **Verification:**
+  - `pnpm -C /Users/ace/crush-web/apps/web exec eslint 'src/app/(marketing)/page.tsx' src/components/analytics/analytics-provider.tsx src/components/analytics/page-analytics-provider.tsx src/components/analytics/user-analytics-provider.tsx src/components/analytics/index.ts src/shared/providers/app-providers.tsx src/shared/providers/runtime-providers.tsx 'src/app/(app)/layout.tsx' src/app/auth/layout.tsx src/app/onboarding/layout.tsx` (pass)
+  - `pnpm -C /Users/ace/crush-web/apps/web test src/lib/__tests__/accessibility.test.ts` (pass; 1 file, 17 tests)
+  - `pnpm -C /Users/ace/crush-web/apps/web build` (pass)
+  - Lighthouse reruns (pass; final JSON saved)
+- **Next step:** Continue remaining Phase 9 quality items: bundle analysis/code splitting and image optimization audit; then expand accessibility audit coverage beyond marketing homepage.

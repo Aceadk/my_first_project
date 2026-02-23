@@ -454,3 +454,4 @@ lib/features/
 - The router enforces auth state and onboarding status to prevent accessing protected routes when incomplete
 - **Password change** triggers email notification to user for security
 - **Notification settings** (Sound, Vibration, Email) sync to both local storage and Firestore
+- **2026-02-23 Web update**: Discovery now includes profile stories with upload from Discover, story tray preview, card story badges, and full-screen story viewer with view tracking.

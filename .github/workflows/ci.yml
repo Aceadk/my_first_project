@@ -6,6 +6,33 @@ on:
     branches: [ main ]
 
 jobs:
+  docs_sync:
+    name: Docs sync guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run docs sync guard
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch --no-tags --prune origin "${{ github.base_ref }}"
+            RANGE="origin/${{ github.base_ref }}...HEAD"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            RANGE="HEAD^..HEAD"
+          else
+            echo "No previous commit found; using tracked files as the initial change set."
+            RANGE=""
+          fi
+
+          if [[ -n "${RANGE}" ]]; then
+            scripts/check_ai_docs_sync.sh --range "${RANGE}"
+          else
+            mapfile -t FILES < <(git ls-files)
+            scripts/check_ai_docs_sync.sh --files "${FILES[@]}"
+          fi
+
   flutter:
     name: Flutter - analyze & test
     runs-on: ubuntu-latest

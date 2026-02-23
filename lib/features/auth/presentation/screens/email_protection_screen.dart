@@ -50,11 +50,14 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     if (emailVerified && currentEmail != null && currentEmail.isNotEmpty) {
       return AuthScaffold(
         title: 'Email protection',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Verified badge
-            Container(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Verified badge
+                Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: DsColors.success.withValues(alpha: 0.1),
@@ -177,7 +180,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                 ],
               ),
             ),
-          ],
+          ),
         ),
       );
     }
@@ -185,10 +188,13 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     // Normal flow for unverified or no email
     return AuthScaffold(
       title: 'Email protection',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
             'Add and verify an email to protect your account and enable recovery.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -250,11 +256,12 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
               onPressed: _isLoading ? null : _requestOtp,
               child: Text(AppLocalizations.of(context).resendCode),
             ),
-          ],
-        ],
-      ),
-    );
-  }
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
   void _markEmailTouched() {
     if (!_emailTouched) {

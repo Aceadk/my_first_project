@@ -42,68 +42,73 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     return AuthScaffold(
       title: 'Change email',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Use a new email to keep your account recoverable.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          if (currentEmail != null && currentEmail.isNotEmpty) ...[
-            Text(
-              'Current email: $currentEmail',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-          ],
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'New email address',
-              helperText: 'We will send a 6-digit code to this email.',
-              errorText: _emailErrorText(),
-            ),
-            onTap: () => _markEmailTouched(),
-            onChanged: (_) => _markEmailTouched(),
-          ),
-          if (_otpSent) ...[
-            const SizedBox(height: 16),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Verification code',
-                helperText: 'Enter the 6-digit code from your email.',
-                errorText: _otpErrorText(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Use a new email to keep your account recoverable.',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-              onTap: () => _markOtpTouched(),
-              onChanged: (_) => _markOtpTouched(),
-            ),
-          ],
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: _otpSent ? 'Verify code' : 'Send code',
-            loading: _isLoading,
-            onPressed: _isLoading
-                ? null
-                : () {
-                    if (_otpSent) {
-                      _verifyOtp();
-                    } else {
-                      _requestOtp();
-                    }
-                  },
+              const SizedBox(height: 16),
+              if (currentEmail != null && currentEmail.isNotEmpty) ...[
+                Text(
+                  'Current email: $currentEmail',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+              ],
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'New email address',
+                  helperText: 'We will send a 6-digit code to this email.',
+                  errorText: _emailErrorText(),
+                ),
+                onTap: () => _markEmailTouched(),
+                onChanged: (_) => _markEmailTouched(),
+              ),
+              if (_otpSent) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Verification code',
+                    helperText: 'Enter the 6-digit code from your email.',
+                    errorText: _otpErrorText(),
+                  ),
+                  onTap: () => _markOtpTouched(),
+                  onChanged: (_) => _markOtpTouched(),
+                ),
+              ],
+              const SizedBox(height: 16),
+              PrimaryButton(
+                label: _otpSent ? 'Verify code' : 'Send code',
+                loading: _isLoading,
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        if (_otpSent) {
+                          _verifyOtp();
+                        } else {
+                          _requestOtp();
+                        }
+                      },
+              ),
+              if (_otpSent) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _isLoading ? null : _requestOtp,
+                  child: Text(AppLocalizations.of(context).resendCode),
+                ),
+              ],
+            ],
           ),
-          if (_otpSent) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _isLoading ? null : _requestOtp,
-              child: Text(AppLocalizations.of(context).resendCode),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

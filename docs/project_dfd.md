@@ -1106,3 +1106,14 @@ flowchart TB
 **Total Data Flows Documented:** 60+
 **Total Processes:** 80+
 **Total Data Stores:** 21+
+
+---
+
+## Revision Notes
+
+- **2026-02-23 (Web Discovery Stories):**
+  - Added active profile story flow in discovery:
+    - Story media upload (`users/{uid}/stories/*` media path in storage)
+    - Story retrieval for discovery candidates
+    - Story view tracking (`users/{ownerId}/stories/{storyId}/views/{viewerId}`)
+  - Added story viewer process with per-story progress and persisted view-count increment.

@@ -112,10 +112,13 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Progress indicator
-            Padding(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                // Progress indicator
+                Padding(
               padding: DsEdgeInsets.horizontalXxl,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,7 +425,6 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                 ],
               ),
             ),
-            DsGap.xl,
           ],
         ),
       ),

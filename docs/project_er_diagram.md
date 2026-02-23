@@ -1585,3 +1585,4 @@ service cloud.firestore {
 - **Soft Deletes**: Account deletions use status flags rather than actual document deletion
 - **Timestamps**: All use `serverTimestamp()` for consistency across time zones
 - **Protected Fields**: `plan` and `isIdVerified` can only be modified by Cloud Functions
+- **2026-02-23 Web update**: Discovery profile stories are represented as user-owned story documents with per-viewer view subdocuments for deduplicated view counts.
