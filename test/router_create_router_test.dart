@@ -1,21 +1,15 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/profile_story.dart';
 import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
 import 'package:crushhour/features/about/presentation/screens/pricing_screen.dart';
 import 'package:crushhour/features/about/presentation/screens/product_features_screen.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
@@ -25,8 +19,8 @@ import 'package:crushhour/features/auth/presentation/screens/auth_gateway_screen
 import 'package:crushhour/features/auth/presentation/screens/basic_info_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/change_email_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/email_auth_screen.dart';
-import 'package:crushhour/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/email_protection_screen.dart';
+import 'package:crushhour/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/id_verification_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/login_screen.dart';
@@ -52,12 +46,13 @@ import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/screens/story_viewer_screen.dart';
-import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/features/profile/data/services/profile_validation_service.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_validation_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
@@ -65,13 +60,13 @@ import 'package:crushhour/features/profile/presentation/screens/profile_edit_scr
 import 'package:crushhour/features/profile/presentation/screens/profile_media_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
-import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
-import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
 import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
@@ -81,13 +76,18 @@ import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dar
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
-import 'package:crushhour/data/models/profile_story.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
-import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
 import 'package:crushhour/presentation/screens/community_guidelines_screen.dart';
 import 'package:crushhour/presentation/screens/home_screen.dart';
 import 'package:crushhour/presentation/screens/privacy_policy_screen.dart';
 import 'package:crushhour/presentation/screens/terms_of_service_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'mock/firebase_mock.dart';
 
@@ -287,6 +287,7 @@ void main() {
       subscriptionRepository: _NoopSubscriptionRepository(),
       authRepository: authRepository,
       profileRepository: profRepo,
+      swipeRightUseCase: SwipeRightUseCase(repo, _NoopSubscriptionRepository()),
     );
     final discoverySettingsCubit = DiscoverySettingsCubit(
       preferences: preferences,

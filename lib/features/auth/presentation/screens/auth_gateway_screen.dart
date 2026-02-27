@@ -1,17 +1,19 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthGatewayScreen extends StatefulWidget {
   const AuthGatewayScreen({super.key});
@@ -168,7 +170,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                               fontSize: fontSize,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -1.0,
-                              color: Colors.white,
+                              color: DsColors.surfaceLight,
                             );
 
                         return SizedBox(
@@ -271,13 +273,24 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                       borderColor: const Color(0xFFDADCE0),
                       isExpanded: true,
                       isLoading: _isGoogleLoading,
-                      child: const Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          color: Color(0xFF1F1F1F),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.g_mobiledata,
+                            color: Color(0xFF4285F4),
+                            size: 24,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              color: Color(0xFF1F1F1F),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -317,13 +330,42 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               ],
               DsGap.xxl,
               // Terms text
-              Text(
-                'By continuing, you agree to our Terms of Service\nand Privacy Policy',
+              RichText(
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDark
-                      ? DsColors.textMutedDark
-                      : DsColors.textMutedLight,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark
+                        ? DsColors.textMutedDark
+                        : DsColors.textMutedLight,
+                  ),
+                  children: [
+                    const TextSpan(text: 'By continuing, you agree to our '),
+                    TextSpan(
+                      text: 'Terms of Service',
+                      style: const TextStyle(
+                        color: DsColors.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                          Uri.parse('https://crushhour.app/terms'),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                    ),
+                    const TextSpan(text: '\nand '),
+                    TextSpan(
+                      text: 'Privacy Policy',
+                      style: const TextStyle(
+                        color: DsColors.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                          Uri.parse('https://crushhour.app/privacy'),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                    ),
+                  ],
                 ),
               ),
               DsGap.lg,
@@ -440,7 +482,17 @@ class _AgeGateDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: GlassOutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'You must be at least 18 years old to use Crush.',
+                          ),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    },
                     child: Text(
                       'No',
                       style: TextStyle(

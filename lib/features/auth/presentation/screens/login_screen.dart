@@ -1,16 +1,16 @@
+import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/validators.dart';
+import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/validators.dart';
-import 'package:crushhour/core/extensions/localization_extension.dart';
-import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,10 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
-          elevation: 0,
-        ),
+        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         body: LayoutBuilder(
           builder: (context, constraints) => Center(
             child: ConstrainedBox(
@@ -241,13 +238,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderColor: const Color(0xFFDADCE0),
                               isExpanded: true,
                               isLoading: _isGoogleLoading,
-                              child: const Text(
-                                'Continue with Google',
-                                style: TextStyle(
-                                  color: Color(0xFF1F1F1F),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.g_mobiledata,
+                                    color: Color(0xFF4285F4),
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      color: Color(0xFF1F1F1F),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -328,71 +336,67 @@ class _LoginScreenState extends State<LoginScreen> {
                         Semantics(
                           button: true,
                           label: 'Fill test credentials',
-                          child: Semantics(
-                            button: true,
-                            child: GestureDetector(
-                              onTap: () {
-                                _identifierController.text = 'admin123';
-                                _passwordController.text = 'admin123';
-                                setState(() {
-                                  _identifierError = null;
-                                  _passwordError = null;
-                                });
-                              },
-                              child: Container(
-                                padding: DsEdgeInsets.allMd,
-                                decoration: BoxDecoration(
-                                  color: DsColors.info.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: DsColors.info.withValues(alpha: 0.2),
+                          child: GestureDetector(
+                            onTap: () {
+                              _identifierController.text = 'admin123';
+                              _passwordController.text = 'admin123';
+                              setState(() {
+                                _identifierError = null;
+                                _passwordError = null;
+                              });
+                            },
+                            child: Container(
+                              padding: DsEdgeInsets.allMd,
+                              decoration: BoxDecoration(
+                                color: DsColors.info.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: DsColors.info.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.developer_mode,
+                                    color: DsColors.info,
+                                    size: 20,
                                   ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.developer_mode,
-                                      color: DsColors.info,
-                                      size: 20,
-                                    ),
-                                    DsGap.mdH,
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Development Build',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: DsColors.info,
-                                                  fontWeight: FontWeight.w600,
+                                  DsGap.mdH,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Development Build',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: DsColors.info,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        Text(
+                                          'Tap to fill test credentials',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: DsColors.info.withValues(
+                                                  alpha: 0.7,
                                                 ),
-                                          ),
-                                          Text(
-                                            'Tap to fill test credentials',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  color: DsColors.info
-                                                      .withValues(alpha: 0.7),
-                                                ),
-                                          ),
-                                        ],
-                                      ),
+                                              ),
+                                        ),
+                                      ],
                                     ),
-                                    Icon(
-                                      Icons.touch_app_outlined,
-                                      color: DsColors.info.withValues(
-                                        alpha: 0.6,
-                                      ),
-                                      size: 18,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  Icon(
+                                    Icons.touch_app_outlined,
+                                    color: DsColors.info.withValues(alpha: 0.6),
+                                    size: 18,
+                                  ),
+                                ],
                               ),
                             ),
                           ),

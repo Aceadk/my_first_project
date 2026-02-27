@@ -1,4 +1,6 @@
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 import '../tokens/colors.dart';
 
 /// A profile avatar widget with optional online indicator and verification badge.
@@ -72,15 +74,12 @@ class CrushAvatar extends StatelessWidget {
                 ),
                 child: ClipOval(
                   child: imageUrl != null && imageUrl!.isNotEmpty
-                      ? Image.network(
-                          imageUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              _buildPlaceholder(initials, isDark),
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return _buildLoadingPlaceholder(isDark);
-                          },
+                          excludeFromSemantics: true,
+                          errorWidget: _buildPlaceholder(initials, isDark),
+                          placeholder: _buildLoadingPlaceholder(isDark),
                         )
                       : _buildPlaceholder(initials, isDark),
                 ),

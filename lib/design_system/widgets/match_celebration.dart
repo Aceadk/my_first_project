@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:crushhour/core/services/haptic_service.dart';
 import 'package:crushhour/core/services/in_app_review_service.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../tokens/blur.dart';
@@ -229,7 +230,7 @@ class _MatchCelebrationState extends State<MatchCelebration>
         return Stack(
           fit: StackFit.expand,
           children: [
-            // Blurred background
+            // Blurred background — blur only animates with fade (once on entry)
             Semantics(
               button: true,
               child: GestureDetector(
@@ -248,8 +249,14 @@ class _MatchCelebrationState extends State<MatchCelebration>
               ),
             ),
 
-            // Confetti
-            ..._buildConfetti(size),
+            // Confetti — single CustomPaint instead of 100 widgets
+            CustomPaint(
+              painter: _ConfettiPainter(
+                particles: _confetti,
+                progress: _confettiController.value,
+              ),
+              size: size,
+            ),
 
             // Content
             Center(
@@ -431,10 +438,11 @@ class _MatchCelebrationState extends State<MatchCelebration>
         ],
       ),
       child: ClipOval(
-        child: Image.network(
-          imageUrl,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
+          excludeFromSemantics: true,
+          errorWidget: Container(
             color: DsGlassColors.surfaceFor(
               context,
               strength: DsGlassSurfaceStrength.medium,
@@ -445,36 +453,54 @@ class _MatchCelebrationState extends State<MatchCelebration>
       ),
     );
   }
+}
 
-  List<Widget> _buildConfetti(Size size) {
-    return _confetti.map((particle) {
-      final progress = _confettiController.value;
+/// Custom painter that draws all confetti particles directly on canvas
+/// instead of creating 100 separate widgets.
+class _ConfettiPainter extends CustomPainter {
+  _ConfettiPainter({required this.particles, required this.progress});
+
+  final List<_ConfettiParticle> particles;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final particle in particles) {
       final y = particle.y + progress * particle.speed * 1.5;
+      if (y > 1.2) continue;
+
       final wobbleOffset =
           sin(progress * particle.wobbleSpeed * 2 * pi) * particle.wobble;
+      final x = (particle.x * size.width) + wobbleOffset;
+      final top = y * size.height;
+      final opacity = (1 - (y - 0.8).clamp(0.0, 0.4) / 0.4).clamp(0.0, 1.0);
+      final angle =
+          particle.rotation + progress * particle.rotationSpeed * 2 * pi;
 
-      if (y > 1.2) return const SizedBox.shrink();
+      canvas.save();
+      canvas.translate(x, top);
+      canvas.rotate(angle);
 
-      return PositionedDirectional(
-        start: (particle.x * size.width) + wobbleOffset,
-        top: y * size.height,
-        child: Transform.rotate(
-          angle: particle.rotation + progress * particle.rotationSpeed * 2 * pi,
-          child: Opacity(
-            opacity: (1 - (y - 0.8).clamp(0.0, 0.4) / 0.4).clamp(0.0, 1.0),
-            child: Container(
-              width: particle.size,
-              height: particle.size * 0.6,
-              decoration: BoxDecoration(
-                color: particle.color,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+      final paint = Paint()..color = particle.color.withValues(alpha: opacity);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: particle.size,
+            height: particle.size * 0.6,
           ),
+          const Radius.circular(2),
         ),
+        paint,
       );
-    }).toList();
+
+      canvas.restore();
+    }
   }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 class _ConfettiParticle {

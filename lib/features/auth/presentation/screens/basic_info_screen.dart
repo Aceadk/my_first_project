@@ -1,17 +1,17 @@
-import 'package:flutter/material.dart';
 import 'package:crushhour/core/app_logger.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class BasicInfoScreen extends StatefulWidget {
   const BasicInfoScreen({super.key});
@@ -219,7 +219,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Step 3 of 5',
+                                            'Step 3 of 6',
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall
@@ -744,14 +744,19 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: DsColors.primary,
-              onPrimary: DsColors.surfaceLight,
-              surface: isDark ? DsColors.surfaceDark : DsColors.backgroundLight,
-              onSurface: isDark
-                  ? DsColors.textPrimaryDark
-                  : DsColors.textPrimaryLight,
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: DsColors.primary,
+                    onPrimary: DsColors.surfaceLight,
+                    surface: DsColors.surfaceDark,
+                    onSurface: DsColors.textPrimaryDark,
+                  )
+                : const ColorScheme.light(
+                    primary: DsColors.primary,
+                    onPrimary: DsColors.surfaceLight,
+                    surface: DsColors.backgroundLight,
+                    onSurface: DsColors.textPrimaryLight,
+                  ),
             dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -963,12 +968,17 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       context.pop();
       return;
     }
-    final phone = context.read<AuthBloc>().state.phoneInProgress;
+    // Determine fallback based on sign-up method actually used
+    final authState = context.read<AuthBloc>().state;
+    final phone = authState.phoneInProgress;
+    final email = authState.emailInProgress ?? authState.emailOtpIdentifier;
     if (phone != null && phone.isNotEmpty) {
       final encoded = Uri.encodeComponent(phone);
       context.go('${CrushRoutes.otp}?phone=$encoded');
+    } else if (email != null && email.isNotEmpty) {
+      context.go(CrushRoutes.emailAuth);
     } else {
-      context.go(CrushRoutes.phoneAuth);
+      context.go(CrushRoutes.authGateway);
     }
   }
 

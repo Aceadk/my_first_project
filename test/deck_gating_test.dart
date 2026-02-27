@@ -20,6 +20,7 @@ import 'package:crushhour/features/discovery/data/repositories/boost_repository.
 import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
@@ -542,6 +543,10 @@ class _StubDiscoveryBloc extends DiscoveryBloc {
         discoveryRepository: _StubDiscoveryRepository([profile]),
         subscriptionRepository: _StubSubscriptionRepository(),
         authRepository: authRepo,
+        swipeRightUseCase: SwipeRightUseCase(
+          _StubDiscoveryRepository([profile]),
+          _StubSubscriptionRepository(),
+        ),
       ) {
     emit(
       DiscoveryState(

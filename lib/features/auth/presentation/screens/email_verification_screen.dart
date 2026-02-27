@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/router.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Screen shown when user is authenticated but email is not verified.
 /// User must verify their email before accessing the app.
@@ -24,7 +24,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     with WidgetsBindingObserver {
   static const int _resendCooldownSeconds = 30;
 
+  /// Max number of automatic polls before requiring manual check.
+  static const int _maxAutoCheckAttempts = 200;
+
+  /// Tracks when we last auto-sent a verification email so re-mounting
+  /// this screen (e.g. via router redirect) doesn't spam Firebase.
+  static DateTime? _lastAutoSendTime;
+
   Timer? _checkTimer;
+  int _autoCheckCount = 0;
   bool _isSending = false;
   bool _isChecking = false;
   String? _message;
@@ -38,8 +46,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     WidgetsBinding.instance.addObserver(this);
     // Start checking for verification periodically
     _startVerificationCheck();
-    // Send initial verification email
-    _sendVerificationEmail();
+    // Only auto-send if we haven't sent one recently (prevents spam on re-mount)
+    final now = DateTime.now();
+    if (_lastAutoSendTime == null ||
+        now.difference(_lastAutoSendTime!).inSeconds > _resendCooldownSeconds) {
+      _lastAutoSendTime = now;
+      _sendVerificationEmail();
+    }
   }
 
   @override
@@ -63,8 +76,20 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   }
 
   void _startVerificationCheck() {
-    // Check every 3 seconds if email is verified
+    // Check every 3 seconds if email is verified, capped at _maxAutoCheckAttempts
     _checkTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _autoCheckCount++;
+      if (_autoCheckCount >= _maxAutoCheckAttempts) {
+        _checkTimer?.cancel();
+        if (mounted) {
+          setState(() {
+            _message =
+                'Auto-check stopped after ${_maxAutoCheckAttempts ~/ 20} minutes. '
+                'Tap "I\'ve Verified" to check manually.';
+          });
+        }
+        return;
+      }
       _checkVerification();
     });
   }
@@ -372,7 +397,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                         ),
                         Text(AppLocalizations.of(context).emptyString),
                         GlassSmallButton(
-                          onPressed: _signOut,
+                          onPressed: () {
+                            _checkTimer?.cancel();
+                            context.go(CrushRoutes.changeEmail);
+                          },
                           child: Text(
                             AppLocalizations.of(context).useDifferentEmail,
                           ),

@@ -1,29 +1,28 @@
-import 'package:flutter/material.dart';
 import 'package:crushhour/core/app_logger.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/services/location_service.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/favourites.dart';
+import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
-import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart'
-    show onboardingStartTime;
+import 'package:crushhour/features/auth/presentation/screens/permission_rationale_screen.dart';
+import 'package:crushhour/features/discovery/domain/repositories/passport_locations_repository.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/services/location_service.dart';
-import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/data/models/favourites.dart';
-import 'package:crushhour/features/discovery/domain/repositories/passport_locations_repository.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
-import 'package:crushhour/features/auth/presentation/screens/permission_rationale_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import '../widgets/profile_media_picker.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -76,8 +75,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    // Default athlete (not shown to user that it's default)
-    _favouriteAthlete = 'Cristiano Ronaldo';
+    // No default favourites — user must actively choose
+    _favouriteAthlete = null;
 
     // Show location permission rationale after the first frame so that
     // context is available for showing a dialog/bottom sheet.
@@ -282,7 +281,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
 
     // Favourites (8 fields)
-    if (_favouriteAthlete != null && _favouriteAthlete != 'Cristiano Ronaldo') {
+    if (_favouriteAthlete != null) {
       filledCount++;
     } else {
       missingFields.add('Favourite Athlete');
@@ -510,7 +509,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         }
 
                         // Log onboarding completion with total duration
-                        final startTime = onboardingStartTime;
+                        final startTime =
+                            AnalyticsService.instance.onboardingStartTime;
                         if (startTime != null) {
                           final durationSeconds = DateTime.now()
                               .difference(startTime)
@@ -518,7 +518,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           AnalyticsService.instance.logOnboardingCompleted(
                             durationSeconds: durationSeconds,
                           );
-                          onboardingStartTime = null; // Reset for next session
+                          AnalyticsService.instance.onboardingStartTime =
+                              null; // Reset for next session
                         }
 
                         // Navigate to home - onboarding complete!

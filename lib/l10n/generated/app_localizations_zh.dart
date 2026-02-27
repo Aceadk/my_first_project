@@ -4648,6 +4648,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsToday => 'Today';
+
+  @override
+  String get notificationsThisWeek => 'This Week';
+
+  @override
+  String get notificationsEarlier => 'Earlier';
+
+  @override
   String get continueLabel => 'Continue';
 
   @override

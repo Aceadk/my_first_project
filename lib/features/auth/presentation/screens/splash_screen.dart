@@ -264,6 +264,9 @@ class _SplashScreenState extends State<SplashScreen>
                           color: Colors.white,
                         );
 
+                        // Resolve localized text here, NOT in paint()
+                        final crushText = AppLocalizations.of(context).crush;
+
                         return SizedBox(
                           width: maxWidth,
                           height: wordmarkHeight,
@@ -284,7 +287,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     progress: _strokeAnimation.value,
                                     fillOpacity: _fillFadeAnimation.value,
                                     textStyle: wordmarkStyle,
-                                    context: context,
+                                    text: crushText,
                                   ),
                                 );
                               },
@@ -339,13 +342,13 @@ class _CrushTextStrokePainter extends CustomPainter {
   final double progress;
   final double fillOpacity;
   final TextStyle textStyle;
-  final BuildContext context;
+  final String text;
 
   _CrushTextStrokePainter({
     required this.progress,
     required this.fillOpacity,
     required this.textStyle,
-    required this.context,
+    required this.text,
   });
 
   @override
@@ -353,7 +356,7 @@ class _CrushTextStrokePainter extends CustomPainter {
     final paragraphBuilder =
         ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
           ..pushStyle(textStyle.getTextStyle())
-          ..addText(AppLocalizations.of(context).crush);
+          ..addText(text);
 
     final paragraph = paragraphBuilder.build();
     paragraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -392,7 +395,7 @@ class _CrushTextStrokePainter extends CustomPainter {
       final strokeBuilder =
           ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
             ..pushStyle(strokeStyle)
-            ..addText(AppLocalizations.of(context).crush);
+            ..addText(text);
 
       final strokeParagraph = strokeBuilder.build();
       strokeParagraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -414,7 +417,7 @@ class _CrushTextStrokePainter extends CustomPainter {
       final fillBuilder =
           ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
             ..pushStyle(fillStyle)
-            ..addText(AppLocalizations.of(context).crush);
+            ..addText(text);
 
       final fillParagraph = fillBuilder.build();
       fillParagraph.layout(ui.ParagraphConstraints(width: size.width));
@@ -429,6 +432,7 @@ class _CrushTextStrokePainter extends CustomPainter {
   bool shouldRepaint(_CrushTextStrokePainter oldDelegate) {
     return progress != oldDelegate.progress ||
         fillOpacity != oldDelegate.fillOpacity ||
-        textStyle != oldDelegate.textStyle;
+        textStyle != oldDelegate.textStyle ||
+        text != oldDelegate.text;
   }
 }

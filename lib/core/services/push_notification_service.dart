@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/secure_logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crushhour/core/security/secure_logger.dart';
-import 'package:crushhour/core/app_logger.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -35,6 +37,7 @@ class PushNotificationService {
   static const actionLikeBack = 'like_back_action';
 
   String? _currentUserId;
+  StreamSubscription<String>? _tokenRefreshSub;
 
   /// Callback when notification is tapped
   void Function(String? payload)? onNotificationTapped;
@@ -173,6 +176,8 @@ class PushNotificationService {
     onNotificationAction = null;
     onForegroundMessage = null;
     _currentUserId = null;
+    _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
   }
 
   @visibleForTesting
@@ -269,6 +274,13 @@ class PushNotificationService {
   void _handleForegroundMessage(RemoteMessage message) {
     AppLogger.debug('Foreground message: ${message.messageId}');
 
+    // NOTIF-002: Suppress notifications sent by the current user
+    final senderId = message.data['senderId'] as String?;
+    if (senderId != null && senderId == _currentUserId) {
+      AppLogger.debug('Suppressed self-notification from $senderId');
+      return;
+    }
+
     // Show local notification when app is in foreground
     _showLocalNotification(message);
 
@@ -312,16 +324,22 @@ class PushNotificationService {
 
   /// Download image bytes from a URL. Returns null on failure.
   Future<Uint8List?> _downloadImage(String url) async {
+    final httpClient = HttpClient();
     try {
-      final httpClient = HttpClient();
       final request = await httpClient.getUrl(Uri.parse(url));
       final response = await request.close();
       if (response.statusCode == 200) {
         final bytes = await consolidateHttpClientResponseBytes(response);
         return bytes;
       }
-    } catch (e) {
-      AppLogger.error('Failed to download notification image: $e');
+    } catch (e, s) {
+      AppLogger.error(
+        'Failed to download notification image: $e',
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      httpClient.close();
     }
     return null;
   }
@@ -477,10 +495,11 @@ class PushNotificationService {
     // Store user's timezone for smart scheduling (quiet hours)
     _saveTimezone(userId);
 
-    // Listen for token refresh
+    // NOTIF-001: Cancel previous token-refresh listener before creating new one
+    await _tokenRefreshSub?.cancel();
     final tokenRefreshStream =
         tokenRefreshOverride ?? _messaging.onTokenRefresh;
-    tokenRefreshStream.listen((newToken) {
+    _tokenRefreshSub = tokenRefreshStream.listen((newToken) {
       if (_currentUserId != null) {
         if (saveTokenOverride != null) {
           saveTokenOverride!(_currentUserId!, newToken);
@@ -505,6 +524,10 @@ class PushNotificationService {
 
   /// Unregister FCM token (call on logout)
   Future<void> unregisterForUser() async {
+    // NOTIF-001: Cancel token-refresh listener on logout
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+
     final userId = _currentUserId;
     final token = await getToken();
     if (userId != null && token != null) {

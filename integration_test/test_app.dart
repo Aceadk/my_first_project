@@ -1,49 +1,46 @@
+import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/theme.dart';
+import 'package:crushhour/core/theme/app_theme_mode.dart';
+import 'package:crushhour/design_system/widgets/glass_button.dart';
+import 'package:crushhour/design_system/widgets/glass_text_field.dart';
+// Repositories
+import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
+// Stub implementations
+import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
+// BLoCs
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
+import 'package:crushhour/features/calls/data/repositories/call_repository.dart';
+import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
+import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
+import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_repository.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/data/repositories/impl/stub_discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
+import 'package:crushhour/features/profile/data/repositories/impl/stub_profile_repository.dart';
+import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
+import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
+import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:crushhour/core/theme.dart';
-import 'package:crushhour/core/router.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
-import 'package:crushhour/design_system/widgets/glass_button.dart';
-import 'package:crushhour/design_system/widgets/glass_text_field.dart';
-
-// Repositories
-import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
-import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/discovery_repository.dart';
-import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/subscription_repository.dart';
-import 'package:crushhour/features/calls/data/repositories/call_repository.dart';
-
-// Stub implementations
-import 'package:crushhour/features/auth/data/repositories/impl/stub_auth_repository.dart';
-import 'package:crushhour/features/profile/data/repositories/impl/stub_profile_repository.dart';
-import 'package:crushhour/features/discovery/data/repositories/impl/stub_discovery_repository.dart';
-import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_repository.dart';
-import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
-import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
-
-// BLoCs
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
-import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
-import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
-import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
-import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
-import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
-import 'package:crushhour/core/theme/app_theme_mode.dart';
-import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
-import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
-import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
-import 'package:crushhour/features/settings/presentation/bloc/locale_cubit.dart';
-import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
-import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 
 /// Test app configuration for integration tests.
 /// Uses stub repositories for isolated, repeatable testing.
@@ -114,6 +111,10 @@ class TestApp extends StatelessWidget {
           discoveryRepository: context.read<DiscoveryRepository>(),
           subscriptionRepository: context.read<SubscriptionRepository>(),
           authRepository: context.read<AuthRepository>(),
+          swipeRightUseCase: SwipeRightUseCase(
+            context.read<DiscoveryRepository>(),
+            context.read<SubscriptionRepository>(),
+          ),
         ),
       ),
       BlocProvider<ChatBloc>(

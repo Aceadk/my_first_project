@@ -20,19 +20,7 @@ This document tracks outstanding remediation and audit actions for the Error Han
 
 ## Action Items
 
-### [x] ERR-001: Add stack trace capture to critical repository catch blocks (P1)
-
-- **Description**: Repository-layer catch blocks in notification, subscription, and analytics services log errors as strings without stack traces. This makes production crash reports impossible to diagnose.
-- **Affected Files**: `firebase_notification_repository.dart`, `firebase_subscription_repository.dart`, `profile_insights_cubit.dart`
-- **Fix**: Change `catch (e)` → `catch (e, s)` and pass both `error: e` and `stackTrace: s` to `AppLogger.error()`.
-
-### [x] ERR-002: Add stack trace capture to profile media service (P1)
-
-- **Description**: `profile_media_service.dart` has 8 catch blocks handling Firebase upload/download errors. None capture stack traces.
-- **Affected Files**: `lib/features/profile/data/services/profile_media_service.dart`
-- **Fix**: Add `StackTrace` capture to the 4 generic `catch (e)` blocks (the `on FirebaseException` blocks already have structured handling).
-
-### ERR-003: Codebase-wide `catch (e)` → `catch (e, s)` migration (P2) — **DEFERRED**
+### ERR-001: Codebase-wide `catch (e)` → `catch (e, s)` migration (P2) — **DEFERRED**
 
 - **Description**: 50+ remaining catch blocks across the codebase. Low-risk individually but accumulate to make debugging hard.
 - **Status**: Deferred to batch migration — not blocking any features.

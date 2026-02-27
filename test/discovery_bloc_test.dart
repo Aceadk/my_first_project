@@ -9,6 +9,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
@@ -38,6 +39,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         expect(bloc.state.status, DeckStatus.initial);
@@ -60,6 +65,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         bloc.add(DiscoveryDeckRequested('user-1'));
@@ -88,6 +97,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         bloc.add(DiscoveryDeckRequested('user-1'));
@@ -120,6 +133,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         bloc.add(DiscoveryDeckRequested('user-1'));
@@ -151,6 +168,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck first
@@ -185,6 +206,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck first
@@ -219,6 +244,10 @@ void main() {
             dailySwipesRemaining: 10,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck
@@ -249,6 +278,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load empty deck
@@ -277,6 +310,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck first
@@ -309,6 +346,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck first
@@ -339,6 +380,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck first
@@ -379,6 +424,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck
@@ -416,6 +465,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck but don't swipe
@@ -450,6 +503,10 @@ void main() {
             SubscriptionPlan.plus,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck
@@ -490,6 +547,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load initial deck
@@ -525,6 +586,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Manually set loading state would be needed here
@@ -549,6 +614,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck and swipe to get match
@@ -584,6 +653,10 @@ void main() {
             SubscriptionPlan.free,
           ),
           authRepository: _StubAuthRepository(),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
+          ),
         );
 
         // Load deck
@@ -621,6 +694,10 @@ void main() {
           ),
           authRepository: _StubAuthRepository(
             userStreamController: authController,
+          ),
+          swipeRightUseCase: SwipeRightUseCase(
+            _StubDiscoveryRepository(deck: const []),
+            _StubSubscriptionRepository(SubscriptionPlan.free),
           ),
         );
 
@@ -924,7 +1001,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async {}
 
   @override
-@override
+  @override
   Future<void> verifyPassword(String password) async {}
 
   @override

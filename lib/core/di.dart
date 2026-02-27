@@ -51,6 +51,7 @@ import 'package:crushhour/features/discovery/domain/repositories/realtime_match_
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 // Social/Analytics concrete service implementations
 import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
@@ -310,6 +311,10 @@ class CrushDI {
           subscriptionRepository: context.read<SubscriptionRepository>(),
           authRepository: context.read<AuthRepository>(),
           profileRepository: context.read<ProfileRepository>(),
+          swipeRightUseCase: SwipeRightUseCase(
+            context.read<DiscoveryRepository>(),
+            context.read<SubscriptionRepository>(),
+          ),
         ),
       ),
       BlocProvider<ChatBloc>(

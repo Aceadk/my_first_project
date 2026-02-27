@@ -1736,6 +1736,10 @@
   "noPhotosYet": "No photos yet",
   "markAllRead": "Mark all read",
   "notifications": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+  "notificationsToday": "Today",
+  "notificationsThisWeek": "This Week",
+  "notificationsEarlier": "Earlier",
   "continueLabel": "Continue",
   "photosRejected": "{count, plural, =1{1 photo rejected: {reason}} other{{count} photos rejected: {reason}}}",
   "@photosRejected": {

@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
@@ -10,6 +7,9 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/notifications/domain/entities/app_notification.dart';
 import 'package:crushhour/features/notifications/presentation/bloc/notification_center_cubit.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -96,7 +96,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No notifications yet',
+                              AppLocalizations.of(context).notificationsEmpty,
                               style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     color: Theme.of(context)
@@ -215,15 +215,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
     final items = <Object>[];
     if (today.isNotEmpty) {
-      items.add(const _GroupHeader('Today'));
+      items.add(_GroupHeader(AppLocalizations.of(context).notificationsToday));
       items.addAll(today.map((n) => _NotificationItem(n)));
     }
     if (thisWeek.isNotEmpty) {
-      items.add(const _GroupHeader('This Week'));
+      items.add(
+        _GroupHeader(AppLocalizations.of(context).notificationsThisWeek),
+      );
       items.addAll(thisWeek.map((n) => _NotificationItem(n)));
     }
     if (earlier.isNotEmpty) {
-      items.add(const _GroupHeader('Earlier'));
+      items.add(
+        _GroupHeader(AppLocalizations.of(context).notificationsEarlier),
+      );
       items.addAll(earlier.map((n) => _NotificationItem(n)));
     }
 

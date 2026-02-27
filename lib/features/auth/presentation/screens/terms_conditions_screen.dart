@@ -107,7 +107,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).termsConditions),
         centerTitle: true,
-        backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
@@ -152,7 +152,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                         child: LinearProgressIndicator(
                           value: _hasScrolledToEnd ? 1.0 : 0.5,
                           minHeight: 6,
-                          backgroundColor: DsColors.skeletonLight,
+                          backgroundColor: isDark
+                              ? DsColors.skeletonDark
+                              : DsColors.skeletonLight,
                           valueColor: const AlwaysStoppedAnimation<Color>(
                             DsColors.primary,
                           ),
@@ -307,7 +309,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                     children: [
                       // Checkbox
                       Semantics(
-                        button: true,
+                        checked: _isAgreed,
+                        label:
+                            'I have read and agree to the Terms and Conditions and Privacy Policy',
                         child: GestureDetector(
                           onTap: _hasScrolledToEnd
                               ? () => setState(() => _isAgreed = !_isAgreed)
@@ -342,9 +346,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                                   decoration: BoxDecoration(
                                     color: _isAgreed
                                         ? DsColors.primary
-                                        : DsColors.backgroundLight.withValues(
-                                            alpha: 0,
-                                          ),
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
                                       color: _isAgreed

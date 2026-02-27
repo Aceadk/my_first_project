@@ -1,23 +1,20 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:crushhour/core/utils/result.dart';
+
 import 'package:crushhour/core/router.dart';
-import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
-import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
-
-/// Stores the onboarding start time so total duration can be calculated
-/// when onboarding completes in profile_setup_screen.dart.
-DateTime? onboardingStartTime;
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -68,7 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _dialCodeController.text = _selectedCountry.dialCode;
 
     // Track onboarding start time for duration calculation
-    onboardingStartTime = DateTime.now();
+    AnalyticsService.instance.onboardingStartTime = DateTime.now();
 
     // Log onboarding step 1: signup
     AnalyticsService.instance.logOnboardingStep(
@@ -132,7 +129,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: DsColors.backgroundLight.withValues(alpha: 0),
+          backgroundColor: Colors.transparent,
           elevation: 0,
           leading: GlassIconButton(
             icon: Icons.arrow_back,
@@ -1537,6 +1534,7 @@ class _PasswordStrength extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final strength = _calculateStrength(password);
     final color = _getColor(strength);
     final label = _getLabel(strength);
@@ -1549,7 +1547,9 @@ class _PasswordStrength extends StatelessWidget {
             child: LinearProgressIndicator(
               value: strength,
               minHeight: 4,
-              backgroundColor: DsColors.skeletonLight,
+              backgroundColor: isDark
+                  ? DsColors.skeletonDark
+                  : DsColors.skeletonLight,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),

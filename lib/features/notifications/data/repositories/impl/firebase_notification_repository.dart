@@ -54,10 +54,11 @@ class FirebaseNotificationRepository implements NotificationRepository {
         .where('isRead', isEqualTo: false)
         .snapshots()
         .map((snapshot) => snapshot.docs.length)
-        .handleError((e) {
+        .handleError((Object e, StackTrace s) {
           AppLogger.error(
             'FirebaseNotificationRepository: watchUnreadCount error',
             error: e,
+            stackTrace: s,
           );
           return 0;
         });
@@ -85,11 +86,16 @@ class FirebaseNotificationRepository implements NotificationRepository {
 
       if (unread.docs.isEmpty) return;
 
-      final batch = _firestore.batch();
-      for (final doc in unread.docs) {
-        batch.update(doc.reference, {'isRead': true});
+      // NOTIF-004: Chunk into batches of 500 (Firestore limit)
+      const batchLimit = 500;
+      for (var i = 0; i < unread.docs.length; i += batchLimit) {
+        final chunk = unread.docs.skip(i).take(batchLimit);
+        final batch = _firestore.batch();
+        for (final doc in chunk) {
+          batch.update(doc.reference, {'isRead': true});
+        }
+        await batch.commit();
       }
-      await batch.commit();
     } catch (e, s) {
       AppLogger.error(
         'FirebaseNotificationRepository: markAllAsRead failed',

@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:crushhour/core/app_logger.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/performance/performance_monitor.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
-import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/services/analytics_service.dart';
-import 'package:crushhour/core/performance/performance_monitor.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
@@ -22,9 +24,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final SubscriptionRepository subscriptionRepository;
   final ProfileRepository? profileRepository;
   final AuthRepository authRepository;
+  final SwipeRightUseCase swipeRightUseCase;
 
   StreamSubscription? _authSubscription;
-  int? _remainingFreeSwipesToday;
   Timer? _retryTimer;
   int _retryDelayMs = 1000;
   int _retryCount = 0;
@@ -43,6 +45,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     required this.discoveryRepository,
     required this.subscriptionRepository,
     required this.authRepository,
+    required this.swipeRightUseCase,
     this.profileRepository,
   }) : super(const DiscoveryState()) {
     on<DiscoveryDeckRequested>(_onDeckRequested);
@@ -82,7 +85,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     _retryDelayMs = 1000;
     _lastRequestedUserId = null;
     _isManualRefresh = false;
-    _remainingFreeSwipesToday = null;
+    swipeRightUseCase.resetDailyCounter();
     _cachedPreferences = null;
     _userLatitude = null;
     _userLongitude = null;
@@ -129,9 +132,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     final plan = planResult.data ?? SubscriptionPlan.free;
-    _remainingFreeSwipesToday = plan.isFree
-        ? CrushConstants.freeDailySwipeLimit
-        : null;
 
     // Load user profile to get location and preferences
     await _loadUserPreferencesAndLocation();
@@ -324,36 +324,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         ? state.deck[currentIndex]
         : null;
 
-    final planResult = await Result.guard(
-      () => subscriptionRepository.getCurrentPlan(),
-      logLabel: 'SubscriptionRepository.getCurrentPlan',
-      fallbackError: 'Could not like this profile. Please try again.',
-    );
-    if (!planResult.isSuccess) {
-      emit(
-        state.copyWith(
-          currentIndex: currentIndex,
-          status: DeckStatus.ready,
-          errorMessage: planResult.errorMessage,
-        ),
-      );
-      return;
-    }
-    final plan = planResult.data ?? SubscriptionPlan.free;
-    final remainingSwipes = plan.isFree
-        ? (_remainingFreeSwipesToday ?? CrushConstants.freeDailySwipeLimit)
-        : null;
-
-    if (plan.isFree && remainingSwipes != null && remainingSwipes <= 0) {
-      emit(
-        state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: 'Daily swipe limit reached.',
-        ),
-      );
-      return;
-    }
-
+    // Optimistically advance UI
     emit(
       state.copyWith(
         currentIndex: nextIndex,
@@ -361,21 +332,22 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         lastSwipedProfile: swipedProfile,
         lastSwipeDirection: 'right',
         canRewind: true,
-        errorMessage: planResult.errorMessage,
+        errorMessage: null,
       ),
     );
 
-    final swipeResult = await Result.guard(
-      () => discoveryRepository.swipeRight(
+    // Delegate to use case (handles subscription check, counter, persistence, swipe)
+    final result = await swipeRightUseCase.call(
+      SwipeRightParams(
         userId: event.userId,
         targetUserId: event.targetUserId,
         attachedMessage: event.attachedMessage,
       ),
-      logLabel: 'DiscoveryRepository.swipeRight',
-      fallbackError: 'Could not like this profile. Please try again.',
     );
 
-    if (swipeResult.isSuccess) {
+    if (result.isSuccess && result.data!.success) {
+      final swipeResult = result.data!;
+
       // Track swipe right
       AnalyticsService.instance.logSwipeRight(
         targetUserId: event.targetUserId,
@@ -383,10 +355,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       );
 
       // Track match if one was created and emit for celebration
-      final match = swipeResult.data;
+      final match = swipeResult.match;
       if (match != null && swipedProfile != null) {
         AnalyticsService.instance.logMatch(matchId: match.id);
-        // Emit the match result for celebration modal
         emit(
           state.copyWith(
             newMatch: MatchResult(
@@ -396,16 +367,28 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           ),
         );
       }
-
-      if (plan.isFree && remainingSwipes != null) {
-        _remainingFreeSwipesToday = remainingSwipes - 1;
-      }
-    } else {
+    } else if (result.isSuccess && !result.data!.success) {
+      // Limit reached — rollback UI
       emit(
         state.copyWith(
           currentIndex: currentIndex,
           status: DeckStatus.ready,
-          errorMessage: swipeResult.errorMessage,
+          errorMessage: 'Daily swipe limit reached.',
+          canRewind: false,
+          lastSwipedProfile: null,
+          lastSwipeDirection: null,
+        ),
+      );
+    } else {
+      // API failure — rollback UI
+      emit(
+        state.copyWith(
+          currentIndex: currentIndex,
+          status: DeckStatus.ready,
+          errorMessage: result.errorMessage,
+          canRewind: false,
+          lastSwipedProfile: null,
+          lastSwipeDirection: null,
         ),
       );
     }
@@ -459,6 +442,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           currentIndex: currentIndex,
           status: DeckStatus.ready,
           errorMessage: result.errorMessage,
+          canRewind: false,
+          lastSwipedProfile: null,
+          lastSwipeDirection: null,
         ),
       );
     }
