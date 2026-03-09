@@ -15,9 +15,16 @@ class BoostButton extends StatelessWidget {
 
   static const _boostColor = DsColors.secondary; // Premium plum for boost
 
+  bool _buildWhen(BoostState previous, BoostState current) {
+    return previous.isLoading != current.isLoading ||
+        previous.status != current.status ||
+        previous.tick != current.tick;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BoostCubit, BoostState>(
+      buildWhen: _buildWhen,
       builder: (context, state) {
         if (state.isLoading) {
           return _buildButton(
@@ -328,9 +335,16 @@ class BoostIndicator extends StatelessWidget {
 
   static const _boostColor = DsColors.secondary;
 
+  bool _buildWhen(BoostState previous, BoostState current) {
+    return previous.isBoostActive != current.isBoostActive ||
+        previous.status != current.status ||
+        previous.tick != current.tick;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BoostCubit, BoostState>(
+      buildWhen: _buildWhen,
       builder: (context, state) {
         if (!state.isBoostActive) {
           return const SizedBox.shrink();

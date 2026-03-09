@@ -9373,3 +9373,138 @@ next
   - `npm --prefix functions run test -- test/appleS2sLifecycle.test.js test/appleReceiptValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
   - `scripts/check_ai_docs_sync.sh --files docs/TODO_SUBSCRIPTION.md functions/src/index.ts functions/test/appleS2sLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - **Next step:** Continue remaining `R-055` release-operations work (App Store Connect/Play Console reviewer setup and production submission execution).
+
+---
+
+### Task #167 — TODO_PERFORMANCE Start: PERF-005 Discovery `buildWhen` Rebuild Guards
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start working on TODO_PERFORMANCE.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_PERFORMANCE.md` execution by completing a concrete optimization item and reconciling stale completed entries.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/presentation/widgets/boost_button.dart`, `/Users/ace/my_first_project/lib/features/discovery/presentation/screens/deck_screen.dart`, `/Users/ace/my_first_project/docs/TODO_PERFORMANCE.md`, required workflow docs.
+- **Constraints:**
+  - Keep existing discovery/boost behavior unchanged while reducing unnecessary Bloc-driven rebuilds.
+  - Use focused verification for touched performance areas.
+  - Keep edits incremental and avoid broad refactors.
+- **Expected Outcome:** Discovery boost and subscription upsell builders rebuild only for relevant state changes; performance TODO reflects current implementation status.
+
+**Status Updates:**
+- **Received:** Opened required collaboration docs and audited `TODO_PERFORMANCE.md` against current code.
+- **In Progress:** Added targeted `buildWhen` guards for discovery builders and refreshed TODO status notes for already-implemented items.
+- **Completed:** Formatted code, ran focused tests, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/presentation/widgets/boost_button.dart`
+    - Added `buildWhen` guard for `BoostButton` BlocBuilder (rebuild only on `isLoading`/`status`/`tick` changes).
+    - Added `buildWhen` guard for `BoostIndicator` BlocBuilder (rebuild only on active-status/timer-relevant changes).
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`
+    - Added `buildWhen` guard to subscription upsell sheet BlocBuilder to rebuild only when `plan` or `isCheckoutInProgress` changes.
+  - `docs/TODO_PERFORMANCE.md`
+    - Marked audited completed/mitigated items with dated status notes (`PERF-001`, `PERF-002`, `PERF-003`, `PERF-005`, `PERF-006`, `PERF-008`, `PERF-010`).
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `PERF-005` is implemented and the performance TODO now reflects current completed work vs remaining items.
+- **Verification:**
+  - `dart format lib/features/discovery/presentation/widgets/boost_button.dart lib/features/discovery/presentation/screens/deck_screen.dart` (pass)
+  - `flutter test test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart test/deck_gating_test.dart test/boost_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/discovery/presentation/widgets/boost_button.dart lib/features/discovery/presentation/screens/deck_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PERFORMANCE.md` with unresolved items (`PERF-007` timer lifecycle standardization or `PERF-009` const-constructor sweep).
+
+---
+
+### Task #168 — TODO_PERFORMANCE Continue: PERF-007 Timer Lifecycle Standardization
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue `TODO_PERFORMANCE.md` by resolving `PERF-007` with a centralized timer lifecycle pattern in key timer-heavy modules.
+- **Scope:** `/Users/ace/my_first_project/lib/core/utils/managed_timer_registry.dart`, connectivity/chat/subscription/performance timer call sites, `/Users/ace/my_first_project/docs/TODO_PERFORMANCE.md`, required workflow docs.
+- **Constraints:**
+  - Keep behavior unchanged while reducing timer leak risk.
+  - Use small, incremental refactor (no broad architecture rewrite).
+  - Verify through focused unit tests in changed areas.
+- **Expected Outcome:** Shared keyed timer manager is used by the listed PERF-007 hotspots, replacing ad-hoc `Timer.periodic` lifecycle handling.
+
+**Status Updates:**
+- **Received:** Re-read required collaboration docs and selected next unresolved performance task (`PERF-007`).
+- **In Progress:** Added reusable keyed timer registry and integrated it into connectivity, chat HTTP polling/typing timers, subscription polling, and performance monitor memory polling.
+- **Completed:** Added timer-registry tests, updated TODO status, validated targeted tests, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/utils/managed_timer_registry.dart` (new)
+    - Added centralized keyed timer manager with `startPeriodic`, `startOneShot`, `cancel`, `cancelWhere`, and `cancelAll`.
+  - `lib/core/connectivity/connectivity_cubit.dart`
+    - Replaced direct timer field with managed keyed timer lifecycle.
+  - `lib/features/chat/data/repositories/impl/http_chat_repository.dart`
+    - Replaced polling timer `Map<String, Timer>` operations with `ManagedTimerRegistry`.
+    - Moved typing auto-cancel timer to managed one-shot keyed timer path.
+    - Simplified timer cleanup paths (`cancelWhere`, `cancelAll`).
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+    - Replaced direct polling timer field with managed keyed polling timer.
+  - `lib/core/performance/performance_monitor.dart`
+    - Replaced memory-monitoring timer field with managed keyed timer.
+  - `test/core/utils/managed_timer_registry_test.dart` (new)
+    - Added coverage for restart semantics, one-shot auto-removal, and selective/global cancellation.
+  - `docs/TODO_PERFORMANCE.md`
+    - Marked `PERF-007` completed with implementation summary.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `PERF-007` is implemented with a shared timer lifecycle guard used in all listed high-risk timer locations.
+- **Verification:**
+  - `dart format lib/core/utils/managed_timer_registry.dart lib/core/connectivity/connectivity_cubit.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/core/performance/performance_monitor.dart test/core/utils/managed_timer_registry_test.dart` (pass)
+  - `flutter test test/core/utils/managed_timer_registry_test.dart test/connectivity_cubit_test.dart test/performance_monitor_test.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/core/utils/managed_timer_registry.dart lib/core/connectivity/connectivity_cubit.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/core/performance/performance_monitor.dart test/core/utils/managed_timer_registry_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PERFORMANCE.md` with `PERF-009` (`const` constructor optimization in frequently rebuilt discovery list items).
+
+---
+
+### Task #169 — TODO_PERFORMANCE Continue: PERF-004 Builder Migration + PERF-009 Const Audit
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue unresolved performance backlog by addressing the next actionable list-rendering optimization and reconciling stale const-constructor backlog status.
+- **Scope:** `/Users/ace/my_first_project/lib/features/social/presentation/screens/date_ideas_screen.dart`, `/Users/ace/my_first_project/docs/TODO_PERFORMANCE.md`, required workflow docs.
+- **Constraints:**
+  - Keep UX and filtering behavior unchanged.
+  - Make incremental, low-risk rendering optimizations only.
+  - Verify with targeted screen tests.
+- **Expected Outcome:** Date-ideas filter lists use lazy builders; performance TODO reflects current state of `PERF-004` and `PERF-009`.
+
+**Status Updates:**
+- **Received:** Continued from previous performance pass and reviewed unresolved TODO items.
+- **In Progress:** Migrated date-ideas horizontal filter lists from eager child-list construction to `ListView.builder`.
+- **Completed:** Updated performance TODO statuses, ran focused tests, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/social/presentation/screens/date_ideas_screen.dart`
+    - Replaced category filter row `ListView(children: ...)` with `ListView.builder`.
+    - Replaced cost filter row `ListView(children: ...)` with `ListView.builder`.
+    - Preserved selection/filtering behavior and visual output.
+  - `docs/TODO_PERFORMANCE.md`
+    - Marked `PERF-004` completed with note that high-item paths now use builder patterns.
+    - Marked `PERF-009` completed via audit (discovery explore/likes-you item widgets already provide const constructors).
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Date-ideas list rendering now avoids eager list allocation for filter rows, and the performance TODO is aligned with current code reality.
+- **Verification:**
+  - `dart format lib/features/social/presentation/screens/date_ideas_screen.dart` (pass)
+  - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart test/call_history_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/social/presentation/screens/date_ideas_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PERFORMANCE.md` with any newly identified hotspots from profiling/runtime traces (current checklist items now fully statused).

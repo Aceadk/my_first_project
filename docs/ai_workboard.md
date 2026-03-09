@@ -3250,3 +3250,78 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `npm --prefix functions run test -- test/appleS2sLifecycle.test.js test/appleReceiptValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
   - `scripts/check_ai_docs_sync.sh --files docs/TODO_SUBSCRIPTION.md functions/src/index.ts functions/test/appleS2sLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - Next Step: Continue remaining `R-055` release-operations work (App Store Connect + Play Console reviewer configuration and submission execution).
+
+### T-2026-03-09-PERFORMANCE-PERF005-DISCOVERY-BUILDWHEN-GUARDS
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_PERFORMANCE.md` implementation by reducing unnecessary discovery UI rebuilds and syncing stale performance TODO statuses.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/presentation/widgets/boost_button.dart`, `/Users/ace/my_first_project/lib/features/discovery/presentation/screens/deck_screen.dart`, `/Users/ace/my_first_project/docs/TODO_PERFORMANCE.md`, workflow docs.
+- Key Changes:
+  - Updated `lib/features/discovery/presentation/widgets/boost_button.dart`:
+    - Added `buildWhen` guard to `BoostButton` BlocBuilder to rebuild only when `isLoading`, `status`, or `tick` changes.
+    - Added `buildWhen` guard to `BoostIndicator` BlocBuilder to rebuild only for active/timer-relevant state changes.
+  - Updated `lib/features/discovery/presentation/screens/deck_screen.dart`:
+    - Added `buildWhen` guard to the passport upsell `SubscriptionBloc` builder (`plan`, `isCheckoutInProgress`).
+  - Updated `docs/TODO_PERFORMANCE.md`:
+    - Added dated status notes for already-completed/mitigated items (`PERF-001`, `PERF-002`, `PERF-003`, `PERF-005`, `PERF-006`, `PERF-008`, `PERF-010`) to keep remaining work focused.
+- Decisions/Handoffs:
+  - Chose targeted `buildWhen` guards instead of broader widget refactors to keep this pass low-risk and measurable.
+  - Kept risk register unchanged; no architecture/data-flow changes were introduced.
+- Risks/Mitigation:
+  - No new risk introduced. Remaining performance backlog centers on timer lifecycle standardization (`PERF-007`) and const-constructor optimization sweep (`PERF-009`).
+- Verification:
+  - `dart format lib/features/discovery/presentation/widgets/boost_button.dart lib/features/discovery/presentation/screens/deck_screen.dart` (pass)
+  - `flutter test test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart test/deck_gating_test.dart test/boost_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/discovery/presentation/widgets/boost_button.dart lib/features/discovery/presentation/screens/deck_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Execute next unresolved performance item (`PERF-007` or `PERF-009`).
+
+### T-2026-03-09-PERFORMANCE-PERF007-TIMER-LIFECYCLE-STANDARDIZATION
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `PERF-007` by introducing a shared timer lifecycle pattern and applying it to key timer-heavy modules.
+- Scope: `/Users/ace/my_first_project/lib/core/utils/managed_timer_registry.dart`, `/Users/ace/my_first_project/lib/core/connectivity/connectivity_cubit.dart`, `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_repository.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`, `/Users/ace/my_first_project/lib/core/performance/performance_monitor.dart`, `/Users/ace/my_first_project/test/core/utils/managed_timer_registry_test.dart`, workflow docs.
+- Key Changes:
+  - Added `ManagedTimerRegistry` utility for keyed timer lifecycle control (`startPeriodic`, `startOneShot`, `cancel`, `cancelWhere`, `cancelAll`).
+  - Migrated timer management in `ConnectivityCubit` to keyed managed timer usage.
+  - Migrated `HttpChatRepository` polling + typing auto-cancel timers to managed registries and simplified cleanup paths.
+  - Migrated `HttpSubscriptionRepository` plan polling timer to managed keyed polling.
+  - Migrated `PerformanceMonitor` memory monitoring timer to managed keyed polling.
+  - Added targeted timer utility tests in `test/core/utils/managed_timer_registry_test.dart`.
+  - Updated `docs/TODO_PERFORMANCE.md` with `PERF-007` completion status.
+- Decisions/Handoffs:
+  - Kept the change scoped to timer lifecycle behavior only; no transport/protocol/state-model contract changes.
+  - Introduced utility-level test coverage so future timer users can reuse a verified lifecycle pattern.
+- Risks/Mitigation:
+  - No new risk introduced; this reduces timer leak risk by replacing ad-hoc per-class cancellation logic with a shared guard.
+- Verification:
+  - `dart format lib/core/utils/managed_timer_registry.dart lib/core/connectivity/connectivity_cubit.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/core/performance/performance_monitor.dart test/core/utils/managed_timer_registry_test.dart` (pass)
+  - `flutter test test/core/utils/managed_timer_registry_test.dart test/connectivity_cubit_test.dart test/performance_monitor_test.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/core/utils/managed_timer_registry.dart lib/core/connectivity/connectivity_cubit.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/core/performance/performance_monitor.dart test/core/utils/managed_timer_registry_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue remaining performance backlog with `PERF-009` const-constructor optimization sweep.
+
+### T-2026-03-09-PERFORMANCE-PERF004-BUILDER-MIGRATION-AND-PERF009-CONST-AUDIT
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Continue performance remediation by converting remaining non-lazy list-rendering hotspots and reconciling stale const-constructor backlog status.
+- Scope: `/Users/ace/my_first_project/lib/features/social/presentation/screens/date_ideas_screen.dart`, `/Users/ace/my_first_project/docs/TODO_PERFORMANCE.md`, workflow docs.
+- Key Changes:
+  - Updated `lib/features/social/presentation/screens/date_ideas_screen.dart`:
+    - Migrated category filter horizontal row from eager `ListView(children: ...)` to `ListView.builder`.
+    - Migrated cost filter horizontal row from eager `ListView(children: ...)` to `ListView.builder`.
+    - Kept existing filter behavior and state wiring unchanged.
+  - Updated `docs/TODO_PERFORMANCE.md`:
+    - Marked `PERF-004` completed.
+    - Marked `PERF-009` completed based on current-code audit (`_ExploreCard`/`_LikeCard` constructors already const).
+- Decisions/Handoffs:
+  - Applied targeted lazy-list migration only where an eager list was rebuilt from dynamic collections.
+  - Treated `PERF-009` as audit-complete to avoid no-op code churn; existing discovery list-item widgets already expose const constructors.
+- Risks/Mitigation:
+  - No new risks introduced. Changes are render-path local and covered by focused screen tests.
+- Verification:
+  - `dart format lib/features/social/presentation/screens/date_ideas_screen.dart` (pass)
+  - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart test/call_history_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/social/presentation/screens/date_ideas_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue performance work from runtime profiling output/new hotspots beyond the current checklist.

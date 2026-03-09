@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
+import 'package:crushhour/core/utils/managed_timer_registry.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
@@ -29,10 +30,11 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
   /// 60 seconds is sufficient since subscription changes are user-initiated
   /// and immediate accuracy isn't critical.
   static const _subscriptionPollingInterval = Duration(seconds: 60);
+  static const _subscriptionPollingTimerKey = 'subscription_plan_polling';
 
   final _planController = StreamController<SubscriptionPlan>.broadcast();
   SubscriptionPlan _currentPlan = SubscriptionPlan.free;
-  Timer? _pollingTimer;
+  final ManagedTimerRegistry _timers = ManagedTimerRegistry();
 
   @override
   Stream<SubscriptionPlan> watchPlan() {
@@ -41,11 +43,12 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
   }
 
   void _startPolling() {
-    _pollingTimer?.cancel();
+    _timers.cancel(_subscriptionPollingTimerKey);
     _fetchCurrentPlan();
 
     // Poll at configured interval to check for subscription changes
-    _pollingTimer = Timer.periodic(
+    _timers.startPeriodic(
+      _subscriptionPollingTimerKey,
       _subscriptionPollingInterval,
       (_) => _fetchCurrentPlan(),
     );
@@ -172,7 +175,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
   /// Dispose resources.
   void dispose() {
-    _pollingTimer?.cancel();
+    _timers.cancelAll();
     _planController.close();
   }
 

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/utils/managed_timer_registry.dart';
 
 /// Connectivity status.
 enum ConnectivityStatus {
@@ -46,21 +47,20 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
 
   final DnsLookup _dnsLookup;
 
-  Timer? _timer;
+  static const _monitoringTimerKey = 'connectivity_monitoring';
+  final ManagedTimerRegistry _timers = ManagedTimerRegistry();
   bool _isChecking = false;
 
   /// Start periodic connectivity monitoring.
   void startMonitoring() {
     // Run an immediate check, then start periodic polling
     _check();
-    _timer?.cancel();
-    _timer = Timer.periodic(checkInterval, (_) => _check());
+    _timers.startPeriodic(_monitoringTimerKey, checkInterval, (_) => _check());
   }
 
   /// Stop monitoring.
   void stopMonitoring() {
-    _timer?.cancel();
-    _timer = null;
+    _timers.cancel(_monitoringTimerKey);
   }
 
   /// Perform a single connectivity check.
@@ -109,7 +109,7 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
 
   @override
   Future<void> close() {
-    _timer?.cancel();
+    _timers.cancelAll();
     return super.close();
   }
 }

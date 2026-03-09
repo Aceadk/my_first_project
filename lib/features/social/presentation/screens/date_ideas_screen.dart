@@ -129,36 +129,40 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                                     previous.selectedCategory !=
                                     current.selectedCategory,
                                 builder: (context, state) {
+                                  final categories = DateCategory.values;
                                   return SizedBox(
                                     height: 40,
-                                    child: ListView(
+                                    child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      children: [
-                                        _buildFilterChip(
-                                          label: 'All',
-                                          isSelected:
-                                              state.selectedCategory == null,
-                                          onTap: () {
-                                            context
-                                                .read<DateIdeasCubit>()
-                                                .filterByCategory(null);
-                                          },
-                                        ),
-                                        ...DateCategory.values.map((category) {
+                                      itemCount: categories.length + 1,
+                                      itemBuilder: (context, index) {
+                                        if (index == 0) {
                                           return _buildFilterChip(
-                                            label: category.displayName,
-                                            icon: category.emoji,
+                                            label: 'All',
                                             isSelected:
-                                                state.selectedCategory ==
-                                                category,
+                                                state.selectedCategory == null,
                                             onTap: () {
                                               context
                                                   .read<DateIdeasCubit>()
-                                                  .filterByCategory(category);
+                                                  .filterByCategory(null);
                                             },
                                           );
-                                        }),
-                                      ],
+                                        }
+
+                                        final category = categories[index - 1];
+                                        return _buildFilterChip(
+                                          label: category.displayName,
+                                          icon: category.emoji,
+                                          isSelected:
+                                              state.selectedCategory ==
+                                              category,
+                                          onTap: () {
+                                            context
+                                                .read<DateIdeasCubit>()
+                                                .filterByCategory(category);
+                                          },
+                                        );
+                                      },
                                     ),
                                   );
                                 },
@@ -171,34 +175,38 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                                     previous.selectedCostLevel !=
                                     current.selectedCostLevel,
                                 builder: (context, state) {
+                                  final costs = DateCostLevel.values;
                                   return SizedBox(
                                     height: 32,
-                                    child: ListView(
+                                    child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      children: [
-                                        _buildCostChip(
-                                          cost: null,
-                                          isSelected:
-                                              state.selectedCostLevel == null,
-                                          onTap: () {
-                                            context
-                                                .read<DateIdeasCubit>()
-                                                .filterByCostLevel(null);
-                                          },
-                                        ),
-                                        ...DateCostLevel.values.map(
-                                          (cost) => _buildCostChip(
-                                            cost: cost,
+                                      itemCount: costs.length + 1,
+                                      itemBuilder: (context, index) {
+                                        if (index == 0) {
+                                          return _buildCostChip(
+                                            cost: null,
                                             isSelected:
-                                                state.selectedCostLevel == cost,
+                                                state.selectedCostLevel == null,
                                             onTap: () {
                                               context
                                                   .read<DateIdeasCubit>()
-                                                  .filterByCostLevel(cost);
+                                                  .filterByCostLevel(null);
                                             },
-                                          ),
-                                        ),
-                                      ],
+                                          );
+                                        }
+
+                                        final cost = costs[index - 1];
+                                        return _buildCostChip(
+                                          cost: cost,
+                                          isSelected:
+                                              state.selectedCostLevel == cost,
+                                          onTap: () {
+                                            context
+                                                .read<DateIdeasCubit>()
+                                                .filterByCostLevel(cost);
+                                          },
+                                        );
+                                      },
                                     ),
                                   );
                                 },

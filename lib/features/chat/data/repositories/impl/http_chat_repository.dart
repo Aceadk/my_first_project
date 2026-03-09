@@ -12,6 +12,7 @@ import 'package:crushhour/core/network/mappers/chat_mapper.dart';
 import 'package:crushhour/core/network/mappers/discovery_mapper.dart';
 import 'package:crushhour/core/network/realtime/realtime_connection.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
+import 'package:crushhour/core/utils/managed_timer_registry.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
@@ -58,7 +59,7 @@ class HttpChatRepository implements ChatRepository {
   final CircuitBreaker _circuitBreaker;
   StreamSubscription<Map<String, dynamic>>? _webSocketSubscription;
   StreamSubscription<ConnectionState>? _webSocketStateSubscription;
-  Timer? _typingCancelTimer;
+  static const _typingCancelTimerKey = 'typing_cancel';
 
   /// Update the current user ID after authentication.
   void updateCurrentUserId(String userId) {
@@ -86,7 +87,8 @@ class HttpChatRepository implements ChatRepository {
   final Map<String, StreamController<bool>> _mediaSendingControllers = {};
 
   // Polling timers (fallback when WebSocket unavailable)
-  final Map<String, Timer> _pollingTimers = {};
+  final ManagedTimerRegistry _pollingTimers = ManagedTimerRegistry();
+  final ManagedTimerRegistry _lifecycleTimers = ManagedTimerRegistry();
 
   @override
   Stream<List<Message>> watchMessages(String matchId) {
@@ -170,12 +172,13 @@ class HttpChatRepository implements ChatRepository {
     }
 
     final timerKey = 'messages_$matchId';
-    if (_pollingTimers.containsKey(timerKey)) {
+    if (_pollingTimers.contains(timerKey)) {
       return;
     }
 
     // Fallback: Poll at configured interval when WebSocket unavailable
-    _pollingTimers[timerKey] = Timer.periodic(
+    _pollingTimers.startPeriodic(
+      timerKey,
       _messagePollingInterval,
       (_) => _fetchMessages(matchId),
     );
@@ -526,11 +529,17 @@ class HttpChatRepository implements ChatRepository {
     required bool isTyping,
   }) async {
     // CHAT-007: Auto-cancel typing indicator after 10 seconds
-    _typingCancelTimer?.cancel();
+    _lifecycleTimers.cancel(_typingCancelTimerKey);
     if (isTyping) {
-      _typingCancelTimer = Timer(const Duration(seconds: 10), () {
-        setTyping(matchId: matchId, userId: userId, isTyping: false);
-      });
+      _lifecycleTimers.startOneShot(
+        _typingCancelTimerKey,
+        const Duration(seconds: 10),
+        () {
+          unawaited(
+            setTyping(matchId: matchId, userId: userId, isTyping: false),
+          );
+        },
+      );
     }
 
     // Send via WebSocket if available
@@ -591,12 +600,13 @@ class HttpChatRepository implements ChatRepository {
     }
 
     final timerKey = 'presence_$userId';
-    if (_pollingTimers.containsKey(timerKey)) {
+    if (_pollingTimers.contains(timerKey)) {
       return;
     }
 
     // Fallback: Poll at configured interval when WebSocket unavailable
-    _pollingTimers[timerKey] = Timer.periodic(
+    _pollingTimers.startPeriodic(
+      timerKey,
       _presencePollingInterval,
       (_) => _fetchPresence(userId),
     );
@@ -868,16 +878,14 @@ class HttpChatRepository implements ChatRepository {
 
   /// Stop watching a conversation.
   void stopWatchingMessages(String matchId) {
-    _pollingTimers['messages_$matchId']?.cancel();
-    _pollingTimers.remove('messages_$matchId');
+    _pollingTimers.cancel('messages_$matchId');
     _messageControllers[matchId]?.close();
     _messageControllers.remove(matchId);
   }
 
   /// Stop watching presence for a user.
   void stopWatchingPresence(String userId) {
-    _pollingTimers['presence_$userId']?.cancel();
-    _pollingTimers.remove('presence_$userId');
+    _pollingTimers.cancel('presence_$userId');
     _presenceControllers[userId]?.close();
     _presenceControllers.remove(userId);
   }
@@ -949,29 +957,19 @@ class HttpChatRepository implements ChatRepository {
   }
 
   void _cancelPollingByPrefix(String prefix) {
-    final matchingKeys = _pollingTimers.keys
-        .where((key) => key.startsWith(prefix))
-        .toList(growable: false);
-    for (final key in matchingKeys) {
-      _pollingTimers[key]?.cancel();
-      _pollingTimers.remove(key);
-    }
+    _pollingTimers.cancelWhere((key) => key.startsWith(prefix));
   }
 
   @visibleForTesting
   Set<String> get activePollingTimerKeys =>
-      Set.unmodifiable(_pollingTimers.keys);
+      Set.unmodifiable(_pollingTimers.keys.toSet());
 
   /// Dispose all resources.
   void dispose() {
     _webSocketSubscription?.cancel();
     _webSocketStateSubscription?.cancel();
-    _typingCancelTimer?.cancel();
-
-    for (final timer in _pollingTimers.values) {
-      timer.cancel();
-    }
-    _pollingTimers.clear();
+    _lifecycleTimers.cancelAll();
+    _pollingTimers.cancelAll();
 
     for (final controller in _messageControllers.values) {
       controller.close();

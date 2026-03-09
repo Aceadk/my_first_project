@@ -1561,6 +1561,9 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
       builder: (sheetContext) {
         return SafeArea(
           child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+            buildWhen: (previous, current) =>
+                previous.plan != current.plan ||
+                previous.isCheckoutInProgress != current.isCheckoutInProgress,
             builder: (context, subState) {
               final isPlus = subState.plan == SubscriptionPlan.plus;
               final loading = subState.isCheckoutInProgress;

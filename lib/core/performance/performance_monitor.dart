@@ -5,6 +5,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/utils/managed_timer_registry.dart';
 
 /// Performance monitoring service for tracking app performance metrics.
 ///
@@ -31,7 +32,8 @@ class PerformanceMonitor {
   final Map<String, Trace> _activeTraces = {};
 
   // Memory monitoring
-  Timer? _memoryMonitorTimer;
+  static const _memoryMonitoringTimerKey = 'performance_memory_monitor';
+  final ManagedTimerRegistry _timers = ManagedTimerRegistry();
   int _peakMemoryUsage = 0;
 
   /// Initialize the performance monitor.
@@ -197,15 +199,15 @@ class PerformanceMonitor {
 
   /// Start monitoring memory usage periodically.
   void startMemoryMonitoring({Duration interval = const Duration(minutes: 5)}) {
-    _memoryMonitorTimer?.cancel();
-    _memoryMonitorTimer = Timer.periodic(interval, (_) => _logMemoryUsage());
+    _timers.startPeriodic(_memoryMonitoringTimerKey, interval, (_) {
+      _logMemoryUsage();
+    });
     AppLogger.debug('PerformanceMonitor: Started memory monitoring');
   }
 
   /// Stop memory monitoring.
   void stopMemoryMonitoring() {
-    _memoryMonitorTimer?.cancel();
-    _memoryMonitorTimer = null;
+    _timers.cancel(_memoryMonitoringTimerKey);
     AppLogger.debug('PerformanceMonitor: Stopped memory monitoring');
   }
 
@@ -394,6 +396,7 @@ class PerformanceMonitor {
   /// Dispose resources.
   void dispose() {
     stopMemoryMonitoring();
+    _timers.cancelAll();
     _activeTraces.clear();
     _traceFactory = null;
     _httpMetricFactory = null;
