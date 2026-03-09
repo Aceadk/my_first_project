@@ -56,4 +56,10 @@ abstract class ChatTransportAdapter {
 
   /// Sends a realtime event payload through the transport when available.
   void sendRealtimeEvent(RealtimeEvent event);
+
+  /// Connects the realtime transport manually.
+  void connectRealtime();
+
+  /// Disconnects the realtime transport manually.
+  void disconnectRealtime();
 }

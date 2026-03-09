@@ -1,6 +1,6 @@
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/firebase_subscription_repository.dart';
 import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
-import 'package:crushhour/data/models/subscription.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -163,12 +163,11 @@ class _FakeNativeBillingService implements NativeBillingService {
   _FakeNativeBillingService({
     this.shouldFail = false,
     this.restoredPurchases = const [],
-    this.shouldFailRestore = false,
   });
 
   final bool shouldFail;
   final List<NativeSubscriptionPurchase> restoredPurchases;
-  final bool shouldFailRestore;
+  final bool shouldFailRestore = false;
   int callCount = 0;
   int restoreCallCount = 0;
   String? purchasedProductId;

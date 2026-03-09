@@ -1,21 +1,26 @@
 import { BigQuery } from "@google-cloud/bigquery";
+import vision from "@google-cloud/vision";
 import { RtcRole, RtcTokenBuilder } from "agora-access-token";
 import bcrypt from "bcryptjs";
 import cors from "cors";
 import * as crypto from "crypto";
 import express, { NextFunction, Request, Response } from "express";
+import * as fileType from "file-type";
 import * as admin from "firebase-admin";
 import { defineString } from "firebase-functions/params";
 import * as functions from "firebase-functions/v1";
 import { GoogleAuth } from "google-auth-library";
 import multer from "multer";
 import Stripe from "stripe";
+
+const visionClient = new vision.ImageAnnotatorClient();
+
 import {
   __callSignalingTestHelpers,
   addIceCandidate as addIceCandidateSignaling,
   answerCall as answerCallSignaling,
-  enforceCallRingTimeout as enforceCallRingTimeoutSignaling,
   endCall as endCallSignaling,
+  enforceCallRingTimeout as enforceCallRingTimeoutSignaling,
   getIceServers as getIceServersSignaling,
   initiateCall as initiateCallSignaling,
   notifyCallSafetyEvent as notifyCallSafetyEventSignaling,
@@ -26,7 +31,9 @@ const BQ_DATASET = "crushhour_ml";
 const BQ_TABLE_INTERACTIONS = "interaction_events";
 
 // Safe BigQuery insert - logs interaction events but doesn't fail the main operation
-async function logInteractionEvent(eventData: Record<string, unknown>): Promise<void> {
+async function logInteractionEvent(
+  eventData: Record<string, unknown>,
+): Promise<void> {
   try {
     await bigquery
       .dataset(BQ_DATASET)
@@ -44,8 +51,15 @@ async function logInteractionEvent(eventData: Record<string, unknown>): Promise<
 admin.initializeApp();
 const db = admin.firestore();
 const rtdb = admin.database();
-const fieldValue = (admin.firestore as unknown as { FieldValue?: { serverTimestamp?: () => unknown; increment?: (n: number) => unknown; delete?: () => unknown } })
-  ?.FieldValue;
+const fieldValue = (
+  admin.firestore as unknown as {
+    FieldValue?: {
+      serverTimestamp?: () => unknown;
+      increment?: (n: number) => unknown;
+      delete?: () => unknown;
+    };
+  }
+)?.FieldValue;
 const serverTimestamp = () =>
   fieldValue?.serverTimestamp ? fieldValue.serverTimestamp() : new Date();
 const incrementBy = (value: number) =>
@@ -73,7 +87,7 @@ const applePrivateKeyParam = defineString("APPLE_PRIVATE_KEY", { default: "" });
 const appleBundleIdParam = defineString("APPLE_BUNDLE_ID", { default: "" });
 const googleRtdnVerificationTokenParam = defineString(
   "GOOGLE_RTDN_VERIFICATION_TOKEN",
-  { default: "" }
+  { default: "" },
 );
 const agoraAppIdParam = defineString("AGORA_APP_ID", { default: "" });
 const agoraCertificateParam = defineString("AGORA_APP_CERTIFICATE", {
@@ -86,10 +100,7 @@ const emailFromParam = defineString("EMAIL_FROM", {
 });
 
 const getCorsAllowedOrigins = () =>
-  corsAllowedOriginsParam
-    .value()
-    .split(",")
-    .filter(Boolean);
+  corsAllowedOriginsParam.value().split(",").filter(Boolean);
 const getStripeSecret = () => stripeSecretParam.value();
 const getStripeWebhookSecret = () => stripeWebhookSecretParam.value();
 const getGooglePlayPackageName = () => googlePlayPackageNameParam.value();
@@ -128,7 +139,7 @@ const isProductionRuntime =
   (process.env.NODE_ENV === "production" || Boolean(process.env.K_SERVICE));
 const corsOriginValidator = (
   origin: string | undefined,
-  callback: (err: Error | null, allow?: boolean) => void
+  callback: (err: Error | null, allow?: boolean) => void,
 ) => {
   // Allow requests with no origin (mobile apps, curl, etc.)
   if (!origin) {
@@ -136,7 +147,10 @@ const corsOriginValidator = (
     return;
   }
   // In development, allow localhost
-  if (isDevelopment && (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+  if (
+    isDevelopment &&
+    (origin.includes("localhost") || origin.includes("127.0.0.1"))
+  ) {
     callback(null, true);
     return;
   }
@@ -384,42 +398,97 @@ const DISCOVERY_PAGE_SIZE = 120;
 // Includes leetspeak and common substitution variations
 const BANNED_TERMS = [
   // Violence and threats (+ leetspeak)
-  "kill", "k1ll", "murder", "threat", "terror", "bomb", "attack", "weapon", "shoot",
-  "sh00t", "stab", "strangle",
+  "kill",
+  "k1ll",
+  "murder",
+  "threat",
+  "terror",
+  "bomb",
+  "attack",
+  "weapon",
+  "shoot",
+  "sh00t",
+  "stab",
+  "strangle",
   // Hate speech (+ variations)
-  "hate", "racist", "rac1st", "nazi", "naz1", "supremacist", "bigot",
+  "hate",
+  "racist",
+  "rac1st",
+  "nazi",
+  "naz1",
+  "supremacist",
+  "bigot",
   // Explicit profanity (core + common substitutions)
-  "shit", "sh1t", "sh!t", "fuck", "f*ck", "fck", "fuk", "fuq",
-  "bitch", "b1tch", "b!tch", "cunt", "c*nt", "ass hole", "a$$hole",
-  "bastard", "d1ck", "stfu", "gtfo",
+  "shit",
+  "sh1t",
+  "sh!t",
+  "fuck",
+  "f*ck",
+  "fck",
+  "fuk",
+  "fuq",
+  "bitch",
+  "b1tch",
+  "b!tch",
+  "cunt",
+  "c*nt",
+  "ass hole",
+  "a$$hole",
+  "bastard",
+  "d1ck",
+  "stfu",
+  "gtfo",
   // Spam and scam indicators
-  "spam", "scam", "wire money", "western union", "moneygram", "bitcoin wallet",
-  "crypto investment", "forex trading", "click here", "act now",
-  "free money", "guaranteed profit", "double your",
+  "spam",
+  "scam",
+  "wire money",
+  "western union",
+  "moneygram",
+  "bitcoin wallet",
+  "crypto investment",
+  "forex trading",
+  "click here",
+  "act now",
+  "free money",
+  "guaranteed profit",
+  "double your",
   // Solicitation
-  "escort", "prostitute", "pay for sex", "sugar daddy arrangement",
-  "onlyfans", "cashapp me",
+  "escort",
+  "prostitute",
+  "pay for sex",
+  "sugar daddy arrangement",
+  "onlyfans",
+  "cashapp me",
   // Contact info harvesting (push to off-platform)
-  "whatsapp me", "telegram me", "kik me", "snapchat me",
-  "add me on", "text me at", "call me at",
+  "whatsapp me",
+  "telegram me",
+  "kik me",
+  "snapchat me",
+  "add me on",
+  "text me at",
+  "call me at",
   // Drugs
-  "buy drugs", "sell drugs", "cocaine", "heroin", "meth",
-  "mdma", "ecstasy", "fentanyl",
+  "buy drugs",
+  "sell drugs",
+  "cocaine",
+  "heroin",
+  "meth",
+  "mdma",
+  "ecstasy",
+  "fentanyl",
 ];
 
 type CallableContext = functions.https.CallableContext;
 type CallableHandler<TData> = (
   data: TData,
-  context: CallableContext
+  context: CallableContext,
 ) => Promise<unknown>;
 
 const isHttpsError = (err: unknown): err is functions.https.HttpsError => {
   return err instanceof functions.https.HttpsError;
 };
 
-function toAuthHttpsError(
-  err: unknown
-): functions.https.HttpsError | null {
+function toAuthHttpsError(err: unknown): functions.https.HttpsError | null {
   const code = (err as { code?: unknown })?.code;
   if (typeof code !== "string") return null;
 
@@ -427,22 +496,22 @@ function toAuthHttpsError(
     case "auth/email-already-exists":
       return new functions.https.HttpsError(
         "already-exists",
-        "That email is already in use."
+        "That email is already in use.",
       );
     case "auth/invalid-email":
       return new functions.https.HttpsError(
         "invalid-argument",
-        "Enter a valid email address."
+        "Enter a valid email address.",
       );
     case "auth/invalid-password":
       return new functions.https.HttpsError(
         "invalid-argument",
-        `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+        `Use at least ${PASSWORD_MIN_LENGTH} characters.`,
       );
     case "auth/uid-already-exists":
       return new functions.https.HttpsError(
         "already-exists",
-        "Account already exists."
+        "Account already exists.",
       );
     default:
       return null;
@@ -479,7 +548,7 @@ function verifyAppCheck(context: CallableContext, action: string): boolean {
     });
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "App Check verification failed. Please update your app."
+      "App Check verification failed. Please update your app.",
     );
   }
 
@@ -492,27 +561,29 @@ function verifyAppCheck(context: CallableContext, action: string): boolean {
 }
 
 function callable<TData>(handler: CallableHandler<TData>) {
-  return functions.https.onCall(async (data: TData, context: CallableContext) => {
-    try {
-      // Verify App Check token (logs warning if missing, throws if enforcement enabled)
-      verifyAppCheck(context, handler.name || "callable");
+  return functions.https.onCall(
+    async (data: TData, context: CallableContext) => {
+      try {
+        // Verify App Check token (logs warning if missing, throws if enforcement enabled)
+        verifyAppCheck(context, handler.name || "callable");
 
-      return await handler(data, context);
-    } catch (err) {
-      if (isHttpsError(err)) {
-        throw err;
+        return await handler(data, context);
+      } catch (err) {
+        if (isHttpsError(err)) {
+          throw err;
+        }
+        console.error("Callable error", {
+          name: handler.name || "anonymous",
+          uid: context.auth?.uid,
+          error: err,
+        });
+        throw new functions.https.HttpsError(
+          "internal",
+          "Unexpected error. Please try again later.",
+        );
       }
-      console.error("Callable error", {
-        name: handler.name || "anonymous",
-        uid: context.auth?.uid,
-        error: err,
-      });
-      throw new functions.https.HttpsError(
-        "internal",
-        "Unexpected error. Please try again later."
-      );
-    }
-  });
+    },
+  );
 }
 
 type RestAppCheckOutcome = "valid" | "missing" | "invalid";
@@ -535,7 +606,7 @@ async function evaluateRestAppCheck(
   options?: {
     enforce?: boolean;
     verifyToken?: (value: string) => Promise<unknown>;
-  }
+  },
 ): Promise<RestAppCheckEvaluation> {
   const enforce = options?.enforce ?? ENFORCE_APP_CHECK;
   const verifyToken =
@@ -544,12 +615,17 @@ async function evaluateRestAppCheck(
 
   if (!token) {
     if (enforce) {
-      console.warn("App Check REST: Rejected request without token", { action });
+      console.warn("App Check REST: Rejected request without token", {
+        action,
+      });
       return { allowed: false, outcome: "missing" };
     }
-    console.info("App Check REST: Request without token (enforcement disabled)", {
-      action,
-    });
+    console.info(
+      "App Check REST: Request without token (enforcement disabled)",
+      {
+        action,
+      },
+    );
     return { allowed: true, outcome: "missing" };
   }
 
@@ -571,10 +647,14 @@ async function evaluateRestAppCheck(
 }
 
 function appCheckRestMiddleware(action: string) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const evaluation = await evaluateRestAppCheck(
       getRestAppCheckToken(req),
-      action
+      action,
     );
     if (evaluation.allowed) {
       next();
@@ -592,7 +672,7 @@ function requireAuth(context: CallableContext, action: string): string {
   if (!uid) {
     throw new functions.https.HttpsError(
       "unauthenticated",
-      `You must be logged in to ${action}.`
+      `You must be logged in to ${action}.`,
     );
   }
   return uid;
@@ -618,23 +698,27 @@ function requireEmailVerified(context: CallableContext, action: string): void {
   if (token.email && !token.email_verified) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      `Email verification required to ${action}. Please verify your email first.`
+      `Email verification required to ${action}. Please verify your email first.`,
     );
   }
 }
 
-function requireString(value: unknown, field: string, maxLength = 5000): string {
+function requireString(
+  value: unknown,
+  field: string,
+  maxLength = 5000,
+): string {
   const str = typeof value === "string" ? value.trim() : "";
   if (!str) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} is required.`
+      `${field} is required.`,
     );
   }
   if (str.length > maxLength) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} exceeds maximum length of ${maxLength} characters.`
+      `${field} exceeds maximum length of ${maxLength} characters.`,
     );
   }
   return str;
@@ -694,7 +778,7 @@ function validateProfileName(name: unknown, field = "name"): string {
   if (str.length < 2) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be at least 2 characters.`
+      `${field} must be at least 2 characters.`,
     );
   }
   return stripHtml(str);
@@ -707,32 +791,20 @@ function validateBio(bio: unknown): string {
   if (str.length > 500) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Bio exceeds maximum length of 500 characters."
+      "Bio exceeds maximum length of 500 characters.",
     );
   }
   return stripHtml(str);
 }
 
-/** Validate age: 18-99. */
-function validateAge(age: unknown): number {
-  const num = typeof age === "number" ? age : Number(age);
-  if (isNaN(num) || num < 18 || num > 99) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "Age must be between 18 and 99."
-    );
-  }
-  return Math.floor(num);
-}
-
 function requireObjectRecord(
   value: unknown,
-  field: string
+  field: string,
 ): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be an object.`
+      `${field} must be an object.`,
     );
   }
   return value as Record<string, unknown>;
@@ -741,12 +813,12 @@ function requireObjectRecord(
 function validateProfileTextField(
   value: unknown,
   field: string,
-  options: { maxLength: number; allowEmpty?: boolean; lowerCase?: boolean }
+  options: { maxLength: number; allowEmpty?: boolean; lowerCase?: boolean },
 ): string {
   if (typeof value !== "string") {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be a string.`
+      `${field} must be a string.`,
     );
   }
 
@@ -755,13 +827,13 @@ function validateProfileTextField(
   if (!allowEmpty && sanitized.length === 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} cannot be empty.`
+      `${field} cannot be empty.`,
     );
   }
   if (sanitized.length > options.maxLength) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} exceeds maximum length of ${options.maxLength} characters.`
+      `${field} exceeds maximum length of ${options.maxLength} characters.`,
     );
   }
   return options.lowerCase ? sanitized.toLowerCase() : sanitized;
@@ -771,13 +843,13 @@ function validateProfileInterests(value: unknown): string[] {
   if (!Array.isArray(value)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "interests must be an array of strings."
+      "interests must be an array of strings.",
     );
   }
   if (value.length > 20) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "interests cannot contain more than 20 items."
+      "interests cannot contain more than 20 items.",
     );
   }
 
@@ -786,7 +858,7 @@ function validateProfileInterests(value: unknown): string[] {
     if (typeof item !== "string") {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Each interest must be a string."
+        "Each interest must be a string.",
       );
     }
     const cleaned = stripHtml(item.trim());
@@ -794,7 +866,7 @@ function validateProfileInterests(value: unknown): string[] {
     if (cleaned.length > 40) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Each interest must be 40 characters or fewer."
+        "Each interest must be 40 characters or fewer.",
       );
     }
     normalized.push(cleaned);
@@ -816,8 +888,10 @@ const PROFILE_PATCH_ALLOWED_FIELDS = new Set([
   "interests",
 ]);
 
+const ALLOWED_GENDERS = new Set(["men", "women", "everyone"]);
+
 function validateProfilePatchPayload(
-  payload: unknown
+  payload: unknown,
 ): Record<string, unknown> {
   const body = requireObjectRecord(payload, "body");
   const keys = Object.keys(body);
@@ -825,7 +899,7 @@ function validateProfilePatchPayload(
   if (keys.length === 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Request body must include at least one updatable profile field."
+      "Request body must include at least one updatable profile field.",
     );
   }
 
@@ -833,7 +907,7 @@ function validateProfilePatchPayload(
     if (!PROFILE_PATCH_ALLOWED_FIELDS.has(key)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        `Unsupported profile field: ${key}.`
+        `Unsupported profile field: ${key}.`,
       );
     }
   }
@@ -843,7 +917,7 @@ function validateProfilePatchPayload(
   if (body.display_name !== undefined) {
     updates["profile.name"] = validateProfileName(
       body.display_name,
-      "display_name"
+      "display_name",
     );
   }
   if (body.bio !== undefined) {
@@ -859,31 +933,38 @@ function validateProfilePatchPayload(
     updates["profile.birthDate"] = normalizedBirthDate;
   }
   if (body.gender !== undefined) {
-    updates["profile.gender"] = validateProfileTextField(body.gender, "gender", {
+    const gender = validateProfileTextField(body.gender, "gender", {
       maxLength: 32,
       allowEmpty: false,
       lowerCase: true,
     });
+    if (!ALLOWED_GENDERS.has(gender)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `gender must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
+      );
+    }
+    updates["profile.gender"] = gender;
   }
   if (body.job_title !== undefined) {
     updates["profile.jobTitle"] = validateProfileTextField(
       body.job_title,
       "job_title",
-      { maxLength: 100 }
+      { maxLength: 100 },
     );
   }
   if (body.company !== undefined) {
     updates["profile.company"] = validateProfileTextField(
       body.company,
       "company",
-      { maxLength: 100 }
+      { maxLength: 100 },
     );
   }
   if (body.education !== undefined) {
     updates["profile.education"] = validateProfileTextField(
       body.education,
       "education",
-      { maxLength: 120 }
+      { maxLength: 120 },
     );
   }
   if (body.city !== undefined) {
@@ -895,7 +976,7 @@ function validateProfilePatchPayload(
     updates["profile.country"] = validateProfileTextField(
       body.country,
       "country",
-      { maxLength: 100 }
+      { maxLength: 100 },
     );
   }
   if (body.interests !== undefined) {
@@ -905,7 +986,7 @@ function validateProfilePatchPayload(
   if (Object.keys(updates).length === 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "No valid profile updates were provided."
+      "No valid profile updates were provided.",
     );
   }
 
@@ -930,7 +1011,7 @@ function validateBooleanField(value: unknown, field: string): boolean {
   if (typeof value !== "boolean") {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be a boolean.`
+      `${field} must be a boolean.`,
     );
   }
   return value;
@@ -940,19 +1021,19 @@ function validatePreferenceNumber(
   value: unknown,
   field: string,
   min: number,
-  max: number
+  max: number,
 ): number {
   const parsed = toNumber(value);
   if (parsed === undefined || !Number.isFinite(parsed)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be a number.`
+      `${field} must be a number.`,
     );
   }
   if (parsed < min || parsed > max) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be between ${min} and ${max}.`
+      `${field} must be between ${min} and ${max}.`,
     );
   }
   return Math.round(parsed);
@@ -962,13 +1043,13 @@ function validateShowMeGenders(value: unknown): string[] {
   if (!Array.isArray(value)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "showMeGenders must be an array of strings."
+      "showMeGenders must be an array of strings.",
     );
   }
   if (value.length > 10) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "showMeGenders cannot contain more than 10 values."
+      "showMeGenders cannot contain more than 10 values.",
     );
   }
 
@@ -976,20 +1057,20 @@ function validateShowMeGenders(value: unknown): string[] {
     if (typeof item !== "string") {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "showMeGenders entries must be strings."
+        "showMeGenders entries must be strings.",
       );
     }
     const normalized = stripHtml(item.trim().toLowerCase());
     if (!normalized) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "showMeGenders entries cannot be empty."
+        "showMeGenders entries cannot be empty.",
       );
     }
-    if (normalized.length > 30) {
+    if (!ALLOWED_GENDERS.has(normalized)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "showMeGenders entries must be 30 characters or fewer."
+        `showMeGenders entries must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
       );
     }
     return normalized;
@@ -997,7 +1078,7 @@ function validateShowMeGenders(value: unknown): string[] {
 }
 
 function validateProfilePreferencesPayload(
-  payload: unknown
+  payload: unknown,
 ): Record<string, unknown> {
   const preferences = requireObjectRecord(payload, "preferences");
   const keys = Object.keys(preferences);
@@ -1005,7 +1086,7 @@ function validateProfilePreferencesPayload(
   if (keys.length === 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "preferences payload cannot be empty."
+      "preferences payload cannot be empty.",
     );
   }
 
@@ -1013,7 +1094,7 @@ function validateProfilePreferencesPayload(
     if (!PROFILE_PREFERENCES_ALLOWED_FIELDS.has(key)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        `Unsupported preferences field: ${key}.`
+        `Unsupported preferences field: ${key}.`,
       );
     }
   }
@@ -1033,7 +1114,7 @@ function validateProfilePreferencesPayload(
   if (minAge !== undefined && maxAge !== undefined && minAge > maxAge) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "minAge cannot be greater than maxAge."
+      "minAge cannot be greater than maxAge.",
     );
   }
 
@@ -1042,7 +1123,7 @@ function validateProfilePreferencesPayload(
       preferences.maxDistanceKm,
       "maxDistanceKm",
       1,
-      1000
+      1000,
     );
   }
   if (preferences.showMeGenders !== undefined) {
@@ -1051,32 +1132,32 @@ function validateProfilePreferencesPayload(
   if (preferences.showMyDistance !== undefined) {
     normalized.showMyDistance = validateBooleanField(
       preferences.showMyDistance,
-      "showMyDistance"
+      "showMyDistance",
     );
   }
   if (preferences.showMyAge !== undefined) {
     normalized.showMyAge = validateBooleanField(
       preferences.showMyAge,
-      "showMyAge"
+      "showMyAge",
     );
   }
   if (preferences.hideFromDiscovery !== undefined) {
     normalized.hideFromDiscovery = validateBooleanField(
       preferences.hideFromDiscovery,
-      "hideFromDiscovery"
+      "hideFromDiscovery",
     );
   }
   if (preferences.incognitoMode !== undefined) {
     normalized.incognitoMode = validateBooleanField(
       preferences.incognitoMode,
-      "incognitoMode"
+      "incognitoMode",
     );
   }
   if (preferences.country !== undefined) {
     normalized.country = validateProfileTextField(
       preferences.country,
       "country",
-      { maxLength: 100 }
+      { maxLength: 100 },
     );
   }
   if (preferences.city !== undefined) {
@@ -1088,15 +1169,21 @@ function validateProfilePreferencesPayload(
     const value = validateProfileTextField(
       preferences.genderPreference,
       "genderPreference",
-      { maxLength: 30, allowEmpty: false, lowerCase: true }
+      { maxLength: 30, allowEmpty: false, lowerCase: true },
     );
+    if (!ALLOWED_GENDERS.has(value)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `genderPreference must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
+      );
+    }
     normalized.genderPreference = value;
   }
 
   if (Object.keys(normalized).length === 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "No valid preferences updates were provided."
+      "No valid preferences updates were provided.",
     );
   }
 
@@ -1104,7 +1191,7 @@ function validateProfilePreferencesPayload(
 }
 
 function getCanonicalProfilePreferences(
-  userData: Record<string, unknown>
+  userData: Record<string, unknown>,
 ): Record<string, unknown> {
   const profile = asRecord(userData.profile);
   const nestedPreferences = asRecord(profile.preferences);
@@ -1157,7 +1244,7 @@ function safeDecodeUriComponent(value: string): string {
 }
 
 function parseStorageObjectLocationFromUrl(
-  photoUrl: string
+  photoUrl: string,
 ): StorageObjectLocation | null {
   const trimmed = typeof photoUrl === "string" ? photoUrl.trim() : "";
   if (!trimmed) return null;
@@ -1185,7 +1272,7 @@ function parseStorageObjectLocationFromUrl(
     if (slashIndex <= 0) return null;
     const bucketName = normalizedPath.slice(0, slashIndex);
     const objectPath = safeDecodeUriComponent(
-      normalizedPath.slice(slashIndex + 1)
+      normalizedPath.slice(slashIndex + 1),
     );
     if (!bucketName || !objectPath) return null;
     return { bucketName, objectPath };
@@ -1205,14 +1292,24 @@ function parseStorageObjectLocationFromUrl(
 
 function isStorageNotFoundError(error: unknown): boolean {
   const code = (error as { code?: unknown })?.code;
-  if (code === 404 || code === "404" || code === "ENOENT" || code === "storage/object-not-found") {
+  if (
+    code === 404 ||
+    code === "404" ||
+    code === "ENOENT" ||
+    code === "storage/object-not-found"
+  ) {
     return true;
   }
   const message = (error as { message?: unknown })?.message;
-  return typeof message === "string" && message.toLowerCase().includes("no such object");
+  return (
+    typeof message === "string" &&
+    message.toLowerCase().includes("no such object")
+  );
 }
 
-async function deleteProfilePhotoStorageObject(photoUrl: string): Promise<void> {
+async function deleteProfilePhotoStorageObject(
+  photoUrl: string,
+): Promise<void> {
   const location = parseStorageObjectLocationFromUrl(photoUrl);
   if (!location) {
     // Legacy/external URLs may not map to Firebase Storage object paths.
@@ -1223,7 +1320,11 @@ async function deleteProfilePhotoStorageObject(photoUrl: string): Promise<void> 
   }
 
   try {
-    await admin.storage().bucket(location.bucketName).file(location.objectPath).delete();
+    await admin
+      .storage()
+      .bucket(location.bucketName)
+      .file(location.objectPath)
+      .delete();
   } catch (error) {
     if (isStorageNotFoundError(error)) return;
     throw error;
@@ -1244,7 +1345,7 @@ const VALID_REPORT_CATEGORIES = [
   "other",
 ] as const;
 
-type ReportCategory = typeof VALID_REPORT_CATEGORIES[number];
+type ReportCategory = (typeof VALID_REPORT_CATEGORIES)[number];
 
 function normalizeReportReasonToken(reason: string): string {
   return reason
@@ -1261,7 +1362,11 @@ function inferReportCategoryFromReason(reason: string): ReportCategory {
   if (normalized.includes("threat")) return "threatening";
   if (normalized.includes("hate")) return "hate_speech";
   if (normalized.includes("harass")) return "harassment";
-  if (normalized.includes("fake profile") || normalized.includes("catfish") || normalized.includes("fake")) {
+  if (
+    normalized.includes("fake profile") ||
+    normalized.includes("catfish") ||
+    normalized.includes("fake")
+  ) {
     return "fake_profile";
   }
   if (
@@ -1285,7 +1390,7 @@ function inferReportCategoryFromReason(reason: string): ReportCategory {
 
 function canonicalizeSafetyReportReason(
   reason: unknown,
-  options?: { field?: string; maxLength?: number; minLength?: number }
+  options?: { field?: string; maxLength?: number; minLength?: number },
 ): { reasonText: string; reasonCategory: ReportCategory } {
   const field = options?.field ?? "reason";
   const maxLength = options?.maxLength ?? 1000;
@@ -1295,34 +1400,13 @@ function canonicalizeSafetyReportReason(
   if (reasonText.length < minLength) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be at least ${minLength} characters.`
+      `${field} must be at least ${minLength} characters.`,
     );
   }
   return {
     reasonText,
     reasonCategory: inferReportCategoryFromReason(reasonText),
   };
-}
-
-/** Validate report reason: 10-1000 chars, valid category. */
-function validateReportReason(reason: unknown, field = "reason"): string {
-  return canonicalizeSafetyReportReason(reason, {
-    field,
-    maxLength: 1000,
-    minLength: 10,
-  }).reasonText;
-}
-
-/** Validate report category enum. */
-function validateReportCategory(category: unknown): string {
-  const str = typeof category === "string" ? category.trim().toLowerCase() : "";
-  if (!VALID_REPORT_CATEGORIES.includes(str as typeof VALID_REPORT_CATEGORIES[number])) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      `Invalid report category. Must be one of: ${VALID_REPORT_CATEGORIES.join(", ")}`
-    );
-  }
-  return str;
 }
 
 type SafetySelfAction = "block" | "unblock" | "report";
@@ -1342,7 +1426,9 @@ interface SafetyRestAuditLogParams {
   userAgent?: string | null;
 }
 
-type SafetyRestAuditWriter = (entry: Record<string, unknown>) => Promise<unknown>;
+type SafetyRestAuditWriter = (
+  entry: Record<string, unknown>,
+) => Promise<unknown>;
 
 function getRestClientIp(req: Request): string | null {
   const forwarded = req.headers["x-forwarded-for"];
@@ -1359,7 +1445,7 @@ function getRestClientIp(req: Request): string | null {
 }
 
 function safetyAuditOutcomeFromStatusCode(
-  statusCode: number
+  statusCode: number,
 ): SafetyRestAuditOutcome {
   if (statusCode >= 500) return "error";
   if (statusCode === 429) return "rate_limited";
@@ -1372,7 +1458,7 @@ async function logSafetyRestAudit(
   options?: {
     writer?: SafetyRestAuditWriter;
     timestampFactory?: () => unknown;
-  }
+  },
 ): Promise<void> {
   const writer =
     options?.writer ??
@@ -1415,12 +1501,12 @@ function validateSafetyTargetId(value: unknown, field: string): string {
 function assertNotSelfSafetyAction(
   actorId: string,
   targetId: string,
-  action: SafetySelfAction
+  action: SafetySelfAction,
 ): void {
   if (actorId !== targetId) return;
   throw new functions.https.HttpsError(
     "invalid-argument",
-    `You cannot ${action} yourself.`
+    `You cannot ${action} yourself.`,
   );
 }
 
@@ -1434,30 +1520,19 @@ function validateSafetyReportReason(reason: unknown): string {
 }
 
 /** Validate and sanitize optional REST safety report description text. */
-function validateOptionalSafetyDescription(description: unknown): string | null {
+function validateOptionalSafetyDescription(
+  description: unknown,
+): string | null {
   const raw = optionalString(description);
   if (!raw) return null;
   if (raw.length > 2000) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "description exceeds maximum length of 2000 characters."
+      "description exceeds maximum length of 2000 characters.",
     );
   }
   const sanitized = stripHtml(raw);
   return sanitized.length > 0 ? sanitized : null;
-}
-
-/** Validate email format. */
-function validateEmail(email: unknown, field = "email"): string {
-  const str = requireString(email, field, 254);
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(str)) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      `${field} is not a valid email address.`
-    );
-  }
-  return str.toLowerCase();
 }
 
 const OTP_DIGITS = 6;
@@ -1552,13 +1627,13 @@ function validateMinimumAge(dobString: string | undefined | null): void {
   if (age === null) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid date of birth."
+      "Invalid date of birth.",
     );
   }
   if (age < MIN_AGE_YEARS) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      `You must be ${MIN_AGE_YEARS} or older to use Crush.`
+      `You must be ${MIN_AGE_YEARS} or older to use Crush.`,
     );
   }
 }
@@ -1614,7 +1689,7 @@ const getOtpSecretChecked = () => {
   const otpSecret = getOtpSecret();
   if (!otpSecret) {
     console.error(
-      "CRITICAL: OTP_SECRET not configured in .env file. OTP functions will fail."
+      "CRITICAL: OTP_SECRET not configured in .env file. OTP functions will fail.",
     );
   }
   return otpSecret;
@@ -1649,10 +1724,13 @@ function hashWithSecret(value: string, salt: string): string {
   if (!otpSecret) {
     throw new functions.https.HttpsError(
       "internal",
-      "OTP service not configured. Please contact support."
+      "OTP service not configured. Please contact support.",
     );
   }
-  return crypto.createHmac("sha256", otpSecret).update(`${salt}:${value}`).digest("hex");
+  return crypto
+    .createHmac("sha256", otpSecret)
+    .update(`${salt}:${value}`)
+    .digest("hex");
 }
 
 function timingSafeEqualHex(a: string, b: string): boolean {
@@ -1678,7 +1756,7 @@ async function applyRateLimit(
   key: string,
   limit: number,
   windowMs: number,
-  blockMs: number
+  blockMs: number,
 ): Promise<RateLimitResult> {
   const ref = db.collection("auth_rate_limits").doc(key);
   const now = Date.now();
@@ -1716,7 +1794,7 @@ async function applyRateLimit(
         windowStart: new Date(windowStart),
         blockedUntil: blockedUntil ? new Date(blockedUntil) : null,
       },
-      { merge: true }
+      { merge: true },
     );
 
     if (blockedUntil > now) {
@@ -1745,7 +1823,7 @@ function throwRateLimitError(retryAfterMs?: number): never {
   throw new functions.https.HttpsError(
     "resource-exhausted",
     `Too many attempts. Please try again in ${retryTime}.`,
-    { retryAfterMs: retryAfterMs ?? 60000 }
+    { retryAfterMs: retryAfterMs ?? 60000 },
   );
 }
 
@@ -1877,7 +1955,7 @@ async function sendDatePlanEmail(params: {
   if (!resendKey) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Email notifications are not configured."
+      "Email notifications are not configured.",
     );
   }
   const subject = `${params.creatorName} shared a CrushHour date plan`;
@@ -1898,7 +1976,7 @@ async function sendDatePlanEmail(params: {
     "You are listed as an emergency contact.",
     "If you are concerned about their safety, please contact them directly.",
     "",
-    "CrushHour Safety Team"
+    "CrushHour Safety Team",
   );
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -2031,7 +2109,7 @@ function parseEmailOtpPurpose(value: unknown): EmailOtpPurpose {
   if (!EMAIL_OTP_PURPOSES.has(purpose as EmailOtpPurpose)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid OTP purpose."
+      "Invalid OTP purpose.",
     );
   }
   return purpose as EmailOtpPurpose;
@@ -2042,7 +2120,7 @@ function hashIdentifier(identifier: string): string {
   if (!otpSecret) {
     throw new functions.https.HttpsError(
       "internal",
-      "OTP service not configured. Please contact support."
+      "OTP service not configured. Please contact support.",
     );
   }
   return crypto
@@ -2079,7 +2157,10 @@ async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, PASSWORD_SALT_ROUNDS);
 }
 
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
+async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
@@ -2097,7 +2178,7 @@ async function setPasswordHash(uid: string, password: string) {
       passwordHash,
       passwordUpdatedAt: serverTimestamp(),
     },
-    { merge: true }
+    { merge: true },
   );
 }
 
@@ -2139,7 +2220,7 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
         `otp:req:ip:${ip}`,
         OTP_REQUEST_LIMIT,
         OTP_REQUEST_WINDOW_MS,
-        OTP_REQUEST_BLOCK_MS
+        OTP_REQUEST_BLOCK_MS,
       );
       if (!ipLimit.allowed) {
         await logAuthAudit({
@@ -2158,7 +2239,7 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
       `otp:req:id:${identifierHash}`,
       OTP_REQUEST_LIMIT,
       OTP_REQUEST_WINDOW_MS,
-      OTP_REQUEST_BLOCK_MS
+      OTP_REQUEST_BLOCK_MS,
     );
     if (!idLimit.allowed) {
       await logAuthAudit({
@@ -2186,7 +2267,7 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
       if (!isEmailLike(emailInput)) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Enter a valid email address."
+          "Enter a valid email address.",
         );
       }
       targetEmail = normalizeEmail(emailInput);
@@ -2269,7 +2350,7 @@ export const requestEmailOtp = callable<EmailOtpRequest>(
     }
 
     return { status: "ok" };
-  }
+  },
 );
 
 export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
@@ -2284,7 +2365,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
     if (!isValidOtp(otp)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Enter the 6-digit code."
+        "Enter the 6-digit code.",
       );
     }
 
@@ -2293,7 +2374,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
         `otp:verify:ip:${ip}`,
         OTP_VERIFY_LIMIT,
         OTP_VERIFY_WINDOW_MS,
-        OTP_VERIFY_BLOCK_MS
+        OTP_VERIFY_BLOCK_MS,
       );
       if (!ipLimit.allowed) {
         await logAuthAudit({
@@ -2315,7 +2396,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       `otp:verify:id:${identifierHash}`,
       OTP_VERIFY_LIMIT,
       OTP_VERIFY_WINDOW_MS,
-      OTP_VERIFY_BLOCK_MS
+      OTP_VERIFY_BLOCK_MS,
     );
     if (!idLimit.allowed) {
       await logAuthAudit({
@@ -2338,9 +2419,8 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       .get();
 
     const now = Date.now();
-    let matchedDoc:
-      | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-      | null = null;
+    let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
+      null;
     let matchedData: FirebaseFirestore.DocumentData | undefined;
     for (const doc of candidates.docs) {
       const data = doc.data();
@@ -2363,9 +2443,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
         failedAttempts: nextAttempts,
       };
       if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-        updates.lockedUntil = new Date(
-          now + OTP_VERIFY_LOCK_MS
-        );
+        updates.lockedUntil = new Date(now + OTP_VERIFY_LOCK_MS);
       }
       await doc.ref.update(updates);
     }
@@ -2381,7 +2459,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       });
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Invalid or expired code."
+        "Invalid or expired code.",
       );
     }
 
@@ -2411,7 +2489,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       if (!uid) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "Invalid or expired code."
+          "Invalid or expired code.",
         );
       }
       await ensureUserDoc({ uid, email: emailLower });
@@ -2434,7 +2512,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       if (!isEmailLike(newEmailRaw)) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Enter a valid email address."
+          "Enter a valid email address.",
         );
       }
       const newEmail = normalizeEmail(newEmailRaw);
@@ -2456,7 +2534,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
           });
           throw new functions.https.HttpsError(
             "failed-precondition",
-            "Could not verify email. Try again."
+            "Could not verify email. Try again.",
           );
         }
       }
@@ -2471,7 +2549,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
           emailLower: newEmail,
           isEmailVerified: true,
         },
-        { merge: true }
+        { merge: true },
       );
       await logAuthAudit({
         action: "verify_email_otp",
@@ -2490,7 +2568,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       if (newPassword.length < PASSWORD_MIN_LENGTH) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          `Use at least ${PASSWORD_MIN_LENGTH} characters.`
+          `Use at least ${PASSWORD_MIN_LENGTH} characters.`,
         );
       }
       const resolved = await resolveUserByIdentifier(identifierRaw);
@@ -2504,7 +2582,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
             to: userEmail,
             method: "forgot_password",
           }).catch((err) =>
-            console.error("Failed to send password changed email:", err)
+            console.error("Failed to send password changed email:", err),
           );
         }
       }
@@ -2529,7 +2607,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       metadata: { purpose },
     });
     return { status: "ok" };
-  }
+  },
 );
 
 export const claimUsername = callable<ClaimUsernameRequest>(
@@ -2540,7 +2618,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
     if (!USERNAME_REGEX.test(trimmed)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Username must be 3-20 characters and use letters, numbers, or underscores."
+        "Username must be 3-20 characters and use letters, numbers, or underscores.",
       );
     }
     const usernameLower = normalizeUsername(trimmed);
@@ -2554,7 +2632,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
         if (existingUid && existingUid !== uid) {
           throw new functions.https.HttpsError(
             "already-exists",
-            "That username is taken."
+            "That username is taken.",
           );
         }
       }
@@ -2564,7 +2642,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
           uid,
           createdAt: serverTimestamp(),
         },
-        { merge: true }
+        { merge: true },
       );
       tx.set(
         userRef,
@@ -2572,7 +2650,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
           username: trimmed,
           usernameLower,
         },
-        { merge: true }
+        { merge: true },
       );
     });
 
@@ -2584,7 +2662,7 @@ export const claimUsername = callable<ClaimUsernameRequest>(
     });
 
     return { status: "ok", username: trimmed };
-  }
+  },
 );
 
 async function signUpWithPasswordCore(params: {
@@ -2608,13 +2686,13 @@ async function signUpWithPasswordCore(params: {
   if (!USERNAME_REGEX.test(username)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Username must be 3-20 characters and use letters, numbers, or underscores."
+      "Username must be 3-20 characters and use letters, numbers, or underscores.",
     );
   }
   if (!isEmailLike(email)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Enter a valid email address."
+      "Enter a valid email address.",
     );
   }
   const passwordError = validatePasswordStrength(passwordRaw);
@@ -2632,7 +2710,7 @@ async function signUpWithPasswordCore(params: {
       `signup:ip:${ip}`,
       SIGNUP_ATTEMPT_LIMIT,
       SIGNUP_ATTEMPT_WINDOW_MS,
-      SIGNUP_ATTEMPT_BLOCK_MS
+      SIGNUP_ATTEMPT_BLOCK_MS,
     );
     if (!ipLimit.allowed) {
       await logAuthAudit({
@@ -2651,13 +2729,13 @@ async function signUpWithPasswordCore(params: {
     `signup:id:${emailHash}`,
     SIGNUP_ATTEMPT_LIMIT,
     SIGNUP_ATTEMPT_WINDOW_MS,
-    SIGNUP_ATTEMPT_BLOCK_MS
+    SIGNUP_ATTEMPT_BLOCK_MS,
   );
   const usernameLimit = await applyRateLimit(
     `signup:username:${usernameHash}`,
     SIGNUP_ATTEMPT_LIMIT,
     SIGNUP_ATTEMPT_WINDOW_MS,
-    SIGNUP_ATTEMPT_BLOCK_MS
+    SIGNUP_ATTEMPT_BLOCK_MS,
   );
   if (!emailLimit.allowed || !usernameLimit.allowed) {
     await logAuthAudit({
@@ -2695,7 +2773,7 @@ async function signUpWithPasswordCore(params: {
     });
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Could not create account. Check your details and try again."
+      "Could not create account. Check your details and try again.",
     );
   }
 
@@ -2713,7 +2791,7 @@ async function signUpWithPasswordCore(params: {
       if (nameSnap.exists) {
         throw new functions.https.HttpsError(
           "already-exists",
-          "Username is not available."
+          "Username is not available.",
         );
       }
       tx.set(usernameRef, {
@@ -2820,7 +2898,7 @@ async function signUpWithPasswordCore(params: {
     console.error("Signup error", err);
     throw new functions.https.HttpsError(
       "internal",
-      "Could not create account. Please try again."
+      "Could not create account. Please try again.",
     );
   }
 }
@@ -2847,17 +2925,17 @@ async function requestPasswordResetCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-      `otp:req:ip:${ip}`,
-      OTP_REQUEST_LIMIT,
-      OTP_REQUEST_WINDOW_MS,
-      OTP_REQUEST_BLOCK_MS
-    )
+        `otp:req:ip:${ip}`,
+        OTP_REQUEST_LIMIT,
+        OTP_REQUEST_WINDOW_MS,
+        OTP_REQUEST_BLOCK_MS,
+      )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `otp:req:id:${identifierHash}`,
     OTP_REQUEST_LIMIT,
     OTP_REQUEST_WINDOW_MS,
-    OTP_REQUEST_BLOCK_MS
+    OTP_REQUEST_BLOCK_MS,
   );
 
   if (!ipLimit.allowed || !idLimit.allowed) {
@@ -2984,7 +3062,7 @@ async function verifyPasswordResetOtpCore(params: {
   if (!emailRaw || !isEmailLike(emailRaw) || !isValidOtp(otpRaw)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid or expired code."
+      "Invalid or expired code.",
     );
   }
 
@@ -2992,17 +3070,17 @@ async function verifyPasswordResetOtpCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-      `otp:verify:ip:${ip}`,
-      OTP_VERIFY_LIMIT,
-      OTP_VERIFY_WINDOW_MS,
-      OTP_VERIFY_BLOCK_MS
-    )
+        `otp:verify:ip:${ip}`,
+        OTP_VERIFY_LIMIT,
+        OTP_VERIFY_WINDOW_MS,
+        OTP_VERIFY_BLOCK_MS,
+      )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `otp:verify:id:${identifierHash}`,
     OTP_VERIFY_LIMIT,
     OTP_VERIFY_WINDOW_MS,
-    OTP_VERIFY_BLOCK_MS
+    OTP_VERIFY_BLOCK_MS,
   );
 
   if (!ipLimit.allowed || !idLimit.allowed) {
@@ -3026,9 +3104,8 @@ async function verifyPasswordResetOtpCore(params: {
     .get();
 
   const now = Date.now();
-  let matchedDoc:
-    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-    | null = null;
+  let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
+    null;
   let matchedData: FirebaseFirestore.DocumentData | undefined;
   for (const doc of candidates.docs) {
     const data = doc.data();
@@ -3051,9 +3128,7 @@ async function verifyPasswordResetOtpCore(params: {
       failedAttempts: nextAttempts,
     };
     if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-      updates.lockedUntil = new Date(
-        now + OTP_VERIFY_LOCK_MS
-      );
+      updates.lockedUntil = new Date(now + OTP_VERIFY_LOCK_MS);
     }
     await doc.ref.update(updates);
   }
@@ -3068,7 +3143,7 @@ async function verifyPasswordResetOtpCore(params: {
     });
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid or expired code."
+      "Invalid or expired code.",
     );
   }
 
@@ -3120,7 +3195,7 @@ async function resetPasswordWithTokenCore(params: {
   if (!emailRaw || !isEmailLike(emailRaw) || !resetToken) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid reset request."
+      "Invalid reset request.",
     );
   }
 
@@ -3133,17 +3208,17 @@ async function resetPasswordWithTokenCore(params: {
   const identifierHash = hashIdentifier(email);
   const ipLimit = ip
     ? await applyRateLimit(
-      `reset:ip:${ip}`,
-      RESET_ATTEMPT_LIMIT,
-      RESET_ATTEMPT_WINDOW_MS,
-      RESET_ATTEMPT_BLOCK_MS
-    )
+        `reset:ip:${ip}`,
+        RESET_ATTEMPT_LIMIT,
+        RESET_ATTEMPT_WINDOW_MS,
+        RESET_ATTEMPT_BLOCK_MS,
+      )
     : { allowed: true };
   const idLimit = await applyRateLimit(
     `reset:id:${identifierHash}`,
     RESET_ATTEMPT_LIMIT,
     RESET_ATTEMPT_WINDOW_MS,
-    RESET_ATTEMPT_BLOCK_MS
+    RESET_ATTEMPT_BLOCK_MS,
   );
 
   if (!ipLimit.allowed || !idLimit.allowed) {
@@ -3166,9 +3241,8 @@ async function resetPasswordWithTokenCore(params: {
     .get();
 
   const now = Date.now();
-  let matchedDoc:
-    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-    | null = null;
+  let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
+    null;
   let matchedData: FirebaseFirestore.DocumentData | undefined;
   for (const doc of candidates.docs) {
     const data = doc.data();
@@ -3195,7 +3269,7 @@ async function resetPasswordWithTokenCore(params: {
     });
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid reset request."
+      "Invalid reset request.",
     );
   }
 
@@ -3208,7 +3282,7 @@ async function resetPasswordWithTokenCore(params: {
       to: email,
       method: "forgot_password",
     }).catch((err) =>
-      console.error("Failed to send password changed email:", err)
+      console.error("Failed to send password changed email:", err),
     );
   }
 
@@ -3242,7 +3316,7 @@ export const signUpWithPassword = callable<SignUpWithPasswordRequest>(
       userAgent,
     });
     return { status: "ok", customToken: result.customToken };
-  }
+  },
 );
 
 async function loginWithPasswordCore(params: {
@@ -3266,7 +3340,7 @@ async function loginWithPasswordCore(params: {
       `login:ip:${ip}`,
       LOGIN_ATTEMPT_LIMIT,
       LOGIN_ATTEMPT_WINDOW_MS,
-      LOGIN_ATTEMPT_BLOCK_MS
+      LOGIN_ATTEMPT_BLOCK_MS,
     );
     if (!ipLimit.allowed) {
       await logAuthAudit({
@@ -3284,7 +3358,7 @@ async function loginWithPasswordCore(params: {
     `login:id:${identifierHash}`,
     LOGIN_ATTEMPT_LIMIT,
     LOGIN_ATTEMPT_WINDOW_MS,
-    LOGIN_ATTEMPT_BLOCK_MS
+    LOGIN_ATTEMPT_BLOCK_MS,
   );
   if (!idLimit.allowed) {
     await logAuthAudit({
@@ -3315,7 +3389,7 @@ async function loginWithPasswordCore(params: {
     });
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Invalid credentials."
+      "Invalid credentials.",
     );
   }
 
@@ -3344,13 +3418,12 @@ export const loginWithPassword = callable<LoginWithPasswordRequest>(
       ip,
       userAgent,
     });
-  }
+  },
 );
 
 export const requestPasswordReset = callable<PasswordResetRequest>(
   async (data, context) => {
-    const emailRaw =
-      typeof data?.email === "string" ? data.email.trim() : "";
+    const emailRaw = typeof data?.email === "string" ? data.email.trim() : "";
     const ip = getClientIp(context);
     const userAgent =
       context.rawRequest?.headers?.["user-agent"]?.toString() ?? undefined;
@@ -3359,13 +3432,12 @@ export const requestPasswordReset = callable<PasswordResetRequest>(
       ip,
       userAgent,
     });
-  }
+  },
 );
 
 export const verifyPasswordResetOtp = callable<PasswordResetVerifyRequest>(
   async (data, context) => {
-    const emailRaw =
-      typeof data?.email === "string" ? data.email.trim() : "";
+    const emailRaw = typeof data?.email === "string" ? data.email.trim() : "";
     const otpRaw = typeof data?.otp === "string" ? data.otp.trim() : "";
     const ip = getClientIp(context);
     const userAgent =
@@ -3377,13 +3449,12 @@ export const verifyPasswordResetOtp = callable<PasswordResetVerifyRequest>(
       userAgent,
     });
     return { status: "ok", resetToken };
-  }
+  },
 );
 
 export const resetPasswordWithToken = callable<PasswordResetFinalizeRequest>(
   async (data, context) => {
-    const emailRaw =
-      typeof data?.email === "string" ? data.email.trim() : "";
+    const emailRaw = typeof data?.email === "string" ? data.email.trim() : "";
     const resetToken =
       typeof data?.resetToken === "string"
         ? data.resetToken.trim()
@@ -3407,7 +3478,7 @@ export const resetPasswordWithToken = callable<PasswordResetFinalizeRequest>(
       userAgent,
     });
     return { status: "ok" };
-  }
+  },
 );
 
 export const changePassword = callable<ChangePasswordRequest>(
@@ -3416,7 +3487,7 @@ export const changePassword = callable<ChangePasswordRequest>(
     if (!uid) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "You must be logged in to change your password."
+        "You must be logged in to change your password.",
       );
     }
 
@@ -3436,7 +3507,7 @@ export const changePassword = callable<ChangePasswordRequest>(
     if (!currentPassword) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Current password is required."
+        "Current password is required.",
       );
     }
 
@@ -3452,17 +3523,17 @@ export const changePassword = callable<ChangePasswordRequest>(
     // Rate limiting
     const ipLimit = ip
       ? await applyRateLimit(
-        `change_password:ip:${ip}`,
-        LOGIN_ATTEMPT_LIMIT,
-        LOGIN_ATTEMPT_WINDOW_MS,
-        LOGIN_ATTEMPT_BLOCK_MS
-      )
+          `change_password:ip:${ip}`,
+          LOGIN_ATTEMPT_LIMIT,
+          LOGIN_ATTEMPT_WINDOW_MS,
+          LOGIN_ATTEMPT_BLOCK_MS,
+        )
       : { allowed: true };
     const idLimit = await applyRateLimit(
       `change_password:uid:${uid}`,
       LOGIN_ATTEMPT_LIMIT,
       LOGIN_ATTEMPT_WINDOW_MS,
-      LOGIN_ATTEMPT_BLOCK_MS
+      LOGIN_ATTEMPT_BLOCK_MS,
     );
 
     if (!ipLimit.allowed || !idLimit.allowed) {
@@ -3490,7 +3561,7 @@ export const changePassword = callable<ChangePasswordRequest>(
       });
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "No password set for this account."
+        "No password set for this account.",
       );
     }
 
@@ -3505,7 +3576,7 @@ export const changePassword = callable<ChangePasswordRequest>(
       });
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Current password is incorrect."
+        "Current password is incorrect.",
       );
     }
 
@@ -3526,7 +3597,7 @@ export const changePassword = callable<ChangePasswordRequest>(
         to: userEmail,
         method: "in_app",
       }).catch((err) =>
-        console.error("Failed to send password changed email:", err)
+        console.error("Failed to send password changed email:", err),
       );
     }
 
@@ -3539,7 +3610,7 @@ export const changePassword = callable<ChangePasswordRequest>(
     });
 
     return { status: "ok" };
-  }
+  },
 );
 
 type ProfileData = {
@@ -3578,11 +3649,11 @@ interface DiscoveryRequest {
 type ModerationDecision =
   | { status: "clean"; action: "allow"; reason?: string; severity: "low" }
   | {
-    status: "flagged" | "held" | "pending_scan";
-    action: "hold" | "scan";
-    reason?: string;
-    severity: "medium" | "high";
-  };
+      status: "flagged" | "held" | "pending_scan";
+      action: "hold" | "scan";
+      reason?: string;
+      severity: "medium" | "high";
+    };
 
 function moderateContent(content: string, type: string): ModerationDecision {
   if (type !== "text") {
@@ -3617,7 +3688,7 @@ const MESSAGING_MIN_COMPLETENESS = 0.8;
 const PROFILE_RECOMMENDED_PROMPTS = 2;
 
 function evaluateProfileCompleteness(
-  profile: ProfileData | null
+  profile: ProfileData | null,
 ): ProfileCompletenessSummary {
   if (!profile) {
     const requiredMissing = [
@@ -3646,11 +3717,15 @@ function evaluateProfileCompleteness(
   const prompts = profilePromptAnswers(normalizedProfile);
   const interests = toStringArray(profile.interests);
   const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
-  const country = typeof profile.country === "string" ? profile.country.trim() : "";
+  const country =
+    typeof profile.country === "string" ? profile.country.trim() : "";
   const city = typeof profile.city === "string" ? profile.city.trim() : "";
-  const jobTitle = typeof profile.jobTitle === "string" ? profile.jobTitle.trim() : "";
-  const company = typeof profile.company === "string" ? profile.company.trim() : "";
-  const school = typeof profile.school === "string" ? profile.school.trim() : "";
+  const jobTitle =
+    typeof profile.jobTitle === "string" ? profile.jobTitle.trim() : "";
+  const company =
+    typeof profile.company === "string" ? profile.company.trim() : "";
+  const school =
+    typeof profile.school === "string" ? profile.school.trim() : "";
   const hasWorkOrSchool = Boolean(jobTitle || company || school);
 
   const breakdown: Record<string, number> = {};
@@ -3695,13 +3770,19 @@ function evaluateProfileCompleteness(
     missing.push("Add work or school.");
   }
 
-  const promptsScore = Math.min(1, prompts.length / PROFILE_RECOMMENDED_PROMPTS);
+  const promptsScore = Math.min(
+    1,
+    prompts.length / PROFILE_RECOMMENDED_PROMPTS,
+  );
   breakdown.prompts = promptsScore * 0.1;
   if (prompts.length < PROFILE_RECOMMENDED_PROMPTS) {
     recommended.push("Answer prompts to stand out.");
   }
 
-  const rawScore = Object.values(breakdown).reduce((acc, value) => acc + value, 0);
+  const rawScore = Object.values(breakdown).reduce(
+    (acc, value) => acc + value,
+    0,
+  );
   const score = Math.round(rawScore * 1000) / 1000;
   const meetsRequiredFields = requiredMissing.length === 0;
   const meetsSwipeMinimum = score >= SWIPE_MIN_COMPLETENESS;
@@ -3735,7 +3816,7 @@ function ensureProfileQuality(profile: ProfileData | null, action: string) {
   }
   if (bio.length < PROFILE_MIN_BIO_LENGTH) {
     missing.push(
-      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`
+      `Write a bio with at least ${PROFILE_MIN_BIO_LENGTH} characters.`,
     );
   }
   if (prompts.length < PROFILE_MIN_PROMPTS) {
@@ -3751,7 +3832,7 @@ function ensureProfileQuality(profile: ProfileData | null, action: string) {
   if (missing.length > 0) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      `Complete your profile before ${action}: ${missing.join(" ")}`
+      `Complete your profile before ${action}: ${missing.join(" ")}`,
     );
   }
 }
@@ -3762,7 +3843,7 @@ async function getUser(uid: string): Promise<UserDoc> {
   if (!snap.exists) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "User document not found."
+      "User document not found.",
     );
   }
   const data = snap.data() || {};
@@ -3772,10 +3853,11 @@ async function getUser(uid: string): Promise<UserDoc> {
 async function setUserPlan(
   uid: string,
   plan: "free" | "plus",
-  extra?: { stripeCustomerId?: string; stripeSubscriptionId?: string }
+  extra?: { stripeCustomerId?: string; stripeSubscriptionId?: string },
 ) {
   const payload: Record<string, unknown> = { plan };
-  if (extra?.stripeCustomerId) payload.stripeCustomerId = extra.stripeCustomerId;
+  if (extra?.stripeCustomerId)
+    payload.stripeCustomerId = extra.stripeCustomerId;
   if (extra?.stripeSubscriptionId) {
     payload.stripeSubscriptionId = extra.stripeSubscriptionId;
   }
@@ -3793,7 +3875,7 @@ const ANDROID_PUBLISHER_SCOPE =
   "https://www.googleapis.com/auth/androidpublisher";
 
 function normalizeGooglePlayPackageName(
-  packageName: string | null | undefined
+  packageName: string | null | undefined,
 ): string | null {
   const normalized = packageName?.trim();
   return normalized ? normalized : null;
@@ -3809,7 +3891,7 @@ const APPLE_SERVER_SANDBOX_BASE_URL =
   "https://api.storekit-sandbox.itunes.apple.com";
 
 function normalizeApplePrivateKey(
-  value: string | null | undefined
+  value: string | null | undefined,
 ): string | null {
   const normalized = value?.trim();
   if (!normalized) return null;
@@ -3819,7 +3901,7 @@ function normalizeApplePrivateKey(
 }
 
 function normalizeAppleServerEnvironment(
-  value: string | undefined
+  value: string | undefined,
 ): AppleServerEnvironment | null {
   const normalized = value?.trim().toUpperCase();
   if (normalized === "PRODUCTION") return "PRODUCTION";
@@ -3836,7 +3918,7 @@ function getAppleServerApiConfig(): AppleServerApiConfig {
   if (!issuerId || !keyId || !privateKey || !bundleId) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Apple server API credentials are not fully configured."
+      "Apple server API credentials are not fully configured.",
     );
   }
 
@@ -3862,7 +3944,7 @@ function base64UrlDecode(value: string): Buffer {
 
 function createAppleServerAuthToken(
   config: AppleServerApiConfig,
-  nowMs = Date.now()
+  nowMs = Date.now(),
 ): string {
   const issuedAt = Math.floor(nowMs / 1000);
   const expiresAt = issuedAt + 15 * 60;
@@ -3871,7 +3953,7 @@ function createAppleServerAuthToken(
       alg: "ES256",
       kid: config.keyId,
       typ: "JWT",
-    })
+    }),
   );
   const payload = base64UrlEncode(
     JSON.stringify({
@@ -3880,7 +3962,7 @@ function createAppleServerAuthToken(
       exp: expiresAt,
       aud: APPLE_SERVER_AUDIENCE,
       bid: config.bundleId,
-    })
+    }),
   );
   const unsignedToken = `${header}.${payload}`;
   const signature = crypto.sign("sha256", Buffer.from(unsignedToken, "utf8"), {
@@ -3893,23 +3975,24 @@ function createAppleServerAuthToken(
 
 function buildAppleTransactionLookupUrl(
   transactionId: string,
-  environment: AppleServerEnvironment
+  environment: AppleServerEnvironment,
 ): string {
   const encodedTransactionId = encodeURIComponent(transactionId);
-  const baseUrl = environment === "SANDBOX"
-    ? APPLE_SERVER_SANDBOX_BASE_URL
-    : APPLE_SERVER_BASE_URL;
+  const baseUrl =
+    environment === "SANDBOX"
+      ? APPLE_SERVER_SANDBOX_BASE_URL
+      : APPLE_SERVER_BASE_URL;
   return `${baseUrl}/inApps/v1/transactions/${encodedTransactionId}`;
 }
 
 function decodeAppleSignedTransactionInfo(
-  signedTransactionInfo: string
+  signedTransactionInfo: string,
 ): AppleTransactionInfoPayload {
   const parts = signedTransactionInfo.split(".");
   if (parts.length < 2) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid signed transaction payload."
+      "Invalid signed transaction payload.",
     );
   }
 
@@ -3919,7 +4002,7 @@ function decodeAppleSignedTransactionInfo(
   } catch {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Could not decode Apple transaction payload."
+      "Could not decode Apple transaction payload.",
     );
   }
 }
@@ -3938,7 +4021,7 @@ function verifyAppleSignedPayloadSignature(signedPayload: string): void {
   if (parts.length !== 3) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid Apple signed payload format."
+      "Invalid Apple signed payload format.",
     );
   }
 
@@ -3949,14 +4032,14 @@ function verifyAppleSignedPayloadSignature(signedPayload: string): void {
   } catch {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid Apple signed payload header."
+      "Invalid Apple signed payload header.",
     );
   }
 
   if (header.alg !== "ES256") {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Unsupported Apple payload signing algorithm."
+      "Unsupported Apple payload signing algorithm.",
     );
   }
 
@@ -3966,7 +4049,7 @@ function verifyAppleSignedPayloadSignature(signedPayload: string): void {
   if (x5c.length === 0) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Apple payload certificate chain is missing."
+      "Apple payload certificate chain is missing.",
     );
   }
 
@@ -3977,20 +4060,20 @@ function verifyAppleSignedPayloadSignature(signedPayload: string): void {
     "sha256",
     Buffer.from(signingInput, "utf8"),
     { key: certificatePem, dsaEncoding: "ieee-p1363" },
-    signature
+    signature,
   );
 
   if (!isValid) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Apple payload signature verification failed."
+      "Apple payload signature verification failed.",
     );
   }
 }
 
 function decodeAppleServerNotificationPayload(
   signedPayload: string,
-  deps?: { verifySignature?: (payload: string) => void }
+  deps?: { verifySignature?: (payload: string) => void },
 ): AppleServerNotificationPayload {
   try {
     (deps?.verifySignature ?? verifyAppleSignedPayloadSignature)(signedPayload);
@@ -4000,7 +4083,7 @@ function decodeAppleServerNotificationPayload(
     }
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Apple payload signature verification failed."
+      "Apple payload signature verification failed.",
     );
   }
 
@@ -4008,7 +4091,7 @@ function decodeAppleServerNotificationPayload(
   if (parts.length < 2) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid Apple signed payload."
+      "Invalid Apple signed payload.",
     );
   }
 
@@ -4018,7 +4101,7 @@ function decodeAppleServerNotificationPayload(
   } catch {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Could not decode Apple notification payload."
+      "Could not decode Apple notification payload.",
     );
   }
 }
@@ -4036,7 +4119,7 @@ function parseAppleMillis(value: number | string | undefined): number | null {
 
 function deriveAppleSubscriptionEntitlement(
   payload: AppleTransactionInfoPayload,
-  nowMs: number
+  nowMs: number,
 ): AppleSubscriptionEntitlement {
   const expiryTimeMillis = parseAppleMillis(payload.expiresDate);
   const revocationDateMillis = parseAppleMillis(payload.revocationDate);
@@ -4086,7 +4169,7 @@ async function fetchAppleTransactionValidation(
     fetchImpl?: typeof fetch;
     authTokenProvider?: (config: AppleServerApiConfig) => Promise<string>;
     config?: AppleServerApiConfig;
-  }
+  },
 ): Promise<AppleTransactionValidationResult> {
   const fetchImpl = deps?.fetchImpl ?? fetch;
   const config = deps?.config ?? getAppleServerApiConfig();
@@ -4100,7 +4183,7 @@ async function fetchAppleTransactionValidation(
   for (const environment of environments) {
     const url = buildAppleTransactionLookupUrl(
       params.transactionId,
-      environment
+      environment,
     );
     const response = await fetchImpl(url, {
       method: "GET",
@@ -4117,7 +4200,7 @@ async function fetchAppleTransactionValidation(
     if (response.status === 401 || response.status === 403) {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "Apple server validation permission denied."
+        "Apple server validation permission denied.",
       );
     }
 
@@ -4130,7 +4213,7 @@ async function fetchAppleTransactionValidation(
       });
       throw new functions.https.HttpsError(
         "internal",
-        "Apple transaction validation failed."
+        "Apple transaction validation failed.",
       );
     }
 
@@ -4139,7 +4222,7 @@ async function fetchAppleTransactionValidation(
     if (!signedTransactionInfo) {
       throw new functions.https.HttpsError(
         "internal",
-        "Apple validation response missing transaction info."
+        "Apple validation response missing transaction info.",
       );
     }
 
@@ -4147,7 +4230,7 @@ async function fetchAppleTransactionValidation(
     if (transaction.bundleId && transaction.bundleId !== config.bundleId) {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "Apple purchase bundle identifier does not match this app."
+        "Apple purchase bundle identifier does not match this app.",
       );
     }
 
@@ -4161,7 +4244,7 @@ async function fetchAppleTransactionValidation(
 
   throw new functions.https.HttpsError(
     "not-found",
-    "Apple transaction not found."
+    "Apple transaction not found.",
   );
 }
 
@@ -4182,7 +4265,7 @@ function buildGoogleSubscriptionValidationUrl(params: {
 
 async function getAndroidPublisherAccessToken(
   authFactory: () => GoogleAuth = () =>
-    new GoogleAuth({ scopes: [ANDROID_PUBLISHER_SCOPE] })
+    new GoogleAuth({ scopes: [ANDROID_PUBLISHER_SCOPE] }),
 ): Promise<string> {
   const auth = authFactory();
   const client = await auth.getClient();
@@ -4191,7 +4274,7 @@ async function getAndroidPublisherAccessToken(
   if (!token) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Could not obtain Google Play access token."
+      "Could not obtain Google Play access token.",
     );
   }
   return token;
@@ -4202,7 +4285,7 @@ async function fetchGoogleSubscriptionValidation(
   deps?: {
     fetchImpl?: typeof fetch;
     accessTokenProvider?: () => Promise<string>;
-  }
+  },
 ): Promise<GoogleSubscriptionPurchaseResponse> {
   const fetchImpl = deps?.fetchImpl ?? fetch;
   const accessTokenProvider =
@@ -4221,14 +4304,14 @@ async function fetchGoogleSubscriptionValidation(
   if (response.status === 404) {
     throw new functions.https.HttpsError(
       "not-found",
-      "Google Play purchase token not found."
+      "Google Play purchase token not found.",
     );
   }
 
   if (response.status === 401 || response.status === 403) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Google Play validation permission denied."
+      "Google Play validation permission denied.",
     );
   }
 
@@ -4240,7 +4323,7 @@ async function fetchGoogleSubscriptionValidation(
     });
     throw new functions.https.HttpsError(
       "internal",
-      "Google Play validation failed."
+      "Google Play validation failed.",
     );
   }
 
@@ -4256,7 +4339,7 @@ function parseMillisString(value: string | undefined): number | null {
 
 function deriveGoogleSubscriptionEntitlement(
   payload: GoogleSubscriptionPurchaseResponse,
-  nowMs: number
+  nowMs: number,
 ): GoogleSubscriptionEntitlement {
   const expiryTimeMillis = parseMillisString(payload.expiryTimeMillis);
   const hasFutureAccess = expiryTimeMillis != null && expiryTimeMillis > nowMs;
@@ -4280,9 +4363,8 @@ function deriveGoogleSubscriptionEntitlement(
     status = "active";
   }
 
-  const plan: "free" | "plus" = hasFutureAccess && !isPendingPayment
-    ? "plus"
-    : "free";
+  const plan: "free" | "plus" =
+    hasFutureAccess && !isPendingPayment ? "plus" : "free";
 
   return {
     plan,
@@ -4297,7 +4379,7 @@ function deriveGoogleSubscriptionEntitlement(
 async function ensureGooglePurchaseNotAlreadyLinked(
   uid: string,
   purchaseTokenHash: string,
-  orderId?: string
+  orderId?: string,
 ): Promise<void> {
   const tokenSnap = await db
     .collection("users")
@@ -4308,7 +4390,7 @@ async function ensureGooglePurchaseNotAlreadyLinked(
   if (!tokenSnap.empty && tokenSnap.docs[0].id !== uid) {
     throw new functions.https.HttpsError(
       "already-exists",
-      "Purchase token is already linked to another account."
+      "Purchase token is already linked to another account.",
     );
   }
 
@@ -4324,7 +4406,7 @@ async function ensureGooglePurchaseNotAlreadyLinked(
   if (!orderSnap.empty && orderSnap.docs[0].id !== uid) {
     throw new functions.https.HttpsError(
       "already-exists",
-      "Purchase order is already linked to another account."
+      "Purchase order is already linked to another account.",
     );
   }
 }
@@ -4335,13 +4417,14 @@ async function ensureAppleTransactionNotAlreadyLinked(
     originalTransactionId?: string;
     latestTransactionId?: string;
     webOrderLineItemId?: string;
-  }
+  },
 ): Promise<void> {
   const checks = [
     {
       field: "applePurchase.originalTransactionId",
       value: optionalString(identifiers.originalTransactionId),
-      message: "Apple original transaction is already linked to another account.",
+      message:
+        "Apple original transaction is already linked to another account.",
     },
     {
       field: "applePurchase.latestTransactionId",
@@ -4408,7 +4491,7 @@ async function findUserByAppleTransactionIdentifiers(identifiers: {
 
 function mapAppleServerNotificationType(
   notificationType: string,
-  subtype?: string
+  subtype?: string,
 ): AppleServerNotificationMapping {
   const normalizedType = notificationType.trim().toUpperCase();
   const normalizedSubtype = subtype?.trim().toUpperCase();
@@ -4446,12 +4529,15 @@ function mapAppleServerNotificationType(
 function applyAppleServerNotificationEntitlementOverride(
   entitlement: AppleSubscriptionEntitlement,
   mapping: AppleServerNotificationMapping,
-  nowMs: number
+  nowMs: number,
 ): AppleSubscriptionEntitlement {
   const hasFutureExpiry =
-    entitlement.expiryTimeMillis != null && entitlement.expiryTimeMillis > nowMs;
+    entitlement.expiryTimeMillis != null &&
+    entitlement.expiryTimeMillis > nowMs;
   const shouldForceFree =
-    mapping.forceFree || mapping.status === "expired" || mapping.status === "revoked";
+    mapping.forceFree ||
+    mapping.status === "expired" ||
+    mapping.status === "revoked";
   const keepAccessUntilPeriodEnd =
     (mapping.status === "canceled" || mapping.status === "billing_retry") &&
     hasFutureExpiry;
@@ -4471,7 +4557,8 @@ function applyAppleServerNotificationEntitlementOverride(
       ...entitlement,
       plan: "plus",
       status: mapping.status,
-      cancelAtPeriodEnd: mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
+      cancelAtPeriodEnd:
+        mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
     };
   }
 
@@ -4483,14 +4570,14 @@ function applyAppleServerNotificationEntitlementOverride(
 
 function parseAppleNotificationSignedDate(
   value: number | string | undefined,
-  fallbackNowMs: number
+  fallbackNowMs: number,
 ): number {
   const parsed = parseAppleMillis(value);
   return parsed == null ? fallbackNowMs : parsed;
 }
 
 function mapGoogleRtdnNotificationType(
-  notificationType: number
+  notificationType: number,
 ): GoogleRtdnNotificationMapping {
   switch (notificationType) {
     case 1: // SUBSCRIPTION_RECOVERED
@@ -4524,12 +4611,15 @@ function mapGoogleRtdnNotificationType(
 function applyGoogleRtdnEntitlementOverride(
   entitlement: GoogleSubscriptionEntitlement,
   mapping: GoogleRtdnNotificationMapping,
-  nowMs: number
+  nowMs: number,
 ): GoogleSubscriptionEntitlement {
   const hasFutureExpiry =
-    entitlement.expiryTimeMillis != null && entitlement.expiryTimeMillis > nowMs;
+    entitlement.expiryTimeMillis != null &&
+    entitlement.expiryTimeMillis > nowMs;
   const shouldForceFree =
-    mapping.forceFree || mapping.status === "expired" || mapping.status === "revoked";
+    mapping.forceFree ||
+    mapping.status === "expired" ||
+    mapping.status === "revoked";
   const keepAccessUntilPeriodEnd =
     (mapping.status === "canceled" || mapping.status === "in_grace_period") &&
     hasFutureExpiry;
@@ -4549,7 +4639,8 @@ function applyGoogleRtdnEntitlementOverride(
       ...entitlement,
       plan: "plus",
       status: mapping.status,
-      cancelAtPeriodEnd: mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
+      cancelAtPeriodEnd:
+        mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
     };
   }
 
@@ -4574,7 +4665,7 @@ function decodeGoogleRtdnEnvelope(body: unknown): GoogleRtdnDecodeResult {
   if (!base64Data) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Missing Pub/Sub message data."
+      "Missing Pub/Sub message data.",
     );
   }
 
@@ -4585,7 +4676,7 @@ function decodeGoogleRtdnEnvelope(body: unknown): GoogleRtdnDecodeResult {
   } catch (_err) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "Invalid Pub/Sub message payload."
+      "Invalid Pub/Sub message payload.",
     );
   }
 
@@ -4597,7 +4688,7 @@ function decodeGoogleRtdnEnvelope(body: unknown): GoogleRtdnDecodeResult {
 
 function parseGoogleRtdnEventTime(
   value: string | undefined,
-  fallbackNowMs: number
+  fallbackNowMs: number,
 ): number {
   const parsed = parseMillisString(value);
   if (parsed == null) return fallbackNowMs;
@@ -4620,7 +4711,7 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
   if (!uidBlockedTarget.empty) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You cannot interact with this user."
+      "You cannot interact with this user.",
     );
   }
 
@@ -4635,7 +4726,7 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
   if (!targetBlockedUid.empty) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You cannot interact with this user."
+      "You cannot interact with this user.",
     );
   }
 }
@@ -4659,7 +4750,10 @@ function setCorsHeaders(res: functions.Response, req?: functions.Request) {
   // Use whitelisted origin or default for server-to-server requests
   const origin = req?.headers?.origin;
   const corsAllowedOrigins = getCorsAllowedOrigins();
-  const allowedOrigin = origin && corsAllowedOrigins.includes(origin) ? origin : corsAllowedOrigins[0] || "";
+  const allowedOrigin =
+    origin && corsAllowedOrigins.includes(origin)
+      ? origin
+      : corsAllowedOrigins[0] || "";
   if (allowedOrigin) {
     res.set("Access-Control-Allow-Origin", allowedOrigin);
   }
@@ -4677,7 +4771,7 @@ async function ensureUserInMatch(matchId: string, uid: string) {
   if (!userIds.includes(uid)) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You are not part of this match."
+      "You are not part of this match.",
     );
   }
   const otherUserId = userIds.find((id) => id !== uid);
@@ -4697,7 +4791,7 @@ async function flagUserForReview(userId: string, reason: string) {
           autoFlags: incrementBy(1),
         },
       },
-      { merge: true }
+      { merge: true },
     );
 }
 
@@ -4732,16 +4826,18 @@ interface NotificationPrefs {
   safetyAlerts: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: number; // hour 0-23, default 22
-  quietHoursEnd: number;   // hour 0-23, default 8
-  timezone: string;        // IANA timezone, default "UTC"
+  quietHoursEnd: number; // hour 0-23, default 8
+  timezone: string; // IANA timezone, default "UTC"
 }
 
 function normalizeNotificationPrefs(
   rawPrefs: Record<string, unknown>,
-  timezoneFallback: string
+  timezoneFallback: string,
 ): NotificationPrefs {
   const quietHoursStart =
-    typeof rawPrefs.quietHoursStart === "number" ? rawPrefs.quietHoursStart : 22;
+    typeof rawPrefs.quietHoursStart === "number"
+      ? rawPrefs.quietHoursStart
+      : 22;
   const quietHoursEnd =
     typeof rawPrefs.quietHoursEnd === "number" ? rawPrefs.quietHoursEnd : 8;
   const quietHoursEnabled =
@@ -4768,7 +4864,9 @@ function normalizeNotificationPrefs(
   };
 }
 
-async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> {
+async function getNotificationPrefs(
+  userId: string,
+): Promise<NotificationPrefs> {
   try {
     const doc = await db.collection("users").doc(userId).get();
     const data = doc.data() ?? {};
@@ -4784,7 +4882,7 @@ async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> 
 
 async function getPushTokensFor(
   userId: string,
-  category: NotificationCategory
+  category: NotificationCategory,
 ): Promise<string[]> {
   const prefs = await getNotificationPrefs(userId);
   // Safety alerts always go through
@@ -4816,8 +4914,12 @@ function isInQuietHours(prefs: NotificationPrefs): boolean {
   let hour: number;
   try {
     hour = parseInt(
-      now.toLocaleString("en-US", { timeZone: prefs.timezone, hour: "numeric", hour12: false }),
-      10
+      now.toLocaleString("en-US", {
+        timeZone: prefs.timezone,
+        hour: "numeric",
+        hour12: false,
+      }),
+      10,
     );
   } catch {
     hour = now.getUTCHours();
@@ -4847,7 +4949,10 @@ async function isDailyCapReached(userId: string): Promise<boolean> {
   return snap.size >= DAILY_NON_MESSAGE_CAP;
 }
 
-async function logNotificationSent(userId: string, category: NotificationCategory): Promise<void> {
+async function logNotificationSent(
+  userId: string,
+  category: NotificationCategory,
+): Promise<void> {
   await db
     .collection("users")
     .doc(userId)
@@ -4866,7 +4971,12 @@ async function logNotificationSent(userId: string, category: NotificationCategor
 async function queueNotification(
   userId: string,
   category: NotificationCategory,
-  payload: { title: string; body: string; data?: Record<string, string>; imageUrl?: string }
+  payload: {
+    title: string;
+    body: string;
+    data?: Record<string, string>;
+    imageUrl?: string;
+  },
 ): Promise<void> {
   await db
     .collection("users")
@@ -4889,7 +4999,12 @@ async function queueNotification(
 async function smartSendNotification(
   userId: string,
   category: NotificationCategory,
-  payload: { title: string; body: string; data?: Record<string, string>; imageUrl?: string }
+  payload: {
+    title: string;
+    body: string;
+    data?: Record<string, string>;
+    imageUrl?: string;
+  },
 ): Promise<void> {
   const tokens = await getPushTokensFor(userId, category);
   if (tokens.length === 0) return;
@@ -4932,7 +5047,10 @@ export const flushNotificationQueue = functions.pubsub
   .schedule("every 60 minutes")
   .onRun(async () => {
     // Query all users who have queued notifications
-    const usersSnap = await db.collectionGroup("notificationQueue").limit(500).get();
+    const usersSnap = await db
+      .collectionGroup("notificationQueue")
+      .limit(500)
+      .get();
     if (usersSnap.empty) return;
 
     // Group by userId
@@ -5008,7 +5126,7 @@ function haversineDistanceKm(
   lat1?: number,
   lon1?: number,
   lat2?: number,
-  lon2?: number
+  lon2?: number,
 ): number | undefined {
   if (
     lat1 === undefined ||
@@ -5025,9 +5143,9 @@ function haversineDistanceKm(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -5047,22 +5165,24 @@ async function enforceDailyLikeLimit(uid: string, plan?: string) {
     const data = snap.exists ? (snap.data() as Record<string, unknown>) : {};
 
     // Check daily limit
-    const dailyLikes = (data.dailyLikes as Record<string, number> | undefined) ?? {};
+    const dailyLikes =
+      (data.dailyLikes as Record<string, number> | undefined) ?? {};
     const dailyCount = dailyLikes[todayKey] ?? 0;
     if (dailyCount >= dailyLimit) {
       throw new functions.https.HttpsError(
         "resource-exhausted",
-        `Daily like limit reached (${dailyLimit}). Try again tomorrow.`
+        `Daily like limit reached (${dailyLimit}). Try again tomorrow.`,
       );
     }
 
     // Check hourly limit (throttling)
-    const hourlyLikes = (data.hourlyLikes as Record<string, number> | undefined) ?? {};
+    const hourlyLikes =
+      (data.hourlyLikes as Record<string, number> | undefined) ?? {};
     const hourlyCount = hourlyLikes[hourKey] ?? 0;
     if (hourlyCount >= hourlyLimit) {
       throw new functions.https.HttpsError(
         "resource-exhausted",
-        `Slow down! You've liked ${hourlyLimit} profiles this hour. Try again in a bit.`
+        `Slow down! You've liked ${hourlyLimit} profiles this hour. Try again in a bit.`,
       );
     }
 
@@ -5071,7 +5191,9 @@ async function enforceDailyLikeLimit(uid: string, plan?: string) {
     hourlyLikes[hourKey] = hourlyCount + 1;
 
     // Clean up old hourly keys (keep only last 24 hours)
-    const cutoffHour = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 13);
+    const cutoffHour = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 13);
     for (const key of Object.keys(hourlyLikes)) {
       if (key < cutoffHour) delete hourlyLikes[key];
     }
@@ -5083,7 +5205,7 @@ async function enforceDailyLikeLimit(uid: string, plan?: string) {
         hourlyLikes,
         updatedAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
   });
 }
@@ -5096,7 +5218,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
     if (!isEmailLike(contactEmailRaw)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Enter a valid contact email."
+        "Enter a valid contact email.",
       );
     }
     const matchNameRaw = requireString(data?.matchName, "matchName");
@@ -5105,7 +5227,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
     if (dateTimeMs == null) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "dateTimeMs is required."
+        "dateTimeMs is required.",
       );
     }
     const timeZoneOffsetMinutes = toNumber(data?.timeZoneOffsetMinutes) ?? 0;
@@ -5122,7 +5244,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
       `date_plan_email:${uid}:${identifierHash}`,
       DATE_PLAN_EMAIL_LIMIT,
       DATE_PLAN_EMAIL_WINDOW_MS,
-      DATE_PLAN_EMAIL_BLOCK_MS
+      DATE_PLAN_EMAIL_BLOCK_MS,
     );
     if (!rateLimit.allowed) {
       throwRateLimitError(rateLimit.retryAfterMs);
@@ -5137,7 +5259,10 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
       "A CrushHour user";
     const creatorName = truncateString(creatorNameRaw, 80);
 
-    const safeOffset = Math.max(-14 * 60, Math.min(14 * 60, timeZoneOffsetMinutes));
+    const safeOffset = Math.max(
+      -14 * 60,
+      Math.min(14 * 60, timeZoneOffsetMinutes),
+    );
     const localMillis = dateTimeMs + safeOffset * 60 * 1000;
     const localDate = new Date(localMillis);
     const dateLabel = localDate.toLocaleDateString("en-US", {
@@ -5165,7 +5290,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
     });
 
     return { success: true };
-  }
+  },
 );
 
 export const moderateTextContent = callable<{
@@ -5198,14 +5323,13 @@ export const moderateImageContent = callable<{
   };
 });
 
-
 export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
   requireEmailVerified(context, "report a user");
   const reportedId = requireString(data?.reportedId, "reportedId");
   const { reasonText: reason, reasonCategory } = canonicalizeSafetyReportReason(
     data?.reason,
-    { field: "reason", maxLength: 1000, minLength: 1 }
+    { field: "reason", maxLength: 1000, minLength: 1 },
   );
   const matchId = optionalString(data?.matchId);
   const messageId = optionalString(data?.messageId);
@@ -5215,7 +5339,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
   if (reportedId === reporterId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "You cannot report yourself."
+      "You cannot report yourself.",
     );
   }
 
@@ -5224,7 +5348,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     `report:uid:${reporterId}`,
     REPORT_LIMIT,
     REPORT_WINDOW_MS,
-    REPORT_BLOCK_MS
+    REPORT_BLOCK_MS,
   );
   if (!reportLimit.allowed) {
     throwRateLimitError(reportLimit.retryAfterMs);
@@ -5246,7 +5370,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
   });
 
   const sevenDaysAgo = admin.firestore.Timestamp.fromDate(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
   );
   const openReportsSnap = await db
     .collection("reports")
@@ -5267,7 +5391,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
           status: openReportsSnap.size >= 3 ? "needs_review" : "watch",
         },
       },
-      { merge: true }
+      { merge: true },
     );
 
   if (openReportsSnap.size >= 5) {
@@ -5292,13 +5416,13 @@ export const blockUser = callable<BlockRequest>(async (data, context) => {
   if (blockedId === blockerId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "You cannot block yourself."
+      "You cannot block yourself.",
     );
   }
   if (blockerIdFromClient && blockerIdFromClient !== blockerId) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Blocker mismatch."
+      "Blocker mismatch.",
     );
   }
 
@@ -5307,7 +5431,7 @@ export const blockUser = callable<BlockRequest>(async (data, context) => {
     `block:uid:${blockerId}`,
     BLOCK_LIMIT,
     BLOCK_WINDOW_MS,
-    BLOCK_BLOCK_MS
+    BLOCK_BLOCK_MS,
   );
   if (!blockLimit.allowed) {
     throwRateLimitError(blockLimit.retryAfterMs);
@@ -5331,7 +5455,7 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
   if (blockerIdFromClient && blockerIdFromClient !== blockerId) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "Blocker mismatch."
+      "Blocker mismatch.",
     );
   }
 
@@ -5340,7 +5464,7 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
     `unblock:uid:${blockerId}`,
     UNBLOCK_LIMIT,
     UNBLOCK_WINDOW_MS,
-    UNBLOCK_BLOCK_MS
+    UNBLOCK_BLOCK_MS,
   );
   if (!unblockLimit.allowed) {
     throwRateLimitError(unblockLimit.retryAfterMs);
@@ -5351,37 +5475,39 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
   return { ok: true };
 });
 
-export const appealSafetyAction = callable<AppealRequest>(async (data, context) => {
-  const uid = requireAuth(context, "submit an appeal");
-  const reason = requireString(data?.reason, "reason");
-  const targetType = optionalString(data?.targetType) ?? "account";
-  const targetId = optionalString(data?.targetId) ?? null;
+export const appealSafetyAction = callable<AppealRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "submit an appeal");
+    const reason = requireString(data?.reason, "reason");
+    const targetType = optionalString(data?.targetType) ?? "account";
+    const targetId = optionalString(data?.targetId) ?? null;
 
-  await db.collection("appeals").add({
-    userId: uid,
-    reason,
-    targetType,
-    targetId,
-    status: "open",
-    createdAt: serverTimestamp(),
-  });
+    await db.collection("appeals").add({
+      userId: uid,
+      reason,
+      targetType,
+      targetId,
+      status: "open",
+      createdAt: serverTimestamp(),
+    });
 
-  await db
-    .collection("users")
-    .doc(uid)
-    .set(
-      {
-        safetyFlags: {
-          appealOpen: true,
-          lastAppealAt: serverTimestamp(),
-          lastReason: reason,
+    await db
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          safetyFlags: {
+            appealOpen: true,
+            lastAppealAt: serverTimestamp(),
+            lastReason: reason,
+          },
         },
-      },
-      { merge: true }
-    );
+        { merge: true },
+      );
 
-  return { ok: true };
-});
+    return { ok: true };
+  },
+);
 
 export const setTyping = callable<{
   matchId?: string;
@@ -5397,7 +5523,7 @@ export const setTyping = callable<{
     .doc(matchId)
     .set(
       { typing: { [uid]: isTyping }, typingUpdatedAt: serverTimestamp() },
-      { merge: true }
+      { merge: true },
     );
   return { ok: true };
 });
@@ -5406,18 +5532,15 @@ export const setPresenceStatus = callable<{ isOnline?: boolean }>(
   async (data, context) => {
     const uid = requireAuth(context, "update presence");
     const isOnline = !!data?.isOnline;
-    await db
-      .collection("users")
-      .doc(uid)
-      .set(
-        {
-          isOnline,
-          lastSeenAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+    await db.collection("users").doc(uid).set(
+      {
+        isOnline,
+        lastSeenAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
     return { ok: true };
-  }
+  },
 );
 
 export const setMediaSendingEnabled = callable<{
@@ -5429,17 +5552,14 @@ export const setMediaSendingEnabled = callable<{
   const enabled = !!data?.enabled;
 
   await ensureUserInMatch(matchId, uid);
-  await db
-    .collection("matches")
-    .doc(matchId)
-    .set(
-      {
-        mediaSendingEnabled: enabled,
-        mediaUpdatedBy: uid,
-        mediaUpdatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+  await db.collection("matches").doc(matchId).set(
+    {
+      mediaSendingEnabled: enabled,
+      mediaUpdatedBy: uid,
+      mediaUpdatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
   return { ok: true };
 });
 
@@ -5464,7 +5584,7 @@ export const addReaction = callable<{
         reactions: { [uid]: emoji },
         reactionsUpdatedAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
   return { ok: true };
 });
@@ -5488,7 +5608,7 @@ export const removeReaction = callable<{
         reactions: { [uid]: deleteField() },
         reactionsUpdatedAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
   return { ok: true };
 });
@@ -5499,17 +5619,14 @@ export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
   const matchId = requireString(data?.matchId, "matchId");
   const { otherUserId } = await ensureUserInMatch(matchId, uid);
 
-  await db
-    .collection("matches")
-    .doc(matchId)
-    .set(
-      {
-        status: "unmatched",
-        unmatchedBy: uid,
-        unmatchedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+  await db.collection("matches").doc(matchId).set(
+    {
+      status: "unmatched",
+      unmatchedBy: uid,
+      unmatchedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 
   if (otherUserId) {
     const tokens = await getFcmTokens(otherUserId);
@@ -5548,7 +5665,7 @@ export const onMessageCreated = functions.firestore
           reviewedAt: serverTimestamp(),
         },
       },
-      { merge: true }
+      { merge: true },
     );
 
     if (decision.action === "hold") {
@@ -5563,7 +5680,9 @@ export const onMessageCreated = functions.firestore
       tokens,
       notification: {
         title: "New message",
-        body: data?.content ? String(data.content).slice(0, 80) : "You have a new message.",
+        body: data?.content
+          ? String(data.content).slice(0, 80)
+          : "You have a new message.",
       },
       data: {
         matchId: context.params.matchId,
@@ -5589,11 +5708,15 @@ export const onMatchCreated = functions.firestore
     // between these users and migrate it to the match as the first message.
     // ─────────────────────────────────────────────────────────────────────────
     try {
-      const pairKey = userA.localeCompare(userB) <= 0
-        ? `${userA}|${userB}`
-        : `${userB}|${userA}`;
+      const pairKey =
+        userA.localeCompare(userB) <= 0
+          ? `${userA}|${userB}`
+          : `${userB}|${userA}`;
 
-      const requestDoc = await db.collection("message_requests").doc(pairKey).get();
+      const requestDoc = await db
+        .collection("message_requests")
+        .doc(pairKey)
+        .get();
 
       if (requestDoc.exists) {
         const requestData = requestDoc.data();
@@ -5627,7 +5750,9 @@ export const onMatchCreated = functions.firestore
             lastMessagePreview: String(requestData.content).slice(0, 50),
           });
 
-          console.log(`Migrated message request ${pairKey} to match ${matchId}`);
+          console.log(
+            `Migrated message request ${pairKey} to match ${matchId}`,
+          );
         }
 
         // Delete the message request regardless of whether it was migrated
@@ -5646,7 +5771,7 @@ export const onMatchCreated = functions.firestore
       userIds.map(async (uid) => ({
         uid,
         tokens: await getPushTokensFor(uid, "matches"),
-      }))
+      })),
     );
 
     await Promise.all(
@@ -5661,8 +5786,8 @@ export const onMatchCreated = functions.firestore
             matchId: context.params.matchId,
             userId: uid,
           },
-        })
-      )
+        }),
+      ),
     );
   });
 
@@ -5673,7 +5798,10 @@ export const onSubscriptionUpdated = functions.firestore
     const afterPlan = change.after.data()?.plan;
     if (!afterPlan || beforePlan === afterPlan) return;
 
-    const tokens = await getPushTokensFor(context.params.userId, "subscriptions");
+    const tokens = await getPushTokensFor(
+      context.params.userId,
+      "subscriptions",
+    );
     if (tokens.length === 0) return;
 
     const upgraded = beforePlan !== afterPlan && afterPlan === "plus";
@@ -5712,7 +5840,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     // even if their own profile is incomplete. This encourages engagement.
     // ensureProfileQuality(profile, "browsing");
 
-    const prefs = (profile?.preferences as Record<string, unknown> | undefined) ?? {};
+    const prefs =
+      (profile?.preferences as Record<string, unknown> | undefined) ?? {};
     const maxDistanceKm =
       toNumber(prefs.maxDistanceKm) !== undefined
         ? (toNumber(prefs.maxDistanceKm) as number)
@@ -5723,7 +5852,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
 
     const myLat = toNumber(profile?.latitude);
     const myLon = toNumber(profile?.longitude);
-    const myCountry = typeof profile?.country === "string" ? profile?.country : "";
+    const myCountry =
+      typeof profile?.country === "string" ? profile?.country : "";
     const myInterests = new Set(toStringArray(profile?.interests));
 
     const blockedIds = await blockedUserIds(uid);
@@ -5739,7 +5869,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     const skipGenderFilter =
       showMeGenders.length === 0 ||
       showMeGenders.some((g) =>
-        ["all", "everyone", "any"].includes(g.toLowerCase())
+        ["all", "everyone", "any"].includes(g.toLowerCase()),
       );
 
     if (!skipGenderFilter && showMeGenders.length <= 10) {
@@ -5753,10 +5883,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       snap = await query.get();
     } catch (err) {
       // Fallback to broader query if filters fail
-      snap = await db
-        .collection("users")
-        .limit(DISCOVERY_PAGE_SIZE)
-        .get();
+      snap = await db.collection("users").limit(DISCOVERY_PAGE_SIZE).get();
     }
 
     const candidates: Array<{
@@ -5773,13 +5900,19 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       if (blockedIds.has(doc.id)) return;
       const data = doc.data() as Record<string, unknown>;
       // Support both nested profile and flat document structure
-      const candidateProfile = (data.profile as ProfileData | undefined)
-        ?? (data.name && data.gender ? (data as unknown as ProfileData) : null);
+      const candidateProfile =
+        (data.profile as ProfileData | undefined) ??
+        (data.name && data.gender ? (data as unknown as ProfileData) : null);
       if (!candidateProfile) return;
-      const normalizedProfile = candidateProfile as unknown as Record<string, unknown>;
+      const normalizedProfile = candidateProfile as unknown as Record<
+        string,
+        unknown
+      >;
 
       // Filter out users who have explicitly opted out of discovery
-      const prefs = candidateProfile.preferences as Record<string, unknown> | undefined;
+      const prefs = candidateProfile.preferences as
+        | Record<string, unknown>
+        | undefined;
       if (prefs?.hideFromDiscovery === true) return;
       if (prefs?.incognitoMode === true) return;
 
@@ -5809,11 +5942,19 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       // For users without location: use country as soft filter, not hard filter
       // This ensures new users appear in discovery even without location permission
       const candCountry =
-        typeof candidateProfile.country === "string" ? candidateProfile.country : "";
+        typeof candidateProfile.country === "string"
+          ? candidateProfile.country
+          : "";
       if (!lat || !lon) {
         // No location - apply penalty but DON'T exclude
         // Only exclude if both have different countries AND searching user has location
-        if (myLat && myLon && myCountry && candCountry && candCountry !== myCountry) {
+        if (
+          myLat &&
+          myLon &&
+          myCountry &&
+          candCountry &&
+          candCountry !== myCountry
+        ) {
           // Different country and searcher has location - exclude only if really far
           // For now, include them with penalty to help new users get discovered
           noLocationPenalty = 0.4;
@@ -5827,19 +5968,25 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       }
 
       const interests = toStringArray(candidateProfile.interests);
-      const sharedInterests = interests.filter((i) => myInterests.has(i)).length;
+      const sharedInterests = interests.filter((i) =>
+        myInterests.has(i),
+      ).length;
       const verifiedBoost =
-        candidateProfile.verificationBadge || candidateProfile.isVerified ? 0.4 : 0;
+        candidateProfile.verificationBadge || candidateProfile.isVerified
+          ? 0.4
+          : 0;
       const distanceBoost =
         distanceKm !== undefined && maxDistanceKm > 0
           ? Math.max(0, (maxDistanceKm - distanceKm) / maxDistanceKm)
           : 0.1; // Give users without location a small distance boost
       const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
       // Apply no-location penalty to score so users with location appear first
-      const baseScore = 1 + verifiedBoost + distanceBoost + interestBoost - noLocationPenalty;
+      const baseScore =
+        1 + verifiedBoost + distanceBoost + interestBoost - noLocationPenalty;
 
       // Get username from user document level (not nested in profile)
-      const username = typeof data.username === "string" ? data.username : undefined;
+      const username =
+        typeof data.username === "string" ? data.username : undefined;
 
       candidates.push({
         id: doc.id,
@@ -5857,8 +6004,10 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     return {
       // Return as 'candidates' with flattened profile data (client expects this format)
       candidates: limited.map((c) => {
-        const normalizedCandidateProfile =
-          c.profile as unknown as Record<string, unknown>;
+        const normalizedCandidateProfile = c.profile as unknown as Record<
+          string,
+          unknown
+        >;
         return {
           id: c.id,
           userId: c.id, // Alternative key for compatibility
@@ -5872,9 +6021,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       }),
       total: candidates.length,
     };
-  }
+  },
 );
-
 
 // Swipe right (double opt-in + match creation)
 export const swipeRight = callable<SwipeRequest>(async (data, context) => {
@@ -5886,7 +6034,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
   if (targetUserId === uid) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "You cannot like yourself."
+      "You cannot like yourself.",
     );
   }
 
@@ -6018,7 +6166,7 @@ export const swipeLeft = callable<SwipeRequest>(async (data, context) => {
   if (targetUserId === uid) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "You cannot like yourself."
+      "You cannot like yourself.",
     );
   }
 
@@ -6052,7 +6200,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     if (targetUserId === uid) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Cannot message yourself."
+        "Cannot message yourself.",
       );
     }
 
@@ -6087,7 +6235,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     if (myCount >= 3) {
       throw new functions.https.HttpsError(
         "resource-exhausted",
-        "You have reached the maximum of 3 message requests. Wait for a reply."
+        "You have reached the maximum of 3 message requests. Wait for a reply.",
       );
     }
 
@@ -6107,7 +6255,7 @@ export const sendPreMatchMessageRequest = callable<PreMatchRequest>(
     });
 
     return { ok: true };
-  }
+  },
 );
 
 // Unsend message (Plus only, sender-only)
@@ -6122,7 +6270,7 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   if ((user.plan || "").toLowerCase() !== "plus") {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Unsend is only available on the Plus plan."
+      "Unsend is only available on the Plus plan.",
     );
   }
 
@@ -6144,7 +6292,7 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   if (msgData.fromUserId !== uid) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You can only unsend your own messages."
+      "You can only unsend your own messages.",
     );
   }
 
@@ -6158,14 +6306,14 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   if (!userIds.includes(uid)) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You are not part of this match."
+      "You are not part of this match.",
     );
   }
   const otherUserId = userIds.find((id) => id !== uid);
   if (!otherUserId) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Match participants missing."
+      "Match participants missing.",
     );
   }
   await ensureNotBlocked(uid, otherUserId);
@@ -6180,199 +6328,211 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
 });
 
 // Send message (for matched users)
-export const sendMessage = callable<SendMessageRequest>(async (data, context) => {
-  const uid = requireAuth(context, "send messages");
-  requireEmailVerified(context, "send messages");
-  const matchId = requireString(data?.matchId, "matchId");
-  const toUserId = requireString(data?.toUserId, "toUserId");
-  const content = optionalString(data?.content);
-  const type = optionalString(data?.type) ?? "text";
-  const mediaUrl = optionalString(data?.mediaUrl);
+export const sendMessage = callable<SendMessageRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "send messages");
+    requireEmailVerified(context, "send messages");
+    const matchId = requireString(data?.matchId, "matchId");
+    const toUserId = requireString(data?.toUserId, "toUserId");
+    const content = optionalString(data?.content);
+    const type = optionalString(data?.type) ?? "text";
+    const mediaUrl = optionalString(data?.mediaUrl);
 
-  // Validate content - must have content or mediaUrl
-  if (!content && !mediaUrl) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "Message must have content or media."
-    );
-  }
+    // Validate content - must have content or mediaUrl
+    if (!content && !mediaUrl) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Message must have content or media.",
+      );
+    }
 
-  // Validate user is part of the match
-  const matchSnap = await db.collection("matches").doc(matchId).get();
-  if (!matchSnap.exists) {
-    throw new functions.https.HttpsError("not-found", "Match not found.");
-  }
+    // Validate user is part of the match
+    const matchSnap = await db.collection("matches").doc(matchId).get();
+    if (!matchSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Match not found.");
+    }
 
-  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
-  const userIds = (matchData.userIds || []) as string[];
-  if (!userIds.includes(uid)) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "You are not part of this match."
-    );
-  }
+    const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+    const userIds = (matchData.userIds || []) as string[];
+    if (!userIds.includes(uid)) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You are not part of this match.",
+      );
+    }
 
-  // Verify toUserId is the other participant
-  if (!userIds.includes(toUserId)) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Recipient is not part of this match."
-    );
-  }
+    // Verify toUserId is the other participant
+    if (!userIds.includes(toUserId)) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Recipient is not part of this match.",
+      );
+    }
 
-  if (toUserId === uid) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "Cannot send message to yourself."
-    );
-  }
+    if (toUserId === uid) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Cannot send message to yourself.",
+      );
+    }
 
-  // Check if blocked
-  await ensureNotBlocked(uid, toUserId);
+    // Check if blocked
+    await ensureNotBlocked(uid, toUserId);
 
-  // Create the message document
-  const messageRef = await db
-    .collection("matches")
-    .doc(matchId)
-    .collection("messages")
-    .add({
-      matchId,
-      fromUserId: uid,
-      toUserId,
-      content: content ?? null,
-      type,
-      mediaUrl: mediaUrl ?? null,
-      sentAt: serverTimestamp(),
-      isRead: false,
-      isDeletedForSender: false,
-      isDeletedForRecipient: false,
-      reactions: {},
-      visibleTo: [uid, toUserId],
-    });
+    // Create the message document
+    const messageRef = await db
+      .collection("matches")
+      .doc(matchId)
+      .collection("messages")
+      .add({
+        matchId,
+        fromUserId: uid,
+        toUserId,
+        content: content ?? null,
+        type,
+        mediaUrl: mediaUrl ?? null,
+        sentAt: serverTimestamp(),
+        isRead: false,
+        isDeletedForSender: false,
+        isDeletedForRecipient: false,
+        reactions: {},
+        visibleTo: [uid, toUserId],
+      });
 
-  // Update match with last message info
-  await db.collection("matches").doc(matchId).update({
-    lastMessageAt: serverTimestamp(),
-    lastMessageContent: content ? truncateString(content, 100) : null,
-    lastMessageType: type,
-    lastMessageFromUserId: uid,
-  });
+    // Update match with last message info
+    await db
+      .collection("matches")
+      .doc(matchId)
+      .update({
+        lastMessageAt: serverTimestamp(),
+        lastMessageContent: content ? truncateString(content, 100) : null,
+        lastMessageType: type,
+        lastMessageFromUserId: uid,
+      });
 
-  return {
-    ok: true,
-    messageId: messageRef.id,
-  };
-});
+    return {
+      ok: true,
+      messageId: messageRef.id,
+    };
+  },
+);
 
 // Mark messages as read
-export const markMessagesRead = callable<MarkMessagesReadRequest>(async (data, context) => {
-  const uid = requireAuth(context, "mark messages as read");
-  const matchId = requireString(data?.matchId, "matchId");
+export const markMessagesRead = callable<MarkMessagesReadRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "mark messages as read");
+    const matchId = requireString(data?.matchId, "matchId");
 
-  // Validate user is part of the match
-  const matchSnap = await db.collection("matches").doc(matchId).get();
-  if (!matchSnap.exists) {
-    throw new functions.https.HttpsError("not-found", "Match not found.");
-  }
+    // Validate user is part of the match
+    const matchSnap = await db.collection("matches").doc(matchId).get();
+    if (!matchSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Match not found.");
+    }
 
-  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
-  const userIds = (matchData.userIds || []) as string[];
-  if (!userIds.includes(uid)) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "You are not part of this match."
-    );
-  }
+    const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+    const userIds = (matchData.userIds || []) as string[];
+    if (!userIds.includes(uid)) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You are not part of this match.",
+      );
+    }
 
-  // Get unread messages sent TO this user
-  const unreadMessagesSnap = await db
-    .collection("matches")
-    .doc(matchId)
-    .collection("messages")
-    .where("toUserId", "==", uid)
-    .where("isRead", "==", false)
-    .get();
+    // Get unread messages sent TO this user
+    const unreadMessagesSnap = await db
+      .collection("matches")
+      .doc(matchId)
+      .collection("messages")
+      .where("toUserId", "==", uid)
+      .where("isRead", "==", false)
+      .get();
 
-  if (unreadMessagesSnap.empty) {
-    return { ok: true, markedCount: 0 };
-  }
+    if (unreadMessagesSnap.empty) {
+      return { ok: true, markedCount: 0 };
+    }
 
-  // Batch update to mark as read
-  const batch = db.batch();
-  const readAt = serverTimestamp();
+    // Batch update to mark as read
+    const batch = db.batch();
+    const readAt = serverTimestamp();
 
-  unreadMessagesSnap.docs.forEach((doc) => {
-    batch.update(doc.ref, {
-      isRead: true,
-      readAt,
-      readBy: uid,
+    unreadMessagesSnap.docs.forEach((doc) => {
+      batch.update(doc.ref, {
+        isRead: true,
+        readAt,
+        readBy: uid,
+      });
     });
-  });
 
-  await batch.commit();
+    await batch.commit();
 
-  // Update match read status
-  await db.collection("matches").doc(matchId).update({
-    [`readBy.${uid}`]: readAt,
-  });
+    // Update match read status
+    await db
+      .collection("matches")
+      .doc(matchId)
+      .update({
+        [`readBy.${uid}`]: readAt,
+      });
 
-  return { ok: true, markedCount: unreadMessagesSnap.size };
-});
+    return { ok: true, markedCount: unreadMessagesSnap.size };
+  },
+);
 
 // Edit message (sender only)
-export const editMessage = callable<EditMessageRequest>(async (data, context) => {
-  const uid = requireAuth(context, "edit messages");
-  requireEmailVerified(context, "edit messages");
-  const matchId = requireString(data?.matchId, "matchId");
-  const messageId = requireString(data?.messageId, "messageId");
-  const content = requireString(data?.content, "content");
+export const editMessage = callable<EditMessageRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "edit messages");
+    requireEmailVerified(context, "edit messages");
+    const matchId = requireString(data?.matchId, "matchId");
+    const messageId = requireString(data?.messageId, "messageId");
+    const content = requireString(data?.content, "content");
 
-  // Validate user is part of the match
-  const matchSnap = await db.collection("matches").doc(matchId).get();
-  if (!matchSnap.exists) {
-    throw new functions.https.HttpsError("not-found", "Match not found.");
-  }
+    // Validate user is part of the match
+    const matchSnap = await db.collection("matches").doc(matchId).get();
+    if (!matchSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Match not found.");
+    }
 
-  const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
-  const userIds = (matchData.userIds || []) as string[];
-  if (!userIds.includes(uid)) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "You are not part of this match."
-    );
-  }
+    const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
+    const userIds = (matchData.userIds || []) as string[];
+    if (!userIds.includes(uid)) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You are not part of this match.",
+      );
+    }
 
-  // Load message
-  const msgRef = db
-    .collection("matches")
-    .doc(matchId)
-    .collection("messages")
-    .doc(messageId);
-  const msgSnap = await msgRef.get();
+    // Load message
+    const msgRef = db
+      .collection("matches")
+      .doc(matchId)
+      .collection("messages")
+      .doc(messageId);
+    const msgSnap = await msgRef.get();
 
-  if (!msgSnap.exists) {
-    throw new functions.https.HttpsError("not-found", "Message not found.");
-  }
+    if (!msgSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Message not found.");
+    }
 
-  const msgData = msgSnap.data() as FirebaseFirestore.DocumentData;
+    const msgData = msgSnap.data() as FirebaseFirestore.DocumentData;
 
-  // Ownership check - only sender can edit
-  if (msgData.fromUserId !== uid) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "You can only edit your own messages."
-    );
-  }
+    // Ownership check - only sender can edit
+    if (msgData.fromUserId !== uid) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You can only edit your own messages.",
+      );
+    }
 
-  // Update the message
-  await msgRef.update({
-    content,
-    isEdited: true,
-    editedAt: serverTimestamp(),
-  });
+    // Update the message
+    await msgRef.update({
+      content,
+      isEdited: true,
+      editedAt: serverTimestamp(),
+    });
 
-  return { ok: true };
-});
+    return { ok: true };
+  },
+);
 
 // Create Stripe Checkout session for Plus plan
 export const createCheckoutSession = callable<CheckoutSessionRequest>(
@@ -6386,7 +6546,7 @@ export const createCheckoutSession = callable<CheckoutSessionRequest>(
     if (!stripeSecret) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Stripe not configured."
+        "Stripe not configured.",
       );
     }
     const stripe = getStripeClient(stripeSecret);
@@ -6427,12 +6587,12 @@ export const createCheckoutSession = callable<CheckoutSessionRequest>(
     });
 
     return { url: session.url };
-  }
+  },
 );
 
 // Validate a Google Play subscription purchase token and sync plan state.
-export const verifyGooglePurchaseToken = callable<VerifyGooglePurchaseTokenRequest>(
-  async (data, context) => {
+export const verifyGooglePurchaseToken =
+  callable<VerifyGooglePurchaseTokenRequest>(async (data, context) => {
     const uid = requireAuth(context, "verify Google Play purchase");
     requireEmailVerified(context, "verify Google Play purchase");
 
@@ -6445,7 +6605,7 @@ export const verifyGooglePurchaseToken = callable<VerifyGooglePurchaseTokenReque
     if (!packageName) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "GOOGLE_PLAY_PACKAGE_NAME is not configured."
+        "GOOGLE_PLAY_PACKAGE_NAME is not configured.",
       );
     }
 
@@ -6459,12 +6619,12 @@ export const verifyGooglePurchaseToken = callable<VerifyGooglePurchaseTokenReque
     await ensureGooglePurchaseNotAlreadyLinked(
       uid,
       purchaseTokenHash,
-      validation.orderId
+      validation.orderId,
     );
 
     const entitlement = deriveGoogleSubscriptionEntitlement(
       validation,
-      Date.now()
+      Date.now(),
     );
 
     await setUserPlan(uid, entitlement.plan);
@@ -6520,8 +6680,7 @@ export const verifyGooglePurchaseToken = callable<VerifyGooglePurchaseTokenReque
       currentPeriodEnd: entitlement.currentPeriodEnd,
       cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
     };
-  }
-);
+  });
 
 // Validate an App Store transaction and sync plan state from Apple authoritative data.
 export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
@@ -6541,7 +6700,7 @@ export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
     ) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Apple transaction product does not match requested product."
+        "Apple transaction product does not match requested product.",
       );
     }
 
@@ -6553,7 +6712,7 @@ export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
 
     const entitlement = deriveAppleSubscriptionEntitlement(
       transaction,
-      Date.now()
+      Date.now(),
     );
     const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
     const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
@@ -6574,7 +6733,7 @@ export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
         expiresDateMillis: entitlement.expiryTimeMillis,
         revocationDateMillis,
         signedTransactionHash: hashPurchaseToken(
-          validation.signedTransactionInfo
+          validation.signedTransactionInfo,
         ),
         lastValidatedAt: serverTimestamp(),
       },
@@ -6605,7 +6764,7 @@ export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
       currentPeriodEnd: entitlement.currentPeriodEnd,
       cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
     };
-  }
+  },
 );
 
 // Handle Apple App Store Server Notifications (v2) for subscription lifecycle sync.
@@ -6725,19 +6884,19 @@ export const appleSubscriptionWebhook = functions.https.onRequest(
     const nowMs = Date.now();
     const mapping = mapAppleServerNotificationType(
       notificationType,
-      optionalString(payload.subtype)
+      optionalString(payload.subtype),
     );
     const entitlement = applyAppleServerNotificationEntitlementOverride(
       deriveAppleSubscriptionEntitlement(transaction, nowMs),
       mapping,
-      nowMs
+      nowMs,
     );
 
     await setUserPlan(uid, entitlement.plan);
 
     const signedDateMs = parseAppleNotificationSignedDate(
       payload.signedDate,
-      nowMs
+      nowMs,
     );
     const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
     const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
@@ -6776,7 +6935,9 @@ export const appleSubscriptionWebhook = functions.https.onRequest(
     };
 
     if (entitlement.expiryTimeMillis != null) {
-      payloadUpdate.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+      payloadUpdate.subscriptionExpiresAt = new Date(
+        entitlement.expiryTimeMillis,
+      );
     } else if (entitlement.plan === "free") {
       payloadUpdate.subscriptionExpiresAt = deleteField();
     }
@@ -6790,7 +6951,7 @@ export const appleSubscriptionWebhook = functions.https.onRequest(
       plan: entitlement.plan,
       notificationType,
     });
-  }
+  },
 );
 
 // Handle Google Real-time Developer Notifications (RTDN) for subscriptions.
@@ -6808,7 +6969,7 @@ export const googleRtdnWebhook = functions.https.onRequest(async (req, res) => {
   const expectedToken = optionalString(getGoogleRtdnVerificationToken());
   if (expectedToken) {
     const queryToken = optionalString(
-      typeof req.query.token === "string" ? req.query.token : undefined
+      typeof req.query.token === "string" ? req.query.token : undefined,
     );
     const headerToken = optionalString(req.header("x-rtdn-token"));
     const providedToken = headerToken ?? queryToken;
@@ -6844,7 +7005,12 @@ export const googleRtdnWebhook = functions.https.onRequest(async (req, res) => {
     normalizeGooglePlayPackageName(payload.packageName) ??
     normalizeGooglePlayPackageName(getGooglePlayPackageName());
 
-  if (!packageName || !purchaseToken || !productId || notificationType == null) {
+  if (
+    !packageName ||
+    !purchaseToken ||
+    !productId ||
+    notificationType == null
+  ) {
     res.status(400).send("Invalid RTDN subscription payload.");
     return;
   }
@@ -6881,7 +7047,7 @@ export const googleRtdnWebhook = functions.https.onRequest(async (req, res) => {
     entitlement = applyGoogleRtdnEntitlementOverride(
       deriveGoogleSubscriptionEntitlement(validation, nowMs),
       mapping,
-      nowMs
+      nowMs,
     );
   } catch (err) {
     const isNotFoundErr =
@@ -6942,13 +7108,18 @@ export const googleRtdnWebhook = functions.https.onRequest(async (req, res) => {
       currentPeriodEnd: entitlement.currentPeriodEnd,
       cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
       lastRtdnType: notificationType,
-      lastRtdnEventTime: parseGoogleRtdnEventTime(payload.eventTimeMillis, nowMs),
+      lastRtdnEventTime: parseGoogleRtdnEventTime(
+        payload.eventTimeMillis,
+        nowMs,
+      ),
       lastRtdnUpdatedAt: serverTimestamp(),
     },
   };
 
   if (entitlement.expiryTimeMillis != null) {
-    payloadUpdate.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+    payloadUpdate.subscriptionExpiresAt = new Date(
+      entitlement.expiryTimeMillis,
+    );
   } else if (entitlement.plan === "free") {
     payloadUpdate.subscriptionExpiresAt = deleteField();
   }
@@ -6991,7 +7162,7 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.rawBody,
       signature,
-      stripeWebhookSecret
+      stripeWebhookSecret,
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -7023,9 +7194,7 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
         const uid = subscription.metadata?.firebaseUid as string | undefined;
         const status = subscription.status;
         const isActive =
-          status === "active" ||
-          status === "trialing" ||
-          status === "past_due";
+          status === "active" || status === "trialing" || status === "past_due";
         if (uid) {
           await setUserPlan(uid, isActive ? "plus" : "free", {
             stripeCustomerId:
@@ -7062,7 +7231,7 @@ export const syncSubscriptionStatus = callable(async (_data, context) => {
   if (!stripeSecret) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Stripe not configured."
+      "Stripe not configured.",
     );
   }
   const stripe = getStripeClient(stripeSecret);
@@ -7091,7 +7260,7 @@ export const syncSubscriptionStatus = callable(async (_data, context) => {
     console.error("syncSubscriptionStatus.retrieve_failed", err);
     throw new functions.https.HttpsError(
       "internal",
-      "Could not verify subscription."
+      "Could not verify subscription.",
     );
   }
 
@@ -7188,7 +7357,7 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
     if (!agoraAppId || !agoraCertificate) {
       throw new functions.https.HttpsError(
         "internal",
-        "Agora credentials not configured"
+        "Agora credentials not configured",
       );
     }
 
@@ -7202,7 +7371,7 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
       channelName,
       uid,
       RtcRole.PUBLISHER,
-      privilegeExpireTime
+      privilegeExpireTime,
     );
 
     return {
@@ -7212,48 +7381,50 @@ export const generateAgoraToken = callable<AgoraTokenRequest>(
       uid,
       expireTime: privilegeExpireTime,
     };
-  }
+  },
 );
 
 // Callable function to return an Agora token for a call (uses auth UID)
-export const getAgoraToken = callable<AgoraTokenRequest>(async (data, context) => {
-  const uid = requireAuth(context, "get an Agora token");
+export const getAgoraToken = callable<AgoraTokenRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "get an Agora token");
 
-  const channelName = requireString(data?.channelName, "channelName");
-  const isVideoCall = (data?.isVideoCall as boolean | undefined) ?? true;
-  const agoraAppId = getAgoraAppId();
-  const agoraCertificate = getAgoraCertificate();
+    const channelName = requireString(data?.channelName, "channelName");
+    const isVideoCall = (data?.isVideoCall as boolean | undefined) ?? true;
+    const agoraAppId = getAgoraAppId();
+    const agoraCertificate = getAgoraCertificate();
 
-  if (!agoraAppId || !agoraCertificate) {
-    throw new functions.https.HttpsError(
-      "internal",
-      "Agora credentials not configured"
+    if (!agoraAppId || !agoraCertificate) {
+      throw new functions.https.HttpsError(
+        "internal",
+        "Agora credentials not configured",
+      );
+    }
+
+    // Use the user's UID as Agora UID (convert to int hash from first bytes)
+    const agoraUid = Number.parseInt(uid.slice(0, 8), 16) || 0;
+    const role = RtcRole.PUBLISHER;
+    const expireSeconds = 60 * 60; // 1 hour
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expireSeconds;
+
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      agoraAppId,
+      agoraCertificate,
+      channelName,
+      agoraUid,
+      role,
+      privilegeExpiredTs,
     );
-  }
 
-  // Use the user's UID as Agora UID (convert to int hash from first bytes)
-  const agoraUid = Number.parseInt(uid.slice(0, 8), 16) || 0;
-  const role = RtcRole.PUBLISHER;
-  const expireSeconds = 60 * 60; // 1 hour
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const privilegeExpiredTs = currentTimestamp + expireSeconds;
-
-  const token = RtcTokenBuilder.buildTokenWithUid(
-    agoraAppId,
-    agoraCertificate,
-    channelName,
-    agoraUid,
-    role,
-    privilegeExpiredTs
-  );
-
-  return {
-    token,
-    uid: agoraUid,
-    appId: agoraAppId,
-    isVideoCall,
-  };
-});
+    return {
+      token,
+      uid: agoraUid,
+      appId: agoraAppId,
+      isVideoCall,
+    };
+  },
+);
 
 // Profile completeness check
 interface ProfileCompletenessRequest {
@@ -7282,15 +7453,18 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
     // Prompts are optional (recommended only)
     // Weights: photos 30%, bio 25%, interests 25%, location 20%
     const weights = {
-      photos: 0.30,
+      photos: 0.3,
       bio: 0.25,
       interests: 0.25,
-      location: 0.20,
+      location: 0.2,
     };
 
     const photoRatio = Math.min(1.0, photos.length / PROFILE_MIN_PHOTOS);
     const bioRatio = Math.min(1.0, bio.length / PROFILE_MIN_BIO_LENGTH);
-    const interestsRatio = Math.min(1.0, interests.length / PROFILE_MIN_INTERESTS);
+    const interestsRatio = Math.min(
+      1.0,
+      interests.length / PROFILE_MIN_INTERESTS,
+    );
     const locationRatio = city && country ? 1.0 : 0.0;
     const promptsRatio = prompts.length > 0 ? 1.0 : 0.0; // Just for tracking
 
@@ -7346,7 +7520,8 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
     const meetsSwipeMinimum = score >= swipeThreshold;
     const meetsMessagingMinimum = score >= messagingThreshold;
     const meetsRequiredFields = requiredMissing.length === 0;
-    const threshold = minimum === "messaging" ? messagingThreshold : swipeThreshold;
+    const threshold =
+      minimum === "messaging" ? messagingThreshold : swipeThreshold;
     const meetsMinimum =
       minimum === "messaging" ? meetsMessagingMinimum : meetsSwipeMinimum;
 
@@ -7362,7 +7537,7 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
       minimum,
       threshold,
     };
-  }
+  },
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -7394,7 +7569,7 @@ const profilePhotoUpload = multer({
 function profilePhotoUploadMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   profilePhotoUpload.single("photo")(req, res, (err: unknown) => {
     if (!err) {
@@ -7426,12 +7601,15 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore) {
-    if (entry.resetAt <= now) rateLimitStore.delete(key);
-  }
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore) {
+      if (entry.resetAt <= now) rateLimitStore.delete(key);
+    }
+  },
+  5 * 60 * 1000,
+);
 
 /**
  * Creates an Express rate-limiting middleware.
@@ -7442,13 +7620,11 @@ setInterval(() => {
 function createRateLimiter(
   maxRequests: number,
   windowMs: number,
-  keyFn?: (req: Request) => string
+  keyFn?: (req: Request) => string,
 ) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const authReq = req as AuthRequest;
-    const key = keyFn
-      ? keyFn(req)
-      : authReq.uid || req.ip || "unknown";
+    const key = keyFn ? keyFn(req) : authReq.uid || req.ip || "unknown";
     const bucketKey = `${req.path}:${key}`;
     const now = Date.now();
 
@@ -7475,12 +7651,12 @@ function createRateLimiter(
 }
 
 // Pre-configured rate limiters for different endpoint categories
-const rateLimitSwipe = createRateLimiter(100, 60 * 60 * 1000);      // 100/hour
-const rateLimitMessage = createRateLimiter(60, 60 * 1000);           // 60/minute
-const rateLimitReport = createRateLimiter(10, 60 * 60 * 1000);      // 10/hour
-const rateLimitDiscovery = createRateLimiter(30, 60 * 60 * 1000);   // 30/hour
-const rateLimitAuth = createRateLimiter(20, 10 * 60 * 1000);        // 20/10min
-const rateLimitDefault = createRateLimiter(60, 60 * 1000);          // 60/minute
+const rateLimitSwipe = createRateLimiter(100, 60 * 60 * 1000); // 100/hour
+const rateLimitMessage = createRateLimiter(60, 60 * 1000); // 60/minute
+const rateLimitReport = createRateLimiter(10, 60 * 60 * 1000); // 10/hour
+const rateLimitDiscovery = createRateLimiter(30, 60 * 60 * 1000); // 30/hour
+const rateLimitAuth = createRateLimiter(20, 10 * 60 * 1000); // 20/10min
+const rateLimitDefault = createRateLimiter(60, 60 * 1000); // 60/minute
 
 // Middleware - use CORS whitelist for security
 app.use(cors({ origin: corsOriginValidator }));
@@ -7495,7 +7671,7 @@ interface AuthRequest extends Request {
 async function authMiddleware(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
@@ -7525,7 +7701,7 @@ async function authMiddleware(
 async function requireVerifiedEmail(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   const token = req.user;
   if (!token) {
@@ -7535,7 +7711,11 @@ async function requireVerifiedEmail(
 
   const provider = token.firebase?.sign_in_provider;
   // Phone, Apple, Google users are exempt
-  if (provider === "phone" || provider === "apple.com" || provider === "google.com") {
+  if (
+    provider === "phone" ||
+    provider === "apple.com" ||
+    provider === "google.com"
+  ) {
     next();
     return;
   }
@@ -7559,38 +7739,41 @@ app.post(
   appCheckRestMiddleware("auth.otp.send"),
   rateLimitAuth,
   async (req: Request, res: Response) => {
-  try {
-    const { phone_number } = req.body;
-    if (!phone_number) {
-      return res.status(400).json({ error: "Phone number is required" });
+    try {
+      const { phone_number } = req.body;
+      if (!phone_number) {
+        return res.status(400).json({ error: "Phone number is required" });
+      }
+
+      // Generate and store OTP
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const verificationId = crypto.randomUUID();
+      const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+      await db
+        .collection("phone_verifications")
+        .doc(verificationId)
+        .set({
+          phoneNumber: phone_number,
+          otp: await bcrypt.hash(otp, 10),
+          expiresAt,
+          verified: false,
+          createdAt: serverTimestamp(),
+        });
+
+      // In production, send SMS. For now, log it.
+      console.log(`OTP for ${phone_number}: ${otp}`);
+
+      res.json({
+        success: true,
+        verification_id: verificationId,
+        message: "OTP sent successfully",
+      });
+    } catch (err) {
+      console.error("Send OTP error:", err);
+      return res.status(500).json({ error: "Failed to send OTP" });
     }
-
-    // Generate and store OTP
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const verificationId = crypto.randomUUID();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
-
-    await db.collection("phone_verifications").doc(verificationId).set({
-      phoneNumber: phone_number,
-      otp: await bcrypt.hash(otp, 10),
-      expiresAt,
-      verified: false,
-      createdAt: serverTimestamp(),
-    });
-
-    // In production, send SMS. For now, log it.
-    console.log(`OTP for ${phone_number}: ${otp}`);
-
-    res.json({
-      success: true,
-      verification_id: verificationId,
-      message: "OTP sent successfully",
-    });
-  } catch (err) {
-    console.error("Send OTP error:", err);
-    return res.status(500).json({ error: "Failed to send OTP" });
-  }
-  }
+  },
 );
 
 // Verify OTP
@@ -7599,90 +7782,94 @@ app.post(
   appCheckRestMiddleware("auth.otp.verify"),
   rateLimitAuth,
   async (req: Request, res: Response) => {
-  try {
-    const { phone_number, otp, verification_id } = req.body;
-    if (!phone_number || !otp) {
-      return res.status(400).json({ error: "Phone number and OTP required" });
-    }
-
-    // Find verification
-    let verificationDoc;
-    if (verification_id) {
-      verificationDoc = await db.collection("phone_verifications").doc(verification_id).get();
-    } else {
-      const query = await db.collection("phone_verifications")
-        .where("phoneNumber", "==", phone_number)
-        .where("verified", "==", false)
-        .orderBy("createdAt", "desc")
-        .limit(1)
-        .get();
-      verificationDoc = query.docs[0];
-    }
-
-    if (!verificationDoc?.exists) {
-      return res.status(400).json({ error: "Invalid verification" });
-    }
-
-    const verification = verificationDoc.data();
-    if (!verification || verification.expiresAt < Date.now()) {
-      return res.status(400).json({ error: "OTP expired" });
-    }
-
-    const otpValid = await bcrypt.compare(otp, verification.otp);
-    if (!otpValid) {
-      return res.status(400).json({ error: "Invalid OTP" });
-    }
-
-    // Mark as verified
-    await verificationDoc.ref.update({ verified: true });
-
-    // Find or create user
-    let user;
     try {
-      user = await admin.auth().getUserByPhoneNumber(phone_number);
-    } catch {
-      user = await admin.auth().createUser({
-        phoneNumber: phone_number,
+      const { phone_number, otp, verification_id } = req.body;
+      if (!phone_number || !otp) {
+        return res.status(400).json({ error: "Phone number and OTP required" });
+      }
+
+      // Find verification
+      let verificationDoc;
+      if (verification_id) {
+        verificationDoc = await db
+          .collection("phone_verifications")
+          .doc(verification_id)
+          .get();
+      } else {
+        const query = await db
+          .collection("phone_verifications")
+          .where("phoneNumber", "==", phone_number)
+          .where("verified", "==", false)
+          .orderBy("createdAt", "desc")
+          .limit(1)
+          .get();
+        verificationDoc = query.docs[0];
+      }
+
+      if (!verificationDoc?.exists) {
+        return res.status(400).json({ error: "Invalid verification" });
+      }
+
+      const verification = verificationDoc.data();
+      if (!verification || verification.expiresAt < Date.now()) {
+        return res.status(400).json({ error: "OTP expired" });
+      }
+
+      const otpValid = await bcrypt.compare(otp, verification.otp);
+      if (!otpValid) {
+        return res.status(400).json({ error: "Invalid OTP" });
+      }
+
+      // Mark as verified
+      await verificationDoc.ref.update({ verified: true });
+
+      // Find or create user
+      let user;
+      try {
+        user = await admin.auth().getUserByPhoneNumber(phone_number);
+      } catch {
+        user = await admin.auth().createUser({
+          phoneNumber: phone_number,
+        });
+        // Create user document
+        await db.collection("users").doc(user.uid).set({
+          phoneNumber: phone_number,
+          createdAt: serverTimestamp(),
+          plan: "free",
+        });
+      }
+
+      // Generate custom token
+      const customToken = await admin.auth().createCustomToken(user.uid);
+
+      // Get user data
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      const userData = userDoc.data() || {};
+
+      res.json({
+        success: true,
+        message: "Phone verified successfully",
+        user: {
+          id: user.uid,
+          phone_number: user.phoneNumber,
+          email: user.email,
+          username: userData.username,
+          is_email_verified: user.emailVerified,
+          is_phone_verified: true,
+          is_id_verified: userData.idVerified || false,
+          is_premium: userData.plan === "plus",
+        },
+        tokens: {
+          access_token: customToken,
+          refresh_token: customToken, // Use same token for simplicity
+          expires_in: 3600,
+        },
       });
-      // Create user document
-      await db.collection("users").doc(user.uid).set({
-        phoneNumber: phone_number,
-        createdAt: serverTimestamp(),
-        plan: "free",
-      });
+    } catch (err) {
+      console.error("Verify OTP error:", err);
+      return res.status(500).json({ error: "Failed to verify OTP" });
     }
-
-    // Generate custom token
-    const customToken = await admin.auth().createCustomToken(user.uid);
-
-    // Get user data
-    const userDoc = await db.collection("users").doc(user.uid).get();
-    const userData = userDoc.data() || {};
-
-    res.json({
-      success: true,
-      message: "Phone verified successfully",
-      user: {
-        id: user.uid,
-        phone_number: user.phoneNumber,
-        email: user.email,
-        username: userData.username,
-        is_email_verified: user.emailVerified,
-        is_phone_verified: true,
-        is_id_verified: userData.idVerified || false,
-        is_premium: userData.plan === "plus",
-      },
-      tokens: {
-        access_token: customToken,
-        refresh_token: customToken, // Use same token for simplicity
-        expires_in: 3600,
-      },
-    });
-  } catch (err) {
-    console.error("Verify OTP error:", err);
-    return res.status(500).json({ error: "Failed to verify OTP" });
-  }
-  }
+  },
 );
 
 // Refresh token
@@ -7690,26 +7877,26 @@ app.post(
   "/v1/auth/token/refresh",
   appCheckRestMiddleware("auth.token.refresh"),
   async (req: Request, res: Response) => {
-  try {
-    const { refresh_token } = req.body;
-    if (!refresh_token) {
-      return res.status(400).json({ error: "Refresh token required" });
+    try {
+      const { refresh_token } = req.body;
+      if (!refresh_token) {
+        return res.status(400).json({ error: "Refresh token required" });
+      }
+
+      // Verify the token
+      const decoded = await admin.auth().verifyIdToken(refresh_token);
+      const newToken = await admin.auth().createCustomToken(decoded.uid);
+
+      res.json({
+        access_token: newToken,
+        refresh_token: newToken,
+        expires_in: 3600,
+      });
+    } catch (err) {
+      console.error("Refresh token error:", err);
+      return res.status(401).json({ error: "Invalid refresh token" });
     }
-
-    // Verify the token
-    const decoded = await admin.auth().verifyIdToken(refresh_token);
-    const newToken = await admin.auth().createCustomToken(decoded.uid);
-
-    res.json({
-      access_token: newToken,
-      refresh_token: newToken,
-      expires_in: 3600,
-    });
-  } catch (err) {
-    console.error("Refresh token error:", err);
-    return res.status(401).json({ error: "Invalid refresh token" });
-  }
-  }
+  },
 );
 
 // Logout
@@ -7718,15 +7905,15 @@ app.post(
   appCheckRestMiddleware("auth.logout"),
   authMiddleware,
   async (req: AuthRequest, res: Response) => {
-  try {
-    // Revoke refresh tokens
-    await admin.auth().revokeRefreshTokens(req.uid!);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Logout error:", err);
-    return res.status(500).json({ error: "Failed to logout" });
-  }
-  }
+    try {
+      // Revoke refresh tokens
+      await admin.auth().revokeRefreshTokens(req.uid!);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ error: "Failed to logout" });
+    }
+  },
 );
 
 // Change password
@@ -7735,129 +7922,133 @@ app.post(
   appCheckRestMiddleware("auth.password.change"),
   authMiddleware,
   async (req: AuthRequest, res: Response) => {
-  try {
-    const uid = req.uid!;
-    const currentPassword =
-      typeof req.body?.current_password === "string"
-        ? req.body.current_password
-        : typeof req.body?.currentPassword === "string"
-          ? req.body.currentPassword
-          : "";
-    const newPassword =
-      typeof req.body?.new_password === "string"
-        ? req.body.new_password
-        : typeof req.body?.newPassword === "string"
-          ? req.body.newPassword
-          : "";
+    try {
+      const uid = req.uid!;
+      const currentPassword =
+        typeof req.body?.current_password === "string"
+          ? req.body.current_password
+          : typeof req.body?.currentPassword === "string"
+            ? req.body.currentPassword
+            : "";
+      const newPassword =
+        typeof req.body?.new_password === "string"
+          ? req.body.new_password
+          : typeof req.body?.newPassword === "string"
+            ? req.body.newPassword
+            : "";
 
-    if (!currentPassword) {
-      return res.status(400).json({ error: "Current password is required." });
-    }
+      if (!currentPassword) {
+        return res.status(400).json({ error: "Current password is required." });
+      }
 
-    if (newPassword.length < PASSWORD_MIN_LENGTH) {
-      return res.status(400).json({
-        error: `New password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
-      });
-    }
+      if (newPassword.length < PASSWORD_MIN_LENGTH) {
+        return res.status(400).json({
+          error: `New password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
+        });
+      }
 
-    const ip =
-      (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-      req.socket?.remoteAddress ||
-      undefined;
-    const userAgent = req.headers["user-agent"]?.toString() ?? undefined;
+      const ip =
+        (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+        req.socket?.remoteAddress ||
+        undefined;
+      const userAgent = req.headers["user-agent"]?.toString() ?? undefined;
 
-    // Rate limiting
-    const ipLimit = ip
-      ? await applyRateLimit(
-        `change_password:ip:${ip}`,
+      // Rate limiting
+      const ipLimit = ip
+        ? await applyRateLimit(
+            `change_password:ip:${ip}`,
+            LOGIN_ATTEMPT_LIMIT,
+            LOGIN_ATTEMPT_WINDOW_MS,
+            LOGIN_ATTEMPT_BLOCK_MS,
+          )
+        : { allowed: true };
+      const idLimit = await applyRateLimit(
+        `change_password:uid:${uid}`,
         LOGIN_ATTEMPT_LIMIT,
         LOGIN_ATTEMPT_WINDOW_MS,
-        LOGIN_ATTEMPT_BLOCK_MS
-      )
-      : { allowed: true };
-    const idLimit = await applyRateLimit(
-      `change_password:uid:${uid}`,
-      LOGIN_ATTEMPT_LIMIT,
-      LOGIN_ATTEMPT_WINDOW_MS,
-      LOGIN_ATTEMPT_BLOCK_MS
-    );
-
-    if (!ipLimit.allowed || !idLimit.allowed) {
-      await logAuthAudit({
-        action: "change_password",
-        status: "blocked",
-        uid,
-        ip,
-        userAgent,
-      });
-      const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
-      return res.status(429).json({
-        error: "Too many attempts. Please try again later.",
-        retryAfterMs: retryMs,
-      });
-    }
-
-    // Verify current password
-    const passwordHash = await getPasswordHash(uid);
-    if (!passwordHash) {
-      await logAuthAudit({
-        action: "change_password",
-        status: "error",
-        uid,
-        ip,
-        userAgent,
-        metadata: { reason: "no_password_set" },
-      });
-      return res.status(400).json({ error: "No password set for this account." });
-    }
-
-    const isValid = await verifyPassword(currentPassword, passwordHash);
-    if (!isValid) {
-      await logAuthAudit({
-        action: "change_password",
-        status: "invalid",
-        uid,
-        ip,
-        userAgent,
-      });
-      return res.status(400).json({ error: "Current password is incorrect." });
-    }
-
-    // Set new password
-    await setPasswordHash(uid, newPassword);
-
-    // Revoke existing sessions
-    await admin.auth().revokeRefreshTokens(uid);
-
-    // Get user's email for notification
-    const userDoc = await db.collection("users").doc(uid).get();
-    const userEmail =
-      userDoc.data()?.emailLower || userDoc.data()?.email || null;
-
-    // Send password changed email notification
-    if (userEmail) {
-      sendPasswordChangedEmail({
-        to: userEmail,
-        method: "in_app",
-      }).catch((err) =>
-        console.error("Failed to send password changed email:", err)
+        LOGIN_ATTEMPT_BLOCK_MS,
       );
+
+      if (!ipLimit.allowed || !idLimit.allowed) {
+        await logAuthAudit({
+          action: "change_password",
+          status: "blocked",
+          uid,
+          ip,
+          userAgent,
+        });
+        const retryMs = ipLimit.retryAfterMs || idLimit.retryAfterMs;
+        return res.status(429).json({
+          error: "Too many attempts. Please try again later.",
+          retryAfterMs: retryMs,
+        });
+      }
+
+      // Verify current password
+      const passwordHash = await getPasswordHash(uid);
+      if (!passwordHash) {
+        await logAuthAudit({
+          action: "change_password",
+          status: "error",
+          uid,
+          ip,
+          userAgent,
+          metadata: { reason: "no_password_set" },
+        });
+        return res
+          .status(400)
+          .json({ error: "No password set for this account." });
+      }
+
+      const isValid = await verifyPassword(currentPassword, passwordHash);
+      if (!isValid) {
+        await logAuthAudit({
+          action: "change_password",
+          status: "invalid",
+          uid,
+          ip,
+          userAgent,
+        });
+        return res
+          .status(400)
+          .json({ error: "Current password is incorrect." });
+      }
+
+      // Set new password
+      await setPasswordHash(uid, newPassword);
+
+      // Revoke existing sessions
+      await admin.auth().revokeRefreshTokens(uid);
+
+      // Get user's email for notification
+      const userDoc = await db.collection("users").doc(uid).get();
+      const userEmail =
+        userDoc.data()?.emailLower || userDoc.data()?.email || null;
+
+      // Send password changed email notification
+      if (userEmail) {
+        sendPasswordChangedEmail({
+          to: userEmail,
+          method: "in_app",
+        }).catch((err) =>
+          console.error("Failed to send password changed email:", err),
+        );
+      }
+
+      await logAuthAudit({
+        action: "change_password",
+        status: "ok",
+        uid,
+        ip,
+        userAgent,
+      });
+
+      res.json({ success: true, message: "Password changed successfully." });
+    } catch (err) {
+      console.error("Change password error:", err);
+      return res.status(500).json({ error: "Failed to change password." });
     }
-
-    await logAuthAudit({
-      action: "change_password",
-      status: "ok",
-      uid,
-      ip,
-      userAgent,
-    });
-
-    res.json({ success: true, message: "Password changed successfully." });
-  } catch (err) {
-    console.error("Change password error:", err);
-    return res.status(500).json({ error: "Failed to change password." });
-  }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7865,79 +8056,90 @@ app.post(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get current user profile
-app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const userDoc = await db.collection("users").doc(req.uid!).get();
-    if (!userDoc.exists) {
-      return res.status(404).json({ error: "User not found" });
+app.get(
+  "/v1/profile/me",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const data = userDoc.data() || {};
+      const profile = data.profile || {};
+      const preferences = getCanonicalProfilePreferences(data);
+      const username =
+        (typeof data.username === "string" && data.username.trim()) ||
+        (typeof profile.username === "string" && profile.username.trim()) ||
+        (typeof data.usernameLower === "string" && data.usernameLower.trim()) ||
+        null;
+
+      res.json({
+        id: req.uid,
+        username,
+        phone_number: data.phoneNumber,
+        email: data.email,
+        email_verified: data.emailVerified || false,
+        phone_verified: true,
+        is_premium: data.plan === "plus",
+        display_name: profile.name || profile.displayName,
+        bio: profile.bio,
+        birth_date: profileBirthDateIso(profile as Record<string, unknown>),
+        gender: profile.gender,
+        job_title: profile.jobTitle,
+        company: profile.company,
+        education: profile.education || profile.school,
+        city: profile.city,
+        country: profile.country,
+        photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+          id: `photo_${i}`,
+          url,
+          is_primary: i === 0,
+          order: i,
+        })),
+        interests: profile.interests || [],
+        prompts: profilePromptAnswers(profile as Record<string, unknown>),
+        preferences,
+      });
+    } catch (err) {
+      console.error("Get profile error:", err);
+      return res.status(500).json({ error: "Failed to get profile" });
     }
-
-    const data = userDoc.data() || {};
-    const profile = data.profile || {};
-    const preferences = getCanonicalProfilePreferences(data);
-    const username =
-      (typeof data.username === "string" && data.username.trim()) ||
-      (typeof profile.username === "string" && profile.username.trim()) ||
-      (typeof data.usernameLower === "string" && data.usernameLower.trim()) ||
-      null;
-
-    res.json({
-      id: req.uid,
-      username,
-      phone_number: data.phoneNumber,
-      email: data.email,
-      email_verified: data.emailVerified || false,
-      phone_verified: true,
-      is_premium: data.plan === "plus",
-      display_name: profile.name || profile.displayName,
-      bio: profile.bio,
-      birth_date: profileBirthDateIso(profile as Record<string, unknown>),
-      gender: profile.gender,
-      job_title: profile.jobTitle,
-      company: profile.company,
-      education: profile.education || profile.school,
-      city: profile.city,
-      country: profile.country,
-      photos: (profile.photoUrls || []).map((url: string, i: number) => ({
-        id: `photo_${i}`,
-        url,
-        is_primary: i === 0,
-        order: i,
-      })),
-      interests: profile.interests || [],
-      prompts: profilePromptAnswers(profile as Record<string, unknown>),
-      preferences,
-    });
-  } catch (err) {
-    console.error("Get profile error:", err);
-    return res.status(500).json({ error: "Failed to get profile" });
-  }
-});
+  },
+);
 
 // Update profile
-app.patch("/v1/profile/me", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
-  try {
-    const updates = validateProfilePatchPayload(req.body);
-    updates["profile.updatedAt"] = serverTimestamp();
-    updates.updatedAt = serverTimestamp();
+app.patch(
+  "/v1/profile/me",
+  authMiddleware,
+  requireVerifiedEmail,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const updates = validateProfilePatchPayload(req.body);
+      updates["profile.updatedAt"] = serverTimestamp();
+      updates.updatedAt = serverTimestamp();
 
-    await db.collection("users").doc(req.uid!).update(updates);
+      await db.collection("users").doc(req.uid!).update(updates);
 
-    res.json({ success: true, message: "Profile updated" });
-  } catch (err) {
-    console.error("Update profile error:", err);
-    if (isHttpsError(err)) {
-      return res
-        .status(httpStatusFromHttpsErrorCode(err.code))
-        .json({ error: err.message, code: err.code });
+      res.json({ success: true, message: "Profile updated" });
+    } catch (err) {
+      console.error("Update profile error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      const firestoreCode = (err as { code?: unknown })?.code;
+      if (firestoreCode === 5 || firestoreCode === "not-found") {
+        return res
+          .status(404)
+          .json({ error: "User not found", code: "not-found" });
+      }
+      return res.status(500).json({ error: "Failed to update profile" });
     }
-    const firestoreCode = (err as { code?: unknown })?.code;
-    if (firestoreCode === 5 || firestoreCode === "not-found") {
-      return res.status(404).json({ error: "User not found", code: "not-found" });
-    }
-    return res.status(500).json({ error: "Failed to update profile" });
-  }
-});
+  },
+);
 
 // Upload photo
 app.post(
@@ -7954,7 +8156,8 @@ app.post(
       const mimeType = (req.file.mimetype || "").toLowerCase();
       if (!PROFILE_PHOTO_ALLOWED_MIME_TYPES.has(mimeType)) {
         return res.status(415).json({
-          error: "Unsupported photo type. Allowed types: image/jpeg, image/png, image/webp, image/heic, image/heif.",
+          error:
+            "Unsupported photo type. Allowed types: image/jpeg, image/png, image/webp, image/heic, image/heif.",
         });
       }
       if (req.file.size > PROFILE_PHOTO_MAX_BYTES) {
@@ -7968,7 +8171,62 @@ app.post(
         return res.status(415).json({ error: "Unsupported photo type." });
       }
 
+      // Verify Magic Bytes
+      const fileTypeResult = await fileType.fromBuffer(req.file.buffer);
+      if (
+        !fileTypeResult ||
+        !PROFILE_PHOTO_ALLOWED_MIME_TYPES.has(fileTypeResult.mime)
+      ) {
+        return res.status(415).json({
+          error:
+            "Invalid file magic bytes. File appears to be spoofed or unsupported.",
+        });
+      }
+
       const isPrimary = req.body.is_primary === "true";
+
+      // Google Cloud Vision Moderation
+      try {
+        const [result] = await visionClient.safeSearchDetection(
+          req.file.buffer,
+        );
+        const detections = result.safeSearchAnnotation;
+        if (detections) {
+          const isExplicit = [
+            detections.adult,
+            detections.violence,
+            detections.medical,
+            detections.spoof,
+          ].some(
+            (likelihood) =>
+              likelihood === "LIKELY" || likelihood === "VERY_LIKELY",
+          );
+          if (isExplicit) {
+            return res.status(400).json({
+              error: "Image rejected by moderation filter.",
+            });
+          }
+        }
+
+        // Face Detection for primary photos
+        if (isPrimary) {
+          const [faceResult] = await visionClient.faceDetection(
+            req.file.buffer,
+          );
+          const faces = faceResult.faceAnnotations;
+          if (!faces || faces.length === 0) {
+            return res.status(400).json({
+              error: "Primary photo must contain at least one visible face.",
+            });
+          }
+        }
+      } catch (visionError) {
+        console.error("Cloud Vision Error:", visionError);
+        return res.status(500).json({
+          error: "Failed to process image moderation.",
+        });
+      }
+
       const bucket = admin.storage().bucket();
       const fileName = `photos/${req.uid}/${Date.now()}_${crypto.randomUUID()}.${extension}`;
       const file = bucket.file(fileName);
@@ -8017,7 +8275,7 @@ app.post(
       console.error("Upload photo error:", err);
       return res.status(500).json({ error: "Failed to upload photo" });
     }
-  }
+  },
 );
 
 // Delete photo
@@ -8074,7 +8332,7 @@ app.delete(
       console.error("Delete photo error:", err);
       return res.status(500).json({ error: "Failed to delete photo" });
     }
-  }
+  },
 );
 
 // Update preferences
@@ -8087,7 +8345,9 @@ app.patch(
       const userRef = db.collection("users").doc(req.uid!);
       const userDoc = await userRef.get();
       if (!userDoc.exists) {
-        return res.status(404).json({ error: "User not found", code: "not-found" });
+        return res
+          .status(404)
+          .json({ error: "User not found", code: "not-found" });
       }
 
       const currentData = userDoc.data() || {};
@@ -8102,7 +8362,7 @@ app.patch(
       if (minAge !== undefined && maxAge !== undefined && minAge > maxAge) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "minAge cannot be greater than maxAge."
+          "minAge cannot be greater than maxAge.",
         );
       }
 
@@ -8123,11 +8383,13 @@ app.patch(
       }
       const firestoreCode = (err as { code?: unknown })?.code;
       if (firestoreCode === 5 || firestoreCode === "not-found") {
-        return res.status(404).json({ error: "User not found", code: "not-found" });
+        return res
+          .status(404)
+          .json({ error: "User not found", code: "not-found" });
       }
       return res.status(500).json({ error: "Failed to update preferences" });
     }
-  }
+  },
 );
 
 // Get profile by ID
@@ -8167,7 +8429,7 @@ app.get(
       console.error("Get profile error:", err);
       return res.status(500).json({ error: "Failed to get profile" });
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8175,181 +8437,241 @@ app.get(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get discovery deck
-app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: AuthRequest, res: Response) => {
-  try {
-    const userDoc = await db.collection("users").doc(req.uid!).get();
-    const userData = userDoc.data() || {};
-    const preferences = getCanonicalProfilePreferences(userData);
+app.get(
+  "/v1/discovery/deck",
+  authMiddleware,
+  rateLimitDiscovery,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userData = userDoc.data() || {};
+      const preferences = getCanonicalProfilePreferences(userData);
 
-    // Get users the current user has already swiped on
-    const swipesSnap = await db.collection("swipes")
-      .where("swiperId", "==", req.uid)
-      .get();
-    const swipedUserIds = new Set(swipesSnap.docs.map(doc => doc.data().targetId));
-    swipedUserIds.add(req.uid!); // Exclude self
+      // Get users the current user has already swiped on (bounded to last 1000 to prevent memory exhaustion)
+      const swipesSnap = await db
+        .collection("swipes")
+        .where("swiperId", "==", req.uid)
+        .orderBy("createdAt", "desc")
+        .limit(1000)
+        .get();
+      const swipedUserIds = new Set(
+        swipesSnap.docs.map((doc) => doc.data().targetId),
+      );
+      swipedUserIds.add(req.uid!); // Exclude self
 
-    // Query potential matches
-    let query = db.collection("users")
-      .where("profile.isComplete", "==", true)
-      .limit(DISCOVERY_PAGE_SIZE);
+      // Query potential matches
+      let query = db
+        .collection("users")
+        .where("profile.isComplete", "==", true)
+        .limit(DISCOVERY_PAGE_SIZE);
 
-    // Apply gender filter if set
-    const explicitGenderPreference =
-      typeof preferences.genderPreference === "string"
-        ? preferences.genderPreference.trim().toLowerCase()
-        : "";
-    const normalizedShowMeGenders = Array.isArray(preferences.showMeGenders)
-      ? (preferences.showMeGenders as unknown[])
-          .filter((value) => typeof value === "string")
-          .map((value) => (value as string).trim().toLowerCase())
-          .filter((value) => value.length > 0 && value !== "all")
-      : [];
+      // Apply gender filter if set
+      const explicitGenderPreference =
+        typeof preferences.genderPreference === "string"
+          ? preferences.genderPreference.trim().toLowerCase()
+          : "";
+      const normalizedShowMeGenders = Array.isArray(preferences.showMeGenders)
+        ? (preferences.showMeGenders as unknown[])
+            .filter((value) => typeof value === "string")
+            .map((value) => (value as string).trim().toLowerCase())
+            .filter((value) => value.length > 0 && value !== "all")
+        : [];
 
-    if (explicitGenderPreference && explicitGenderPreference !== "all") {
-      query = query.where("profile.gender", "==", explicitGenderPreference);
-    } else if (normalizedShowMeGenders.length === 1) {
-      query = query.where("profile.gender", "==", normalizedShowMeGenders[0]);
-    } else if (normalizedShowMeGenders.length > 1 && normalizedShowMeGenders.length <= 10) {
-      query = query.where("profile.gender", "in", normalizedShowMeGenders);
-    }
+      if (explicitGenderPreference && explicitGenderPreference !== "all") {
+        query = query.where("profile.gender", "==", explicitGenderPreference);
+      } else if (normalizedShowMeGenders.length === 1) {
+        query = query.where("profile.gender", "==", normalizedShowMeGenders[0]);
+      } else if (
+        normalizedShowMeGenders.length > 1 &&
+        normalizedShowMeGenders.length <= 10
+      ) {
+        query = query.where("profile.gender", "in", normalizedShowMeGenders);
+      }
 
-    const usersSnap = await query.get();
+      const usersSnap = await query.get();
 
-    const profiles = usersSnap.docs
-      .filter(doc => !swipedUserIds.has(doc.id))
-      .slice(0, 20) // Limit to 20 for the deck
-      .map(doc => {
-        const data = doc.data();
-        const profile = data.profile || {};
-        return {
-          id: doc.id,
-          display_name: profile.name || profile.displayName,
-          age: deriveProfileAge(profile as Record<string, unknown>),
-          birth_date: profileBirthDateIso(profile as Record<string, unknown>),
-          bio: profile.bio,
-          city: profile.city,
-          photos: (profile.photoUrls || []).map((url: string, i: number) => ({
-            url,
-            is_primary: i === 0,
-          })),
-          interests: profile.interests || [],
-          prompts: profilePromptAnswers(profile as Record<string, unknown>),
-          is_verified: data.idVerified || false,
-          distance_km: null, // Would calculate based on location
-        };
+      const profiles = usersSnap.docs
+        .filter((doc) => !swipedUserIds.has(doc.id))
+        .slice(0, 20) // Limit to 20 for the deck
+        .map((doc) => {
+          const data = doc.data();
+          const profile = data.profile || {};
+          return {
+            id: doc.id,
+            display_name: profile.name || profile.displayName,
+            age: deriveProfileAge(profile as Record<string, unknown>),
+            birth_date: profileBirthDateIso(profile as Record<string, unknown>),
+            bio: profile.bio,
+            city: profile.city,
+            photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+              url,
+              is_primary: i === 0,
+            })),
+            interests: profile.interests || [],
+            prompts: profilePromptAnswers(profile as Record<string, unknown>),
+            is_verified: data.idVerified || false,
+            distance_km: null, // Would calculate based on location
+          };
+        });
+
+      res.json({
+        candidates: profiles, // Renamed from 'profiles' to match callable function
+        profiles, // Keep for backward compatibility
+        total: profiles.length,
+        total_count: profiles.length, // Keep for backward compatibility
+        has_more: profiles.length >= 20,
       });
-
-    res.json({
-      candidates: profiles,  // Renamed from 'profiles' to match callable function
-      profiles,              // Keep for backward compatibility
-      total: profiles.length,
-      total_count: profiles.length,  // Keep for backward compatibility
-      has_more: profiles.length >= 20,
-    });
-  } catch (err) {
-    console.error("Get deck error:", err);
-    return res.status(500).json({ error: "Failed to get discovery deck" });
-  }
-});
+    } catch (err) {
+      console.error("Get deck error:", err);
+      return res.status(500).json({ error: "Failed to get discovery deck" });
+    }
+  },
+);
 
 // Swipe
-app.post("/v1/discovery/swipe", authMiddleware, requireVerifiedEmail, rateLimitSwipe, async (req: AuthRequest, res: Response) => {
-  try {
-    const { target_user_id, action, message } = req.body;
-    if (!target_user_id || !action) {
-      return res.status(400).json({ error: "target_user_id and action required" });
-    }
-
-    const isLike = action === "like" || action === "super_like";
-
-    // Record the swipe
-    await db.collection("swipes").add({
-      swiperId: req.uid,
-      targetId: target_user_id,
-      action,
-      message: message || null,
-      createdAt: serverTimestamp(),
-    });
-
-    let isMatch = false;
-    let matchId = null;
-
-    // Check for mutual like (match)
-    if (isLike) {
-      const mutualSwipe = await db.collection("swipes")
-        .where("swiperId", "==", target_user_id)
-        .where("targetId", "==", req.uid)
-        .where("action", "in", ["like", "super_like"])
-        .limit(1)
-        .get();
-
-      if (!mutualSwipe.empty) {
-        isMatch = true;
-        // Create match document
-        const matchRef = await db.collection("matches").add({
-          users: [req.uid, target_user_id],
-          createdAt: serverTimestamp(),
-          lastMessageAt: null,
-        });
-        matchId = matchRef.id;
+app.post(
+  "/v1/discovery/swipe",
+  authMiddleware,
+  requireVerifiedEmail,
+  rateLimitSwipe,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { target_user_id, action, message } = req.body;
+      if (!target_user_id || !action) {
+        return res
+          .status(400)
+          .json({ error: "target_user_id and action required" });
       }
-    }
 
-    res.json({
-      success: true,
-      is_match: isMatch,
-      match_id: matchId,
-    });
-  } catch (err) {
-    console.error("Swipe error:", err);
-    return res.status(500).json({ error: "Failed to record swipe" });
-  }
-});
+      const isLike = action === "like" || action === "super_like";
+
+      // Record the swipe
+      await db.collection("swipes").add({
+        swiperId: req.uid,
+        targetId: target_user_id,
+        action,
+        message: message || null,
+        createdAt: serverTimestamp(),
+      });
+
+      let isMatch = false;
+      let matchId = null;
+
+      // Check for mutual like (match)
+      if (isLike) {
+        const mutualSwipe = await db
+          .collection("swipes")
+          .where("swiperId", "==", target_user_id)
+          .where("targetId", "==", req.uid)
+          .where("action", "in", ["like", "super_like"])
+          .limit(1)
+          .get();
+
+        if (!mutualSwipe.empty) {
+          isMatch = true;
+          // Create match document
+          const matchRef = await db.collection("matches").add({
+            users: [req.uid, target_user_id],
+            createdAt: serverTimestamp(),
+            lastMessageAt: null,
+          });
+          matchId = matchRef.id;
+        }
+      }
+
+      res.json({
+        success: true,
+        is_match: isMatch,
+        match_id: matchId,
+      });
+    } catch (err) {
+      console.error("Swipe error:", err);
+      return res.status(500).json({ error: "Failed to record swipe" });
+    }
+  },
+);
 
 // Activate boost
-app.post("/v1/discovery/boost", authMiddleware, requireVerifiedEmail, rateLimitSwipe, async (req: AuthRequest, res: Response) => {
-  try {
-    const boostDuration = 30 * 60 * 1000; // 30 minutes
-    const boostExpiresAt = Date.now() + boostDuration;
+app.post(
+  "/v1/discovery/boost",
+  authMiddleware,
+  requireVerifiedEmail,
+  rateLimitSwipe,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const boostDuration = 30 * 60 * 1000; // 30 minutes
+      const boostExpiresAt = Date.now() + boostDuration;
 
-    await db.collection("users").doc(req.uid!).update({
-      "boost.expiresAt": boostExpiresAt,
-      "boost.activatedAt": serverTimestamp(),
-    });
+      await db.collection("users").doc(req.uid!).update({
+        "boost.expiresAt": boostExpiresAt,
+        "boost.activatedAt": serverTimestamp(),
+      });
 
-    res.json({
-      success: true,
-      expires_at: new Date(boostExpiresAt).toISOString(),
-    });
-  } catch (err) {
-    console.error("Boost error:", err);
-    return res.status(500).json({ error: "Failed to activate boost" });
-  }
-});
+      res.json({
+        success: true,
+        expires_at: new Date(boostExpiresAt).toISOString(),
+      });
+    } catch (err) {
+      console.error("Boost error:", err);
+      return res.status(500).json({ error: "Failed to activate boost" });
+    }
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MATCHES ENDPOINTS
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get matches
-app.get("/v1/matches", authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const offset = parseInt(req.query.offset as string) || 0;
-    const limit = parseInt(req.query.limit as string) || 20;
+app.get(
+  "/v1/matches",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const offset = parseInt(req.query.offset as string) || 0;
+      const limit = parseInt(req.query.limit as string) || 20;
 
-    const matchesSnap = await db.collection("matches")
-      .where("users", "array-contains", req.uid)
-      .orderBy("lastMessageAt", "desc")
-      .offset(offset)
-      .limit(limit)
-      .get();
+      const matchesSnap = await db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .orderBy("lastMessageAt", "desc")
+        .offset(offset)
+        .limit(limit)
+        .get();
 
-    const matches = await Promise.all(
-      matchesSnap.docs.map(async (doc) => {
+      if (matchesSnap.empty) {
+        return res.json({ matches: [], total_count: 0, has_more: false });
+      }
+
+      // Collect all other user IDs
+      const otherUserIds = matchesSnap.docs
+        .map((doc) => doc.data().users.find((id: string) => id !== req.uid))
+        .filter(Boolean);
+
+      // Batch fetch users (max 30 per 'in' query)
+      const usersMap = new Map<string, admin.firestore.DocumentData>();
+      if (otherUserIds.length > 0) {
+        const uniqueIds = [...new Set(otherUserIds)];
+        const chunks = [];
+        for (let i = 0; i < uniqueIds.length; i += 30) {
+          chunks.push(uniqueIds.slice(i, i + 30));
+        }
+
+        await Promise.all(
+          chunks.map(async (chunk) => {
+            const usersSnap = await db
+              .collection("users")
+              .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+              .get();
+            usersSnap.docs.forEach((doc) => usersMap.set(doc.id, doc.data()));
+          }),
+        );
+      }
+
+      const matches = matchesSnap.docs.map((doc) => {
         const data = doc.data();
         const otherUserId = data.users.find((id: string) => id !== req.uid);
-        const otherUserDoc = await db.collection("users").doc(otherUserId).get();
-        const otherUserData = otherUserDoc.data() || {};
+        const otherUserData = usersMap.get(otherUserId) || {};
         const profile = otherUserData.profile || {};
 
         return {
@@ -8360,19 +8682,19 @@ app.get("/v1/matches", authMiddleware, async (req: AuthRequest, res: Response) =
           created_at: data.createdAt?.toDate?.()?.toISOString(),
           last_message_at: data.lastMessageAt?.toDate?.()?.toISOString(),
         };
-      })
-    );
+      });
 
-    res.json({
-      matches,
-      total_count: matches.length,
-      has_more: matches.length >= limit,
-    });
-  } catch (err) {
-    console.error("Get matches error:", err);
-    return res.status(500).json({ error: "Failed to get matches" });
-  }
-});
+      res.json({
+        matches,
+        total_count: matches.length,
+        has_more: matches.length >= limit,
+      });
+    } catch (err) {
+      console.error("Get matches error:", err);
+      return res.status(500).json({ error: "Failed to get matches" });
+    }
+  },
+);
 
 // Unmatch
 app.post(
@@ -8399,7 +8721,7 @@ app.post(
       console.error("Unmatch error:", err);
       return res.status(500).json({ error: "Failed to unmatch" });
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8407,53 +8729,89 @@ app.post(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Get conversations
-app.get("/v1/chat/conversations", authMiddleware, rateLimitDefault, async (req: AuthRequest, res: Response) => {
-  try {
-    const matchesSnap = await db.collection("matches")
-      .where("users", "array-contains", req.uid)
-      .orderBy("lastMessageAt", "desc")
-      .limit(50)
-      .get();
+app.get(
+  "/v1/chat/conversations",
+  authMiddleware,
+  rateLimitDefault,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const matchesSnap = await db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .orderBy("lastMessageAt", "desc")
+        .limit(50)
+        .get();
 
-    const conversations = await Promise.all(
-      matchesSnap.docs.map(async (doc) => {
-        const data = doc.data();
-        const otherUserId = data.users.find((id: string) => id !== req.uid);
-        const otherUserDoc = await db.collection("users").doc(otherUserId).get();
-        const otherUserData = otherUserDoc.data() || {};
-        const profile = otherUserData.profile || {};
+      if (matchesSnap.empty) {
+        return res.json({ conversations: [] });
+      }
 
-        // Get last message
-        const lastMsgSnap = await db.collection("matches").doc(doc.id)
-          .collection("messages")
-          .orderBy("createdAt", "desc")
-          .limit(1)
-          .get();
-        const lastMsg = lastMsgSnap.docs[0]?.data();
+      const otherUserIds = matchesSnap.docs
+        .map((doc) => doc.data().users.find((id: string) => id !== req.uid))
+        .filter(Boolean);
 
-        return {
-          id: doc.id,
-          participant: {
-            id: otherUserId,
-            name: profile.name || profile.displayName,
-            photo_url: (profile.photoUrls || [])[0],
-          },
-          last_message: lastMsg ? {
-            content: lastMsg.content,
-            type: lastMsg.type || "text",
-            sent_at: lastMsg.createdAt?.toDate?.()?.toISOString(),
-          } : null,
-          updated_at: data.lastMessageAt?.toDate?.()?.toISOString(),
-        };
-      })
-    );
+      const usersMap = new Map<string, admin.firestore.DocumentData>();
+      if (otherUserIds.length > 0) {
+        const uniqueIds = [...new Set(otherUserIds)];
+        const chunks = [];
+        for (let i = 0; i < uniqueIds.length; i += 30) {
+          chunks.push(uniqueIds.slice(i, i + 30));
+        }
 
-    res.json({ conversations });
-  } catch (err) {
-    console.error("Get conversations error:", err);
-    return res.status(500).json({ error: "Failed to get conversations" });
-  }
-});
+        await Promise.all(
+          chunks.map(async (chunk) => {
+            const usersSnap = await db
+              .collection("users")
+              .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+              .get();
+            usersSnap.docs.forEach((doc) => usersMap.set(doc.id, doc.data()));
+          }),
+        );
+      }
+
+      const conversations = await Promise.all(
+        matchesSnap.docs.map(async (doc) => {
+          const data = doc.data();
+          const otherUserId = data.users.find((id: string) => id !== req.uid);
+          const otherUserData = usersMap.get(otherUserId) || {};
+          const profile = otherUserData.profile || {};
+
+          // Get last message (still per-match, but profiles are batched)
+          const lastMsgSnap = await db
+            .collection("matches")
+            .doc(doc.id)
+            .collection("messages")
+            .orderBy("createdAt", "desc")
+            .limit(1)
+            .get();
+          const lastMsg = lastMsgSnap.docs[0]?.data();
+
+          return {
+            id: doc.id,
+            participant: {
+              id: otherUserId,
+              name: profile.name || profile.displayName,
+              photo_url: (profile.photoUrls || [])[0],
+            },
+            last_message: lastMsg
+              ? {
+                  content: lastMsg.content,
+                  type: lastMsg.type || "text",
+                  sent_at: lastMsg.createdAt?.toDate?.()?.toISOString(),
+                }
+              : null,
+            updated_at: data.lastMessageAt?.toDate?.()?.toISOString(),
+          };
+        }),
+      );
+
+      res.json({ conversations });
+    } catch (err) {
+      console.error("Get conversations error:", err);
+      return res.status(500).json({ error: "Failed to get conversations" });
+    }
+  },
+);
 
 // Get messages
 app.get(
@@ -8465,14 +8823,20 @@ app.get(
       const limit = parseInt(req.query.limit as string) || 50;
       const before = req.query.before as string;
 
-      let query = db.collection("matches").doc(conversationId)
+      let query = db
+        .collection("matches")
+        .doc(conversationId)
         .collection("messages")
         .orderBy("createdAt", "desc")
         .limit(limit);
 
       if (before) {
-        const beforeDoc = await db.collection("matches").doc(conversationId)
-          .collection("messages").doc(before).get();
+        const beforeDoc = await db
+          .collection("matches")
+          .doc(conversationId)
+          .collection("messages")
+          .doc(before)
+          .get();
         if (beforeDoc.exists) {
           query = query.startAfter(beforeDoc);
         }
@@ -8480,41 +8844,48 @@ app.get(
 
       const messagesSnap = await query.get();
 
-      const messages = messagesSnap.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          sender_id: data.senderId,
-          content: data.content,
-          type: data.type || "text",
-          media_url: data.mediaUrl,
-          created_at: data.createdAt?.toDate?.()?.toISOString(),
-          reactions: data.reactions || [],
-        };
-      }).reverse();
+      const messages = messagesSnap.docs
+        .map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            sender_id: data.senderId,
+            content: data.content,
+            type: data.type || "text",
+            media_url: data.mediaUrl,
+            created_at: data.createdAt?.toDate?.()?.toISOString(),
+            reactions: data.reactions || [],
+          };
+        })
+        .reverse();
 
       res.json({ messages });
     } catch (err) {
       console.error("Get messages error:", err);
       return res.status(500).json({ error: "Failed to get messages" });
     }
-  }
+  },
 );
 
 // Send message
 app.post(
   "/v1/chat/:conversationId/send",
   authMiddleware,
+  rateLimitMessage,
   async (req: AuthRequest, res: Response) => {
     try {
       const { conversationId } = req.params;
       const { type, content, media_url } = req.body;
 
-      const messageRef = await db.collection("matches").doc(conversationId)
+      const sanitizedContent = content ? validateMessageContent(content) : null;
+
+      const messageRef = await db
+        .collection("matches")
+        .doc(conversationId)
         .collection("messages")
         .add({
           senderId: req.uid,
-          content: content || null,
+          content: sanitizedContent || null,
           type: type || "text",
           mediaUrl: media_url || null,
           createdAt: serverTimestamp(),
@@ -8534,7 +8905,7 @@ app.post(
       console.error("Send message error:", err);
       return res.status(500).json({ error: "Failed to send message" });
     }
-  }
+  },
 );
 
 // Upload media for chat
@@ -8542,6 +8913,7 @@ app.post(
   "/v1/chat/:conversationId/media",
   authMiddleware,
   requireVerifiedEmail,
+  rateLimitMessage,
   upload.single("media"),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -8566,7 +8938,7 @@ app.post(
       console.error("Upload media error:", err);
       return res.status(500).json({ error: "Failed to upload media" });
     }
-  }
+  },
 );
 
 // Mark messages as read
@@ -8578,16 +8950,19 @@ app.post(
       const { conversationId } = req.params;
 
       // Update read status
-      await db.collection("matches").doc(conversationId).update({
-        [`readBy.${req.uid}`]: serverTimestamp(),
-      });
+      await db
+        .collection("matches")
+        .doc(conversationId)
+        .update({
+          [`readBy.${req.uid}`]: serverTimestamp(),
+        });
 
       res.json({ success: true });
     } catch (err) {
       console.error("Mark read error:", err);
       return res.status(500).json({ error: "Failed to mark as read" });
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8697,9 +9072,11 @@ app.post(
       }
     } catch (err) {
       console.error("Checkout error:", err);
-      return res.status(500).json({ error: "Failed to create checkout session" });
+      return res
+        .status(500)
+        .json({ error: "Failed to create checkout session" });
     }
-  }
+  },
 );
 
 // Get current subscription
@@ -8720,7 +9097,7 @@ app.get(
       console.error("Get subscription error:", err);
       return res.status(500).json({ error: "Failed to get subscription" });
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8728,285 +9105,305 @@ app.get(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Block user
-app.post("/v1/users/block", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
-  const route = req.path || "/v1/users/block";
-  const method = req.method || "POST";
-  const actorUid = req.uid;
-  const ip = getRestClientIp(req);
-  const userAgent = req.header("user-agent") ?? null;
-  let blockedId: string | undefined;
+app.post(
+  "/v1/users/block",
+  authMiddleware,
+  requireVerifiedEmail,
+  rateLimitReport,
+  async (req: AuthRequest, res: Response) => {
+    const route = req.path || "/v1/users/block";
+    const method = req.method || "POST";
+    const actorUid = req.uid;
+    const ip = getRestClientIp(req);
+    const userAgent = req.header("user-agent") ?? null;
+    let blockedId: string | undefined;
 
-  try {
-    const blockerId = req.uid!;
-    blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
-    assertNotSelfSafetyAction(blockerId, blockedId, "block");
-    await ensureUserExists(blockedId);
+    try {
+      const blockerId = req.uid!;
+      blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
+      assertNotSelfSafetyAction(blockerId, blockedId, "block");
+      await ensureUserExists(blockedId);
 
-    // Rate limiting
-    const blockLimit = await applyRateLimit(
-      `block:uid:${blockerId}`,
-      BLOCK_LIMIT,
-      BLOCK_WINDOW_MS,
-      BLOCK_BLOCK_MS
-    );
-    if (!blockLimit.allowed) {
-      const retryTime = formatRetryTime(blockLimit.retryAfterMs);
+      // Rate limiting
+      const blockLimit = await applyRateLimit(
+        `block:uid:${blockerId}`,
+        BLOCK_LIMIT,
+        BLOCK_WINDOW_MS,
+        BLOCK_BLOCK_MS,
+      );
+      if (!blockLimit.allowed) {
+        const retryTime = formatRetryTime(blockLimit.retryAfterMs);
+        await logSafetyRestAudit({
+          action: "block",
+          actorUid: blockerId,
+          targetUid: blockedId,
+          route,
+          method,
+          statusCode: 429,
+          metadata: { retryAfterMs: blockLimit.retryAfterMs ?? null },
+          ip,
+          userAgent,
+        });
+        return res.status(429).json({
+          error: "Too many block requests",
+          retry_after_ms: blockLimit.retryAfterMs,
+          message: `Please try again ${retryTime}`,
+        });
+      }
+
+      const docId = `${blockerId}_${blockedId}`;
+      await db.collection("blocks").doc(docId).set(
+        {
+          blockerId,
+          blockedId,
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+
       await logSafetyRestAudit({
         action: "block",
         actorUid: blockerId,
         targetUid: blockedId,
         route,
         method,
-        statusCode: 429,
-        metadata: { retryAfterMs: blockLimit.retryAfterMs ?? null },
+        statusCode: 200,
         ip,
         userAgent,
       });
-      return res.status(429).json({
-        error: "Too many block requests",
-        retry_after_ms: blockLimit.retryAfterMs,
-        message: `Please try again ${retryTime}`,
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Block error:", err);
+      const statusCode = isHttpsError(err)
+        ? httpStatusFromHttpsErrorCode(err.code)
+        : 500;
+      await logSafetyRestAudit({
+        action: "block",
+        actorUid,
+        targetUid: blockedId,
+        route,
+        method,
+        statusCode,
+        errorCode: isHttpsError(err) ? err.code : "internal",
+        ip,
+        userAgent,
       });
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to block user" });
     }
-
-    const docId = `${blockerId}_${blockedId}`;
-    await db.collection("blocks").doc(docId).set(
-      {
-        blockerId,
-        blockedId,
-        createdAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-
-    await logSafetyRestAudit({
-      action: "block",
-      actorUid: blockerId,
-      targetUid: blockedId,
-      route,
-      method,
-      statusCode: 200,
-      ip,
-      userAgent,
-    });
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Block error:", err);
-    const statusCode = isHttpsError(err) ?
-      httpStatusFromHttpsErrorCode(err.code) :
-      500;
-    await logSafetyRestAudit({
-      action: "block",
-      actorUid,
-      targetUid: blockedId,
-      route,
-      method,
-      statusCode,
-      errorCode: isHttpsError(err) ? err.code : "internal",
-      ip,
-      userAgent,
-    });
-    if (isHttpsError(err)) {
-      return res
-        .status(httpStatusFromHttpsErrorCode(err.code))
-        .json({ error: err.message, code: err.code });
-    }
-    return res.status(500).json({ error: "Failed to block user" });
-  }
-});
+  },
+);
 
 // Unblock user
-app.post("/v1/users/unblock", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
-  const route = req.path || "/v1/users/unblock";
-  const method = req.method || "POST";
-  const actorUid = req.uid;
-  const ip = getRestClientIp(req);
-  const userAgent = req.header("user-agent") ?? null;
-  let blockedId: string | undefined;
+app.post(
+  "/v1/users/unblock",
+  authMiddleware,
+  requireVerifiedEmail,
+  async (req: AuthRequest, res: Response) => {
+    const route = req.path || "/v1/users/unblock";
+    const method = req.method || "POST";
+    const actorUid = req.uid;
+    const ip = getRestClientIp(req);
+    const userAgent = req.header("user-agent") ?? null;
+    let blockedId: string | undefined;
 
-  try {
-    const blockerId = req.uid!;
-    blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
-    assertNotSelfSafetyAction(blockerId, blockedId, "unblock");
+    try {
+      const blockerId = req.uid!;
+      blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
+      assertNotSelfSafetyAction(blockerId, blockedId, "unblock");
 
-    // Rate limiting
-    const unblockLimit = await applyRateLimit(
-      `unblock:uid:${blockerId}`,
-      UNBLOCK_LIMIT,
-      UNBLOCK_WINDOW_MS,
-      UNBLOCK_BLOCK_MS
-    );
-    if (!unblockLimit.allowed) {
-      const retryTime = formatRetryTime(unblockLimit.retryAfterMs);
+      // Rate limiting
+      const unblockLimit = await applyRateLimit(
+        `unblock:uid:${blockerId}`,
+        UNBLOCK_LIMIT,
+        UNBLOCK_WINDOW_MS,
+        UNBLOCK_BLOCK_MS,
+      );
+      if (!unblockLimit.allowed) {
+        const retryTime = formatRetryTime(unblockLimit.retryAfterMs);
+        await logSafetyRestAudit({
+          action: "unblock",
+          actorUid: blockerId,
+          targetUid: blockedId,
+          route,
+          method,
+          statusCode: 429,
+          metadata: { retryAfterMs: unblockLimit.retryAfterMs ?? null },
+          ip,
+          userAgent,
+        });
+        return res.status(429).json({
+          error: "Too many unblock requests",
+          retry_after_ms: unblockLimit.retryAfterMs,
+          message: `Please try again ${retryTime}`,
+        });
+      }
+
+      const docId = `${blockerId}_${blockedId}`;
+      await db.collection("blocks").doc(docId).delete();
+
+      // Backward-compat cleanup for legacy random-id block documents.
+      const legacyBlocksSnap = await db
+        .collection("blocks")
+        .where("blockerId", "==", blockerId)
+        .where("blockedId", "==", blockedId)
+        .get();
+      if (!legacyBlocksSnap.empty) {
+        await Promise.all(legacyBlocksSnap.docs.map((doc) => doc.ref.delete()));
+      }
+
       await logSafetyRestAudit({
         action: "unblock",
         actorUid: blockerId,
         targetUid: blockedId,
         route,
         method,
-        statusCode: 429,
-        metadata: { retryAfterMs: unblockLimit.retryAfterMs ?? null },
+        statusCode: 200,
         ip,
         userAgent,
       });
-      return res.status(429).json({
-        error: "Too many unblock requests",
-        retry_after_ms: unblockLimit.retryAfterMs,
-        message: `Please try again ${retryTime}`,
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Unblock error:", err);
+      const statusCode = isHttpsError(err)
+        ? httpStatusFromHttpsErrorCode(err.code)
+        : 500;
+      await logSafetyRestAudit({
+        action: "unblock",
+        actorUid,
+        targetUid: blockedId,
+        route,
+        method,
+        statusCode,
+        errorCode: isHttpsError(err) ? err.code : "internal",
+        ip,
+        userAgent,
       });
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to unblock user" });
     }
-
-    const docId = `${blockerId}_${blockedId}`;
-    await db.collection("blocks").doc(docId).delete();
-
-    // Backward-compat cleanup for legacy random-id block documents.
-    const legacyBlocksSnap = await db
-      .collection("blocks")
-      .where("blockerId", "==", blockerId)
-      .where("blockedId", "==", blockedId)
-      .get();
-    if (!legacyBlocksSnap.empty) {
-      await Promise.all(legacyBlocksSnap.docs.map((doc) => doc.ref.delete()));
-    }
-
-    await logSafetyRestAudit({
-      action: "unblock",
-      actorUid: blockerId,
-      targetUid: blockedId,
-      route,
-      method,
-      statusCode: 200,
-      ip,
-      userAgent,
-    });
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Unblock error:", err);
-    const statusCode = isHttpsError(err) ?
-      httpStatusFromHttpsErrorCode(err.code) :
-      500;
-    await logSafetyRestAudit({
-      action: "unblock",
-      actorUid,
-      targetUid: blockedId,
-      route,
-      method,
-      statusCode,
-      errorCode: isHttpsError(err) ? err.code : "internal",
-      ip,
-      userAgent,
-    });
-    if (isHttpsError(err)) {
-      return res
-        .status(httpStatusFromHttpsErrorCode(err.code))
-        .json({ error: err.message, code: err.code });
-    }
-    return res.status(500).json({ error: "Failed to unblock user" });
-  }
-});
+  },
+);
 
 // Report user
-app.post("/v1/users/report", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
-  const route = req.path || "/v1/users/report";
-  const method = req.method || "POST";
-  const actorUid = req.uid;
-  const ip = getRestClientIp(req);
-  const userAgent = req.header("user-agent") ?? null;
-  let reportedId: string | undefined;
-  let reasonCategory: ReportCategory | undefined;
+app.post(
+  "/v1/users/report",
+  authMiddleware,
+  requireVerifiedEmail,
+  rateLimitReport,
+  async (req: AuthRequest, res: Response) => {
+    const route = req.path || "/v1/users/report";
+    const method = req.method || "POST";
+    const actorUid = req.uid;
+    const ip = getRestClientIp(req);
+    const userAgent = req.header("user-agent") ?? null;
+    let reportedId: string | undefined;
+    let reasonCategory: ReportCategory | undefined;
 
-  try {
-    const reporterId = req.uid!;
-    reportedId = validateSafetyTargetId(req.body?.reported_id, "reported_id");
-    assertNotSelfSafetyAction(reporterId, reportedId, "report");
-    const reasonParsed = canonicalizeSafetyReportReason(
-      req.body?.reason,
-      { field: "reason", maxLength: 280, minLength: 3 }
-    );
-    const reason = reasonParsed.reasonText;
-    reasonCategory = reasonParsed.reasonCategory;
-    const description = validateOptionalSafetyDescription(req.body?.description);
-    const matchId = optionalString(req.body?.match_id) ?? null;
-    const messageId = optionalString(req.body?.message_id) ?? null;
-    await ensureUserExists(reportedId);
+    try {
+      const reporterId = req.uid!;
+      reportedId = validateSafetyTargetId(req.body?.reported_id, "reported_id");
+      assertNotSelfSafetyAction(reporterId, reportedId, "report");
+      const reasonParsed = canonicalizeSafetyReportReason(req.body?.reason, {
+        field: "reason",
+        maxLength: 280,
+        minLength: 3,
+      });
+      const reason = reasonParsed.reasonText;
+      reasonCategory = reasonParsed.reasonCategory;
+      const description = validateOptionalSafetyDescription(
+        req.body?.description,
+      );
+      const matchId = optionalString(req.body?.match_id) ?? null;
+      const messageId = optionalString(req.body?.message_id) ?? null;
+      await ensureUserExists(reportedId);
 
-    // Rate limiting
-    const reportLimit = await applyRateLimit(
-      `report:uid:${reporterId}`,
-      REPORT_LIMIT,
-      REPORT_WINDOW_MS,
-      REPORT_BLOCK_MS
-    );
-    if (!reportLimit.allowed) {
-      const retryTime = formatRetryTime(reportLimit.retryAfterMs);
+      // Rate limiting
+      const reportLimit = await applyRateLimit(
+        `report:uid:${reporterId}`,
+        REPORT_LIMIT,
+        REPORT_WINDOW_MS,
+        REPORT_BLOCK_MS,
+      );
+      if (!reportLimit.allowed) {
+        const retryTime = formatRetryTime(reportLimit.retryAfterMs);
+        await logSafetyRestAudit({
+          action: "report",
+          actorUid: reporterId,
+          targetUid: reportedId,
+          route,
+          method,
+          statusCode: 429,
+          reasonCategory: reasonCategory ?? null,
+          metadata: { retryAfterMs: reportLimit.retryAfterMs ?? null },
+          ip,
+          userAgent,
+        });
+        return res.status(429).json({
+          error: "Too many report requests",
+          retry_after_ms: reportLimit.retryAfterMs,
+          message: `Please try again ${retryTime}`,
+        });
+      }
+
+      await db.collection("reports").add({
+        reporterId,
+        reportedId,
+        reason,
+        reasonCategory,
+        description,
+        matchId,
+        messageId,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+
       await logSafetyRestAudit({
         action: "report",
         actorUid: reporterId,
         targetUid: reportedId,
         route,
         method,
-        statusCode: 429,
-        reasonCategory: reasonCategory ?? null,
-        metadata: { retryAfterMs: reportLimit.retryAfterMs ?? null },
+        statusCode: 200,
+        reasonCategory,
         ip,
         userAgent,
       });
-      return res.status(429).json({
-        error: "Too many report requests",
-        retry_after_ms: reportLimit.retryAfterMs,
-        message: `Please try again ${retryTime}`,
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Report error:", err);
+      const statusCode = isHttpsError(err)
+        ? httpStatusFromHttpsErrorCode(err.code)
+        : 500;
+      await logSafetyRestAudit({
+        action: "report",
+        actorUid,
+        targetUid: reportedId,
+        route,
+        method,
+        statusCode,
+        errorCode: isHttpsError(err) ? err.code : "internal",
+        reasonCategory: reasonCategory ?? null,
+        ip,
+        userAgent,
       });
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to report user" });
     }
-
-    await db.collection("reports").add({
-      reporterId,
-      reportedId,
-      reason,
-      reasonCategory,
-      description,
-      matchId,
-      messageId,
-      status: "pending",
-      createdAt: serverTimestamp(),
-    });
-
-    await logSafetyRestAudit({
-      action: "report",
-      actorUid: reporterId,
-      targetUid: reportedId,
-      route,
-      method,
-      statusCode: 200,
-      reasonCategory,
-      ip,
-      userAgent,
-    });
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Report error:", err);
-    const statusCode = isHttpsError(err) ?
-      httpStatusFromHttpsErrorCode(err.code) :
-      500;
-    await logSafetyRestAudit({
-      action: "report",
-      actorUid,
-      targetUid: reportedId,
-      route,
-      method,
-      statusCode,
-      errorCode: isHttpsError(err) ? err.code : "internal",
-      reasonCategory: reasonCategory ?? null,
-      ip,
-      userAgent,
-    });
-    if (isHttpsError(err)) {
-      return res
-        .status(httpStatusFromHttpsErrorCode(err.code))
-        .json({ error: err.message, code: err.code });
-    }
-    return res.status(500).json({ error: "Failed to report user" });
-  }
-});
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // APPLE CREDENTIAL REVOCATION WEBHOOK (AUTH-SEC-007)
@@ -9052,12 +9449,18 @@ app.post("/v1/auth/apple/revocation", async (req: Request, res: Response) => {
     // Find the Firebase user linked to this Apple ID
     let uid: string | undefined;
     try {
-      const userRecord = await admin.auth().getUserByProviderUid("apple.com", appleUserId);
+      const userRecord = await admin
+        .auth()
+        .getUserByProviderUid("apple.com", appleUserId);
       uid = userRecord.uid;
     } catch {
       // User may have already been deleted or never existed
-      console.warn(`Apple revocation: No user found for Apple ID ${appleUserId.substring(0, 8)}...`);
-      return res.status(200).json({ success: true, message: "No matching user" });
+      console.warn(
+        `Apple revocation: No user found for Apple ID ${appleUserId.substring(0, 8)}...`,
+      );
+      return res
+        .status(200)
+        .json({ success: true, message: "No matching user" });
     }
 
     // Revoke refresh tokens (signs out all devices)
@@ -9078,7 +9481,9 @@ app.post("/v1/auth/apple/revocation", async (req: Request, res: Response) => {
       metadata: { appleUserId: appleUserId.substring(0, 8) + "..." },
     });
 
-    console.log(`Apple revocation: Deactivated user ${uid} (Apple ID: ${appleUserId.substring(0, 8)}...)`);
+    console.log(
+      `Apple revocation: Deactivated user ${uid} (Apple ID: ${appleUserId.substring(0, 8)}...)`,
+    );
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("Apple revocation webhook error:", err);
@@ -9122,7 +9527,8 @@ async function syncChatSettingsToRtdb(uid: string): Promise<void> {
   const userDoc = await db.collection("users").doc(uid).get();
   const userData = userDoc.data();
   const isPremium = userData?.plan === "plus";
-  const extendedRetention = userData?.profile?.chatSettings?.extendedRetention === true;
+  const extendedRetention =
+    userData?.profile?.chatSettings?.extendedRetention === true;
 
   await rtdb.ref(`chat_settings/${uid}`).set({
     extendedRetention,
@@ -9138,7 +9544,7 @@ async function scheduleMessageDeletion(
   matchId: string,
   messageId: string,
   userId: string,
-  readAt: Date
+  readAt: Date,
 ): Promise<void> {
   const retentionHours = await getUserRetentionHours(userId);
   const deleteAt = new Date(readAt.getTime() + retentionHours * 60 * 60 * 1000);
@@ -9256,7 +9662,9 @@ export const processMessageDeletionQueue = functions.pubsub
         await rtdb.ref().update(rtdbUpdates);
       }
 
-      console.log(`Processed ${Object.keys(deletions).length} message deletions`);
+      console.log(
+        `Processed ${Object.keys(deletions).length} message deletions`,
+      );
       return null;
     } catch (error) {
       console.error("Error processing deletion queue:", error);
@@ -9322,21 +9730,24 @@ export const updateChatSettings = callable<{ extendedRetention: boolean }>(
     if (typeof extendedRetention !== "boolean") {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "extendedRetention must be a boolean"
+        "extendedRetention must be a boolean",
       );
     }
 
     // Update Firestore
-    await db.collection("users").doc(uid).set(
-      {
-        profile: {
-          chatSettings: {
-            extendedRetention,
+    await db
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          profile: {
+            chatSettings: {
+              extendedRetention,
+            },
           },
         },
-      },
-      { merge: true }
-    );
+        { merge: true },
+      );
 
     // Sync to RTDB
     await syncChatSettingsToRtdb(uid);
@@ -9353,7 +9764,7 @@ export const updateChatSettings = callable<{ extendedRetention: boolean }>(
         ? "Messages will be deleted 24 hours after being read"
         : "Messages will be deleted 1 hour after being read",
     };
-  }
+  },
 );
 
 /**
@@ -9370,14 +9781,14 @@ export const updateMatchChatSettings = callable<{
   if (typeof matchId !== "string" || !matchId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "matchId is required"
+      "matchId is required",
     );
   }
 
   if (typeof extendedRetention !== "boolean") {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "extendedRetention must be a boolean"
+      "extendedRetention must be a boolean",
     );
   }
 
@@ -9392,23 +9803,26 @@ export const updateMatchChatSettings = callable<{
   if (!userIds.includes(uid)) {
     throw new functions.https.HttpsError(
       "permission-denied",
-      "You are not part of this match"
+      "You are not part of this match",
     );
   }
 
   // Store per-user chat settings for this match
   // Each user in the match can have their own retention settings
-  await db.collection("matches").doc(matchId).set(
-    {
-      chatSettings: {
-        [uid]: {
-          extendedRetention,
-          updatedAt: Date.now(),
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .set(
+      {
+        chatSettings: {
+          [uid]: {
+            extendedRetention,
+            updatedAt: Date.now(),
+          },
         },
       },
-    },
-    { merge: true }
-  );
+      { merge: true },
+    );
 
   // Also sync to RTDB for real-time access
   await rtdb.ref(`matches/${matchId}/chatSettings/${uid}`).set({
@@ -9459,20 +9873,25 @@ app.put(
       const { extended_retention } = req.body;
 
       if (typeof extended_retention !== "boolean") {
-        return res.status(400).json({ error: "extended_retention must be a boolean" });
+        return res
+          .status(400)
+          .json({ error: "extended_retention must be a boolean" });
       }
 
       // Update Firestore
-      await db.collection("users").doc(req.uid!).set(
-        {
-          profile: {
-            chatSettings: {
-              extendedRetention: extended_retention,
+      await db
+        .collection("users")
+        .doc(req.uid!)
+        .set(
+          {
+            profile: {
+              chatSettings: {
+                extendedRetention: extended_retention,
+              },
             },
           },
-        },
-        { merge: true }
-      );
+          { merge: true },
+        );
 
       // Sync to RTDB
       await syncChatSettingsToRtdb(req.uid!);
@@ -9492,7 +9911,7 @@ app.put(
       console.error("Update chat settings error:", err);
       return res.status(500).json({ error: "Failed to update chat settings" });
     }
-  }
+  },
 );
 
 // Get chat settings
@@ -9530,7 +9949,7 @@ app.get(
       console.error("Get chat settings error:", err);
       return res.status(500).json({ error: "Failed to get chat settings" });
     }
-  }
+  },
 );
 
 // =============================================================================
@@ -9570,7 +9989,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
       if (messagesSnapshot.size > 0) {
         await batch.commit();
         deleted.push(
-          `matches/${matchDoc.id}/messages (${messagesSnapshot.size} docs)`
+          `matches/${matchDoc.id}/messages (${messagesSnapshot.size} docs)`,
         );
       }
 
@@ -9580,14 +9999,22 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     }
   } catch (error) {
     errors.push(
-      `matches cleanup: ${error instanceof Error ? error.message : String(error)}`
+      `matches cleanup: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
   // 2. Delete user's blocks, reports, likes
-  for (const subcollection of ["blocked", "reports", "likes_given", "likes_received"]) {
+  for (const subcollection of [
+    "blocked",
+    "reports",
+    "likes_given",
+    "likes_received",
+  ]) {
     try {
-      const subcollRef = db.collection("users").doc(uid).collection(subcollection);
+      const subcollRef = db
+        .collection("users")
+        .doc(uid)
+        .collection(subcollection);
       const snapshot = await subcollRef.limit(500).get();
       if (snapshot.size > 0) {
         const batch = db.batch();
@@ -9597,7 +10024,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
       }
     } catch (error) {
       errors.push(
-        `${subcollection}: ${error instanceof Error ? error.message : String(error)}`
+        `${subcollection}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -9622,7 +10049,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     }
   } catch (error) {
     errors.push(
-      `message_requests: ${error instanceof Error ? error.message : String(error)}`
+      `message_requests: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -9637,7 +10064,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
       }
     } catch (error) {
       errors.push(
-        `${collection}: ${error instanceof Error ? error.message : String(error)}`
+        `${collection}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -9652,7 +10079,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     }
   } catch (error) {
     errors.push(
-      `auth_credentials: ${error instanceof Error ? error.message : String(error)}`
+      `auth_credentials: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -9676,7 +10103,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     }
   } catch (error) {
     errors.push(
-      `storage: ${error instanceof Error ? error.message : String(error)}`
+      `storage: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -9688,7 +10115,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     deleted.push("rtdb:presence,typing,last_seen");
   } catch (error) {
     errors.push(
-      `rtdb: ${error instanceof Error ? error.message : String(error)}`
+      `rtdb: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -9698,7 +10125,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     deleted.push(`users/${uid}`);
   } catch (error) {
     errors.push(
-      `users doc: ${error instanceof Error ? error.message : String(error)}`
+      `users doc: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -9711,7 +10138,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     const authError = error as { code?: string; message?: string };
     if (authError?.code !== "auth/user-not-found") {
       errors.push(
-        `auth delete: ${error instanceof Error ? error.message : String(error)}`
+        `auth delete: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -9751,7 +10178,10 @@ export const processScheduledAccountDeletions = functions.pubsub
           console.error(`Deletion errors for ${uid}:`, result.errors);
           errorCount++;
         } else {
-          console.log(`Successfully deleted all data for user: ${uid}`, result.deleted);
+          console.log(
+            `Successfully deleted all data for user: ${uid}`,
+            result.deleted,
+          );
           processedCount++;
         }
       }
@@ -9780,7 +10210,7 @@ export const processScheduledAccountDeletions = functions.pubsub
         } else {
           console.log(
             `Successfully auto-deleted deactivated user: ${uid}`,
-            result.deleted
+            result.deleted,
           );
           processedCount++;
         }
@@ -9790,7 +10220,7 @@ export const processScheduledAccountDeletions = functions.pubsub
     }
 
     console.log(
-      `Account deletion run complete: ${processedCount} processed, ${errorCount} errors`
+      `Account deletion run complete: ${processedCount} processed, ${errorCount} errors`,
     );
     return null;
   });
@@ -9806,12 +10236,15 @@ export const requestAccountDeletion = functions.https.onCall(
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "Must be signed in to delete account."
+        "Must be signed in to delete account.",
       );
     }
 
     const uid = context.auth.uid;
-    const reason = typeof data?.reason === "string" ? data.reason.slice(0, 500) : "Not specified";
+    const reason =
+      typeof data?.reason === "string"
+        ? data.reason.slice(0, 500)
+        : "Not specified";
 
     const deletionDate = new Date();
     deletionDate.setDate(deletionDate.getDate() + DELETION_GRACE_PERIOD_DAYS);
@@ -9835,7 +10268,7 @@ export const requestAccountDeletion = functions.https.onCall(
       });
 
       console.log(
-        `Account deletion requested for ${uid}, scheduled for ${deletionDate.toISOString()}`
+        `Account deletion requested for ${uid}, scheduled for ${deletionDate.toISOString()}`,
       );
 
       return {
@@ -9848,10 +10281,10 @@ export const requestAccountDeletion = functions.https.onCall(
       console.error("requestAccountDeletion error:", error);
       throw new functions.https.HttpsError(
         "internal",
-        "Failed to process deletion request."
+        "Failed to process deletion request.",
       );
     }
-  }
+  },
 );
 
 /**
@@ -9864,7 +10297,7 @@ export const cancelAccountDeletion = functions.https.onCall(
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
-        "Must be signed in."
+        "Must be signed in.",
       );
     }
 
@@ -9879,11 +10312,13 @@ export const cancelAccountDeletion = functions.https.onCall(
       }
 
       // Check if still within grace period
-      const scheduledAt = userData.deletionScheduledAt?.toDate?.() || userData.deletionScheduledAt;
+      const scheduledAt =
+        userData.deletionScheduledAt?.toDate?.() ||
+        userData.deletionScheduledAt;
       if (scheduledAt && new Date() > new Date(scheduledAt)) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "Grace period has expired. Account deletion cannot be cancelled."
+          "Grace period has expired. Account deletion cannot be cancelled.",
         );
       }
 
@@ -9912,10 +10347,10 @@ export const cancelAccountDeletion = functions.https.onCall(
       console.error("cancelAccountDeletion error:", error);
       throw new functions.https.HttpsError(
         "internal",
-        "Failed to cancel deletion."
+        "Failed to cancel deletion.",
       );
     }
-  }
+  },
 );
 
 const DATA_EXPORT_COOLDOWN_DAYS = 7;
@@ -9929,9 +10364,11 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function toIsoString(value: unknown): string | null {
   if (!value) return null;
-  const timestampCtor = (admin.firestore as unknown as {
-    Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
-  })?.Timestamp;
+  const timestampCtor = (
+    admin.firestore as unknown as {
+      Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
+    }
+  )?.Timestamp;
   if (timestampCtor && value instanceof timestampCtor) {
     return value.toDate().toISOString();
   }
@@ -9946,9 +10383,11 @@ function toIsoString(value: unknown): string | null {
 
 function normalizeDate(value: unknown): Date | null {
   if (!value) return null;
-  const timestampCtor = (admin.firestore as unknown as {
-    Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
-  })?.Timestamp;
+  const timestampCtor = (
+    admin.firestore as unknown as {
+      Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
+    }
+  )?.Timestamp;
   if (timestampCtor && value instanceof timestampCtor) {
     return value.toDate();
   }
@@ -9983,12 +10422,14 @@ export const requestDataExport = callable<DataExportRequest>(
       const lastCreatedAt = normalizeDate(latestData.createdAt);
       if (lastCreatedAt) {
         const nextAllowedAt = new Date(lastCreatedAt.getTime());
-        nextAllowedAt.setDate(nextAllowedAt.getDate() + DATA_EXPORT_COOLDOWN_DAYS);
+        nextAllowedAt.setDate(
+          nextAllowedAt.getDate() + DATA_EXPORT_COOLDOWN_DAYS,
+        );
         if (nextAllowedAt.getTime() > Date.now()) {
           throw new functions.https.HttpsError(
             "failed-precondition",
             "Data export can only be requested once every 7 days.",
-            { nextAllowedAt: nextAllowedAt.toISOString() }
+            { nextAllowedAt: nextAllowedAt.toISOString() },
           );
         }
       }
@@ -10006,7 +10447,7 @@ export const requestDataExport = callable<DataExportRequest>(
       requestId: requestRef.id,
       status: "queued",
     };
-  }
+  },
 );
 
 /**
@@ -10027,7 +10468,7 @@ export const processDataExportRequest = functions.firestore
           startedAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         },
-        { merge: true }
+        { merge: true },
       );
 
       const userSnap = await db.collection("users").doc(userId).get();
@@ -10052,7 +10493,9 @@ export const processDataExportRequest = functions.firestore
           id: doc.id,
           userIds: Array.isArray(data.userIds)
             ? data.userIds
-            : (Array.isArray(data.participants) ? data.participants : []),
+            : Array.isArray(data.participants)
+              ? data.participants
+              : [],
           status: data.status ?? "unknown",
           createdAt: toIsoString(data.createdAt),
           updatedAt: toIsoString(data.updatedAt),
@@ -10092,7 +10535,10 @@ export const processDataExportRequest = functions.firestore
 
       const messages: Array<Record<string, unknown>> = [];
       for (const matchDoc of matchesSnap.docs) {
-        const messagesSnap = await matchDoc.ref.collection("messages").limit(3000).get();
+        const messagesSnap = await matchDoc.ref
+          .collection("messages")
+          .limit(3000)
+          .get();
         for (const messageDoc of messagesSnap.docs) {
           const messageData = asRecord(messageDoc.data());
           messages.push({
@@ -10183,7 +10629,7 @@ export const processDataExportRequest = functions.firestore
           downloadUrl,
           stats,
         },
-        { merge: true }
+        { merge: true },
       );
 
       await smartSendNotification(userId, "subscriptions", {
@@ -10208,7 +10654,7 @@ export const processDataExportRequest = functions.firestore
           updatedAt: serverTimestamp(),
           error: error instanceof Error ? error.message : String(error),
         },
-        { merge: true }
+        { merge: true },
       );
     }
   });
@@ -10237,11 +10683,12 @@ export const getChatMediaSignedUrl = callable<ChatMediaUrlRequest>(
     }
 
     const matchData = matchDoc.data();
-    const participants: string[] = matchData?.users ?? matchData?.participants ?? [];
+    const participants: string[] =
+      matchData?.users ?? matchData?.participants ?? [];
     if (!participants.includes(uid)) {
       throw new functions.https.HttpsError(
         "permission-denied",
-        "You are not a participant in this match."
+        "You are not a participant in this match.",
       );
     }
 
@@ -10252,7 +10699,7 @@ export const getChatMediaSignedUrl = callable<ChatMediaUrlRequest>(
     if (!isValidPath) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Invalid file path for this match."
+        "Invalid file path for this match.",
       );
     }
 
@@ -10271,7 +10718,7 @@ export const getChatMediaSignedUrl = callable<ChatMediaUrlRequest>(
     });
 
     return { url: signedUrl };
-  }
+  },
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -10307,7 +10754,7 @@ export const scheduledFirestoreBackup = functions.pubsub
 
       console.log(
         `FirestoreBackup: Export started to ${outputUri}`,
-        `Operation: ${operation.name}`
+        `Operation: ${operation.name}`,
       );
 
       return null;

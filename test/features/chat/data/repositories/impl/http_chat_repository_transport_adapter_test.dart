@@ -9,6 +9,8 @@ import 'package:crushhour/features/chat/domain/repositories/chat_transport_adapt
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('HttpChatRepository transport adapter', () {
     test('setTyping uses realtime transport when connected', () async {
       final transport = _FakeChatTransportAdapter(isRealtimeConnected: true);
@@ -203,6 +205,12 @@ class _FakeChatTransportAdapter implements ChatTransportAdapter {
   void sendRealtimeEvent(RealtimeEvent event) {
     sentRealtimeEvents.add(event);
   }
+
+  @override
+  void connectRealtime() {}
+
+  @override
+  void disconnectRealtime() {}
 
   Future<void> dispose() async {
     await _messageController.close();

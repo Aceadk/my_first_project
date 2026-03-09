@@ -18,7 +18,7 @@ import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_transport_adapter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' hide ConnectionState;
 
 import '../chat_repository.dart';
 import 'http_chat_transport_adapter.dart';
@@ -27,7 +27,7 @@ import 'http_chat_transport_adapter.dart';
 ///
 /// Uses HTTP for CRUD operations and WebSocket for real-time updates.
 /// Polling is used as a fallback when WebSocket is unavailable.
-class HttpChatRepository implements ChatRepository {
+class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
   HttpChatRepository({
     ApiClient? apiClient,
     String currentUserId = '',
@@ -52,6 +52,9 @@ class HttpChatRepository implements ChatRepository {
     _webSocketStateSubscription = _transportAdapter.realtimeStateStream.listen(
       _onWebSocketStateChanged,
     );
+
+    // CHAT-RT-004: Observe application lifecycle to actively manage WebSocket
+    WidgetsBinding.instance.addObserver(this);
   }
 
   final ChatTransportAdapter _transportAdapter;
@@ -964,8 +967,34 @@ class HttpChatRepository implements ChatRepository {
   Set<String> get activePollingTimerKeys =>
       Set.unmodifiable(_pollingTimers.keys.toSet());
 
+  // CHAT-RT-001 & CHAT-RT-004: App Lifecycle Management
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      AppLogger.info(
+        'HttpChatRepository: App resumed. Reconnecting WebSocket...',
+      );
+      _transportAdapter.connectRealtime();
+      _resumePollingFallback();
+
+      // Force fetch active chats to catch any messages missed while asleep via APNs/FCM
+      for (final matchId in _messageControllers.keys) {
+        _fetchMessages(matchId);
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      AppLogger.info(
+        'HttpChatRepository: App backgrounded. Disconnecting WebSocket...',
+      );
+      _transportAdapter.disconnectRealtime();
+      _pausePollingFallback();
+    }
+  }
+
   /// Dispose all resources.
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _webSocketSubscription?.cancel();
     _webSocketStateSubscription?.cancel();
     _lifecycleTimers.cancelAll();

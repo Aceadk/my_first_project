@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:crushhour/core/app_logger.dart';
@@ -62,6 +63,8 @@ class ChatInputBarState extends State<ChatInputBar> {
   bool _hasInputText = false;
   bool _isRecordingVoice = false;
   bool _isPickingMedia = false;
+  Timer? _typingDebounceTimer;
+  bool _isTypingSent = false;
 
   @override
   void initState() {
@@ -72,6 +75,7 @@ class ChatInputBarState extends State<ChatInputBar> {
 
   @override
   void dispose() {
+    _typingDebounceTimer?.cancel();
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _inputFocusNode.dispose();
@@ -83,13 +87,49 @@ class ChatInputBarState extends State<ChatInputBar> {
     if (_hasInputText != hasText) {
       setState(() => _hasInputText = hasText);
     }
-    context.read<ChatBloc>().add(
-      ChatTypingStatusChanged(
-        isTyping: hasText,
-        matchId: widget.matchId,
-        userId: widget.currentUserId,
-      ),
-    );
+
+    // Cancel the existing timer
+    _typingDebounceTimer?.cancel();
+
+    if (hasText) {
+      if (!_isTypingSent) {
+        // Only send typing=true if we haven't already
+        _isTypingSent = true;
+        context.read<ChatBloc>().add(
+          ChatTypingStatusChanged(
+            isTyping: true,
+            matchId: widget.matchId,
+            userId: widget.currentUserId,
+          ),
+        );
+      }
+
+      // Debounce: wait 2.5 seconds after last keystroke to send typing=false
+      _typingDebounceTimer = Timer(const Duration(milliseconds: 2500), () {
+        if (mounted) {
+          _isTypingSent = false;
+          context.read<ChatBloc>().add(
+            ChatTypingStatusChanged(
+              isTyping: false,
+              matchId: widget.matchId,
+              userId: widget.currentUserId,
+            ),
+          );
+        }
+      });
+    } else {
+      // If the field is cleared immediately, tell the backend and clear the flag
+      if (_isTypingSent) {
+        _isTypingSent = false;
+        context.read<ChatBloc>().add(
+          ChatTypingStatusChanged(
+            isTyping: false,
+            matchId: widget.matchId,
+            userId: widget.currentUserId,
+          ),
+        );
+      }
+    }
   }
 
   void insertText(String text) {
@@ -145,6 +185,11 @@ class ChatInputBarState extends State<ChatInputBar> {
         type: MessageType.text,
       ),
     );
+
+    // Immediately clear typing state when message is sent
+    _typingDebounceTimer?.cancel();
+    _isTypingSent = false;
+
     _controller.clear();
     _onTextChanged();
   }

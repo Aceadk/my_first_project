@@ -1,11 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+import '../theme/theme_extensions.dart';
 import '../tokens/blur.dart';
 import '../tokens/colors.dart';
 import '../tokens/gradients.dart';
 import '../tokens/radius.dart';
-import '../theme/theme_extensions.dart';
 
 /// A glassmorphism card with optional gradient border.
 ///
@@ -38,6 +39,7 @@ class GlassCard extends StatelessWidget {
     this.backgroundColor,
     this.onTap,
     this.elevation = 0,
+    this.semanticLabel,
   });
 
   /// The widget to display inside the card.
@@ -72,6 +74,9 @@ class GlassCard extends StatelessWidget {
 
   /// Elevation for shadow (0 for no shadow).
   final double elevation;
+
+  /// Semantic label for screen readers when card is tappable.
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +163,13 @@ class GlassCard extends StatelessWidget {
           child: cardContent,
         ),
       );
+      if (semanticLabel != null) {
+        cardContent = Semantics(
+          button: true,
+          label: semanticLabel,
+          child: cardContent,
+        );
+      }
     }
 
     return Container(margin: margin, child: cardContent);
@@ -177,6 +189,7 @@ class GlassCardAccent extends StatelessWidget {
     this.margin,
     this.gradient,
     this.onTap,
+    this.semanticLabel,
   });
 
   final Widget child;
@@ -186,6 +199,7 @@ class GlassCardAccent extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final LinearGradient? gradient;
   final VoidCallback? onTap;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +237,9 @@ class GlassCardAccent extends StatelessWidget {
           child: content,
         ),
       );
+      if (semanticLabel != null) {
+        content = Semantics(button: true, label: semanticLabel, child: content);
+      }
     }
 
     return Container(

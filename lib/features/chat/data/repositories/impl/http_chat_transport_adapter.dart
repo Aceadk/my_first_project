@@ -113,4 +113,14 @@ class HttpChatTransportAdapter implements ChatTransportAdapter {
     }
     socket.sendEvent(event);
   }
+
+  @override
+  void connectRealtime() {
+    _webSocket?.connect();
+  }
+
+  @override
+  void disconnectRealtime() {
+    _webSocket?.disconnect();
+  }
 }

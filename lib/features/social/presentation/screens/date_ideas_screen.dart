@@ -1,11 +1,11 @@
 import 'dart:ui';
 
+import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/features/social/domain/models/date_idea.dart';
+import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/design_system/design_system.dart';
-import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
-import 'package:crushhour/features/social/domain/models/date_idea.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen displaying date ideas for matches.
 const Key dateIdeasContentConstraintKey = ValueKey<String>(
@@ -129,7 +129,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                                     previous.selectedCategory !=
                                     current.selectedCategory,
                                 builder: (context, state) {
-                                  final categories = DateCategory.values;
+                                  const categories = DateCategory.values;
                                   return SizedBox(
                                     height: 40,
                                     child: ListView.builder(
@@ -175,7 +175,7 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
                                     previous.selectedCostLevel !=
                                     current.selectedCostLevel,
                                 builder: (context, state) {
-                                  final costs = DateCostLevel.values;
+                                  const costs = DateCostLevel.values;
                                   return SizedBox(
                                     height: 32,
                                     child: ListView.builder(

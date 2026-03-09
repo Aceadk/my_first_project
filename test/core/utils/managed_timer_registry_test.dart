@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:crushhour/core/utils/managed_timer_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
 

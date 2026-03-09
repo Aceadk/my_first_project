@@ -93,6 +93,15 @@ class PlusFeatureGate extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Maybe later'),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      context.read<SubscriptionBloc>().add(
+                        SubscriptionRestoreRequested(),
+                      );
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Restore Purchases'),
+                  ),
                 ],
               ),
             ),

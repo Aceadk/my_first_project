@@ -4,6 +4,7 @@ import 'package:crushhour/data/models/profile_reaction.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/utils/accessibility.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import 'swipe_card.dart';
 
@@ -72,6 +73,7 @@ class _SwipeableCardState extends State<SwipeableCard>
   @override
   void initState() {
     super.initState();
+    // We defer setting the duration until build/animateOut where context is available
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -176,13 +178,19 @@ class _SwipeableCardState extends State<SwipeableCard>
     final targetX = isLike ? screenWidth : -screenWidth;
 
     // Haptic feedback when swipe is confirmed
-    if (!DsAccessibility.prefersReducedMotion(context)) {
+    final reducedMotion = DsAccessibility.prefersReducedMotion(context);
+    if (!reducedMotion) {
       if (isLike) {
         HapticService.like();
       } else {
         HapticService.nope();
       }
     }
+
+    // Faster or instant transition for reduced motion
+    _animationController.duration = Duration(
+      milliseconds: reducedMotion ? 50 : 200,
+    );
 
     _animationX = Tween<double>(begin: _dragXNotifier.value, end: targetX)
         .animate(
@@ -207,11 +215,16 @@ class _SwipeableCardState extends State<SwipeableCard>
 
   void _animateOutUp() {
     final screenHeight = MediaQuery.of(context).size.height;
+    final reducedMotion = DsAccessibility.prefersReducedMotion(context);
 
     // Strong haptic feedback for SuperLike
-    if (!DsAccessibility.prefersReducedMotion(context)) {
+    if (!reducedMotion) {
       HapticService.superLike();
     }
+
+    _animationController.duration = Duration(
+      milliseconds: reducedMotion ? 50 : 200,
+    );
 
     _animationX = Tween<double>(begin: _dragXNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
@@ -231,6 +244,11 @@ class _SwipeableCardState extends State<SwipeableCard>
   }
 
   void _animateBack() {
+    final reducedMotion = DsAccessibility.prefersReducedMotion(context);
+    _animationController.duration = Duration(
+      milliseconds: reducedMotion ? 50 : 200,
+    );
+
     _animationX = Tween<double>(begin: _dragXNotifier.value, end: 0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
@@ -244,6 +262,13 @@ class _SwipeableCardState extends State<SwipeableCard>
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      label: 'Profile card for ${widget.profile.name}',
+      customSemanticsActions: {
+        const CustomSemanticsAction(label: 'Pass'): widget.onSwipeLeft,
+        const CustomSemanticsAction(label: 'Like'): widget.onSwipeRight,
+        if (widget.superLikeEnabled && widget.onSwipeUp != null)
+          const CustomSemanticsAction(label: 'Super Like'): widget.onSwipeUp!,
+      },
       child: GestureDetector(
         onTap: _isDragging ? null : widget.onTap,
         onPanStart: _onPanStart,
@@ -257,10 +282,18 @@ class _SwipeableCardState extends State<SwipeableCard>
               return ValueListenableBuilder<double>(
                 valueListenable: _dragYNotifier,
                 builder: (context, dragY, child) {
-                  final rotation = (dragX / _rotationDivisor).clamp(
-                    -_maxRotation,
-                    _maxRotation,
+                  final reducedMotion = DsAccessibility.prefersReducedMotion(
+                    context,
                   );
+
+                  // Cancel rotation entirely if reduced motion is preferred
+                  final rotation = reducedMotion
+                      ? 0.0
+                      : (dragX / _rotationDivisor).clamp(
+                          -_maxRotation,
+                          _maxRotation,
+                        );
+
                   final horizontalOpacity =
                       1 - (dragX.abs() / _opacityDivisor).clamp(0.0, 0.3);
                   final verticalOpacity =
